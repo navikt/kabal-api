@@ -4,6 +4,7 @@ import no.nav.klage.oppgave.domain.kodeverk.Eoes
 import no.nav.klage.oppgave.domain.kodeverk.EoesConverter
 import no.nav.klage.oppgave.domain.kodeverk.RaadfoertMedLege
 import no.nav.klage.oppgave.domain.kodeverk.RaadfoertMedLegeConverter
+import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
@@ -12,6 +13,7 @@ import javax.persistence.*
 @Table(name = "kvalitetsvurdering", schema = "klage")
 class Kvalitetsvurdering(
     @Id
+    @JvmField
     val id: UUID = UUID.randomUUID(),
     @Column(name = "eoes_id")
     @Convert(converter = EoesConverter::class)
@@ -33,7 +35,23 @@ class Kvalitetsvurdering(
     val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "modified")
     var modified: LocalDateTime = LocalDateTime.now()
-) {
+) : Persistable<UUID> {
+
+    override fun getId(): UUID = id
+
+    @Transient
+    private var isNew = true
+
+    override fun isNew(): Boolean {
+        return isNew
+    }
+
+    @PrePersist
+    @PostLoad
+    fun markNotNew() {
+        isNew = false
+    }
+
     override fun toString(): String {
         return "Tilbakemelding(id=$id, " +
                 "modified=$modified, " +

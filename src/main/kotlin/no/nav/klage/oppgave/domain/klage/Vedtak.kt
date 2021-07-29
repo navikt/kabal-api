@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.domain.klage
 
 import no.nav.klage.oppgave.domain.kodeverk.*
 import no.nav.klage.oppgave.exceptions.BrevMottakerNotFoundException
+import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
@@ -10,7 +11,7 @@ import javax.persistence.*
 @Table(name = "vedtak", schema = "klage")
 class Vedtak(
     @Id
-    val id: UUID = UUID.randomUUID(),
+    private val id: UUID = UUID.randomUUID(),
     @Column(name = "utfall_id")
     @Convert(converter = UtfallConverter::class)
     var utfall: Utfall? = null,
@@ -41,7 +42,23 @@ class Vedtak(
     var ferdigstiltIJoark: LocalDateTime? = null,
     @Column(name = "ferdig_distribuert")
     var ferdigDistribuert: LocalDateTime? = null
-) {
+) : Persistable<UUID> {
+
+    override fun getId(): UUID = id
+
+    @Transient
+    private var isNew = true
+
+    override fun isNew(): Boolean {
+        return isNew
+    }
+
+    @PrePersist
+    @PostLoad
+    fun markNotNew() {
+        isNew = false
+    }
+
     override fun toString(): String {
         return "Vedtak(id=$id, " +
                 "modified=$modified, " +

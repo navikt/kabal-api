@@ -4,10 +4,12 @@ import no.nav.klage.oppgave.domain.klage.Klagebehandling.Status.*
 import no.nav.klage.oppgave.domain.kodeverk.*
 import no.nav.klage.oppgave.exceptions.KlagebehandlingSamtidigEndretException
 import no.nav.klage.oppgave.exceptions.VedtakNotFoundException
+import org.springframework.data.domain.Persistable
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
+
 
 const val KLAGEENHET_PREFIX = "42"
 
@@ -15,6 +17,7 @@ const val KLAGEENHET_PREFIX = "42"
 @Table(name = "klagebehandling", schema = "klage")
 class Klagebehandling(
     @Id
+    @JvmField
     val id: UUID = UUID.randomUUID(),
     @Version
     @Column(name = "versjon")
@@ -104,7 +107,22 @@ class Klagebehandling(
     val kildesystem: Fagsystem,
     @Column(name = "kommentar_fra_foersteinstans")
     val kommentarFraFoersteinstans: String? = null,
-) {
+) : Persistable<UUID> {
+
+    override fun getId(): UUID = id
+
+    @Transient
+    private var isNew = true
+
+    override fun isNew(): Boolean {
+        return isNew
+    }
+
+    @PrePersist
+    @PostLoad
+    fun markNotNew() {
+        isNew = false
+    }
 
     override fun toString(): String {
         return "Behandling(id=$id, " +

@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.domain.klage
 
 import no.nav.klage.oppgave.domain.kodeverk.Rolle
 import no.nav.klage.oppgave.domain.kodeverk.RolleConverter
+import org.springframework.data.domain.Persistable
 import java.util.*
 import javax.persistence.*
 
@@ -10,6 +11,7 @@ import javax.persistence.*
 class BrevMottaker(
 
     @Id
+    @JvmField
     val id: UUID = UUID.randomUUID(),
     @Embedded
     @AttributeOverrides(
@@ -26,7 +28,23 @@ class BrevMottaker(
     var journalpostId: String? = null,
     @Column(name = "dokdist_referanse")
     var dokdistReferanse: UUID? = null
-) {
+) : Persistable<UUID> {
+
+    override fun getId(): UUID = id
+
+    @Transient
+    private var isNew = true
+
+    override fun isNew(): Boolean {
+        return isNew
+    }
+
+    @PrePersist
+    @PostLoad
+    fun markNotNew() {
+        isNew = false
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

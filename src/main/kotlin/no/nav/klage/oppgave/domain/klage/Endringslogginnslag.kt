@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.domain.klage
 
+import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
@@ -25,10 +26,27 @@ class Endringslogginnslag(
     @Column(name = "klagebehandling_id")
     val klagebehandlingId: UUID,
     @Id
+    @JvmField
     val id: UUID = UUID.randomUUID(),
     @Column(name = "tidspunkt")
     val tidspunkt: LocalDateTime = LocalDateTime.now()
-) {
+) : Persistable<UUID> {
+
+    override fun getId(): UUID = id
+
+    @Transient
+    private var isNew = true
+
+    override fun isNew(): Boolean {
+        return isNew
+    }
+
+    @PrePersist
+    @PostLoad
+    fun markNotNew() {
+        isNew = false
+    }
+
     companion object {
 
         fun endringslogg(

@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
 import no.nav.klage.oppgave.domain.kodeverk.*
+import org.springframework.data.domain.Persistable
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -10,6 +11,7 @@ import javax.persistence.*
 @Table(name = "mottak", schema = "klage")
 class Mottak(
     @Id
+    @JvmField
     val id: UUID = UUID.randomUUID(),
     @Version
     @Column(name = "versjon")
@@ -62,7 +64,22 @@ class Mottak(
     val kildesystem: Fagsystem,
     @Column(name = "kommentar")
     val kommentar: String? = null,
-) {
+) : Persistable<UUID> {
+
+    override fun getId(): UUID = id
+
+    @Transient
+    private var isNew = true
+
+    override fun isNew(): Boolean {
+        return isNew
+    }
+
+    @PrePersist
+    @PostLoad
+    fun markNotNew() {
+        isNew = false
+    }
 
     override fun toString(): String {
         return "Mottak(id=$id, " +
