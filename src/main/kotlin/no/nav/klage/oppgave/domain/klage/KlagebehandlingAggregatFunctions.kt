@@ -541,7 +541,7 @@ object KlagebehandlingAggregatFunctions {
                 saksbehandlerident,
                 Felt.SAKSDOKUMENT,
                 null,
-                saksdokument.journalpostId,
+                saksdokument.dokumentInfoId,
                 id,
                 tidspunkt
             )
@@ -561,7 +561,7 @@ object KlagebehandlingAggregatFunctions {
             val endringslogg = Endringslogginnslag.endringslogg(
                 saksbehandlerident,
                 Felt.SAKSDOKUMENT,
-                saksdokument.journalpostId,
+                saksdokument.dokumentInfoId,
                 null,
                 id,
                 tidspunkt
