@@ -527,9 +527,6 @@ class KlagebehandlingService(
         return dokumentService.fetchDokumentlisteForKlagebehandling(klagebehandling, temaer, pageSize, previousPageRef)
     }
 
-    fun fetchJournalpostIderConnectedToKlagebehandling(klagebehandlingId: UUID): List<String> =
-        getKlagebehandling(klagebehandlingId).saksdokumenter.map { it.journalpostId }
-
     fun fetchJournalposterConnectedToKlagebehandling(klagebehandlingId: UUID): DokumenterResponse {
         val klagebehandling = getKlagebehandling(klagebehandlingId)
         return dokumentService.fetchJournalposterConnectedToKlagebehandling(klagebehandling)

@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
-import no.nav.klage.oppgave.api.view.DokumentReferanserResponse
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.kodeverk.Tema
@@ -54,10 +53,9 @@ class KlagebehandlingDokumentController(
         )
     }
 
-    //TODO: Blir denne brukt?
     @ApiOperation(
-        value = "Hent dokumenter knyttet til en klagebehandling",
-        notes = "Henter dokumentene som saksbehandler har markert at skal knyttes til klagebehandlingen."
+        value = "Henter journalposter med dokumenter knyttet til en klagebehandling",
+        notes = "Henter journalpostene til dokumentene som saksbehandler har markert at skal knyttes til klagebehandlingen."
     )
     @GetMapping("/klagebehandlinger/{behandlingsid}/dokumenter", produces = ["application/json"])
     fun fetchConnectedDokumenter(
@@ -66,24 +64,6 @@ class KlagebehandlingDokumentController(
     ): DokumenterResponse {
         val klagebehandlingId = parseAndValidate(behandlingsid)
         return klagebehandlingService.fetchJournalposterConnectedToKlagebehandling(klagebehandlingId)
-    }
-
-    //TODO: Blir denne brukt?
-    @ApiOperation(
-        value = "Hent IDene til dokumentene knyttet til en klagebehandling",
-        notes = "Henter IDene til dokumentene som saksbehandler har markert at skal knyttes til klagebehandlingen."
-    )
-    @GetMapping("/klagebehandlinger/{behandlingsid}/dokumentreferanser", produces = ["application/json"])
-    fun fetchConnectedDokumentIder(
-        @ApiParam(value = "Id til klagebehandlingen i vårt system")
-        @PathVariable behandlingsid: String
-    ): DokumentReferanserResponse {
-        val klagebehandlingId = parseAndValidate(behandlingsid)
-        return DokumentReferanserResponse(
-            klagebehandlingService.fetchJournalpostIderConnectedToKlagebehandling(
-                klagebehandlingId
-            )
-        )
     }
 
     @ResponseBody

@@ -62,8 +62,8 @@ class DokumentService(
     
 
     fun fetchJournalposterConnectedToKlagebehandling(klagebehandling: Klagebehandling): DokumenterResponse {
-        val dokumentReferanser = klagebehandling.saksdokumenter
-            .mapNotNull { safGraphQlClient.getJournalpostAsSaksbehandler(it.journalpostId) }
+        val dokumentReferanser = klagebehandling.saksdokumenter.groupBy { it.journalpostId }.keys
+            .mapNotNull { safGraphQlClient.getJournalpostAsSaksbehandler(it) }
             .map { dokumentMapper.mapJournalpostToDokumentReferanse(it, klagebehandling) }
         return DokumenterResponse(
             dokumenter = dokumentReferanser,
@@ -186,7 +186,7 @@ class DokumentMapper {
         journalpost: Journalpost,
         klagebehandling: Klagebehandling
     ): List<DokumentReferanse.VedleggReferanse> {
-        return if (journalpost.dokumenter?.size ?: 0 > 1) {
+        return if ((journalpost.dokumenter?.size ?: 0) > 1) {
             journalpost.dokumenter?.subList(1, journalpost.dokumenter.size)?.map { vedlegg ->
                 DokumentReferanse.VedleggReferanse(
                     tittel = vedlegg.tittel,
