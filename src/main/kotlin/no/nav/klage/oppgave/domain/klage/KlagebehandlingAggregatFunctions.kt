@@ -556,7 +556,7 @@ object KlagebehandlingAggregatFunctions {
     ): KlagebehandlingEndretEvent? {
         if (saksdokumenter.any { it.journalpostId == saksdokument.journalpostId && it.dokumentInfoId == saksdokument.dokumentInfoId }) {
             val tidspunkt = LocalDateTime.now()
-            saksdokumenter.removeIf { it.journalpostId == saksdokument.journalpostId }
+            saksdokumenter.removeIf { it.journalpostId == saksdokument.journalpostId && it.dokumentInfoId == saksdokument.dokumentInfoId }
             modified = tidspunkt
             val endringslogg = Endringslogginnslag.endringslogg(
                 saksbehandlerident,
