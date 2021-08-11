@@ -90,6 +90,7 @@ spec:
     inbound:
       rules:
         - application: kabal-frontend
+        - application: klage-dittnav-api
         - application: k9-klage
           namespace: k9saksbehandling
           cluster: {{k9_cluster}}

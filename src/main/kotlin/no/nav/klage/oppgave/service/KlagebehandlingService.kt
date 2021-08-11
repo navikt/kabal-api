@@ -102,6 +102,39 @@ class KlagebehandlingService(
             .also { checkSkrivetilgangForSystembruker(it) }
             .also { it.checkOptimisticLocking(klagebehandlingVersjon) }
 
+    var muligAnkeUtfall = setOf(
+        Utfall.MEDHOLD,
+        Utfall.DELVIS_MEDHOLD,
+        Utfall.OPPRETTHOLDT,
+        Utfall.UGUNST,
+        Utfall.AVVIST
+    )
+
+    fun findMuligAnkeByPartId(
+        partId: String
+    ): List<MuligAnke> =
+        klagebehandlingRepository.findByAvsluttetIsNotNull()
+            .filter {
+                it.klager.partId.value == partId &&
+                muligAnkeUtfall.contains(it.vedtak.first().utfall)
+            }
+            .map { it.toMuligAnke() }
+
+    fun findMuligAnkeByPartIdAndKlagebehandlingId(
+        partId: String,
+        klagebehandlingId: UUID
+    ): MuligAnke? {
+        val klageBehandling = klagebehandlingRepository.findByIdAndAvsluttetIsNotNull(klagebehandlingId)
+        return if (
+            klageBehandling.klager.partId.value == partId &&
+            muligAnkeUtfall.contains(klageBehandling.vedtak.first().utfall)
+        ) {
+            klageBehandling.toMuligAnke()
+        } else {
+            null
+        }
+    }
+
     fun assignKlagebehandling(
         klagebehandlingId: UUID,
         klagebehandlingVersjon: Long?,
@@ -604,5 +637,14 @@ class KlagebehandlingService(
         applicationEventPublisher.publishEvent(event)
         return klagebehandling
     }
+
+    private fun Klagebehandling.toMuligAnke(): MuligAnke = MuligAnke(
+        this.id,
+        this.tema,
+        this.vedtak.first().utfall,
+        this.innsendt,
+        this.avsluttetAvSaksbehandler,
+        this.klager.partId.value
+    )
 
 }
