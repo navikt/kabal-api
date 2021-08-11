@@ -9,8 +9,8 @@ import java.util.*
 data class MuligAnke (
     val internalSaksnummer: UUID,
     val tema: Tema,
-    val utfall: Utfall?,
-    val innsendtDate: LocalDate? = null,
-    val vedtakDate: LocalDateTime? = null,
+    val utfall: Utfall,
+    val innsendtDate: LocalDate,
+    val vedtakDate: LocalDateTime,
     val klagerPartId: String
 )

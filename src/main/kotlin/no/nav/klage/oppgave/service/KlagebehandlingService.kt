@@ -641,9 +641,9 @@ class KlagebehandlingService(
     private fun Klagebehandling.toMuligAnke(): MuligAnke = MuligAnke(
         this.id,
         this.tema,
-        this.vedtak.first().utfall,
-        this.innsendt,
-        this.avsluttetAvSaksbehandler,
+        this.vedtak.first().utfall!!,
+        this.innsendt!!,
+        this.avsluttetAvSaksbehandler!!,
         this.klager.partId.value
     )
 
