@@ -124,14 +124,13 @@ class KlagebehandlingService(
         partId: String,
         klagebehandlingId: UUID
     ): MuligAnke? {
-        val klageBehandling = klagebehandlingRepository.findByIdAndAvsluttetIsNotNull(klagebehandlingId)
+        val klagebehandling = klagebehandlingRepository.findByIdAndAvsluttetIsNotNull(klagebehandlingId) ?: return null
         return if (
-            klageBehandling.klager.partId.value == partId &&
-            muligAnkeUtfall.contains(klageBehandling.vedtak.first().utfall)
+            klagebehandling.klager.partId.value == partId && muligAnkeUtfall.contains(klagebehandling.vedtak.first().utfall)
         ) {
-            klageBehandling.toMuligAnke()
+            klagebehandling.toMuligAnke()
         } else {
-            null
+            return null
         }
     }
 

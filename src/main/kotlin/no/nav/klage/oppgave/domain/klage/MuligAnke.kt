@@ -12,5 +12,5 @@ data class MuligAnke (
     val utfall: Utfall,
     val innsendtDate: LocalDate,
     val vedtakDate: LocalDateTime,
-    val klagerPartId: String
+    val foedselsnummer: String
 )

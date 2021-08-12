@@ -15,7 +15,7 @@ interface KlagebehandlingRepository : JpaRepository<Klagebehandling, UUID> {
 
     fun findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull(): List<Klagebehandling>
 
-    fun findByIdAndAvsluttetIsNotNull(id: UUID): Klagebehandling
+    fun findByIdAndAvsluttetIsNotNull(id: UUID): Klagebehandling?
 
     fun findByAvsluttetIsNotNull(): List<Klagebehandling>
 
