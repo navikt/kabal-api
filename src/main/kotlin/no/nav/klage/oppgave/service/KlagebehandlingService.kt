@@ -130,7 +130,7 @@ class KlagebehandlingService(
         ) {
             klagebehandling.toMuligAnke()
         } else {
-            return null
+            null
         }
     }
 
