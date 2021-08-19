@@ -129,6 +129,19 @@ class KlagebehandlingService(
         }
     }
 
+    fun findLatestEnhetByKlagebehandlingId(
+        klagebehandlingId: UUID
+    ): String? {
+        val klagebehandling = klagebehandlingRepository.findByIdAndAvsluttetIsNotNull(klagebehandlingId) ?: return null
+        return if (
+            muligAnkeUtfall.contains(klagebehandling.vedtak.first().utfall)
+        ) {
+            klagebehandling.tildeling?.enhet
+        } else {
+            null
+        }
+    }
+
     fun assignKlagebehandling(
         klagebehandlingId: UUID,
         klagebehandlingVersjon: Long?,
@@ -587,5 +600,4 @@ class KlagebehandlingService(
         this.avsluttetAvSaksbehandler!!,
         this.klager.partId.value
     )
-
 }

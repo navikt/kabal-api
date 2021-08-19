@@ -34,4 +34,11 @@ class MuligAnkeController(
     ): MuligAnke? {
         return klagebehandlingService.findMuligAnkeByPartIdAndKlagebehandlingId(fnr, uuid)
     }
+
+    @GetMapping("/muliganke/enhet/{uuid}")
+    fun getEnhetForMuligAnke(
+        @PathVariable("uuid") uuid: UUID
+    ): String? {
+        return klagebehandlingService.findLatestEnhetByKlagebehandlingId(uuid)
+    }
 }
