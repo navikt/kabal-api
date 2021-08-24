@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.clients.joark
 import brave.Tracer
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
+import no.nav.klage.oppgave.domain.ArkivertDokumentWithTitle
 import no.nav.klage.oppgave.domain.joark.*
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.domain.kodeverk.PartIdType
@@ -12,7 +13,6 @@ import no.nav.klage.oppgave.util.getSecureLogger
 import org.apache.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
-import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.reactive.function.client.WebClient
 import java.util.*
 
@@ -35,11 +35,11 @@ class JoarkClient(
 
     fun createJournalpost(
         klagebehandling: Klagebehandling,
-        uploadedDocument: MultipartFile,
-        journalfoerendeEnhet: String
+        journalfoerendeEnhet: String,
+        document: ArkivertDokumentWithTitle
     ): String {
 
-        val journalpost = this.createJournalpostObject(klagebehandling, uploadedDocument, journalfoerendeEnhet)
+        val journalpost = this.createJournalpostObject(klagebehandling, journalfoerendeEnhet, document)
 
         val journalpostResponse = joarkWebClient.post()
 
@@ -97,8 +97,8 @@ class JoarkClient(
 
     private fun createJournalpostObject(
         klagebehandling: Klagebehandling,
-        uploadedDocument: MultipartFile,
-        journalfoerendeEnhet: String
+        journalfoerendeEnhet: String,
+        document: ArkivertDokumentWithTitle
     ): Journalpost =
         Journalpost(
             journalposttype = JournalpostType.UTGAAENDE,
@@ -110,7 +110,7 @@ class JoarkClient(
             journalfoerendeEnhet = journalfoerendeEnhet,
             eksternReferanseId = tracer.currentSpan().context().traceIdString(),
             bruker = createBruker(klagebehandling),
-            dokumenter = createDokument(uploadedDocument)
+            dokumenter = createDokument(document)
         )
 
 
@@ -157,16 +157,18 @@ class JoarkClient(
     }
 
 
-    private fun createDokument(uploadedDocument: MultipartFile): List<Dokument> {
+    private fun createDokument(
+        document: ArkivertDokumentWithTitle
+    ): List<Dokument> {
         val hovedDokument = Dokument(
             tittel = BREV_TITTEL,
             brevkode = BREVKODE,
             dokumentVarianter = listOf(
                 DokumentVariant(
-                    filnavn = uploadedDocument.originalFilename ?: "Opplastet_dokument",
+                    filnavn = document.title,
                     filtype = "PDFA",
                     variantformat = "ARKIV",
-                    fysiskDokument = Base64.getEncoder().encodeToString(uploadedDocument.bytes)
+                    fysiskDokument = Base64.getEncoder().encodeToString(document.content)
                 )
             ),
 

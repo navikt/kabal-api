@@ -9,6 +9,7 @@ import no.nav.klage.oppgave.exceptions.BehandlingsidWrongFormatException
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.DokumentService
+import no.nav.klage.oppgave.service.FileApiService
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.service.VedtakService
 import no.nav.klage.oppgave.util.AuditLogger
@@ -29,7 +30,8 @@ class KlagebehandlingVedtakController(
     private val vedtakService: VedtakService,
     private val auditLogger: AuditLogger,
     private val klagebehandlingService: KlagebehandlingService,
-    private val dokumentService: DokumentService
+    private val dokumentService: DokumentService,
+    private val fileApiService: FileApiService
 ) {
 
     companion object {
@@ -117,8 +119,19 @@ class KlagebehandlingVedtakController(
         logMethodDetails("getVedlegg", klagebehandlingId, vedtakId)
         val klagebehandling = klagebehandlingService.getKlagebehandling(klagebehandlingId.toUUIDOrException())
         val vedtak = vedtakService.getVedtak(klagebehandling, vedtakId.toUUIDOrException())
-        if (vedtak.journalpostId == null) throw JournalpostNotFoundException("Vedtak med id $vedtakId er ikke journalført")
-        val arkivertDokumentWithTitle = dokumentService.getArkivertDokumentWithTitleAsSaksbehandler(vedtak.journalpostId!!)
+
+        val arkivertDokumentWithTitle =
+            when {
+                vedtak.journalpostId != null -> {
+                    dokumentService.getArkivertDokumentWithTitleAsSaksbehandler(vedtak.journalpostId!!)
+                }
+                vedtak.mellomlagerId != null -> {
+                    fileApiService.getUploadedDocument(vedtak.mellomlagerId!!)
+                }
+                else -> {
+                    throw JournalpostNotFoundException("Vedtak med id $vedtakId er ikke lastet opp")
+                }
+            }
 
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = arkivertDokumentWithTitle.contentType

@@ -9,7 +9,9 @@ import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setGrunnInVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setHjemlerInVedtak
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setJournalpostIdInVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setJournalpostIdOgOpplastetInVedtak
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMellomlagerIdOgOpplastetInVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setUtfallInVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setVedtakFerdigstiltIJoark
 import no.nav.klage.oppgave.domain.klage.Vedtak
@@ -33,7 +35,8 @@ class VedtakService(
     private val attachmentValidator: AttachmentValidator,
     private val joarkClient: JoarkClient,
     private val safClient: SafGraphQlClient,
-    private val tilgangService: TilgangService
+    private val tilgangService: TilgangService,
+    private val fileApiService: FileApiService
 ) {
 
     companion object {
@@ -93,7 +96,30 @@ class VedtakService(
             klagebehandling.setJournalpostIdOgOpplastetInVedtak(vedtakId, journalpostId, utfoerendeSaksbehandlerIdent)
         applicationEventPublisher.publishEvent(event)
         return klagebehandling
+    }
 
+    fun setJournalpostId(
+        klagebehandling: Klagebehandling,
+        vedtakId: UUID,
+        journalpostId: String?,
+        utfoerendeSaksbehandlerIdent: String
+    ): Klagebehandling {
+        val event =
+            klagebehandling.setJournalpostIdInVedtak(vedtakId, journalpostId, utfoerendeSaksbehandlerIdent)
+        applicationEventPublisher.publishEvent(event)
+        return klagebehandling
+    }
+
+    fun setMellomlagerIdOgOpplastet(
+        klagebehandling: Klagebehandling,
+        vedtakId: UUID,
+        mellomlagerId: String?,
+        utfoerendeSaksbehandlerIdent: String
+    ): Klagebehandling {
+        val event =
+            klagebehandling.setMellomlagerIdOgOpplastetInVedtak(vedtakId, mellomlagerId, utfoerendeSaksbehandlerIdent)
+        applicationEventPublisher.publishEvent(event)
+        return klagebehandling
     }
 
     fun markerVedtakSomFerdigstilt(
@@ -123,15 +149,27 @@ class VedtakService(
 
         val vedtak = klagebehandling.getVedtak(vedtakId)
 
-        if (vedtak.journalpostId == null) {
+        if (vedtak.mellomlagerId == null && vedtak.journalpostId == null) {
             return klagebehandling
         }
 
-        return kansellerJournalpost(
-            klagebehandling,
-            vedtak,
-            innloggetIdent
-        )
+        if (vedtak.journalpostId != null) {
+            kansellerJournalpost(
+                klagebehandling,
+                vedtak,
+                innloggetIdent
+            )
+        }
+
+        if (vedtak.mellomlagerId != null) {
+            slettMellomlagretDokument(
+                klagebehandling,
+                vedtak,
+                innloggetIdent
+            )
+        }
+
+        return klagebehandling
     }
 
     fun knyttVedtaksFilTilVedtak(
@@ -160,15 +198,22 @@ class VedtakService(
             )
         }
 
+        if (vedtak.mellomlagerId != null) {
+            slettMellomlagretDokument(
+                klagebehandling,
+                vedtak,
+                innloggetIdent
+            )
+        }
+
         attachmentValidator.validateAttachment(input.vedlegg)
 
-        val journalpostId =
-            joarkClient.createJournalpost(klagebehandling, input.vedlegg, klagebehandling.tildeling!!.enhet!!)
+        val mellomlagerId = fileApiService.uploadDocument(input.vedlegg)
 
-        return setJournalpostIdOgOpplastet(
+        return setMellomlagerIdOgOpplastet(
             klagebehandling,
             vedtak.id,
-            journalpostId,
+            mellomlagerId,
             innloggetIdent
         )
     }
@@ -196,7 +241,13 @@ class VedtakService(
 
         val vedtak = klagebehandling.getVedtak(vedtakId)
         if (vedtak.ferdigstiltIJoark != null) throw VedtakFinalizedException("Vedtak med id $vedtakId er allerede ferdigstilt")
-        if (vedtak.journalpostId == null) throw JournalpostNotFoundException("Vedtak med id $vedtakId er ikke journalført")
+
+        if (vedtak.journalpostId == null) {
+            if (vedtak.mellomlagerId == null) throw DocumentNotFoundInStorageException("Vedtak med id $vedtakId er ikke lastet opp")
+            opprettVedtakJournalpost(klagebehandling, vedtak, innloggetIdent)
+            slettMellomlagretDokument(klagebehandling, vedtak, innloggetIdent)
+        }
+
         if (vedtak.utfall == null) throw UtfallNotSetException("Utfall på vedtak $vedtakId er ikke satt")
 
         ferdigstillJournalpost(
@@ -209,6 +260,22 @@ class VedtakService(
             klagebehandlingService.markerKlagebehandlingSomAvsluttetAvSaksbehandler(klagebehandling, innloggetIdent)
         }
         return klagebehandling
+    }
+
+    private fun opprettVedtakJournalpost(
+        klagebehandling: Klagebehandling,
+        vedtak: Vedtak,
+        utfoerendeSaksbehandlerIdent: String
+    ): Klagebehandling {
+        val documentInStorage = fileApiService.getUploadedDocument(vedtak.mellomlagerId!!)
+        val journalpostId =
+            joarkClient.createJournalpost(klagebehandling, klagebehandling.tildeling!!.enhet!!, documentInStorage)
+        return setJournalpostId(
+            klagebehandling,
+            vedtak.id,
+            journalpostId,
+            utfoerendeSaksbehandlerIdent
+        )
     }
 
     private fun ferdigstillJournalpost(
@@ -240,6 +307,22 @@ class VedtakService(
             joarkClient.cancelJournalpost(vedtak.journalpostId!!)
         }
         return setJournalpostIdOgOpplastet(
+            klagebehandling,
+            vedtak.id,
+            null,
+            utfoerendeSaksbehandlerIdent
+        )
+    }
+
+    private fun slettMellomlagretDokument(
+        klagebehandling: Klagebehandling,
+        vedtak: Vedtak,
+        utfoerendeSaksbehandlerIdent: String
+    ): Klagebehandling {
+        if (vedtak.mellomlagerId != null) {
+            fileApiService.deleteDocument(vedtak.mellomlagerId!!)
+        }
+        return setMellomlagerIdOgOpplastet(
             klagebehandling,
             vedtak.id,
             null,

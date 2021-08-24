@@ -97,6 +97,7 @@ spec:
     outbound:
       rules:
         - application: klage-redis
+        - application: kabal-file-api
         - application: clamav
           namespace: clamav
       external:
