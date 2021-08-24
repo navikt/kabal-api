@@ -14,6 +14,7 @@ import no.nav.klage.oppgave.domain.klage.PartId
 import no.nav.klage.oppgave.domain.klage.Vedtak
 import no.nav.klage.oppgave.domain.kodeverk.PartIdType
 import no.nav.klage.oppgave.service.DokumentService
+import no.nav.klage.oppgave.service.FileApiService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -26,7 +27,8 @@ class KlagebehandlingMapper(
     private val egenAnsattService: EgenAnsattService,
     private val norg2Client: Norg2Client,
     private val eregClient: EregClient,
-    private val dokumentService: DokumentService
+    private val dokumentService: DokumentService,
+    private val fileApiService: FileApiService
 ) {
 
     companion object {
@@ -102,17 +104,29 @@ class KlagebehandlingMapper(
             grunn = vedtak.grunn?.id,
             hjemler = vedtak.hjemler.map { it.id }.toSet(),
             brevMottakere = vedtak.brevmottakere.map { mapBrevmottaker(it) }.toSet(),
-            file = getVedleggView(vedtak.journalpostId, vedtak.opplastet),
+            file = getVedleggView(vedtak.journalpostId, vedtak.opplastet, vedtak.mellomlagerId),
             ferdigstilt = vedtak.ferdigstiltIJoark,
             opplastet = vedtak.opplastet
         )
     }
 
-    fun getVedleggView(vedtakJournalpostId: String?, opplastet: LocalDateTime?): VedleggView? {
-        return if (vedtakJournalpostId != null && opplastet != null) {
-            val arkivertDokumentWithTitle = dokumentService.getArkivertDokumentWithTitleAsSaksbehandler(vedtakJournalpostId)
-            mapArkivertDokumentWithTitleToVedleggView(arkivertDokumentWithTitle, opplastet)
-        } else null
+    fun getVedleggView(vedtakJournalpostId: String?, opplastet: LocalDateTime?, mellomlagerId: String?): VedleggView? {
+        if (opplastet != null) {
+            val arkivertDokumentWithTitle =
+                when {
+                    vedtakJournalpostId != null -> {
+                        dokumentService.getArkivertDokumentWithTitleAsSaksbehandler(vedtakJournalpostId)
+                    }
+                    mellomlagerId != null -> {
+                        fileApiService.getUploadedDocument(mellomlagerId)
+                    }
+                    else -> null
+                }
+
+            if (arkivertDokumentWithTitle != null)
+                return mapArkivertDokumentWithTitleToVedleggView(arkivertDokumentWithTitle, opplastet)
+        }
+        return null
     }
 
     fun mapArkivertDokumentWithTitleToVedleggView(
@@ -166,7 +180,7 @@ class KlagebehandlingMapper(
         return VedleggEditedView(
             klagebehandling.versjon,
             klagebehandling.modified,
-            file = getVedleggView(vedtak.journalpostId, vedtak.opplastet),
+            file = getVedleggView(vedtak.journalpostId, vedtak.opplastet, vedtak.mellomlagerId),
         )
     }
 

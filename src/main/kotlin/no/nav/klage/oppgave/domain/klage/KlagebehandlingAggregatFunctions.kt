@@ -541,6 +541,29 @@ object KlagebehandlingAggregatFunctions {
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
+    fun Klagebehandling.setJournalpostIdInVedtak(
+        vedtakId: UUID,
+        nyVerdi: String?,
+        saksbehandlerident: String
+    ): KlagebehandlingEndretEvent {
+        val vedtak = this.getVedtak(vedtakId)
+        val gammelVerdi = vedtak.journalpostId
+        val tidspunkt = LocalDateTime.now()
+        vedtak.journalpostId = nyVerdi
+        vedtak.modified = tidspunkt
+        modified = tidspunkt
+        val endringslogg = listOfNotNull(
+            endringslogg(
+                saksbehandlerident,
+                Felt.JOURNALPOST_I_VEDTAK,
+                gammelVerdi,
+                nyVerdi,
+                tidspunkt
+            )
+        )
+        return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = endringslogg)
+    }
+
     fun Klagebehandling.setJournalpostIdOgOpplastetInVedtak(
         vedtakId: UUID,
         nyVerdi: String?,
@@ -558,6 +581,38 @@ object KlagebehandlingAggregatFunctions {
             endringslogg(
                 saksbehandlerident,
                 Felt.JOURNALPOST_I_VEDTAK,
+                gammelVerdi,
+                nyVerdi,
+                tidspunkt
+            ),
+            endringslogg(
+                saksbehandlerident,
+                Felt.OPPLASTET_I_VEDTAK,
+                gammelVerdiOpplastet.toString(),
+                tidspunkt.toString(),
+                tidspunkt
+            )
+        )
+        return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = endringslogg)
+    }
+
+    fun Klagebehandling.setMellomlagerIdOgOpplastetInVedtak(
+        vedtakId: UUID,
+        nyVerdi: String?,
+        saksbehandlerident: String
+    ): KlagebehandlingEndretEvent {
+        val vedtak = this.getVedtak(vedtakId)
+        val gammelVerdi = vedtak.mellomlagerId
+        val tidspunkt = LocalDateTime.now()
+        val gammelVerdiOpplastet = vedtak.opplastet
+        vedtak.mellomlagerId = nyVerdi
+        vedtak.modified = tidspunkt
+        vedtak.opplastet = if (nyVerdi == null) null else tidspunkt
+        modified = tidspunkt
+        val endringslogg = listOfNotNull(
+            endringslogg(
+                saksbehandlerident,
+                Felt.MELLOMLAGER_ID_I_VEDTAK,
                 gammelVerdi,
                 nyVerdi,
                 tidspunkt

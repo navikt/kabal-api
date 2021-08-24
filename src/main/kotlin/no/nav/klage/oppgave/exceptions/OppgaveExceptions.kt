@@ -6,6 +6,8 @@ class OppgaveNotFoundException(msg: String) : RuntimeException(msg)
 
 class JournalpostNotFoundException(msg: String) : ValidationException(msg)
 
+class DocumentNotFoundInStorageException(msg: String) : ValidationException(msg)
+
 class UtfallNotSetException(msg: String) : ValidationException(msg)
 
 class JournalpostFinalizationException(msg: String) : RuntimeException(msg)
