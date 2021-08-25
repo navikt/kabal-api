@@ -164,7 +164,7 @@ no.nav.security.jwt:
       kabal-file-api-onbehalfof:
         token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
         grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
-        scope: api://${KABAL_FILE_API_SCOPE}/.default
+        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}${KABAL_FILE_API_APP_NAME}/.default
         authentication:
           client-id: ${AZURE_APP_CLIENT_ID}
           client-jwk: ${AZURE_APP_JWK}
@@ -213,3 +213,4 @@ PDL_PERSON_KAFKA_TOPIC: aapen-person-pdl-dokument-v1
 SERVICE_USER_PASSWORD: itest
 
 KABAL_FILE_API_BASE_URL: http://kabal-file-api
+KABAL_FILE_API_APP_NAME: kabal-file-api
