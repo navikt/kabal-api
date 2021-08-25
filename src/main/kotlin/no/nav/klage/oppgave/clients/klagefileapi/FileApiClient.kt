@@ -26,7 +26,7 @@ class FileApiClient(
 
         return this.fileWebClient.get()
             .uri { it.path("/document/{id}").build(id) }
-            .header("Nav-Consumer-Token", "Bearer ${tokenUtil.getStsSystembrukerToken()}")
+//            .header("Nav-Consumer-Token", "Bearer ${tokenUtil.getStsSystembrukerToken()}")
             .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()}")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .retrieve()
@@ -40,7 +40,7 @@ class FileApiClient(
         val deletedInGCS = fileWebClient
             .delete()
             .uri("/document/$id")
-            .header("Nav-Consumer-Token", "Bearer ${tokenUtil.getStsSystembrukerToken()}")
+//            .header("Nav-Consumer-Token", "Bearer ${tokenUtil.getStsSystembrukerToken()}")
             .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()}")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .retrieve()
@@ -62,7 +62,7 @@ class FileApiClient(
         val response = fileWebClient
             .post()
             .uri("/document")
-            .header("Nav-Consumer-Token", "Bearer ${tokenUtil.getStsSystembrukerToken()}")
+//            .header("Nav-Consumer-Token", "Bearer ${tokenUtil.getStsSystembrukerToken()}")
             .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()}")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
