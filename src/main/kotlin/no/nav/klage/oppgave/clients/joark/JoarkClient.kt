@@ -166,7 +166,7 @@ class JoarkClient(
             dokumentVarianter = listOf(
                 DokumentVariant(
                     filnavn = document.title,
-                    filtype = "PDFA",
+                    filtype = "PDF",
                     variantformat = "ARKIV",
                     fysiskDokument = Base64.getEncoder().encodeToString(document.content)
                 )
