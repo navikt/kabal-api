@@ -62,11 +62,20 @@ enum class Hjemmel(
         "FTL 22-12",
         "Folketrygdloven §22-12"
     ),
+    FTL_22_13(
+        "1000.022.013",
+        LovKilde.FOLKETRYGDLOVEN,
+        KapittelOgParagraf(22, 13),
+        "FTL 22-13",
+        "Folketrygdloven §22-13"
+    ),
     FTL_9("1000.009", LovKilde.FOLKETRYGDLOVEN, KapittelOgParagraf(9), "FTL 9", "Folketrygdloven kapittel 9"),
     FTL_9_2("1000.009.002", LovKilde.FOLKETRYGDLOVEN, KapittelOgParagraf(9, 2), "FTL 9-2", "Folketrygdloven §9-2"),
     FTL_9_3("1000.009.003", LovKilde.FOLKETRYGDLOVEN, KapittelOgParagraf(9, 3), "FTL 9-3", "Folketrygdloven §9-3"),
     FTL_9_5("1000.009.005", LovKilde.FOLKETRYGDLOVEN, KapittelOgParagraf(9, 5), "FTL 9-5", "Folketrygdloven §9-5"),
     FTL_9_6("1000.009.006", LovKilde.FOLKETRYGDLOVEN, KapittelOgParagraf(9, 6), "FTL 9-6", "Folketrygdloven §9-6"),
+    FTL_9_8("1000.009.008", LovKilde.FOLKETRYGDLOVEN, KapittelOgParagraf(9, 8), "FTL 9-8", "Folketrygdloven §9-8"),
+    FTL_9_9("1000.009.009", LovKilde.FOLKETRYGDLOVEN, KapittelOgParagraf(9, 9), "FTL 9-9", "Folketrygdloven §9-9"),
     FTL_9_10("1000.009.010", LovKilde.FOLKETRYGDLOVEN, KapittelOgParagraf(9, 10), "FTL 9-10", "Folketrygdloven §9-10"),
     FTL_9_11("1000.009.011", LovKilde.FOLKETRYGDLOVEN, KapittelOgParagraf(9, 11), "FTL 9-11", "Folketrygdloven §9-11"),
     FTL_9_12("1000.009.012", LovKilde.FOLKETRYGDLOVEN, KapittelOgParagraf(9, 12), "FTL 9-12", "Folketrygdloven §9-12"),
