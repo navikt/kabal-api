@@ -45,7 +45,7 @@ class VedtakJournalfoeringService(
         val vedtak = klagebehandling.getVedtak(vedtakId)
         val brevMottaker = vedtak.getMottaker(brevMottakerId)
         val documentInStorage = fileApiService.getUploadedDocumentAsSystemUser(vedtak.mellomlagerId!!)
-        if (brevMottaker.journalpostId != null) {
+        if (brevMottaker.journalpostId == null) {
             val journalpostId = journalpostGateway.createJournalpostAsSystemUser(
                 klagebehandling,
                 documentInStorage,
