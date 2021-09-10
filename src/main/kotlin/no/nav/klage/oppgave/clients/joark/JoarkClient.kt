@@ -32,6 +32,7 @@ class JoarkClient(
         journalpost: Journalpost
     ): JournalpostResponse {
         val journalpostResponse = joarkWebClient.post()
+            .uri("?forsoekFerdigstill=true")
             .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getStsSystembrukerToken()}")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .contentType(MediaType.APPLICATION_JSON)
