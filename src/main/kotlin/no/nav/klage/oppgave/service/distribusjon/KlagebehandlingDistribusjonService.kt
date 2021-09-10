@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.service.distribusjon
 
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.service.KlagebehandlingService
-import no.nav.klage.oppgave.service.VedtakService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -16,7 +15,6 @@ class KlagebehandlingDistribusjonService(
     private val klagebehandlingService: KlagebehandlingService,
     private val vedtakDistribusjonService: VedtakDistribusjonService,
     private val klagebehandlingAvslutningService: KlagebehandlingAvslutningService,
-    private val vedtakService: VedtakService,
     private val vedtakJournalfoeringService: VedtakJournalfoeringService
 ) {
 

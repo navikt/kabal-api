@@ -3,15 +3,9 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.oppgave.api.view.VedtakFullfoerInput
 import no.nav.klage.oppgave.api.view.VedtakSlettVedleggInput
 import no.nav.klage.oppgave.api.view.VedtakVedleggInput
-import no.nav.klage.oppgave.clients.joark.JoarkClient
-import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus.FERDIGSTILT
-import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
-import no.nav.klage.oppgave.domain.klage.BrevMottaker
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setBrevMottakerFerdigstiltIJoark
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setGrunnInVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setHjemlerInVedtak
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setJournalpostIdInBrevmottaker
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setJournalpostIdOgOpplastetInVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMellomlagerIdOgOpplastetInVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setUtfallInVedtak
@@ -20,7 +14,10 @@ import no.nav.klage.oppgave.domain.klage.Vedtak
 import no.nav.klage.oppgave.domain.kodeverk.Grunn
 import no.nav.klage.oppgave.domain.kodeverk.Hjemmel
 import no.nav.klage.oppgave.domain.kodeverk.Utfall
-import no.nav.klage.oppgave.exceptions.*
+import no.nav.klage.oppgave.exceptions.MissingTilgangException
+import no.nav.klage.oppgave.exceptions.UtfallNotSetException
+import no.nav.klage.oppgave.exceptions.VedtakFinalizedException
+import no.nav.klage.oppgave.exceptions.VedtakNotFoundException
 import no.nav.klage.oppgave.gateway.JournalpostGateway
 import no.nav.klage.oppgave.util.AttachmentValidator
 import no.nav.klage.oppgave.util.getLogger
@@ -36,7 +33,6 @@ class VedtakService(
     private val klagebehandlingService: KlagebehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val attachmentValidator: AttachmentValidator,
-    private val safClient: SafGraphQlClient,
     private val tilgangService: TilgangService,
     private val fileApiService: FileApiService,
     private val journalpostGateway: JournalpostGateway
@@ -120,18 +116,6 @@ class VedtakService(
     ): Klagebehandling {
         val event =
             klagebehandling.setVedtakAvsluttetAvSaksbehandler(vedtakId, utfoerendeSaksbehandlerIdent)
-        applicationEventPublisher.publishEvent(event)
-        return klagebehandling
-    }
-
-    fun markerBrevMottakerSomFerdigstiltIJoark(
-        klagebehandling: Klagebehandling,
-        vedtakId: UUID,
-        brevMottakerId: UUID,
-        utfoerendeSaksbehandlerIdent: String
-    ): Klagebehandling {
-        val event =
-            klagebehandling.setBrevMottakerFerdigstiltIJoark(vedtakId, brevMottakerId, utfoerendeSaksbehandlerIdent)
         applicationEventPublisher.publishEvent(event)
         return klagebehandling
     }
