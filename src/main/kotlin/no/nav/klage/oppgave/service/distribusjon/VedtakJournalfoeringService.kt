@@ -45,20 +45,22 @@ class VedtakJournalfoeringService(
         val vedtak = klagebehandling.getVedtak(vedtakId)
         val brevMottaker = vedtak.getMottaker(brevMottakerId)
         val documentInStorage = fileApiService.getUploadedDocumentAsSystemUser(vedtak.mellomlagerId!!)
-        val journalpostId = journalpostGateway.createJournalpostAsSystemUser(
-            klagebehandling,
-            documentInStorage,
-            brevMottaker
-        )
-
-        val event =
-            klagebehandling.setJournalpostIdInBrevmottaker(
-                vedtakId,
-                brevMottakerId,
-                journalpostId,
-                SYSTEMBRUKER
+        if (brevMottaker.journalpostId != null) {
+            val journalpostId = journalpostGateway.createJournalpostAsSystemUser(
+                klagebehandling,
+                documentInStorage,
+                brevMottaker
             )
-        applicationEventPublisher.publishEvent(event)
+
+            val event =
+                klagebehandling.setJournalpostIdInBrevmottaker(
+                    vedtakId,
+                    brevMottakerId,
+                    journalpostId,
+                    SYSTEMBRUKER
+                )
+            applicationEventPublisher.publishEvent(event)
+        }
         return klagebehandling
     }
 
