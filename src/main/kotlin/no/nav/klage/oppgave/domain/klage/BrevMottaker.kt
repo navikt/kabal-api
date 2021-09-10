@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.domain.klage
 
 import no.nav.klage.oppgave.domain.kodeverk.Rolle
 import no.nav.klage.oppgave.domain.kodeverk.RolleConverter
+import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
 
@@ -24,6 +25,8 @@ class BrevMottaker(
     val rolle: Rolle,
     @Column(name = "journalpost_id")
     var journalpostId: String? = null,
+    @Column(name = "ferdigstilt_i_joark")
+    var ferdigstiltIJoark: LocalDateTime? = null,
     @Column(name = "dokdist_referanse")
     var dokdistReferanse: UUID? = null
 ) {
@@ -45,4 +48,6 @@ class BrevMottaker(
     override fun toString(): String {
         return "BrevMottaker(id=$id, partId=$partId, rolle=$rolle, journalpostId=$journalpostId, dokdistReferanse=$dokdistReferanse)"
     }
+
+    fun erIkkeDistribuertTil() = this.dokdistReferanse == null
 }

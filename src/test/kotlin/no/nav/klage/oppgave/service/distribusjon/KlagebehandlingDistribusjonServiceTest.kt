@@ -1,20 +1,27 @@
 package no.nav.klage.oppgave.service.distribusjon
 
+import brave.Tracer
 import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
 import no.nav.klage.oppgave.clients.dokdistfordeling.DistribuerJournalpostResponse
 import no.nav.klage.oppgave.clients.dokdistfordeling.DokDistFordelingClient
+import no.nav.klage.oppgave.clients.ereg.EregClient
+import no.nav.klage.oppgave.clients.joark.JoarkClient
+import no.nav.klage.oppgave.clients.klagefileapi.FileApiClient
+import no.nav.klage.oppgave.clients.pdl.PdlFacade
+import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
+import no.nav.klage.oppgave.domain.ArkivertDokumentWithTitle
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.kodeverk.*
+import no.nav.klage.oppgave.gateway.JournalpostGateway
 import no.nav.klage.oppgave.repositories.KafkaVedtakEventRepository
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
-import no.nav.klage.oppgave.service.DokumentService
-import no.nav.klage.oppgave.service.KlagebehandlingService
-import no.nav.klage.oppgave.service.TilgangService
-import no.nav.klage.oppgave.service.VedtakKafkaProducer
+import no.nav.klage.oppgave.service.*
+import no.nav.klage.oppgave.util.AttachmentValidator
+import no.nav.klage.oppgave.util.PdfUtils
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.MethodOrderer
@@ -30,9 +37,11 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
+
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -40,7 +49,7 @@ import java.util.*
 
 @ActiveProfiles("local")
 @Import(KlagebehandlingDistribusjonServiceTest.MyTestConfiguration::class)
-@SpringBootTest(classes = [KlagebehandlingService::class, VedtakDistribusjonService::class, KlagebehandlingDistribusjonService::class])
+@SpringBootTest(classes = [KlagebehandlingService::class, VedtakDistribusjonService::class, KlagebehandlingDistribusjonService::class, VedtakService::class, VedtakDistribusjonService::class])
 @EnableJpaRepositories(basePackages = ["no.nav.klage.oppgave.repositories"])
 @EntityScan("no.nav.klage.oppgave.domain")
 @AutoConfigureDataJpa
@@ -69,6 +78,30 @@ internal class KlagebehandlingDistribusjonServiceTest {
         lateinit var dokumentService: DokumentService
 
         @MockkBean(relaxed = true)
+        lateinit var fileApiClient: FileApiClient
+
+        @MockkBean(relaxed = true)
+        lateinit var joarkClient: JoarkClient
+
+        @MockkBean(relaxed = true)
+        lateinit var tracer: Tracer
+
+        @MockkBean(relaxed = true)
+        lateinit var pdlFacade: PdlFacade
+
+        @MockkBean(relaxed = true)
+        lateinit var eregClient: EregClient
+
+        @MockkBean(relaxed = true)
+        lateinit var pdfUtils: PdfUtils
+
+        @MockkBean(relaxed = true)
+        lateinit var attachmentValidator: AttachmentValidator
+
+        @MockkBean(relaxed = true)
+        lateinit var safClient: SafGraphQlClient
+
+        @MockkBean(relaxed = true)
         lateinit var tokenUtil: TokenUtil
 
         @MockkBean(relaxed = true)
@@ -86,7 +119,7 @@ internal class KlagebehandlingDistribusjonServiceTest {
     @Autowired
     lateinit var mottakRepository: MottakRepository
 
-    @Autowired
+    @SpykBean
     lateinit var klagebehandlingDistribusjonService: KlagebehandlingDistribusjonService
 
     @MockkBean
@@ -98,14 +131,28 @@ internal class KlagebehandlingDistribusjonServiceTest {
 
     private val fnr = "12345678910"
 
+    private val journalpostId = "5678"
+
     @SpykBean
     lateinit var vedtakDistribusjonService: VedtakDistribusjonService
+
+    @SpykBean
+    lateinit var vedtakJournalfoeringService: VedtakJournalfoeringService
 
     @SpykBean
     lateinit var kafkaVedtakEventRepository: KafkaVedtakEventRepository
 
     @SpykBean
     lateinit var klagebehandlingAvslutningService: KlagebehandlingAvslutningService
+
+    @MockkBean
+    lateinit var fileApiService: FileApiService
+
+    @SpykBean
+    lateinit var journalpostGateway: JournalpostGateway
+
+    @SpykBean
+    lateinit var vedtakService: VedtakService
 
     private val mottak = Mottak(
         tema = Tema.OMS,
@@ -138,8 +185,8 @@ internal class KlagebehandlingDistribusjonServiceTest {
         vedtak = mutableSetOf(
             Vedtak(
                 id = vedtakId,
-                journalpostId = "1",
-                utfall = Utfall.MEDHOLD
+                utfall = Utfall.MEDHOLD,
+                mellomlagerId = "123"
             )
         )
     )
@@ -160,10 +207,22 @@ internal class KlagebehandlingDistribusjonServiceTest {
     @Test
     fun `distribusjon av klagebehandling fører til dokdistReferanse, ferdig distribuert vedtak og avsluttet klagebehandling`() {
         val dokdistResponse = DistribuerJournalpostResponse(UUID.randomUUID())
+        val dokarkivResponse = journalpostId
+        val fileApiServiceResponse = ArkivertDokumentWithTitle(
+            "title",
+            ByteArray(8),
+            MediaType.APPLICATION_PDF
+        )
+
+        every { journalpostGateway.createJournalpost(any(), any(), any()) } returns dokarkivResponse
 
         every { dokDistFordelingClient.distribuerJournalpost(any())  } returns dokdistResponse
 
         every { kafkaVedtakEventRepository.save(any()) } returns null
+
+        every { fileApiService.getUploadedDocument(any()) } returns fileApiServiceResponse
+
+        every { fileApiService.deleteDocument(any()) } returns Unit
 
         mottakRepository.save(mottak)
 
@@ -173,10 +232,13 @@ internal class KlagebehandlingDistribusjonServiceTest {
 
         val result = klagebehandlingRepository.getOne(klagebehandlingId)
         val resultingVedtak = result.getVedtak(vedtakId)
-        val brevMottakere = resultingVedtak.brevmottakere
+        val brevMottaker = resultingVedtak.brevmottakere.first()
 
-        assertThat(brevMottakere.first().dokdistReferanse).isNotNull
+        assertThat(brevMottaker.dokdistReferanse).isNotNull
+        assertThat(brevMottaker.ferdigstiltIJoark).isNotNull
+        assertThat(brevMottaker.dokdistReferanse).isNotNull
         assertThat(resultingVedtak.ferdigDistribuert).isNotNull
+        assertThat(resultingVedtak.mellomlagerId).isNull()
         assertThat(result.avsluttet).isNotNull
     }
 }

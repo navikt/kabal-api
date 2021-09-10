@@ -22,6 +22,7 @@ class LayeredArchitectureTest {
         .layer("Eventlisteners").definedBy("no.nav.klage.oppgave.eventlisteners..")
         .layer("Util").definedBy("no.nav.klage.oppgave.util..")
         .layer("Exceptions").definedBy("no.nav.klage.oppgave.exceptions..")
+        .layer("Gateway").definedBy("no.nav.klage.oppgave.gateway")
 
     @ArchTest
     val layer_dependencies_are_respected_for_controllers: ArchRule = kabalApiLayeredArchitecture()
@@ -46,7 +47,7 @@ class LayeredArchitectureTest {
     @ArchTest
     val layer_dependencies_are_respected_for_clients: ArchRule = kabalApiLayeredArchitecture()
         .whereLayer("Clients")
-        .mayOnlyBeAccessedByLayers("Services", "Repositories", "Config", "Controllers", "Util", "ApiMappers")
+        .mayOnlyBeAccessedByLayers("Services", "Repositories", "Config", "Controllers", "Util", "ApiMappers", "Gateway")
 
     @ArchTest
     val layer_dependencies_are_respected_for_eventlisteners: ArchRule = kabalApiLayeredArchitecture()

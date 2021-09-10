@@ -39,8 +39,7 @@ internal class KlagebehandlingTest {
             val fasitMottakere = setOf(
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr),
-                    rolle = Rolle.KLAGER,
-                    journalpostId = journalpostId
+                    rolle = Rolle.KLAGER
                 )
             )
 
@@ -70,8 +69,7 @@ internal class KlagebehandlingTest {
             val fasitMottakere = setOf(
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr),
-                    rolle = Rolle.KLAGER,
-                    journalpostId = journalpostId
+                    rolle = Rolle.KLAGER
                 )
             )
 
@@ -101,14 +99,12 @@ internal class KlagebehandlingTest {
             val fasitMottakere = setOf(
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr),
-                    rolle = Rolle.KLAGER,
-                    journalpostId = journalpostId
+                    rolle = Rolle.KLAGER
                 ),
 
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr2),
-                    rolle = Rolle.SAKEN_GJELDER,
-                    journalpostId = null
+                    rolle = Rolle.SAKEN_GJELDER
                 )
             )
 
@@ -147,8 +143,7 @@ internal class KlagebehandlingTest {
             val fasitMottakere = setOf(
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr2),
-                    rolle = Rolle.PROSESSFULLMEKTIG,
-                    journalpostId = journalpostId
+                    rolle = Rolle.PROSESSFULLMEKTIG
                 )
             )
 
@@ -187,13 +182,11 @@ internal class KlagebehandlingTest {
             val fasitMottakere = setOf(
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr),
-                    rolle = Rolle.KLAGER,
-                    journalpostId = null
+                    rolle = Rolle.KLAGER
                 ),
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr2),
-                    rolle = Rolle.PROSESSFULLMEKTIG,
-                    journalpostId = journalpostId
+                    rolle = Rolle.PROSESSFULLMEKTIG
                 )
             )
 
@@ -232,13 +225,11 @@ internal class KlagebehandlingTest {
             val fasitMottakere = setOf(
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr),
-                    rolle = Rolle.KLAGER,
-                    journalpostId = null
+                    rolle = Rolle.KLAGER
                 ),
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr2),
-                    rolle = Rolle.PROSESSFULLMEKTIG,
-                    journalpostId = journalpostId
+                    rolle = Rolle.PROSESSFULLMEKTIG
                 )
             )
 
@@ -277,18 +268,15 @@ internal class KlagebehandlingTest {
             val fasitMottakere = setOf(
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr),
-                    rolle = Rolle.KLAGER,
-                    journalpostId = null
+                    rolle = Rolle.KLAGER
                 ),
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr3),
-                    rolle = Rolle.SAKEN_GJELDER,
-                    journalpostId = null
+                    rolle = Rolle.SAKEN_GJELDER
                 ),
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr2),
-                    rolle = Rolle.PROSESSFULLMEKTIG,
-                    journalpostId = journalpostId
+                    rolle = Rolle.PROSESSFULLMEKTIG
                 )
             )
 
@@ -327,8 +315,7 @@ internal class KlagebehandlingTest {
             val fasitMottakere = setOf(
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr2),
-                    rolle = Rolle.PROSESSFULLMEKTIG,
-                    journalpostId = journalpostId
+                    rolle = Rolle.PROSESSFULLMEKTIG
                 )
             )
 
@@ -367,13 +354,11 @@ internal class KlagebehandlingTest {
             val fasitMottakere = setOf(
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr3),
-                    rolle = Rolle.SAKEN_GJELDER,
-                    journalpostId = null
+                    rolle = Rolle.SAKEN_GJELDER
                 ),
                 BrevMottaker(
                     partId = PartId(PartIdType.PERSON, fnr2),
-                    rolle = Rolle.PROSESSFULLMEKTIG,
-                    journalpostId = journalpostId
+                    rolle = Rolle.PROSESSFULLMEKTIG
                 )
             )
 

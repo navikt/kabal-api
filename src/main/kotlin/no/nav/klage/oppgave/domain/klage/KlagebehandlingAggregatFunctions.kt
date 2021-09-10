@@ -541,21 +541,23 @@ object KlagebehandlingAggregatFunctions {
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
-    fun Klagebehandling.setJournalpostIdInVedtak(
+    fun Klagebehandling.setJournalpostIdInBrevmottaker(
         vedtakId: UUID,
+        mottakerId: UUID,
         nyVerdi: String?,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
         val vedtak = this.getVedtak(vedtakId)
-        val gammelVerdi = vedtak.journalpostId
+        val mottaker = vedtak.getMottaker(mottakerId)
+        val gammelVerdi = mottaker.journalpostId
         val tidspunkt = LocalDateTime.now()
-        vedtak.journalpostId = nyVerdi
+        mottaker.journalpostId = nyVerdi
         vedtak.modified = tidspunkt
         modified = tidspunkt
         val endringslogg = listOfNotNull(
             endringslogg(
                 saksbehandlerident,
-                Felt.JOURNALPOST_I_VEDTAK,
+                Felt.JOURNALPOST_I_BREVMOTTAKER,
                 gammelVerdi,
                 nyVerdi,
                 tidspunkt
@@ -564,6 +566,7 @@ object KlagebehandlingAggregatFunctions {
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = endringslogg)
     }
 
+    //Brukes bare for å slette gamle journalposter på vedtak
     fun Klagebehandling.setJournalpostIdOgOpplastetInVedtak(
         vedtakId: UUID,
         nyVerdi: String?,
@@ -590,6 +593,29 @@ object KlagebehandlingAggregatFunctions {
                 Felt.OPPLASTET_I_VEDTAK,
                 gammelVerdiOpplastet.toString(),
                 tidspunkt.toString(),
+                tidspunkt
+            )
+        )
+        return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = endringslogg)
+    }
+
+    fun Klagebehandling.setMellomlagerIdInVedtak(
+        vedtakId: UUID,
+        nyVerdi: String?,
+        saksbehandlerident: String
+    ): KlagebehandlingEndretEvent {
+        val vedtak = this.getVedtak(vedtakId)
+        val gammelVerdi = vedtak.mellomlagerId
+        val tidspunkt = LocalDateTime.now()
+        vedtak.mellomlagerId = nyVerdi
+        vedtak.modified = tidspunkt
+        modified = tidspunkt
+        val endringslogg = listOfNotNull(
+            endringslogg(
+                saksbehandlerident,
+                Felt.MELLOMLAGER_ID_I_VEDTAK,
+                gammelVerdi,
+                nyVerdi,
                 tidspunkt
             )
         )
@@ -650,21 +676,45 @@ object KlagebehandlingAggregatFunctions {
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
-    fun Klagebehandling.setVedtakFerdigstiltIJoark(
+    fun Klagebehandling.setBrevMottakerFerdigstiltIJoark(
         vedtakId: UUID,
+        brevMottakerId: UUID,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
         val vedtak = this.getVedtak(vedtakId)
-        val gammelVerdi = vedtak.ferdigstiltIJoark
+        val brevMottaker = vedtak.getMottaker(brevMottakerId)
+        val gammelVerdi = brevMottaker.ferdigstiltIJoark
         val tidspunkt = LocalDateTime.now()
         val nyVerdi = tidspunkt
-        vedtak.ferdigstiltIJoark = nyVerdi
+        brevMottaker.ferdigstiltIJoark = nyVerdi
         vedtak.modified = tidspunkt
         modified = tidspunkt
         val endringslogg =
             endringslogg(
                 saksbehandlerident,
-                Felt.VEDTAK_SLUTTFOERT,
+                Felt.BREVMOTTAKER_FERDIGSTILT_I_JOARK,
+                gammelVerdi.toString(),
+                nyVerdi.toString(),
+                tidspunkt
+            )
+        return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
+    fun Klagebehandling.setVedtakAvsluttetAvSaksbehandler(
+        vedtakId: UUID,
+        saksbehandlerident: String
+    ): KlagebehandlingEndretEvent {
+        val vedtak = this.getVedtak(vedtakId)
+        val gammelVerdi = vedtak.avsluttetAvSaksbehandler
+        val tidspunkt = LocalDateTime.now()
+        val nyVerdi = tidspunkt
+        vedtak.avsluttetAvSaksbehandler = nyVerdi
+        vedtak.modified = tidspunkt
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident,
+                Felt.VEDTAK_AVSLUTTET_AV_SAKSBEHANDLER,
                 gammelVerdi.toString(),
                 nyVerdi.toString(),
                 tidspunkt

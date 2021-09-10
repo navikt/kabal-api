@@ -1,11 +1,19 @@
 package no.nav.klage.oppgave.service.distribusjon
 
 import no.nav.klage.oppgave.clients.dokdistfordeling.DokDistFordelingClient
+import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
+import no.nav.klage.oppgave.domain.joark.DokumentStatus
 import no.nav.klage.oppgave.domain.klage.BrevMottaker
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setDokdistReferanseInVedtaksmottaker
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setJournalpostIdInBrevmottaker
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMellomlagerIdInVedtak
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMellomlagerIdOgOpplastetInVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setVedtakFerdigDistribuert
 import no.nav.klage.oppgave.domain.klage.Vedtak
+import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
+import no.nav.klage.oppgave.gateway.JournalpostGateway
+import no.nav.klage.oppgave.service.FileApiService
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -19,6 +27,7 @@ import java.util.*
 class VedtakDistribusjonService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokDistFordelingClient: DokDistFordelingClient,
+    private val fileApiService: FileApiService,
     private val klagebehandlingService: KlagebehandlingService
 ) {
 
@@ -27,23 +36,24 @@ class VedtakDistribusjonService(
         private val logger = getLogger(javaClass.enclosingClass)
         private val secureLogger = getSecureLogger()
         const val SYSTEMBRUKER = "SYSTEMBRUKER" //TODO ??
+        const val SYSTEM_JOURNALFOERENDE_ENHET = "9999"
     }
 
-    @Transactional
     fun distribuerJournalpostTilMottaker(
         klagebehandlingId: UUID,
-        vedtak: Vedtak,
-        mottaker: BrevMottaker
+        vedtakId: UUID,
+        mottakerId: UUID
     ): Klagebehandling {
+        val klagebehandling =
+            klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId, null)
+        val vedtak = klagebehandling.getVedtak(vedtakId)
+        val mottaker = vedtak.getMottaker(mottakerId)
         try {
-            val klagebehandling =
-                klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId, null)
             val dokdistReferanse: UUID =
-                dokDistFordelingClient.distribuerJournalpost(vedtak.journalpostId!!).bestillingsId
-            setDokdistReferanse(klagebehandling, vedtak.id, mottaker.id, dokdistReferanse, SYSTEMBRUKER)
-            return klagebehandling
+                dokDistFordelingClient.distribuerJournalpost(mottaker.journalpostId!!).bestillingsId
+            return setDokdistReferanse(klagebehandling, vedtak.id, mottaker.id, dokdistReferanse, SYSTEMBRUKER)
         } catch (e: Exception) {
-            logger.warn("Kunne ikke distribuere journalpost ${vedtak.journalpostId}")
+            logger.warn("Kunne ikke distribuere journalpost ${mottaker.journalpostId}")
             throw e
         }
     }
@@ -54,7 +64,7 @@ class VedtakDistribusjonService(
         mottakerId: UUID,
         dokdistReferanse: UUID,
         utfoerendeSaksbehandlerIdent: String
-    ): Vedtak {
+    ): Klagebehandling {
         val event = klagebehandling.setDokdistReferanseInVedtaksmottaker(
             vedtakId,
             mottakerId,
@@ -62,7 +72,7 @@ class VedtakDistribusjonService(
             utfoerendeSaksbehandlerIdent
         )
         applicationEventPublisher.publishEvent(event)
-        return klagebehandling.getVedtak(vedtakId)
+        return klagebehandling
     }
 
     @Transactional
@@ -73,20 +83,21 @@ class VedtakDistribusjonService(
         return klagebehandling
     }
 
-    @Transactional
-    fun lagKopiAvJournalpostForMottaker(
-        klagebehandling: Klagebehandling,
-        vedtak: Vedtak,
-        brevMottaker: BrevMottaker
-    ): Klagebehandling {
-        //TODO: Kod opp dette
-        throw IllegalStateException("Dette har vi ikke kodet opp ennå, K9 støtter bare en mottaker")
-    }
-
-    @Transactional
     fun markerVedtakSomFerdigDistribuert(klagebehandlingId: UUID, vedtakId: UUID): Klagebehandling {
         val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId, null)
         val event = klagebehandling.setVedtakFerdigDistribuert(vedtakId, SYSTEMBRUKER)
+        applicationEventPublisher.publishEvent(event)
+        return klagebehandling
+    }
+
+    fun slettMellomlagretDokument(
+        klagebehandlingId: UUID,
+        vedtakId: UUID
+    ): Klagebehandling {
+        val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId, null)
+        val vedtak = klagebehandling.getVedtak(vedtakId)
+        fileApiService.deleteDocument(vedtak.mellomlagerId!!)
+        val event = klagebehandling.setMellomlagerIdInVedtak(vedtakId, null, SYSTEMBRUKER)
         applicationEventPublisher.publishEvent(event)
         return klagebehandling
     }

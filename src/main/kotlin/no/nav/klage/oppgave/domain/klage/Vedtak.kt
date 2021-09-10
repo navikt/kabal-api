@@ -41,6 +41,8 @@ class Vedtak(
     var ferdigstiltIJoark: LocalDateTime? = null,
     @Column(name = "ferdig_distribuert")
     var ferdigDistribuert: LocalDateTime? = null,
+    @Column(name = "avsluttet_av_saksbehandler")
+    var avsluttetAvSaksbehandler: LocalDateTime? = null,
     @Column(name = "mellomlager_id")
     var mellomlagerId: String? = null
 ) {
@@ -73,18 +75,16 @@ class Vedtak(
         brevmottakere.add(
             BrevMottaker(
                 partId = sakenGjelder.partId,
-                rolle = Rolle.SAKEN_GJELDER,
-                journalpostId = null
+                rolle = Rolle.SAKEN_GJELDER
             )
         )
     }
 
-    fun leggTilKlagerSomBrevmottaker(klager: Klager, klagerErHovedmottaker: Boolean) {
+    fun leggTilKlagerSomBrevmottaker(klager: Klager) {
         brevmottakere.add(
             BrevMottaker(
                 partId = klager.partId,
-                rolle = Rolle.KLAGER,
-                journalpostId = if (klagerErHovedmottaker) journalpostId else null
+                rolle = Rolle.KLAGER
             )
         )
     }
@@ -93,9 +93,12 @@ class Vedtak(
         brevmottakere.add(
             BrevMottaker(
                 partId = prosessfullmektig.partId,
-                rolle = Rolle.PROSESSFULLMEKTIG,
-                journalpostId = journalpostId
+                rolle = Rolle.PROSESSFULLMEKTIG
             )
         )
     }
+
+    fun erIkkeFerdigDistribuert() = ferdigDistribuert == null
+
+    fun harIngenBrevMottakere(): Boolean = brevmottakere.isEmpty()
 }

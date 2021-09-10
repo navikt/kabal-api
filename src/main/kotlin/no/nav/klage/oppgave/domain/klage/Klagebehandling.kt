@@ -146,10 +146,10 @@ class Klagebehandling(
         if (klager.prosessfullmektig != null) {
             vedtak.leggTilProsessfullmektigSomBrevmottaker(klager.prosessfullmektig)
             if (klager.prosessfullmektig.skalPartenMottaKopi) {
-                vedtak.leggTilKlagerSomBrevmottaker(klager, false)
+                vedtak.leggTilKlagerSomBrevmottaker(klager)
             }
         } else {
-            vedtak.leggTilKlagerSomBrevmottaker(klager, true)
+            vedtak.leggTilKlagerSomBrevmottaker(klager)
         }
         val sakenGjelder = sakenGjelder
         if (sakenGjelder.partId != klager.partId && sakenGjelder.skalMottaKopi) {
