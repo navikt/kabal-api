@@ -74,13 +74,13 @@ class VedtakJournalfoeringService(
         val brevMottaker = vedtak.getMottaker(brevMottakerId)
 
         try {
-            val journalpost = safClient.getJournalpostAsSaksbehandler(brevMottaker.journalpostId!!)
+            val journalpost = safClient.getJournalpostAsSystembruker(brevMottaker.journalpostId!!)
                 ?: throw JournalpostNotFoundException("Journalpost med id ${brevMottaker.journalpostId} finnes ikke")
             if (journalpost.journalstatus != Journalstatus.FERDIGSTILT) {
                 journalpostGateway.finalizeJournalpostAsSystemUser(brevMottaker.journalpostId!!, SYSTEM_JOURNALFOERENDE_ENHET)
             }
         }  catch (e: Exception) {
-            logger.warn("Kunne ikke ferdigstille journalpost ${brevMottaker.journalpostId}")
+            logger.warn("Kunne ikke ferdigstille journalpost ${brevMottaker.journalpostId}", e)
             throw JournalpostFinalizationException("Klarte ikke å ferdigstille journalpost")
         }
 
