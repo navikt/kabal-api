@@ -33,7 +33,7 @@ class JournalpostGateway(
         private const val KLAGEBEHANDLING_ID_KEY = "klagebehandling_id"
     }
 
-    fun createJournalpost(
+    fun createJournalpostAsSystemUser(
         klagebehandling: Klagebehandling,
         document: ArkivertDokumentWithTitle,
         brevMottaker: BrevMottaker
@@ -43,15 +43,15 @@ class JournalpostGateway(
             document,
             brevMottaker
         )
-        return joarkClient.createJournalpostInJoark(journalpost).journalpostId
+        return joarkClient.createJournalpostInJoarkAsSystemUser(journalpost).journalpostId
     }
 
     fun cancelJournalpost(journalpostId: String): String {
         return joarkClient.cancelJournalpost(journalpostId)
     }
 
-    fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String): String {
-        return joarkClient.finalizeJournalpost(journalpostId, journalfoerendeEnhet)
+    fun finalizeJournalpostAsSystemUser(journalpostId: String, journalfoerendeEnhet: String): String {
+        return joarkClient.finalizeJournalpostAsSystemUser(journalpostId, journalfoerendeEnhet)
     }
 
     private fun createJournalpostObject(

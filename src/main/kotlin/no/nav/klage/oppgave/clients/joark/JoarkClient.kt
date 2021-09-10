@@ -28,13 +28,11 @@ class JoarkClient(
         private val secureLogger = getSecureLogger()
     }
 
-    fun createJournalpostInJoark(
+    fun createJournalpostInJoarkAsSystemUser(
         journalpost: Journalpost
     ): JournalpostResponse {
         val journalpostResponse = joarkWebClient.post()
-
-            .header("Nav-Consumer-Token", "Bearer ${tokenUtil.getStsSystembrukerToken()}")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithJoarkScope()}")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getStsSystembrukerToken()}")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(journalpost)
@@ -67,11 +65,10 @@ class JoarkClient(
     }
 
 
-    fun finalizeJournalpost(journalpostId: String, journalfoerendeEnhet: String): String {
+    fun finalizeJournalpostAsSystemUser(journalpostId: String, journalfoerendeEnhet: String): String {
         val response = joarkWebClient.patch()
             .uri("/${journalpostId}/ferdigstill")
-            .header("Nav-Consumer-Token", "Bearer ${tokenUtil.getStsSystembrukerToken()}")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithJoarkScope()}")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getStsSystembrukerToken()}")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(FerdigstillJournalpostPayload(journalfoerendeEnhet))

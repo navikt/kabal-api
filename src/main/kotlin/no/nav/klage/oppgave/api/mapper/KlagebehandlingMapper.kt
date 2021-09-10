@@ -188,7 +188,7 @@ class KlagebehandlingMapper(
         return VedtakFullfoertView(
             klagebehandling.versjon,
             klagebehandling.modified,
-            klagebehandling.getVedtak(vedtakId).ferdigstiltIJoark!!,
+            klagebehandling.getVedtak(vedtakId).avsluttetAvSaksbehandler!!,
             klagebehandling.avsluttetAvSaksbehandler?.toLocalDate()
         )
     }

@@ -214,7 +214,7 @@ internal class KlagebehandlingDistribusjonServiceTest {
             MediaType.APPLICATION_PDF
         )
 
-        every { journalpostGateway.createJournalpost(any(), any(), any()) } returns dokarkivResponse
+        every { journalpostGateway.createJournalpostAsSystemUser(any(), any(), any()) } returns dokarkivResponse
 
         every { dokDistFordelingClient.distribuerJournalpost(any())  } returns dokdistResponse
 

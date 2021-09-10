@@ -75,6 +75,12 @@ class TokenUtil(
         return response.accessToken
     }
 
+    fun getAppAccessTokenWithKabalFileApiScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["kabal-file-api-maskintilmaskin"]
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken
+    }
+
     fun getAppAccessTokenWithSafScope(): String {
         val clientProperties = clientConfigurationProperties.registration["saf-maskintilmaskin"]
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)

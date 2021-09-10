@@ -96,7 +96,7 @@ class VedtakDistribusjonService(
     ): Klagebehandling {
         val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId, null)
         val vedtak = klagebehandling.getVedtak(vedtakId)
-        fileApiService.deleteDocument(vedtak.mellomlagerId!!)
+        fileApiService.deleteDocumentAsSystemUser(vedtak.mellomlagerId!!)
         val event = klagebehandling.setMellomlagerIdInVedtak(vedtakId, null, SYSTEMBRUKER)
         applicationEventPublisher.publishEvent(event)
         return klagebehandling

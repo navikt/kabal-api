@@ -21,25 +21,37 @@ class FileApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getDocument(id: String): ByteArray {
+    fun getDocument(id: String, systemUser: Boolean = false): ByteArray {
         logger.debug("Fetching document with id {}", id)
+
+        val token = if (systemUser) {
+            tokenUtil.getAppAccessTokenWithKabalFileApiScope()
+        } else {
+            tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
+        }
 
         return this.fileWebClient.get()
             .uri { it.path("/document/{id}").build(id) }
-            .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()}")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer ${token}")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .retrieve()
             .bodyToMono<ByteArray>()
             .block() ?: throw RuntimeException("Document could not be fetched")
     }
 
-    fun deleteDocument(id: String) {
+    fun deleteDocument(id: String, systemUser: Boolean = false) {
         logger.debug("Deleting document with id {}", id)
+
+        val token = if (systemUser) {
+            tokenUtil.getAppAccessTokenWithKabalFileApiScope()
+        } else {
+            tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
+        }
 
         val deletedInGCS = fileWebClient
             .delete()
             .uri("/document/$id")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()}")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer ${token}")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .retrieve()
             .bodyToMono<Boolean>()

@@ -36,5 +36,19 @@ class FileApiService(
         fileApiClient.deleteDocument(mellomlagerId)
     }
 
+    fun getUploadedDocumentAsSystemUser(mellomlagerId: String): ArkivertDokumentWithTitle {
+        return ArkivertDokumentWithTitle(
+            getFileNameFromMellomlagerId(mellomlagerId),
+            fileApiClient.getDocument(mellomlagerId, true),
+            standardMediaTypeInGCS
+        )
+    }
+
+    fun deleteDocumentAsSystemUser(mellomlagerId: String) {
+        fileApiClient.deleteDocument(mellomlagerId, true)
+    }
+
+
+
     private fun getFileNameFromMellomlagerId(mellomlagerId: String): String = mellomlagerId.substring(36)
 }

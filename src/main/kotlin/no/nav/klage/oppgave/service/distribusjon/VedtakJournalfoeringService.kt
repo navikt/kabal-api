@@ -44,8 +44,8 @@ class VedtakJournalfoeringService(
 
         val vedtak = klagebehandling.getVedtak(vedtakId)
         val brevMottaker = vedtak.getMottaker(brevMottakerId)
-        val documentInStorage = fileApiService.getUploadedDocument(vedtak.mellomlagerId!!)
-        val journalpostId = journalpostGateway.createJournalpost(
+        val documentInStorage = fileApiService.getUploadedDocumentAsSystemUser(vedtak.mellomlagerId!!)
+        val journalpostId = journalpostGateway.createJournalpostAsSystemUser(
             klagebehandling,
             documentInStorage,
             brevMottaker
@@ -75,7 +75,7 @@ class VedtakJournalfoeringService(
             val journalpost = safClient.getJournalpostAsSaksbehandler(brevMottaker.journalpostId!!)
                 ?: throw JournalpostNotFoundException("Journalpost med id ${brevMottaker.journalpostId} finnes ikke")
             if (journalpost.journalstatus != Journalstatus.FERDIGSTILT) {
-                journalpostGateway.finalizeJournalpost(brevMottaker.journalpostId!!, SYSTEM_JOURNALFOERENDE_ENHET)
+                journalpostGateway.finalizeJournalpostAsSystemUser(brevMottaker.journalpostId!!, SYSTEM_JOURNALFOERENDE_ENHET)
             }
         }  catch (e: Exception) {
             logger.warn("Kunne ikke ferdigstille journalpost ${brevMottaker.journalpostId}")
