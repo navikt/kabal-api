@@ -220,9 +220,9 @@ internal class KlagebehandlingDistribusjonServiceTest {
 
         every { kafkaVedtakEventRepository.save(any()) } returns null
 
-        every { fileApiService.getUploadedDocument(any()) } returns fileApiServiceResponse
+        every { fileApiService.getUploadedDocumentAsSystemUser(any()) } returns fileApiServiceResponse
 
-        every { fileApiService.deleteDocument(any()) } returns Unit
+        every { fileApiService.deleteDocumentAsSystemUser(any()) } returns Unit
 
         mottakRepository.save(mottak)
 
