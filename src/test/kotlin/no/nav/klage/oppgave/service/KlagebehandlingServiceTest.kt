@@ -114,7 +114,7 @@ class KlagebehandlingServiceTest {
     }
 
     @Test
-    fun `setMedunderskriverident kan sette medunderskriver til null`() {
+    fun `setMedunderskriverIdent kan sette medunderskriver til null`() {
         val klagebehandling = simpleInsert()
         val klagebehandlingId = klagebehandling.id
         val medunderskriverIdent = "MEDUNDERSKRIVER"
