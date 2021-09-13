@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
@@ -48,7 +49,8 @@ class KlagebehandlingServiceTest {
 
     private val tilgangService: TilgangService = mockk()
 
-    private val applicationEventPublisher: ApplicationEventPublisher = mockk()
+    @MockkBean(relaxed = true)
+    lateinit var applicationEventPublisher: ApplicationEventPublisher
 
     private val dokumentService: DokumentService = mockk()
 
@@ -111,6 +113,36 @@ class KlagebehandlingServiceTest {
         assertThrows<KlagebehandlingAvsluttetException> { klagebehandlingService.getKlagebehandlingForUpdate(klage.id) }
     }
 
+    @Test
+    fun `setMedunderskriverident kan sette medunderskriver til null`() {
+        val klagebehandling = simpleInsert()
+        val klagebehandlingId = klagebehandling.id
+        val medunderskriverIdent = "MEDUNDERSKRIVER"
+        val utfoerendeSaksehandlerIdent = "SAKSBEHANDLER"
+
+        every { tilgangService.verifyInnloggetSaksbehandlersTilgangTil(any()) } returns Unit
+        every { tilgangService.verifyInnloggetSaksbehandlersTilgangTilTema(any()) } returns Unit
+        every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling) } returns Unit
+
+
+        klagebehandlingService.setMedunderskriverIdent(
+            klagebehandlingId,
+            null,
+            medunderskriverIdent,
+            utfoerendeSaksehandlerIdent
+        )
+
+        val result = klagebehandlingService.setMedunderskriverIdent(
+            klagebehandlingId,
+            null,
+            null,
+            utfoerendeSaksehandlerIdent
+        )
+
+        assert(result.medunderskriver?.saksbehandlerident == null)
+        assert(result.medunderskriverHistorikk.size == 1)
+    }
+
 
     private fun simpleInsert(): Klagebehandling {
         val mottak = Mottak(
@@ -142,7 +174,15 @@ class KlagebehandlingServiceTest {
             modified = LocalDateTime.now(),
             mottattKlageinstans = LocalDateTime.now(),
             kildesystem = Fagsystem.K9,
-            mottakId = mottak.id
+            mottakId = mottak.id,
+            vedtak = mutableSetOf(
+                Vedtak(
+                    utfall = Utfall.AVVIST,
+                    hjemler = mutableSetOf(
+                        Hjemmel.FTL
+                    )
+                )
+            )
         )
 
         klagebehandlingRepository.save(klage)

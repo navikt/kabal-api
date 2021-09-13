@@ -188,8 +188,8 @@ object KlagebehandlingAggregatFunctions {
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
-    fun Klagebehandling.setMedunderskriverident(
-        nyVerdiMedunderskriverident: String,
+    fun Klagebehandling.setMedunderskriverIdent(
+        nyVerdiMedunderskriverident: String?,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
         val gammelVerdiMedunderskriverident = medunderskriver?.saksbehandlerident

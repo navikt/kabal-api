@@ -135,7 +135,7 @@ class KlagebehandlingDetaljerController(
         @RequestBody input: KlagebehandlingMedunderskriveridentInput
     ): SendtMedunderskriverView {
         logMethodDetails("putMedunderskriverident", klagebehandlingId)
-        val klagebehandling = klagebehandlingService.setMedunderskriverident(
+        val klagebehandling = klagebehandlingService.setMedunderskriverIdent(
             klagebehandlingId.toUUIDOrException(),
             input.klagebehandlingVersjon,
             input.medunderskriverident,

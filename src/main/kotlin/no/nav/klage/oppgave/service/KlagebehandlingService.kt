@@ -11,7 +11,7 @@ import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setAvs
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setAvsluttetAvSaksbehandler
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setFrist
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setInnsendt
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMedunderskriverident
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMedunderskriverIdent
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMottattFoersteinstans
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMottattKlageinstans
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setTema
@@ -261,16 +261,16 @@ class KlagebehandlingService(
         return klagebehandling
     }
 
-    fun setMedunderskriverident(
+    fun setMedunderskriverIdent(
         klagebehandlingId: UUID,
         klagebehandlingVersjon: Long?,
-        medunderskriverIdent: String,
+        medunderskriverIdent: String?,
         utfoerendeSaksbehandlerIdent: String
     ): Klagebehandling {
         val klagebehandling = getKlagebehandlingForUpdate(klagebehandlingId, klagebehandlingVersjon)
         validateBeforeMedunderskriver(klagebehandling)
         val event =
-            klagebehandling.setMedunderskriverident(
+            klagebehandling.setMedunderskriverIdent(
                 medunderskriverIdent,
                 utfoerendeSaksbehandlerIdent
             )
