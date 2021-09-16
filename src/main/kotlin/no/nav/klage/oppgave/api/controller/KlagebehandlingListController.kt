@@ -24,6 +24,8 @@ import java.util.*
 @RestController
 @Api(tags = ["kabal-api"])
 @ProtectedWithClaims(issuer = ISSUER_AAD)
+//TODO: Er det litt merkelig med "ansatte" på rot i path her?
+@RequestMapping("/ansatte")
 class KlagebehandlingListController(
     private val klagebehandlingService: KlagebehandlingService,
     private val klagebehandlingMapper: KlagebehandlingListMapper,
@@ -43,7 +45,7 @@ class KlagebehandlingListController(
         value = "Hent oppgaver for en ansatt",
         notes = "Henter alle oppgaver som saksbehandler har tilgang til."
     )
-    @GetMapping("/ansatte/{navIdent}/klagebehandlinger", produces = ["application/json"])
+    @GetMapping("/{navIdent}/klagebehandlinger", produces = ["application/json"])
     fun getOppgaver(
         @ApiParam(value = "NavIdent til en ansatt")
         @PathVariable navIdent: String,
@@ -102,7 +104,7 @@ class KlagebehandlingListController(
         value = "Hent oppgaver som gjelder en gitt person",
         notes = "Henter alle oppgaver som saksbehandler har tilgang til som omhandler en gitt person."
     )
-    @PostMapping("/ansatte/{navIdent}/klagebehandlinger/personsoek", produces = ["application/json"])
+    @PostMapping("/{navIdent}/klagebehandlinger/personsoek", produces = ["application/json"])
     fun getOppgaverOmPerson(
         @ApiParam(value = "NavIdent til en ansatt")
         @PathVariable navIdent: String,
@@ -125,7 +127,7 @@ class KlagebehandlingListController(
         )
     }
 
-    @PostMapping("/ansatte/{navIdent}/klagebehandlinger/{id}/saksbehandlertildeling")
+    @PostMapping("/{navIdent}/klagebehandlinger/{id}/saksbehandlertildeling")
     fun assignSaksbehandler(
         @ApiParam(value = "NavIdent til en ansatt")
         @PathVariable navIdent: String,
@@ -148,7 +150,7 @@ class KlagebehandlingListController(
         )
     }
 
-    @PostMapping("/ansatte/{navIdent}/klagebehandlinger/{id}/saksbehandlerfradeling")
+    @PostMapping("/{navIdent}/klagebehandlinger/{id}/saksbehandlerfradeling")
     fun unassignSaksbehandler(
         @ApiParam(value = "NavIdent til en ansatt")
         @PathVariable navIdent: String,
@@ -176,7 +178,7 @@ class KlagebehandlingListController(
         value = "Hent antall utildelte klagebehandlinger der fristen gått ut",
         notes = "Teller opp alle utildelte klagebehandlinger der fristen gått ut."
     )
-    @GetMapping("/ansatte/{navIdent}/antallklagebehandlingermedutgaattefrister", produces = ["application/json"])
+    @GetMapping("/{navIdent}/antallklagebehandlingermedutgaattefrister", produces = ["application/json"])
     fun getAntallUtgaatteFrister(
         @ApiParam(value = "NavIdent til en ansatt")
         @PathVariable navIdent: String,

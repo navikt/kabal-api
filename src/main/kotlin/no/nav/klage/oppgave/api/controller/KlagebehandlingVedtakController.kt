@@ -22,6 +22,7 @@ import java.util.*
 @RestController
 @Api(tags = ["kabal-api"])
 @ProtectedWithClaims(issuer = ISSUER_AAD)
+@RequestMapping("/klagebehandlinger")
 class KlagebehandlingVedtakController(
     private val innloggetSaksbehandlerRepository: InnloggetSaksbehandlerRepository,
     private val klagebehandlingMapper: KlagebehandlingMapper,
@@ -36,7 +37,7 @@ class KlagebehandlingVedtakController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @PostMapping("/klagebehandlinger/{klagebehandlingid}/vedtak/{vedtakid}/vedlegg")
+    @PostMapping("/{klagebehandlingid}/vedtak/{vedtakid}/vedlegg")
     fun postVedlegg(
         @PathVariable("klagebehandlingid") klagebehandlingId: String,
         @PathVariable("vedtakid") vedtakId: String,
@@ -53,7 +54,7 @@ class KlagebehandlingVedtakController(
         )
     }
 
-    @DeleteMapping("/klagebehandlinger/{klagebehandlingid}/vedtak/{vedtakid}/vedlegg")
+    @DeleteMapping("/{klagebehandlingid}/vedtak/{vedtakid}/vedlegg")
     fun deleteVedlegg(
         @PathVariable("klagebehandlingid") klagebehandlingId: String,
         @PathVariable("vedtakid") vedtakId: String,
@@ -70,7 +71,7 @@ class KlagebehandlingVedtakController(
         )
     }
 
-    @PostMapping("/klagebehandlinger/{klagebehandlingid}/vedtak/{vedtakid}/fullfoer")
+    @PostMapping("/{klagebehandlingid}/vedtak/{vedtakid}/fullfoer")
     fun fullfoerVedtak(
         @PathVariable("klagebehandlingid") klagebehandlingId: String,
         @PathVariable("vedtakid") vedtakId: String,
@@ -86,7 +87,7 @@ class KlagebehandlingVedtakController(
     }
 
     @ResponseBody
-    @GetMapping("/klagebehandlinger/{klagebehandlingid}/vedtak/{vedtakid}/pdf")
+    @GetMapping("/{klagebehandlingid}/vedtak/{vedtakid}/pdf")
     fun getVedlegg(
         @PathVariable("klagebehandlingid") klagebehandlingId: String,
         @PathVariable("vedtakid") vedtakId: String,

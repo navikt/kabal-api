@@ -21,6 +21,7 @@ import java.util.*
 @RestController
 @Api(tags = ["kabal-api"])
 @ProtectedWithClaims(issuer = ISSUER_AAD)
+@RequestMapping("/klagebehandlinger")
 class KlagebehandlingDokumentController(
     private val klagebehandlingService: KlagebehandlingService,
     private val dokumentService: DokumentService,
@@ -36,7 +37,7 @@ class KlagebehandlingDokumentController(
         value = "Hent dokumenter for en klagebehandling",
         notes = "Henter alle dokumenter om en person som saksbehandler har tilgang til."
     )
-    @GetMapping("/klagebehandlinger/{behandlingsid}/alledokumenter", produces = ["application/json"])
+    @GetMapping("/{behandlingsid}/alledokumenter", produces = ["application/json"])
     fun fetchDokumenter(
         @ApiParam(value = "Id til klagebehandlingen i vårt system")
         @PathVariable behandlingsid: String,
@@ -57,7 +58,7 @@ class KlagebehandlingDokumentController(
         value = "Henter journalposter med dokumenter knyttet til en klagebehandling",
         notes = "Henter journalpostene til dokumentene som saksbehandler har markert at skal knyttes til klagebehandlingen."
     )
-    @GetMapping("/klagebehandlinger/{behandlingsid}/dokumenter", produces = ["application/json"])
+    @GetMapping("/{behandlingsid}/dokumenter", produces = ["application/json"])
     fun fetchConnectedDokumenter(
         @ApiParam(value = "Id til klagebehandlingen i vårt system")
         @PathVariable behandlingsid: String
@@ -67,7 +68,7 @@ class KlagebehandlingDokumentController(
     }
 
     @ResponseBody
-    @GetMapping("/klagebehandlinger/{behandlingsId}/journalposter/{journalpostId}/dokumenter/{dokumentInfoId}")
+    @GetMapping("/{behandlingsId}/journalposter/{journalpostId}/dokumenter/{dokumentInfoId}")
     fun getArkivertDokument(
         @ApiParam(value = "Id til klagebehandlingen i vårt system")
         @PathVariable behandlingsId: String,

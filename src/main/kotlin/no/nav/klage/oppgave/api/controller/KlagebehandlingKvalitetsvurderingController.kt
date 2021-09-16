@@ -19,6 +19,7 @@ import java.util.*
 @RestController
 @Api(tags = ["kabal-api"])
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
+@RequestMapping("/klagebehandlinger")
 class KlagebehandlingKvalitetsvurderingController(
     private val klagebehandlingService: KlagebehandlingService,
     private val innloggetSaksbehandlerRepository: InnloggetSaksbehandlerRepository,
@@ -32,7 +33,7 @@ class KlagebehandlingKvalitetsvurderingController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @GetMapping("/klagebehandlinger/{id}/kvalitetsvurdering")
+    @GetMapping("/{id}/kvalitetsvurdering")
     fun getKvalitetsvurdering(
         @PathVariable("id") klagebehandlingId: String
     ): KlagebehandlingKvalitetsvurderingView {
@@ -42,7 +43,7 @@ class KlagebehandlingKvalitetsvurderingController(
         )
     }
 
-    @PutMapping("/klagebehandlinger/{id}/kvalitetsvurdering/editerbare")
+    @PutMapping("/{id}/kvalitetsvurdering/editerbare")
     fun putKvalitetsvurderingEditableFields(
         @PathVariable("id") klagebehandlingId: String,
         @RequestBody input: KvalitetsvurderingEditableFieldsInput
