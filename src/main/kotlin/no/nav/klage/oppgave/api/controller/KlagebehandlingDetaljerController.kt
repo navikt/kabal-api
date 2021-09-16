@@ -5,12 +5,12 @@ import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.AuditLogEvent
-import no.nav.klage.oppgave.exceptions.BehandlingsidWrongFormatException
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.KlagebehandlingEditableFieldsFacade
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.util.AuditLogger
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.logKlagebehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -34,11 +34,11 @@ class KlagebehandlingDetaljerController(
 
     @GetMapping("/{id}/detaljer")
     fun getKlagebehandlingDetaljer(
-        @PathVariable("id") klagebehandlingId: String
+        @PathVariable("id") klagebehandlingId: UUID
     ): KlagebehandlingDetaljerView {
-        logMethodDetails("getKlagebehandlingDetaljer", klagebehandlingId)
+        logKlagebehandlingMethodDetails("getKlagebehandlingDetaljer", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
         return klagebehandlingMapper.mapKlagebehandlingToKlagebehandlingDetaljerView(
-            klagebehandlingService.getKlagebehandling(klagebehandlingId.toUUIDOrException())
+            klagebehandlingService.getKlagebehandling(klagebehandlingId)
         ).also {
             auditLogger.log(
                 AuditLogEvent(
@@ -51,13 +51,13 @@ class KlagebehandlingDetaljerController(
 
     @PutMapping("/{id}/detaljer/editerbare")
     fun putEditableFields(
-        @PathVariable("id") klagebehandlingId: String,
+        @PathVariable("id") klagebehandlingId: UUID,
         @RequestBody input: KlagebehandlingEditableFieldsInput
     ): KlagebehandlingEditedView {
-        logMethodDetails("putEditableFields", klagebehandlingId)
+        logKlagebehandlingMethodDetails("putEditableFields", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
         return klagebehandlingMapper.mapKlagebehandlingToKlagebehandlingEditableFieldsView(
             editableFieldsFacade.updateEditableFields(
-                klagebehandlingId.toUUIDOrException(),
+                klagebehandlingId,
                 input,
                 innloggetSaksbehandlerRepository.getInnloggetIdent()
             )
@@ -66,12 +66,12 @@ class KlagebehandlingDetaljerController(
 
     @PutMapping("/{id}/detaljer/medunderskriverident")
     fun putMedunderskriverident(
-        @PathVariable("id") klagebehandlingId: String,
+        @PathVariable("id") klagebehandlingId: UUID,
         @RequestBody input: KlagebehandlingMedunderskriveridentInput
     ): SendtMedunderskriverView {
-        logMethodDetails("putMedunderskriverident", klagebehandlingId)
+        logKlagebehandlingMethodDetails("putMedunderskriverident", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
         val klagebehandling = klagebehandlingService.setMedunderskriverIdent(
-            klagebehandlingId.toUUIDOrException(),
+            klagebehandlingId,
             input.klagebehandlingVersjon,
             input.medunderskriverident,
             innloggetSaksbehandlerRepository.getInnloggetIdent()
@@ -80,23 +80,6 @@ class KlagebehandlingDetaljerController(
             klagebehandling.versjon,
             klagebehandling.modified,
             klagebehandling.medunderskriver!!.tidspunkt.toLocalDate()
-        )
-    }
-
-    private fun String.toUUIDOrException() =
-        try {
-            UUID.fromString(this)
-        } catch (e: Exception) {
-            logger.error("KlagebehandlingId could not be parsed as an UUID", e)
-            throw BehandlingsidWrongFormatException("KlagebehandlingId could not be parsed as an UUID")
-        }
-
-    private fun logMethodDetails(methodName: String, klagebehandlingId: String) {
-        logger.debug(
-            "{} is requested by ident {} for klagebehandlingId {}",
-            methodName,
-            innloggetSaksbehandlerRepository.getInnloggetIdent(),
-            klagebehandlingId
         )
     }
 }

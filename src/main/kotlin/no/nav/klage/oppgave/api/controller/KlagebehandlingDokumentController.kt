@@ -6,8 +6,6 @@ import io.swagger.annotations.ApiParam
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.kodeverk.Tema
-import no.nav.klage.oppgave.exceptions.BehandlingsidWrongFormatException
-import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.util.getLogger
@@ -24,8 +22,7 @@ import java.util.*
 @RequestMapping("/klagebehandlinger")
 class KlagebehandlingDokumentController(
     private val klagebehandlingService: KlagebehandlingService,
-    private val dokumentService: DokumentService,
-    private val innloggetSaksbehandlerRepository: InnloggetSaksbehandlerRepository
+    private val dokumentService: DokumentService
 ) {
 
     companion object {
@@ -37,15 +34,14 @@ class KlagebehandlingDokumentController(
         value = "Hent dokumenter for en klagebehandling",
         notes = "Henter alle dokumenter om en person som saksbehandler har tilgang til."
     )
-    @GetMapping("/{behandlingsid}/alledokumenter", produces = ["application/json"])
+    @GetMapping("/{id}/alledokumenter", produces = ["application/json"])
     fun fetchDokumenter(
         @ApiParam(value = "Id til klagebehandlingen i vårt system")
-        @PathVariable behandlingsid: String,
+        @PathVariable klagebehandlingId: UUID,
         @RequestParam(required = false, name = "antall", defaultValue = "10") pageSize: Int,
         @RequestParam(required = false, name = "forrigeSide") previousPageRef: String? = null,
         @RequestParam(required = false, name = "tema") tema: List<String>? = emptyList()
     ): DokumenterResponse {
-        val klagebehandlingId = parseAndValidate(behandlingsid)
         return klagebehandlingService.fetchDokumentlisteForKlagebehandling(
             klagebehandlingId = klagebehandlingId,
             temaer = tema?.map { Tema.of(it) } ?: emptyList(),
@@ -58,27 +54,25 @@ class KlagebehandlingDokumentController(
         value = "Henter journalposter med dokumenter knyttet til en klagebehandling",
         notes = "Henter journalpostene til dokumentene som saksbehandler har markert at skal knyttes til klagebehandlingen."
     )
-    @GetMapping("/{behandlingsid}/dokumenter", produces = ["application/json"])
+    @GetMapping("/{id}/dokumenter", produces = ["application/json"])
     fun fetchConnectedDokumenter(
         @ApiParam(value = "Id til klagebehandlingen i vårt system")
-        @PathVariable behandlingsid: String
+        @PathVariable klagebehandlingId: UUID
     ): DokumenterResponse {
-        val klagebehandlingId = parseAndValidate(behandlingsid)
         return klagebehandlingService.fetchJournalposterConnectedToKlagebehandling(klagebehandlingId)
     }
 
     @ResponseBody
-    @GetMapping("/{behandlingsId}/journalposter/{journalpostId}/dokumenter/{dokumentInfoId}")
+    @GetMapping("/{id}/journalposter/{journalpostId}/dokumenter/{dokumentInfoId}")
     fun getArkivertDokument(
         @ApiParam(value = "Id til klagebehandlingen i vårt system")
-        @PathVariable behandlingsId: String,
+        @PathVariable klagebehandlingId: UUID,
         @ApiParam(value = "Id til journalpost")
         @PathVariable journalpostId: String,
         @ApiParam(value = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String
 
     ): ResponseEntity<ByteArray> {
-        val klagebehandlingId = parseAndValidate(behandlingsId)
         logger.debug(
             "Get getArkivertDokument is requested. behandlingsid: {} - journalpostId: {} - dokumentInfoId: {}",
             klagebehandlingId,
@@ -97,12 +91,4 @@ class KlagebehandlingDokumentController(
             HttpStatus.OK
         )
     }
-
-    private fun parseAndValidate(behandlingsid: String): UUID =
-        try {
-            UUID.fromString(behandlingsid)
-        } catch (e: Exception) {
-            logger.warn("Unable to parse uuid from $behandlingsid", e)
-            throw BehandlingsidWrongFormatException("$behandlingsid is not a valid behandlingsid")
-        }
 }

@@ -4,7 +4,6 @@ import io.swagger.annotations.Api
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
-import no.nav.klage.oppgave.exceptions.BehandlingsidWrongFormatException
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.DokumentService
@@ -12,6 +11,7 @@ import no.nav.klage.oppgave.service.FileApiService
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.service.VedtakService
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.logKlagebehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -39,15 +39,14 @@ class KlagebehandlingVedtakController(
 
     @PostMapping("/{klagebehandlingid}/vedtak/{vedtakid}/vedlegg")
     fun postVedlegg(
-        @PathVariable("klagebehandlingid") klagebehandlingId: String,
-        @PathVariable("vedtakid") vedtakId: String,
+        @PathVariable("klagebehandlingid") klagebehandlingId: UUID,
+        @PathVariable("vedtakid") vedtakId: UUID,
         @ModelAttribute input: VedtakVedleggInput
     ): VedleggEditedView? {
-        logMethodDetails("postVedlegg", klagebehandlingId)
-
+        logKlagebehandlingMethodDetails("postVedlegg", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
         return klagebehandlingMapper.mapToVedleggEditedView(
             vedtakService.knyttVedtaksFilTilVedtak(
-                klagebehandlingId.toUUIDOrException(),
+                klagebehandlingId,
                 input,
                 innloggetSaksbehandlerRepository.getInnloggetIdent()
             )
@@ -56,15 +55,14 @@ class KlagebehandlingVedtakController(
 
     @DeleteMapping("/{klagebehandlingid}/vedtak/{vedtakid}/vedlegg")
     fun deleteVedlegg(
-        @PathVariable("klagebehandlingid") klagebehandlingId: String,
-        @PathVariable("vedtakid") vedtakId: String,
+        @PathVariable("klagebehandlingid") klagebehandlingId: UUID,
+        @PathVariable("vedtakid") vedtakId: UUID,
         @RequestBody input: VedtakSlettVedleggInput
     ): VedleggEditedView {
-        logMethodDetails("deleteVedlegg", klagebehandlingId)
-
+        logKlagebehandlingMethodDetails("deleteVedlegg", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
         return klagebehandlingMapper.mapToVedleggEditedView(
             vedtakService.slettFilTilknyttetVedtak(
-                klagebehandlingId.toUUIDOrException(),
+                klagebehandlingId,
                 input,
                 innloggetSaksbehandlerRepository.getInnloggetIdent()
             )
@@ -73,13 +71,13 @@ class KlagebehandlingVedtakController(
 
     @PostMapping("/{klagebehandlingid}/vedtak/{vedtakid}/fullfoer")
     fun fullfoerVedtak(
-        @PathVariable("klagebehandlingid") klagebehandlingId: String,
-        @PathVariable("vedtakid") vedtakId: String,
+        @PathVariable("klagebehandlingid") klagebehandlingId: UUID,
+        @PathVariable("vedtakid") vedtakId: UUID,
         @RequestBody input: VedtakFullfoerInput
     ): VedtakFullfoertView {
-        logMethodDetails("fullfoerVedtak", klagebehandlingId)
+        logKlagebehandlingMethodDetails("fullfoerVedtak", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
         val klagebehandling = vedtakService.ferdigstillVedtak(
-            klagebehandlingId.toUUIDOrException(),
+            klagebehandlingId,
             input,
             innloggetSaksbehandlerRepository.getInnloggetIdent()
         )
@@ -89,11 +87,11 @@ class KlagebehandlingVedtakController(
     @ResponseBody
     @GetMapping("/{klagebehandlingid}/vedtak/{vedtakid}/pdf")
     fun getVedlegg(
-        @PathVariable("klagebehandlingid") klagebehandlingId: String,
-        @PathVariable("vedtakid") vedtakId: String,
+        @PathVariable("klagebehandlingid") klagebehandlingId: UUID,
+        @PathVariable("vedtakid") vedtakId: UUID,
     ): ResponseEntity<ByteArray> {
-        logMethodDetails("getVedlegg", klagebehandlingId)
-        val klagebehandling = klagebehandlingService.getKlagebehandling(klagebehandlingId.toUUIDOrException())
+        logKlagebehandlingMethodDetails("getVedlegg", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
+        val klagebehandling = klagebehandlingService.getKlagebehandling(klagebehandlingId)
         val vedtak = vedtakService.getVedtak(klagebehandling)
 
         val arkivertDokumentWithTitle =
@@ -116,23 +114,6 @@ class KlagebehandlingVedtakController(
             arkivertDokumentWithTitle.content,
             responseHeaders,
             HttpStatus.OK
-        )
-    }
-
-    private fun String.toUUIDOrException() =
-        try {
-            UUID.fromString(this)
-        } catch (e: Exception) {
-            logger.error("Input could not be parsed as an UUID", e)
-            throw BehandlingsidWrongFormatException("Input could not be parsed as an UUID")
-        }
-
-    private fun logMethodDetails(methodName: String, klagebehandlingId: String) {
-        logger.debug(
-            "{} is requested by ident {} for klagebehandlingId {}",
-            methodName,
-            innloggetSaksbehandlerRepository.getInnloggetIdent(),
-            klagebehandlingId
         )
     }
 }

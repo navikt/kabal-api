@@ -7,11 +7,11 @@ import no.nav.klage.oppgave.api.view.KlagebehandlingEditedView
 import no.nav.klage.oppgave.api.view.KlagebehandlingKvalitetsvurderingView
 import no.nav.klage.oppgave.api.view.KvalitetsvurderingEditableFieldsInput
 import no.nav.klage.oppgave.config.SecurityConfiguration
-import no.nav.klage.oppgave.exceptions.BehandlingsidWrongFormatException
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.service.KvalitetsvurderingEditableFieldsFacade
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.logKlagebehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -35,43 +35,26 @@ class KlagebehandlingKvalitetsvurderingController(
 
     @GetMapping("/{id}/kvalitetsvurdering")
     fun getKvalitetsvurdering(
-        @PathVariable("id") klagebehandlingId: String
+        @PathVariable("id") klagebehandlingId: UUID
     ): KlagebehandlingKvalitetsvurderingView {
-        logMethodDetails("getKvalitetsvurdering", klagebehandlingId)
+        logKlagebehandlingMethodDetails("getKvalitetsvurdering", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
         return kvalitetsvurderingMapper.mapKlagebehandlingToKvalitetsvurderingView(
-            klagebehandlingService.getKlagebehandling(klagebehandlingId.toUUIDOrException())
+            klagebehandlingService.getKlagebehandling(klagebehandlingId)
         )
     }
 
     @PutMapping("/{id}/kvalitetsvurdering/editerbare")
     fun putKvalitetsvurderingEditableFields(
-        @PathVariable("id") klagebehandlingId: String,
+        @PathVariable("id") klagebehandlingId: UUID,
         @RequestBody input: KvalitetsvurderingEditableFieldsInput
     ): KlagebehandlingEditedView {
-        logMethodDetails("putKvalitetsvurderingEditableFields", klagebehandlingId)
+        logKlagebehandlingMethodDetails("putKvalitetsvurderingEditableFields", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
         return klagebehandlingMapper.mapKlagebehandlingToKlagebehandlingEditableFieldsView(
             kvalitetsvurderingEditableFieldsFacade.updateEditableFields(
-                klagebehandlingId.toUUIDOrException(),
+                klagebehandlingId,
                 input,
                 innloggetSaksbehandlerRepository.getInnloggetIdent()
             )
-        )
-    }
-
-    private fun String.toUUIDOrException() =
-        try {
-            UUID.fromString(this)
-        } catch (e: Exception) {
-            logger.error("Input could not be parsed as an UUID", e)
-            throw BehandlingsidWrongFormatException("Input could not be parsed as an UUID")
-        }
-
-    private fun logMethodDetails(methodName: String, klagebehandlingId: String) {
-        logger.debug(
-            "{} is requested by ident {} for klagebehandlingId {}",
-            methodName,
-            innloggetSaksbehandlerRepository.getInnloggetIdent(),
-            klagebehandlingId
         )
     }
 }

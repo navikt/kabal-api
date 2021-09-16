@@ -11,12 +11,12 @@ import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.KlagebehandlingerSearchCriteria
 import no.nav.klage.oppgave.domain.kodeverk.PartIdType
 import no.nav.klage.oppgave.domain.kodeverk.TemaTilgjengeligeForEktefelle.temaerTilgjengeligForEktefelle
-import no.nav.klage.oppgave.exceptions.BehandlingsidWrongFormatException
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.ElasticsearchService
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.logKlagebehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.env.Environment
 import org.springframework.web.bind.annotation.GetMapping
@@ -47,11 +47,11 @@ class KlagebehandlingController(
 
     @GetMapping("/{id}/muligemedunderskrivere")
     fun getPossibleMedunderskrivere(
-        @PathVariable("id") klagebehandlingId: String
+        @PathVariable("id") klagebehandlingId: UUID
     ): Medunderskrivere {
         val navIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
         logger.debug("getPossibleMedunderskrivere is requested by $navIdent")
-        val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdate(klagebehandlingId.toUUIDOrException())
+        val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdate(klagebehandlingId)
         val tema = klagebehandling.tema
         return if (environment.activeProfiles.contains("prod-gcp")) {
             saksbehandlerService.getMedunderskrivere(navIdent, klagebehandling)
@@ -70,11 +70,11 @@ class KlagebehandlingController(
 
     @GetMapping("/{id}/relaterte")
     fun getRelaterteKlagebehandlinger(
-        @PathVariable("id") klagebehandlingId: String
+        @PathVariable("id") klagebehandlingId: UUID
     ): KlagebehandlingerListRespons {
-        logMethodDetails("getRelaterteKlagebehandlinger", klagebehandlingId)
+        logKlagebehandlingMethodDetails("getRelaterteKlagebehandlinger", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
         //TODO: Flytt masse av dette inn i en egen service/facade, kanskje den Richard lager?
-        val klagebehandling = klagebehandlingService.getKlagebehandling(klagebehandlingId.toUUIDOrException())
+        val klagebehandling = klagebehandlingService.getKlagebehandling(klagebehandlingId)
         val lovligeTemaer =
             saksbehandlerService.findValgtEnhet(innloggetSaksbehandlerRepository.getInnloggetIdent()).temaer
         if (klagebehandling.sakenGjelder.partId.type == PartIdType.VIRKSOMHET) {
@@ -109,23 +109,6 @@ class KlagebehandlingController(
                 tilgangTilTemaer = lovligeTemaer,
                 sivilstand = sivilstand
             )
-        )
-    }
-
-    private fun String.toUUIDOrException() =
-        try {
-            UUID.fromString(this)
-        } catch (e: Exception) {
-            logger.error("KlagebehandlingId could not be parsed as an UUID", e)
-            throw BehandlingsidWrongFormatException("KlagebehandlingId could not be parsed as an UUID")
-        }
-
-    private fun logMethodDetails(methodName: String, klagebehandlingId: String) {
-        logger.debug(
-            "{} is requested by ident {} for klagebehandlingId {}",
-            methodName,
-            innloggetSaksbehandlerRepository.getInnloggetIdent(),
-            klagebehandlingId
         )
     }
 }

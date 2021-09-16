@@ -7,10 +7,8 @@ import no.nav.klage.oppgave.api.mapper.KlagebehandlingListMapper
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingerSearchCriteriaMapper
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
-import no.nav.klage.oppgave.exceptions.BehandlingsidWrongFormatException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.exceptions.NotMatchingUserException
-import no.nav.klage.oppgave.exceptions.OppgaveVersjonWrongFormatException
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.ElasticsearchService
 import no.nav.klage.oppgave.service.KlagebehandlingService
@@ -132,12 +130,12 @@ class KlagebehandlingListController(
         @ApiParam(value = "NavIdent til en ansatt")
         @PathVariable navIdent: String,
         @ApiParam(value = "Id til en klagebehandling")
-        @PathVariable("id") klagebehandlingId: String,
+        @PathVariable("id") klagebehandlingId: UUID,
         @RequestBody saksbehandlertildeling: Saksbehandlertildeling
     ): TildelingEditedView {
         logger.debug("assignSaksbehandler is requested for klagebehandling: {}", klagebehandlingId)
         val klagebehandling = klagebehandlingService.assignKlagebehandling(
-            klagebehandlingId.toUUIDOrException(),
+            klagebehandlingId,
             saksbehandlertildeling.klagebehandlingVersjon,
             saksbehandlertildeling.navIdent,
             saksbehandlertildeling.angittEnhetOrDefault(),
@@ -155,12 +153,12 @@ class KlagebehandlingListController(
         @ApiParam(value = "NavIdent til en ansatt")
         @PathVariable navIdent: String,
         @ApiParam(value = "Id til en klagebehandling")
-        @PathVariable("id") klagebehandlingId: String,
+        @PathVariable("id") klagebehandlingId: UUID,
         @RequestBody(required = false) saksbehandlerfradeling: Saksbehandlerfradeling?
     ): TildelingEditedView {
         logger.debug("unassignSaksbehandler is requested for klagebehandling: {}", klagebehandlingId)
         val klagebehandling = klagebehandlingService.assignKlagebehandling(
-            klagebehandlingId.toUUIDOrException(),
+            klagebehandlingId,
             saksbehandlerfradeling?.klagebehandlingVersjon,
             null,
             null,
@@ -195,18 +193,6 @@ class KlagebehandlingListController(
             )
         )
     }
-
-    private fun String?.versjonToLongOrException() =
-        this?.toLongOrNull()
-            ?: throw OppgaveVersjonWrongFormatException("KlagebehandlingVersjon could not be parsed as an Long")
-
-    private fun String.toUUIDOrException(): UUID =
-        try {
-            UUID.fromString(this)
-        } catch (e: Exception) {
-            logger.error("KlagebehandlingId could not be parsed as an UUID", e)
-            throw BehandlingsidWrongFormatException("KlagebehandlingId could not be parsed as an UUID")
-        }
 
     private fun validateNavIdent(navIdent: String) {
         val innloggetIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
