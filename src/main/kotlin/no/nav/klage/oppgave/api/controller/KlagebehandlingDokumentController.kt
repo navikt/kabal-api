@@ -37,7 +37,7 @@ class KlagebehandlingDokumentController(
     @GetMapping("/{id}/alledokumenter", produces = ["application/json"])
     fun fetchDokumenter(
         @ApiParam(value = "Id til klagebehandlingen i vårt system")
-        @PathVariable klagebehandlingId: UUID,
+        @PathVariable("id") klagebehandlingId: UUID,
         @RequestParam(required = false, name = "antall", defaultValue = "10") pageSize: Int,
         @RequestParam(required = false, name = "forrigeSide") previousPageRef: String? = null,
         @RequestParam(required = false, name = "tema") tema: List<String>? = emptyList()
@@ -57,7 +57,7 @@ class KlagebehandlingDokumentController(
     @GetMapping("/{id}/dokumenter", produces = ["application/json"])
     fun fetchConnectedDokumenter(
         @ApiParam(value = "Id til klagebehandlingen i vårt system")
-        @PathVariable klagebehandlingId: UUID
+        @PathVariable("id") klagebehandlingId: UUID
     ): DokumenterResponse {
         return klagebehandlingService.fetchJournalposterConnectedToKlagebehandling(klagebehandlingId)
     }
@@ -66,7 +66,7 @@ class KlagebehandlingDokumentController(
     @GetMapping("/{id}/journalposter/{journalpostId}/dokumenter/{dokumentInfoId}")
     fun getArkivertDokument(
         @ApiParam(value = "Id til klagebehandlingen i vårt system")
-        @PathVariable klagebehandlingId: UUID,
+        @PathVariable("id") klagebehandlingId: UUID,
         @ApiParam(value = "Id til journalpost")
         @PathVariable journalpostId: String,
         @ApiParam(value = "Id til dokumentInfo")
