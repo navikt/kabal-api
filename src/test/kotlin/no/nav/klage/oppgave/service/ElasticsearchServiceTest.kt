@@ -157,11 +157,4 @@ class ElasticsearchServiceTest {
         assertThat(klagebehandlinger.size).isEqualTo(1L)
         assertThat(klagebehandlinger.first().id).isEqualTo("1001L")
     }
-
-    @Test
-    @Order(6)
-    fun `sabotage`() {
-        assert(false)
-    }
-
 }
