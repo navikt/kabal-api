@@ -158,4 +158,10 @@ class ElasticsearchServiceTest {
         assertThat(klagebehandlinger.first().id).isEqualTo("1001L")
     }
 
+    @Test
+    @Order(6)
+    fun `sabotage`() {
+        assert(false)
+    }
+
 }
