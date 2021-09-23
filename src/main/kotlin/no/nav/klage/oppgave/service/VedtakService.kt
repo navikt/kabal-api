@@ -221,9 +221,8 @@ class VedtakService(
         val vedtak = klagebehandling.getVedtakOrException()
         if (vedtak.ferdigstiltIJoark != null) throw VedtakFinalizedException("Vedtak med id ${vedtak.id} er allerede ferdigstilt")
 
-        if (vedtak.mellomlagerId == null && vedtak.journalpostId != null) {
-            //Dette gjelder edge-case der noen har påbegynt en klagebehandling før vi innførte mellomlager.
-            throw VedtakNotFoundException("Vennligst last opp vedtak på nytt")
+        if (vedtak.mellomlagerId == null) {
+            throw VedtakNotFoundException("Vennligst last opp vedtaksdokument på nytt")
         }
 
         if (vedtak.utfall == null) throw UtfallNotSetException("Utfall på vedtak ${vedtak.id} er ikke satt")
