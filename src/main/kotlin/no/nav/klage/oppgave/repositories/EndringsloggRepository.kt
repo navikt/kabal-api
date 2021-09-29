@@ -8,5 +8,5 @@ import java.util.*
 @Repository
 interface EndringsloggRepository : JpaRepository<Endringslogginnslag, UUID> {
 
-    fun findByKlagebehandlingIdOrderByTidspunktDesc(klagebehandlingId: UUID)
+    fun findByKlagebehandlingIdOrderByTidspunktDesc(klagebehandlingId: UUID): List<Endringslogginnslag>
 }

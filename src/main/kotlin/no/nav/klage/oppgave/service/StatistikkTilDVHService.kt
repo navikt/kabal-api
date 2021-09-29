@@ -1,12 +1,11 @@
-package no.nav.klage.oppgave.eventlisteners
+package no.nav.klage.oppgave.service
 
-import no.nav.klage.oppgave.domain.events.KlagebehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.KlageStatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.KlagebehandlingState
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.kodeverk.PartIdType
+import no.nav.klage.oppgave.repositories.EndringsloggRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
-import no.nav.klage.oppgave.service.StatistikkTilDVHKafkaProducer
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,7 +14,8 @@ import java.time.LocalDateTime
 @Service
 class StatistikkTilDVHService(
     private val statistikkTilDVHKafkaProducer: StatistikkTilDVHKafkaProducer,
-    private val mottakRepository: MottakRepository
+    private val mottakRepository: MottakRepository,
+    private val endringsloggRepository: EndringsloggRepository
 ) {
 
     companion object {
@@ -24,16 +24,18 @@ class StatistikkTilDVHService(
     }
 
     @Transactional(readOnly = true)
-    fun process(klagebehandlingEndretEvent: KlagebehandlingEndretEvent) {
-        val klagebehandling = klagebehandlingEndretEvent.klagebehandling
+    fun process(klagebehandling: Klagebehandling, endringslogginnslag: List<Endringslogginnslag>? = null) {
 
+        val endringslogg = endringslogginnslag ?: endringsloggRepository.findByKlagebehandlingIdOrderByTidspunktDesc(
+            klagebehandling.id
+        )
         val mottak = mottakRepository.getOne(klagebehandling.mottakId)
 
-        if (shouldSendStats(klagebehandlingEndretEvent.endringslogginnslag)) {
+        if (shouldSendStats(endringslogg)) {
             val klageStatistikkTilDVH = createKlageStatistikkTilDVH(
                 klagebehandling,
                 mottak,
-                getKlagebehandlingState(klagebehandlingEndretEvent.endringslogginnslag)
+                getKlagebehandlingState(endringslogg)
             )
             statistikkTilDVHKafkaProducer.sendStatistikkTilDVH(klageStatistikkTilDVH)
         }
