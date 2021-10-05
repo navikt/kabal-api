@@ -208,7 +208,7 @@ object KlagebehandlingAggregatFunctions {
         endringslogg(
             saksbehandlerident,
             Felt.MEDUNDERSKRIVERFLYT,
-            gammelverdiMedunderskriverFlyt.id,
+            gammelverdiMedunderskriverFlyt?.id,
             nyVerdiMedunderskriverFlyt.id,
             tidspunkt
         )?.let { endringslogginnslag.add(it) }
