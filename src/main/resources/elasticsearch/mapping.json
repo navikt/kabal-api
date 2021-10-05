@@ -126,6 +126,9 @@
     "medunderskriverident": {
       "type": "keyword"
     },
+    "medunderskriverFlyt": {
+      "type":"keyword"
+    },
     "tildeltEnhet": {
       "type": "keyword",
       "fields": {
