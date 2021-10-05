@@ -31,7 +31,7 @@ data class KlagebehandlingDetaljerView(
     val frist: LocalDate? = null,
     val tildeltSaksbehandlerident: String? = null,
     val medunderskriverident: String? = null,
-    val medunderskriverFlyt: String,
+    val medunderskriverFlyt: String? = null,
     val datoSendtMedunderskriver: LocalDate?,
     val hjemler: List<String>,
     val modified: LocalDateTime,

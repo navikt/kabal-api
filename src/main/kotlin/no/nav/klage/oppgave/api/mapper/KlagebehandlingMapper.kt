@@ -76,7 +76,7 @@ class KlagebehandlingMapper(
             frist = klagebehandling.frist,
             tildeltSaksbehandlerident = klagebehandling.tildeling?.saksbehandlerident,
             medunderskriverident = klagebehandling.medunderskriver?.saksbehandlerident,
-            medunderskriverFlyt = klagebehandling.medunderskriverFlyt.navn,
+            medunderskriverFlyt = klagebehandling.medunderskriverFlyt?.navn,
             datoSendtMedunderskriver = klagebehandling.medunderskriver?.tidspunkt?.toLocalDate(),
             hjemler = klagebehandling.hjemler.map { it.id },
             modified = klagebehandling.modified,

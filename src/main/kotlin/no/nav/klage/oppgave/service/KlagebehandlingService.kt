@@ -19,6 +19,7 @@ import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setTem
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setTildeling
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setType
 import no.nav.klage.oppgave.domain.kodeverk.*
+import no.nav.klage.oppgave.exceptions.KlagebehandlingManglerMedunderskriverException
 import no.nav.klage.oppgave.exceptions.KlagebehandlingNotFoundException
 import no.nav.klage.oppgave.exceptions.SaksdokumentNotFoundException
 import no.nav.klage.oppgave.exceptions.ValidationException
@@ -180,6 +181,10 @@ class KlagebehandlingService(
             )
             applicationEventPublisher.publishEvent(event)
         } else {
+            if (klagebehandling.medunderskriver?.saksbehandlerident == null) {
+                throw KlagebehandlingManglerMedunderskriverException("Klagebehandlingen har ikke registrert noen medunderskriver")
+
+            }
             checkSkrivetilgang(klagebehandling)
             val event = klagebehandling.setMedunderskriverFlyt(
                 MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER,
