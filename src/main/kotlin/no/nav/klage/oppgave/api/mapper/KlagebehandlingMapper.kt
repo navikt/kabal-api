@@ -76,6 +76,7 @@ class KlagebehandlingMapper(
             frist = klagebehandling.frist,
             tildeltSaksbehandlerident = klagebehandling.tildeling?.saksbehandlerident,
             medunderskriverident = klagebehandling.medunderskriver?.saksbehandlerident,
+            medunderskriverFlyt = klagebehandling.medunderskriverFlyt.navn,
             datoSendtMedunderskriver = klagebehandling.medunderskriver?.tidspunkt?.toLocalDate(),
             hjemler = klagebehandling.hjemler.map { it.id },
             modified = klagebehandling.modified,
@@ -228,6 +229,13 @@ class KlagebehandlingMapper(
             klagebehandling.modified,
             klagebehandling.getVedtakOrException().avsluttetAvSaksbehandler!!,
             klagebehandling.avsluttetAvSaksbehandler?.toLocalDate()
+        )
+    }
+
+    fun mapToMedunderskriverFlytResponse(klagebehandling: Klagebehandling): MedunderskriverFlytResponse {
+        return MedunderskriverFlytResponse(
+            klagebehandling.modified,
+            klagebehandling.medunderskriverFlyt.navn
         )
     }
 }

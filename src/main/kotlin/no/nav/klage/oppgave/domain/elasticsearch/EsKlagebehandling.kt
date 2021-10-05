@@ -104,6 +104,8 @@ data class EsKlagebehandling(
     val tildeltSaksbehandlernavn: String? = null,
     @Field(type = FieldType.Keyword)
     val medunderskriverident: String? = null,
+    @Field(type = FieldType.Keyword)
+    val medunderskriverFlyt: String? = null,
 
     @MultiField(
         mainField = Field(type = FieldType.Keyword),
@@ -184,6 +186,6 @@ data class EsKlagebehandling(
     val status: Status
 ) {
     enum class Status {
-        IKKE_TILDELT, TILDELT, SENDT_TIL_MEDUNDERSKRIVER, GODKJENT_AV_MEDUNDERSKRIVER, FULLFOERT, UKJENT
+        IKKE_TILDELT, TILDELT, MEDUNDERSKRIVER_VALGT, SENDT_TIL_MEDUNDERSKRIVER, RETURNERT_TIL_SAKSBEHANDLER, AVSLUTTET_AV_SAKSBEHANDLER, FULLFOERT, UKJENT
     }
 }

@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.api.view
 
+import no.nav.klage.oppgave.domain.kodeverk.MedunderskriverFlyt
 import java.time.LocalDate
 
 data class KlagebehandlingerListRespons(
@@ -20,6 +21,7 @@ data class KlagebehandlingListView(
     val erMedunderskriver: Boolean = false,
     val harMedunderskriver: Boolean = false,
     val medunderskriverident: String?,
+    val medunderskriverFlyt: String?,
     val utfall: String?,
     val avsluttetAvSaksbehandler: LocalDate?,
     val erTildelt: Boolean,

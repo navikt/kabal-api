@@ -7,6 +7,7 @@ import no.finn.unleash.Unleash
 import no.nav.klage.oppgave.api.controller.KlagebehandlingDetaljerController
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
 import no.nav.klage.oppgave.api.view.KlagebehandlingMedunderskriveridentInput
+import no.nav.klage.oppgave.api.view.MedunderskriverFlytResponse
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.kodeverk.*
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
@@ -94,11 +95,21 @@ class KlagebehandlingDetaljerControllerTest {
 
     @Test
     fun `putMedunderskriverident with correct input should return ok`() {
-        every { klagebehandlingService.setMedunderskriverIdent(any(), any(), any(), any()) } returns klagebehandling
+        every {
+            klagebehandlingService.setMedunderskriverIdentAndMedunderskriverFlyt(
+                any(),
+                any(),
+                any(),
+                any()
+            )
+        } returns klagebehandling
+        every { klagebehandlingMapper.mapToMedunderskriverFlytResponse(klagebehandling) } returns MedunderskriverFlytResponse(
+            klagebehandling.modified,
+            klagebehandling.medunderskriverFlyt.navn
+        )
 
         val input = KlagebehandlingMedunderskriveridentInput(
-            "A12345",
-            1L
+            "A12345"
         )
 
         mockMvc.put("/klagebehandlinger/$klagebehandlingId/detaljer/medunderskriverident") {

@@ -117,8 +117,12 @@ open class ElasticsearchService(
         return countByStatus(SENDT_TIL_MEDUNDERSKRIVER)
     }
 
-    open fun countAvsluttetAvMedunderskriver(): Long {
-        return countByStatus(GODKJENT_AV_MEDUNDERSKRIVER)
+    open fun countMedunderskriverValgt(): Long {
+        return countByStatus(MEDUNDERSKRIVER_VALGT)
+    }
+
+    open fun countReturnertTilSaksbehandler(): Long {
+        return countByStatus(RETURNERT_TIL_SAKSBEHANDLER)
     }
 
     open fun countAvsluttet(): Long {
@@ -136,7 +140,6 @@ open class ElasticsearchService(
 
     open fun countAntallSaksdokumenterIAvsluttedeBehandlingerMedian(): Double {
         val baseQuery: BoolQueryBuilder = QueryBuilders.boolQuery()
-        baseQuery.should(QueryBuilders.termQuery("status", GODKJENT_AV_MEDUNDERSKRIVER))
         baseQuery.should(QueryBuilders.termQuery("status", FULLFOERT))
         val query = NativeSearchQueryBuilder()
             .withQuery(baseQuery)

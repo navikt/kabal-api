@@ -23,9 +23,11 @@ class FunksjonelleGaugesConfiguration {
         return MeterBinder { registry: MeterRegistry ->
             Gauge.builder("funksjonell.ikketildelt") { elasticsearchService.countIkkeTildelt() }.register(registry)
             Gauge.builder("funksjonell.tildelt") { elasticsearchService.countTildelt() }.register(registry)
+            Gauge.builder("funksjonell.medunderskrivervalgt") { elasticsearchService.countMedunderskriverValgt() }
+                .register(registry)
             Gauge.builder("funksjonell.sendttilmedunderskriver") { elasticsearchService.countSendtTilMedunderskriver() }
                 .register(registry)
-            Gauge.builder("funksjonell.avsluttetavsaksbehandler") { elasticsearchService.countAvsluttetAvMedunderskriver() }
+            Gauge.builder("funksjonell.returnerttilsaksbehandler") { elasticsearchService.countReturnertTilSaksbehandler() }
                 .register(registry)
             Gauge.builder("funksjonell.avsluttet") { elasticsearchService.countAvsluttet() }.register(registry)
             Gauge.builder("funksjonell.antallsaksdokumenterpaaavsluttedebehandlinger.median") { elasticsearchService.countAntallSaksdokumenterIAvsluttedeBehandlingerMedian() }
@@ -37,7 +39,7 @@ class FunksjonelleGaugesConfiguration {
 
 @Configuration
 class MicrometerGracefulShutdownConfiguration {
-    
+
     @Bean
     fun registryCloser(registry: MeterRegistry) = RegistryCloser(registry)
 }

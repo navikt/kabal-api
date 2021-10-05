@@ -60,6 +60,9 @@ class Klagebehandling(
         ]
     )
     var medunderskriver: MedunderskriverTildeling? = null,
+    @Column(name = "medunderskriverflyt_id")
+    @Convert(converter = MedunderskriverflytConverter::class)
+    var medunderskriverFlyt: MedunderskriverFlyt = MedunderskriverFlyt.IKKE_SENDT,
     @Embedded
     @AttributeOverrides(
         value = [
@@ -162,8 +165,10 @@ class Klagebehandling(
     fun getStatus(): Status {
         return when {
             avsluttet != null -> FULLFOERT
-            avsluttetAvSaksbehandler != null -> GODKJENT_AV_MEDUNDERSKRIVER
-            medunderskriver?.saksbehandlerident != null -> SENDT_TIL_MEDUNDERSKRIVER
+            avsluttetAvSaksbehandler != null -> AVSLUTTET_AV_SAKSBEHANDLER
+            medunderskriverFlyt == MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER -> SENDT_TIL_MEDUNDERSKRIVER
+            medunderskriverFlyt == MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER -> RETURNERT_TIL_SAKSBEHANDLER
+            medunderskriver?.saksbehandlerident != null -> MEDUNDERSKRIVER_VALGT
             tildeling?.saksbehandlerident != null -> TILDELT
             tildeling?.saksbehandlerident == null -> IKKE_TILDELT
             else -> UKJENT
@@ -171,6 +176,6 @@ class Klagebehandling(
     }
 
     enum class Status {
-        IKKE_TILDELT, TILDELT, SENDT_TIL_MEDUNDERSKRIVER, GODKJENT_AV_MEDUNDERSKRIVER, FULLFOERT, UKJENT
+        IKKE_TILDELT, TILDELT, MEDUNDERSKRIVER_VALGT, SENDT_TIL_MEDUNDERSKRIVER, RETURNERT_TIL_SAKSBEHANDLER, AVSLUTTET_AV_SAKSBEHANDLER, FULLFOERT, UKJENT
     }
 }

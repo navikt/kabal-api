@@ -188,26 +188,28 @@ object KlagebehandlingAggregatFunctions {
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
-    fun Klagebehandling.setMedunderskriverIdent(
+    fun Klagebehandling.setMedunderskriverIdentAndMedunderskriverFlyt(
         nyVerdiMedunderskriverident: String?,
+        nyVerdiMedunderskriverFlyt: MedunderskriverFlyt,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
         val gammelVerdiMedunderskriverident = medunderskriver?.saksbehandlerident
-        val gammelVerdiTidspunkt = medunderskriver?.tidspunkt
+        val gammelverdiMedunderskriverFlyt = medunderskriverFlyt
         val tidspunkt = LocalDateTime.now()
         if (medunderskriver != null) {
             medunderskriverHistorikk.add(MedunderskriverHistorikk(medunderskriver = medunderskriver!!.copy()))
         }
         medunderskriver = MedunderskriverTildeling(nyVerdiMedunderskriverident, tidspunkt)
+        medunderskriverFlyt = nyVerdiMedunderskriverFlyt
         modified = tidspunkt
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
         endringslogg(
             saksbehandlerident,
-            Felt.OVERSENDT_MEDUNDERSKRIVER,
-            gammelVerdiTidspunkt?.format(DateTimeFormatter.ISO_LOCAL_DATE),
-            tidspunkt.format(DateTimeFormatter.ISO_LOCAL_DATE),
+            Felt.MEDUNDERSKRIVERFLYT,
+            gammelverdiMedunderskriverFlyt.id,
+            nyVerdiMedunderskriverFlyt.id,
             tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
@@ -216,6 +218,31 @@ object KlagebehandlingAggregatFunctions {
             Felt.MEDUNDERSKRIVERIDENT,
             gammelVerdiMedunderskriverident,
             nyVerdiMedunderskriverident,
+            tidspunkt
+        )?.let { endringslogginnslag.add(it) }
+
+        return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = endringslogginnslag)
+    }
+
+    fun Klagebehandling.setMedunderskriverFlyt(
+        nyMedunderskriverFlyt: MedunderskriverFlyt,
+        saksbehandlerident: String
+    ): KlagebehandlingEndretEvent {
+        val gammelVerdiMedunderskriverFlyt = medunderskriverFlyt
+
+
+        val tidspunkt = LocalDateTime.now()
+
+        medunderskriverFlyt = nyMedunderskriverFlyt
+        modified = tidspunkt
+
+        val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+
+        endringslogg(
+            saksbehandlerident,
+            Felt.MEDUNDERSKRIVERFLYT,
+            gammelVerdiMedunderskriverFlyt.id.toString(),
+            nyMedunderskriverFlyt.id.toString(),
             tidspunkt
         )?.let { endringslogginnslag.add(it) }
 

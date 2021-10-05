@@ -79,20 +79,22 @@ class ElasticsearchServiceStatusTest {
     fun `status count works`() {
         repo.save(getKlagebehandling(IKKE_TILDELT))
         repo.save(getKlagebehandling(TILDELT))
+        repo.save(getKlagebehandling(MEDUNDERSKRIVER_VALGT))
         repo.save(getKlagebehandling(SENDT_TIL_MEDUNDERSKRIVER))
-        repo.save(getKlagebehandling(GODKJENT_AV_MEDUNDERSKRIVER))
+        repo.save(getKlagebehandling(RETURNERT_TIL_SAKSBEHANDLER))
         repo.save(getKlagebehandling(FULLFOERT))
 
         val query: Query = NativeSearchQueryBuilder()
             .withQuery(QueryBuilders.matchAllQuery())
             .build()
         val searchHits: SearchHits<EsKlagebehandling> = esTemplate.search(query, EsKlagebehandling::class.java)
-        assertThat(searchHits.totalHits).isEqualTo(5L)
+        assertThat(searchHits.totalHits).isEqualTo(6L)
 
         assertThat(service.countIkkeTildelt()).isEqualTo(1)
         assertThat(service.countTildelt()).isEqualTo(1)
+        assertThat(service.countMedunderskriverValgt()).isEqualTo(1)
         assertThat(service.countSendtTilMedunderskriver()).isEqualTo(1)
-        assertThat(service.countAvsluttetAvMedunderskriver()).isEqualTo(1)
+        assertThat(service.countReturnertTilSaksbehandler()).isEqualTo(1)
         assertThat(service.countAvsluttet()).isEqualTo(1)
     }
 

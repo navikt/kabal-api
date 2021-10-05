@@ -125,16 +125,14 @@ class KlagebehandlingServiceTest {
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling) } returns Unit
 
 
-        klagebehandlingService.setMedunderskriverIdent(
+        klagebehandlingService.setMedunderskriverIdentAndMedunderskriverFlyt(
             klagebehandlingId,
-            null,
             medunderskriverIdent,
             utfoerendeSaksehandlerIdent
         )
 
-        val result = klagebehandlingService.setMedunderskriverIdent(
+        val result = klagebehandlingService.setMedunderskriverIdentAndMedunderskriverFlyt(
             klagebehandlingId,
-            null,
             null,
             utfoerendeSaksehandlerIdent
         )

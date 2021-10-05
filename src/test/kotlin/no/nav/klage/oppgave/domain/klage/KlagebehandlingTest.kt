@@ -407,13 +407,45 @@ internal class KlagebehandlingTest {
                 mottattKlageinstans = LocalDateTime.now(),
                 tema = Tema.AAP,
                 type = Type.KLAGE,
-                medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now())
+                medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now()),
+                medunderskriverFlyt = MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER
             )
             assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.SENDT_TIL_MEDUNDERSKRIVER)
         }
 
         @Test
-        fun `status status TILDELT når medunderskriver er fjernet`() {
+        fun `status RETURNERT_TIL_SAKSBEHANDLER`() {
+            val klagebehandling = Klagebehandling(
+                kildesystem = Fagsystem.AO01,
+                klager = Klager(PartId(PartIdType.PERSON, fnr)),
+                sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
+                mottakId = UUID.randomUUID(),
+                mottattKlageinstans = LocalDateTime.now(),
+                tema = Tema.AAP,
+                type = Type.KLAGE,
+                medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now()),
+                medunderskriverFlyt = MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER
+            )
+            assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.RETURNERT_TIL_SAKSBEHANDLER)
+        }
+
+        @Test
+        fun `status MEDUNDERSKRIVER_VALGT`() {
+            val klagebehandling = Klagebehandling(
+                kildesystem = Fagsystem.AO01,
+                klager = Klager(PartId(PartIdType.PERSON, fnr)),
+                sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
+                mottakId = UUID.randomUUID(),
+                mottattKlageinstans = LocalDateTime.now(),
+                tema = Tema.AAP,
+                type = Type.KLAGE,
+                medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now())
+            )
+            assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.MEDUNDERSKRIVER_VALGT)
+        }
+
+        @Test
+        fun `status TILDELT når medunderskriver er fjernet`() {
             val klagebehandling = Klagebehandling(
                 kildesystem = Fagsystem.AO01,
                 klager = Klager(PartId(PartIdType.PERSON, fnr)),
@@ -426,22 +458,6 @@ internal class KlagebehandlingTest {
                 medunderskriver = MedunderskriverTildeling(null, LocalDateTime.now())
             )
             assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.TILDELT)
-        }
-
-        @Test
-        fun `status GODKJENT_AV_MEDUNDERSKRIVER`() {
-            val klagebehandling = Klagebehandling(
-                kildesystem = Fagsystem.AO01,
-                klager = Klager(PartId(PartIdType.PERSON, fnr)),
-                sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
-                mottakId = UUID.randomUUID(),
-                mottattKlageinstans = LocalDateTime.now(),
-                tema = Tema.AAP,
-                type = Type.KLAGE,
-                medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now()),
-                avsluttetAvSaksbehandler = LocalDateTime.now()
-            )
-            assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.GODKJENT_AV_MEDUNDERSKRIVER)
         }
 
         @Test

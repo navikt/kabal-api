@@ -36,7 +36,12 @@ class KlagebehandlingDetaljerController(
     fun getKlagebehandlingDetaljer(
         @PathVariable("id") klagebehandlingId: UUID
     ): KlagebehandlingDetaljerView {
-        logKlagebehandlingMethodDetails("getKlagebehandlingDetaljer", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
+        logKlagebehandlingMethodDetails(
+            "getKlagebehandlingDetaljer",
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            klagebehandlingId,
+            logger
+        )
         return klagebehandlingMapper.mapKlagebehandlingToKlagebehandlingDetaljerView(
             klagebehandlingService.getKlagebehandling(klagebehandlingId)
         ).also {
@@ -54,10 +59,14 @@ class KlagebehandlingDetaljerController(
         @PathVariable("id") klagebehandlingId: UUID,
         @RequestBody input: KlagebehandlingMedunderskriveridentInput
     ): SendtMedunderskriverView {
-        logKlagebehandlingMethodDetails("putMedunderskriverident", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
-        val klagebehandling = klagebehandlingService.setMedunderskriverIdent(
+        logKlagebehandlingMethodDetails(
+            "putMedunderskriverident",
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
             klagebehandlingId,
-            input.klagebehandlingVersjon,
+            logger
+        )
+        val klagebehandling = klagebehandlingService.setMedunderskriverIdentAndMedunderskriverFlyt(
+            klagebehandlingId,
             input.medunderskriverident,
             innloggetSaksbehandlerRepository.getInnloggetIdent()
         )

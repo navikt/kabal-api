@@ -69,6 +69,13 @@ class TilgangService(
         }
     }
 
+    fun verifyInnloggetSaksbehandlerErMedunderskriver(klagebehandling: Klagebehandling) {
+        val ident = innloggetSaksbehandlerRepository.getInnloggetIdent()
+        if (ident != klagebehandling.medunderskriver?.saksbehandlerident) {
+            throw MissingTilgangException("Innlogget saksbehandler er ikke medunderskriver")
+        }
+    }
+
     fun harInnloggetSaksbehandlerTilgangTil(fnr: String): Boolean {
         val ident = innloggetSaksbehandlerRepository.getInnloggetIdent()
         return verifiserTilgangTilPersonForSaksbehandler(

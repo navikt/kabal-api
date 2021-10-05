@@ -82,6 +82,7 @@ class EsKlagebehandlingMapper(
             tildeltSaksbehandlerident = klagebehandling.tildeling?.saksbehandlerident,
             tildeltSaksbehandlernavn = getTildeltSaksbehandlernavn(klagebehandling),
             medunderskriverident = klagebehandling.medunderskriver?.saksbehandlerident,
+            medunderskriverFlyt = klagebehandling.medunderskriverFlyt.navn,
             sendtMedunderskriver = klagebehandling.medunderskriver?.tidspunkt,
             tildeltEnhet = klagebehandling.tildeling?.enhet,
             hjemler = klagebehandling.hjemler.map { it.id },
