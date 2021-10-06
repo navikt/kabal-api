@@ -172,26 +172,31 @@ class KlagebehandlingService(
         utfoerendeSaksbehandlerIdent: String
     ): Klagebehandling {
         val klagebehandling = getKlagebehandling(klagebehandlingId)
-        val medunderskriverFlyt = klagebehandling.medunderskriverFlyt
-        if (medunderskriverFlyt == MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER) {
-            checkMedunderskriverStatus(klagebehandling)
-            val event = klagebehandling.setMedunderskriverFlyt(
-                MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER,
-                utfoerendeSaksbehandlerIdent
-            )
-            applicationEventPublisher.publishEvent(event)
-        } else {
-            if (klagebehandling.medunderskriver?.saksbehandlerident == null) {
-                throw KlagebehandlingManglerMedunderskriverException("Klagebehandlingen har ikke registrert noen medunderskriver")
 
-            }
-            checkSkrivetilgang(klagebehandling)
-            val event = klagebehandling.setMedunderskriverFlyt(
-                MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER,
-                utfoerendeSaksbehandlerIdent
-            )
-            applicationEventPublisher.publishEvent(event)
+        if (klagebehandling.medunderskriver?.saksbehandlerident == null) {
+            throw KlagebehandlingManglerMedunderskriverException("Klagebehandlingen har ikke registrert noen medunderskriver")
         }
+
+        if (klagebehandling.medunderskriver?.saksbehandlerident == utfoerendeSaksbehandlerIdent) {
+            checkMedunderskriverStatus(klagebehandling)
+            if (klagebehandling.medunderskriverFlyt != MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER) {
+                val event = klagebehandling.setMedunderskriverFlyt(
+                    MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER,
+                    utfoerendeSaksbehandlerIdent
+                )
+                applicationEventPublisher.publishEvent(event)
+            }
+        } else {
+            checkSkrivetilgang(klagebehandling)
+            if (klagebehandling.medunderskriverFlyt != MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER) {
+                val event = klagebehandling.setMedunderskriverFlyt(
+                    MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER,
+                    utfoerendeSaksbehandlerIdent
+                )
+                applicationEventPublisher.publishEvent(event)
+            }
+        }
+
         return klagebehandling
     }
 

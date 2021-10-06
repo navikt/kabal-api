@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.swagger.annotations.Api
+import io.swagger.annotations.ApiOperation
+import io.swagger.annotations.ApiParam
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingListMapper
 import no.nav.klage.oppgave.api.view.KlagebehandlingEditedView
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
@@ -111,8 +113,13 @@ class KlagebehandlingController(
     }
 
 
+    @ApiOperation(
+        value = "Flytter klagebehandlingen mellom saksbehandler og medunderskriver.",
+        notes = "Flytter fra saksbehandler til medunderskriver dersom saksbehandler utfører, flytter til saksbehandler med returnert-status dersom medunderskriver utfører."
+    )
     @PostMapping("/{id}/send")
     fun switchMedunderskriverFlyt(
+        @ApiParam(value = "Id til klagebehandlingen i vårt system")
         @PathVariable("id") klagebehandlingId: UUID
     ): MedunderskriverFlytResponse {
         logger.debug("switchMedunderskriverFlyt is requested for klagebehandling: {}", klagebehandlingId)
