@@ -6,7 +6,6 @@ import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
 import no.finn.unleash.Unleash
 import no.nav.klage.oppgave.api.controller.KlagebehandlingController
-import no.nav.klage.oppgave.api.controller.KlagebehandlingDetaljerController
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingListMapper
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
 import no.nav.klage.oppgave.api.view.KlagebehandlingMedunderskriveridentInput
@@ -17,16 +16,13 @@ import no.nav.klage.oppgave.domain.kodeverk.*
 import no.nav.klage.oppgave.repositories.EsKlagebehandlingRepository
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.ElasticsearchService
-import no.nav.klage.oppgave.service.KlagebehandlingEditableFieldsFacade
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.service.SaksbehandlerService
-import no.nav.klage.oppgave.util.AuditLogger
 import no.nav.klage.oppgave.util.getLogger
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.env.Environment
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
 import org.springframework.http.MediaType
