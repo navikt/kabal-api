@@ -5,6 +5,7 @@ import no.nav.klage.oppgave.api.view.KlagebehandlingListView
 import no.nav.klage.oppgave.api.view.PersonSoekPersonView
 import no.nav.klage.oppgave.clients.pdl.Sivilstand
 import no.nav.klage.oppgave.domain.elasticsearch.EsKlagebehandling
+import no.nav.klage.oppgave.domain.kodeverk.MedunderskriverFlyt
 import no.nav.klage.oppgave.domain.kodeverk.Tema
 import no.nav.klage.oppgave.domain.personsoek.PersonSoekResponseList
 import org.springframework.stereotype.Service
@@ -81,7 +82,7 @@ class KlagebehandlingListMapper {
                 harMedunderskriver = esKlagebehandling.medunderskriverident != null,
                 erMedunderskriver = esKlagebehandling.medunderskriverident != null && esKlagebehandling.medunderskriverident == saksbehandler,
                 medunderskriverident = esKlagebehandling.medunderskriverident,
-                medunderskriverFlyt = esKlagebehandling.medunderskriverFlyt,
+                medunderskriverFlyt = if (esKlagebehandling.medunderskriverFlyt != null) MedunderskriverFlyt.fromNavn(esKlagebehandling.medunderskriverFlyt) else MedunderskriverFlyt.IKKE_SENDT,
                 erTildelt = esKlagebehandling.tildeltSaksbehandlerident != null,
                 tildeltSaksbehandlerident = esKlagebehandling.tildeltSaksbehandlerident,
                 tildeltSaksbehandlerNavn = esKlagebehandling.tildeltSaksbehandlernavn,

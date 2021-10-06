@@ -9,6 +9,7 @@ import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.ArkivertDokumentWithTitle
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.kodeverk.MedunderskriverFlyt
 import no.nav.klage.oppgave.domain.kodeverk.PartIdType
 import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.FileApiService
@@ -76,7 +77,7 @@ class KlagebehandlingMapper(
             frist = klagebehandling.frist,
             tildeltSaksbehandlerident = klagebehandling.tildeling?.saksbehandlerident,
             medunderskriverident = klagebehandling.medunderskriver?.saksbehandlerident,
-            medunderskriverFlyt = klagebehandling.medunderskriverFlyt,
+            medunderskriverFlyt = klagebehandling.medunderskriverFlyt ?: MedunderskriverFlyt.IKKE_SENDT,
             datoSendtMedunderskriver = klagebehandling.medunderskriver?.tidspunkt?.toLocalDate(),
             hjemler = klagebehandling.hjemler.map { it.id },
             modified = klagebehandling.modified,
@@ -235,7 +236,7 @@ class KlagebehandlingMapper(
     fun mapToMedunderskriverFlytResponse(klagebehandling: Klagebehandling): MedunderskriverFlytResponse {
         return MedunderskriverFlytResponse(
             klagebehandling.modified,
-            klagebehandling.medunderskriverFlyt.navn
+            klagebehandling.medunderskriverFlyt
         )
     }
 }

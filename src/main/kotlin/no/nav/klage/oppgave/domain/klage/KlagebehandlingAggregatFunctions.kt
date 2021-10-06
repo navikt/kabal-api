@@ -194,7 +194,7 @@ object KlagebehandlingAggregatFunctions {
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
         val gammelVerdiMedunderskriverident = medunderskriver?.saksbehandlerident
-        val gammelverdiMedunderskriverFlyt = medunderskriverFlyt
+        val gammelVerdiMedunderskriverFlyt = medunderskriverFlyt
         val tidspunkt = LocalDateTime.now()
         if (medunderskriver != null) {
             medunderskriverHistorikk.add(MedunderskriverHistorikk(medunderskriver = medunderskriver!!.copy()))
@@ -208,7 +208,7 @@ object KlagebehandlingAggregatFunctions {
         endringslogg(
             saksbehandlerident,
             Felt.MEDUNDERSKRIVERFLYT,
-            gammelverdiMedunderskriverFlyt?.id,
+            gammelVerdiMedunderskriverFlyt?.id,
             nyVerdiMedunderskriverFlyt.id,
             tidspunkt
         )?.let { endringslogginnslag.add(it) }
@@ -229,8 +229,6 @@ object KlagebehandlingAggregatFunctions {
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
         val gammelVerdiMedunderskriverFlyt = medunderskriverFlyt
-
-
         val tidspunkt = LocalDateTime.now()
 
         medunderskriverFlyt = nyMedunderskriverFlyt

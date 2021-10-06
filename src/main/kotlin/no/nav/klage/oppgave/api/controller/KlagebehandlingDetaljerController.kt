@@ -3,8 +3,6 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.annotations.Api
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
 import no.nav.klage.oppgave.api.view.KlagebehandlingDetaljerView
-import no.nav.klage.oppgave.api.view.KlagebehandlingMedunderskriveridentInput
-import no.nav.klage.oppgave.api.view.SendtMedunderskriverView
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.AuditLogEvent
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
@@ -52,28 +50,5 @@ class KlagebehandlingDetaljerController(
                 )
             )
         }
-    }
-
-    @PutMapping("/{id}/detaljer/medunderskriverident")
-    fun putMedunderskriverident(
-        @PathVariable("id") klagebehandlingId: UUID,
-        @RequestBody input: KlagebehandlingMedunderskriveridentInput
-    ): SendtMedunderskriverView {
-        logKlagebehandlingMethodDetails(
-            "putMedunderskriverident",
-            innloggetSaksbehandlerRepository.getInnloggetIdent(),
-            klagebehandlingId,
-            logger
-        )
-        val klagebehandling = klagebehandlingService.setMedunderskriverIdentAndMedunderskriverFlyt(
-            klagebehandlingId,
-            input.medunderskriverident,
-            innloggetSaksbehandlerRepository.getInnloggetIdent()
-        )
-        return SendtMedunderskriverView(
-            klagebehandling.versjon,
-            klagebehandling.modified,
-            klagebehandling.medunderskriver!!.tidspunkt.toLocalDate()
-        )
     }
 }
