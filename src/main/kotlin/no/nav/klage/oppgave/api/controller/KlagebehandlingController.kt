@@ -4,12 +4,9 @@ import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingListMapper
-import no.nav.klage.oppgave.api.view.KlagebehandlingEditedView
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
 import no.nav.klage.oppgave.api.view.KlagebehandlingMedunderskriveridentInput
 import no.nav.klage.oppgave.api.view.KlagebehandlingerListRespons
-import no.nav.klage.oppgave.api.view.TilknyttetDokument
-import no.nav.klage.oppgave.api.view.TilknyttetDokumentAddedResponse
 import no.nav.klage.oppgave.api.view.MedunderskriverFlytResponse
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Sivilstand
