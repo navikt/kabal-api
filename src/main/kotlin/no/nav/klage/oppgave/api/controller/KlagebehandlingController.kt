@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
 import no.nav.klage.oppgave.api.view.KlagebehandlingMedunderskriveridentInput
 import no.nav.klage.oppgave.api.view.KlagebehandlingerListRespons
 import no.nav.klage.oppgave.api.view.MedunderskriverFlytResponse
+import no.nav.klage.oppgave.api.view.KlagebehandlingFullfoertView
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Sivilstand
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
@@ -100,7 +101,12 @@ class KlagebehandlingController(
         @PathVariable("id") klagebehandlingId: UUID,
         @RequestBody input: KlagebehandlingMedunderskriveridentInput
     ): MedunderskriverFlytResponse {
-        logKlagebehandlingMethodDetails("putMedunderskriverident", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId, logger)
+        logKlagebehandlingMethodDetails(
+            "putMedunderskriverident",
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            klagebehandlingId,
+            logger
+        )
         val klagebehandling = klagebehandlingService.setMedunderskriverIdentAndMedunderskriverFlyt(
             klagebehandlingId,
             input.medunderskriverident,
@@ -126,5 +132,22 @@ class KlagebehandlingController(
             innloggetSaksbehandlerRepository.getInnloggetIdent()
         )
         return klagebehandlingMapper.mapToMedunderskriverFlytResponse(klagebehandling)
+    }
+
+    @PostMapping("/{id}/fullfoer")
+    fun fullfoerKlagebehandling(
+        @PathVariable("id") klagebehandlingId: UUID
+    ): KlagebehandlingFullfoertView {
+        logKlagebehandlingMethodDetails(
+            "fullfoerKlagebehandling",
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            klagebehandlingId,
+            logger
+        )
+        val klagebehandling = klagebehandlingService.ferdigstillKlagebehandling(
+            klagebehandlingId,
+            innloggetSaksbehandlerRepository.getInnloggetIdent()
+        )
+        return klagebehandlingMapper.mapToKlagebehandlingFullfoertView(klagebehandling)
     }
 }

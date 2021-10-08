@@ -77,25 +77,6 @@ class KlagebehandlingVedtakController(
         )
     }
 
-    @PostMapping("/{klagebehandlingid}/resultat/fullfoer")
-    fun fullfoerVedtak(
-        @PathVariable("klagebehandlingid") klagebehandlingId: UUID,
-        @RequestBody input: VedtakFullfoerInput
-    ): VedtakFullfoertView {
-        logKlagebehandlingMethodDetails(
-            "fullfoerVedtak",
-            innloggetSaksbehandlerRepository.getInnloggetIdent(),
-            klagebehandlingId,
-            logger
-        )
-        val klagebehandling = vedtakService.ferdigstillVedtak(
-            klagebehandlingId,
-            input,
-            innloggetSaksbehandlerRepository.getInnloggetIdent()
-        )
-        return klagebehandlingMapper.mapToVedtakFullfoertView(klagebehandling)
-    }
-
     @ResponseBody
     @GetMapping("/{klagebehandlingid}/resultat/pdf")
     fun getVedlegg(

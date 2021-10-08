@@ -19,9 +19,7 @@ import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setTem
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setTildeling
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setType
 import no.nav.klage.oppgave.domain.kodeverk.*
-import no.nav.klage.oppgave.exceptions.KlagebehandlingManglerMedunderskriverException
-import no.nav.klage.oppgave.exceptions.KlagebehandlingNotFoundException
-import no.nav.klage.oppgave.exceptions.ValidationException
+import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
@@ -311,24 +309,6 @@ class KlagebehandlingService(
         return klagebehandling
     }
 
-    //TODO: Valider før fullføring av klagebehandling
-    private fun validateBeforeMedunderskriver(klagebehandling: Klagebehandling) {
-        if (klagebehandling.vedtak == null) {
-            throw ValidationException("Klagebehandling har ikke vedtak")
-        }
-        if (klagebehandling.vedtak.utfall == null) {
-            throw ValidationException("Utfall er ikke satt på vedtak")
-        }
-        //TODO validate based on kvalitetsvurdering when that feature is done
-//        if (klagebehandling.vedtak.first().utfall in listOf(Utfall.OPPHEVET, Utfall.MEDHOLD, Utfall.DELVIS_MEDHOLD)) {
-//            if (klagebehandling.vedtak.first().grunn == null) {
-//                throw ValidationException("Omgjøringsgrunn er ikke satt på vedtak")
-//            }
-//        }
-        if (klagebehandling.vedtak.hjemler.isEmpty()) {
-            throw ValidationException("Hjemmel er ikke satt på vedtak")
-        }
-    }
 
     fun createKlagebehandlingFromMottak(mottak: Mottak) {
         if (klagebehandlingRepository.findByMottakId(mottak.id) != null) {
@@ -581,7 +561,7 @@ class KlagebehandlingService(
     fun findKlagebehandlingForDistribusjon(): List<UUID> =
         klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull().map { it.id }
 
-    fun markerKlagebehandlingSomAvsluttetAvSaksbehandler(
+    private fun markerKlagebehandlingSomAvsluttetAvSaksbehandler(
         klagebehandling: Klagebehandling,
         innloggetIdent: String
     ): Klagebehandling {
@@ -589,6 +569,45 @@ class KlagebehandlingService(
             klagebehandling.setAvsluttetAvSaksbehandler(innloggetIdent)
         applicationEventPublisher.publishEvent(event)
         return klagebehandling
+    }
+
+    fun ferdigstillKlagebehandling(
+        klagebehandlingId: UUID,
+        innloggetIdent: String
+    ): Klagebehandling {
+        val klagebehandling = getKlagebehandlingForUpdate(
+            klagebehandlingId = klagebehandlingId
+        )
+
+        if (klagebehandling.avsluttetAvSaksbehandler != null) throw KlagebehandlingFinalizedException("Klagebehandlingen er avsluttet")
+
+        val vedtak = klagebehandling.getVedtakOrException()
+
+        //Sjekker om fil er lastet opp til mellomlager
+        if (vedtak.mellomlagerId == null) {
+            throw ResultatDokumentNotFoundException("Vennligst last opp vedtaksdokument på nytt")
+        }
+
+        //Forretningsmessige krav før vedtak kan ferdigstilles
+        validateBeforeFinalize(klagebehandling)
+
+        //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
+        return markerKlagebehandlingSomAvsluttetAvSaksbehandler(klagebehandling, innloggetIdent)
+    }
+
+    private fun validateBeforeFinalize(klagebehandling: Klagebehandling) {
+        if (klagebehandling.vedtak?.utfall == null) {
+            throw ValidationException("Utfall er ikke satt på vedtak")
+        }
+        //TODO validate based on kvalitetsvurdering when that feature is done
+//        if (klagebehandling.vedtak.first().utfall in listOf(Utfall.OPPHEVET, Utfall.MEDHOLD, Utfall.DELVIS_MEDHOLD)) {
+//            if (klagebehandling.vedtak.first().grunn == null) {
+//                throw ValidationException("Omgjøringsgrunn er ikke satt på vedtak")
+//            }
+//        }
+        if (klagebehandling.vedtak.utfall != Utfall.TRUKKET && klagebehandling.vedtak.hjemler.isEmpty()) {
+            throw ValidationException("Hjemmel er ikke satt på vedtak")
+        }
     }
 
     private fun Klagebehandling.toMuligAnke(): MuligAnke = MuligAnke(
@@ -599,5 +618,4 @@ class KlagebehandlingService(
         this.avsluttetAvSaksbehandler!!,
         this.klager.partId.value
     )
-
 }

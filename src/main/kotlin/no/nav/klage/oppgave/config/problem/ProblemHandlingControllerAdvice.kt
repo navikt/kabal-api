@@ -125,6 +125,20 @@ interface OurOwnExceptionAdviceTrait : AdviceTrait {
     ): ResponseEntity<Problem> =
         create(Status.BAD_REQUEST, ex, request)
 
+    @ExceptionHandler
+    fun handleKlagebehandlingFinalizedException(
+        ex: KlagebehandlingFinalizedException,
+        request: NativeWebRequest
+    ): ResponseEntity<Problem> =
+        create(Status.BAD_REQUEST, ex, request)
+
+    @ExceptionHandler
+    fun handleResultatDokumentNotFoundException(
+        ex: ResultatDokumentNotFoundException,
+        request: NativeWebRequest
+    ): ResponseEntity<Problem> =
+        create(Status.NOT_FOUND, ex, request)
+
     private fun createProblem(ex: WebClientResponseException): ThrowableProblem {
         return Problem.builder()
             .withStatus(mapStatus(ex.statusCode))

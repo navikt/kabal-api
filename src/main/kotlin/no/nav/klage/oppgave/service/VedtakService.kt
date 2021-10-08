@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.oppgave.api.view.VedtakFullfoerInput
+import no.nav.klage.oppgave.api.view.VedtakSlettVedleggInput
 import no.nav.klage.oppgave.api.view.VedtakVedleggInput
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setGrunnInVedtak
@@ -11,10 +11,7 @@ import no.nav.klage.oppgave.domain.klage.Vedtak
 import no.nav.klage.oppgave.domain.kodeverk.Grunn
 import no.nav.klage.oppgave.domain.kodeverk.Hjemmel
 import no.nav.klage.oppgave.domain.kodeverk.Utfall
-import no.nav.klage.oppgave.exceptions.MissingTilgangException
-import no.nav.klage.oppgave.exceptions.UtfallNotSetException
 import no.nav.klage.oppgave.exceptions.VedtakFinalizedException
-import no.nav.klage.oppgave.exceptions.VedtakNotFoundException
 import no.nav.klage.oppgave.util.AttachmentValidator
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -140,44 +137,6 @@ class VedtakService(
             mellomlagerId,
             innloggetIdent
         )
-    }
-
-    fun ferdigstillVedtak(
-        klagebehandlingId: UUID,
-        input: VedtakFullfoerInput,
-        innloggetIdent: String
-    ): Klagebehandling {
-        val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdate(
-            klagebehandlingId = klagebehandlingId,
-            ignoreCheckSkrivetilgang = true
-        )
-        verifyTilgangTilAaFerdigstilleVedtak(klagebehandling, innloggetIdent)
-        if (klagebehandling.avsluttetAvSaksbehandler != null) throw VedtakFinalizedException("Klagebehandlingen er avsluttet")
-
-        val vedtak = klagebehandling.getVedtakOrException()
-        //Sjekker om fil er lastet opp til mellomlager
-        if (vedtak.mellomlagerId == null) {
-            throw VedtakNotFoundException("Vennligst last opp vedtaksdokument på nytt")
-        }
-        //Forretningsmessig krav før vedtak kan ferdigstilles
-        if (vedtak.utfall == null) throw UtfallNotSetException("Utfall på vedtak ${vedtak.id} er ikke satt")
-
-        //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
-        return klagebehandlingService.markerKlagebehandlingSomAvsluttetAvSaksbehandler(klagebehandling, innloggetIdent)
-    }
-
-    private fun verifyTilgangTilAaFerdigstilleVedtak(
-        klagebehandling: Klagebehandling,
-        innloggetIdent: String
-    ) {
-        if (klagebehandling.medunderskriver?.saksbehandlerident != innloggetIdent) {
-            secureLogger.error(
-                "{} prøvde å fullføre vedtak for klagebehandling {}, men er ikke medunderskriver.",
-                innloggetIdent,
-                klagebehandling.id
-            )
-            throw MissingTilgangException("Vedtak kan kun ferdigstilles av medunderskriver")
-        }
     }
 
     fun slettMellomlagretDokument(

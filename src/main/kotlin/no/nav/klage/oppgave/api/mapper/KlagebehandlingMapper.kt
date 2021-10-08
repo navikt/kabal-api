@@ -213,8 +213,8 @@ class KlagebehandlingMapper(
         )
     }
 
-    fun mapToVedtakFullfoertView(klagebehandling: Klagebehandling): VedtakFullfoertView {
-        return VedtakFullfoertView(
+    fun mapToKlagebehandlingFullfoertView(klagebehandling: Klagebehandling): KlagebehandlingFullfoertView {
+        return KlagebehandlingFullfoertView(
             klagebehandling.modified,
             klagebehandling.avsluttetAvSaksbehandler!!,
             klagebehandling.avsluttetAvSaksbehandler?.toLocalDate()
