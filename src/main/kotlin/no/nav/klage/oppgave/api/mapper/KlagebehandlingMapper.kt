@@ -216,8 +216,8 @@ class KlagebehandlingMapper(
     fun mapToKlagebehandlingFullfoertView(klagebehandling: Klagebehandling): KlagebehandlingFullfoertView {
         return KlagebehandlingFullfoertView(
             klagebehandling.modified,
-            klagebehandling.avsluttetAvSaksbehandler!!,
-            klagebehandling.avsluttetAvSaksbehandler?.toLocalDate()
+            klagebehandling.avsluttetAvSaksbehandler != null,
+            klagebehandling.avsluttetAvSaksbehandler
         )
     }
 

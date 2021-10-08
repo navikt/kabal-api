@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.oppgave.api.view.VedtakSlettVedleggInput
 import no.nav.klage.oppgave.api.view.VedtakVedleggInput
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setGrunnInVedtak
