@@ -583,20 +583,18 @@ class KlagebehandlingService(
 
         val vedtak = klagebehandling.getVedtakOrException()
 
-        //Sjekker om fil er lastet opp til mellomlager
-        if (vedtak.mellomlagerId == null) {
-            throw ResultatDokumentNotFoundException("Vennligst last opp vedtaksdokument på nytt")
-        }
-
         //Forretningsmessige krav før vedtak kan ferdigstilles
-        validateBeforeFinalize(klagebehandling)
+        validateVedtakBeforeFinalize(vedtak)
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
         return markerKlagebehandlingSomAvsluttetAvSaksbehandler(klagebehandling, innloggetIdent)
     }
 
-    private fun validateBeforeFinalize(klagebehandling: Klagebehandling) {
-        if (klagebehandling.vedtak?.utfall == null) {
+    private fun validateVedtakBeforeFinalize(vedtak: Vedtak) {
+        if (vedtak.mellomlagerId == null) {
+            throw ResultatDokumentNotFoundException("Vennligst last opp vedtaksdokument på nytt")
+        }
+        if (vedtak.utfall == null) {
             throw ValidationException("Utfall er ikke satt på vedtak")
         }
         //TODO validate based on kvalitetsvurdering when that feature is done
@@ -605,7 +603,7 @@ class KlagebehandlingService(
 //                throw ValidationException("Omgjøringsgrunn er ikke satt på vedtak")
 //            }
 //        }
-        if (klagebehandling.vedtak.utfall != Utfall.TRUKKET && klagebehandling.vedtak.hjemler.isEmpty()) {
+        if (vedtak.utfall != Utfall.TRUKKET && vedtak.hjemler.isEmpty()) {
             throw ValidationException("Hjemmel er ikke satt på vedtak")
         }
     }
