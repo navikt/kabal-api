@@ -25,7 +25,6 @@ class KlagebehandlingMapper(
     private val egenAnsattService: EgenAnsattService,
     private val norg2Client: Norg2Client,
     private val eregClient: EregClient,
-    private val dokumentService: DokumentService,
     private val fileApiService: FileApiService,
     private val saksbehandlerRepository: SaksbehandlerRepository
 ) {
@@ -233,6 +232,13 @@ class KlagebehandlingMapper(
     fun mapToMedunderskriverFlytResponse(klagebehandling: Klagebehandling): MedunderskriverFlytResponse {
         return MedunderskriverFlytResponse(
             klagebehandling.modified,
+            klagebehandling.medunderskriverFlyt
+        )
+    }
+
+    fun mapToMedunderskriverInfoView(klagebehandling: Klagebehandling): MedunderskriverInfoView {
+        return MedunderskriverInfoView(
+            klagebehandling.medunderskriver?.let { berikSaksbehandler(klagebehandling.medunderskriver!!.saksbehandlerident) },
             klagebehandling.medunderskriverFlyt
         )
     }
