@@ -5,10 +5,7 @@ import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingListMapper
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
-import no.nav.klage.oppgave.api.view.KlagebehandlingMedunderskriveridentInput
-import no.nav.klage.oppgave.api.view.KlagebehandlingerListRespons
-import no.nav.klage.oppgave.api.view.MedunderskriverFlytResponse
-import no.nav.klage.oppgave.api.view.KlagebehandlingFullfoertView
+import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Sivilstand
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
@@ -149,5 +146,19 @@ class KlagebehandlingController(
             innloggetSaksbehandlerRepository.getInnloggetIdent()
         )
         return klagebehandlingMapper.mapToKlagebehandlingFullfoertView(klagebehandling)
+    }
+
+    @GetMapping("/{id}/medunderskriverinfo")
+    fun getMedunderskriverInfo(
+        @PathVariable("id") klagebehandlingId: UUID
+    ): MedunderskriverInfoView {
+        logKlagebehandlingMethodDetails(
+            "getMedunderskriverInfo",
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            klagebehandlingId,
+            logger
+        )
+        val klagebehandling = klagebehandlingService.getKlagebehandling(klagebehandlingId)
+        return klagebehandlingMapper.mapToMedunderskriverInfoView(klagebehandling)
     }
 }

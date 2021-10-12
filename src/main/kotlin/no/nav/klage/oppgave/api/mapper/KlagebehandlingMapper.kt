@@ -236,5 +236,13 @@ class KlagebehandlingMapper(
             klagebehandling.medunderskriverFlyt
         )
     }
+
+    fun mapToMedunderskriverInfoView(klagebehandling: Klagebehandling): MedunderskriverInfoView {
+        return MedunderskriverInfoView(
+            klagebehandling.medunderskriver!!.saksbehandlerident,
+            berikSaksbehandler(klagebehandling.medunderskriver!!.saksbehandlerident)?.navn,
+            klagebehandling.medunderskriverFlyt
+        )
+    }
 }
 
