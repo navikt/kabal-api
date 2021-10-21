@@ -18,7 +18,7 @@ enum class Eoes(override val id: String, override val navn: String, override val
     companion object {
         fun of(id: String): Eoes {
             return values().firstOrNull { it.id == id }
-                ?: throw IllegalArgumentException("No Eoes with ${id} exists")
+                ?: throw IllegalArgumentException("No Eoes with $id exists")
         }
     }
 }

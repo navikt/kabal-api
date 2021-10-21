@@ -95,7 +95,7 @@ class KlagebehandlingDistribusjonService(
         klagebehandlingId: UUID,
         brevMottakerId: UUID
     ): Klagebehandling {
-        logger.debug("Distribuerer vedtak i klagebehandling ${klagebehandlingId} til brevmottaker ${brevMottakerId}")
+        logger.debug("Distribuerer vedtak i klagebehandling $klagebehandlingId til brevmottaker $brevMottakerId")
         return vedtakDistribusjonService.distribuerJournalpostTilMottaker(
             klagebehandlingId, brevMottakerId
         )
@@ -105,7 +105,7 @@ class KlagebehandlingDistribusjonService(
         klagebehandlingId: UUID,
         vedtakId: UUID,
     ): Klagebehandling {
-        logger.debug("Sletter mellomlagret fil i vedtak ${vedtakId} i klagebehandling${klagebehandlingId}")
+        logger.debug("Sletter mellomlagret fil i vedtak $vedtakId i klagebehandling${klagebehandlingId}")
         return vedtakDistribusjonService.slettMellomlagretDokument(
             klagebehandlingId,
             vedtakId
@@ -116,12 +116,12 @@ class KlagebehandlingDistribusjonService(
         klagebehandlingId: UUID,
         vedtakId: UUID
     ): Klagebehandling {
-        logger.debug("Markerer vedtak ${vedtakId} i klagebehandling ${klagebehandlingId} som ferdig distribuert")
+        logger.debug("Markerer vedtak $vedtakId i klagebehandling $klagebehandlingId som ferdig distribuert")
         return vedtakDistribusjonService.markerVedtakSomFerdigDistribuert(klagebehandlingId, vedtakId)
     }
 
     private fun avsluttKlagebehandling(klagebehandlingId: UUID) {
-        logger.debug("Alle vedtak i klagebehandling ${klagebehandlingId} er ferdig distribuert, så vi markerer klagebehandlingen som avsluttet")
+        logger.debug("Alle vedtak i klagebehandling $klagebehandlingId er ferdig distribuert, så vi markerer klagebehandlingen som avsluttet")
         klagebehandlingAvslutningService.avsluttKlagebehandling(klagebehandlingId)
     }
 }

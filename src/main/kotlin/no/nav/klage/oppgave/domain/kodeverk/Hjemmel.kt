@@ -107,7 +107,7 @@ enum class Hjemmel(
     companion object {
         fun of(id: String): Hjemmel {
             return values().firstOrNull { it.id == id }
-                ?: throw IllegalArgumentException("No Hjemmel with ${id} exists")
+                ?: throw IllegalArgumentException("No Hjemmel with $id exists")
         }
 
         fun of(lov: LovKilde, kapittelOgParagraf: KapittelOgParagraf?): Hjemmel {

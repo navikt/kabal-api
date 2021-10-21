@@ -17,7 +17,7 @@ enum class Rolle(override val id: String, override val navn: String, override va
     companion object {
         fun of(id: String): Rolle {
             return values().firstOrNull { it.id == id }
-                ?: throw IllegalArgumentException("No Rolle with ${id} exists")
+                ?: throw IllegalArgumentException("No Rolle with $id exists")
         }
     }
 }

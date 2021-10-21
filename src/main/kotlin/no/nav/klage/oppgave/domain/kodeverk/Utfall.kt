@@ -22,7 +22,7 @@ enum class Utfall(override val id: String, override val navn: String, override v
     companion object {
         fun of(id: String): Utfall {
             return values().firstOrNull { it.id == id }
-                ?: throw IllegalArgumentException("No Utfall with ${id} exists")
+                ?: throw IllegalArgumentException("No Utfall with $id exists")
         }
     }
 

@@ -22,7 +22,7 @@ enum class Grunn(override val id: String, override val navn: String, override va
     companion object {
         fun of(id: String): Grunn {
             return values().firstOrNull { it.id == id }
-                ?: throw IllegalArgumentException("No Grunn with ${id} exists")
+                ?: throw IllegalArgumentException("No Grunn with $id exists")
         }
     }
 

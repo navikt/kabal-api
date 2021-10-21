@@ -27,7 +27,7 @@ enum class RaadfoertMedLege(override val id: String, override val navn: String, 
     companion object {
         fun of(id: String): RaadfoertMedLege {
             return values().firstOrNull { it.id == id }
-                ?: throw IllegalArgumentException("No RaadfoertMedLege with ${id} exists")
+                ?: throw IllegalArgumentException("No RaadfoertMedLege with $id exists")
         }
     }
 

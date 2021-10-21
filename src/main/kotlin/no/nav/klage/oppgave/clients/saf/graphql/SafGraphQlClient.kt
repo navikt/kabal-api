@@ -69,7 +69,7 @@ class SafGraphQlClient(
         .uri("graphql")
         .header(
             HttpHeaders.AUTHORIZATION,
-            "Bearer ${token}"
+            "Bearer $token"
         )
         .bodyValue(hentJournalpostQuery(journalpostId))
         .retrieve()

@@ -15,7 +15,7 @@ enum class PartIdType(override val id: String, override val navn: String, overri
     companion object {
         fun of(id: String): PartIdType {
             return values().firstOrNull { it.id == id }
-                ?: throw IllegalArgumentException("No PartIdType with ${id} exists")
+                ?: throw IllegalArgumentException("No PartIdType with $id exists")
         }
     }
 }
