@@ -8,11 +8,12 @@ import no.nav.klage.oppgave.clients.dokdistfordeling.DistribuerJournalpostRespon
 import no.nav.klage.oppgave.clients.dokdistfordeling.DokDistFordelingClient
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.joark.JoarkClient
+import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.klagefileapi.FileApiClient
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.ArkivertDokumentWithTitle
+import no.nav.klage.oppgave.domain.DokumentInnholdOgTittel
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.kodeverk.*
 import no.nav.klage.oppgave.gateway.JournalpostGateway
@@ -107,6 +108,9 @@ internal class KlagebehandlingDistribusjonServiceTest {
         @MockkBean(relaxed = true)
         lateinit var vedtakKafkaProducer: VedtakKafkaProducer
 
+        @MockkBean(relaxed = true)
+        lateinit var kabalDocumentGateway: KabalDocumentGateway
+
     }
 
     //@Autowired
@@ -197,15 +201,14 @@ internal class KlagebehandlingDistribusjonServiceTest {
 
         klagebehandlingDistribusjonService.distribuerKlagebehandling(klagebehandlingId)
 
-        val klagebehandling =
-            klagebehandlingRepository.findByIdOrNull(klagebehandlingId) ?: throw NullPointerException()
+        klagebehandlingRepository.findByIdOrNull(klagebehandlingId) ?: throw NullPointerException()
     }
 
     @Test
     fun `distribusjon av klagebehandling fører til dokdistReferanse, ferdig distribuert vedtak og avsluttet klagebehandling`() {
         val dokdistResponse = DistribuerJournalpostResponse(UUID.randomUUID())
         val dokarkivResponse = journalpostId
-        val fileApiServiceResponse = ArkivertDokumentWithTitle(
+        val fileApiServiceResponse = DokumentInnholdOgTittel(
             "title",
             ByteArray(8),
             MediaType.APPLICATION_PDF

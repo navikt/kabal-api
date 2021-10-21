@@ -4,7 +4,7 @@ import brave.Tracer
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.joark.JoarkClient
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
-import no.nav.klage.oppgave.domain.ArkivertDokumentWithTitle
+import no.nav.klage.oppgave.domain.DokumentInnholdOgTittel
 import no.nav.klage.oppgave.domain.joark.*
 import no.nav.klage.oppgave.domain.klage.BrevMottaker
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
@@ -27,6 +27,7 @@ class JournalpostGateway(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val securelogger = getSecureLogger()
+        
         private const val BREV_TITTEL = "Brev fra Klageinstans"
         private const val BREVKODE = "BREV_FRA_KLAGEINSTANS"
         private const val BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS = "ab0164"
@@ -35,7 +36,7 @@ class JournalpostGateway(
 
     fun createJournalpostAsSystemUser(
         klagebehandling: Klagebehandling,
-        document: ArkivertDokumentWithTitle,
+        document: DokumentInnholdOgTittel,
         brevMottaker: BrevMottaker
     ): String {
         val journalpost = createJournalpostObject(
@@ -56,7 +57,7 @@ class JournalpostGateway(
 
     private fun createJournalpostObject(
         klagebehandling: Klagebehandling,
-        document: ArkivertDokumentWithTitle,
+        document: DokumentInnholdOgTittel,
         brevMottaker: BrevMottaker
     ): Journalpost =
         Journalpost(
@@ -70,8 +71,10 @@ class JournalpostGateway(
             eksternReferanseId = tracer.currentSpan().context().traceIdString(),
             bruker = createBruker(klagebehandling),
             dokumenter = createDokument(document),
-            tilleggsopplysninger = listOf(Tilleggsopplysning(
-                nokkel = KLAGEBEHANDLING_ID_KEY, verdi = klagebehandling.id.toString())
+            tilleggsopplysninger = listOf(
+                Tilleggsopplysning(
+                    nokkel = KLAGEBEHANDLING_ID_KEY, verdi = klagebehandling.id.toString()
+                )
             )
         )
 
@@ -119,7 +122,7 @@ class JournalpostGateway(
 
 
     private fun createDokument(
-        document: ArkivertDokumentWithTitle
+        document: DokumentInnholdOgTittel
     ): List<Dokument> {
         val hovedDokument = Dokument(
             tittel = BREV_TITTEL,

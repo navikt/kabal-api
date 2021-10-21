@@ -176,6 +176,22 @@ no.nav.security.jwt:
           client-id: ${AZURE_APP_CLIENT_ID}
           client-jwk: ${AZURE_APP_JWK}
           client-auth-method: private_key_jwt
+      kabal-document-onbehalfof:
+        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
+        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
+        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KABAL_DOCUMENT_APP_NAME}/.default
+        authentication:
+          client-id: ${AZURE_APP_CLIENT_ID}
+          client-jwk: ${AZURE_APP_JWK}
+          client-auth-method: private_key_jwt
+      kabal-document-maskintilmaskin:
+        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
+        grant-type: client_credentials
+        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KABAL_DOCUMENT_APP_NAME}/.default
+        authentication:
+          client-id: ${AZURE_APP_CLIENT_ID}
+          client-jwk: ${AZURE_APP_JWK}
+          client-auth-method: private_key_jwt
       axsys-maskintilmaskin:
         token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
         grant-type: client_credentials
@@ -218,3 +234,6 @@ SERVICE_USER_PASSWORD: itest
 
 KABAL_FILE_API_BASE_URL: http://kabal-file-api
 KABAL_FILE_API_APP_NAME: kabal-file-api
+
+KABAL_DOCUMENT_BASE_URL: http://kabal-document
+KABAL_DOCUMENT_APP_NAME: kabal-document

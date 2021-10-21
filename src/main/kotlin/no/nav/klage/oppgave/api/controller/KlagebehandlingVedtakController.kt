@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.annotations.Api
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
 import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.kodeverk.Hjemmel
 import no.nav.klage.oppgave.domain.kodeverk.Utfall
@@ -29,7 +30,8 @@ class KlagebehandlingVedtakController(
     private val klagebehandlingMapper: KlagebehandlingMapper,
     private val vedtakService: VedtakService,
     private val klagebehandlingService: KlagebehandlingService,
-    private val fileApiService: FileApiService
+    private val fileApiService: FileApiService,
+    private val kabalDocumentGateway: KabalDocumentGateway
 ) {
 
     companion object {
@@ -91,6 +93,9 @@ class KlagebehandlingVedtakController(
 
         val arkivertDokumentWithTitle =
             when {
+                vedtak.dokumentEnhetId != null -> {
+                    kabalDocumentGateway.getHovedDokumentOgMetadata(vedtak.dokumentEnhetId!!)
+                }
                 vedtak.mellomlagerId != null -> {
                     fileApiService.getUploadedDocument(vedtak.mellomlagerId!!)
                 }

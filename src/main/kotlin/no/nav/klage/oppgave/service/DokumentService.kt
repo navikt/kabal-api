@@ -5,7 +5,7 @@ import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.clients.saf.graphql.*
 import no.nav.klage.oppgave.clients.saf.rest.ArkivertDokument
 import no.nav.klage.oppgave.clients.saf.rest.SafRestClient
-import no.nav.klage.oppgave.domain.ArkivertDokumentWithTitle
+import no.nav.klage.oppgave.domain.DokumentInnholdOgTittel
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.domain.kodeverk.Tema
@@ -59,7 +59,7 @@ class DokumentService(
 
     private fun mapTema(temaer: List<Tema>): List<no.nav.klage.oppgave.clients.saf.graphql.Tema> =
         temaer.map { tema -> no.nav.klage.oppgave.clients.saf.graphql.Tema.valueOf(tema.name) }
-    
+
 
     fun fetchJournalposterConnectedToKlagebehandling(klagebehandling: Klagebehandling): DokumenterResponse {
         val dokumentReferanser = klagebehandling.saksdokumenter.groupBy { it.journalpostId }.keys
@@ -131,10 +131,10 @@ class DokumentService(
         }
     }
 
-    fun getArkivertDokumentWithTitleAsSaksbehandler(journalpostId: String): ArkivertDokumentWithTitle {
+    fun getArkivertDokumentWithTitleAsSaksbehandler(journalpostId: String): DokumentInnholdOgTittel {
         val title = getMainDokumentTitleAsSaksbehandler(journalpostId)
         val dokument = getMainDokumentAsSaksbehandler(journalpostId)
-        return ArkivertDokumentWithTitle(
+        return DokumentInnholdOgTittel(
             title,
             dokument.bytes,
             dokument.contentType

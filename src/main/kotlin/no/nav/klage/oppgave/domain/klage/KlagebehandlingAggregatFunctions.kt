@@ -618,6 +618,59 @@ object KlagebehandlingAggregatFunctions {
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = endringslogg)
     }
 
+    fun Klagebehandling.setDokumentEnhetIdOgOpplastetInVedtak(
+        nyVerdi: UUID?,
+        saksbehandlerident: String
+    ): KlagebehandlingEndretEvent {
+        val vedtak = this.getVedtakOrException()
+        val gammelVerdi = vedtak.dokumentEnhetId
+        val tidspunkt = LocalDateTime.now()
+        val gammelVerdiOpplastet = vedtak.opplastet
+        vedtak.dokumentEnhetId = nyVerdi
+        vedtak.modified = tidspunkt
+        vedtak.opplastet = if (nyVerdi == null) null else tidspunkt
+        modified = tidspunkt
+        val endringslogg = listOfNotNull(
+            endringslogg(
+                saksbehandlerident,
+                Felt.DOKUMENT_ENHET_ID_I_VEDTAK,
+                gammelVerdi.toString(),
+                nyVerdi.toString(),
+                tidspunkt
+            ),
+            endringslogg(
+                saksbehandlerident,
+                Felt.OPPLASTET_I_VEDTAK,
+                gammelVerdiOpplastet.toString(),
+                tidspunkt.toString(),
+                tidspunkt
+            )
+        )
+        return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = endringslogg)
+    }
+
+    fun Klagebehandling.setOpplastetInVedtak(
+        nyVerdi: LocalDateTime?,
+        saksbehandlerident: String
+    ): KlagebehandlingEndretEvent {
+        val modified = nyVerdi ?: LocalDateTime.now()
+        val vedtak = this.getVedtakOrException()
+        val gammelVerdi = vedtak.opplastet
+        vedtak.modified = modified
+        vedtak.opplastet = nyVerdi
+        this.modified = modified
+        val endringslogg = listOfNotNull(
+            endringslogg(
+                saksbehandlerident,
+                Felt.OPPLASTET_I_VEDTAK,
+                gammelVerdi.toString(),
+                nyVerdi?.toString(),
+                modified
+            )
+        )
+        return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = endringslogg)
+    }
+
     fun Klagebehandling.setVedtakFerdigDistribuert(
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {

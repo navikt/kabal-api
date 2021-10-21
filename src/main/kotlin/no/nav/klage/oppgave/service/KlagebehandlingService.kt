@@ -589,7 +589,7 @@ class KlagebehandlingService(
     }
 
     private fun validateKlagebehandlingBeforeFinalize(klagebehandling: Klagebehandling) {
-        if (klagebehandling.vedtak?.mellomlagerId == null) {
+        if (klagebehandling.vedtak?.mellomlagerId == null && klagebehandling.vedtak?.dokumentEnhetId == null) {
             throw ResultatDokumentNotFoundException("Vennligst last opp vedtaksdokument på nytt")
         }
         if (klagebehandling.vedtak.utfall == null) {

@@ -5,6 +5,7 @@ import io.mockk.every
 import no.nav.klage.oppgave.api.view.SaksbehandlerRefView
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
+import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.*
@@ -39,6 +40,9 @@ class KlagebehandlingMapperTest {
 
     @MockkBean
     lateinit var saksbehandlerRepository: SaksbehandlerRepository
+
+    @MockkBean
+    lateinit var kabalDocumentGateway: KabalDocumentGateway
 
     @Autowired
     lateinit var klagebehandlingMapper: KlagebehandlingMapper
