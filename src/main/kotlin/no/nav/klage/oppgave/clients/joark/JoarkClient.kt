@@ -1,13 +1,10 @@
 package no.nav.klage.oppgave.clients.joark
 
 import brave.Tracer
-import no.nav.klage.oppgave.clients.ereg.EregClient
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.joark.AvbrytJournalpostPayload
 import no.nav.klage.oppgave.domain.joark.FerdigstillJournalpostPayload
 import no.nav.klage.oppgave.domain.joark.Journalpost
 import no.nav.klage.oppgave.domain.joark.JournalpostResponse
-import no.nav.klage.oppgave.util.PdfUtils
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger

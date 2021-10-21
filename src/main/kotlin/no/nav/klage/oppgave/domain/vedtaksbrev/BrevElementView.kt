@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.domain.vedtaksbrev
 
 import no.nav.klage.oppgave.domain.vedtaksbrev.enums.BrevElementInputType
 import no.nav.klage.oppgave.domain.vedtaksbrev.enums.BrevElementKey
-import java.util.*
 
 data class BrevElementView(
     val key: BrevElementKey,
