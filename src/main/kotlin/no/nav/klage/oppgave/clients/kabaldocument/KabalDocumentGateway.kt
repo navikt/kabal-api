@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.clients.kabaldocument
 
-import no.nav.klage.dokument.api.input.FilInput
+import no.nav.klage.oppgave.clients.kabaldocument.model.request.FilInput
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetOutput
 import no.nav.klage.oppgave.domain.DokumentInnhold
 import no.nav.klage.oppgave.domain.DokumentInnholdOgTittel

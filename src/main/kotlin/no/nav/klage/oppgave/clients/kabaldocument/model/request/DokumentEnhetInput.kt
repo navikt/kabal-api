@@ -1,7 +1,6 @@
-package no.nav.klage.dokument.api.input
+package no.nav.klage.oppgave.clients.kabaldocument.model.request
 
 data class DokumentEnhetInput(
     val brevMottakere: List<BrevMottakerInput>,
-    //TODO Send inn først ved ferdigstilling?
     val journalfoeringData: JournalfoeringDataInput
 )

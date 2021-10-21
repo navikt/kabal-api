@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.clients.kabaldocument
 
 import brave.Tracer
-import no.nav.klage.dokument.api.input.DokumentEnhetInput
-import no.nav.klage.dokument.api.input.FilInput
+import no.nav.klage.oppgave.clients.kabaldocument.model.request.DokumentEnhetInput
+import no.nav.klage.oppgave.clients.kabaldocument.model.request.FilInput
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFullfoertOutput
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetOutput
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.HovedDokumentEditedOutput

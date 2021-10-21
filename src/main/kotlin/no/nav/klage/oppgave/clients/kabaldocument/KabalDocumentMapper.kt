@@ -1,11 +1,7 @@
 package no.nav.klage.oppgave.clients.kabaldocument
 
-import no.nav.klage.dokument.api.input.BrevMottakerInput
-import no.nav.klage.dokument.api.input.DokumentEnhetInput
-import no.nav.klage.dokument.api.input.JournalfoeringDataInput
-import no.nav.klage.dokument.api.input.PartIdInput
 import no.nav.klage.oppgave.clients.ereg.EregClient
-import no.nav.klage.oppgave.clients.kabaldocument.model.request.TilleggsopplysningInput
+import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.kodeverk.PartIdType
