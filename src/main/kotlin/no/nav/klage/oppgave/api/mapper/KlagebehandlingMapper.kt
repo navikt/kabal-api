@@ -163,36 +163,35 @@ class KlagebehandlingMapper(
     fun getVedleggView(opplastet: LocalDateTime?, mellomlagerId: String?, dokumentEnhetId: UUID?): VedleggView? {
         return if (opplastet != null) {
             if (dokumentEnhetId != null) {
-                mapArkivertDokumentMetadataToVedleggView(
+                mapDokumentMetadataToVedleggView(
                     kabalDocumentGateway.getMetadataOmHovedDokument(dokumentEnhetId),
                 )
             } else if (mellomlagerId != null) {
-                mapArkivertDokumentWithTitleToVedleggView(
-                    fileApiService.getUploadedDocument(mellomlagerId),
-                    opplastet
+                mapDokumentInnholdOgTittelToVedleggView(
+                    fileApiService.getUploadedDocument(mellomlagerId), opplastet
                 )
             } else null
         } else null
     }
 
-    fun mapArkivertDokumentWithTitleToVedleggView(
-        mellomlagretDokument: DokumentInnholdOgTittel,
+    fun mapDokumentInnholdOgTittelToVedleggView(
+        dokumentInnholdOgTittel: DokumentInnholdOgTittel,
         opplastet: LocalDateTime
     ): VedleggView {
         return VedleggView(
-            mellomlagretDokument.title,
-            mellomlagretDokument.content.size.toLong(),
+            dokumentInnholdOgTittel.title,
+            dokumentInnholdOgTittel.content.size.toLong(),
             opplastet
         )
     }
 
-    fun mapArkivertDokumentMetadataToVedleggView(
-        mellomlagretDokumentMetadata: DokumentMetadata
+    fun mapDokumentMetadataToVedleggView(
+        dokumentMetadata: DokumentMetadata
     ): VedleggView {
         return VedleggView(
-            mellomlagretDokumentMetadata.title,
-            mellomlagretDokumentMetadata.size,
-            mellomlagretDokumentMetadata.opplastet
+            dokumentMetadata.title,
+            dokumentMetadata.size,
+            dokumentMetadata.opplastet
         )
     }
 
