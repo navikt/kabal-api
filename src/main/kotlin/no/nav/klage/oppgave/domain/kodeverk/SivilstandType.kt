@@ -34,7 +34,7 @@ enum class SivilstandType(override val id: String, override val navn: String, ov
 class SivilstandTypeConverter : AttributeConverter<SivilstandType, String?> {
 
     override fun convertToDatabaseColumn(entity: SivilstandType?): String? =
-        entity?.let { it.id }
+        entity?.id
 
     override fun convertToEntityAttribute(id: String?): SivilstandType? =
         id?.let { SivilstandType.of(it) }

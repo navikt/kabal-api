@@ -143,7 +143,7 @@ val hjemlerPerTema: List<HjemlerPerTema> = listOf(
 class HjemmelConverter : AttributeConverter<Hjemmel, String?> {
 
     override fun convertToDatabaseColumn(entity: Hjemmel?): String? =
-        entity?.let { it.id }
+        entity?.id
 
     override fun convertToEntityAttribute(id: String?): Hjemmel? =
         id?.let { Hjemmel.of(it) }

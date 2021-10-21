@@ -45,7 +45,7 @@ val grunnerPerUtfall: List<GrunnerPerUtfall> = listOf(
 class GrunnConverter : AttributeConverter<Grunn, String?> {
 
     override fun convertToDatabaseColumn(entity: Grunn?): String? =
-        entity?.let { it.id }
+        entity?.id
 
     override fun convertToEntityAttribute(id: String?): Grunn? =
         id?.let { Grunn.of(it) }

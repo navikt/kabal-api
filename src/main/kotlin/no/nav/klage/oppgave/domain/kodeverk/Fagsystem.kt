@@ -41,7 +41,7 @@ enum class Fagsystem(override val id: String, override val navn: String, overrid
 class FagsystemConverter : AttributeConverter<Fagsystem, String?> {
 
     override fun convertToDatabaseColumn(entity: Fagsystem?): String? =
-        entity?.let { it.id }
+        entity?.id
 
     override fun convertToEntityAttribute(id: String?): Fagsystem? =
         id?.let { Fagsystem.of(it) }

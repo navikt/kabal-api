@@ -24,7 +24,7 @@ enum class PartIdType(override val id: String, override val navn: String, overri
 class PartIdTypeConverter : AttributeConverter<PartIdType, String?> {
 
     override fun convertToDatabaseColumn(entity: PartIdType?): String? =
-        entity?.let { it.id }
+        entity?.id
 
     override fun convertToEntityAttribute(id: String?): PartIdType? =
         id?.let { PartIdType.of(it) }

@@ -26,7 +26,7 @@ enum class Rolle(override val id: String, override val navn: String, override va
 class RolleConverter : AttributeConverter<Rolle, String?> {
 
     override fun convertToDatabaseColumn(entity: Rolle?): String? =
-        entity?.let { it.id }
+        entity?.id
 
     override fun convertToEntityAttribute(id: String?): Rolle? =
         id?.let { Rolle.of(it) }

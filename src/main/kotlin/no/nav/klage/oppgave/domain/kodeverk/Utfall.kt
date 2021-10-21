@@ -32,7 +32,7 @@ enum class Utfall(override val id: String, override val navn: String, override v
 class UtfallConverter : AttributeConverter<Utfall, String?> {
 
     override fun convertToDatabaseColumn(entity: Utfall?): String? =
-        entity?.let { it.id }
+        entity?.id
 
     override fun convertToEntityAttribute(id: String?): Utfall? =
         id?.let { Utfall.of(it) }

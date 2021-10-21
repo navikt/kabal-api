@@ -46,7 +46,7 @@ object LovligeTyper {
 class TypeConverter : AttributeConverter<Type, String?> {
 
     override fun convertToDatabaseColumn(entity: Type?): String? =
-        entity?.let { it.id }
+        entity?.id
 
     override fun convertToEntityAttribute(id: String?): Type? =
         id?.let { Type.of(it) }

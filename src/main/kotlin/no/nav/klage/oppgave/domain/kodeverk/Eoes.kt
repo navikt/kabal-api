@@ -27,7 +27,7 @@ enum class Eoes(override val id: String, override val navn: String, override val
 class EoesConverter : AttributeConverter<Eoes, String?> {
 
     override fun convertToDatabaseColumn(entity: Eoes?): String? =
-        entity?.let { it.id }
+        entity?.id
 
     override fun convertToEntityAttribute(id: String?): Eoes? =
         id?.let { Eoes.of(it) }

@@ -37,7 +37,7 @@ enum class RaadfoertMedLege(override val id: String, override val navn: String, 
 class RaadfoertMedLegeConverter : AttributeConverter<RaadfoertMedLege, String?> {
 
     override fun convertToDatabaseColumn(entity: RaadfoertMedLege?): String? =
-        entity?.let { it.id }
+        entity?.id
 
     override fun convertToEntityAttribute(id: String?): RaadfoertMedLege? =
         id?.let { RaadfoertMedLege.of(it) }

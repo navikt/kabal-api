@@ -112,7 +112,7 @@ object LovligeTemaer {
 class TemaConverter : AttributeConverter<Tema, String?> {
 
     override fun convertToDatabaseColumn(entity: Tema?): String? =
-        entity?.let { it.id }
+        entity?.id
 
     override fun convertToEntityAttribute(id: String?): Tema? =
         id?.let { Tema.of(it) }
