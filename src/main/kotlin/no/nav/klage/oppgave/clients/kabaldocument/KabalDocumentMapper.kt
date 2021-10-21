@@ -50,7 +50,7 @@ class KabalDocumentMapper(
         )
     }
 
-    private fun mapBrevMottakere(klagebehandling: Klagebehandling): List<BrevMottakerInput> {
+    fun mapBrevMottakere(klagebehandling: Klagebehandling): List<BrevMottakerInput> {
         val brevMottakere = mutableListOf<BrevMottakerInput>()
         if (klagebehandling.klager.prosessfullmektig != null) {
             brevMottakere.add(mapProsessfullmektig(klagebehandling.klager.prosessfullmektig!!))
