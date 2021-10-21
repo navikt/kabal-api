@@ -624,8 +624,7 @@ object KlagebehandlingAggregatFunctions {
         val vedtak = this.getVedtakOrException()
         val gammelVerdi = vedtak.ferdigDistribuert
         val tidspunkt = LocalDateTime.now()
-        val nyVerdi = tidspunkt
-        vedtak.ferdigDistribuert = nyVerdi
+        vedtak.ferdigDistribuert = tidspunkt
         vedtak.modified = tidspunkt
         modified = tidspunkt
         val endringslogg =
@@ -633,7 +632,7 @@ object KlagebehandlingAggregatFunctions {
                 saksbehandlerident,
                 Felt.VEDTAK_DISTRIBUERT,
                 gammelVerdi.toString(),
-                nyVerdi.toString(),
+                tidspunkt.toString(),
                 tidspunkt
             )
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
@@ -647,8 +646,7 @@ object KlagebehandlingAggregatFunctions {
         val brevMottaker = vedtak.getMottaker(brevMottakerId)
         val gammelVerdi = brevMottaker.ferdigstiltIJoark
         val tidspunkt = LocalDateTime.now()
-        val nyVerdi = tidspunkt
-        brevMottaker.ferdigstiltIJoark = nyVerdi
+        brevMottaker.ferdigstiltIJoark = tidspunkt
         vedtak.modified = tidspunkt
         modified = tidspunkt
         val endringslogg =
@@ -656,7 +654,7 @@ object KlagebehandlingAggregatFunctions {
                 saksbehandlerident,
                 Felt.BREVMOTTAKER_FERDIGSTILT_I_JOARK,
                 gammelVerdi.toString(),
-                nyVerdi.toString(),
+                tidspunkt.toString(),
                 tidspunkt
             )
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
@@ -667,15 +665,14 @@ object KlagebehandlingAggregatFunctions {
     ): KlagebehandlingEndretEvent {
         val gammelVerdi = avsluttetAvSaksbehandler
         val tidspunkt = LocalDateTime.now()
-        val nyVerdi = tidspunkt
-        avsluttetAvSaksbehandler = nyVerdi
+        avsluttetAvSaksbehandler = tidspunkt
         modified = tidspunkt
         val endringslogg =
             endringslogg(
                 saksbehandlerident,
                 Felt.AVSLUTTET_AV_SAKSBEHANDLER,
                 gammelVerdi.toString(),
-                nyVerdi.toString(),
+                tidspunkt.toString(),
                 tidspunkt
             )
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
@@ -686,15 +683,14 @@ object KlagebehandlingAggregatFunctions {
     ): KlagebehandlingEndretEvent {
         val gammelVerdi = avsluttet
         val tidspunkt = LocalDateTime.now()
-        val nyVerdi = tidspunkt
-        avsluttet = nyVerdi
+        avsluttet = tidspunkt
         modified = tidspunkt
         val endringslogg =
             endringslogg(
                 saksbehandlerident,
                 Felt.AVSLUTTET,
                 gammelVerdi.toString(),
-                nyVerdi.toString(),
+                tidspunkt.toString(),
                 tidspunkt
             )
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))

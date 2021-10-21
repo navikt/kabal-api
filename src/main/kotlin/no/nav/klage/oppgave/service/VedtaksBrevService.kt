@@ -26,13 +26,11 @@ class VedtaksBrevService(
     }
 
     fun getVedtaksBrev(brevId: UUID): VedtaksBrev {
-        val brev = vedtaksBrevRepository.getOne(brevId)
-        return brev
+        return vedtaksBrevRepository.getOne(brevId)
     }
 
     fun getVedtaksBrevByKlagebehandlingId(klagebehandlingId: UUID): List<VedtaksBrev> {
-        val brevResults = vedtaksBrevRepository.findByKlagebehandlingId(klagebehandlingId)
-        return brevResults
+        return vedtaksBrevRepository.findByKlagebehandlingId(klagebehandlingId)
     }
 
     fun deleteVedtaksbrev(brevId: UUID) {
