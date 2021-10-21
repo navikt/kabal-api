@@ -24,11 +24,6 @@ class KabalDocumentGateway(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val secureLogger = getSecureLogger()
-
-        private const val BREV_TITTEL = "Brev fra Klageinstans"
-        private const val BREVKODE = "BREV_FRA_KLAGEINSTANS"
-        private const val BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS = "ab0164"
-        private const val KLAGEBEHANDLING_ID_KEY = "klagebehandling_id"
     }
 
     fun createDokumentEnhet(
