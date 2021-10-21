@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.clients.kabaldocument
 
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.FilInput
-import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetOutput
 import no.nav.klage.oppgave.domain.DokumentInnhold
 import no.nav.klage.oppgave.domain.DokumentInnholdOgTittel
 import no.nav.klage.oppgave.domain.DokumentMetadata
@@ -34,12 +33,6 @@ class KabalDocumentGateway(
                 kabalDocumentMapper.mapKlagebehandlingToDokumentEnhetInput(klagebehandling)
             ).id
         )
-    }
-
-    fun getDokumentEnhet(
-        dokumentEnhetId: UUID,
-    ): DokumentEnhetOutput? {
-        return null
     }
 
     fun uploadHovedDokument(
