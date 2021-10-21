@@ -13,5 +13,4 @@ class Oppgavereferanse(
     val id: UUID = UUID.randomUUID(),
     @Column(name = "oppgave_id")
     val oppgaveId: Long
-) {
-}
+)
