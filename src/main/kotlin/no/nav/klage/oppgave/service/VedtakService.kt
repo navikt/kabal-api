@@ -110,8 +110,8 @@ class VedtakService(
         )
 
         tilgangService.verifyInnloggetSaksbehandlersTilgangTilEnhet(klagebehandling.tildeling!!.enhet!!)
-        attachmentValidator.validateAttachment(input.vedlegg)
         if (klagebehandling.avsluttetAvSaksbehandler != null) throw VedtakFinalizedException("Klagebehandlingen er avsluttet")
+        attachmentValidator.validateAttachment(input.vedlegg)
 
         var oppdatertKlagebehandling = if (klagebehandling.getVedtakOrException().dokumentEnhetId == null) {
             createDokumentEnhet(klagebehandling, innloggetIdent)
@@ -127,7 +127,7 @@ class VedtakService(
 
         //Rydd opp gammel moro:
         if (klagebehandling.getVedtakOrException().mellomlagerId != null) {
-            fileApiService.deleteDocument(oppdatertKlagebehandling.getVedtakOrException().mellomlagerId!!)
+            slettMellomlagretDokument(klagebehandling, klagebehandling.getVedtakOrException(), innloggetIdent)
         }
 
         return oppdatertKlagebehandling

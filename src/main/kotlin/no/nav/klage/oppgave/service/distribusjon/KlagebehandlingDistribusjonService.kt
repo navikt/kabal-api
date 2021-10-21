@@ -35,13 +35,9 @@ class KlagebehandlingDistribusjonService(
                 klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId)
 
             if (klagebehandling.getVedtakOrException().dokumentEnhetId != null) {
-                klagebehandling = lagBrevmottakere(klagebehandling, klagebehandling.getVedtakOrException().id)
                 val fullfoert =
                     kabalDocumentGateway.fullfoerDokumentEnhet(klagebehandling.getVedtakOrException().dokumentEnhetId!!)
                 if (fullfoert) {
-                    if (klagebehandling.getVedtakOrException().mellomlagerId != null) {
-                        slettMellomlagretDokument(klagebehandling.id, klagebehandling.getVedtakOrException().id)
-                    }
                     avsluttKlagebehandling(klagebehandling.id)
                 }
             } else {

@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.api.view.KvalitetsvurderingManuellInput
+import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.domain.events.KlagebehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.addSaksdokument
@@ -39,6 +40,7 @@ class KlagebehandlingService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokumentService: DokumentService,
     private val tokenUtil: TokenUtil,
+    private val kabalDocumentGateway: KabalDocumentGateway
 ) {
 
     companion object {
@@ -589,10 +591,10 @@ class KlagebehandlingService(
     }
 
     private fun validateKlagebehandlingBeforeFinalize(klagebehandling: Klagebehandling) {
-        if (klagebehandling.vedtak?.mellomlagerId == null && klagebehandling.vedtak?.dokumentEnhetId == null) {
+        if (harIkkeLagretVedtaksdokument(klagebehandling)) {
             throw ResultatDokumentNotFoundException("Vennligst last opp vedtaksdokument på nytt")
         }
-        if (klagebehandling.vedtak.utfall == null) {
+        if (klagebehandling.vedtak!!.utfall == null) {
             throw ValidationException("Utfall er ikke satt på vedtak")
         }
         if (klagebehandling.vedtak.utfall != Utfall.TRUKKET) {
@@ -602,6 +604,15 @@ class KlagebehandlingService(
             klagebehandling.kvalitetsvurdering?.validate()
         }
     }
+
+    private fun harIkkeLagretVedtaksdokument(klagebehandling: Klagebehandling) =
+        !(harMellomlagretVedtaksDokument(klagebehandling) || harLastetOppHovedDokumentTilDokumentEnhet(klagebehandling))
+
+    private fun harLastetOppHovedDokumentTilDokumentEnhet(klagebehandling: Klagebehandling) =
+        klagebehandling.vedtak?.dokumentEnhetId != null && kabalDocumentGateway.isHovedDokumentOpplasted(klagebehandling.vedtak.dokumentEnhetId!!)
+
+    fun harMellomlagretVedtaksDokument(klagebehandling: Klagebehandling) =
+        klagebehandling.vedtak?.mellomlagerId != null
 
     private fun Klagebehandling.toMuligAnke(): MuligAnke = MuligAnke(
         this.id,

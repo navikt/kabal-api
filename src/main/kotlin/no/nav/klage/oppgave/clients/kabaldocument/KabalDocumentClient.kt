@@ -119,7 +119,7 @@ class KabalDocumentClient(
             .uri { it.path("/dokumentenheter/{dokumentEnhetId}/fullfoer").build(dokumentEnhetId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalDocumentScope()}"
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalDocumentScope()}"
             )
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .retrieve()

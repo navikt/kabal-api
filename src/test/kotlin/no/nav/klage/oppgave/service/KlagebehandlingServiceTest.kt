@@ -5,6 +5,7 @@ import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
+import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.*
@@ -70,6 +71,9 @@ class KlagebehandlingServiceTest {
     @MockkBean
     lateinit var saksbehandlerRepository: SaksbehandlerRepository
 
+    @MockkBean
+    lateinit var kabalDocumentGateway: KabalDocumentGateway
+
     private val dokumentService: DokumentService = mockk()
 
     private val tokenUtil: TokenUtil = mockk()
@@ -87,7 +91,8 @@ class KlagebehandlingServiceTest {
             tilgangService,
             applicationEventPublisher,
             dokumentService,
-            tokenUtil
+            tokenUtil,
+            kabalDocumentGateway
         )
     }
 
@@ -108,9 +113,9 @@ class KlagebehandlingServiceTest {
             ).isEqualTo(klage)
         }
 
-    @Test
-    fun `getKlagebehandlingForUpdate sjekker skrivetilgang, fanger riktig exception`() {
-        val klage = simpleInsert()
+        @Test
+        fun `getKlagebehandlingForUpdate sjekker skrivetilgang, fanger riktig exception`() {
+            val klage = simpleInsert()
 
             every { tilgangService.verifyInnloggetSaksbehandlersTilgangTil(any()) } returns Unit
             every { tilgangService.verifyInnloggetSaksbehandlersTilgangTilTema(any()) } returns Unit

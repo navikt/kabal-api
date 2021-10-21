@@ -6,6 +6,7 @@ import no.nav.klage.oppgave.domain.DokumentInnhold
 import no.nav.klage.oppgave.domain.DokumentInnholdOgTittel
 import no.nav.klage.oppgave.domain.DokumentMetadata
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -59,18 +60,21 @@ class KabalDocumentGateway(
         return DokumentInnhold(content = response.first, contentType = response.second)
     }
 
-    fun getMetadataOmHovedDokument(dokumentEnhetId: UUID): DokumentMetadata {
+    fun getMetadataOmHovedDokument(dokumentEnhetId: UUID): DokumentMetadata? {
         val dokumentEnhet = kabalDocumentClient.getDokumentEnhet(dokumentEnhetId)
 
-        return DokumentMetadata(
-            title = dokumentEnhet.hovedDokument!!.name,
-            size = dokumentEnhet.hovedDokument.size,
-            opplastet = dokumentEnhet.hovedDokument.opplastet
-        )
+        return dokumentEnhet.hovedDokument?.let {
+            DokumentMetadata(
+                title = it.name,
+                size = it.size,
+                opplastet = it.opplastet
+            )
+        }
     }
 
     fun getHovedDokumentOgMetadata(dokumentEnhetId: UUID): DokumentInnholdOgTittel {
         val dokumentMetadata = getMetadataOmHovedDokument(dokumentEnhetId)
+            ?: throw JournalpostNotFoundException("Hoveddokument er ikke lastet opp")
         val dokumentInnhold = getHovedDokument(dokumentEnhetId)
         return DokumentInnholdOgTittel(
             title = dokumentMetadata.title, content = dokumentInnhold.content, contentType = dokumentInnhold.contentType
@@ -82,5 +86,9 @@ class KabalDocumentGateway(
 
     fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): Boolean =
         kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId).avsluttet
+
+    fun isHovedDokumentOpplasted(dokumentEnhetId: UUID): Boolean {
+        return getMetadataOmHovedDokument(dokumentEnhetId) != null
+    }
 
 }
