@@ -93,7 +93,7 @@ class KlagebehandlingVedtakController(
 
         val arkivertDokumentWithTitle =
             when {
-                vedtak.dokumentEnhetId != null && kabalDocumentGateway.isHovedDokumentOpplasted(vedtak.dokumentEnhetId!!) -> {
+                vedtak.dokumentEnhetId != null && kabalDocumentGateway.isHovedDokumentUploaded(vedtak.dokumentEnhetId!!) -> {
                     kabalDocumentGateway.getHovedDokumentOgMetadata(vedtak.dokumentEnhetId!!)
                 }
                 vedtak.mellomlagerId != null -> {

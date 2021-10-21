@@ -75,7 +75,7 @@ class KabalDocumentGateway(
     fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): Boolean =
         kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId).avsluttet
 
-    fun isHovedDokumentOpplasted(dokumentEnhetId: UUID): Boolean {
+    fun isHovedDokumentUploaded(dokumentEnhetId: UUID): Boolean {
         return getMetadataOmHovedDokument(dokumentEnhetId) != null
     }
 

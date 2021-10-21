@@ -609,7 +609,7 @@ class KlagebehandlingService(
         !(harMellomlagretVedtaksDokument(klagebehandling) || harLastetOppHovedDokumentTilDokumentEnhet(klagebehandling))
 
     private fun harLastetOppHovedDokumentTilDokumentEnhet(klagebehandling: Klagebehandling) =
-        klagebehandling.vedtak?.dokumentEnhetId != null && kabalDocumentGateway.isHovedDokumentOpplasted(klagebehandling.vedtak.dokumentEnhetId!!)
+        klagebehandling.vedtak?.dokumentEnhetId != null && kabalDocumentGateway.isHovedDokumentUploaded(klagebehandling.vedtak.dokumentEnhetId!!)
 
     fun harMellomlagretVedtaksDokument(klagebehandling: Klagebehandling) =
         klagebehandling.vedtak?.mellomlagerId != null

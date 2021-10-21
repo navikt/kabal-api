@@ -5,7 +5,6 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.kodeverk.PartIdType
-import no.nav.klage.oppgave.domain.kodeverk.Rolle
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -25,6 +24,8 @@ class KabalDocumentMapper(
         private const val BREVKODE = "BREV_FRA_KLAGEINSTANS"
         private const val BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS = "ab0164"
         private const val KLAGEBEHANDLING_ID_KEY = "klagebehandling_id"
+        private const val KOPIADRESSAT = "KOPIADRESSAT"
+        private const val HOVEDADRESSAT = "HOVEDADRESSAT"
     }
 
     fun mapKlagebehandlingToDokumentEnhetInput(
@@ -53,39 +54,40 @@ class KabalDocumentMapper(
     fun mapBrevMottakere(klagebehandling: Klagebehandling): List<BrevMottakerInput> {
         val brevMottakere = mutableListOf<BrevMottakerInput>()
         if (klagebehandling.klager.prosessfullmektig != null) {
-            brevMottakere.add(mapProsessfullmektig(klagebehandling.klager.prosessfullmektig!!))
+            brevMottakere.add(mapProsessfullmektig(klagebehandling.klager.prosessfullmektig!!, HOVEDADRESSAT))
             if (klagebehandling.klager.prosessfullmektig!!.skalPartenMottaKopi) {
-                brevMottakere.add(mapKlager(klagebehandling.klager))
+                brevMottakere.add(mapKlager(klagebehandling.klager, KOPIADRESSAT))
             }
         } else {
-            brevMottakere.add(mapKlager(klagebehandling.klager))
+            brevMottakere.add(mapKlager(klagebehandling.klager, HOVEDADRESSAT))
         }
         if (klagebehandling.sakenGjelder.partId != klagebehandling.klager.partId && klagebehandling.sakenGjelder.skalMottaKopi) {
-            brevMottakere.add(mapSakenGjeder(klagebehandling.sakenGjelder))
+            brevMottakere.add(mapSakenGjeder(klagebehandling.sakenGjelder, KOPIADRESSAT))
         }
         return brevMottakere
     }
 
-    private fun mapKlager(klager: Klager) =
+    private fun mapKlager(klager: Klager, rolle: String) =
         BrevMottakerInput(
             partId = mapPartId(klager.partId),
             navn = getNavn(klager.partId),
-            rolle = Rolle.KLAGER.name
+            rolle = rolle
         )
 
-    private fun mapSakenGjeder(sakenGjelder: SakenGjelder) =
+    private fun mapSakenGjeder(sakenGjelder: SakenGjelder, rolle: String) =
         BrevMottakerInput(
             partId = mapPartId(sakenGjelder.partId),
             navn = getNavn(sakenGjelder.partId),
-            rolle = Rolle.SAKEN_GJELDER.name
+            rolle = rolle
         )
 
-    private fun mapProsessfullmektig(prosessfullmektig: Prosessfullmektig) =
+    private fun mapProsessfullmektig(prosessfullmektig: Prosessfullmektig, rolle: String) =
         BrevMottakerInput(
             partId = mapPartId(prosessfullmektig.partId),
             navn = getNavn(prosessfullmektig.partId),
-            rolle = Rolle.PROSESSFULLMEKTIG.name
+            rolle = rolle
         )
+
 
     private fun mapPartId(partId: PartId): PartIdInput =
         PartIdInput(

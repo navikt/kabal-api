@@ -75,7 +75,7 @@ class KabalDocumentMapperTest {
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
-                rolle = "KLAGER"
+                rolle = "HOVEDADRESSAT"
             )
         )
         assertThat(mapper.mapBrevMottakere(klagebehandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
@@ -100,7 +100,7 @@ class KabalDocumentMapperTest {
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
-                rolle = "KLAGER"
+                rolle = "HOVEDADRESSAT"
             )
         )
 
@@ -126,13 +126,13 @@ class KabalDocumentMapperTest {
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
-                rolle = "KLAGER"
+                rolle = "HOVEDADRESSAT"
             ),
 
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
-                rolle = "SAKEN_GJELDER"
+                rolle = "KOPIADRESSAT"
             )
         )
 
@@ -167,7 +167,7 @@ class KabalDocumentMapperTest {
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
-                rolle = "PROSESSFULLMEKTIG"
+                rolle = "HOVEDADRESSAT"
             )
         )
 
@@ -202,12 +202,12 @@ class KabalDocumentMapperTest {
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
-                rolle = "KLAGER"
+                rolle = "KOPIADRESSAT"
             ),
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
-                rolle = "PROSESSFULLMEKTIG"
+                rolle = "HOVEDADRESSAT"
             )
         )
 
@@ -242,12 +242,12 @@ class KabalDocumentMapperTest {
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
-                rolle = "KLAGER"
+                rolle = "KOPIADRESSAT"
             ),
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
-                rolle = "PROSESSFULLMEKTIG"
+                rolle = "HOVEDADRESSAT"
             )
         )
 
@@ -283,17 +283,17 @@ class KabalDocumentMapperTest {
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
-                rolle = "KLAGER"
+                rolle = "KOPIADRESSAT"
             ),
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr3),
                 navn = "fornavn etternavn",
-                rolle = "SAKEN_GJELDER"
+                rolle = "KOPIADRESSAT"
             ),
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
-                rolle = "PROSESSFULLMEKTIG"
+                rolle = "HOVEDADRESSAT"
             )
         )
 
@@ -328,7 +328,7 @@ class KabalDocumentMapperTest {
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
-                rolle = "PROSESSFULLMEKTIG"
+                rolle = "HOVEDADRESSAT"
             )
         )
 
@@ -363,12 +363,12 @@ class KabalDocumentMapperTest {
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr3),
                 navn = "fornavn etternavn",
-                rolle = "SAKEN_GJELDER"
+                rolle = "KOPIADRESSAT"
             ),
             BrevMottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
-                rolle = "PROSESSFULLMEKTIG"
+                rolle = "HOVEDADRESSAT"
             )
         )
 

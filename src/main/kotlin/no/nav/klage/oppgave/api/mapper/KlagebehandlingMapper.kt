@@ -162,7 +162,7 @@ class KlagebehandlingMapper(
 
     fun getVedleggView(opplastet: LocalDateTime?, mellomlagerId: String?, dokumentEnhetId: UUID?): VedleggView? {
         return if (opplastet != null) {
-            if (dokumentEnhetId != null && kabalDocumentGateway.isHovedDokumentOpplasted(dokumentEnhetId)) {
+            if (dokumentEnhetId != null && kabalDocumentGateway.isHovedDokumentUploaded(dokumentEnhetId)) {
                 mapDokumentMetadataToVedleggView(
                     kabalDocumentGateway.getMetadataOmHovedDokument(dokumentEnhetId)!!,
                 )
