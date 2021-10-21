@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Unprotected
-class KodeverkController(private val environment: Environment) {
+class KodeverkController(environment: Environment) {
 
     private val lovligeTyperIKabal = LovligeTyper.lovligeTyper(environment)
 
