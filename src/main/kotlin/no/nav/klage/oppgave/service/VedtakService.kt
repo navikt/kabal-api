@@ -94,7 +94,7 @@ class VedtakService(
         } else klagebehandling
 
         oppdatertKlagebehandling = if (vedtak.dokumentEnhetId != null) {
-            deleteHovedDokument(klagebehandling, innloggetIdent, vedtak.dokumentEnhetId!!)
+            deleteHovedDokument(oppdatertKlagebehandling, innloggetIdent, vedtak.dokumentEnhetId!!)
         } else oppdatertKlagebehandling
 
         return oppdatertKlagebehandling
