@@ -46,7 +46,10 @@ class KabalDocumentMapper(
                 behandlingstema = BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS,
                 tittel = BREV_TITTEL,
                 brevKode = BREVKODE,
-                tilleggsopplysning = TilleggsopplysningInput(KLAGEBEHANDLING_ID_KEY, klagebehandling.id.toString())
+                tilleggsopplysning = TilleggsopplysningInput(
+                    key = KLAGEBEHANDLING_ID_KEY,
+                    value = klagebehandling.id.toString()
+                )
             )
         )
     }
