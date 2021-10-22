@@ -64,6 +64,8 @@ class KabalDocumentMapper(
         if (klagebehandling.sakenGjelder.partId != klagebehandling.klager.partId && klagebehandling.sakenGjelder.skalMottaKopi) {
             brevMottakere.add(mapSakenGjeder(klagebehandling.sakenGjelder, KOPIADRESSAT))
         }
+
+        logger.debug("brevMottakere:$brevMottakere")
         return brevMottakere
     }
 
