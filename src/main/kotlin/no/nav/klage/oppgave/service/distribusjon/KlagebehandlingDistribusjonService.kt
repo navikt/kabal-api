@@ -35,10 +35,14 @@ class KlagebehandlingDistribusjonService(
                 klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId)
 
             if (klagebehandling.getVedtakOrException().dokumentEnhetId != null) {
+                logger.debug("Distribuerer dokument med dokumentEnhetId ${klagebehandling.getVedtakOrException().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
                 val fullfoert =
                     kabalDocumentGateway.fullfoerDokumentEnhet(klagebehandling.getVedtakOrException().dokumentEnhetId!!)
                 if (fullfoert) {
+                    logger.debug("Distribuerte dokument med dokumentEnhetId ${klagebehandling.getVedtakOrException().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
                     avsluttKlagebehandling(klagebehandling.id)
+                } else {
+                    logger.error("Fikk ikke distribuert dokument med dokumentEnhetId ${klagebehandling.getVedtakOrException().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
                 }
             } else {
 
