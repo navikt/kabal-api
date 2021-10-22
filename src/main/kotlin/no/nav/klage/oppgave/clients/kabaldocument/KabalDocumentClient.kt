@@ -70,7 +70,7 @@ class KabalDocumentClient(
         return kabalDocumentWebClient
             .post()
             .uri { it.path("/dokumentenheter/{dokumentEnhetId}/innhold").build(dokumentEnhetId) }
-            .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()}")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalDocumentScope()}")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .retrieve()
