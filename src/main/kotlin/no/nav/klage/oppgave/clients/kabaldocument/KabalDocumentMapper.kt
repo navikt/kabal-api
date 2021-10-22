@@ -65,7 +65,6 @@ class KabalDocumentMapper(
             brevMottakere.add(mapSakenGjeder(klagebehandling.sakenGjelder, KOPIADRESSAT))
         }
 
-        logger.debug("brevMottakere:$brevMottakere")
         return brevMottakere
     }
 

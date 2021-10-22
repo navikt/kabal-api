@@ -37,6 +37,7 @@ class KabalDocumentClient(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalDocumentScope()}"
             )
+            .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .retrieve()
@@ -68,7 +69,7 @@ class KabalDocumentClient(
         bodyBuilder.part("file", input.file.bytes).filename(input.file.originalFilename)
         return kabalDocumentWebClient
             .post()
-            .uri("/dokumentenheter/{dokumentEnhetId}/innhold")
+            .uri { it.path("/dokumentenheter/{dokumentEnhetId}/innhold").build(dokumentEnhetId) }
             .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()}")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
