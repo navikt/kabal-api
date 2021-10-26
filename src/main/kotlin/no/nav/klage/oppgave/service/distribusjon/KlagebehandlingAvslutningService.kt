@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service.distribusjon
 
+import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.domain.kafka.KlagevedtakFattet
 import no.nav.klage.oppgave.domain.klage.KafkaVedtakEvent
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
@@ -22,7 +23,8 @@ class KlagebehandlingAvslutningService(
     private val kafkaVedtakEventRepository: KafkaVedtakEventRepository,
     private val vedtakKafkaProducer: VedtakKafkaProducer,
     private val klagebehandlingService: KlagebehandlingService,
-    private val applicationEventPublisher: ApplicationEventPublisher
+    private val applicationEventPublisher: ApplicationEventPublisher,
+    private val kabalDocumentGateway: KabalDocumentGateway
 ) {
 
     companion object {
@@ -32,16 +34,23 @@ class KlagebehandlingAvslutningService(
     }
 
     @Transactional
-    fun avsluttKlagebehandling(klagebehandlingId: UUID): Klagebehandling {
+    fun avsluttKlagebehandling(klagebehandlingId: UUID, gammelFlyt: Boolean): Klagebehandling {
         val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId)
         val vedtak = klagebehandling.getVedtakOrException()
+
+        val journalpostId = if (gammelFlyt) {
+            (vedtak.brevmottakere.find { it.rolle == Rolle.PROSESSFULLMEKTIG }
+                ?: vedtak.brevmottakere.find { it.rolle == Rolle.KLAGER })!!.journalpostId
+        } else {
+            kabalDocumentGateway.getJournalpostIdForHovedadressat(klagebehandlingId)
+        }
+
         kafkaVedtakEventRepository.save(
             KafkaVedtakEvent(
                 kildeReferanse = klagebehandling.kildeReferanse ?: "UKJENT",
                 kilde = klagebehandling.kildesystem.name,
                 utfall = vedtak.utfall!!,
-                vedtaksbrevReferanse = (vedtak.brevmottakere.find { it.rolle == Rolle.PROSESSFULLMEKTIG }
-                    ?: vedtak.brevmottakere.find { it.rolle == Rolle.KLAGER })!!.journalpostId,
+                vedtaksbrevReferanse = journalpostId,
                 kabalReferanse = vedtak.id.toString(),
                 status = UtsendingStatus.IKKE_SENDT
             )

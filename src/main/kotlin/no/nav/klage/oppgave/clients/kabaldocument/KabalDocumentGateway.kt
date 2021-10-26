@@ -69,11 +69,15 @@ class KabalDocumentGateway(
         )
     }
 
+    fun getJournalpostIdForHovedadressat(dokumentEnhetId: UUID): String? {
+        return kabalDocumentClient.getDokumentEnhet(dokumentEnhetId).journalpostIdHovedadressat
+    }
+
     fun deleteHovedDokument(dokumentEnhetId: UUID): LocalDateTime =
         kabalDocumentClient.deleteHovedDokument(dokumentEnhetId).modified
 
-    fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): Boolean =
-        kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId).avsluttet
+    fun fullfoerDokumentEnhet(dokumentEnhetId: UUID) =
+        kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId)
 
     fun isHovedDokumentUploaded(dokumentEnhetId: UUID): Boolean {
         return getMetadataOmHovedDokument(dokumentEnhetId) != null

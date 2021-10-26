@@ -11,5 +11,6 @@ data class DokumentEnhetOutput(
     val vedlegg: List<OpplastetDokumentOutput>,
     val brevMottakerDistribusjoner: List<BrevMottakerDistribusjonOutput>,
     val avsluttet: LocalDateTime?,
-    val modified: LocalDateTime
+    val modified: LocalDateTime,
+    val journalpostIdHovedadressat: String?
 )

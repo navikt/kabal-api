@@ -36,12 +36,11 @@ class KlagebehandlingDistribusjonService(
 
             if (klagebehandling.getVedtakOrException().dokumentEnhetId != null) {
                 logger.debug("Distribuerer dokument med dokumentEnhetId ${klagebehandling.getVedtakOrException().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
-                val fullfoert =
+                try {
                     kabalDocumentGateway.fullfoerDokumentEnhet(klagebehandling.getVedtakOrException().dokumentEnhetId!!)
-                if (fullfoert) {
                     logger.debug("Distribuerte dokument med dokumentEnhetId ${klagebehandling.getVedtakOrException().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
                     avsluttKlagebehandling(klagebehandling.id)
-                } else {
+                } catch (e: Exception) {
                     logger.error("Fikk ikke distribuert dokument med dokumentEnhetId ${klagebehandling.getVedtakOrException().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
                 }
             } else {
@@ -67,7 +66,7 @@ class KlagebehandlingDistribusjonService(
 
                         markerVedtakSomFerdigDistribuert(klagebehandling.id, vedtak.id)
                     }
-                    avsluttKlagebehandling(klagebehandling.id)
+                    avsluttKlagebehandling(klagebehandlingId = klagebehandling.id, gammelFlyt = true)
                 }
             }
         } catch (e: Exception) {
@@ -136,9 +135,9 @@ class KlagebehandlingDistribusjonService(
         return vedtakDistribusjonService.markerVedtakSomFerdigDistribuert(klagebehandlingId, vedtakId)
     }
 
-    private fun avsluttKlagebehandling(klagebehandlingId: UUID) {
+    private fun avsluttKlagebehandling(klagebehandlingId: UUID, gammelFlyt: Boolean = false) {
         logger.debug("Alle vedtak i klagebehandling $klagebehandlingId er ferdig distribuert, så vi markerer klagebehandlingen som avsluttet")
-        klagebehandlingAvslutningService.avsluttKlagebehandling(klagebehandlingId)
+        klagebehandlingAvslutningService.avsluttKlagebehandling(klagebehandlingId, gammelFlyt)
     }
 }
 

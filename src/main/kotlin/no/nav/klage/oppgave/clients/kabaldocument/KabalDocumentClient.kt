@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.clients.kabaldocument
 import brave.Tracer
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.DokumentEnhetInput
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.FilInput
-import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFullfoertOutput
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetOutput
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.HovedDokumentEditedOutput
 import no.nav.klage.oppgave.util.TokenUtil
@@ -70,7 +69,10 @@ class KabalDocumentClient(
         return kabalDocumentWebClient
             .post()
             .uri { it.path("/dokumentenheter/{dokumentEnhetId}/innhold").build(dokumentEnhetId) }
-            .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalDocumentScope()}")
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalDocumentScope()}"
+            )
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .retrieve()
@@ -115,8 +117,8 @@ class KabalDocumentClient(
 
     fun fullfoerDokumentEnhet(
         dokumentEnhetId: UUID
-    ): DokumentEnhetFullfoertOutput {
-        return kabalDocumentWebClient.post()
+    ) {
+        kabalDocumentWebClient.post()
             .uri { it.path("/dokumentenheter/{dokumentEnhetId}/fullfoer").build(dokumentEnhetId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
@@ -124,7 +126,5 @@ class KabalDocumentClient(
             )
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .retrieve()
-            .bodyToMono<DokumentEnhetFullfoertOutput>()
-            .block() ?: throw RuntimeException("Hoveddokument could not be finalized")
     }
 }
