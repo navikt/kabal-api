@@ -41,7 +41,10 @@ class KlagebehandlingDistribusjonService(
                     logger.debug("Distribuerte dokument med dokumentEnhetId ${klagebehandling.getVedtakOrException().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
                     avsluttKlagebehandling(klagebehandling.id)
                 } catch (e: Exception) {
-                    logger.error("Fikk ikke distribuert dokument med dokumentEnhetId ${klagebehandling.getVedtakOrException().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
+                    logger.error(
+                        "Fikk ikke distribuert dokument med dokumentEnhetId ${klagebehandling.getVedtakOrException().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}",
+                        e
+                    )
                 }
             } else {
 
