@@ -42,7 +42,7 @@ class KlagebehandlingAvslutningService(
             (vedtak.brevmottakere.find { it.rolle == Rolle.PROSESSFULLMEKTIG }
                 ?: vedtak.brevmottakere.find { it.rolle == Rolle.KLAGER })!!.journalpostId
         } else {
-            kabalDocumentGateway.getJournalpostIdForHovedadressat(klagebehandling.getVedtakOrException().dokumentEnhetId!!)
+            kabalDocumentGateway.getJournalpostIdForHovedadressat(klagebehandling.getVedtakOrException().dokumentEnhetId!!)!!
         }
 
         kafkaVedtakEventRepository.save(

@@ -140,5 +140,7 @@ class KabalDocumentClient(
             )
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .retrieve()
+            .bodyToMono<Unit>()
+            .block()
     }
 }
