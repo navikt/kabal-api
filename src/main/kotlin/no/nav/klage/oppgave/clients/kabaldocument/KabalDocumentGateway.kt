@@ -70,8 +70,7 @@ class KabalDocumentGateway(
     }
 
     fun getJournalpostIdForHovedadressat(dokumentEnhetId: UUID): String? {
-        logger.info("Henter journalpostId for dokumentenhet $dokumentEnhetId")
-        return kabalDocumentClient.getDokumentEnhet(dokumentEnhetId).journalpostIdHovedadressat
+        return kabalDocumentClient.getDokumentEnhetWithAppScope(dokumentEnhetId).journalpostIdHovedadressat
     }
 
     fun deleteHovedDokument(dokumentEnhetId: UUID): LocalDateTime =

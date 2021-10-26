@@ -57,7 +57,21 @@ class KabalDocumentClient(
             .retrieve()
             .bodyToMono<DokumentEnhetOutput>()
             .block() ?: throw RuntimeException("Dokumentenhet could not be fetched")
+    }
 
+    fun getDokumentEnhetWithAppScope(
+        dokumentEnhetId: UUID,
+    ): DokumentEnhetOutput {
+        return kabalDocumentWebClient.get()
+            .uri { it.path("/dokumentenheter/{dokumentEnhetId}").build(dokumentEnhetId) }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalDocumentScope()}"
+            )
+            .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
+            .retrieve()
+            .bodyToMono<DokumentEnhetOutput>()
+            .block() ?: throw RuntimeException("Dokumentenhet could not be fetched")
     }
 
     fun uploadHovedDokument(
