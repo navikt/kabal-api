@@ -167,4 +167,35 @@ class KlagebehandlingVedtakController(
             ).modified
         )
     }
+
+    @GetMapping("/{id}/smarteditorid")
+    fun getSmartEditorId(
+        @PathVariable("id") klagebehandlingId: UUID
+    ): SmartEditorIdView {
+        logKlagebehandlingMethodDetails(
+            "getSmartEditorId", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId,
+            logger
+        )
+        return SmartEditorIdView(
+            smartEditorId = klagebehandlingService.getKlagebehandling(klagebehandlingId)
+                .getVedtakOrException().smartEditorId
+        )
+    }
+
+    @DeleteMapping("/{id}/smarteditorid")
+    fun deleteSmartEditorId(
+        @PathVariable("id") klagebehandlingId: UUID
+    ): VedtakEditedView {
+        logKlagebehandlingMethodDetails(
+            "deleteSmartEditorId", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId,
+            logger
+        )
+        return VedtakEditedView(
+            modified = vedtakService.deleteSmartEditorId(
+                klagebehandlingId = klagebehandlingId,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
+            ).modified
+        )
+    }
+
 }

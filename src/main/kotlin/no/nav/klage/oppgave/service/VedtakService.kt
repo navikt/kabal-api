@@ -223,4 +223,14 @@ class VedtakService(
         applicationEventPublisher.publishEvent(event)
         return klagebehandling
     }
+
+    fun deleteSmartEditorId(klagebehandlingId: UUID, utfoerendeSaksbehandlerIdent: String): Klagebehandling {
+        val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdate(
+            klagebehandlingId
+        )
+        val event =
+            klagebehandling.setSmartEditorIdInVedtak(nyVerdi = null, saksbehandlerident = utfoerendeSaksbehandlerIdent)
+        applicationEventPublisher.publishEvent(event)
+        return klagebehandling
+    }
 }
