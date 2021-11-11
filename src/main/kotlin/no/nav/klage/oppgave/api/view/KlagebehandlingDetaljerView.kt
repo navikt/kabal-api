@@ -46,7 +46,8 @@ data class KlagebehandlingDetaljerView(
     val tilknyttedeDokumenter: Set<TilknyttetDokument>,
     val egenAnsatt: Boolean,
     val fortrolig: Boolean,
-    val strengtFortrolig: Boolean
+    val strengtFortrolig: Boolean,
+    val kvalitetsvurderingId: UUID?
 ) {
     data class NavnView(
         val fornavn: String?,

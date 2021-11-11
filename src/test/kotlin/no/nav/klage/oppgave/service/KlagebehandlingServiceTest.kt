@@ -93,7 +93,8 @@ class KlagebehandlingServiceTest {
             applicationEventPublisher,
             dokumentService,
             tokenUtil,
-            kabalDocumentGateway
+            kabalDocumentGateway,
+            mockk()
         )
     }
 
@@ -444,11 +445,6 @@ class KlagebehandlingServiceTest {
                 dokumentEnhetId = if (dokumentEnhetId) DOKUMENTENHET_ID else null
             ),
             avsluttetAvSaksbehandler = if (fullfoert) LocalDateTime.now() else null,
-            kvalitetsvurdering = Kvalitetsvurdering(
-                oversendelsesbrevBra = true,
-                utredningBra = true,
-                vedtakBra = true
-            )
         )
 
         klagebehandlingRepository.save(klage)

@@ -113,7 +113,6 @@ class StatistikkTilDVHService(
             vedtakId = vedtak.id.toString(),
             vedtaksdato = klagebehandling.avsluttetAvSaksbehandler?.toLocalDate(),
             ytelseType = "TODO",
-            kvalitetsvurdering = klagebehandling.toKvalitetsvurdering()
         )
     }
 
@@ -149,27 +148,4 @@ class StatistikkTilDVHService(
                 )
             }
         }
-
-    private fun Klagebehandling.toKvalitetsvurdering(): KlageStatistikkTilDVH.Kvalitetsvurdering? {
-        when {
-            kvalitetsvurdering != null -> {
-                return KlageStatistikkTilDVH.Kvalitetsvurdering(
-                    kvalitetOversendelsesbrevBra = kvalitetsvurdering!!.oversendelsesbrevBra,
-                    kvalitetsavvikOversendelsesbrev = kvalitetsvurdering!!.kvalitetsavvikOversendelsesbrev.map { it.name }
-                        .map { KlageStatistikkTilDVH.Kvalitetsvurdering.KvalitetsavvikOversendelsesbrev.valueOf(it) }
-                        .toSet(),
-                    kvalitetUtredningBra = kvalitetsvurdering!!.utredningBra,
-                    kvalitetsavvikUtredning = kvalitetsvurdering!!.kvalitetsavvikUtredning.map { it.name }
-                        .map { KlageStatistikkTilDVH.Kvalitetsvurdering.KvalitetsavvikUtredning.valueOf(it) }.toSet(),
-                    kvalitetVedtaketBra = kvalitetsvurdering!!.vedtakBra,
-                    kvalitetsavvikVedtak = kvalitetsvurdering!!.kvalitetsavvikVedtak.map { it.name }
-                        .map { KlageStatistikkTilDVH.Kvalitetsvurdering.KvalitetsavvikVedtak.valueOf(it) }.toSet(),
-                    avvikStorKonsekvens = kvalitetsvurdering!!.avvikStorKonsekvens
-                )
-            }
-            else -> {
-                return null
-            }
-        }
-    }
 }

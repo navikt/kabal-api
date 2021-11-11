@@ -94,7 +94,8 @@ class KlagebehandlingMapper(
             }.toSet(),
             egenAnsatt = erEgenAnsatt,
             fortrolig = erFortrolig,
-            strengtFortrolig = erStrengtFortrolig
+            strengtFortrolig = erStrengtFortrolig,
+            kvalitetsvurderingId = klagebehandling.kvalitetsvurderingId
         )
     }
 

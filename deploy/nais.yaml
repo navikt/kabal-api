@@ -98,6 +98,7 @@ spec:
     outbound:
       rules:
         - application: kabal-document
+        - application: kaka-api
       external:
       {{#each externalHosts}}
         - host: {{host}}

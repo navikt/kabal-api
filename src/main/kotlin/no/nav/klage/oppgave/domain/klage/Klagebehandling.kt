@@ -83,9 +83,8 @@ class Klagebehandling(
     val medunderskriverHistorikk: MutableSet<MedunderskriverHistorikk> = mutableSetOf(),
     @Column(name = "mottak_id")
     val mottakId: UUID,
-    @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JoinColumn(name = "kvalitetsvurdering_id", nullable = true)
-    var kvalitetsvurdering: Kvalitetsvurdering? = null,
+    @Column(name = "kvalitetsvurdering_id", nullable = true)
+    var kvalitetsvurderingId: UUID? = null,
 
     //Not in use?
     @ElementCollection(targetClass = Hjemmel::class, fetch = FetchType.EAGER)

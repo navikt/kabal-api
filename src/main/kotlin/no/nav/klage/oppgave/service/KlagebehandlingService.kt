@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.KlagebehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.addSaksdokument
@@ -39,7 +40,8 @@ class KlagebehandlingService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokumentService: DokumentService,
     private val tokenUtil: TokenUtil,
-    private val kabalDocumentGateway: KabalDocumentGateway
+    private val kabalDocumentGateway: KabalDocumentGateway,
+    private val kakaApiGateway: KakaApiGateway,
 ) {
 
     companion object {
@@ -336,7 +338,7 @@ class KlagebehandlingService(
                 frist = mottak.generateFrist(),
                 mottakId = mottak.id,
                 vedtak = Vedtak(),
-                kvalitetsvurdering = null,
+                kvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(),
                 hjemler = createHjemmelSetFromMottak(mottak.hjemmelListe),
                 saksdokumenter = createSaksdokumenter(mottak),
                 kildesystem = mottak.kildesystem,
@@ -542,7 +544,6 @@ class KlagebehandlingService(
             if (klagebehandling.vedtak.hjemler.isEmpty()) {
                 throw ValidationException("Hjemmel er ikke satt på vedtak")
             }
-            klagebehandling.kvalitetsvurdering?.validate()
         }
     }
 
