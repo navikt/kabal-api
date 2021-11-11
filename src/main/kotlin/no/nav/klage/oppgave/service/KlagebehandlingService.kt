@@ -80,6 +80,16 @@ class KlagebehandlingService(
         )
     }
 
+    //TODO Quick fix to make sure all old klagebehandlinger get kakaKvalitetsvurderingId
+    fun createAndStoreKakaKvalitetsvurderingIdIfMissing(klagebehandlingId: UUID) {
+        val klagebehandling = klagebehandlingRepository.findById(klagebehandlingId)
+            .orElseThrow { KlagebehandlingNotFoundException("Klagebehandling med id $klagebehandlingId ikke funnet") }
+
+        if (klagebehandling.kakaKvalitetsvurderingId == null) {
+            klagebehandling.kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering()
+        }
+    }
+
     @Transactional(readOnly = true)
     fun getKlagebehandling(klagebehandlingId: UUID): Klagebehandling =
         klagebehandlingRepository.findById(klagebehandlingId)
@@ -338,7 +348,7 @@ class KlagebehandlingService(
                 frist = mottak.generateFrist(),
                 mottakId = mottak.id,
                 vedtak = Vedtak(),
-                kvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(),
+                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(),
                 hjemler = createHjemmelSetFromMottak(mottak.hjemmelListe),
                 saksdokumenter = createSaksdokumenter(mottak),
                 kildesystem = mottak.kildesystem,

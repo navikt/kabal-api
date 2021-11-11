@@ -44,6 +44,10 @@ class KlagebehandlingDetaljerController(
             klagebehandlingId,
             logger
         )
+
+        //TODO Remove when all klagebehandlinger have kakaKvalitetsvurderingId
+        klagebehandlingService.createAndStoreKakaKvalitetsvurderingIdIfMissing(klagebehandlingId)
+
         return klagebehandlingMapper.mapKlagebehandlingToKlagebehandlingDetaljerView(
             klagebehandlingService.getKlagebehandling(klagebehandlingId)
         ).also {

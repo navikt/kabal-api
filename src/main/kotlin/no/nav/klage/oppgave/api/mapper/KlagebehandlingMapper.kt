@@ -95,7 +95,7 @@ class KlagebehandlingMapper(
             egenAnsatt = erEgenAnsatt,
             fortrolig = erFortrolig,
             strengtFortrolig = erStrengtFortrolig,
-            kvalitetsvurderingId = klagebehandling.kvalitetsvurderingId
+            kvalitetsvurderingId = klagebehandling.kakaKvalitetsvurderingId
         )
     }
 
