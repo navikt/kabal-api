@@ -6,6 +6,7 @@ import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
@@ -119,6 +120,9 @@ internal class KlagebehandlingDistribusjonServiceTest {
 
     @MockkBean(relaxed = true)
     lateinit var kabalDocumentGateway: KabalDocumentGateway
+
+    @MockkBean(relaxed = true)
+    lateinit var kakaApiGateway: KakaApiGateway
 
     private val mottak = Mottak(
         tema = Tema.OMS,
