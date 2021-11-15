@@ -54,7 +54,7 @@ class KakaApiClient(
         logger.debug("Getting validation errors from kaka-api")
         return kakaApiWebClient.get()
             .uri {
-                it.path("/kabal/kvalitetsvurdering/{kvalitetsvurderingId}/errors")
+                it.path("/kabal/kvalitetsvurdering/{kvalitetsvurderingId}/validationerrors")
                     .queryParam("temaId", temaId)
                     .build(kvalitetsvurderingId)
             }
