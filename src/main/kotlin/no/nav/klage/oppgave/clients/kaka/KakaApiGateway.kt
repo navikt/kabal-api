@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.clients.kaka
 
 import no.nav.klage.oppgave.clients.kaka.model.request.SaksdataInput
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -25,6 +26,19 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
     fun finalizeKlagebehandling(klagebehandling: Klagebehandling) {
         logger.debug("Sending saksdata to Kaka because klagebehandling is finished.")
         kakaApiClient.finalizeKlagebehandling(klagebehandling.toSaksdataInput())
+    }
+
+    fun getValidationErrors(klagebehandling: Klagebehandling): List<InvalidProperty> {
+        logger.debug("Getting kvalitetsvurdering validation errors")
+        return kakaApiClient.getValidationErrors(
+            klagebehandling.kakaKvalitetsvurderingId!!,
+            klagebehandling.tema.id
+        ).validationErrors.map {
+            InvalidProperty(
+                field = it.field,
+                reason = it.reason
+            )
+        }
     }
 
     private fun Klagebehandling.toSaksdataInput(): SaksdataInput {

@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.clients.kaka
 
 import no.nav.klage.oppgave.clients.kaka.model.request.SaksdataInput
 import no.nav.klage.oppgave.clients.kaka.model.response.KakaOutput
+import no.nav.klage.oppgave.clients.kaka.model.response.ValidationErrors
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.http.HttpHeaders
@@ -9,6 +10,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import java.util.*
 
 @Component
 class KakaApiClient(
@@ -46,5 +48,22 @@ class KakaApiClient(
             .retrieve()
             .bodyToMono<KakaOutput>()
             .block() ?: throw RuntimeException("Saksdata could not be created")
+    }
+
+    fun getValidationErrors(kvalitetsvurderingId: UUID, temaId: String): ValidationErrors {
+        logger.debug("Getting validation errors from kaka-api")
+        return kakaApiWebClient.get()
+            .uri {
+                it.path("/kabal/kvalitetsvurdering/{kvalitetsvurderingId}/errors")
+                    .queryParam("temaId", temaId)
+                    .build(kvalitetsvurderingId)
+            }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKakaApiScope()}"
+            )
+            .retrieve()
+            .bodyToMono<ValidationErrors>()
+            .block() ?: throw RuntimeException("Validation errors could not be retrieved")
     }
 }

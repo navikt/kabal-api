@@ -552,16 +552,41 @@ class KlagebehandlingService(
     }
 
     private fun validateKlagebehandlingBeforeFinalize(klagebehandling: Klagebehandling) {
+        val result = mutableListOf<InvalidProperty>()
+
         if (harIkkeLagretVedtaksdokument(klagebehandling)) {
-            throw ResultatDokumentNotFoundException("Vennligst last opp vedtaksdokument på nytt")
+            result.add(
+                InvalidProperty(
+                    field = "vedtaksdokument",
+                    reason = "Mangler vedtaksdokument"
+                )
+            )
         }
         if (klagebehandling.vedtak!!.utfall == null) {
-            throw ValidationException("Utfall er ikke satt på vedtak")
+            result.add(
+                InvalidProperty(
+                    field = "utfall",
+                    reason = "Utfall er ikke satt på vedtak"
+                )
+            )
         }
         if (klagebehandling.vedtak.utfall != Utfall.TRUKKET) {
             if (klagebehandling.vedtak.hjemler.isEmpty()) {
-                throw ValidationException("Hjemmel er ikke satt på vedtak")
+                result.add(
+                    InvalidProperty(
+                        field = "hjemmel",
+                        reason = "Hjemmel er ikke satt på vedtak"
+                    )
+                )
             }
+        }
+        result.addAll(kakaApiGateway.getValidationErrors(klagebehandling))
+
+        if (result.isNotEmpty()) {
+            throw ValidationErrorWithDetailsException(
+                title = "Validation error",
+                invalidProperties = result
+            )
         }
     }
 

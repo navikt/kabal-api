@@ -93,6 +93,12 @@ class TokenUtil(
         return response.accessToken
     }
 
+    fun getSaksbehandlerAccessTokenWithKakaApiScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["kaka-api-onbehalfof"]
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken
+    }
+
     fun getAppAccessTokenWithKakaApiScope(): String {
         val clientProperties = clientConfigurationProperties.registration["kaka-api-maskintilmaskin"]
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
