@@ -1,4 +1,4 @@
-name: Manual deploy to dev environment
+name: Manual build and deploy to dev environment
 on:
   workflow_dispatch:
 

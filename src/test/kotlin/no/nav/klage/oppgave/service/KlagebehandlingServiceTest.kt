@@ -6,11 +6,15 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.kodeverk.*
-import no.nav.klage.oppgave.exceptions.*
+import no.nav.klage.oppgave.exceptions.KlagebehandlingAvsluttetException
+import no.nav.klage.oppgave.exceptions.KlagebehandlingFinalizedException
+import no.nav.klage.oppgave.exceptions.KlagebehandlingManglerMedunderskriverException
+import no.nav.klage.oppgave.exceptions.ValidationErrorWithDetailsException
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
@@ -75,6 +79,9 @@ class KlagebehandlingServiceTest {
     @MockkBean
     lateinit var kabalDocumentGateway: KabalDocumentGateway
 
+    @MockkBean
+    lateinit var kakaApiGateway: KakaApiGateway
+
     private val dokumentService: DokumentService = mockk()
 
     private val tokenUtil: TokenUtil = mockk()
@@ -94,7 +101,7 @@ class KlagebehandlingServiceTest {
             dokumentService,
             tokenUtil,
             kabalDocumentGateway,
-            mockk()
+            kakaApiGateway
         )
     }
 
@@ -312,8 +319,9 @@ class KlagebehandlingServiceTest {
             every { tilgangService.harInnloggetSaksbehandlerTilgangTil(any()) } returns true
             every { tilgangService.verifyInnloggetSaksbehandlersTilgangTilTema(any()) } returns Unit
             every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling) } returns Unit
+            every { kakaApiGateway.getValidationErrors(klagebehandling) } returns emptyList()
 
-            assertThrows<ResultatDokumentNotFoundException> {
+            assertThrows<ValidationErrorWithDetailsException> {
                 klagebehandlingService.ferdigstillKlagebehandling(
                     klagebehandling.id,
                     SAKSBEHANDLER_IDENT
@@ -329,8 +337,9 @@ class KlagebehandlingServiceTest {
             every { tilgangService.verifyInnloggetSaksbehandlersTilgangTilTema(any()) } returns Unit
             every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling) } returns Unit
             every { kabalDocumentGateway.isHovedDokumentUploaded(DOKUMENTENHET_ID) } returns true
+            every { kakaApiGateway.getValidationErrors(klagebehandling) } returns emptyList()
 
-            assertThrows<ValidationException> {
+            assertThrows<ValidationErrorWithDetailsException> {
                 klagebehandlingService.ferdigstillKlagebehandling(
                     klagebehandling.id,
                     SAKSBEHANDLER_IDENT
@@ -347,8 +356,9 @@ class KlagebehandlingServiceTest {
             every { tilgangService.verifyInnloggetSaksbehandlersTilgangTilTema(any()) } returns Unit
             every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling) } returns Unit
             every { kabalDocumentGateway.isHovedDokumentUploaded(DOKUMENTENHET_ID) } returns true
+            every { kakaApiGateway.getValidationErrors(klagebehandling) } returns emptyList()
 
-            assertThrows<ValidationException> {
+            assertThrows<ValidationErrorWithDetailsException> {
                 klagebehandlingService.ferdigstillKlagebehandling(
                     klagebehandling.id,
                     SAKSBEHANDLER_IDENT
@@ -370,6 +380,7 @@ class KlagebehandlingServiceTest {
             every { tilgangService.verifyInnloggetSaksbehandlersTilgangTilTema(any()) } returns Unit
             every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling) } returns Unit
             every { kabalDocumentGateway.isHovedDokumentUploaded(DOKUMENTENHET_ID) } returns true
+            every { kakaApiGateway.getValidationErrors(klagebehandling) } returns emptyList()
 
             val result = klagebehandlingService.ferdigstillKlagebehandling(
                 klagebehandling.id,
@@ -386,6 +397,7 @@ class KlagebehandlingServiceTest {
             every { tilgangService.verifyInnloggetSaksbehandlersTilgangTilTema(any()) } returns Unit
             every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling) } returns Unit
             every { kabalDocumentGateway.isHovedDokumentUploaded(DOKUMENTENHET_ID) } returns true
+            every { kakaApiGateway.getValidationErrors(klagebehandling) } returns emptyList()
 
             val result = klagebehandlingService.ferdigstillKlagebehandling(
                 klagebehandling.id,
