@@ -87,6 +87,27 @@ class KlagebehandlingController(
         return klagebehandlingMapper.mapToKlagebehandlingFullfoertView(klagebehandling)
     }
 
+    /**
+     * Valgfri validering før innsending/fullføring.
+     * Gjøres uansett ved fullføring av behandlingen.
+     */
+    @GetMapping("/{id}/validate")
+    fun validate(
+        @PathVariable("id") klagebehandlingId: UUID
+    ) {
+        logKlagebehandlingMethodDetails(
+            "validate",
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            klagebehandlingId,
+            logger
+        )
+        klagebehandlingService.validateKlagebehandlingBeforeFinalize(
+            klagebehandlingService.getKlagebehandling(
+                klagebehandlingId
+            )
+        )
+    }
+
     @GetMapping("/{id}/medunderskriverinfo")
     fun getMedunderskriverInfo(
         @PathVariable("id") klagebehandlingId: UUID

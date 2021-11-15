@@ -551,7 +551,7 @@ class KlagebehandlingService(
         return markerKlagebehandlingSomAvsluttetAvSaksbehandler(klagebehandling, innloggetIdent)
     }
 
-    private fun validateKlagebehandlingBeforeFinalize(klagebehandling: Klagebehandling) {
+    fun validateKlagebehandlingBeforeFinalize(klagebehandling: Klagebehandling) {
         val result = mutableListOf<InvalidProperty>()
 
         if (harIkkeLagretVedtaksdokument(klagebehandling)) {
