@@ -68,6 +68,7 @@ class KlagebehandlingMapper(
             klagerNavn = klager.mapNavnToView(),
             klagerKjoenn = klager?.kjoenn,
             tema = klagebehandling.tema.id,
+            ytelse = klagebehandling.ytelse?.id,
             type = klagebehandling.type.id,
             mottatt = klagebehandling.mottattKlageinstans.toLocalDate(),
             mottattKlageinstans = klagebehandling.mottattKlageinstans.toLocalDate(),

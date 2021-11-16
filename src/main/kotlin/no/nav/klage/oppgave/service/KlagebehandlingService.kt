@@ -7,18 +7,10 @@ import no.nav.klage.oppgave.domain.events.KlagebehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.addSaksdokument
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.removeSaksdokument
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setAvsenderEnhetFoersteinstans
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setAvsenderSaksbehandleridentFoersteinstans
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setAvsluttetAvSaksbehandler
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setFrist
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setInnsendt
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMedunderskriverFlyt
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMedunderskriverIdentAndMedunderskriverFlyt
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMottattFoersteinstans
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMottattKlageinstans
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setTema
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setTildeling
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setType
 import no.nav.klage.oppgave.domain.kodeverk.*
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
@@ -27,7 +19,6 @@ import no.nav.klage.oppgave.util.getLogger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
 import java.util.*
@@ -110,13 +101,6 @@ class KlagebehandlingService(
         klagebehandlingRepository.getOne(klagebehandlingId)
             .also { checkLeseTilgang(it) }
             .also { if (!ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
-
-    fun getKlagebehandlingForUpdateByMedunderskriver(
-        klagebehandlingId: UUID,
-    ): Klagebehandling =
-        klagebehandlingRepository.getOne(klagebehandlingId)
-            .also { checkLeseTilgang(it) }
-            .also { checkMedunderskriverStatus(it) }
 
     fun getKlagebehandlingForUpdateBySystembruker(
         klagebehandlingId: UUID,
@@ -210,108 +194,6 @@ class KlagebehandlingService(
         return klagebehandling
     }
 
-    fun setType(
-        klagebehandlingId: UUID,
-        type: Type,
-        utfoerendeSaksbehandlerIdent: String
-    ): Klagebehandling {
-        val klagebehandling = getKlagebehandlingForUpdate(klagebehandlingId)
-        val event =
-            klagebehandling.setType(type, utfoerendeSaksbehandlerIdent)
-        applicationEventPublisher.publishEvent(event)
-        return klagebehandling
-    }
-
-    fun setTema(
-        klagebehandlingId: UUID,
-        tema: Tema,
-        utfoerendeSaksbehandlerIdent: String
-    ): Klagebehandling {
-        val klagebehandling = getKlagebehandlingForUpdate(klagebehandlingId)
-        val event =
-            klagebehandling.setTema(tema, utfoerendeSaksbehandlerIdent)
-        applicationEventPublisher.publishEvent(event)
-        return klagebehandling
-    }
-
-    fun setInnsendt(
-        klagebehandlingId: UUID,
-        innsendt: LocalDate,
-        utfoerendeSaksbehandlerIdent: String
-    ): Klagebehandling {
-        val klagebehandling = getKlagebehandlingForUpdate(klagebehandlingId)
-        val event =
-            klagebehandling.setInnsendt(innsendt, utfoerendeSaksbehandlerIdent)
-        applicationEventPublisher.publishEvent(event)
-        return klagebehandling
-    }
-
-    fun setMottattFoersteinstans(
-        klagebehandlingId: UUID,
-        mottattFoersteinstans: LocalDate,
-        utfoerendeSaksbehandlerIdent: String
-    ): Klagebehandling {
-        val klagebehandling = getKlagebehandlingForUpdate(klagebehandlingId)
-        val event =
-            klagebehandling.setMottattFoersteinstans(mottattFoersteinstans, utfoerendeSaksbehandlerIdent)
-        applicationEventPublisher.publishEvent(event)
-        return klagebehandling
-    }
-
-    fun setMottattKlageinstans(
-        klagebehandlingId: UUID,
-        mottattKlageinstans: LocalDateTime,
-        utfoerendeSaksbehandlerIdent: String
-    ): Klagebehandling {
-        val klagebehandling = getKlagebehandlingForUpdate(klagebehandlingId)
-        val event =
-            klagebehandling.setMottattKlageinstans(mottattKlageinstans, utfoerendeSaksbehandlerIdent)
-        applicationEventPublisher.publishEvent(event)
-        return klagebehandling
-    }
-
-    fun setFrist(
-        klagebehandlingId: UUID,
-        frist: LocalDate,
-        utfoerendeSaksbehandlerIdent: String
-    ): Klagebehandling {
-        val klagebehandling = getKlagebehandlingForUpdate(klagebehandlingId)
-        val event =
-            klagebehandling.setFrist(frist, utfoerendeSaksbehandlerIdent)
-        applicationEventPublisher.publishEvent(event)
-        return klagebehandling
-    }
-
-    fun setAvsenderSaksbehandleridentFoersteinstans(
-        klagebehandlingId: UUID,
-        saksbehandlerIdent: String,
-        utfoerendeSaksbehandlerIdent: String
-    ): Klagebehandling {
-        val klagebehandling = getKlagebehandlingForUpdate(klagebehandlingId)
-        val event =
-            klagebehandling.setAvsenderSaksbehandleridentFoersteinstans(
-                saksbehandlerIdent,
-                utfoerendeSaksbehandlerIdent
-            )
-        applicationEventPublisher.publishEvent(event)
-        return klagebehandling
-    }
-
-    fun setAvsenderEnhetFoersteinstans(
-        klagebehandlingId: UUID,
-        enhet: String,
-        utfoerendeSaksbehandlerIdent: String
-    ): Klagebehandling {
-        val klagebehandling = getKlagebehandlingForUpdate(klagebehandlingId)
-        val event =
-            klagebehandling.setAvsenderEnhetFoersteinstans(
-                enhet,
-                utfoerendeSaksbehandlerIdent
-            )
-        applicationEventPublisher.publishEvent(event)
-        return klagebehandling
-    }
-
     fun setMedunderskriverIdentAndMedunderskriverFlyt(
         klagebehandlingId: UUID,
         medunderskriverIdent: String?,
@@ -328,7 +210,6 @@ class KlagebehandlingService(
         applicationEventPublisher.publishEvent(event)
         return klagebehandling
     }
-
 
     fun createKlagebehandlingFromMottak(mottak: Mottak) {
         if (klagebehandlingRepository.findByMottakId(mottak.id) != null) {

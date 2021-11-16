@@ -139,6 +139,16 @@ val hjemlerPerTema: List<HjemlerPerTema> = listOf(
     )
 )
 
+data class HjemlerPerYtelse(val ytelse: Ytelse, val hjemler: List<Hjemmel>)
+
+val hjemlerPerYtelse: List<HjemlerPerYtelse> = listOf(
+//    HjemlerPerYtelse(
+//        Ytelse.OMS_OMS,
+//        Hjemmel.values().filter { it.kapittelOgParagraf != null && it.kapittelOgParagraf.kapittel == 9 }
+//                + Hjemmel.FTL + Hjemmel.MANGLER
+//    )
+)
+
 @Converter
 class HjemmelConverter : AttributeConverter<Hjemmel, String?> {
 

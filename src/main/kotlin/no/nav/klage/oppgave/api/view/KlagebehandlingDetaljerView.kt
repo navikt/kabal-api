@@ -24,6 +24,7 @@ data class KlagebehandlingDetaljerView(
     val klagerNavn: NavnView?,
     val klagerKjoenn: String?,
     val tema: String,
+    val ytelse: String? = null,
     val type: String,
     val mottatt: LocalDate?,
     val mottattKlageinstans: LocalDate?,
