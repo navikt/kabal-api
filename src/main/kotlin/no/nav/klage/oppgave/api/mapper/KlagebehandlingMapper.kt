@@ -203,10 +203,9 @@ class KlagebehandlingMapper(
     }
 
     fun mapToVedleggEditedView(klagebehandling: Klagebehandling): VedleggEditedView {
-        val vedtak = klagebehandling.vedtak
         return VedleggEditedView(
             klagebehandling.modified,
-            file = getVedleggView(vedtak.dokumentEnhetId),
+            file = getVedleggView(klagebehandling.vedtak.dokumentEnhetId),
         )
     }
 

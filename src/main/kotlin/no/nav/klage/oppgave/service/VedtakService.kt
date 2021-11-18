@@ -78,10 +78,8 @@ class VedtakService(
         //TODO: Burde man sjekket tilgang til EnhetOgTema, ikke bare enhet?
         tilgangService.verifyInnloggetSaksbehandlersTilgangTilEnhet(klagebehandling.tildeling!!.enhet!!)
 
-        val vedtak = klagebehandling.vedtak
-
-        var oppdatertKlagebehandling = if (vedtak.dokumentEnhetId != null) {
-            deleteHovedDokument(klagebehandling, vedtak.dokumentEnhetId!!)
+        var oppdatertKlagebehandling = if (klagebehandling.vedtak.dokumentEnhetId != null) {
+            deleteHovedDokument(klagebehandling, klagebehandling.vedtak.dokumentEnhetId!!)
         } else klagebehandling
 
         return oppdatertKlagebehandling

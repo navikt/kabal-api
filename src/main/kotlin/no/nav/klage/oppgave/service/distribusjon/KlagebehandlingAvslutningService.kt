@@ -39,7 +39,6 @@ class KlagebehandlingAvslutningService(
     @Transactional
     fun avsluttKlagebehandling(klagebehandlingId: UUID): Klagebehandling {
         val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId)
-        val vedtak = klagebehandling.vedtak
 
         val journalpostId =
             kabalDocumentGateway.getJournalpostIdForHovedadressat(klagebehandling.vedtak.dokumentEnhetId!!)!!
@@ -50,9 +49,9 @@ class KlagebehandlingAvslutningService(
             eventId = eventId,
             kildeReferanse = klagebehandling.kildeReferanse,
             kilde = klagebehandling.kildesystem.navn,
-            utfall = vedtak.utfall!!,
+            utfall = klagebehandling.vedtak.utfall!!,
             vedtaksbrevReferanse = journalpostId,
-            kabalReferanse = vedtak.id.toString()
+            kabalReferanse = klagebehandling.vedtak.id.toString()
         )
 
         kafkaEventRepository.save(

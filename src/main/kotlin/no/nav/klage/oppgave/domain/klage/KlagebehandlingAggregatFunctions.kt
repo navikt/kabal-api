@@ -113,11 +113,10 @@ object KlagebehandlingAggregatFunctions {
         nyVerdi: Grunn?,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
-        val vedtak = this.vedtak
-        val gammelVerdi = vedtak.grunn
+        val gammelVerdi = this.vedtak.grunn
         val tidspunkt = LocalDateTime.now()
-        vedtak.grunn = nyVerdi
-        vedtak.modified = tidspunkt
+        this.vedtak.grunn = nyVerdi
+        this.vedtak.modified = tidspunkt
         modified = tidspunkt
         val endringslogg =
             endringslogg(
@@ -134,11 +133,10 @@ object KlagebehandlingAggregatFunctions {
         nyVerdi: Set<Hjemmel>,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
-        val vedtak = this.vedtak
-        val gammelVerdi = vedtak.hjemler
+        val gammelVerdi = this.vedtak.hjemler
         val tidspunkt = LocalDateTime.now()
-        vedtak.hjemler = nyVerdi.toMutableSet()
-        vedtak.modified = tidspunkt
+        this.vedtak.hjemler = nyVerdi.toMutableSet()
+        this.vedtak.modified = tidspunkt
         modified = tidspunkt
         val endringslogg =
             endringslogg(
@@ -155,11 +153,10 @@ object KlagebehandlingAggregatFunctions {
         nyVerdi: Utfall?,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
-        val vedtak = this.vedtak
-        val gammelVerdi = vedtak.utfall
+        val gammelVerdi = this.vedtak.utfall
         val tidspunkt = LocalDateTime.now()
-        vedtak.utfall = nyVerdi
-        vedtak.modified = tidspunkt
+        this.vedtak.utfall = nyVerdi
+        this.vedtak.modified = tidspunkt
         modified = tidspunkt
         val endringslogg =
             endringslogg(
@@ -176,11 +173,10 @@ object KlagebehandlingAggregatFunctions {
         nyVerdi: UUID?,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
-        val vedtak = this.vedtak
-        val gammelVerdi = vedtak.dokumentEnhetId
+        val gammelVerdi = this.vedtak.dokumentEnhetId
         val tidspunkt = LocalDateTime.now()
-        vedtak.dokumentEnhetId = nyVerdi
-        vedtak.modified = tidspunkt
+        this.vedtak.dokumentEnhetId = nyVerdi
+        this.vedtak.modified = tidspunkt
         modified = tidspunkt
         val endringslogg = listOfNotNull(
             endringslogg(
@@ -273,11 +269,10 @@ object KlagebehandlingAggregatFunctions {
         nyVerdi: String?,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
-        val vedtak = this.vedtak
-        val gammelVerdi = vedtak.smartEditorId
+        val gammelVerdi = this.vedtak.smartEditorId
         val tidspunkt = LocalDateTime.now()
-        vedtak.smartEditorId = nyVerdi
-        vedtak.modified = tidspunkt
+        this.vedtak.smartEditorId = nyVerdi
+        this.vedtak.modified = tidspunkt
         modified = tidspunkt
         val endringslogg =
             endringslogg(

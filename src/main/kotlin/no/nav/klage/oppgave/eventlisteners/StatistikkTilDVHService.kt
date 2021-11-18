@@ -82,7 +82,6 @@ class StatistikkTilDVHService(
         klagebehandling: Klagebehandling,
         klagebehandlingState: KlagebehandlingState
     ): KlageStatistikkTilDVH {
-        val vedtak = klagebehandling.vedtak
 
         val funksjoneltEndringstidspunkt =
             getFunksjoneltEndringstidspunkt(klagebehandling, klagebehandlingState)
@@ -98,15 +97,15 @@ class StatistikkTilDVHService(
             endringstid = funksjoneltEndringstidspunkt,
             hjemmel = klagebehandling.hjemler.map { it.toSearchableString() },
             klager = getPart(klagebehandling.klager.partId.type, klagebehandling.klager.partId.value),
-            omgjoeringsgrunn = vedtak.grunn?.navn,
+            omgjoeringsgrunn = klagebehandling.vedtak.grunn?.navn,
             opprinneligFagsaksystem = klagebehandling.kildesystem.navn,
-            overfoertKA = klagebehandling.created.toLocalDate(),
-            resultat = vedtak.utfall?.navn,
+            overfoertKA = klagebehandling.mottattKlageinstans.toLocalDate(),
+            resultat = klagebehandling.vedtak.utfall?.navn,
             sakenGjelder = getPart(klagebehandling.sakenGjelder.partId.type, klagebehandling.sakenGjelder.partId.value),
             saksbehandler = klagebehandling.tildeling?.saksbehandlerident,
             saksbehandlerEnhet = klagebehandling.tildeling?.enhet,
             tekniskTid = klagebehandling.modified,
-            vedtakId = vedtak.id.toString(),
+            vedtakId = klagebehandling.vedtak.id.toString(),
             vedtaksdato = klagebehandling.avsluttetAvSaksbehandler?.toLocalDate(),
             ytelseType = "TODO",
         )

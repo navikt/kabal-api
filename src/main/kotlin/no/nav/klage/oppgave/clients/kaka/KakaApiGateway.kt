@@ -42,7 +42,6 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
     }
 
     private fun Klagebehandling.toSaksdataInput(): SaksdataInput {
-        val vedtak = vedtak
         return SaksdataInput(
             sakenGjelder = sakenGjelder.partId.value,
             sakstype = type.id,
@@ -50,8 +49,8 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
             mottattKlageinstans = mottattKlageinstans.toLocalDate(),
             vedtaksinstansEnhet = avsenderEnhetFoersteinstans,
             mottattVedtaksinstans = mottattFoersteinstans,
-            utfall = vedtak.utfall!!.id,
-            hjemler = vedtak.hjemler.map { it.id },
+            utfall = this.vedtak.utfall!!.id,
+            hjemler = this.vedtak.hjemler.map { it.id },
             kvalitetsvurderingId = kakaKvalitetsvurderingId!!,
             avsluttetAvSaksbehandler = avsluttetAvSaksbehandler!!,
             utfoerendeSaksbehandler = tildeling?.saksbehandlerident!!,
