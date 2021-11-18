@@ -55,6 +55,7 @@ class TilgangServiceTest {
             avsluttet = LocalDateTime.now(),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
+            vedtak = Vedtak(),
         )
 
         assertThrows<KlagebehandlingAvsluttetException> {
@@ -87,6 +88,7 @@ class TilgangServiceTest {
             avsluttetAvSaksbehandler = LocalDateTime.now(),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
+            vedtak = Vedtak(),
         )
 
         assertThrows<KlagebehandlingAvsluttetException> {
@@ -119,6 +121,7 @@ class TilgangServiceTest {
             tildeling = Tildeling(saksbehandlerident = "Z123456", enhet = "", tidspunkt = LocalDateTime.now()),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
+            vedtak = Vedtak(),
         )
 
         every { innloggetSaksbehandlerRepository.getInnloggetIdent() }.returns("Z654321")
@@ -148,6 +151,7 @@ class TilgangServiceTest {
             mottakId = UUID.randomUUID(),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
+            vedtak = Vedtak(),
         )
 
         every { innloggetSaksbehandlerRepository.getInnloggetIdent() }.returns("Z654321")
@@ -178,6 +182,7 @@ class TilgangServiceTest {
             tildeling = Tildeling(saksbehandlerident = "Z123456", enhet = "", tidspunkt = LocalDateTime.now()),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
+            vedtak = Vedtak(),
         )
 
         every { innloggetSaksbehandlerRepository.getInnloggetIdent() }.returns("Z123456")

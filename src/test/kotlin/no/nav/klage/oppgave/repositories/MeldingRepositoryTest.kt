@@ -76,7 +76,8 @@ class MeldingRepositoryTest {
             kildeReferanse = "abc",
             mottakId = mottak.id,
             avsenderEnhetFoersteinstans = "0101",
-            mottattFoersteinstans = LocalDate.now()
+            mottattFoersteinstans = LocalDate.now(),
+            vedtak = Vedtak(),
         )
 
         klagebehandlingRepository.save(klage)

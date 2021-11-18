@@ -113,7 +113,7 @@ object KlagebehandlingAggregatFunctions {
         nyVerdi: Grunn?,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
-        val vedtak = this.getVedtakOrException()
+        val vedtak = this.vedtak
         val gammelVerdi = vedtak.grunn
         val tidspunkt = LocalDateTime.now()
         vedtak.grunn = nyVerdi
@@ -134,7 +134,7 @@ object KlagebehandlingAggregatFunctions {
         nyVerdi: Set<Hjemmel>,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
-        val vedtak = this.getVedtakOrException()
+        val vedtak = this.vedtak
         val gammelVerdi = vedtak.hjemler
         val tidspunkt = LocalDateTime.now()
         vedtak.hjemler = nyVerdi.toMutableSet()
@@ -155,7 +155,7 @@ object KlagebehandlingAggregatFunctions {
         nyVerdi: Utfall?,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
-        val vedtak = this.getVedtakOrException()
+        val vedtak = this.vedtak
         val gammelVerdi = vedtak.utfall
         val tidspunkt = LocalDateTime.now()
         vedtak.utfall = nyVerdi
@@ -176,7 +176,7 @@ object KlagebehandlingAggregatFunctions {
         nyVerdi: UUID?,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
-        val vedtak = this.getVedtakOrException()
+        val vedtak = this.vedtak
         val gammelVerdi = vedtak.dokumentEnhetId
         val tidspunkt = LocalDateTime.now()
         vedtak.dokumentEnhetId = nyVerdi
@@ -268,12 +268,12 @@ object KlagebehandlingAggregatFunctions {
         )
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
-    
+
     fun Klagebehandling.setSmartEditorIdInVedtak(
         nyVerdi: String?,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
-        val vedtak = this.getVedtakOrException()
+        val vedtak = this.vedtak
         val gammelVerdi = vedtak.smartEditorId
         val tidspunkt = LocalDateTime.now()
         vedtak.smartEditorId = nyVerdi

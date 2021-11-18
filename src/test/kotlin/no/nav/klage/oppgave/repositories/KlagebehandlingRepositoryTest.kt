@@ -73,7 +73,8 @@ class KlagebehandlingRepositoryTest {
             kildeReferanse = "abc",
             mottakId = mottak.id,
             avsenderEnhetFoersteinstans = "0101",
-            mottattFoersteinstans = LocalDate.now()
+            mottattFoersteinstans = LocalDate.now(),
+            vedtak = Vedtak(),
         )
 
         klagebehandlingRepository.save(klage)
@@ -124,7 +125,8 @@ class KlagebehandlingRepositoryTest {
             kildeReferanse = "abc",
             mottakId = mottak.id,
             mottattFoersteinstans = LocalDate.now(),
-            avsenderEnhetFoersteinstans = "enhet"
+            avsenderEnhetFoersteinstans = "enhet",
+            vedtak = Vedtak(),
         )
 
         klagebehandlingRepository.save(klage)
@@ -178,7 +180,8 @@ class KlagebehandlingRepositoryTest {
             kildeReferanse = "abc",
             mottakId = mottak.id,
             mottattFoersteinstans = LocalDate.now(),
-            avsenderEnhetFoersteinstans = "enhet"
+            avsenderEnhetFoersteinstans = "enhet",
+            vedtak = Vedtak(),
         )
 
         klagebehandlingRepository.save(klage)

@@ -34,7 +34,7 @@ class KlagebehandlingMapper(
     }
 
     fun mapKlagebehandlingToKlagebehandlingDetaljerView(klagebehandling: Klagebehandling): KlagebehandlingDetaljerView {
-        val enhetNavn = klagebehandling.avsenderEnhetFoersteinstans?.let { norg2Client.fetchEnhet(it) }?.navn
+        val enhetNavn = klagebehandling.avsenderEnhetFoersteinstans.let { norg2Client.fetchEnhet(it) }.navn
         val sakenGjelderFoedselsnummer = foedselsnummer(klagebehandling.sakenGjelder.partId)
         val sakenGjelder = sakenGjelderFoedselsnummer?.let { pdlFacade.getPersonInfo(it) }
         val sakenGjelderVirksomhetsnummer = virksomhetsnummer(klagebehandling.sakenGjelder.partId)
@@ -85,7 +85,7 @@ class KlagebehandlingMapper(
             hjemler = klagebehandling.hjemler.map { it.id },
             modified = klagebehandling.modified,
             created = klagebehandling.created,
-            resultat = klagebehandling.vedtak?.mapToVedtakView(),
+            resultat = klagebehandling.vedtak.mapToVedtakView(),
             kommentarFraFoersteinstans = klagebehandling.kommentarFraFoersteinstans,
             tilknyttedeDokumenter = klagebehandling.saksdokumenter.map {
                 TilknyttetDokument(
@@ -203,7 +203,7 @@ class KlagebehandlingMapper(
     }
 
     fun mapToVedleggEditedView(klagebehandling: Klagebehandling): VedleggEditedView {
-        val vedtak = klagebehandling.getVedtakOrException()
+        val vedtak = klagebehandling.vedtak
         return VedleggEditedView(
             klagebehandling.modified,
             file = getVedleggView(vedtak.dokumentEnhetId),

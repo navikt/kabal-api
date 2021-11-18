@@ -7,7 +7,6 @@ import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.Endringslogginnslag
 import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
-import no.nav.klage.oppgave.domain.klage.Mottak
 import no.nav.klage.oppgave.domain.kodeverk.PartIdType
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
@@ -36,13 +35,11 @@ class StatistikkTilDVHService(
         if (shouldSendStats(klagebehandlingEndretEvent.endringslogginnslag)) {
 
             val klagebehandling = klagebehandlingEndretEvent.klagebehandling
-            val mottak = mottakRepository.getOne(klagebehandling.mottakId)
             val eventId = UUID.randomUUID()
 
             val klageStatistikkTilDVH = createKlageStatistikkTilDVH(
                 eventId = eventId,
                 klagebehandling = klagebehandling,
-                mottak = mottak,
                 klagebehandlingState = getKlagebehandlingState(klagebehandlingEndretEvent.endringslogginnslag)
             )
 
@@ -83,17 +80,16 @@ class StatistikkTilDVHService(
     private fun createKlageStatistikkTilDVH(
         eventId: UUID,
         klagebehandling: Klagebehandling,
-        mottak: Mottak,
         klagebehandlingState: KlagebehandlingState
     ): KlageStatistikkTilDVH {
-        val vedtak = klagebehandling.getVedtakOrException()
+        val vedtak = klagebehandling.vedtak
 
         val funksjoneltEndringstidspunkt =
             getFunksjoneltEndringstidspunkt(klagebehandling, klagebehandlingState)
 
         return KlageStatistikkTilDVH(
             eventId = eventId,
-            behandlingId = mottak.dvhReferanse ?: mottak.kildeReferanse,
+            behandlingId = klagebehandling.dvhReferanse ?: klagebehandling.kildeReferanse,
             behandlingIdKabal = klagebehandling.id.toString(),
             behandlingStartetKA = klagebehandling.tildeling?.tidspunkt?.toLocalDate(),
             behandlingStatus = klagebehandlingState,
@@ -103,8 +99,8 @@ class StatistikkTilDVHService(
             hjemmel = klagebehandling.hjemler.map { it.toSearchableString() },
             klager = getPart(klagebehandling.klager.partId.type, klagebehandling.klager.partId.value),
             omgjoeringsgrunn = vedtak.grunn?.navn,
-            opprinneligFagsaksystem = mottak.kildesystem.navn,
-            overfoertKA = mottak.created.toLocalDate(),
+            opprinneligFagsaksystem = klagebehandling.kildesystem.navn,
+            overfoertKA = klagebehandling.created.toLocalDate(),
             resultat = vedtak.utfall?.navn,
             sakenGjelder = getPart(klagebehandling.sakenGjelder.partId.type, klagebehandling.sakenGjelder.partId.value),
             saksbehandler = klagebehandling.tildeling?.saksbehandlerident,

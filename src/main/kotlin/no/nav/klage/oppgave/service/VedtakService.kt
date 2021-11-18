@@ -36,7 +36,7 @@ class VedtakService(
 
     @Transactional(readOnly = true)
     fun getVedtak(klagebehandling: Klagebehandling): Vedtak {
-        return klagebehandling.getVedtakOrException()
+        return klagebehandling.vedtak
     }
 
     fun setUtfall(
@@ -78,7 +78,7 @@ class VedtakService(
         //TODO: Burde man sjekket tilgang til EnhetOgTema, ikke bare enhet?
         tilgangService.verifyInnloggetSaksbehandlersTilgangTilEnhet(klagebehandling.tildeling!!.enhet!!)
 
-        val vedtak = klagebehandling.getVedtakOrException()
+        val vedtak = klagebehandling.vedtak
 
         var oppdatertKlagebehandling = if (vedtak.dokumentEnhetId != null) {
             deleteHovedDokument(klagebehandling, vedtak.dokumentEnhetId!!)
@@ -99,14 +99,14 @@ class VedtakService(
         tilgangService.verifyInnloggetSaksbehandlersTilgangTilEnhet(klagebehandling.tildeling!!.enhet!!)
         if (klagebehandling.avsluttetAvSaksbehandler != null) throw VedtakFinalizedException("Klagebehandlingen er avsluttet")
 
-        var oppdatertKlagebehandling = if (klagebehandling.getVedtakOrException().dokumentEnhetId == null) {
+        var oppdatertKlagebehandling = if (klagebehandling.vedtak.dokumentEnhetId == null) {
             createDokumentEnhet(klagebehandling, innloggetIdent)
         } else klagebehandling
 
         oppdatertKlagebehandling =
             uploadHovedDokument(
                 oppdatertKlagebehandling,
-                oppdatertKlagebehandling.getVedtakOrException().dokumentEnhetId!!,
+                oppdatertKlagebehandling.vedtak.dokumentEnhetId!!,
                 input.vedlegg
             )
 

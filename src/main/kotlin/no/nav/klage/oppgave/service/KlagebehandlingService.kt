@@ -20,7 +20,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.time.Period
 import java.util.*
 
 @Service
@@ -224,6 +223,7 @@ class KlagebehandlingService(
                 tema = mottak.tema,
                 type = mottak.type,
                 kildeReferanse = mottak.kildeReferanse,
+                dvhReferanse = mottak.dvhReferanse,
                 sakFagsystem = mottak.sakFagsystem,
                 sakFagsakId = mottak.sakFagsakId,
                 innsendt = mottak.innsendtDato,
@@ -397,8 +397,6 @@ class KlagebehandlingService(
         }
         return klagebehandling.modified
     }
-
-    private fun Mottak.generateFrist() = oversendtKaDato.toLocalDate() + Period.ofWeeks(12)
 
     @Transactional(readOnly = true)
     fun findKlagebehandlingForDistribusjon(): List<UUID> =

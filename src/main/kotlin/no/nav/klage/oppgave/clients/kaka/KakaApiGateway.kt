@@ -42,7 +42,7 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
     }
 
     private fun Klagebehandling.toSaksdataInput(): SaksdataInput {
-        val vedtak = getVedtakOrException()
+        val vedtak = vedtak
         return SaksdataInput(
             sakenGjelder = sakenGjelder.partId.value,
             sakstype = type.id,

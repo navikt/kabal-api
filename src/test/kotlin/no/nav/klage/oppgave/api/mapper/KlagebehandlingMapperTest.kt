@@ -34,7 +34,7 @@ class KlagebehandlingMapperTest {
 
     @MockkBean
     lateinit var eregClient: EregClient
-    
+
     @MockkBean
     lateinit var saksbehandlerRepository: SaksbehandlerRepository
 
@@ -86,6 +86,7 @@ class KlagebehandlingMapperTest {
             avsluttet = LocalDateTime.now(),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
+            vedtak = Vedtak(),
         )
     }
 

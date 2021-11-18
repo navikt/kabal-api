@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.domain.klage
 
 import no.nav.klage.oppgave.domain.klage.Klagebehandling.Status.*
 import no.nav.klage.oppgave.domain.kodeverk.*
-import no.nav.klage.oppgave.exceptions.VedtakNotFoundException
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
@@ -24,34 +23,37 @@ class Klagebehandling(
     var sakenGjelder: SakenGjelder,
     @Column(name = "tema_id")
     @Convert(converter = TemaConverter::class)
-    var tema: Tema,
+    val tema: Tema,
     @Column(name = "ytelse_id")
     @Convert(converter = YtelseConverter::class)
-    var ytelse: Ytelse? = null,
+    val ytelse: Ytelse? = null,
     @Column(name = "type_id")
     @Convert(converter = TypeConverter::class)
     var type: Type,
     @Column(name = "kilde_referanse")
-    var kildeReferanse: String,
+    val kildeReferanse: String,
+    @Column(name = "dvh_referanse")
+    val dvhReferanse: String? = null,
     @Column(name = "sak_fagsystem")
     @Convert(converter = FagsystemConverter::class)
-    var sakFagsystem: Fagsystem? = null,
+    val sakFagsystem: Fagsystem? = null,
     @Column(name = "sak_fagsak_id")
-    var sakFagsakId: String? = null,
+    val sakFagsakId: String? = null,
     @Column(name = "dato_innsendt")
-    var innsendt: LocalDate? = null,
+    val innsendt: LocalDate? = null,
     @Column(name = "dato_mottatt_foersteinstans")
-    var mottattFoersteinstans: LocalDate,
+    val mottattFoersteinstans: LocalDate,
     @Column(name = "avsender_saksbehandlerident_foersteinstans")
-    var avsenderSaksbehandleridentFoersteinstans: String? = null,
+    val avsenderSaksbehandleridentFoersteinstans: String? = null,
     @Column(name = "avsender_enhet_foersteinstans")
-    var avsenderEnhetFoersteinstans: String,
+    val avsenderEnhetFoersteinstans: String,
     @Column(name = "dato_mottatt_klageinstans")
-    var mottattKlageinstans: LocalDateTime,
+    val mottattKlageinstans: LocalDateTime,
     @Column(name = "dato_behandling_avsluttet")
     var avsluttet: LocalDateTime? = null,
     @Column(name = "dato_behandling_avsluttet_av_saksbehandler")
     var avsluttetAvSaksbehandler: LocalDateTime? = null,
+    //TODO: Trenger denne være nullable? Den blir da alltid satt i createKlagebehandlingFromMottak?
     @Column(name = "frist")
     var frist: LocalDate? = null,
     @Embedded
@@ -103,7 +105,7 @@ class Klagebehandling(
     val hjemler: MutableSet<Hjemmel> = mutableSetOf(),
     @OneToOne(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "vedtak_id", referencedColumnName = "id")
-    val vedtak: Vedtak? = null,
+    val vedtak: Vedtak,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "klagebehandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
@@ -139,10 +141,6 @@ class Klagebehandling(
 
     override fun hashCode(): Int {
         return id.hashCode()
-    }
-
-    fun getVedtakOrException(): Vedtak {
-        return vedtak ?: throw VedtakNotFoundException("Vedtak ikke funnet for klagebehandling $id")
     }
 
     /**
