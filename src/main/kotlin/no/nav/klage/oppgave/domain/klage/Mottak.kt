@@ -14,7 +14,7 @@ class Mottak(
     val id: UUID = UUID.randomUUID(),
     @Column(name = "tema_id")
     @Convert(converter = TemaConverter::class)
-    val tema: Tema,
+    val tema: Tema? = null,
     @Column(name = "type_id")
     @Convert(converter = TypeConverter::class)
     val type: Type,
@@ -58,8 +58,9 @@ class Mottak(
     @Column(name = "kildesystem")
     @Convert(converter = FagsystemConverter::class)
     val kildesystem: Fagsystem,
-    @Column(name = "ytelse")
-    val ytelse: String?,
+    @Convert(converter = YtelseConverter::class)
+    @Column(name = "ytelse_id")
+    val ytelse: Ytelse,
     @Column(name = "kommentar")
     val kommentar: String? = null
 ) {

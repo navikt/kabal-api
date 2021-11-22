@@ -79,7 +79,7 @@ fun Klagebehandling.mapToSkjemaV1(): KlagebehandlingSkjemaV1 {
         klager = this.klager.mapToSkjemaV1(),
         klagersProsessfullmektig = this.klager.prosessfullmektig?.mapToSkjemaV1(),
         sakenGjelder = this.sakenGjelder.mapToSkjemaV1(),
-        tema = this.tema.mapToSkjemaV1(),
+        tema = this.ytelse.toTema().mapToSkjemaV1(),
         type = this.type.mapToSkjemaV1(),
         kildeReferanse = this.kildeReferanse,
         sakFagsystem = this.sakFagsystem?.let { it.mapToSkjemaV1() },

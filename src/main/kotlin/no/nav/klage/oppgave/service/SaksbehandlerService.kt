@@ -34,10 +34,10 @@ class SaksbehandlerService(
         val ident = klagebehandling.tildeling?.saksbehandlerident ?: innloggetSaksbehandlerident
         val medunderskrivere = saksbehandlerRepository.getAlleSaksbehandlerIdenter()
             .filter { it != ident }
-            .filter { saksbehandlerHarTilgangTilTema(it, klagebehandling.tema) }
+            .filter { saksbehandlerHarTilgangTilTema(it, klagebehandling.ytelse.toTema()) }
             .filter { saksbehandlerHarTilgangTilPerson(it, klagebehandling.sakenGjelder.partId) }
             .map { Medunderskriver(it, getNameForIdent(it)) }
-        return Medunderskrivere(klagebehandling.tema.id, medunderskrivere)
+        return Medunderskrivere(klagebehandling.ytelse.toTema().id, medunderskrivere)
     }
 
     fun getMedunderskrivere(ident: String, tema: Tema): Medunderskrivere {

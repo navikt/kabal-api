@@ -36,7 +36,7 @@ class MottakRepositoryTest {
     @Test
     fun `persist mottak works`() {
         val mottak = Mottak(
-            tema = Tema.OMS,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "123454")),
             sakFagsystem = Fagsystem.AO01,
@@ -54,7 +54,6 @@ class MottakRepositoryTest {
             ),
             oversendtKaDato = LocalDateTime.now(),
             kildesystem = Fagsystem.AO01,
-            ytelse = "ABC",
             mottattNavDato = LocalDate.now()
         )
 

@@ -78,7 +78,7 @@ class UnprotectedDataFeederTest {
             }
           },
           "mottattFoersteinstans": "2020-12-20",
-          "tema": "OMS",
+          "ytelse": "OMS_OMP",          
           "tilknyttedeJournalposter": [
             {
               "journalpostId": "492889386",

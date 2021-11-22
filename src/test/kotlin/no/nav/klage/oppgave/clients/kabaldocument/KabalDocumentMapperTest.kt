@@ -12,8 +12,8 @@ import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.kodeverk.Fagsystem
 import no.nav.klage.oppgave.domain.kodeverk.PartIdType
-import no.nav.klage.oppgave.domain.kodeverk.Tema
 import no.nav.klage.oppgave.domain.kodeverk.Type
+import no.nav.klage.oppgave.domain.kodeverk.Ytelse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -67,7 +67,7 @@ class KabalDocumentMapperTest {
             sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
-            tema = Tema.AAP,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             vedtak = Vedtak(
                 id = vedtakId
@@ -95,7 +95,7 @@ class KabalDocumentMapperTest {
             sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr2), false),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
-            tema = Tema.AAP,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             vedtak = Vedtak(
                 id = vedtakId
@@ -124,7 +124,7 @@ class KabalDocumentMapperTest {
             sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr2), true),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
-            tema = Tema.AAP,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             vedtak = Vedtak(
                 id = vedtakId
@@ -168,7 +168,7 @@ class KabalDocumentMapperTest {
             sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
-            tema = Tema.AAP,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             vedtak = Vedtak(
                 id = vedtakId
@@ -206,7 +206,7 @@ class KabalDocumentMapperTest {
             sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
-            tema = Tema.AAP,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             vedtak = Vedtak(
                 id = vedtakId
@@ -249,7 +249,7 @@ class KabalDocumentMapperTest {
             sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr3), false),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
-            tema = Tema.AAP,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             vedtak = Vedtak(
                 id = vedtakId
@@ -292,7 +292,7 @@ class KabalDocumentMapperTest {
             sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr3), true),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
-            tema = Tema.AAP,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             vedtak = Vedtak(
                 id = vedtakId
@@ -341,7 +341,7 @@ class KabalDocumentMapperTest {
             sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr3), false),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
-            tema = Tema.AAP,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             vedtak = Vedtak(
                 id = vedtakId
@@ -379,7 +379,7 @@ class KabalDocumentMapperTest {
             sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr3), true),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
-            tema = Tema.AAP,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             vedtak = Vedtak(
                 id = vedtakId

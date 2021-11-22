@@ -6,8 +6,8 @@ import io.mockk.every
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.kodeverk.Tema
 import no.nav.klage.oppgave.domain.kodeverk.Type
+import no.nav.klage.oppgave.domain.kodeverk.Ytelse
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
 import no.nav.klage.oppgave.repositories.EnhetRepository
 import org.junit.jupiter.api.MethodOrderer
@@ -67,7 +67,7 @@ internal class DuplicateOversendelseTest {
             avsenderSaksbehandlerIdent = saksbehandler,
             innsendtTilNav = LocalDate.now(),
             mottattFoersteinstans = LocalDate.now(),
-            tema = Tema.OMS,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             klager = OversendtKlager(
                 id = OversendtPartId(

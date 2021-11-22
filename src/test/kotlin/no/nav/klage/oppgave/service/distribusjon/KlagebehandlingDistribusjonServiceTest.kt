@@ -126,13 +126,12 @@ internal class KlagebehandlingDistribusjonServiceTest {
     lateinit var kakaApiGateway: KakaApiGateway
 
     private val mottak = Mottak(
-        tema = Tema.OMS,
+        ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,
         klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
         kildeReferanse = UUID.randomUUID().toString(),
         oversendtKaDato = LocalDateTime.now(),
         kildesystem = Fagsystem.K9,
-        ytelse = "ABC",
         avsenderEnhet = "0101",
         mottattNavDato = LocalDate.now()
     )
@@ -144,7 +143,7 @@ internal class KlagebehandlingDistribusjonServiceTest {
             partId = PartId(type = PartIdType.PERSON, value = fnr),
             skalMottaKopi = false
         ),
-        tema = Tema.OMS,
+        ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,
         frist = LocalDate.now(),
         hjemler = mutableSetOf(

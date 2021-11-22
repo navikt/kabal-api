@@ -40,7 +40,7 @@ class TilgangServiceTest {
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
                 skalMottaKopi = false
             ),
-            tema = Tema.OMS,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             frist = LocalDate.now(),
             hjemler = mutableSetOf(
@@ -73,7 +73,7 @@ class TilgangServiceTest {
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
                 skalMottaKopi = false
             ),
-            tema = Tema.OMS,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             frist = LocalDate.now(),
             hjemler = mutableSetOf(
@@ -106,7 +106,7 @@ class TilgangServiceTest {
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
                 skalMottaKopi = false
             ),
-            tema = Tema.OMS,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             frist = LocalDate.now(),
             hjemler = mutableSetOf(
@@ -137,7 +137,7 @@ class TilgangServiceTest {
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
                 skalMottaKopi = false
             ),
-            tema = Tema.OMS,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             frist = LocalDate.now(),
             hjemler = mutableSetOf(
@@ -167,7 +167,7 @@ class TilgangServiceTest {
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
                 skalMottaKopi = false
             ),
-            tema = Tema.OMS,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             frist = LocalDate.now(),
             hjemler = mutableSetOf(

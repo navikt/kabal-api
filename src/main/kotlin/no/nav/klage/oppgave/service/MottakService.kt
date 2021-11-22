@@ -6,10 +6,10 @@ import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.config.incrementMottattKlage
 import no.nav.klage.oppgave.domain.events.MottakLagretEvent
-import no.nav.klage.oppgave.domain.kodeverk.LovligeTemaer
 import no.nav.klage.oppgave.domain.kodeverk.LovligeTyper
-import no.nav.klage.oppgave.domain.kodeverk.Tema
+import no.nav.klage.oppgave.domain.kodeverk.LovligeYtelser
 import no.nav.klage.oppgave.domain.kodeverk.Type
+import no.nav.klage.oppgave.domain.kodeverk.Ytelse
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException
@@ -34,7 +34,7 @@ class MottakService(
     private val meterRegistry: MeterRegistry
 ) {
 
-    private val lovligeTemaerIKabal = LovligeTemaer.lovligeTemaer(environment)
+    private val lovligeYtelserIKabal = LovligeYtelser.lovligeYtelser(environment)
     private val lovligeTyperIKabal = LovligeTyper.lovligeTyper(environment)
 
 
@@ -57,7 +57,7 @@ class MottakService(
         applicationEventPublisher.publishEvent(MottakLagretEvent(mottak))
 
         //TODO: Move to outside of transaction to make sure it went well
-        meterRegistry.incrementMottattKlage(oversendtKlage.kilde.name, oversendtKlage.tema.navn)
+        meterRegistry.incrementMottattKlage(oversendtKlage.kilde.name, oversendtKlage.ytelse.toTema().navn)
     }
 
     fun OversendtKlage.validate() {
@@ -65,7 +65,7 @@ class MottakService(
         tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
         validatePartId(klager.id)
         sakenGjelder?.run { validatePartId(sakenGjelder.id) }
-        validateTema(tema)
+        validateYtelse(ytelse)
         validateType(type)
         validateEnhet(avsenderEnhet)
         validateSaksbehandler(avsenderSaksbehandlerIdent, avsenderEnhet)
@@ -86,9 +86,9 @@ class MottakService(
         }
     }
 
-    private fun validateTema(tema: Tema) {
-        if (!lovligeTemaerIKabal.contains(tema)) {
-            throw OversendtKlageNotValidException("Kabal kan ikke motta klager med tema $tema ennå")
+    private fun validateYtelse(ytelse: Ytelse) {
+        if (!lovligeYtelserIKabal.contains(ytelse)) {
+            throw OversendtKlageNotValidException("Kabal kan ikke motta klager med ytelse $ytelse ennå")
         }
     }
 

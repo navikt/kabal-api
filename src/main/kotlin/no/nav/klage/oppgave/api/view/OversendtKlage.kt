@@ -13,12 +13,6 @@ import javax.validation.constraints.PastOrPresent
 data class OversendtKlage(
     @ApiModelProperty(
         required = true,
-        example = "OMS",
-        notes = "Gyldige verdier er OMS i prod, OMS og SYK i dev"
-    )
-    val tema: Tema,
-    @ApiModelProperty(
-        required = true,
         example = "KLAGE",
         notes = "Gyldige verdier er KLAGE i både prod og dev"
     )
@@ -87,10 +81,11 @@ data class OversendtKlage(
     )
     val kilde: KildeFagsystem,
     @ApiModelProperty(
-        notes = "Ytelse. Kode fra et kodeverk.",
-        required = false
+        example = "OMS_OMP",
+        notes = "Ytelse. Gyldige verdier i prod: OMS_OMP, OMS_OLP, OMS_PSB, OMS_PLS",
+        required = true
     )
-    val ytelse: String? = null,
+    val ytelse: Ytelse,
     @ApiModelProperty(
         notes = "Kommentarer fra saksbehandler i førsteinstans som ikke er med i oversendelsesbrevet klager mottar",
         required = false
@@ -98,7 +93,6 @@ data class OversendtKlage(
     val kommentar: String? = null
 ) {
     fun toMottak() = Mottak(
-        tema = tema,
         type = type,
         klager = klager.toKlagepart(),
         sakenGjelder = sakenGjelder?.toSakenGjelder(),

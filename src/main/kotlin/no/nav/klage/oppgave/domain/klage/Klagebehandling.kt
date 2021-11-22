@@ -21,12 +21,9 @@ class Klagebehandling(
     var klager: Klager,
     @Embedded
     var sakenGjelder: SakenGjelder,
-    @Column(name = "tema_id")
-    @Convert(converter = TemaConverter::class)
-    val tema: Tema,
     @Column(name = "ytelse_id")
     @Convert(converter = YtelseConverter::class)
-    val ytelse: Ytelse? = null,
+    val ytelse: Ytelse,
     @Column(name = "type_id")
     @Convert(converter = TypeConverter::class)
     var type: Type,

@@ -44,13 +44,12 @@ class MeldingRepositoryTest {
     fun `add meldinger works`() {
 
         val mottak = Mottak(
-            tema = Tema.OMS,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
             kildeReferanse = "1234234",
             oversendtKaDato = LocalDateTime.now(),
             kildesystem = Fagsystem.K9,
-            ytelse = "ABC",
             avsenderEnhet = "0101",
             mottattNavDato = LocalDate.now()
         )
@@ -63,7 +62,7 @@ class MeldingRepositoryTest {
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
                 skalMottaKopi = false
             ),
-            tema = Tema.OMS,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             frist = LocalDate.now(),
             hjemler = mutableSetOf(

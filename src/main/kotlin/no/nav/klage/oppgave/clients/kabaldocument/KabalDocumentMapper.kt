@@ -38,7 +38,7 @@ class KabalDocumentMapper(
                     type = klagebehandling.sakenGjelder.partId.type.name,
                     value = klagebehandling.sakenGjelder.partId.value
                 ),
-                tema = klagebehandling.tema.name,
+                tema = klagebehandling.ytelse.toTema().name,
                 sakFagsakId = klagebehandling.sakFagsakId,
                 sakFagsystem = klagebehandling.sakFagsystem?.name,
                 kildeReferanse = klagebehandling.id.toString(),

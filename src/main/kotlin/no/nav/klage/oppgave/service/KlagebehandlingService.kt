@@ -43,7 +43,7 @@ class KlagebehandlingService(
         if (klagebehandling.sakenGjelder.erPerson()) {
             tilgangService.verifyInnloggetSaksbehandlersTilgangTil(klagebehandling.sakenGjelder.partId.value)
         }
-        tilgangService.verifyInnloggetSaksbehandlersTilgangTilTema(klagebehandling.tema)
+        tilgangService.verifyInnloggetSaksbehandlersTilgangTilTema(klagebehandling.ytelse.toTema())
     }
 
     private fun checkMedunderskriverStatus(klagebehandling: Klagebehandling) {
@@ -66,7 +66,7 @@ class KlagebehandlingService(
         tilgangService.verifySaksbehandlersTilgangTilEnhetOgTema(
             tildeltSaksbehandlerIdent,
             tildeltEnhetId,
-            klagebehandling.tema
+            klagebehandling.ytelse.toTema()
         )
     }
 
@@ -220,7 +220,7 @@ class KlagebehandlingService(
             Klagebehandling(
                 klager = mottak.klager.copy(),
                 sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
-                tema = mottak.tema,
+                ytelse = mottak.ytelse,
                 type = mottak.type,
                 kildeReferanse = mottak.kildeReferanse,
                 dvhReferanse = mottak.dvhReferanse,
@@ -497,7 +497,7 @@ class KlagebehandlingService(
 
     private fun Klagebehandling.toMuligAnke(): MuligAnke = MuligAnke(
         this.id,
-        this.tema,
+        this.ytelse.toTema(),
         this.vedtak.utfall!!,
         this.innsendt!!,
         this.avsluttetAvSaksbehandler!!,

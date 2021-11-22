@@ -81,7 +81,7 @@ class KlagebehandlingMapperTest {
             sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, FNR), false),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
-            tema = Tema.AAP,
+            ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             avsluttet = LocalDateTime.now(),
             avsenderEnhetFoersteinstans = "4100",

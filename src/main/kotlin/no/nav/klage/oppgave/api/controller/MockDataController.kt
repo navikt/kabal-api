@@ -3,8 +3,8 @@ package no.nav.klage.oppgave.api.controller
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.domain.klage.MottakDokumentType
-import no.nav.klage.oppgave.domain.kodeverk.Tema
 import no.nav.klage.oppgave.domain.kodeverk.Type
+import no.nav.klage.oppgave.domain.kodeverk.Ytelse
 import no.nav.klage.oppgave.service.MottakService
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile
@@ -49,7 +49,13 @@ class MockDataController(
 
         mottakService.createMottakForKlage(
             OversendtKlage(
-                tema = listOf(Tema.OMS, Tema.SYK).shuffled().first(),
+                ytelse = listOf(
+                    Ytelse.SYK_SYK,
+                    Ytelse.OMS_OLP,
+                    Ytelse.OMS_OMP,
+                    Ytelse.OMS_PLS,
+                    Ytelse.OMS_PSB
+                ).shuffled().first(),
                 type = Type.KLAGE,
                 klager = OversendtKlager(
                     id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
@@ -95,7 +101,7 @@ class MockDataController(
 
         mottakService.createMottakForKlage(
             OversendtKlage(
-                tema = Tema.OMS,
+                ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
                 klager = OversendtKlager(
                     id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
@@ -141,7 +147,7 @@ class MockDataController(
 
         mottakService.createMottakForKlage(
             OversendtKlage(
-                tema = Tema.OMS,
+                ytelse = Ytelse.OMS_PSB,
                 type = Type.KLAGE,
                 klager = OversendtKlager(
                     id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
@@ -187,7 +193,7 @@ class MockDataController(
 
         mottakService.createMottakForKlage(
             OversendtKlage(
-                tema = Tema.OMS,
+                ytelse = Ytelse.OMS_OLP,
                 type = Type.KLAGE,
                 klager = OversendtKlager(
                     id = OversendtPartId(OversendtPartIdType.PERSON, fnr),
