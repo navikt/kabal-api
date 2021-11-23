@@ -1,4 +1,4 @@
-name: Main - Build, deploy to dev, test
+name: Main - Build, deploy to dev, test, deploy to prod
 on:
   push:
     branches:
