@@ -75,40 +75,41 @@ private fun Kode.mapToSkjemaV1(): KlagebehandlingSkjemaV1.Kode {
 fun Klagebehandling.mapToSkjemaV1(): KlagebehandlingSkjemaV1 {
 
     return KlagebehandlingSkjemaV1(
-        id = this.id.toString(),
-        klager = this.klager.mapToSkjemaV1(),
-        klagersProsessfullmektig = this.klager.prosessfullmektig?.mapToSkjemaV1(),
-        sakenGjelder = this.sakenGjelder.mapToSkjemaV1(),
-        tema = this.ytelse.toTema().mapToSkjemaV1(),
-        type = this.type.mapToSkjemaV1(),
-        kildeReferanse = this.kildeReferanse,
-        sakFagsystem = this.sakFagsystem?.let { it.mapToSkjemaV1() },
-        sakFagsakId = this.sakFagsakId,
-        innsendtDato = this.innsendt,
-        mottattFoersteinstansDato = this.mottattFoersteinstans,
-        avsenderSaksbehandlerFoersteinstans = this.avsenderSaksbehandleridentFoersteinstans?.let {
+        id = id.toString(),
+        klager = klager.mapToSkjemaV1(),
+        klagersProsessfullmektig = klager.prosessfullmektig?.mapToSkjemaV1(),
+        sakenGjelder = sakenGjelder.mapToSkjemaV1(),
+        tema = ytelse.toTema().mapToSkjemaV1(),
+        ytelse = ytelse.mapToSkjemaV1(),
+        type = type.mapToSkjemaV1(),
+        kildeReferanse = kildeReferanse,
+        sakFagsystem = sakFagsystem?.let { it.mapToSkjemaV1() },
+        sakFagsakId = sakFagsakId,
+        innsendtDato = innsendt,
+        mottattFoersteinstansDato = mottattFoersteinstans,
+        avsenderSaksbehandlerFoersteinstans = avsenderSaksbehandleridentFoersteinstans?.let {
             KlagebehandlingSkjemaV1.Saksbehandler(it)
         },
-        avsenderEnhetFoersteinstans = this.avsenderEnhetFoersteinstans.let { KlagebehandlingSkjemaV1.Enhet(it) },
-        mottattKlageinstansTidspunkt = this.mottattKlageinstans,
-        avsluttetAvSaksbehandlerTidspunkt = this.avsluttetAvSaksbehandler,
-        avsluttetTidspunkt = this.avsluttet,
-        fristDato = this.frist,
-        gjeldendeTildeling = this.tildeling?.mapToSkjemaV1(),
-        medunderskriver = this.medunderskriver?.mapToSkjemaV1(),
-        medunderskriverFlytStatus = this.medunderskriverFlyt.mapToSkjemaV1(),
-        hjemler = this.hjemler.map { it.mapToSkjemaV1() },
-        opprettetTidspunkt = this.created,
-        sistEndretTidspunkt = this.modified,
-        kildesystem = this.kildesystem.mapToSkjemaV1(),
+        avsenderEnhetFoersteinstans = avsenderEnhetFoersteinstans.let { KlagebehandlingSkjemaV1.Enhet(it) },
+        mottattKlageinstansTidspunkt = mottattKlageinstans,
+        avsluttetAvSaksbehandlerTidspunkt = avsluttetAvSaksbehandler,
+        avsluttetTidspunkt = avsluttet,
+        fristDato = frist,
+        gjeldendeTildeling = tildeling?.mapToSkjemaV1(),
+        medunderskriver = medunderskriver?.mapToSkjemaV1(),
+        medunderskriverFlytStatus = medunderskriverFlyt.mapToSkjemaV1(),
+        hjemler = hjemler.map { it.mapToSkjemaV1() },
+        opprettetTidspunkt = created,
+        sistEndretTidspunkt = modified,
+        kildesystem = kildesystem.mapToSkjemaV1(),
         saksdokumenter = listOf(),
-        vedtak = this.vedtak.let { vedtak ->
+        vedtak = vedtak.let { vedtak ->
             KlagebehandlingSkjemaV1.Vedtak(
                 utfall = vedtak.utfall?.mapToSkjemaV1(),
                 hjemler = vedtak.hjemler.map { it.mapToSkjemaV1() },
             )
         },
-        status = KlagebehandlingSkjemaV1.StatusType.valueOf(this.getStatus().name)
+        status = KlagebehandlingSkjemaV1.StatusType.valueOf(getStatus().name)
     )
 }
 
@@ -118,6 +119,7 @@ data class KlagebehandlingSkjemaV1(
     val klagersProsessfullmektig: PersonEllerOrganisasjon?,
     val sakenGjelder: PersonEllerOrganisasjon,
     val tema: Kode,
+    val ytelse: Kode,
     val type: Kode,
     val kildeReferanse: String,
     val sakFagsystem: Kode?,
