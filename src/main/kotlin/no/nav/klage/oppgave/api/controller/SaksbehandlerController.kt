@@ -3,8 +3,8 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
-import no.nav.klage.oppgave.api.view.Medunderskriver
-import no.nav.klage.oppgave.api.view.Medunderskrivere
+import no.nav.klage.oppgave.api.view.MedunderskrivereView
+import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.domain.kodeverk.Ytelse
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
@@ -45,21 +45,21 @@ class SaksbehandlerController(
         @PathVariable enhet: String,
         @ApiParam(value = "NavIdent til saksbehandleren man skal finne medunderskriver til")
         @PathVariable navIdent: String,
-    ): Medunderskrivere {
+    ): MedunderskrivereView {
         logger.debug("getMedunderskrivereForYtelse is requested by $navIdent")
         return if (environment.activeProfiles.contains("prod-gcp")) {
             saksbehandlerService.getMedunderskrivere(navIdent, enhet, Ytelse.of(ytelse))
-        } else Medunderskrivere(
+        } else MedunderskrivereView(
             tema = null,
             ytelse = ytelse,
             medunderskrivere = listOf(
-                Medunderskriver("Z994488", "F_Z994488, E_Z994488"),
-                Medunderskriver("Z994330", "F_Z994330 E_Z994330"),
-                Medunderskriver("Z994861", "F_Z994861 E_Z994861"),
-                Medunderskriver("Z994864", "F_Z994864 E_Z994864"),
-                Medunderskriver("Z994863", "F_Z994863 E_Z994863"),
-                Medunderskriver("Z994862", "F_Z994862 E_Z994862"),
-            ).filter { it.ident != navIdent }
+                SaksbehandlerView("Z994488", "F_Z994488, E_Z994488"),
+                SaksbehandlerView("Z994330", "F_Z994330 E_Z994330"),
+                SaksbehandlerView("Z994861", "F_Z994861 E_Z994861"),
+                SaksbehandlerView("Z994864", "F_Z994864 E_Z994864"),
+                SaksbehandlerView("Z994863", "F_Z994863 E_Z994863"),
+                SaksbehandlerView("Z994862", "F_Z994862 E_Z994862"),
+            ).filter { it.navIdent != navIdent }
         )
     }
 

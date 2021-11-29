@@ -60,7 +60,7 @@ class KlagebehandlingMapperTest {
     @Test
     fun `mapToMedunderskriverInfoView gir forventet resultat når medunderskriver og medunderskriverFlyt er satt`() {
         val klagebehandling = getKlagebehandlingWithMedunderskriver()
-        every { saksbehandlerRepository.getNameForSaksbehandler(any()) } returns MEDUNDERSKRIVER_NAVN
+        every { saksbehandlerRepository.getSammensattNavnForSaksbehandler(any()) } returns MEDUNDERSKRIVER_NAVN
 
         val result = klagebehandlingMapper.mapToMedunderskriverInfoView(klagebehandling)
 

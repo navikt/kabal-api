@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.oppgave.api.view.Medunderskriver
-import no.nav.klage.oppgave.api.view.Medunderskrivere
+import no.nav.klage.oppgave.api.view.MedunderskrivereView
+import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.domain.klage.PartId
 import no.nav.klage.oppgave.domain.kodeverk.PartIdType
 import no.nav.klage.oppgave.domain.kodeverk.Ytelse
@@ -38,18 +38,18 @@ class SaksbehandlerService(
     fun getEnheterForSaksbehandler(navIdent: String): List<Enhet> =
         saksbehandlerRepository.getEnheterForSaksbehandler(navIdent)
 
-    fun getMedunderskrivere(ident: String, enhetId: String, ytelse: Ytelse): Medunderskrivere =
+    fun getMedunderskrivere(navIdent: String, enhetId: String, ytelse: Ytelse): MedunderskrivereView =
         if (enheterPerYtelse.contains(ytelse)) {
             val medunderskrivere = enheterPerYtelse[ytelse]!!
                 .flatMap { enhetRepository.getAnsatteIEnhet(it) }
-                .filter { it != ident }
+                .filter { it != navIdent }
                 .filter { saksbehandlerRepository.erSaksbehandler(it) }
                 .distinct()
-                .map { Medunderskriver(it, getNameForIdent(it)) }
-            Medunderskrivere(tema = null, ytelse = ytelse.id, medunderskrivere = medunderskrivere)
+                .map { SaksbehandlerView(it, getNameForIdent(it)) }
+            MedunderskrivereView(tema = null, ytelse = ytelse.id, medunderskrivere = medunderskrivere)
         } else {
             logger.error("Ytelsen $ytelse har ingen registrerte enheter i systemet vårt")
-            Medunderskrivere(tema = null, ytelse = ytelse.id, medunderskrivere = emptyList())
+            MedunderskrivereView(tema = null, ytelse = ytelse.id, medunderskrivere = emptyList())
         }
 
     private fun saksbehandlerHarTilgangTilPerson(ident: String, partId: PartId): Boolean =

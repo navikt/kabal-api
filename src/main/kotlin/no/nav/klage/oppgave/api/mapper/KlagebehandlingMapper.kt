@@ -102,7 +102,7 @@ class KlagebehandlingMapper(
 
     private fun berikSaksbehandler(saksbehandlerident: String?): SaksbehandlerView? {
         return saksbehandlerident?.let {
-            SaksbehandlerView(it, saksbehandlerRepository.getNameForSaksbehandler(it))
+            SaksbehandlerView(it, saksbehandlerRepository.getSammensattNavnForSaksbehandler(it))
         }
     }
 

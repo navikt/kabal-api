@@ -112,7 +112,7 @@ class SaksbehandlerRepository(
 
     private fun List<String>.hasRole(role: String) = any { it.contains(role) }
 
-    fun getNameForSaksbehandler(navIdent: String): String {
+    fun getSammensattNavnForSaksbehandler(navIdent: String): String {
         return azureGateway.getPersonligDataOmSaksbehandlerMedIdent(navIdent).sammensattNavn
     }
 }
