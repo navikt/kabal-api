@@ -71,9 +71,6 @@ data class KlageStatistikkTilDVH(
     @JsonSchemaDescription("Den som sendt inn klagen.")
     val klager: Part,
 
-    @JsonSchemaDescription("Grunn til utfallet, hvis det finnes.")
-    val omgjoeringsgrunn: String?,
-
     @JsonSchemaDescription("F.eks. Foreldrepenger. Kodeverk.")
     val opprinneligFagsaksystem: String,
 

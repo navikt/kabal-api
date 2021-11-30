@@ -2,8 +2,8 @@ package no.nav.klage.oppgave.api.view
 
 import io.swagger.annotations.ApiModel
 import io.swagger.annotations.ApiModelProperty
+import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.domain.kodeverk.*
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 import java.time.LocalDateTime

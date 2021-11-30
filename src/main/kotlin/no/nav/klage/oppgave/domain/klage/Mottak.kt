@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.oppgave.domain.kodeverk.*
+import no.nav.klage.kodeverk.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period

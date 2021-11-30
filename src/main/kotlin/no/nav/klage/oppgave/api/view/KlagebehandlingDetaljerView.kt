@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.api.view
 
-import no.nav.klage.oppgave.domain.kodeverk.MedunderskriverFlyt
+import no.nav.klage.kodeverk.MedunderskriverFlyt
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*

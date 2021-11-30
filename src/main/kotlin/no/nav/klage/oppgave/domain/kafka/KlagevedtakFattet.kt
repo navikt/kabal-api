@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.domain.kafka
 
-import no.nav.klage.oppgave.domain.kodeverk.Utfall
+import no.nav.klage.kodeverk.Utfall
 import java.util.*
 
 /**

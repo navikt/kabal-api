@@ -2,12 +2,12 @@ package no.nav.klage.oppgave.eventlisteners
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.domain.events.KlagebehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.Endringslogginnslag
 import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
-import no.nav.klage.oppgave.domain.kodeverk.PartIdType
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -97,7 +97,6 @@ class StatistikkTilDVHService(
             endringstid = funksjoneltEndringstidspunkt,
             hjemmel = klagebehandling.hjemler.map { it.toSearchableString() },
             klager = getPart(klagebehandling.klager.partId.type, klagebehandling.klager.partId.value),
-            omgjoeringsgrunn = klagebehandling.vedtak.grunn?.navn,
             opprinneligFagsaksystem = klagebehandling.kildesystem.navn,
             overfoertKA = klagebehandling.mottattKlageinstans.toLocalDate(),
             resultat = klagebehandling.vedtak.utfall?.navn,

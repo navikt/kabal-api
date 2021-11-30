@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.repositories
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.klage.oppgave.domain.kodeverk.Ytelse
+import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.gateway.AxsysGateway
 import no.nav.klage.oppgave.gateway.AzureGateway

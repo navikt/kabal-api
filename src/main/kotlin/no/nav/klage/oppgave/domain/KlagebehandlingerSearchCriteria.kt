@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.domain
 
-import no.nav.klage.oppgave.domain.kodeverk.Hjemmel
-import no.nav.klage.oppgave.domain.kodeverk.Tema
-import no.nav.klage.oppgave.domain.kodeverk.Type
+import no.nav.klage.kodeverk.Hjemmel
+import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.Type
 import java.time.LocalDate
 import java.time.LocalDateTime
 

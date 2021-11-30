@@ -5,13 +5,13 @@ import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
 import no.finn.unleash.Unleash
+import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.api.controller.KlagebehandlingController
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
 import no.nav.klage.oppgave.api.view.KlagebehandlingMedunderskriveridentInput
 import no.nav.klage.oppgave.api.view.MedunderskriverFlytResponse
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.domain.kodeverk.*
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.service.SaksbehandlerService

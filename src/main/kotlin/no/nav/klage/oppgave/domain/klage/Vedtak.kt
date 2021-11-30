@@ -1,6 +1,9 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.oppgave.domain.kodeverk.*
+import no.nav.klage.kodeverk.Hjemmel
+import no.nav.klage.kodeverk.HjemmelConverter
+import no.nav.klage.kodeverk.Utfall
+import no.nav.klage.kodeverk.UtfallConverter
 import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*
@@ -13,10 +16,6 @@ class Vedtak(
     @Column(name = "utfall_id")
     @Convert(converter = UtfallConverter::class)
     var utfall: Utfall? = null,
-    //Deprecated, er ikke lenger i bruk, skal fjernes når kvalitetsvurderingen er spikret.
-    @Column(name = "grunn_id")
-    @Convert(converter = GrunnConverter::class)
-    var grunn: Grunn? = null,
     @ElementCollection(targetClass = Hjemmel::class, fetch = FetchType.EAGER)
     @CollectionTable(
         name = "vedtak_hjemmel",

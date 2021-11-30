@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.service.mapper
 
+import no.nav.klage.kodeverk.Kode
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.domain.kodeverk.Kode
 import java.time.LocalDate
 import java.time.LocalDateTime
 

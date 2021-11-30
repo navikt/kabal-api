@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
@@ -11,7 +12,6 @@ import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setAvs
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMedunderskriverFlyt
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMedunderskriverIdentAndMedunderskriverFlyt
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setTildeling
-import no.nav.klage.oppgave.domain.kodeverk.*
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.util.TokenUtil

@@ -36,7 +36,6 @@ internal class KlageStatistikkTilDVHTest {
             endringstid = LocalDateTime.now(),
             hjemmel = listOf("8-14"),
             klager = KlageStatistikkTilDVH.Part(verdi = "8005138513", KlageStatistikkTilDVH.PartIdType.VIRKSOMHET),
-            omgjoeringsgrunn = "grunn",
             opprinneligFagsaksystem = "K9Sak",
             overfoertKA = LocalDate.now(),
             resultat = "resultatet",

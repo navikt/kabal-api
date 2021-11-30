@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.clients.gosys
 
 import brave.Tracer
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.domain.KlagebehandlingerSearchCriteria
-import no.nav.klage.oppgave.domain.kodeverk.Type
 import no.nav.klage.oppgave.exceptions.OppgaveNotFoundException
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger

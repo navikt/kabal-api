@@ -1,11 +1,11 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.enheterPerYtelse
 import no.nav.klage.oppgave.api.view.Medunderskriver
 import no.nav.klage.oppgave.api.view.Medunderskrivere
 import no.nav.klage.oppgave.domain.klage.PartId
-import no.nav.klage.oppgave.domain.kodeverk.PartIdType
-import no.nav.klage.oppgave.domain.kodeverk.Ytelse
-import no.nav.klage.oppgave.domain.kodeverk.enheterPerYtelse
 import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.domain.saksbehandler.EnheterMedLovligeYtelser
 import no.nav.klage.oppgave.gateway.AzureGateway

@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.domain.saksbehandler
 
-import no.nav.klage.oppgave.domain.kodeverk.Hjemmel
-import no.nav.klage.oppgave.domain.kodeverk.Tema
-import no.nav.klage.oppgave.domain.kodeverk.Type
+import no.nav.klage.kodeverk.Hjemmel
+import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import java.time.LocalDateTime

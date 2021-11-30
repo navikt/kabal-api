@@ -2,6 +2,10 @@ package no.nav.klage.oppgave.clients.kabaldocument
 
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.ereg.Navn
 import no.nav.klage.oppgave.clients.ereg.Organisasjon
@@ -10,10 +14,6 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.request.PartIdInput
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.domain.kodeverk.Fagsystem
-import no.nav.klage.oppgave.domain.kodeverk.PartIdType
-import no.nav.klage.oppgave.domain.kodeverk.Type
-import no.nav.klage.oppgave.domain.kodeverk.Ytelse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test

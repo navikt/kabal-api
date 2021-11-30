@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.repositories
 
-import no.nav.klage.oppgave.domain.kodeverk.Ytelse
-import no.nav.klage.oppgave.domain.kodeverk.ytelserPerEnhet
+import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.ytelserPerEnhet
 import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.domain.saksbehandler.EnhetMedLovligeYtelser
 import no.nav.klage.oppgave.domain.saksbehandler.EnheterMedLovligeYtelser

@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.oppgave.domain.kodeverk.Tema
-import no.nav.klage.oppgave.domain.kodeverk.Utfall
+import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.Utfall
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*

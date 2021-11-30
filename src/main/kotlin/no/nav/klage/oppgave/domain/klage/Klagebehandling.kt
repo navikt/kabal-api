@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
+import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.domain.klage.Klagebehandling.Status.*
-import no.nav.klage.oppgave.domain.kodeverk.*
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode

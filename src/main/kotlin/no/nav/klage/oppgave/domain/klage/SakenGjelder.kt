@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.oppgave.domain.kodeverk.PartIdType
+import no.nav.klage.kodeverk.PartIdType
 import javax.persistence.*
 
 @Embeddable

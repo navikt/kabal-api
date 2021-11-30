@@ -1,10 +1,10 @@
 package no.nav.klage.oppgave.api.controller
 
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.domain.klage.MottakDokumentType
-import no.nav.klage.oppgave.domain.kodeverk.Type
-import no.nav.klage.oppgave.domain.kodeverk.Ytelse
 import no.nav.klage.oppgave.service.MottakService
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile

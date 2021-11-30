@@ -1,10 +1,10 @@
 package no.nav.klage.oppgave.api.controller
 
+import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.KodeverkResponse
 import no.nav.klage.oppgave.api.view.toDto
 import no.nav.klage.oppgave.domain.kodeverk.LovligeTyper
-import no.nav.klage.oppgave.domain.kodeverk.Tema
-import no.nav.klage.oppgave.domain.kodeverk.Type
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.core.env.Environment

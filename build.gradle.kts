@@ -34,6 +34,7 @@ repositories {
     mavenCentral()
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
     maven("https://packages.confluent.io/maven/")
+    maven("https://jitpack.io")
 }
 
 dependencies {
@@ -70,6 +71,8 @@ dependencies {
     implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jacksonJsonschemaVersion")
 
     implementation("org.redundent:kotlin-xml-builder:$kotlinXmlBuilderVersion")
+
+    implementation("com.github.navikt:kabal-kodeverk:2021.11.30-13.39.e1352e11bbb3")
 
     implementation("no.nav.security:token-validation-spring:$tokenValidationVersion")
     implementation("no.nav.security:token-client-spring:$tokenValidationVersion")
