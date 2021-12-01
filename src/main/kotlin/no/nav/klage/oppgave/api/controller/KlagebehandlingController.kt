@@ -106,6 +106,7 @@ class KlagebehandlingController(
         return ValidationPassedResponse()
     }
 
+    //TODO: Fjern når FE slutter å bruke.
     @GetMapping("/{id}/medunderskriverinfo")
     fun getMedunderskriverInfo(
         @PathVariable("id") klagebehandlingId: UUID
