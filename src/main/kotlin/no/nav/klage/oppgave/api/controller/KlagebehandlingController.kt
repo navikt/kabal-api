@@ -119,4 +119,32 @@ class KlagebehandlingController(
         val klagebehandling = klagebehandlingService.getKlagebehandling(klagebehandlingId)
         return klagebehandlingMapper.mapToMedunderskriverInfoView(klagebehandling)
     }
+
+    @GetMapping("/{id}/medunderskriver")
+    fun getMedunderskriver(
+        @PathVariable("id") klagebehandlingId: UUID
+    ): MedunderskriverView {
+        logKlagebehandlingMethodDetails(
+            "getMedunderskriver",
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            klagebehandlingId,
+            logger
+        )
+        val klagebehandling = klagebehandlingService.getKlagebehandling(klagebehandlingId)
+        return klagebehandlingMapper.mapToMedunderskriverView(klagebehandling)
+    }
+
+    @GetMapping("/{id}/medunderskriverflyt")
+    fun getMedunderskriverFlyt(
+        @PathVariable("id") klagebehandlingId: UUID
+    ): MedunderskriverFlytView {
+        logKlagebehandlingMethodDetails(
+            "getMedunderskriverFlyt",
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            klagebehandlingId,
+            logger
+        )
+        val klagebehandling = klagebehandlingService.getKlagebehandling(klagebehandlingId)
+        return klagebehandlingMapper.mapToMedunderskriverFlytView(klagebehandling)
+    }
 }

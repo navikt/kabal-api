@@ -229,5 +229,17 @@ class KlagebehandlingMapper(
             klagebehandling.medunderskriverFlyt
         )
     }
+
+    fun mapToMedunderskriverView(klagebehandling: Klagebehandling): MedunderskriverView {
+        return MedunderskriverView(
+            medunderskriver = klagebehandling.medunderskriver?.let { berikSaksbehandler(klagebehandling.medunderskriver!!.saksbehandlerident) }
+        )
+    }
+
+    fun mapToMedunderskriverFlytView(klagebehandling: Klagebehandling): MedunderskriverFlytView {
+        return MedunderskriverFlytView(
+            medunderskriverFlyt = klagebehandling.medunderskriverFlyt
+        )
+    }
 }
 
