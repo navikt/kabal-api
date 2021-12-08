@@ -1,6 +1,9 @@
 package no.nav.klage.oppgave.api.view
 
 import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.hjemmel.hjemlerPerTema
+import no.nav.klage.kodeverk.hjemmel.hjemlerPerYtelse
 
 data class KodeverkResponse(
     val hjemmel: List<Kode> = Hjemmel.values().asList().toDto(),

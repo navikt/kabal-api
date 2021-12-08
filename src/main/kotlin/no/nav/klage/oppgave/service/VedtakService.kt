@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.kodeverk.Hjemmel
 import no.nav.klage.kodeverk.Utfall
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.api.view.VedtakVedleggInput
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.domain.klage.Klagebehandling

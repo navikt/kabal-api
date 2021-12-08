@@ -1,9 +1,9 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.kodeverk.Hjemmel
-import no.nav.klage.kodeverk.HjemmelConverter
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.UtfallConverter
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.hjemmel.HjemmelConverter
 import java.time.LocalDateTime
 import java.util.*
 import javax.persistence.*

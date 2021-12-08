@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.domain.klage
 
 import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.hjemmel.HjemmelConverter
 import no.nav.klage.oppgave.domain.klage.Klagebehandling.Status.*
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch

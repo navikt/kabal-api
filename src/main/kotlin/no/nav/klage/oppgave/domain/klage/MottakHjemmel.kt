@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.kodeverk.LovKilde
+import no.nav.klage.kodeverk.hjemmel.LovKilde
 import java.util.*
 import javax.persistence.*
 

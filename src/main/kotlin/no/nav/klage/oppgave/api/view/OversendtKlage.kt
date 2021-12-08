@@ -2,7 +2,11 @@ package no.nav.klage.oppgave.api.view
 
 import io.swagger.annotations.ApiModel
 import io.swagger.annotations.ApiModelProperty
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.hjemmel.LovKilde
 import no.nav.klage.oppgave.domain.klage.*
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate

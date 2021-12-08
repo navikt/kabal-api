@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.kodeverk.Hjemmel
 import no.nav.klage.kodeverk.MedunderskriverFlyt
 import no.nav.klage.kodeverk.Utfall
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.domain.events.KlagebehandlingEndretEvent
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

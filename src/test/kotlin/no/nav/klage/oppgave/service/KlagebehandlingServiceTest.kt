@@ -5,6 +5,7 @@ import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway

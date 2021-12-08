@@ -1,6 +1,10 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.MedunderskriverFlyt
+import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.Utfall
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.hjemmel.KapittelOgParagraf
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway

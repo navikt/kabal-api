@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.swagger.annotations.Api
-import no.nav.klage.kodeverk.Hjemmel
 import no.nav.klage.kodeverk.Utfall
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway

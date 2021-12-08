@@ -1,5 +1,7 @@
 package no.nav.klage.oppgave.clients.kaka
 
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.clients.kaka.model.request.SaksdataInput
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.exceptions.InvalidProperty
@@ -51,11 +53,23 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
             vedtaksinstansEnhet = avsenderEnhetFoersteinstans,
             mottattVedtaksinstans = mottattFoersteinstans,
             utfall = vedtak.utfall!!.id,
-            hjemler = vedtak.hjemler.map { it.id },
+            hjemler = hjemmelFilter(vedtak.hjemler),
             kvalitetsvurderingId = kakaKvalitetsvurderingId!!,
             avsluttetAvSaksbehandler = avsluttetAvSaksbehandler!!,
             utfoerendeSaksbehandler = tildeling?.saksbehandlerident!!,
         )
+    }
+
+    val registreringshjemmelIdList = Registreringshjemmel.values().map { registreringshjemmel ->
+        registreringshjemmel.id
+    }
+
+    private fun hjemmelFilter(input: Set<Hjemmel>): List<String> {
+        return input.filter {
+            registreringshjemmelIdList.contains(it.id)
+        }.map {
+            it.id
+        }
     }
 }
 

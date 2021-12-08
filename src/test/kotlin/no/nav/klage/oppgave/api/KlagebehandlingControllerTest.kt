@@ -6,6 +6,7 @@ import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
 import no.finn.unleash.Unleash
 import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.api.controller.KlagebehandlingController
 import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
 import no.nav.klage.oppgave.api.view.KlagebehandlingMedunderskriveridentInput

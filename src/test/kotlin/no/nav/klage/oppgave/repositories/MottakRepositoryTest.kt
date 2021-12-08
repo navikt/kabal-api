@@ -1,6 +1,10 @@
 package no.nav.klage.oppgave.repositories
 
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.hjemmel.LovKilde
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.*
 import org.assertj.core.api.Assertions.assertThat
