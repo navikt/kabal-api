@@ -65,6 +65,12 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
     }
 
     private fun hjemmelFilter(input: Set<Hjemmel>): List<String> {
+        input.filter {
+            !registreringshjemmelIdList.contains(it.id)
+        }.forEach {
+            logger.warn("Forsøkte å sende ugyldig registreringshjemmel til kaka, med id ${it.id}")
+        }
+
         return input.filter {
             registreringshjemmelIdList.contains(it.id)
         }.map {
