@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.domain.kafka
 
-import no.nav.klage.kodeverk.Utfall
 import java.util.*
 
 /**
@@ -11,7 +10,7 @@ data class KlagevedtakFattet(
     val eventId: UUID,
     val kildeReferanse: String,
     val kilde: String,
-    val utfall: Utfall,
+    val utfall: ExternalUtfall,
     val vedtaksbrevReferanse: String?,
     /** Per i dag, vedtak_id */
     val kabalReferanse: String

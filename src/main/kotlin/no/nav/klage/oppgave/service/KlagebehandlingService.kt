@@ -114,7 +114,7 @@ class KlagebehandlingService(
     var muligAnkeUtfall = setOf(
         Utfall.MEDHOLD,
         Utfall.DELVIS_MEDHOLD,
-        Utfall.OPPRETTHOLDT,
+        Utfall.STADFESTELSE,
         Utfall.UGUNST,
         Utfall.AVVIST
     )

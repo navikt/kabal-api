@@ -99,7 +99,7 @@ class StatistikkTilDVHService(
             klager = getPart(klagebehandling.klager.partId.type, klagebehandling.klager.partId.value),
             opprinneligFagsaksystem = klagebehandling.kildesystem.navn,
             overfoertKA = klagebehandling.mottattKlageinstans.toLocalDate(),
-            resultat = klagebehandling.vedtak.utfall?.navn,
+            resultat = klagebehandling.vedtak.utfall?.name?.let { ExternalUtfall.valueOf(it).navn },
             sakenGjelder = getPart(klagebehandling.sakenGjelder.partId.type, klagebehandling.sakenGjelder.partId.value),
             saksbehandler = klagebehandling.tildeling?.saksbehandlerident,
             saksbehandlerEnhet = klagebehandling.tildeling?.enhet,

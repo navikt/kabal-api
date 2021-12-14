@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.domain.kafka.EventType
+import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import no.nav.klage.oppgave.domain.kafka.KafkaEvent
 import no.nav.klage.oppgave.domain.kafka.KlagevedtakFattet
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
@@ -49,7 +50,7 @@ class KlagebehandlingAvslutningService(
             eventId = eventId,
             kildeReferanse = klagebehandling.kildeReferanse,
             kilde = klagebehandling.kildesystem.navn,
-            utfall = klagebehandling.vedtak.utfall!!,
+            utfall = ExternalUtfall.valueOf(klagebehandling.vedtak.utfall!!.name),
             vedtaksbrevReferanse = journalpostId,
             kabalReferanse = klagebehandling.vedtak.id.toString()
         )
