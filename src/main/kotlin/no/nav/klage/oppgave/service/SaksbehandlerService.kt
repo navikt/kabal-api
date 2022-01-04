@@ -66,6 +66,7 @@ class SaksbehandlerService(
             if (ytelseTilKlageenheter.contains(ytelse)) {
                 val medunderskrivere = ytelseTilKlageenheter[ytelse]!!
                     .filter { it.navn != VIKAFOSSEN }
+                    .sortedBy { it.navn != enhetId }
                     .flatMap { enhetRepository.getAnsatteIEnhet(it.navn) }
                     .filter { it != ident }
                     .filter { saksbehandlerRepository.erSaksbehandler(it) }
@@ -82,6 +83,7 @@ class SaksbehandlerService(
             if (ytelseTilKlageenheter.contains(ytelse)) {
                 val medunderskrivere = ytelseTilKlageenheter[ytelse]!!
                     .filter { it.navn != VIKAFOSSEN }
+                    .sortedBy { it.navn != enhetId }
                     .flatMap { enhetRepository.getAnsatteIEnhet(it.navn) }
                     .filter { it != ident }
                     .filter { saksbehandlerRepository.erSaksbehandler(it) }
