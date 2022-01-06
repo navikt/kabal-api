@@ -87,8 +87,6 @@ class Klagebehandling(
     val medunderskriverHistorikk: MutableSet<MedunderskriverHistorikk> = mutableSetOf(),
     @Column(name = "mottak_id")
     val mottakId: UUID,
-    @Column(name = "kvalitetsvurdering_id", nullable = true)
-    var kvalitetsvurderingId: UUID? = null,
     @Column(name = "kaka_kvalitetsvurdering_id", nullable = true)
     var kakaKvalitetsvurderingId: UUID? = null,
     @ElementCollection(targetClass = Hjemmel::class, fetch = FetchType.EAGER)
