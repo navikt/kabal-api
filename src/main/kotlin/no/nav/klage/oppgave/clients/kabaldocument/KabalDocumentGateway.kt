@@ -71,10 +71,6 @@ class KabalDocumentGateway(
         )
     }
 
-    fun getJournalpostIdForHovedadressat(dokumentEnhetId: UUID): String? {
-        return kabalDocumentClient.getDokumentEnhetWithAppScope(dokumentEnhetId).journalpostIdHovedadressat
-    }
-
     fun deleteHovedDokument(dokumentEnhetId: UUID): LocalDateTime =
         kabalDocumentClient.deleteHovedDokument(dokumentEnhetId).modified
 

@@ -41,8 +41,7 @@ class KlagebehandlingAvslutningService(
     fun avsluttKlagebehandling(klagebehandlingId: UUID): Klagebehandling {
         val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId)
 
-        val journalpostId =
-            kabalDocumentGateway.getJournalpostIdForHovedadressat(klagebehandling.vedtak.dokumentEnhetId!!)!!
+        val journalpostId = klagebehandling.vedtak.hovedAdressatJournalpostId
 
         val eventId = UUID.randomUUID()
 

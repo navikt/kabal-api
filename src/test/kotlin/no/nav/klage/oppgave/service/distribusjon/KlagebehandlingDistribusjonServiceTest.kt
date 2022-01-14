@@ -9,6 +9,7 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.kabaldocument.model.response.JournalpostId
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
@@ -180,8 +181,7 @@ internal class KlagebehandlingDistribusjonServiceTest {
     fun `distribusjon av klagebehandling fører til avsluttet klagebehandling`() {
 
         every { kafkaEventRepository.save(any()) } returns mockk()
-        every { kabalDocumentGateway.fullfoerDokumentEnhet(any()) } returns mockk()
-        every { kabalDocumentGateway.getJournalpostIdForHovedadressat(any()) } returns journalpostId
+        every { kabalDocumentGateway.fullfoerDokumentEnhet(any()) } returns JournalpostId(journalpostId)
 
         mottakRepository.save(mottak)
 
