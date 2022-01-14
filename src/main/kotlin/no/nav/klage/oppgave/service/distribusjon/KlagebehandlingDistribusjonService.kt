@@ -34,12 +34,12 @@ class KlagebehandlingDistribusjonService(
 
             logger.debug("Distribuerer dokument med dokumentEnhetId ${klagebehandling.vedtak.dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
             try {
-                val fullfoerResult = kabalDocumentGateway.fullfoerDokumentEnhet(klagebehandling.vedtak.dokumentEnhetId!!)
+                val hovedadressatJournalpostId = kabalDocumentGateway.fullfoerDokumentEnhet(klagebehandling.vedtak.dokumentEnhetId!!)
 
                 vedtakService.addHovedadressatJournalpostId(
-                    klagebehandlingId,
-                    SYSTEMBRUKER,
-                    fullfoerResult
+                    klagebehandlingId = klagebehandlingId,
+                    utfoerendeSaksbehandlerIdent =  SYSTEMBRUKER,
+                    journalpostId =  hovedadressatJournalpostId
                 )
 
                 logger.debug("Distribuerte dokument med dokumentEnhetId ${klagebehandling.vedtak.dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
