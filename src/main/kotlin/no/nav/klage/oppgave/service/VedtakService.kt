@@ -170,7 +170,7 @@ class VedtakService(
         utfoerendeSaksbehandlerIdent: String,
         journalpostId: JournalpostId
     ): Klagebehandling {
-        val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdate(
+        val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(
             klagebehandlingId
         )
 

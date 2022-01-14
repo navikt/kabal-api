@@ -39,7 +39,7 @@ class KlagebehandlingDistribusjonService(
                 vedtakService.addHovedadressatJournalpostId(
                     klagebehandlingId = klagebehandlingId,
                     utfoerendeSaksbehandlerIdent =  SYSTEMBRUKER,
-                    journalpostId =  hovedadressatJournalpostId
+                    journalpostId = hovedadressatJournalpostId
                 )
 
                 logger.debug("Distribuerte dokument med dokumentEnhetId ${klagebehandling.vedtak.dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
