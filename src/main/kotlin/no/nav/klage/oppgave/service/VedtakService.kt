@@ -4,9 +4,11 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.view.VedtakVedleggInput
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.kabaldocument.model.response.JournalpostId
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setDokumentEnhetIdInVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setHjemlerInVedtak
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setHovedadressatJournalpostIdInVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setSmartEditorIdInVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setUtfallInVedtak
 import no.nav.klage.oppgave.domain.klage.Vedtak
@@ -161,6 +163,22 @@ class VedtakService(
             klagebehandling.setSmartEditorIdInVedtak(smartEditorId, utfoerendeSaksbehandlerIdent)
         applicationEventPublisher.publishEvent(event)
         return klagebehandling
+    }
+
+    fun addHovedadressatJournalpostId(
+        klagebehandlingId: UUID,
+        utfoerendeSaksbehandlerIdent: String,
+        journalpostId: JournalpostId
+    ): Klagebehandling {
+        val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdate(
+            klagebehandlingId
+        )
+
+        val event =
+            klagebehandling.setHovedadressatJournalpostIdInVedtak(journalpostId.value, utfoerendeSaksbehandlerIdent)
+        applicationEventPublisher.publishEvent(event)
+        return klagebehandling
+
     }
 
     fun deleteSmartEditorId(klagebehandlingId: UUID, utfoerendeSaksbehandlerIdent: String): Klagebehandling {

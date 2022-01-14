@@ -180,7 +180,7 @@ internal class KlagebehandlingDistribusjonServiceTest {
     fun `distribusjon av klagebehandling fører til avsluttet klagebehandling`() {
 
         every { kafkaEventRepository.save(any()) } returns mockk()
-        every { kabalDocumentGateway.fullfoerDokumentEnhet(any()) } returns Unit
+        every { kabalDocumentGateway.fullfoerDokumentEnhet(any()) } returns mockk()
         every { kabalDocumentGateway.getJournalpostIdForHovedadressat(any()) } returns journalpostId
 
         mottakRepository.save(mottak)

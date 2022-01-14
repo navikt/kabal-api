@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.clients.kabaldocument
 
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.clients.ereg.EregClient
+import no.nav.klage.oppgave.clients.kabaldocument.model.Rolle
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.*
@@ -24,8 +25,6 @@ class KabalDocumentMapper(
         private const val BREVKODE = "BREV_FRA_KLAGEINSTANS"
         private const val BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS = "ab0164"
         private const val KLAGEBEHANDLING_ID_KEY = "klagebehandling_id"
-        private const val KOPIADRESSAT = "KOPIADRESSAT"
-        private const val HOVEDADRESSAT = "HOVEDADRESSAT"
     }
 
     fun mapKlagebehandlingToDokumentEnhetInput(
@@ -57,15 +56,20 @@ class KabalDocumentMapper(
     fun mapBrevMottakere(klagebehandling: Klagebehandling): List<BrevMottakerInput> {
         val brevMottakere = mutableListOf<BrevMottakerInput>()
         if (klagebehandling.klager.prosessfullmektig != null) {
-            brevMottakere.add(mapProsessfullmektig(klagebehandling.klager.prosessfullmektig!!, HOVEDADRESSAT))
+            brevMottakere.add(
+                mapProsessfullmektig(
+                    klagebehandling.klager.prosessfullmektig!!,
+                    Rolle.HOVEDADRESSAT.name
+                )
+            )
             if (klagebehandling.klager.prosessfullmektig!!.skalPartenMottaKopi) {
-                brevMottakere.add(mapKlager(klagebehandling.klager, KOPIADRESSAT))
+                brevMottakere.add(mapKlager(klagebehandling.klager, Rolle.KOPIADRESSAT.name))
             }
         } else {
-            brevMottakere.add(mapKlager(klagebehandling.klager, HOVEDADRESSAT))
+            brevMottakere.add(mapKlager(klagebehandling.klager, Rolle.HOVEDADRESSAT.name))
         }
         if (klagebehandling.sakenGjelder.partId != klagebehandling.klager.partId && klagebehandling.sakenGjelder.skalMottaKopi) {
-            brevMottakere.add(mapSakenGjeder(klagebehandling.sakenGjelder, KOPIADRESSAT))
+            brevMottakere.add(mapSakenGjeder(klagebehandling.sakenGjelder, Rolle.KOPIADRESSAT.name))
         }
 
         return brevMottakere

@@ -264,6 +264,26 @@ object KlagebehandlingAggregatFunctions {
         return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
+    fun Klagebehandling.setHovedadressatJournalpostIdInVedtak(
+        nyVerdi: String?,
+        saksbehandlerident: String
+    ): KlagebehandlingEndretEvent {
+        val gammelVerdi = vedtak.hovedAdressatJournalpostId
+        val tidspunkt = LocalDateTime.now()
+        vedtak.hovedAdressatJournalpostId = nyVerdi
+        vedtak.modified = tidspunkt
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident,
+                Felt.HOVEDADRESSAT_JOURNALPOST,
+                gammelVerdi,
+                nyVerdi,
+                tidspunkt
+            )
+        return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
     private fun Klagebehandling.endringslogg(
         saksbehandlerident: String,
         felt: Felt,

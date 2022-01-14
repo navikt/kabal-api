@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service.distribusjon
 
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.service.KlagebehandlingService
+import no.nav.klage.oppgave.service.VedtakService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -14,13 +15,15 @@ import java.util.*
 class KlagebehandlingDistribusjonService(
     private val klagebehandlingService: KlagebehandlingService,
     private val klagebehandlingAvslutningService: KlagebehandlingAvslutningService,
-    private val kabalDocumentGateway: KabalDocumentGateway
+    private val kabalDocumentGateway: KabalDocumentGateway,
+    private val vedtakService: VedtakService
 ) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val secureLogger = getSecureLogger()
+        const val SYSTEMBRUKER = "SYSTEMBRUKER"
     }
 
     @Transactional(propagation = Propagation.NEVER)
@@ -31,7 +34,14 @@ class KlagebehandlingDistribusjonService(
 
             logger.debug("Distribuerer dokument med dokumentEnhetId ${klagebehandling.vedtak.dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
             try {
-                kabalDocumentGateway.fullfoerDokumentEnhet(klagebehandling.vedtak.dokumentEnhetId!!)
+                val fullfoerResult = kabalDocumentGateway.fullfoerDokumentEnhet(klagebehandling.vedtak.dokumentEnhetId!!)
+
+                vedtakService.addHovedadressatJournalpostId(
+                    klagebehandlingId,
+                    SYSTEMBRUKER,
+                    fullfoerResult
+                )
+
                 logger.debug("Distribuerte dokument med dokumentEnhetId ${klagebehandling.vedtak.dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
                 avsluttKlagebehandling(klagebehandling.id)
             } catch (e: Exception) {

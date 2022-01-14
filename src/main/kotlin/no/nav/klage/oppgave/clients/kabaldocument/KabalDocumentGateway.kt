@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.clients.kabaldocument
 
+import no.nav.klage.oppgave.clients.kabaldocument.model.Rolle
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.FilInput
+import no.nav.klage.oppgave.clients.kabaldocument.model.response.JournalpostId
 import no.nav.klage.oppgave.domain.DokumentInnhold
 import no.nav.klage.oppgave.domain.DokumentInnholdOgTittel
 import no.nav.klage.oppgave.domain.DokumentMetadata
@@ -76,8 +78,10 @@ class KabalDocumentGateway(
     fun deleteHovedDokument(dokumentEnhetId: UUID): LocalDateTime =
         kabalDocumentClient.deleteHovedDokument(dokumentEnhetId).modified
 
-    fun fullfoerDokumentEnhet(dokumentEnhetId: UUID) =
-        kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId)
+    fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): JournalpostId =
+        kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId).brevMottakerWithJoarkAndDokDistInfoList.first {
+            it.rolle == Rolle.HOVEDADRESSAT
+        }.journalpostId
 
     fun isHovedDokumentUploaded(dokumentEnhetId: UUID): Boolean {
         return getMetadataOmHovedDokument(dokumentEnhetId) != null

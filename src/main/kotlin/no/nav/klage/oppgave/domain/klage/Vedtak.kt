@@ -37,8 +37,8 @@ class Vedtak(
     //Vent med vurdering. Mulig det skal være draft på tvers av delbehandlinger.
     @Column(name = "smart_editor_id")
     var smartEditorId: String? = null,
-
-    //Legg til journalpostId på resultat-dokument, returnert fra kabal-document.
+    @Column(name = "hovedadressat_journalpost_id")
+    var hovedAdressatJournalpostId: String? = null
 ) {
     override fun toString(): String {
         return "Vedtak(id=$id, " +
