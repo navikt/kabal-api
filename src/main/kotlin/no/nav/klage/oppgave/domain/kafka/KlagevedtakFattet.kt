@@ -12,6 +12,6 @@ data class KlagevedtakFattet(
     val kilde: String,
     val utfall: ExternalUtfall,
     val vedtaksbrevReferanse: String?,
-    /** Per i dag, vedtak_id */
+    /** Per i dag, delbehandling_id */
     val kabalReferanse: String
 )
