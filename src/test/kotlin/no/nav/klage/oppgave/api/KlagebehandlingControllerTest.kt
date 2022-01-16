@@ -88,16 +88,16 @@ class KlagebehandlingControllerTest {
         kildesystem = Fagsystem.K9,
         kildeReferanse = "abc",
         mottakId = UUID.randomUUID(),
-        vedtak = Vedtak(
+        delbehandlinger = setOf(Delbehandling(
             utfall = Utfall.AVVIST,
             hjemler = mutableSetOf(
                 Registreringshjemmel.ARBML_13
-            )
-        ),
-        medunderskriver = MedunderskriverTildeling(
-            saksbehandlerident = "C78901",
-            tidspunkt = LocalDateTime.now()
-        ),
+            ),
+            medunderskriver = MedunderskriverTildeling(
+                saksbehandlerident = "C78901",
+                tidspunkt = LocalDateTime.now()
+            ),
+        )),
         mottattFoersteinstans = LocalDate.now(),
         avsenderEnhetFoersteinstans = "0101"
     )
@@ -119,7 +119,7 @@ class KlagebehandlingControllerTest {
         } returns klagebehandling
         every { klagebehandlingMapper.mapToMedunderskriverFlytResponse(klagebehandling) } returns MedunderskriverFlytResponse(
             klagebehandling.modified,
-            klagebehandling.medunderskriverFlyt
+            klagebehandling.delbehandlinger.first().medunderskriverFlyt
         )
 
         val input = KlagebehandlingMedunderskriveridentInput(

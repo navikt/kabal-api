@@ -114,17 +114,17 @@ fun Klagebehandling.mapToSkjemaV1(): KlagebehandlingSkjemaV1 {
         avsluttetTidspunkt = avsluttet,
         fristDato = frist,
         gjeldendeTildeling = tildeling?.mapToSkjemaV1(),
-        medunderskriver = medunderskriver?.mapToSkjemaV1(),
-        medunderskriverFlytStatus = medunderskriverFlyt.mapToSkjemaV1(),
+        medunderskriver = delbehandlinger.first().medunderskriver?.mapToSkjemaV1(),
+        medunderskriverFlytStatus = delbehandlinger.first().medunderskriverFlyt.mapToSkjemaV1(),
         hjemler = hjemler.map { it.mapToSkjemaV1() },
         opprettetTidspunkt = created,
         sistEndretTidspunkt = modified,
         kildesystem = kildesystem.mapToSkjemaV1(),
         saksdokumenter = listOf(),
-        vedtak = vedtak.let { vedtak ->
+        vedtak = delbehandlinger.let { vedtak ->
             KlagebehandlingSkjemaV1.Vedtak(
-                utfall = vedtak.utfall?.mapToSkjemaV1(),
-                hjemler = vedtak.hjemler.map { it.mapToSkjemaV1() },
+                utfall = vedtak.first().utfall?.mapToSkjemaV1(),
+                hjemler = vedtak.first().hjemler.map { it.mapToSkjemaV1() },
             )
         },
         status = KlagebehandlingSkjemaV1.StatusType.valueOf(getStatus().name)

@@ -41,7 +41,7 @@ class KlagebehandlingAvslutningService(
     fun avsluttKlagebehandling(klagebehandlingId: UUID): Klagebehandling {
         val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId)
 
-        val journalpostId = klagebehandling.vedtak.hovedAdressatJournalpostId
+        val journalpostId = klagebehandling.delbehandlinger.first().hovedAdressatJournalpostId
 
         val eventId = UUID.randomUUID()
 
@@ -49,9 +49,9 @@ class KlagebehandlingAvslutningService(
             eventId = eventId,
             kildeReferanse = klagebehandling.kildeReferanse,
             kilde = klagebehandling.kildesystem.navn,
-            utfall = ExternalUtfall.valueOf(klagebehandling.vedtak.utfall!!.name),
+            utfall = ExternalUtfall.valueOf(klagebehandling.delbehandlinger.first().utfall!!.name),
             vedtaksbrevReferanse = journalpostId,
-            kabalReferanse = klagebehandling.vedtak.id.toString()
+            kabalReferanse = klagebehandling.delbehandlinger.first().id.toString()
         )
 
         kafkaEventRepository.save(

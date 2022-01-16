@@ -69,9 +69,9 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            vedtak = Vedtak(
+            delbehandlinger = setOf(Delbehandling(
                 id = vedtakId
-            ),
+            )),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
         )
@@ -97,9 +97,9 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            vedtak = Vedtak(
+            delbehandlinger = setOf(Delbehandling(
                 id = vedtakId
-            ),
+            )),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
         )
@@ -126,9 +126,9 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            vedtak = Vedtak(
+            delbehandlinger = setOf(Delbehandling(
                 id = vedtakId
-            ),
+            )),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
         )
@@ -170,9 +170,9 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            vedtak = Vedtak(
+            delbehandlinger = setOf(Delbehandling(
                 id = vedtakId
-            ),
+            )),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
         )
@@ -208,9 +208,9 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            vedtak = Vedtak(
+            delbehandlinger = setOf(Delbehandling(
                 id = vedtakId
-            ),
+            )),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
         )
@@ -251,9 +251,9 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            vedtak = Vedtak(
+            delbehandlinger = setOf(Delbehandling(
                 id = vedtakId
-            ),
+            )),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
         )
@@ -294,9 +294,9 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            vedtak = Vedtak(
+            delbehandlinger = setOf(Delbehandling(
                 id = vedtakId
-            ),
+            )),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
 
@@ -343,9 +343,9 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            vedtak = Vedtak(
+            delbehandlinger = setOf(Delbehandling(
                 id = vedtakId
-            ),
+            )),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
         )
@@ -381,9 +381,9 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            vedtak = Vedtak(
+            delbehandlinger = setOf(Delbehandling(
                 id = vedtakId
-            ),
+            )),
             avsenderEnhetFoersteinstans = "4100",
             mottattFoersteinstans = LocalDate.now(),
         )

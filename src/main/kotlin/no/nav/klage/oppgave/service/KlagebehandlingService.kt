@@ -124,7 +124,7 @@ class KlagebehandlingService(
         klagebehandlingRepository.findByAvsluttetIsNotNull()
             .filter {
                 it.klager.partId.value == partId &&
-                        muligAnkeUtfall.contains(it.vedtak.utfall)
+                        muligAnkeUtfall.contains(it.delbehandlinger.first().utfall)
             }
             .map { it.toMuligAnke() }
 
@@ -134,7 +134,7 @@ class KlagebehandlingService(
     ): MuligAnke? {
         val klagebehandling = klagebehandlingRepository.findByIdAndAvsluttetIsNotNull(klagebehandlingId) ?: return null
         return if (
-            klagebehandling.klager.partId.value == partId && muligAnkeUtfall.contains(klagebehandling.vedtak.utfall)
+            klagebehandling.klager.partId.value == partId && muligAnkeUtfall.contains(klagebehandling.delbehandlinger.first().utfall)
         ) {
             klagebehandling.toMuligAnke()
         } else {
@@ -169,13 +169,13 @@ class KlagebehandlingService(
     ): Klagebehandling {
         val klagebehandling = getKlagebehandling(klagebehandlingId)
 
-        if (klagebehandling.medunderskriver?.saksbehandlerident == null) {
+        if (klagebehandling.delbehandlinger.first().medunderskriver?.saksbehandlerident == null) {
             throw KlagebehandlingManglerMedunderskriverException("Klagebehandlingen har ikke registrert noen medunderskriver")
         }
 
-        if (klagebehandling.medunderskriver?.saksbehandlerident == utfoerendeSaksbehandlerIdent) {
+        if (klagebehandling.delbehandlinger.first().medunderskriver?.saksbehandlerident == utfoerendeSaksbehandlerIdent) {
             checkMedunderskriverStatus(klagebehandling)
-            if (klagebehandling.medunderskriverFlyt != MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER) {
+            if (klagebehandling.delbehandlinger.first().medunderskriverFlyt != MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER) {
                 val event = klagebehandling.setMedunderskriverFlyt(
                     MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER,
                     utfoerendeSaksbehandlerIdent
@@ -184,7 +184,7 @@ class KlagebehandlingService(
             }
         } else {
             checkSkrivetilgang(klagebehandling)
-            if (klagebehandling.medunderskriverFlyt != MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER) {
+            if (klagebehandling.delbehandlinger.first().medunderskriverFlyt != MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER) {
                 val event = klagebehandling.setMedunderskriverFlyt(
                     MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER,
                     utfoerendeSaksbehandlerIdent
@@ -238,10 +238,10 @@ class KlagebehandlingService(
                 avsluttet = null,
                 frist = mottak.generateFrist(),
                 mottakId = mottak.id,
-                vedtak = Vedtak(),
+                delbehandlinger = setOf(Delbehandling()),
+                saksdokumenter = createSaksdokumenter(mottak),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(),
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
-                saksdokumenter = createSaksdokumenter(mottak),
                 kildesystem = mottak.kildesystem,
                 kommentarFraFoersteinstans = mottak.kommentar
             )
@@ -426,7 +426,7 @@ class KlagebehandlingService(
                 )
             )
         }
-        if (klagebehandling.vedtak.utfall == null) {
+        if (klagebehandling.delbehandlinger.first().utfall == null) {
             validationErrors.add(
                 InvalidProperty(
                     field = "utfall",
@@ -434,8 +434,8 @@ class KlagebehandlingService(
                 )
             )
         }
-        if (klagebehandling.vedtak.utfall != Utfall.TRUKKET) {
-            if (klagebehandling.vedtak.hjemler.isEmpty()) {
+        if (klagebehandling.delbehandlinger.first().utfall != Utfall.TRUKKET) {
+            if (klagebehandling.delbehandlinger.first().hjemler.isEmpty()) {
                 validationErrors.add(
                     InvalidProperty(
                         field = "hjemmel",
@@ -477,12 +477,12 @@ class KlagebehandlingService(
         !(harLastetOppHovedDokumentTilDokumentEnhet(klagebehandling))
 
     private fun harLastetOppHovedDokumentTilDokumentEnhet(klagebehandling: Klagebehandling) =
-        klagebehandling.vedtak.dokumentEnhetId != null && kabalDocumentGateway.isHovedDokumentUploaded(klagebehandling.vedtak.dokumentEnhetId!!)
+        klagebehandling.delbehandlinger.first().dokumentEnhetId != null && kabalDocumentGateway.isHovedDokumentUploaded(klagebehandling.delbehandlinger.first().dokumentEnhetId!!)
 
     private fun Klagebehandling.toMuligAnke(): MuligAnke = MuligAnke(
         this.id,
         this.ytelse.toTema(),
-        this.vedtak.utfall!!,
+        this.delbehandlinger.first().utfall!!,
         this.innsendt!!,
         this.avsluttetAvSaksbehandler!!,
         this.klager.partId.value

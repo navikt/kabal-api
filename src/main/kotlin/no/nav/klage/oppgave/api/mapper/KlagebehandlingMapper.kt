@@ -79,14 +79,14 @@ class KlagebehandlingMapper(
             tildeltSaksbehandlerident = klagebehandling.tildeling?.saksbehandlerident,
             tildeltSaksbehandler = berikSaksbehandler(klagebehandling.tildeling?.saksbehandlerident),
             tildeltSaksbehandlerEnhet = klagebehandling.tildeling?.enhet,
-            medunderskriverident = klagebehandling.medunderskriver?.saksbehandlerident,
-            medunderskriver = berikSaksbehandler(klagebehandling.medunderskriver?.saksbehandlerident),
-            medunderskriverFlyt = klagebehandling.medunderskriverFlyt,
-            datoSendtMedunderskriver = klagebehandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            medunderskriverident = klagebehandling.delbehandlinger.first().medunderskriver?.saksbehandlerident,
+            medunderskriver = berikSaksbehandler(klagebehandling.delbehandlinger.first().medunderskriver?.saksbehandlerident),
+            medunderskriverFlyt = klagebehandling.delbehandlinger.first().medunderskriverFlyt,
+            datoSendtMedunderskriver = klagebehandling.delbehandlinger.first().medunderskriver?.tidspunkt?.toLocalDate(),
             hjemler = klagebehandling.hjemler.map { it.id },
             modified = klagebehandling.modified,
             created = klagebehandling.created,
-            resultat = klagebehandling.vedtak.mapToVedtakView(),
+            resultat = klagebehandling.delbehandlinger.first().mapToVedtakView(),
             kommentarFraFoersteinstans = klagebehandling.kommentarFraFoersteinstans,
             tilknyttedeDokumenter = klagebehandling.saksdokumenter.map {
                 TilknyttetDokument(
@@ -147,7 +147,7 @@ class KlagebehandlingMapper(
         }
     }
 
-    fun Vedtak.mapToVedtakView(): VedtakView {
+    fun Delbehandling.mapToVedtakView(): VedtakView {
         return VedtakView(
             id = id,
             utfall = utfall?.id,
@@ -206,7 +206,7 @@ class KlagebehandlingMapper(
     fun mapToVedleggEditedView(klagebehandling: Klagebehandling): VedleggEditedView {
         return VedleggEditedView(
             klagebehandling.modified,
-            file = getVedleggView(klagebehandling.vedtak.dokumentEnhetId),
+            file = getVedleggView(klagebehandling.delbehandlinger.first().dokumentEnhetId),
         )
     }
 
@@ -220,26 +220,26 @@ class KlagebehandlingMapper(
     fun mapToMedunderskriverFlytResponse(klagebehandling: Klagebehandling): MedunderskriverFlytResponse {
         return MedunderskriverFlytResponse(
             klagebehandling.modified,
-            klagebehandling.medunderskriverFlyt
+            klagebehandling.delbehandlinger.first().medunderskriverFlyt
         )
     }
 
     fun mapToMedunderskriverInfoView(klagebehandling: Klagebehandling): MedunderskriverInfoView {
         return MedunderskriverInfoView(
-            klagebehandling.medunderskriver?.let { berikSaksbehandler(klagebehandling.medunderskriver!!.saksbehandlerident) },
-            klagebehandling.medunderskriverFlyt
+            klagebehandling.delbehandlinger.first().medunderskriver?.let { berikSaksbehandler(klagebehandling.delbehandlinger.first().medunderskriver!!.saksbehandlerident) },
+            klagebehandling.delbehandlinger.first().medunderskriverFlyt
         )
     }
 
     fun mapToMedunderskriverView(klagebehandling: Klagebehandling): MedunderskriverView {
         return MedunderskriverView(
-            medunderskriver = klagebehandling.medunderskriver?.let { berikSaksbehandler(klagebehandling.medunderskriver!!.saksbehandlerident) }
+            medunderskriver = klagebehandling.delbehandlinger.first().medunderskriver?.let { berikSaksbehandler(klagebehandling.delbehandlinger.first().medunderskriver!!.saksbehandlerident) }
         )
     }
 
     fun mapToMedunderskriverFlytView(klagebehandling: Klagebehandling): MedunderskriverFlytView {
         return MedunderskriverFlytView(
-            medunderskriverFlyt = klagebehandling.medunderskriverFlyt
+            medunderskriverFlyt = klagebehandling.delbehandlinger.first().medunderskriverFlyt
         )
     }
 }

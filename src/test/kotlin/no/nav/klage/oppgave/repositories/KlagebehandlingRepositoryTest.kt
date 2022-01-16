@@ -77,7 +77,7 @@ class KlagebehandlingRepositoryTest {
             mottakId = mottak.id,
             avsenderEnhetFoersteinstans = "0101",
             mottattFoersteinstans = LocalDate.now(),
-            vedtak = Vedtak(),
+            delbehandlinger = setOf(Delbehandling()),
         )
 
         klagebehandlingRepository.save(klage)
@@ -116,10 +116,7 @@ class KlagebehandlingRepositoryTest {
             hjemler = mutableSetOf(
                 Hjemmel.FTRL_8_7
             ),
-            saksdokumenter = mutableSetOf(
-                Saksdokument(journalpostId = "REF1", dokumentInfoId = "123"),
-                Saksdokument(journalpostId = "REF2", dokumentInfoId = "321"),
-            ),
+
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
             mottattKlageinstans = LocalDateTime.now(),
@@ -128,7 +125,11 @@ class KlagebehandlingRepositoryTest {
             mottakId = mottak.id,
             mottattFoersteinstans = LocalDate.now(),
             avsenderEnhetFoersteinstans = "enhet",
-            vedtak = Vedtak(),
+            delbehandlinger = setOf(Delbehandling()),
+            saksdokumenter = mutableSetOf(
+                Saksdokument(journalpostId = "REF1", dokumentInfoId = "123"),
+                Saksdokument(journalpostId = "REF2", dokumentInfoId = "321"),
+            ),
         )
 
         klagebehandlingRepository.save(klage)
@@ -170,10 +171,7 @@ class KlagebehandlingRepositoryTest {
             hjemler = mutableSetOf(
                 Hjemmel.FTRL_8_7
             ),
-            saksdokumenter = mutableSetOf(
-                Saksdokument(journalpostId = "REF1", dokumentInfoId = "123"),
-                Saksdokument(journalpostId = "REF2", dokumentInfoId = "321"),
-            ),
+
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
             mottattKlageinstans = LocalDateTime.now(),
@@ -182,7 +180,11 @@ class KlagebehandlingRepositoryTest {
             mottakId = mottak.id,
             mottattFoersteinstans = LocalDate.now(),
             avsenderEnhetFoersteinstans = "enhet",
-            vedtak = Vedtak(),
+            delbehandlinger = setOf(Delbehandling()),
+            saksdokumenter = mutableSetOf(
+                Saksdokument(journalpostId = "REF1", dokumentInfoId = "123"),
+                Saksdokument(journalpostId = "REF2", dokumentInfoId = "321"),
+            ),
         )
 
         klagebehandlingRepository.save(klage)

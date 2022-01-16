@@ -31,7 +31,7 @@ internal class KlagebehandlingTest {
                 type = Type.KLAGE,
                 mottattFoersteinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
-                vedtak = Vedtak(),
+                delbehandlinger = setOf(Delbehandling()),
             )
             assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.IKKE_TILDELT)
         }
@@ -50,7 +50,7 @@ internal class KlagebehandlingTest {
                 tildeling = Tildeling(saksbehandlerident = null, tidspunkt = LocalDateTime.now()),
                 mottattFoersteinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
-                vedtak = Vedtak(),
+                delbehandlinger = setOf(Delbehandling()),
             )
             assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.IKKE_TILDELT)
         }
@@ -69,7 +69,7 @@ internal class KlagebehandlingTest {
                 tildeling = Tildeling(saksbehandlerident = "abc", tidspunkt = LocalDateTime.now()),
                 mottattFoersteinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
-                vedtak = Vedtak(),
+                delbehandlinger = setOf(Delbehandling()),
             )
             assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.TILDELT)
         }
@@ -85,12 +85,13 @@ internal class KlagebehandlingTest {
                 mottattKlageinstans = LocalDateTime.now(),
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now()),
-                medunderskriverFlyt = MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER,
                 mottattFoersteinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
-                vedtak = Vedtak(),
-            )
+                delbehandlinger = setOf(Delbehandling(
+                    medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now()),
+                    medunderskriverFlyt = MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER,
+                ),
+            ))
             assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.SENDT_TIL_MEDUNDERSKRIVER)
         }
 
@@ -105,11 +106,12 @@ internal class KlagebehandlingTest {
                 mottattKlageinstans = LocalDateTime.now(),
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now()),
-                medunderskriverFlyt = MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER,
                 mottattFoersteinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
-                vedtak = Vedtak(),
+                delbehandlinger = setOf(Delbehandling(
+                    medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now()),
+                    medunderskriverFlyt = MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER,
+                )),
             )
             assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.RETURNERT_TIL_SAKSBEHANDLER)
         }
@@ -125,10 +127,11 @@ internal class KlagebehandlingTest {
                 mottattKlageinstans = LocalDateTime.now(),
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now()),
                 mottattFoersteinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
-                vedtak = Vedtak(),
+                delbehandlinger = setOf(Delbehandling(
+                    medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now()),
+                )),
             )
             assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.MEDUNDERSKRIVER_VALGT)
         }
@@ -145,10 +148,11 @@ internal class KlagebehandlingTest {
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
                 tildeling = Tildeling(saksbehandlerident = "abc", tidspunkt = LocalDateTime.now()),
-                medunderskriver = MedunderskriverTildeling(null, LocalDateTime.now()),
                 mottattFoersteinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
-                vedtak = Vedtak(),
+                delbehandlinger = setOf(Delbehandling(
+                    medunderskriver = MedunderskriverTildeling(null, LocalDateTime.now()),
+                )),
             )
             assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.TILDELT)
         }
@@ -164,11 +168,12 @@ internal class KlagebehandlingTest {
                 mottattKlageinstans = LocalDateTime.now(),
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now()),
                 avsluttet = LocalDateTime.now(),
                 mottattFoersteinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
-                vedtak = Vedtak(),
+                delbehandlinger = setOf(Delbehandling(
+                    medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now()),
+                )),
             )
             assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.FULLFOERT)
         }

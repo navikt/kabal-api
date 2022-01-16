@@ -80,7 +80,7 @@ class MeldingRepositoryTest {
             mottakId = mottak.id,
             avsenderEnhetFoersteinstans = "0101",
             mottattFoersteinstans = LocalDate.now(),
-            vedtak = Vedtak(),
+            delbehandlinger = setOf(Delbehandling()),
         )
 
         klagebehandlingRepository.save(klage)

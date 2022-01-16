@@ -32,9 +32,9 @@ class KlagebehandlingDistribusjonService(
             val klagebehandling =
                 klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId)
 
-            logger.debug("Distribuerer dokument med dokumentEnhetId ${klagebehandling.vedtak.dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
+            logger.debug("Distribuerer dokument med dokumentEnhetId ${klagebehandling.delbehandlinger.first().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
             try {
-                val hovedadressatJournalpostId = kabalDocumentGateway.fullfoerDokumentEnhet(klagebehandling.vedtak.dokumentEnhetId!!)
+                val hovedadressatJournalpostId = kabalDocumentGateway.fullfoerDokumentEnhet(klagebehandling.delbehandlinger.first().dokumentEnhetId!!)
 
                 vedtakService.addHovedadressatJournalpostId(
                     klagebehandlingId = klagebehandlingId,
@@ -42,11 +42,11 @@ class KlagebehandlingDistribusjonService(
                     journalpostId = hovedadressatJournalpostId
                 )
 
-                logger.debug("Distribuerte dokument med dokumentEnhetId ${klagebehandling.vedtak.dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
+                logger.debug("Distribuerte dokument med dokumentEnhetId ${klagebehandling.delbehandlinger.first().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
                 avsluttKlagebehandling(klagebehandling.id)
             } catch (e: Exception) {
                 logger.error(
-                    "Fikk ikke distribuert dokument med dokumentEnhetId ${klagebehandling.vedtak.dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}",
+                    "Fikk ikke distribuert dokument med dokumentEnhetId ${klagebehandling.delbehandlinger.first().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}",
                     e
                 )
             }

@@ -162,8 +162,8 @@ class KlagebehandlingServiceTest {
                 SAKSBEHANDLER_IDENT
             )
 
-            assert(result.medunderskriver?.saksbehandlerident == null)
-            assert(result.medunderskriverHistorikk.size == 1)
+            assertThat(result.delbehandlinger.first().medunderskriver?.saksbehandlerident).isNull()
+            assertThat(result.delbehandlinger.first().medunderskriverHistorikk).hasSize(1)
         }
     }
 
@@ -207,7 +207,7 @@ class KlagebehandlingServiceTest {
                 SAKSBEHANDLER_IDENT
             )
 
-            assert(result.medunderskriverFlyt == MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER)
+            assertThat(result.delbehandlinger.first().medunderskriverFlyt).isEqualTo(MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER)
         }
 
         @Test
@@ -232,7 +232,7 @@ class KlagebehandlingServiceTest {
                 MEDUNDERSKRIVER_IDENT
             )
 
-            assert(result.medunderskriverFlyt == MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER)
+            assertThat(result.delbehandlinger.first().medunderskriverFlyt).isEqualTo(MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER)
         }
 
         @Test
@@ -261,7 +261,7 @@ class KlagebehandlingServiceTest {
                 SAKSBEHANDLER_IDENT
             )
 
-            assert(result.medunderskriverFlyt == MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER)
+            assertThat(result.delbehandlinger.first().medunderskriverFlyt).isEqualTo(MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER)
         }
 
         @Test
@@ -291,7 +291,7 @@ class KlagebehandlingServiceTest {
                 MEDUNDERSKRIVER_IDENT
             )
 
-            assert(result.medunderskriverFlyt == MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER)
+            assertThat(result.delbehandlinger.first().medunderskriverFlyt).isEqualTo(MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER)
         }
     }
 
@@ -388,7 +388,7 @@ class KlagebehandlingServiceTest {
                 klagebehandling.id,
                 MEDUNDERSKRIVER_IDENT
             )
-            assert(result.avsluttetAvSaksbehandler != null)
+            assertThat(result.avsluttetAvSaksbehandler).isNotNull
         }
 
         @Test
@@ -405,7 +405,7 @@ class KlagebehandlingServiceTest {
                 klagebehandling.id,
                 MEDUNDERSKRIVER_IDENT
             )
-            assert(result.avsluttetAvSaksbehandler != null)
+            assertThat(result.avsluttetAvSaksbehandler).isNotNull
         }
     }
 
@@ -448,7 +448,7 @@ class KlagebehandlingServiceTest {
             kildesystem = Fagsystem.K9,
             kildeReferanse = "abc",
             mottakId = mottak.id,
-            vedtak = Vedtak(
+            delbehandlinger = setOf(Delbehandling(
                 utfall = when {
                     trukket -> Utfall.TRUKKET
                     utfall -> Utfall.AVVIST
@@ -458,7 +458,7 @@ class KlagebehandlingServiceTest {
                     Registreringshjemmel.ANDRE_TRYGDEAVTALER
                 ) else mutableSetOf(),
                 dokumentEnhetId = if (dokumentEnhetId) DOKUMENTENHET_ID else null
-            ),
+            )),
             avsluttetAvSaksbehandler = if (fullfoert) LocalDateTime.now() else null,
             mottattFoersteinstans = LocalDate.now(),
             avsenderEnhetFoersteinstans = "enhet"

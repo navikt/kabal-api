@@ -157,11 +157,11 @@ internal class KlagebehandlingDistribusjonServiceTest {
         kildesystem = Fagsystem.K9,
         kildeReferanse = "abc",
         mottakId = mottak.id,
-        vedtak = Vedtak(
+        delbehandlinger = setOf(Delbehandling(
             id = vedtakId,
             utfall = Utfall.MEDHOLD,
             dokumentEnhetId = UUID.randomUUID()
-        ),
+        )),
         avsenderEnhetFoersteinstans = "0101",
         mottattFoersteinstans = LocalDate.now()
     )
