@@ -1,7 +1,8 @@
+--Rename vedtak to delbehandling
 ALTER TABLE klage.vedtak
     RENAME TO delbehandling;
 
---Reuse old field for FK
+--Reuse old FK field for new FK
 ALTER TABLE klage.delbehandling
     RENAME COLUMN klagebehandling_id TO behandling_id;
 
