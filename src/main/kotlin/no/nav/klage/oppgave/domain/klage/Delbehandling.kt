@@ -25,9 +25,9 @@ class Delbehandling(
     //Registreringshjemler. Overføres til neste delbehandlinger.
     @ElementCollection(targetClass = Registreringshjemmel::class, fetch = FetchType.EAGER)
     @CollectionTable(
-        name = "vedtak_hjemmel",
+        name = "delbehandling_registreringshjemmel",
         schema = "klage",
-        joinColumns = [JoinColumn(name = "vedtak_id", referencedColumnName = "id", nullable = false)]
+        joinColumns = [JoinColumn(name = "delbehandling_id", referencedColumnName = "id", nullable = false)]
     )
     @Convert(converter = RegistreringshjemmelConverter::class)
     @Column(name = "id")

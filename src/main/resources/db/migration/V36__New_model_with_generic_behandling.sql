@@ -78,3 +78,11 @@ ALTER TABLE klage.behandling
 --Remove unused vedtak_id from behandling
 ALTER TABLE klage.behandling
     DROP COLUMN vedtak_id;
+
+--rename vedtak_hjemmel
+ALTER TABLE klage.vedtak_hjemmel
+    RENAME TO delbehandling_registreringshjemmel;
+
+--new FK name
+ALTER TABLE klage.delbehandling_registreringshjemmel
+    RENAME COLUMN vedtak_id TO delbehandling_id;
