@@ -59,7 +59,7 @@ class Delbehandling(
     var medunderskriverFlyt: MedunderskriverFlyt = MedunderskriverFlyt.IKKE_SENDT,
     //Hører hjemme på delbehandlinger
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
-    @JoinColumn(name = "klagebehandling_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "delbehandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     val medunderskriverHistorikk: MutableSet<MedunderskriverHistorikk> = mutableSetOf(),

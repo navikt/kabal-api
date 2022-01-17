@@ -39,6 +39,23 @@ ALTER TABLE klage.saksdokument
 
 -- Move medunderskriver to delbehandling
 
+ALTER TABLE klage.medunderskriverhistorikk
+    RENAME COLUMN klagebehandling_id TO delbehandling_id;
+
+--Drop constraint
+ALTER TABLE klage.medunderskriverhistorikk
+    DROP CONSTRAINT fk_medunderskriverhistorikk_klagebehandling;
+
+--Move data to delbehandling
+UPDATE klage.medunderskriverhistorikk m
+SET delbehandling_id = (select b.vedtak_id from klage.behandling b where m.delbehandling_id = b.id);
+
+--Add constraint
+ALTER TABLE klage.medunderskriverhistorikk
+    ADD CONSTRAINT fk_medunderskriverhistorikk_delbehandling
+        FOREIGN KEY (delbehandling_id)
+            REFERENCES klage.delbehandling (id);
+
 --Add/move column for flyt to delbehandling, default to 'IKKE_SENDT'
 ALTER TABLE klage.delbehandling
     ADD COLUMN medunderskriverflyt_id TEXT NOT NULL DEFAULT 1;
@@ -86,3 +103,7 @@ ALTER TABLE klage.vedtak_hjemmel
 --new FK name
 ALTER TABLE klage.delbehandling_registreringshjemmel
     RENAME COLUMN vedtak_id TO delbehandling_id;
+
+--Rename FK
+ALTER TABLE klage.melding
+    RENAME COLUMN klagebehandling_id TO behandling_id;

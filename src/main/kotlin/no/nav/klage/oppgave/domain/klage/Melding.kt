@@ -12,7 +12,7 @@ import javax.persistence.Table
 class Melding(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "klagebehandling_id")
+    @Column(name = "behandling_id")
     val klagebehandlingId: UUID,
     @Column(name = "text")
     var text: String,
