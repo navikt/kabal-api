@@ -44,9 +44,6 @@ spec:
           {{/if}}
         extra:
           - NAVident
-  elastic:
-    access: admin
-    instance: oppgave-es
   kafka:
     pool: {{kafka_pool}}
   port: 7081
