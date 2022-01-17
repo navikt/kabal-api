@@ -14,7 +14,7 @@ import javax.persistence.*
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "behandling", schema = "klage")
 @DiscriminatorColumn(name = "behandling_type")
-abstract class Behandling(
+class Behandling(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Embedded
