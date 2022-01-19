@@ -48,17 +48,17 @@ class MottakRepositoryTest {
             kildeReferanse = "54321",
             dvhReferanse = "5342523",
             hjemler = mutableSetOf(MottakHjemmel(hjemmelId = Hjemmel.FTRL_8_7.id)),
-            avsenderSaksbehandlerident = "Z123456",
-            avsenderEnhet = "1234",
+            forrigeSaksbehandlerident =  "Z123456",
+            forrigeBehandlendeEnhet = "1234",
             mottakDokument = mutableSetOf(
                 MottakDokument(
                     type = MottakDokumentType.OVERSENDELSESBREV,
                     journalpostId = "245245"
                 )
             ),
-            oversendtKaDato = LocalDateTime.now(),
+            sakMottattKaDato = LocalDateTime.now(),
             kildesystem = Fagsystem.AO01,
-            mottattNavDato = LocalDate.now()
+            brukersHenvendelseMottattNavDato = LocalDate.now()
         )
 
         mottakRepository.save(mottak)

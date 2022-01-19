@@ -76,6 +76,23 @@ class MottakService(
         meterRegistry.incrementMottattKlage(oversendtKlage.kilde.name, oversendtKlage.ytelse.toTema().navn)
     }
 
+    @Transactional
+    fun createMottakForKlageAnkeV3(oversendtKlageAnke: OversendtKlageAnkeV3) {
+        secureLogger.debug("Prøver å lagre oversendtKlageAnkeV3: {}", oversendtKlageAnke)
+        oversendtKlageAnke.validate()
+
+        val mottak = mottakRepository.save(oversendtKlageAnke.toMottak())
+
+        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlage: {}", mottak)
+        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+
+        applicationEventPublisher.publishEvent(MottakLagretEvent(mottak))
+
+        //TODO: Move to outside of transaction to make sure it went well
+        meterRegistry.incrementMottattKlage(oversendtKlageAnke.kilde.name, oversendtKlageAnke.ytelse.toTema().navn)
+
+    }
+
     fun OversendtKlageV1.validate() {
         validateDuplicate(kilde, kildeReferanse)
         tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
@@ -96,6 +113,17 @@ class MottakService(
         validateType(type)
         validateEnhet(avsenderEnhet)
         validateSaksbehandler(avsenderSaksbehandlerIdent, avsenderEnhet)
+    }
+
+    fun OversendtKlageAnkeV3.validate() {
+        validateDuplicate(kilde, kildeReferanse)
+        tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
+        validatePartId(klager.id)
+        sakenGjelder?.run { validatePartId(sakenGjelder.id) }
+        validateYtelse(ytelse)
+        validateType(type)
+        validateEnhet(forrigeBehandlendeEnhet)
+        validateSaksbehandler(forrigeSaksbehandlerident, forrigeBehandlendeEnhet)
     }
 
     private fun validateDuplicate(kildeFagsystem: KildeFagsystem, kildeReferanse: String) {

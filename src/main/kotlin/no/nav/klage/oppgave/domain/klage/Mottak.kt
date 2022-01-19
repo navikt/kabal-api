@@ -36,19 +36,20 @@ class Mottak(
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "mottak_id", referencedColumnName = "id", nullable = false)
     val hjemler: Set<MottakHjemmel>? = null,
-    @Column(name = "avsender_saksbehandlerident")
-    val avsenderSaksbehandlerident: String? = null,
-    @Column(name = "avsender_enhet")
-    val avsenderEnhet: String,
+    @Column(name = "forrige_saksbehandlerident")
+    val forrigeSaksbehandlerident: String? = null,
+    @Column(name = "forrige_behandlende_enhet")
+    val forrigeBehandlendeEnhet: String,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "mottak_id", referencedColumnName = "id", nullable = false)
     val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
     @Column(name = "dato_innsendt")
     val innsendtDato: LocalDate? = null,
-    @Column(name = "dato_mottatt_foersteinstans")
-    val mottattNavDato: LocalDate,
-    @Column(name = "dato_oversendt_klageinstans")
-    val oversendtKaDato: LocalDateTime,
+    @Column(name = "dato_brukers_henvendelse_mottatt_nav")
+    val brukersHenvendelseMottattNavDato: LocalDate,
+    //Denne vil være den samme verdien som brukersHenvendelseMottattNavDato for anke, ikke for klage.
+    @Column(name = "dato_sak_mottatt_klageinstans")
+    val sakMottattKaDato: LocalDateTime,
     @Column(name = "dato_frist_fra_foersteinstans")
     val fristFraFoersteinstans: LocalDate? = null,
     @Column(name = "created")
@@ -85,5 +86,5 @@ class Mottak(
         return id.hashCode()
     }
 
-    fun generateFrist(): LocalDate = oversendtKaDato.toLocalDate() + Period.ofWeeks(12)
+    fun generateFrist(): LocalDate = sakMottattKaDato.toLocalDate() + Period.ofWeeks(12)
 }

@@ -49,10 +49,10 @@ class KlagebehandlingRepositoryTest {
             type = Type.KLAGE,
             klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
             kildeReferanse = "1234234",
-            oversendtKaDato = LocalDateTime.now(),
+            sakMottattKaDato = LocalDateTime.now(),
             kildesystem = Fagsystem.K9,
-            avsenderEnhet = "0101",
-            mottattNavDato = LocalDate.now()
+            forrigeBehandlendeEnhet = "0101",
+            brukersHenvendelseMottattNavDato = LocalDate.now()
         )
 
         mottakRepository.save(mottak)
@@ -96,10 +96,10 @@ class KlagebehandlingRepositoryTest {
             type = Type.KLAGE,
             klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
             kildeReferanse = "1234234",
-            oversendtKaDato = LocalDateTime.now(),
+            sakMottattKaDato = LocalDateTime.now(),
             kildesystem = Fagsystem.K9,
-            avsenderEnhet = "0101",
-            mottattNavDato = LocalDate.now()
+            forrigeBehandlendeEnhet = "0101",
+            brukersHenvendelseMottattNavDato = LocalDate.now()
         )
 
         mottakRepository.save(mottak)
@@ -151,10 +151,10 @@ class KlagebehandlingRepositoryTest {
             type = Type.KLAGE,
             klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
             kildeReferanse = "1234234",
-            oversendtKaDato = LocalDateTime.now(),
+            sakMottattKaDato = LocalDateTime.now(),
             kildesystem = Fagsystem.K9,
-            avsenderEnhet = "0101",
-            mottattNavDato = LocalDate.now()
+            forrigeBehandlendeEnhet = "0101",
+            brukersHenvendelseMottattNavDato = LocalDate.now()
         )
 
         mottakRepository.save(mottak)
