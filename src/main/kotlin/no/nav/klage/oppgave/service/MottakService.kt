@@ -147,8 +147,8 @@ class MottakService(
         }
     }
 
-    private fun validateSaksbehandler(saksbehandlerident: String, enhet: String) {
-        if (enhetRepository.getAnsatteIEnhet(enhet).none { it.equals(saksbehandlerident, ignoreCase = true) }) {
+    private fun validateSaksbehandler(saksbehandlerident: String?, enhet: String) {
+        if (saksbehandlerident != null && enhetRepository.getAnsatteIEnhet(enhet).none { it.equals(saksbehandlerident, ignoreCase = true) }) {
             //throw OversendtKlageNotValidException("$saksbehandlerident er ikke saksbehandler i enhet $enhet")
             logger.warn("$saksbehandlerident er ikke saksbehandler i enhet $enhet")
         }

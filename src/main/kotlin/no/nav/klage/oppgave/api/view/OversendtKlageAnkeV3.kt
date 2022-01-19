@@ -56,7 +56,15 @@ data class OversendtKlageAnkeV3(
         required = false
     )
     val hjemler: List<Hjemmel>? = emptyList(),
-    val forrigeSaksbehandlerident: String,
+    @ApiModelProperty(
+        notes = "Ident på saksbehandler som behandlet vedtaket som denne henvendelsen gjelder.",
+        required = false
+    )
+    val forrigeSaksbehandlerident: String? = null,
+    @ApiModelProperty(
+        notes = "ID på enheten som behandlet vedtaket som denne henvendelsen gjelder.",
+        required = true
+    )
     val forrigeBehandlendeEnhet: String,
     @ApiModelProperty(
         notes = "Liste med relevante journalposter til klagen. Liste kan være tom.",
