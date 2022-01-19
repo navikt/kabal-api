@@ -63,7 +63,12 @@ class Mottak(
     @Column(name = "ytelse_id")
     val ytelse: Ytelse,
     @Column(name = "kommentar")
-    val kommentar: String? = null
+    val kommentar: String? = null,
+    @Column(name = "forrige_vedtak_dato")
+    val forrigeVedtakDato: LocalDateTime? = null,
+    @Column(name = "forrige_vedtak_id")
+    val forrigeVedtakId: UUID? = null,
+
 ) {
 
     override fun toString(): String {
