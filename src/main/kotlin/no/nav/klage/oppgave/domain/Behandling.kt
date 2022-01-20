@@ -91,7 +91,7 @@ abstract class Behandling(
     )
     @Convert(converter = HjemmelConverter::class)
     @Column(name = "id")
-    val hjemler: MutableSet<Hjemmel> = mutableSetOf(),
+    open val hjemler: MutableSet<Hjemmel> = mutableSetOf(),
 ) {
     fun currentDelbehandling(): Delbehandling {
         //TODO anke
