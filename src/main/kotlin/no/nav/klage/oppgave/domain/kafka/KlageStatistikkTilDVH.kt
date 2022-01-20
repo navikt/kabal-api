@@ -49,7 +49,7 @@ data class KlageStatistikkTilDVH(
     val behandlingStartetKA: LocalDate?,
 
     @JsonSchemaDescription("Kode som angir den aktuelle behandlingens tilstand på gjeldende tidspunkt.")
-    val behandlingStatus: KlagebehandlingState,
+    val behandlingStatus: BehandlingState,
 
     @JsonSchemaDescription("Kode som beskriver behandlingen, for eksempel, klage, anke, tilbakekreving o.l.")
     val behandlingType: String,
@@ -229,6 +229,6 @@ data class KlageStatistikkTilDVH(
     }
 }
 
-enum class KlagebehandlingState {
+enum class BehandlingState {
     MOTTATT, TILDELT_SAKSBEHANDLER, AVSLUTTET, UKJENT
 }

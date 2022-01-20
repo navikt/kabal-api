@@ -30,7 +30,7 @@ internal class KlageStatistikkTilDVHTest {
             behandlingId = "arsta-rstz-xct-trstrst34-sft",
             behandlingIdKabal = "arst-arsdt-drt-j8z-89",
             behandlingStartetKA = LocalDate.now(),
-            behandlingStatus = KlagebehandlingState.MOTTATT,
+            behandlingStatus = BehandlingState.MOTTATT,
             behandlingType = "behType",
             beslutter = "beslutter",
             endringstid = LocalDateTime.now(),
