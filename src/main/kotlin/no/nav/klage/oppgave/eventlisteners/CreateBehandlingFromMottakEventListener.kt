@@ -22,7 +22,7 @@ class CreateBehandlingFromMottakEventListener(
     }
 
     @EventListener
-    fun createKlagebehandling(mottakLagretEvent: MottakLagretEvent) {
+    fun createBehandling(mottakLagretEvent: MottakLagretEvent) {
         logger.debug("Received MottakLagretEvent for mottak ${mottakLagretEvent.mottak.id} in CreateKlagebehandlingFromMottakEventListener")
         val mottakId = mottakLagretEvent.mottak.id
         if (behandlingRepository.findByMottakId(mottakId) != null) {
