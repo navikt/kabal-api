@@ -8,5 +8,4 @@ ALTER TABLE klage.mottak
     RENAME COLUMN dato_oversendt_klageinstans TO dato_sak_mottatt_klageinstans;
 
 ALTER TABLE klage.mottak
-    ADD COLUMN forrige_vedtak_dato DATE,
-    ADD COLUMN forrige_vedtak_id   UUID
+    ADD COLUMN forrige_behandling_id   UUID

@@ -10,7 +10,6 @@ import no.nav.klage.oppgave.domain.klage.MottakHjemmel
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
 import javax.validation.constraints.PastOrPresent
 
 @ApiModel
@@ -57,11 +56,6 @@ data class OversendtKlageAnkeV3(
     )
     val hjemler: List<Hjemmel>? = emptyList(),
     @ApiModelProperty(
-        notes = "Ident på saksbehandler som behandlet vedtaket som denne henvendelsen gjelder.",
-        required = false
-    )
-    val forrigeSaksbehandlerident: String? = null,
-    @ApiModelProperty(
         notes = "ID på enheten som behandlet vedtaket som denne henvendelsen gjelder.",
         required = true
     )
@@ -102,17 +96,7 @@ data class OversendtKlageAnkeV3(
         notes = "Kommentarer fra saksbehandler i førsteinstans som ikke er med i oversendelsesbrevet klager mottar",
         required = false
     )
-    val kommentar: String? = null,
-    @ApiModelProperty(
-        notes = "Dato for forrige vedtak, f.eks dato for klagevedtak ved ankeinnsending",
-        required = false
-    )
-    val forrigeVedtakDato: LocalDateTime? = null,
-    @ApiModelProperty(
-        notes = "ID for forrige vedtak, f.eks ID for klagevedtak ved ankeinnsending",
-        required = false
-    )
-    val forrigeVedtakId: UUID? = null
+    val kommentar: String? = null
 
 
 )
@@ -127,7 +111,6 @@ fun OversendtKlageAnkeV3.toMottak() = Mottak(
     kildeReferanse = kildeReferanse,
     dvhReferanse = dvhReferanse,
     hjemler = hjemler?.map { MottakHjemmel(hjemmelId = it.id) }?.toSet(),
-    forrigeSaksbehandlerident = forrigeSaksbehandlerident,
     forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
     mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
     innsendtDato = innsendtTilNav,
@@ -136,6 +119,4 @@ fun OversendtKlageAnkeV3.toMottak() = Mottak(
     fristFraFoersteinstans = frist,
     kildesystem = kilde.mapFagsystem(),
     ytelse = ytelse,
-    forrigeVedtakDato = forrigeVedtakDato,
-    forrigeVedtakId = forrigeVedtakId
 )

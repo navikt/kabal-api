@@ -64,10 +64,8 @@ class Mottak(
     val ytelse: Ytelse,
     @Column(name = "kommentar")
     val kommentar: String? = null,
-    @Column(name = "forrige_vedtak_dato")
-    val forrigeVedtakDato: LocalDateTime? = null,
-    @Column(name = "forrige_vedtak_id")
-    val forrigeVedtakId: UUID? = null,
+    @Column(name = "forrige_behandling_id")
+    val forrigeBehandlingId: UUID? = null,
 
 ) {
 

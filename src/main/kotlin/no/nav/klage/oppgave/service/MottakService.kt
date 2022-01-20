@@ -123,7 +123,6 @@ class MottakService(
         validateYtelse(ytelse)
         validateType(type)
         validateEnhet(forrigeBehandlendeEnhet)
-        validateSaksbehandler(forrigeSaksbehandlerident, forrigeBehandlendeEnhet)
     }
 
     private fun validateDuplicate(kildeFagsystem: KildeFagsystem, kildeReferanse: String) {

@@ -15,7 +15,7 @@ import javax.persistence.*
 @DiscriminatorValue("anke")
 class Ankebehandling(
     @Column(name = "klage_vedtaks_dato")
-    val klageVedtaksDato: LocalDate,
+    val klageVedtaksDato: LocalDate? = null,
     @Column(name = "klage_behandlende_enhet")
     val klageBehandlendeEnhet: String,
     //Fins i noen tilfeller, men ikke alle.
