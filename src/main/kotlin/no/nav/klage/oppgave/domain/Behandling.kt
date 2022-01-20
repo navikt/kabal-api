@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.domain
 
 import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.hjemmel.HjemmelConverter
 import no.nav.klage.oppgave.domain.klage.*
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
@@ -80,6 +82,16 @@ abstract class Behandling(
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     open val saksdokumenter: MutableSet<Saksdokument> = mutableSetOf(),
+    //Dette er søkehjemler, input fra førsteinstans.
+    @ElementCollection(targetClass = Hjemmel::class, fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "behandling_hjemmel",
+        schema = "klage",
+        joinColumns = [JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)]
+    )
+    @Convert(converter = HjemmelConverter::class)
+    @Column(name = "id")
+    val hjemler: MutableSet<Hjemmel> = mutableSetOf(),
 ) {
     fun currentDelbehandling(): Delbehandling {
         //TODO anke

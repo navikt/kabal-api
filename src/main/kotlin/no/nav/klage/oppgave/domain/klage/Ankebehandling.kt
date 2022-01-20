@@ -3,13 +3,14 @@ package no.nav.klage.oppgave.domain.klage
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
-import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.kodeverk.hjemmel.RegistreringshjemmelConverter
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.domain.Behandling
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import javax.persistence.*
+import javax.persistence.Column
+import javax.persistence.DiscriminatorValue
+import javax.persistence.Entity
 
 @Entity
 @DiscriminatorValue("anke")
@@ -21,16 +22,6 @@ class Ankebehandling(
     //Fins i noen tilfeller, men ikke alle.
     @Column(name = "klage_id")
     var klagebehandlingId: UUID? = null,
-
-    @ElementCollection(targetClass = Registreringshjemmel::class, fetch = FetchType.EAGER)
-    @CollectionTable(
-        name = "ankebehandling_hjemmel",
-        schema = "klage",
-        joinColumns = [JoinColumn(name = "ankebehandling_id", referencedColumnName = "id", nullable = false)]
-    )
-    @Convert(converter = RegistreringshjemmelConverter::class)
-    @Column(name = "id")
-    val inputhjemler: MutableSet<Registreringshjemmel> = mutableSetOf(),
 
 //    Finn ut hvordan dette skal fungere i anker etter hvert
 //    @Column(name = "dato_behandling_avsluttet_av_saksbehandler")
@@ -69,6 +60,7 @@ class Ankebehandling(
     kildesystem: Fagsystem,
     delbehandlinger: Set<Delbehandling>,
     saksdokumenter: MutableSet<Saksdokument> = mutableSetOf(),
+    hjemler: MutableSet<Hjemmel> = mutableSetOf(),
 ) : Behandling(
     id = id,
     klager = klager,
@@ -92,5 +84,6 @@ class Ankebehandling(
     dvhReferanse = dvhReferanse,
     delbehandlinger = delbehandlinger,
     saksdokumenter = saksdokumenter,
+    hjemler = hjemler,
 )  {
 }

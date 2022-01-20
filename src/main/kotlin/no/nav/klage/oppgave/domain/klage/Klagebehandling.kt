@@ -5,13 +5,14 @@ import no.nav.klage.kodeverk.MedunderskriverFlyt
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
-import no.nav.klage.kodeverk.hjemmel.HjemmelConverter
 import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.klage.Klagebehandling.Status.*
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import javax.persistence.*
+import javax.persistence.Column
+import javax.persistence.DiscriminatorValue
+import javax.persistence.Entity
 
 const val KLAGEENHET_PREFIX = "42"
 
@@ -27,16 +28,6 @@ class Klagebehandling(
     //Vises i GUI.
     @Column(name = "avsender_enhet_foersteinstans")
     val avsenderEnhetFoersteinstans: String,
-    //Dette er søkehjemler, input fra førsteinstans. For anker bør vel dette være samme detaljnivået som i registreringshjemler? Blir det da ulike typer for klage og anke? Må ta diskusjonen videre.
-    @ElementCollection(targetClass = Hjemmel::class, fetch = FetchType.EAGER)
-    @CollectionTable(
-        name = "klagebehandling_hjemmel",
-        schema = "klage",
-        joinColumns = [JoinColumn(name = "klagebehandling_id", referencedColumnName = "id", nullable = false)]
-    )
-    @Convert(converter = HjemmelConverter::class)
-    @Column(name = "id")
-    val hjemler: MutableSet<Hjemmel> = mutableSetOf(),
     //Kommer fra innsending
     @Column(name = "kommentar_fra_foersteinstans")
     val kommentarFraFoersteinstans: String? = null,
@@ -77,6 +68,7 @@ class Klagebehandling(
     kildesystem: Fagsystem,
     delbehandlinger: Set<Delbehandling>,
     saksdokumenter: MutableSet<Saksdokument> = mutableSetOf(),
+    hjemler: MutableSet<Hjemmel> = mutableSetOf(),
 ) : Behandling(
     id = id,
     klager = klager,
@@ -100,6 +92,7 @@ class Klagebehandling(
     dvhReferanse = dvhReferanse,
     delbehandlinger = delbehandlinger,
     saksdokumenter = saksdokumenter,
+    hjemler = hjemler,
 ) {
 
     override fun toString(): String {
