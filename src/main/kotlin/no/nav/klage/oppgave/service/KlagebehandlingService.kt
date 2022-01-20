@@ -214,10 +214,6 @@ class KlagebehandlingService(
     }
 
     fun createKlagebehandlingFromMottak(mottak: Mottak) {
-        if (klagebehandlingRepository.findByMottakId(mottak.id) != null) {
-            logger.error("We already have a klagebehandling for mottak ${mottak.id}. This is not supposed to happen.")
-            throw RuntimeException("We already have a klagebehandling for mottak ${mottak.id}")
-        }
 
         val klagebehandling = klagebehandlingRepository.save(
             Klagebehandling(
@@ -239,14 +235,14 @@ class KlagebehandlingService(
                 frist = mottak.generateFrist(),
                 mottakId = mottak.id,
                 delbehandlinger = setOf(Delbehandling()),
-                saksdokumenter = createSaksdokumenter(mottak),
+                saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdSet(mottak.mottakDokument.map { it.journalpostId }),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(),
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
                 kildesystem = mottak.kildesystem,
                 kommentarFraFoersteinstans = mottak.kommentar
             )
         )
-        logger.debug("Created behandling ${klagebehandling.id} for mottak ${mottak.id}")
+        logger.debug("Created klagebehandling ${klagebehandling.id} for mottak ${mottak.id}")
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = klagebehandling,
@@ -261,25 +257,6 @@ class KlagebehandlingService(
         } else {
             hjemler.map { Hjemmel.of(it.hjemmelId) }.toMutableSet()
         }
-
-
-    private fun Klager.toSakenGjelder() = SakenGjelder(
-        partId = this.partId.copy(),
-        skalMottaKopi = false // Siden denne nå peker på samme som klager trenger ikke brev sendes
-    )
-
-    private fun createSaksdokumenter(mottak: Mottak): MutableSet<Saksdokument> {
-        val saksdokumenter: MutableSet<Saksdokument> = mutableSetOf()
-        mottak.mottakDokument.forEach {
-            //TODO: Mangler å få med MottakDokument.type over i Saksdokument!
-            saksdokumenter.addAll(createSaksdokument(it.journalpostId))
-        }
-        return saksdokumenter
-    }
-
-    private fun createSaksdokument(journalpostId: String) =
-        dokumentService.fetchDokumentInfoIdForJournalpostAsSystembruker(journalpostId)
-            .map { Saksdokument(journalpostId = journalpostId, dokumentInfoId = it) }
 
     private fun addDokument(
         klagebehandling: Klagebehandling,

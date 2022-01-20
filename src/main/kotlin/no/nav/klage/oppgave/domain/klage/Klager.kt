@@ -27,4 +27,9 @@ data class Klager(
     fun erPerson() = partId.type == PartIdType.PERSON
 
     fun erVirksomhet() = partId.type == PartIdType.VIRKSOMHET
+
+    fun toSakenGjelder() = SakenGjelder(
+        partId = this.partId.copy(),
+        skalMottaKopi = false // Siden denne nå peker på samme som klager trenger ikke brev sendes
+    )
 }

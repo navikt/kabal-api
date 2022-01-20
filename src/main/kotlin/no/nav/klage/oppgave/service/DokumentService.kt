@@ -146,6 +146,17 @@ class DokumentService(
             dv.variantformat == Variantformat.ARKIV
         }
 
+    fun createSaksdokumenterFromJournalpostIdSet(journalpostIdSet: List<String>): MutableSet<Saksdokument> {
+        val saksdokumenter: MutableSet<Saksdokument> = mutableSetOf()
+        journalpostIdSet.forEach {
+            saksdokumenter.addAll(createSaksdokument(it))
+        }
+        return saksdokumenter
+    }
+
+    private fun createSaksdokument(journalpostId: String) =
+        fetchDokumentInfoIdForJournalpostAsSystembruker(journalpostId)
+            .map { Saksdokument(journalpostId = journalpostId, dokumentInfoId = it) }
 }
 
 class DokumentMapper {
