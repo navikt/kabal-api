@@ -1,8 +1,11 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
-import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
+import no.nav.klage.oppgave.domain.klage.Ankebehandling
+import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -12,8 +15,8 @@ import org.springframework.stereotype.Service
 @Service
 class AdminService(
     private val kafkaDispatcher: KafkaDispatcher,
-    private val klagebehandlingRepository: KlagebehandlingRepository,
-    private val klagebehandlingEndretKafkaProducer: KlagebehandlingEndretKafkaProducer
+    private val behandlingRepository: BehandlingRepository,
+    private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer
 ) {
 
     companion object {
@@ -27,15 +30,22 @@ class AdminService(
         var pageable: Pageable =
             PageRequest.of(0, 50, Sort.by("created").descending())
         do {
-            val page = klagebehandlingRepository.findAll(pageable)
-            page.content.map { klagebehandling ->
+            val behandlingPage = behandlingRepository.findAll(pageable)
+
+            behandlingPage.content.map { behandling ->
                 try {
-                    klagebehandlingEndretKafkaProducer.sendKlageEndret(klagebehandling)
+                    if (behandling.type == Type.KLAGE) {
+                        behandlingEndretKafkaProducer.sendKlageEndretV1(behandling as Klagebehandling)
+                        behandlingEndretKafkaProducer.sendKlageEndretV2(behandling)
+                    } else {
+                        behandlingEndretKafkaProducer.sendAnkeEndretV2(behandling as Ankebehandling)
+                    }
                 } catch (e: Exception) {
                     logger.warn("Exception during send to Kafka", e)
                 }
             }
-            pageable = page.nextPageable()
+
+            pageable = behandlingPage.nextPageable()
         } while (pageable.isPaged)
     }
 

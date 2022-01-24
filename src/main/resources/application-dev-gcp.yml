@@ -19,7 +19,8 @@ AXSYS_APP: axsys
 
 VEDTAK_FATTET_TOPIC: klage.vedtak-fattet.v1
 DVH_STATISTIKK_TOPIC: klage.kabal-statistikk.v1
-KLAGE_ENDRET_TOPIC: klage.klage-endret.v1
+KLAGE_ENDRET_TOPIC_V1: klage.klage-endret.v1
+BEHANDLING_ENDRET_TOPIC_V2: klage.behandling-endret.v2
 
 AIVEN_ES_HOST: elastic-klage-oppgave-es-nav-dev.aivencloud.com
 AIVEN_ES_PORT: 26482
