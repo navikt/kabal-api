@@ -1,8 +1,10 @@
 package no.nav.klage.oppgave.eventlisteners
 
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.klage.Ankebehandling
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
-import no.nav.klage.oppgave.service.KlagebehandlingEndretKafkaProducer
+import no.nav.klage.oppgave.service.BehandlingEndretKafkaProducer
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
@@ -10,7 +12,7 @@ import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 
 @Service
-class SendKlageEndretToKafkaEventListener(private val klagebehandlingEndretKafkaProducer: KlagebehandlingEndretKafkaProducer) {
+class SendBehandlingEndretToKafkaEventListener(private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -21,8 +23,15 @@ class SendKlageEndretToKafkaEventListener(private val klagebehandlingEndretKafka
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun indexKlagebehandling(behandlingEndretEvent: BehandlingEndretEvent) {
-        logger.debug("Received KlagebehandlingEndretEvent for klagebehandlingId ${behandlingEndretEvent.behandling.id}")
-        //FIXME
-        klagebehandlingEndretKafkaProducer.sendKlageEndret(behandlingEndretEvent.behandling as Klagebehandling)
+        logger.debug("Received BehandlingEndretEvent for behandlingId ${behandlingEndretEvent.behandling.id}")
+
+        if (behandlingEndretEvent.behandling.type == Type.KLAGE) {
+            behandlingEndretKafkaProducer.sendKlageEndretV1(behandlingEndretEvent.behandling as Klagebehandling)
+            behandlingEndretKafkaProducer.sendKlageEndretV2(behandlingEndretEvent.behandling)
+        } else {
+            behandlingEndretKafkaProducer.sendAnkeEndretV2(behandlingEndretEvent.behandling as Ankebehandling)
+        }
+
+
     }
 }

@@ -1,0 +1,15 @@
+pool: nav-dev
+config:
+  cleanupPolicy: compact
+  minimumInSyncReplicas: 1
+  partitions: 1
+  replication: 3
+  retentionBytes: -1
+  retentionHours: -1
+acl:
+  - team: klage
+    application: klage-kafka-manager
+    access: read
+  - team: klage
+    application: kabal-search
+    access: read

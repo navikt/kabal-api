@@ -1,0 +1,22 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  name: behandling-endret.v2
+  namespace: klage
+  labels:
+    team: klage
+spec:
+  pool: {{pool}}
+  config:
+  {{#each config as |value key|}}
+     {{key}}: {{value}}
+  {{/each}}
+  acl:
+    - team: klage
+      application: kabal-api
+      access: write
+  {{#each acl}}
+    - team: {{team}}
+      application: {{application}}
+      access: {{access}}
+  {{/each}}
