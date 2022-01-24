@@ -40,13 +40,13 @@ jobs:
           VARS: kafka-aiven/klage-endret.v1/dev-vars.yaml
           PRINT_PAYLOAD: true
       - name: deploy behandling-endret-v2-topic to dev
-          uses: nais/deploy/actions/deploy@v1
-          env:
-            APIKEY: ${{ secrets.NAIS_DEPLOY_API_KEY }}
-            CLUSTER: dev-gcp
-            RESOURCE: kafka-aiven/behandling-endret.v2/topic.yaml
-            VARS: kafka-aiven/behandling-endret.v2/dev-vars.yaml
-            PRINT_PAYLOAD: true
+        uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_API_KEY }}
+          CLUSTER: dev-gcp
+          RESOURCE: kafka-aiven/behandling-endret.v2/topic.yaml
+          VARS: kafka-aiven/behandling-endret.v2/dev-vars.yaml
+          PRINT_PAYLOAD: true
       - name: deploy vedtak-fattet-topic to prod
         uses: nais/deploy/actions/deploy@v1
         env:
