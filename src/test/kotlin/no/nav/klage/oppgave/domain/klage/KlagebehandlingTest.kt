@@ -33,7 +33,7 @@ internal class KlagebehandlingTest {
                 avsenderEnhetFoersteinstans = enhet,
                 delbehandlinger = setOf(Delbehandling()),
             )
-            assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.IKKE_TILDELT)
+            assertThat(klagebehandling.getStatus()).isEqualTo(BehandlingStatus.IKKE_TILDELT)
         }
 
         @Test
@@ -52,7 +52,7 @@ internal class KlagebehandlingTest {
                 avsenderEnhetFoersteinstans = enhet,
                 delbehandlinger = setOf(Delbehandling()),
             )
-            assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.IKKE_TILDELT)
+            assertThat(klagebehandling.getStatus()).isEqualTo(BehandlingStatus.IKKE_TILDELT)
         }
 
         @Test
@@ -71,7 +71,7 @@ internal class KlagebehandlingTest {
                 avsenderEnhetFoersteinstans = enhet,
                 delbehandlinger = setOf(Delbehandling()),
             )
-            assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.TILDELT)
+            assertThat(klagebehandling.getStatus()).isEqualTo(BehandlingStatus.TILDELT)
         }
 
         @Test
@@ -94,7 +94,7 @@ internal class KlagebehandlingTest {
                     ),
                 )
             )
-            assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.SENDT_TIL_MEDUNDERSKRIVER)
+            assertThat(klagebehandling.getStatus()).isEqualTo(BehandlingStatus.SENDT_TIL_MEDUNDERSKRIVER)
         }
 
         @Test
@@ -117,7 +117,7 @@ internal class KlagebehandlingTest {
                     )
                 ),
             )
-            assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.RETURNERT_TIL_SAKSBEHANDLER)
+            assertThat(klagebehandling.getStatus()).isEqualTo(BehandlingStatus.RETURNERT_TIL_SAKSBEHANDLER)
         }
 
         @Test
@@ -139,7 +139,7 @@ internal class KlagebehandlingTest {
                     )
                 ),
             )
-            assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.MEDUNDERSKRIVER_VALGT)
+            assertThat(klagebehandling.getStatus()).isEqualTo(BehandlingStatus.MEDUNDERSKRIVER_VALGT)
         }
 
         @Test
@@ -162,7 +162,7 @@ internal class KlagebehandlingTest {
                     )
                 ),
             )
-            assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.TILDELT)
+            assertThat(klagebehandling.getStatus()).isEqualTo(BehandlingStatus.TILDELT)
         }
 
         @Test
@@ -185,7 +185,7 @@ internal class KlagebehandlingTest {
                     )
                 ),
             )
-            assertThat(klagebehandling.getStatus()).isEqualTo(Klagebehandling.Status.FULLFOERT)
+            assertThat(klagebehandling.getStatus()).isEqualTo(BehandlingStatus.FULLFOERT)
         }
     }
 }

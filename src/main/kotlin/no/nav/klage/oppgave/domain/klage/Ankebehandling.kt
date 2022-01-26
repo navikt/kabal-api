@@ -1,12 +1,9 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.MedunderskriverFlyt
-import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.domain.Behandling
-import no.nav.klage.oppgave.domain.klage.Ankebehandling.Status.*
+import no.nav.klage.oppgave.util.getLogger
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -84,7 +81,18 @@ class Ankebehandling(
     delbehandlinger = delbehandlinger,
     saksdokumenter = saksdokumenter,
     hjemler = hjemler,
-)  {
+) {
+
+    companion object {
+
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+        private val UTFALL_SOM_AVSLUTTER_BEHANDLINGEN: List<Utfall> =
+            listOf(Utfall.TRUKKET, Utfall.OPPHEVET, Utfall.MEDHOLD, Utfall.UGUNST)
+        private val UTFALL_SOM_KREVER_VIDERE_BEHANDLING: List<Utfall> =
+            listOf(Utfall.STADFESTELSE, Utfall.AVVIST, Utfall.DELVIS_MEDHOLD)
+    }
+
     override fun toString(): String {
         return "Ankebehandling(id=$id, " +
                 "modified=$modified, " +
@@ -109,22 +117,22 @@ class Ankebehandling(
     /**
      * Brukes til ES og statistikk per nå
      */
-    fun getStatus(): Status {
+    override fun getStatus(): BehandlingStatus {
         return when {
-            currentDelbehandling().avsluttet != null -> Status.FULLFOERT
-            currentDelbehandling().avsluttetAvSaksbehandler != null -> Status.AVSLUTTET_AV_SAKSBEHANDLER
-            currentDelbehandling().medunderskriverFlyt == MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER -> Status.SENDT_TIL_MEDUNDERSKRIVER
-            currentDelbehandling().medunderskriverFlyt == MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER -> RETURNERT_TIL_SAKSBEHANDLER
-            currentDelbehandling().medunderskriver?.saksbehandlerident != null -> MEDUNDERSKRIVER_VALGT
-            tildeling?.saksbehandlerident != null -> TILDELT
-            tildeling?.saksbehandlerident == null -> IKKE_TILDELT
-            else -> UKJENT
+            avsluttet != null -> BehandlingStatus.FULLFOERT
+            avsluttetAvSaksbehandler != null -> BehandlingStatus.AVSLUTTET_AV_SAKSBEHANDLER
+            //TODO: Hvordan skal dette fungere? Skal det vises medunderskriver etc her også f.eks? Denne må vi snakke om!
+            ventetidStart != null && delbehandlinger.size > 1 -> BehandlingStatus.ANDRE_BEHANDLING
+            ventetidStart != null && delbehandlinger.size <= 1 -> BehandlingStatus.PAA_VENT
+            currentDelbehandling().medunderskriverFlyt == MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER -> BehandlingStatus.SENDT_TIL_MEDUNDERSKRIVER
+            currentDelbehandling().medunderskriverFlyt == MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER -> BehandlingStatus.RETURNERT_TIL_SAKSBEHANDLER
+            currentDelbehandling().medunderskriver?.saksbehandlerident != null -> BehandlingStatus.MEDUNDERSKRIVER_VALGT
+            tildeling?.saksbehandlerident != null -> BehandlingStatus.TILDELT
+            tildeling?.saksbehandlerident == null -> BehandlingStatus.IKKE_TILDELT
+            else -> BehandlingStatus.UKJENT
         }
     }
 
-    enum class Status {
-        IKKE_TILDELT, TILDELT, MEDUNDERSKRIVER_VALGT, SENDT_TIL_MEDUNDERSKRIVER, RETURNERT_TIL_SAKSBEHANDLER, AVSLUTTET_AV_SAKSBEHANDLER, FULLFOERT, UKJENT
-    }
     /*
     Mulige utfall av første delbehandling:
 
@@ -151,4 +159,62 @@ class Ankebehandling(
      Situasjonen blir at vi har en ankebehandling med en åpen 2. delbehandling
 
      */
+
+    override val avsluttetAvSaksbehandler: LocalDateTime?
+        get() {
+
+            if (delbehandlinger.isEmpty()) {
+                return null
+            }
+            val sortedDelbehandlinger: List<Delbehandling> = delbehandlinger.sortedBy { it.created }
+            if (sortedDelbehandlinger.size == 1) {
+                return if (sortedDelbehandlinger.first().avsluttetAvSaksbehandler != null && sortedDelbehandlinger.first().utfall in UTFALL_SOM_AVSLUTTER_BEHANDLINGEN) {
+                    sortedDelbehandlinger.first().avsluttetAvSaksbehandler
+                } else {
+                    null
+                }
+            }
+            return sortedDelbehandlinger.second().avsluttetAvSaksbehandler
+            //TODO: Når vi får behandlingen i retur fra Trygderetten, så er vel det mer en form for "etterbehandling"? Behandlingen bør komme opp i avsluttet-lista (i mine oppgaver og enhetens oppgaver) allerede når 2. behandling er ferdig?
+        }
+
+    override val avsluttet: LocalDateTime?
+        get() {
+
+            if (delbehandlinger.isEmpty()) {
+                return null
+            }
+            val sortedDelbehandlinger: List<Delbehandling> = delbehandlinger.sortedBy { it.created }
+            if (sortedDelbehandlinger.size == 1) {
+                return if (sortedDelbehandlinger.first().avsluttet != null && sortedDelbehandlinger.first().utfall in UTFALL_SOM_AVSLUTTER_BEHANDLINGEN) {
+                    sortedDelbehandlinger.first().avsluttet
+                } else {
+                    null
+                }
+            }
+            return sortedDelbehandlinger.second().avsluttet
+            //TODO: Når vi får behandlingen i retur fra Trygderetten, så er vel det mer en form for "etterbehandling"? Behandlingen bør komme opp i avsluttet-lista (i mine oppgaver og enhetens oppgaver) allerede når 2. behandling er ferdig?
+        }
+
+    override val ventetidStart: LocalDateTime?
+        get() {
+            return if (delbehandlinger.isEmpty()) {
+                null
+            } else {
+                val foersteDelbehandling = delbehandlinger.minByOrNull { it.created }!!
+                if (foersteDelbehandling.avsluttet != null && foersteDelbehandling.utfall in UTFALL_SOM_KREVER_VIDERE_BEHANDLING) {
+                    foersteDelbehandling.avsluttet
+                } else {
+                    null
+                }
+            }
+        }
+
+    override val ventetidFrist: LocalDateTime?
+        get() {
+            return ventetidStart?.plusWeeks(4)
+        }
 }
+
+private fun List<Delbehandling>.second(): Delbehandling = this.elementAt(1)
+

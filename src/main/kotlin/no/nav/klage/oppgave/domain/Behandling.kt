@@ -95,4 +95,10 @@ abstract class Behandling(
         //TODO anke
         return delbehandlinger.first()
     }
+
+    abstract val avsluttetAvSaksbehandler: LocalDateTime?
+    abstract val avsluttet: LocalDateTime?
+    abstract val ventetidStart: LocalDateTime?
+    abstract val ventetidFrist: LocalDateTime?
+    abstract fun getStatus(): BehandlingStatus
 }
