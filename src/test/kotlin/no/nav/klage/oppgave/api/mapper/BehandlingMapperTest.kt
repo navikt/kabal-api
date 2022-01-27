@@ -21,8 +21,8 @@ import java.time.LocalDateTime
 import java.util.*
 
 @ActiveProfiles("local")
-@SpringBootTest(classes = [KlagebehandlingMapper::class])
-class KlagebehandlingMapperTest {
+@SpringBootTest(classes = [BehandlingMapper::class])
+class BehandlingMapperTest {
     @MockkBean
     lateinit var pdlFacade: PdlFacade
 
@@ -42,35 +42,37 @@ class KlagebehandlingMapperTest {
     lateinit var kabalDocumentGateway: KabalDocumentGateway
 
     @Autowired
-    lateinit var klagebehandlingMapper: KlagebehandlingMapper
+    lateinit var behandlingMapper: BehandlingMapper
 
     private val FNR = "FNR"
     private val MEDUNDERSKRIVER_IDENT = "MEDUNDERSKRIVER_IDENT"
     private val MEDUNDERSKRIVER_NAVN = "MEDUNDERSKRIVER_NAVN"
 
     @Test
-    fun `mapToMedunderskriverInfoView gir forventet resultat når medunderskriver og medunderskriverFlyt ikke er satt`() {
+    fun `mapToMedunderskriverView og mapToMedunderskriverFlytView gir forventet resultat når medunderskriver og medunderskriverFlyt ikke er satt`() {
         val klagebehandling = getKlagebehandling()
-        val result = klagebehandlingMapper.mapToMedunderskriverInfoView(klagebehandling)
+        val viewResult = behandlingMapper.mapToMedunderskriverView(klagebehandling)
+        val flytViewResult = behandlingMapper.mapToMedunderskriverFlytView(klagebehandling)
 
-        assertThat(result.medunderskriver).isNull()
-        assertThat(result.medunderskriverFlyt).isEqualTo(MedunderskriverFlyt.IKKE_SENDT)
+        assertThat(viewResult.medunderskriver).isNull()
+        assertThat(flytViewResult.medunderskriverFlyt).isEqualTo(MedunderskriverFlyt.IKKE_SENDT)
     }
 
     @Test
-    fun `mapToMedunderskriverInfoView gir forventet resultat når medunderskriver og medunderskriverFlyt er satt`() {
+    fun `mapToMedunderskriverInfoView og mapToMedunderskriverFlytView gir forventet resultat når medunderskriver og medunderskriverFlyt er satt`() {
         val klagebehandling = getKlagebehandlingWithMedunderskriver()
         every { saksbehandlerRepository.getNameForSaksbehandler(any()) } returns MEDUNDERSKRIVER_NAVN
 
-        val result = klagebehandlingMapper.mapToMedunderskriverInfoView(klagebehandling)
+        val viewResult = behandlingMapper.mapToMedunderskriverView(klagebehandling)
+        val flytViewResult = behandlingMapper.mapToMedunderskriverFlytView(klagebehandling)
 
-        assertThat(result.medunderskriver).isEqualTo(
+        assertThat(viewResult.medunderskriver).isEqualTo(
             SaksbehandlerView(
                 MEDUNDERSKRIVER_IDENT,
                 MEDUNDERSKRIVER_NAVN
             )
         )
-        assertThat(result.medunderskriverFlyt).isEqualTo(MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER)
+        assertThat(flytViewResult.medunderskriverFlyt).isEqualTo(MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER)
     }
 
     private fun getKlagebehandling(): Klagebehandling {

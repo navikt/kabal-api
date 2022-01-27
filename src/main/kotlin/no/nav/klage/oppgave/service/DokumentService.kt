@@ -6,6 +6,7 @@ import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.clients.saf.graphql.*
 import no.nav.klage.oppgave.clients.saf.rest.ArkivertDokument
 import no.nav.klage.oppgave.clients.saf.rest.SafRestClient
+import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.DokumentInnholdOgTittel
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.domain.klage.Saksdokument
@@ -26,23 +27,23 @@ class DokumentService(
         private val dokumentMapper = DokumentMapper()
     }
 
-    fun fetchDokumentlisteForKlagebehandling(
-        klagebehandling: Klagebehandling,
+    fun fetchDokumentlisteForBehandling(
+        behandling: Behandling,
         temaer: List<Tema>,
         pageSize: Int,
         previousPageRef: String?
     ): DokumenterResponse {
-        if (klagebehandling.sakenGjelder.erPerson()) {
+        if (behandling.sakenGjelder.erPerson()) {
             val dokumentoversiktBruker: DokumentoversiktBruker =
                 safGraphQlClient.getDokumentoversiktBruker(
-                    klagebehandling.sakenGjelder.partId.value,
+                    behandling.sakenGjelder.partId.value,
                     mapTema(temaer),
                     pageSize,
                     previousPageRef
                 )
             return DokumenterResponse(
                 dokumenter = dokumentoversiktBruker.journalposter.map { journalpost ->
-                    dokumentMapper.mapJournalpostToDokumentReferanse(journalpost, klagebehandling)
+                    dokumentMapper.mapJournalpostToDokumentReferanse(journalpost, behandling)
                 },
                 pageReference = if (dokumentoversiktBruker.sideInfo.finnesNesteSide) {
                     dokumentoversiktBruker.sideInfo.sluttpeker
@@ -60,11 +61,10 @@ class DokumentService(
     private fun mapTema(temaer: List<Tema>): List<no.nav.klage.oppgave.clients.saf.graphql.Tema> =
         temaer.map { tema -> no.nav.klage.oppgave.clients.saf.graphql.Tema.valueOf(tema.name) }
 
-
-    fun fetchJournalposterConnectedToKlagebehandling(klagebehandling: Klagebehandling): DokumenterResponse {
-        val dokumentReferanser = klagebehandling.saksdokumenter.groupBy { it.journalpostId }.keys
+    fun fetchJournalposterConnectedToBehandling(behandling: Behandling): DokumenterResponse {
+        val dokumentReferanser = behandling.saksdokumenter.groupBy { it.journalpostId }.keys
             .mapNotNull { safGraphQlClient.getJournalpostAsSaksbehandler(it) }
-            .map { dokumentMapper.mapJournalpostToDokumentReferanse(it, klagebehandling) }
+            .map { dokumentMapper.mapJournalpostToDokumentReferanse(it, behandling) }
         return DokumenterResponse(
             dokumenter = dokumentReferanser.sortedByDescending { it.registrert },
             pageReference = null,
@@ -193,6 +193,33 @@ class DokumentMapper {
         return dokumentReferanse
     }
 
+    //TODO: Har ikke tatt høyde for skjerming, ref https://confluence.adeo.no/pages/viewpage.action?pageId=320364687
+    fun mapJournalpostToDokumentReferanse(
+        journalpost: Journalpost,
+        behandling: Behandling
+    ): DokumentReferanse {
+
+        val hoveddokument = journalpost.dokumenter?.firstOrNull()
+            ?: throw RuntimeException("Could not find hoveddokument for journalpost ${journalpost.journalpostId}")
+
+        val dokumentReferanse = DokumentReferanse(
+            tittel = hoveddokument.tittel,
+            tema = Tema.fromNavn(journalpost.tema?.name).id,
+            registrert = journalpost.datoOpprettet.toLocalDate(),
+            dokumentInfoId = hoveddokument.dokumentInfoId,
+            journalpostId = journalpost.journalpostId,
+            harTilgangTilArkivvariant = harTilgangTilArkivvariant(hoveddokument),
+            valgt = behandling.saksdokumenter.containsDokument(
+                journalpost.journalpostId,
+                hoveddokument.dokumentInfoId
+            )
+        )
+
+        dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost, behandling))
+
+        return dokumentReferanse
+    }
+
     private fun getVedlegg(
         journalpost: Journalpost,
         klagebehandling: Klagebehandling
@@ -204,6 +231,27 @@ class DokumentMapper {
                     dokumentInfoId = vedlegg.dokumentInfoId,
                     harTilgangTilArkivvariant = harTilgangTilArkivvariant(vedlegg),
                     valgt = klagebehandling.saksdokumenter.containsDokument(
+                        journalpost.journalpostId,
+                        vedlegg.dokumentInfoId
+                    )
+                )
+            } ?: throw RuntimeException("could not create VedleggReferanser from dokumenter")
+        } else {
+            emptyList()
+        }
+    }
+
+    private fun getVedlegg(
+        journalpost: Journalpost,
+        behandling: Behandling
+    ): List<DokumentReferanse.VedleggReferanse> {
+        return if ((journalpost.dokumenter?.size ?: 0) > 1) {
+            journalpost.dokumenter?.subList(1, journalpost.dokumenter.size)?.map { vedlegg ->
+                DokumentReferanse.VedleggReferanse(
+                    tittel = vedlegg.tittel,
+                    dokumentInfoId = vedlegg.dokumentInfoId,
+                    harTilgangTilArkivvariant = harTilgangTilArkivvariant(vedlegg),
+                    valgt = behandling.saksdokumenter.containsDokument(
                         journalpost.journalpostId,
                         vedlegg.dokumentInfoId
                     )

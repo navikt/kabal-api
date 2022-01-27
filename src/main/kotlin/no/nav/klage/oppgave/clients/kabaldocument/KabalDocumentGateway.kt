@@ -3,10 +3,10 @@ package no.nav.klage.oppgave.clients.kabaldocument
 import no.nav.klage.oppgave.clients.kabaldocument.model.Rolle
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.FilInput
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.JournalpostId
+import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.DokumentInnhold
 import no.nav.klage.oppgave.domain.DokumentInnholdOgTittel
 import no.nav.klage.oppgave.domain.DokumentMetadata
-import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -28,11 +28,11 @@ class KabalDocumentGateway(
     }
 
     fun createDokumentEnhet(
-        klagebehandling: Klagebehandling
+        behandling: Behandling
     ): UUID {
         return UUID.fromString(
             kabalDocumentClient.createDokumentEnhet(
-                kabalDocumentMapper.mapKlagebehandlingToDokumentEnhetInput(klagebehandling)
+                kabalDocumentMapper.mapBehandlingToDokumentEnhetInput(behandling)
             ).id
         )
     }

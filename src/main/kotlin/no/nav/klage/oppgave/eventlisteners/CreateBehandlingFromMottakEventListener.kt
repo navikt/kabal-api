@@ -27,7 +27,7 @@ class CreateBehandlingFromMottakEventListener(
         val mottakId = mottakLagretEvent.mottak.id
         if (behandlingRepository.findByMottakId(mottakId) != null) {
             logger.error("We already have a behandling for mottak ${mottakId}. This is not supposed to happen.")
-            throw RuntimeException("We already have a behandling for mottak ${mottakId}")
+            throw RuntimeException("We already have a behandling for mottak $mottakId")
         }
 
         if (mottakLagretEvent.mottak.type == Type.KLAGE) {

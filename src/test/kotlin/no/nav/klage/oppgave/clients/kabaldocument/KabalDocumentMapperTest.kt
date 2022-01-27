@@ -13,6 +13,7 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.request.BrevMottakerInpu
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.PartIdInput
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
+import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.klage.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
@@ -83,7 +84,7 @@ class KabalDocumentMapperTest {
                 rolle = "HOVEDADRESSAT"
             )
         )
-        assertThat(mapper.mapBrevMottakere(klagebehandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
     }
 
     @Test
@@ -112,7 +113,7 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
     }
 
     @Test
@@ -147,7 +148,7 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
     }
 
     @Test
@@ -185,7 +186,7 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
     }
 
     @Test
@@ -228,7 +229,7 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
     }
 
     @Test
@@ -271,7 +272,7 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
     }
 
     @Test
@@ -320,7 +321,7 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
     }
 
     @Test
@@ -358,7 +359,7 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
     }
 
     @Test
@@ -401,6 +402,6 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
     }
 }

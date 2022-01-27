@@ -3,16 +3,16 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.annotations.Api
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
+import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
-import no.nav.klage.oppgave.service.KlagebehandlingService
+import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.VedtakService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.logKlagebehandlingMethodDetails
+import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -24,11 +24,11 @@ import java.util.*
 @Api(tags = ["kabal-api"])
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/klagebehandlinger")
-class KlagebehandlingVedtakController(
+class BehandlingVedtakController(
     private val innloggetSaksbehandlerRepository: InnloggetSaksbehandlerRepository,
-    private val klagebehandlingMapper: KlagebehandlingMapper,
+    private val behandlingMapper: BehandlingMapper,
     private val vedtakService: VedtakService,
-    private val klagebehandlingService: KlagebehandlingService,
+    private val behandlingService: BehandlingService,
     private val kabalDocumentGateway: KabalDocumentGateway
 ) {
 
@@ -37,57 +37,57 @@ class KlagebehandlingVedtakController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @PostMapping("/{klagebehandlingid}/resultat/vedlegg")
+    @PostMapping("/{id}/resultat/vedlegg")
     fun postVedlegg(
-        @PathVariable("klagebehandlingid") klagebehandlingId: UUID,
+        @PathVariable("id") behandlingId: UUID,
         @ModelAttribute input: VedtakVedleggInput
     ): VedleggEditedView? {
-        logKlagebehandlingMethodDetails(
-            "postVedlegg",
+        logBehandlingMethodDetails(
+            ::postVedlegg.name,
             innloggetSaksbehandlerRepository.getInnloggetIdent(),
-            klagebehandlingId,
+            behandlingId,
             logger
         )
-        return klagebehandlingMapper.mapToVedleggEditedView(
+        return behandlingMapper.mapToVedleggEditedView(
             vedtakService.knyttVedtaksFilTilVedtak(
-                klagebehandlingId,
+                behandlingId,
                 input,
                 innloggetSaksbehandlerRepository.getInnloggetIdent()
             )
         )
     }
 
-    @DeleteMapping("/{klagebehandlingid}/resultat/vedlegg")
+    @DeleteMapping("/{id}/resultat/vedlegg")
     fun deleteVedlegg(
-        @PathVariable("klagebehandlingid") klagebehandlingId: UUID
+        @PathVariable("id") behandlingId: UUID
     ): VedleggEditedView {
-        logKlagebehandlingMethodDetails(
-            "deleteVedlegg",
+        logBehandlingMethodDetails(
+            ::deleteVedlegg.name,
             innloggetSaksbehandlerRepository.getInnloggetIdent(),
-            klagebehandlingId,
+            behandlingId,
             logger
         )
-        return klagebehandlingMapper.mapToVedleggEditedView(
+        return behandlingMapper.mapToVedleggEditedView(
             vedtakService.slettFilTilknyttetVedtak(
-                klagebehandlingId,
+                behandlingId,
                 innloggetSaksbehandlerRepository.getInnloggetIdent()
             )
         )
     }
 
     @ResponseBody
-    @GetMapping("/{klagebehandlingid}/resultat/pdf")
+    @GetMapping("/{id}/resultat/pdf")
     fun getVedlegg(
-        @PathVariable("klagebehandlingid") klagebehandlingId: UUID
+        @PathVariable("id") behandlingId: UUID
     ): ResponseEntity<ByteArray> {
-        logKlagebehandlingMethodDetails(
-            "getVedlegg",
+        logBehandlingMethodDetails(
+            ::getVedlegg.name,
             innloggetSaksbehandlerRepository.getInnloggetIdent(),
-            klagebehandlingId,
+            behandlingId,
             logger
         )
-        val klagebehandling = klagebehandlingService.getKlagebehandling(klagebehandlingId)
-        val vedtak = vedtakService.getVedtak(klagebehandling)
+        val behandling = behandlingService.getBehandling(behandlingId)
+        val vedtak = vedtakService.getVedtak(behandling)
 
         val arkivertDokumentWithTitle =
             if (vedtak.dokumentEnhetId != null && kabalDocumentGateway.isHovedDokumentUploaded(vedtak.dokumentEnhetId!!)) {
@@ -108,16 +108,18 @@ class KlagebehandlingVedtakController(
 
     @PutMapping("/{id}/resultat/utfall")
     fun setUtfall(
-        @PathVariable("id") klagebehandlingId: UUID,
+        @PathVariable("id") behandlingId: UUID,
         @RequestBody input: VedtakUtfallInput
     ): VedtakEditedView {
-        logKlagebehandlingMethodDetails(
-            "setUtfall", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId,
+        logBehandlingMethodDetails(
+            ::setUtfall.name,
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            behandlingId,
             logger
         )
         return VedtakEditedView(
             vedtakService.setUtfall(
-                klagebehandlingId,
+                behandlingId,
                 input.utfall?.let { Utfall.of(it) },
                 innloggetSaksbehandlerRepository.getInnloggetIdent()
             ).modified
@@ -126,16 +128,18 @@ class KlagebehandlingVedtakController(
 
     @PutMapping("/{id}/resultat/hjemler")
     fun setHjemler(
-        @PathVariable("id") klagebehandlingId: UUID,
+        @PathVariable("id") behandlingId: UUID,
         @RequestBody input: VedtakHjemlerInput
     ): VedtakEditedView {
-        logKlagebehandlingMethodDetails(
-            "setHjemler", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId,
+        logBehandlingMethodDetails(
+            ::setHjemler.name,
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            behandlingId,
             logger
         )
         return VedtakEditedView(
             vedtakService.setHjemler(
-                klagebehandlingId = klagebehandlingId,
+                behandlingId = behandlingId,
                 hjemler = input.hjemler?.map { Registreringshjemmel.of(it) }?.toSet() ?: emptySet(),
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
             ).modified
@@ -144,16 +148,18 @@ class KlagebehandlingVedtakController(
 
     @PutMapping("/{id}/smarteditorid")
     fun setSmartEditorId(
-        @PathVariable("id") klagebehandlingId: UUID,
+        @PathVariable("id") behandlingId: UUID,
         @RequestBody input: SmartEditorIdInput
     ): VedtakEditedView {
-        logKlagebehandlingMethodDetails(
-            "setSmartEditorId", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId,
+        logBehandlingMethodDetails(
+            ::setSmartEditorId.name,
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            behandlingId,
             logger
         )
         return VedtakEditedView(
             modified = vedtakService.setSmartEditorId(
-                klagebehandlingId = klagebehandlingId,
+                behandlingId = behandlingId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerRepository.getInnloggetIdent(),
                 smartEditorId = input.smartEditorId
             ).modified
@@ -162,29 +168,33 @@ class KlagebehandlingVedtakController(
 
     @GetMapping("/{id}/smarteditorid")
     fun getSmartEditorId(
-        @PathVariable("id") klagebehandlingId: UUID
+        @PathVariable("id") behandlingId: UUID
     ): SmartEditorIdView {
-        logKlagebehandlingMethodDetails(
-            "getSmartEditorId", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId,
+        logBehandlingMethodDetails(
+            ::getSmartEditorId.name,
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            behandlingId,
             logger
         )
         return SmartEditorIdView(
-            smartEditorId = klagebehandlingService.getKlagebehandling(klagebehandlingId)
+            smartEditorId = behandlingService.getBehandling(behandlingId)
                 .currentDelbehandling().smartEditorId
         )
     }
 
     @DeleteMapping("/{id}/smarteditorid")
     fun deleteSmartEditorId(
-        @PathVariable("id") klagebehandlingId: UUID
+        @PathVariable("id") behandlingId: UUID
     ): VedtakEditedView {
-        logKlagebehandlingMethodDetails(
-            "deleteSmartEditorId", innloggetSaksbehandlerRepository.getInnloggetIdent(), klagebehandlingId,
+        logBehandlingMethodDetails(
+            ::deleteSmartEditorId.name,
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            behandlingId,
             logger
         )
         return VedtakEditedView(
             modified = vedtakService.deleteSmartEditorId(
-                klagebehandlingId = klagebehandlingId,
+                behandlingId = behandlingId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
             ).modified
         )

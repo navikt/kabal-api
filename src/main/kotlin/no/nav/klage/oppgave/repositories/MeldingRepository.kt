@@ -8,6 +8,6 @@ import java.util.*
 @Repository
 interface MeldingRepository : JpaRepository<Melding, UUID> {
 
-    fun findByKlagebehandlingIdOrderByCreatedDesc(klagebehandlingId: UUID): List<Melding>
+    fun findByBehandlingIdOrderByCreatedDesc(behandlingId: UUID): List<Melding>
 
 }

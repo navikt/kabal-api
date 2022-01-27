@@ -12,7 +12,7 @@ class UtfallNotSetException(msg: String) : ValidationException(msg)
 
 class JournalpostFinalizationException(msg: String) : RuntimeException(msg)
 
-class KlagebehandlingNotFoundException(msg: String) : RuntimeException(msg)
+class BehandlingNotFoundException(msg: String) : RuntimeException(msg)
 
 class VedtakNotFoundException(msg: String) : RuntimeException(msg)
 
@@ -52,8 +52,8 @@ class OversendtKlageReceivedBeforeException(msg: String) : RuntimeException(msg)
 
 class KlagebehandlingSamtidigEndretException(msg: String) : RuntimeException(msg)
 
-class KlagebehandlingAvsluttetException(msg: String) : RuntimeException(msg)
+class BehandlingAvsluttetException(msg: String) : RuntimeException(msg)
 
-class KlagebehandlingManglerMedunderskriverException(msg: String) : RuntimeException(msg)
+class BehandlingManglerMedunderskriverException(msg: String) : RuntimeException(msg)
 
 class EnhetNotFoundForSaksbehandlerException(msg: String) : RuntimeException(msg)

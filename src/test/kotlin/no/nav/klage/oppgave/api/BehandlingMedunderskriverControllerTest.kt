@@ -2,27 +2,22 @@ package no.nav.klage.oppgave.api
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.ninjasquad.springmockk.MockkBean
-import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
-import no.finn.unleash.Unleash
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.oppgave.api.controller.KlagebehandlingController
-import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
-import no.nav.klage.oppgave.api.view.KlagebehandlingMedunderskriveridentInput
+import no.nav.klage.oppgave.api.controller.BehandlingMedunderskriverController
+import no.nav.klage.oppgave.api.mapper.BehandlingMapper
+import no.nav.klage.oppgave.api.view.BehandlingMedunderskriveridentInput
 import no.nav.klage.oppgave.api.view.MedunderskriverFlytResponse
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
+import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
-import no.nav.klage.oppgave.service.KlagebehandlingService
-import no.nav.klage.oppgave.service.SaksbehandlerService
-import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.service.BehandlingService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
-import org.springframework.core.env.Environment
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
@@ -31,9 +26,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-@WebMvcTest(KlagebehandlingController::class)
+@WebMvcTest(BehandlingMedunderskriverController::class)
 @ActiveProfiles("local")
-class KlagebehandlingControllerTest {
+class BehandlingMedunderskriverControllerTest {
 
     @Autowired
     lateinit var mockMvc: MockMvc
@@ -42,31 +37,13 @@ class KlagebehandlingControllerTest {
     lateinit var mapper: ObjectMapper
 
     @MockkBean
-    lateinit var klagebehandlingService: KlagebehandlingService
+    lateinit var behandlingService: BehandlingService
 
     @MockkBean
-    lateinit var klagebehandlingMapper: KlagebehandlingMapper
+    lateinit var behandlingMapper: BehandlingMapper
 
     @MockkBean
     lateinit var innloggetSaksbehandlerRepository: InnloggetSaksbehandlerRepository
-
-    @MockkBean
-    lateinit var saksbehandlerService: SaksbehandlerService
-
-    @MockkBean
-    lateinit var pdlFacade: PdlFacade
-
-    @SpykBean
-    lateinit var environment: Environment
-
-
-    @MockkBean
-    lateinit var unleash: Unleash
-
-    companion object {
-        @Suppress("JAVA_CLASS_ON_COMPANION")
-        private val logger = getLogger(javaClass.enclosingClass)
-    }
 
     private val klagebehandlingId = UUID.randomUUID()
 
@@ -88,16 +65,18 @@ class KlagebehandlingControllerTest {
         kildesystem = Fagsystem.K9,
         kildeReferanse = "abc",
         mottakId = UUID.randomUUID(),
-        delbehandlinger = setOf(Delbehandling(
-            utfall = Utfall.AVVIST,
-            hjemler = mutableSetOf(
-                Registreringshjemmel.ARBML_13
-            ),
-            medunderskriver = MedunderskriverTildeling(
-                saksbehandlerident = "C78901",
-                tidspunkt = LocalDateTime.now()
-            ),
-        )),
+        delbehandlinger = setOf(
+            Delbehandling(
+                utfall = Utfall.AVVIST,
+                hjemler = mutableSetOf(
+                    Registreringshjemmel.ARBML_13
+                ),
+                medunderskriver = MedunderskriverTildeling(
+                    saksbehandlerident = "C78901",
+                    tidspunkt = LocalDateTime.now()
+                ),
+            )
+        ),
         mottattFoersteinstans = LocalDate.now(),
         avsenderEnhetFoersteinstans = "0101"
     )
@@ -110,19 +89,19 @@ class KlagebehandlingControllerTest {
     @Test
     fun `putMedunderskriverident with correct input should return ok`() {
         every {
-            klagebehandlingService.setMedunderskriverIdentAndMedunderskriverFlyt(
+            behandlingService.setMedunderskriverIdentAndMedunderskriverFlyt(
                 any(),
                 any(),
                 any(),
                 any()
             )
-        } returns klagebehandling
-        every { klagebehandlingMapper.mapToMedunderskriverFlytResponse(klagebehandling) } returns MedunderskriverFlytResponse(
+        } returns klagebehandling as Behandling
+        every { behandlingMapper.mapToMedunderskriverFlytResponse(klagebehandling as Behandling) } returns MedunderskriverFlytResponse(
             klagebehandling.modified,
             klagebehandling.currentDelbehandling().medunderskriverFlyt
         )
 
-        val input = KlagebehandlingMedunderskriveridentInput(
+        val input = BehandlingMedunderskriveridentInput(
             "A12345"
         )
 

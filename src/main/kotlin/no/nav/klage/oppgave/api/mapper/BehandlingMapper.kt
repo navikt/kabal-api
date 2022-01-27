@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.api.mapper
 
 
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
@@ -9,6 +10,7 @@ import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
+import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.DokumentMetadata
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
@@ -18,7 +20,7 @@ import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
-class KlagebehandlingMapper(
+class BehandlingMapper(
     private val pdlFacade: PdlFacade,
     private val egenAnsattService: EgenAnsattService,
     private val norg2Client: Norg2Client,
@@ -33,7 +35,15 @@ class KlagebehandlingMapper(
         private val secureLogger = getSecureLogger()
     }
 
-    fun mapKlagebehandlingToKlagebehandlingDetaljerView(klagebehandling: Klagebehandling): BehandlingDetaljerView {
+    fun mapBehandlingToBehandlingDetaljerView(behandling: Behandling): BehandlingDetaljerView {
+        if (behandling.type == Type.KLAGE) {
+            return mapKlagebehandlingToBehandlingDetaljerView(behandling as Klagebehandling)
+        } else {
+            return mapAnkebehandlingToBehandlingDetaljerView(behandling as Ankebehandling)
+        }
+    }
+
+    fun mapKlagebehandlingToBehandlingDetaljerView(klagebehandling: Klagebehandling): BehandlingDetaljerView {
         val enhetNavn = klagebehandling.avsenderEnhetFoersteinstans.let { norg2Client.fetchEnhet(it) }.navn
         val sakenGjelderFoedselsnummer = foedselsnummer(klagebehandling.sakenGjelder.partId)
         val sakenGjelder = sakenGjelderFoedselsnummer?.let { pdlFacade.getPersonInfo(it) }
@@ -53,7 +63,11 @@ class KlagebehandlingMapper(
             klageInnsendtdato = klagebehandling.innsendt,
             fraNAVEnhet = klagebehandling.avsenderEnhetFoersteinstans,
             fraNAVEnhetNavn = enhetNavn,
+            forrigeNAVEnhet = klagebehandling.avsenderEnhetFoersteinstans,
+            forrigeNAVEnhetNavn = enhetNavn,
             fraSaksbehandlerident = klagebehandling.avsenderSaksbehandleridentFoersteinstans,
+            forrigeSaksbehandlerident = klagebehandling.avsenderSaksbehandleridentFoersteinstans,
+            forrigeVedtaksDato = null,
             mottattFoersteinstans = klagebehandling.mottattFoersteinstans,
             sakenGjelder = klagebehandling.sakenGjelder.mapToView(),
             klager = klagebehandling.klager.mapToView(),
@@ -98,6 +112,78 @@ class KlagebehandlingMapper(
             fortrolig = erFortrolig,
             strengtFortrolig = erStrengtFortrolig,
             kvalitetsvurderingId = klagebehandling.kakaKvalitetsvurderingId
+        )
+    }
+
+    fun mapAnkebehandlingToBehandlingDetaljerView(ankebehandling: Ankebehandling): BehandlingDetaljerView {
+        val forrigeEnhetNavn = ankebehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
+        val sakenGjelderFoedselsnummer = foedselsnummer(ankebehandling.sakenGjelder.partId)
+        val sakenGjelder = sakenGjelderFoedselsnummer?.let { pdlFacade.getPersonInfo(it) }
+        val sakenGjelderVirksomhetsnummer = virksomhetsnummer(ankebehandling.sakenGjelder.partId)
+        val sakenGjelderVirksomhet = sakenGjelderVirksomhetsnummer?.let { eregClient.hentOrganisasjon(it) }
+        val klagerFoedselsnummer = foedselsnummer(ankebehandling.klager.partId)
+        val klager = klagerFoedselsnummer?.let { pdlFacade.getPersonInfo(it) }
+        val klagerVirksomhetsnummer = virksomhetsnummer(ankebehandling.klager.partId)
+        val klagerVirksomhet = klagerVirksomhetsnummer?.let { eregClient.hentOrganisasjon(it) }
+
+        val erFortrolig = sakenGjelder?.harBeskyttelsesbehovFortrolig() ?: false
+        val erStrengtFortrolig = sakenGjelder?.harBeskyttelsesbehovStrengtFortrolig() ?: false
+        val erEgenAnsatt = sakenGjelderFoedselsnummer?.let { egenAnsattService.erEgenAnsatt(it) } ?: false
+
+        return BehandlingDetaljerView(
+            id = ankebehandling.id,
+            klageInnsendtdato = ankebehandling.innsendt,
+            fraNAVEnhet = ankebehandling.klageBehandlendeEnhet,
+            fraNAVEnhetNavn = forrigeEnhetNavn,
+            forrigeNAVEnhet = ankebehandling.klageBehandlendeEnhet,
+            forrigeNAVEnhetNavn = forrigeEnhetNavn,
+            fraSaksbehandlerident = null,
+            forrigeSaksbehandlerident = null,
+            forrigeVedtaksDato = ankebehandling.klageVedtaksDato,
+            mottattFoersteinstans = null,
+            sakenGjelder = ankebehandling.sakenGjelder.mapToView(),
+            klager = ankebehandling.klager.mapToView(),
+            sakenGjelderFoedselsnummer = sakenGjelderFoedselsnummer,
+            sakenGjelderNavn = sakenGjelder.mapNavnToView(),
+            sakenGjelderKjoenn = sakenGjelder?.kjoenn,
+            sakenGjelderVirksomhetsnummer = sakenGjelderVirksomhetsnummer,
+            sakenGjelderVirksomhetsnavn = sakenGjelderVirksomhet?.navn?.sammensattNavn(),
+            klagerFoedselsnummer = klagerFoedselsnummer,
+            klagerVirksomhetsnummer = klagerVirksomhetsnummer,
+            klagerVirksomhetsnavn = klagerVirksomhet?.navn?.sammensattNavn(),
+            klagerNavn = klager.mapNavnToView(),
+            klagerKjoenn = klager?.kjoenn,
+            tema = ankebehandling.ytelse.toTema().id,
+            ytelse = ankebehandling.ytelse.id,
+            type = ankebehandling.type.id,
+            mottatt = ankebehandling.mottattKlageinstans.toLocalDate(),
+            mottattKlageinstans = ankebehandling.mottattKlageinstans.toLocalDate(),
+            tildelt = ankebehandling.tildeling?.tidspunkt?.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = ankebehandling.currentDelbehandling().avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = ankebehandling.currentDelbehandling().avsluttetAvSaksbehandler != null,
+            frist = ankebehandling.frist,
+            tildeltSaksbehandlerident = ankebehandling.tildeling?.saksbehandlerident,
+            tildeltSaksbehandler = berikSaksbehandler(ankebehandling.tildeling?.saksbehandlerident),
+            tildeltSaksbehandlerEnhet = ankebehandling.tildeling?.enhet,
+            medunderskriverident = ankebehandling.currentDelbehandling().medunderskriver?.saksbehandlerident,
+            medunderskriver = berikSaksbehandler(ankebehandling.currentDelbehandling().medunderskriver?.saksbehandlerident),
+            medunderskriverFlyt = ankebehandling.currentDelbehandling().medunderskriverFlyt,
+            datoSendtMedunderskriver = ankebehandling.currentDelbehandling().medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemler = ankebehandling.hjemler.map { it.id },
+            modified = ankebehandling.modified,
+            created = ankebehandling.created,
+            resultat = ankebehandling.currentDelbehandling().mapToVedtakView(),
+            kommentarFraFoersteinstans = null,
+            tilknyttedeDokumenter = ankebehandling.saksdokumenter.map {
+                TilknyttetDokument(
+                    journalpostId = it.journalpostId,
+                    dokumentInfoId = it.dokumentInfoId
+                )
+            }.toSet(),
+            egenAnsatt = erEgenAnsatt,
+            fortrolig = erFortrolig,
+            strengtFortrolig = erStrengtFortrolig,
+            kvalitetsvurderingId = ankebehandling.kakaKvalitetsvurderingId
         )
     }
 
@@ -199,14 +285,10 @@ class KlagebehandlingMapper(
             null
         }
 
-    fun mapKlagebehandlingToKlagebehandlingEditableFieldsView(klagebehandling: Klagebehandling): KlagebehandlingEditedView {
-        return KlagebehandlingEditedView(klagebehandling.modified)
-    }
-
-    fun mapToVedleggEditedView(klagebehandling: Klagebehandling): VedleggEditedView {
+    fun mapToVedleggEditedView(behandling: Behandling): VedleggEditedView {
         return VedleggEditedView(
-            klagebehandling.modified,
-            file = getVedleggView(klagebehandling.currentDelbehandling().dokumentEnhetId),
+            behandling.modified,
+            file = getVedleggView(behandling.currentDelbehandling().dokumentEnhetId),
         )
     }
 
@@ -217,29 +299,22 @@ class KlagebehandlingMapper(
         )
     }
 
-    fun mapToMedunderskriverFlytResponse(klagebehandling: Klagebehandling): MedunderskriverFlytResponse {
+    fun mapToMedunderskriverFlytResponse(behandling: Behandling): MedunderskriverFlytResponse {
         return MedunderskriverFlytResponse(
-            klagebehandling.modified,
-            klagebehandling.currentDelbehandling().medunderskriverFlyt
+            behandling.modified,
+            behandling.currentDelbehandling().medunderskriverFlyt
         )
     }
 
-    fun mapToMedunderskriverInfoView(klagebehandling: Klagebehandling): MedunderskriverInfoView {
-        return MedunderskriverInfoView(
-            klagebehandling.currentDelbehandling().medunderskriver?.let { berikSaksbehandler(klagebehandling.currentDelbehandling().medunderskriver!!.saksbehandlerident) },
-            klagebehandling.currentDelbehandling().medunderskriverFlyt
-        )
-    }
-
-    fun mapToMedunderskriverView(klagebehandling: Klagebehandling): MedunderskriverView {
+    fun mapToMedunderskriverView(behandling: Behandling): MedunderskriverView {
         return MedunderskriverView(
-            medunderskriver = klagebehandling.currentDelbehandling().medunderskriver?.let { berikSaksbehandler(klagebehandling.currentDelbehandling().medunderskriver!!.saksbehandlerident) }
+            medunderskriver = behandling.currentDelbehandling().medunderskriver?.let { berikSaksbehandler(behandling.currentDelbehandling().medunderskriver!!.saksbehandlerident) }
         )
     }
 
-    fun mapToMedunderskriverFlytView(klagebehandling: Klagebehandling): MedunderskriverFlytView {
+    fun mapToMedunderskriverFlytView(behandling: Behandling): MedunderskriverFlytView {
         return MedunderskriverFlytView(
-            medunderskriverFlyt = klagebehandling.currentDelbehandling().medunderskriverFlyt
+            medunderskriverFlyt = behandling.currentDelbehandling().medunderskriverFlyt
         )
     }
 }

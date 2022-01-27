@@ -22,7 +22,7 @@ class MeldingService(
     }
 
     fun addMelding(
-        klagebehandlingId: UUID,
+        behandlingId: UUID,
         innloggetIdent: String,
         text: String
     ): Melding {
@@ -30,7 +30,7 @@ class MeldingService(
         return meldingRepository.save(
             Melding(
                 text = text,
-                klagebehandlingId = klagebehandlingId,
+                behandlingId = behandlingId,
                 saksbehandlerident = innloggetIdent,
                 created = LocalDateTime.now()
             )
@@ -38,7 +38,7 @@ class MeldingService(
     }
 
     fun deleteMelding(
-        klagebehandlingId: UUID,
+        behandlingId: UUID,
         innloggetIdent: String,
         meldingId: UUID
     ) {
@@ -55,7 +55,7 @@ class MeldingService(
     }
 
     fun modifyMelding(
-        klagebehandlingId: UUID,
+        behandlingId: UUID,
         innloggetIdent: String,
         meldingId: UUID,
         text: String
@@ -76,8 +76,8 @@ class MeldingService(
         }
     }
 
-    fun getMeldingerForKlagebehandling(klagebehandlingId: UUID) =
-        meldingRepository.findByKlagebehandlingIdOrderByCreatedDesc(klagebehandlingId)
+    fun getMeldingerForBehandling(behandlingId: UUID) =
+        meldingRepository.findByBehandlingIdOrderByCreatedDesc(behandlingId)
 
     private fun validateRightsToModifyMelding(melding: Melding, innloggetIdent: String) {
         if (melding.saksbehandlerident != innloggetIdent) {

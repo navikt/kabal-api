@@ -18,3 +18,12 @@ fun logKlagebehandlingMethodDetails(methodName: String, innloggetIdent: String, 
         klagebehandlingId
     )
 }
+
+fun logBehandlingMethodDetails(methodName: String, innloggetIdent: String, behandlingId: UUID, logger: Logger) {
+    logger.debug(
+        "{} is requested by ident {} for behandlingId {}",
+        methodName,
+        innloggetIdent,
+        behandlingId
+    )
+}

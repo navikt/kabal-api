@@ -44,7 +44,7 @@ import java.util.*
 
 @ActiveProfiles("local")
 @Import(KlagebehandlingDistribusjonServiceTest.MyTestConfiguration::class)
-@SpringBootTest(classes = [KlagebehandlingService::class, KlagebehandlingDistribusjonService::class, VedtakService::class])
+@SpringBootTest(classes = [KlagebehandlingService::class, KlagebehandlingDistribusjonService::class, VedtakService::class, BehandlingService::class])
 @EnableJpaRepositories(basePackages = ["no.nav.klage.oppgave.repositories"])
 @EntityScan("no.nav.klage.oppgave.domain")
 @AutoConfigureDataJpa

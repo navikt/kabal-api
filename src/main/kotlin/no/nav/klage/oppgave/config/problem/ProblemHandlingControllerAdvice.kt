@@ -50,8 +50,8 @@ interface OurOwnExceptionAdviceTrait : AdviceTrait {
         create(Status.NOT_FOUND, ex, request)
 
     @ExceptionHandler
-    fun handleKlagebehandlingNotFound(
-        ex: KlagebehandlingNotFoundException,
+    fun handleBehandlingNotFound(
+        ex: BehandlingNotFoundException,
         request: NativeWebRequest
     ): ResponseEntity<Problem> =
         create(Status.NOT_FOUND, ex, request)
@@ -85,8 +85,8 @@ interface OurOwnExceptionAdviceTrait : AdviceTrait {
         create(Status.BAD_REQUEST, ex, request)
 
     @ExceptionHandler
-    fun handleKlagebehandlingAvsluttetException(
-        ex: KlagebehandlingAvsluttetException,
+    fun handleBehandlingAvsluttetException(
+        ex: BehandlingAvsluttetException,
         request: NativeWebRequest
     ): ResponseEntity<Problem> =
         create(Status.FORBIDDEN, ex, request)
@@ -129,8 +129,8 @@ interface OurOwnExceptionAdviceTrait : AdviceTrait {
         create(Status.CONFLICT, ex, request)
 
     @ExceptionHandler
-    fun handleKlagebehandlingManglerMedunderskriverException(
-        ex: KlagebehandlingManglerMedunderskriverException,
+    fun handleBehandlingManglerMedunderskriverException(
+        ex: BehandlingManglerMedunderskriverException,
         request: NativeWebRequest
     ): ResponseEntity<Problem> =
         create(Status.BAD_REQUEST, ex, request)

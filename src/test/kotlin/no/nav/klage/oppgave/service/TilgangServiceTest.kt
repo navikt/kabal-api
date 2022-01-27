@@ -12,7 +12,7 @@ import no.nav.klage.oppgave.clients.pdl.Beskyttelsesbehov
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.exceptions.KlagebehandlingAvsluttetException
+import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
@@ -63,7 +63,7 @@ class TilgangServiceTest {
             )),
         )
 
-        assertThrows<KlagebehandlingAvsluttetException> {
+        assertThrows<BehandlingAvsluttetException> {
             tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(
                 klage
             )
@@ -97,7 +97,7 @@ class TilgangServiceTest {
             )),
         )
 
-        assertThrows<KlagebehandlingAvsluttetException> {
+        assertThrows<BehandlingAvsluttetException> {
             tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(
                 klage
             )

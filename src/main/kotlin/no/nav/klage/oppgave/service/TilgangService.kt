@@ -3,8 +3,9 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
+import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
-import no.nav.klage.oppgave.exceptions.KlagebehandlingAvsluttetException
+import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
@@ -28,7 +29,7 @@ class TilgangService(
 
     fun verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling: Klagebehandling) {
         if (klagebehandling.currentDelbehandling().avsluttetAvSaksbehandler != null || klagebehandling.currentDelbehandling().avsluttet != null) {
-            throw KlagebehandlingAvsluttetException("Kan ikke endre avsluttet klagebehandling")
+            throw BehandlingAvsluttetException("Kan ikke endre avsluttet klagebehandling")
         }
         val ident = innloggetSaksbehandlerRepository.getInnloggetIdent()
         if (!saksbehandlerHarSkrivetilgang(klagebehandling, ident)) {
@@ -36,12 +37,25 @@ class TilgangService(
         }
     }
 
+    fun verifyInnloggetSaksbehandlersSkrivetilgang(behandling: Behandling) {
+        if (behandling.currentDelbehandling().avsluttetAvSaksbehandler != null || behandling.currentDelbehandling().avsluttet != null) {
+            throw BehandlingAvsluttetException("Kan ikke endre avsluttet klagebehandling")
+        }
+        val ident = innloggetSaksbehandlerRepository.getInnloggetIdent()
+        if (!saksbehandlerHarSkrivetilgang(behandling, ident)) {
+            throw MissingTilgangException("Kun tildelt saksbehandler kan endre klagebehandlingen")
+        }
+    }
+
     private fun saksbehandlerHarSkrivetilgang(klagebehandling: Klagebehandling, ident: String): Boolean =
         ident == klagebehandling.tildeling?.saksbehandlerident
 
+    private fun saksbehandlerHarSkrivetilgang(behandling: Behandling, ident: String): Boolean =
+        ident == behandling.tildeling?.saksbehandlerident
+
     fun verifySystembrukersSkrivetilgang(klagebehandling: Klagebehandling) {
         if (klagebehandling.currentDelbehandling().avsluttet != null) {
-            throw KlagebehandlingAvsluttetException("Kan ikke endre avsluttet klagebehandling")
+            throw BehandlingAvsluttetException("Kan ikke endre avsluttet klagebehandling")
         }
     }
 
@@ -70,9 +84,9 @@ class TilgangService(
         }
     }
 
-    fun verifyInnloggetSaksbehandlerErMedunderskriver(klagebehandling: Klagebehandling) {
+    fun verifyInnloggetSaksbehandlerErMedunderskriver(behandling: Behandling) {
         val ident = innloggetSaksbehandlerRepository.getInnloggetIdent()
-        if (ident != klagebehandling.currentDelbehandling().medunderskriver?.saksbehandlerident) {
+        if (ident != behandling.currentDelbehandling().medunderskriver?.saksbehandlerident) {
             throw MissingTilgangException("Innlogget saksbehandler er ikke medunderskriver")
         }
     }

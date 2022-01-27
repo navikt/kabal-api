@@ -8,10 +8,10 @@ import no.nav.klage.oppgave.api.view.MeldingModified
 import no.nav.klage.oppgave.api.view.MeldingView
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
-import no.nav.klage.oppgave.service.KlagebehandlingService
+import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.MeldingService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.logKlagebehandlingMethodDetails
+import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -21,11 +21,11 @@ import java.util.*
 @Api(tags = ["kabal-api"])
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/klagebehandlinger")
-class KlagebehandlingMeldingController(
+class BehandlingMeldingController(
     private val innloggetSaksbehandlerRepository: InnloggetSaksbehandlerRepository,
     private val meldingService: MeldingService,
     private val meldingMapper: MeldingMapper,
-    private val klagebehandlingService: KlagebehandlingService
+    private val behandlingService: BehandlingService,
 ) {
 
     companion object {
@@ -34,23 +34,28 @@ class KlagebehandlingMeldingController(
     }
 
     @ApiOperation(
-        value = "Legg til ny melding til klagebehandling",
-        notes = "Legger inn ny melding på en klagebehandling"
+        value = "Legg til ny melding til behandling",
+        notes = "Legger inn ny melding på en behandling"
     )
     @PostMapping("/{id}/meldinger")
     @ResponseStatus(HttpStatus.CREATED)
     fun addMelding(
-        @PathVariable("id") klagebehandlingId: UUID,
+        @PathVariable("id") behandlingId: UUID,
         @RequestBody input: MeldingInput
     ): MeldingView {
         val innloggetIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
-        logKlagebehandlingMethodDetails("addMelding", innloggetIdent, klagebehandlingId, logger)
+        logBehandlingMethodDetails(
+            ::addMelding.name,
+            innloggetIdent,
+            behandlingId,
+            logger
+        )
 
-        validateAccessToKlagebehandling(klagebehandlingId)
+        validateAccessToBehandling(behandlingId)
 
         return meldingMapper.toMeldingView(
             meldingService.addMelding(
-                klagebehandlingId,
+                behandlingId,
                 innloggetIdent,
                 input.text
             )
@@ -58,60 +63,75 @@ class KlagebehandlingMeldingController(
     }
 
     @ApiOperation(
-        value = "Hent alle meldinger på en klagebehandling",
-        notes = "Henter alle meldinger på en klagebehandling. Sist først."
+        value = "Hent alle meldinger på en behandling",
+        notes = "Henter alle meldinger på en behandling. Sist først."
     )
     @GetMapping("/{id}/meldinger")
     fun getMeldinger(
-        @PathVariable("id") klagebehandlingId: UUID
+        @PathVariable("id") behandlingId: UUID
     ): List<MeldingView> {
         val innloggetIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
-        logKlagebehandlingMethodDetails("getMeldinger", innloggetIdent, klagebehandlingId, logger)
+        logBehandlingMethodDetails(
+            ::getMeldinger.name,
+            innloggetIdent,
+            behandlingId,
+            logger
+        )
 
-        validateAccessToKlagebehandling(klagebehandlingId)
+        validateAccessToBehandling(behandlingId)
 
-        return meldingMapper.toMeldingerView(meldingService.getMeldingerForKlagebehandling(klagebehandlingId))
+        return meldingMapper.toMeldingerView(meldingService.getMeldingerForBehandling(behandlingId))
     }
 
     @ApiOperation(
-        value = "Slett melding på en klagebehandling",
-        notes = "Sletter en melding på en klagebehandling"
+        value = "Slett melding på en behandling",
+        notes = "Sletter en melding på en behandling"
     )
-    @DeleteMapping("/{klagebehandlingId}/meldinger/{meldingId}")
+    @DeleteMapping("/{id}/meldinger/{meldingId}")
     fun deleteMelding(
-        @PathVariable("klagebehandlingId") klagebehandlingId: UUID,
+        @PathVariable("id") behandlingId: UUID,
         @PathVariable("meldingId") meldingId: UUID
     ) {
         val innloggetIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
-        logKlagebehandlingMethodDetails("deleteMelding", innloggetIdent, klagebehandlingId, logger)
+        logBehandlingMethodDetails(
+            ::deleteMelding.name,
+            innloggetIdent,
+            behandlingId,
+            logger
+        )
 
-        validateAccessToKlagebehandling(klagebehandlingId)
+        validateAccessToBehandling(behandlingId)
 
         meldingService.deleteMelding(
-            klagebehandlingId,
+            behandlingId,
             innloggetIdent,
             meldingId
         )
     }
 
     @ApiOperation(
-        value = "Endre meldingstekst på en melding i en klagebehandling",
+        value = "Endre meldingstekst på en melding i en behandling",
         notes = "Endrer tekst på en melding"
     )
-    @PutMapping("/{klagebehandlingId}/meldinger/{meldingId}")
+    @PutMapping("/{id}/meldinger/{meldingId}")
     fun modifyMelding(
-        @PathVariable("klagebehandlingId") klagebehandlingId: UUID,
+        @PathVariable("id") behandlingId: UUID,
         @PathVariable("meldingId") meldingId: UUID,
         @RequestBody input: MeldingInput
     ): MeldingModified {
         val innloggetIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
-        logKlagebehandlingMethodDetails("modifyMelding", innloggetIdent, klagebehandlingId, logger)
+        logBehandlingMethodDetails(
+            ::modifyMelding.name,
+            innloggetIdent,
+            behandlingId,
+            logger
+        )
 
-        validateAccessToKlagebehandling(klagebehandlingId)
+        validateAccessToBehandling(behandlingId)
 
         return meldingMapper.toModifiedView(
             meldingService.modifyMelding(
-                klagebehandlingId,
+                behandlingId,
                 innloggetIdent,
                 meldingId,
                 input.text
@@ -119,8 +139,8 @@ class KlagebehandlingMeldingController(
         )
     }
 
-    private fun validateAccessToKlagebehandling(klagebehandlingId: UUID) {
-        klagebehandlingService.getKlagebehandling(klagebehandlingId)
+    private fun validateAccessToBehandling(behandlingId: UUID) {
+        behandlingService.getBehandling(behandlingId)
     }
 
 }

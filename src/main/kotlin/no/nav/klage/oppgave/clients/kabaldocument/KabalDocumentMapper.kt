@@ -5,7 +5,11 @@ import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.model.Rolle
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.Behandling
+import no.nav.klage.oppgave.domain.klage.Klager
+import no.nav.klage.oppgave.domain.klage.PartId
+import no.nav.klage.oppgave.domain.klage.Prosessfullmektig
+import no.nav.klage.oppgave.domain.klage.SakenGjelder
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -27,49 +31,49 @@ class KabalDocumentMapper(
         private const val KLAGEBEHANDLING_ID_KEY = "klagebehandling_id"
     }
 
-    fun mapKlagebehandlingToDokumentEnhetInput(
-        klagebehandling: Klagebehandling
+    fun mapBehandlingToDokumentEnhetInput(
+        behandling: Behandling
     ): DokumentEnhetInput {
         return DokumentEnhetInput(
-            brevMottakere = mapBrevMottakere(klagebehandling),
+            brevMottakere = mapBrevMottakere(behandling),
             journalfoeringData = JournalfoeringDataInput(
                 sakenGjelder = PartIdInput(
-                    partIdTypeId = klagebehandling.sakenGjelder.partId.type.id,
-                    value = klagebehandling.sakenGjelder.partId.value
+                    partIdTypeId = behandling.sakenGjelder.partId.type.id,
+                    value = behandling.sakenGjelder.partId.value
                 ),
-                temaId = klagebehandling.ytelse.toTema().id,
-                sakFagsakId = klagebehandling.sakFagsakId,
-                sakFagsystemId = klagebehandling.sakFagsystem?.id,
-                kildeReferanse = klagebehandling.id.toString(),
-                enhet = klagebehandling.tildeling!!.enhet!!,
+                temaId = behandling.ytelse.toTema().id,
+                sakFagsakId = behandling.sakFagsakId,
+                sakFagsystemId = behandling.sakFagsystem?.id,
+                kildeReferanse = behandling.id.toString(),
+                enhet = behandling.tildeling!!.enhet!!,
                 behandlingstema = BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS,
                 tittel = BREV_TITTEL,
                 brevKode = BREVKODE,
                 tilleggsopplysning = TilleggsopplysningInput(
                     key = KLAGEBEHANDLING_ID_KEY,
-                    value = klagebehandling.id.toString()
+                    value = behandling.id.toString()
                 )
             )
         )
     }
 
-    fun mapBrevMottakere(klagebehandling: Klagebehandling): List<BrevMottakerInput> {
+    fun mapBrevMottakere(behandling: Behandling): List<BrevMottakerInput> {
         val brevMottakere = mutableListOf<BrevMottakerInput>()
-        if (klagebehandling.klager.prosessfullmektig != null) {
+        if (behandling.klager.prosessfullmektig != null) {
             brevMottakere.add(
                 mapProsessfullmektig(
-                    klagebehandling.klager.prosessfullmektig!!,
+                    behandling.klager.prosessfullmektig!!,
                     Rolle.HOVEDADRESSAT.name
                 )
             )
-            if (klagebehandling.klager.prosessfullmektig!!.skalPartenMottaKopi) {
-                brevMottakere.add(mapKlager(klagebehandling.klager, Rolle.KOPIADRESSAT.name))
+            if (behandling.klager.prosessfullmektig!!.skalPartenMottaKopi) {
+                brevMottakere.add(mapKlager(behandling.klager, Rolle.KOPIADRESSAT.name))
             }
         } else {
-            brevMottakere.add(mapKlager(klagebehandling.klager, Rolle.HOVEDADRESSAT.name))
+            brevMottakere.add(mapKlager(behandling.klager, Rolle.HOVEDADRESSAT.name))
         }
-        if (klagebehandling.sakenGjelder.partId != klagebehandling.klager.partId && klagebehandling.sakenGjelder.skalMottaKopi) {
-            brevMottakere.add(mapSakenGjeder(klagebehandling.sakenGjelder, Rolle.KOPIADRESSAT.name))
+        if (behandling.sakenGjelder.partId != behandling.klager.partId && behandling.sakenGjelder.skalMottaKopi) {
+            brevMottakere.add(mapSakenGjeder(behandling.sakenGjelder, Rolle.KOPIADRESSAT.name))
         }
 
         return brevMottakere

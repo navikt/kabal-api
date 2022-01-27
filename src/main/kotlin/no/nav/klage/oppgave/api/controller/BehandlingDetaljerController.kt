@@ -1,15 +1,15 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.swagger.annotations.Api
-import no.nav.klage.oppgave.api.mapper.KlagebehandlingMapper
+import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.AuditLogEvent
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
-import no.nav.klage.oppgave.service.KlagebehandlingService
+import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.AuditLogger
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.logKlagebehandlingMethodDetails
+import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -21,10 +21,10 @@ import java.util.*
 @Api(tags = ["kabal-api"])
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/klagebehandlinger")
-//TODO: Flytte dette inn i KlagebehandlingController?
-class KlagebehandlingDetaljerController(
-    private val klagebehandlingService: KlagebehandlingService,
-    private val klagebehandlingMapper: KlagebehandlingMapper,
+//TODO: Flytte dette inn i BehandlingController?
+class BehandlingDetaljerController(
+    private val behandlingService: BehandlingService,
+    private val behandlingMapper: BehandlingMapper,
     private val innloggetSaksbehandlerRepository: InnloggetSaksbehandlerRepository,
     private val auditLogger: AuditLogger
 ) {
@@ -36,20 +36,20 @@ class KlagebehandlingDetaljerController(
 
     @GetMapping("/{id}/detaljer")
     fun getBehandlingDetaljer(
-        @PathVariable("id") klagebehandlingId: UUID
+        @PathVariable("id") behandlingId: UUID
     ): BehandlingDetaljerView {
-        logKlagebehandlingMethodDetails(
-            "getBehandlingDetaljer",
+        logBehandlingMethodDetails(
+            ::getBehandlingDetaljer.name,
             innloggetSaksbehandlerRepository.getInnloggetIdent(),
-            klagebehandlingId,
+            behandlingId,
             logger
         )
 
         //TODO Remove when all klagebehandlinger have kakaKvalitetsvurderingId
-        klagebehandlingService.createAndStoreKakaKvalitetsvurderingIdIfMissing(klagebehandlingId)
+        behandlingService.createAndStoreKakaKvalitetsvurderingIdIfMissing(behandlingId)
 
-        return klagebehandlingMapper.mapKlagebehandlingToKlagebehandlingDetaljerView(
-            klagebehandlingService.getKlagebehandling(klagebehandlingId)
+        return behandlingMapper.mapBehandlingToBehandlingDetaljerView(
+            behandlingService.getBehandling(behandlingId)
         ).also {
             auditLogger.log(
                 AuditLogEvent(

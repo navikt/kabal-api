@@ -13,7 +13,7 @@ class Melding(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Column(name = "behandling_id")
-    val klagebehandlingId: UUID,
+    val behandlingId: UUID,
     @Column(name = "text")
     var text: String,
     @Column(name = "saksbehandlerident")

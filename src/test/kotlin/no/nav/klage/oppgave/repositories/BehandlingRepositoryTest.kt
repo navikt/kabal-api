@@ -18,13 +18,12 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.LocalTime
 
 @ActiveProfiles("local")
 @DataJpaTest
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class MeldingRepositoryTest {
+class BehandlingRepositoryTest {
 
     companion object {
         @Container
@@ -36,16 +35,13 @@ class MeldingRepositoryTest {
     lateinit var testEntityManager: TestEntityManager
 
     @Autowired
-    lateinit var klagebehandlingRepository: KlagebehandlingRepository
-
-    @Autowired
-    lateinit var meldingRepository: MeldingRepository
+    lateinit var behandlingRepository: BehandlingRepository
 
     @Autowired
     lateinit var mottakRepository: MottakRepository
 
     @Test
-    fun `add meldinger works`() {
+    fun `getOne works`() {
 
         val mottak = Mottak(
             ytelse = Ytelse.OMS_OMP,
@@ -83,40 +79,11 @@ class MeldingRepositoryTest {
             delbehandlinger = setOf(Delbehandling()),
         )
 
-        klagebehandlingRepository.save(klage)
+        behandlingRepository.save(klage)
 
         testEntityManager.flush()
         testEntityManager.clear()
 
-        val foundKlagebehandling = klagebehandlingRepository.findById(klage.id).get()
-        assertThat(foundKlagebehandling).isEqualTo(klage)
-
-        val meldingTil1 = "min melding 1"
-        val meldingTil2 = "min melding 2"
-
-        val melding1 = Melding(
-            text = meldingTil1,
-            saksbehandlerident = "abc123",
-            created = LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 10)),
-            behandlingId = foundKlagebehandling.id
-        )
-        val melding2 = Melding(
-            text = meldingTil2,
-            saksbehandlerident = "abc456",
-            created = LocalDateTime.of(LocalDate.now(), LocalTime.of(20, 20)),
-            behandlingId = foundKlagebehandling.id
-        )
-
-        meldingRepository.save(melding1)
-        meldingRepository.save(melding2)
-
-        testEntityManager.flush()
-        testEntityManager.clear()
-
-        val meldinger = meldingRepository.findByBehandlingIdOrderByCreatedDesc(foundKlagebehandling.id)
-
-        //latest first
-        assertThat(meldinger.first().text).isEqualTo(meldingTil2)
+        assertThat(behandlingRepository.findById(klage.id).get()).isEqualTo(klage)
     }
-
 }
