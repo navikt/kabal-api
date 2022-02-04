@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.service.distribusjon
 
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.service.VedtakService
 import no.nav.klage.oppgave.util.getLogger
@@ -15,6 +17,7 @@ import java.util.*
 class KlagebehandlingDistribusjonService(
     private val klagebehandlingService: KlagebehandlingService,
     private val klagebehandlingAvslutningService: KlagebehandlingAvslutningService,
+    private val behandlingService: BehandlingService,
     private val kabalDocumentGateway: KabalDocumentGateway,
     private val vedtakService: VedtakService
 ) {
@@ -30,7 +33,7 @@ class KlagebehandlingDistribusjonService(
     fun distribuerKlagebehandling(klagebehandlingId: UUID) {
         try {
             val klagebehandling =
-                klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId)
+                behandlingService.getBehandlingForUpdateBySystembruker(klagebehandlingId) as Klagebehandling
 
             logger.debug("Distribuerer dokument med dokumentEnhetId ${klagebehandling.currentDelbehandling().dokumentEnhetId!!} for klagebehandling ${klagebehandling.id}")
             try {

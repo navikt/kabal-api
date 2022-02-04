@@ -7,7 +7,10 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setAvsluttetAvSaksbehandler
-import no.nav.klage.oppgave.exceptions.*
+import no.nav.klage.oppgave.exceptions.InvalidProperty
+import no.nav.klage.oppgave.exceptions.KlagebehandlingFinalizedException
+import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.oppgave.exceptions.ValidationSection
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.context.ApplicationEventPublisher
@@ -42,21 +45,6 @@ class KlagebehandlingService(
         tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling)
     }
 
-    private fun checkSkrivetilgangForSystembruker(klagebehandling: Klagebehandling) {
-        tilgangService.verifySystembrukersSkrivetilgang(klagebehandling)
-    }
-
-    @Transactional(readOnly = true)
-    fun getKlagebehandling(klagebehandlingId: UUID): Klagebehandling =
-        klagebehandlingRepository.findById(klagebehandlingId)
-            .orElseThrow { BehandlingNotFoundException("Klagebehandling med id $klagebehandlingId ikke funnet") }
-            .also { checkLeseTilgang(it) }
-
-    @Transactional(readOnly = true)
-    fun getKlagebehandlingForReadWithoutCheckForAccess(klagebehandlingId: UUID): Klagebehandling =
-        klagebehandlingRepository.findById(klagebehandlingId)
-            .orElseThrow { BehandlingNotFoundException("Klagebehandling med id $klagebehandlingId ikke funnet") }
-
     fun getKlagebehandlingForUpdate(
         klagebehandlingId: UUID,
         ignoreCheckSkrivetilgang: Boolean = false
@@ -64,12 +52,6 @@ class KlagebehandlingService(
         klagebehandlingRepository.getOne(klagebehandlingId)
             .also { checkLeseTilgang(it) }
             .also { if (!ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
-
-    fun getKlagebehandlingForUpdateBySystembruker(
-        klagebehandlingId: UUID,
-    ): Klagebehandling =
-        klagebehandlingRepository.getOne(klagebehandlingId)
-            .also { checkSkrivetilgangForSystembruker(it) }
 
     var muligAnkeUtfall = setOf(
         Utfall.MEDHOLD,

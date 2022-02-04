@@ -6,6 +6,7 @@ import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.KlagebehandlingFullfoertView
 import no.nav.klage.oppgave.api.view.ValidationPassedResponse
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
+import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.exceptions.FeatureNotEnabledException
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.BehandlingService
@@ -76,9 +77,7 @@ class KlagebehandlingController(
         }
 
         klagebehandlingService.validateKlagebehandlingBeforeFinalize(
-            klagebehandlingService.getKlagebehandling(
-                klagebehandlingId
-            )
+            behandling as Klagebehandling
         )
         return ValidationPassedResponse()
     }

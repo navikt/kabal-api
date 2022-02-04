@@ -53,9 +53,9 @@ class TilgangService(
     private fun saksbehandlerHarSkrivetilgang(behandling: Behandling, ident: String): Boolean =
         ident == behandling.tildeling?.saksbehandlerident
 
-    fun verifySystembrukersSkrivetilgang(klagebehandling: Klagebehandling) {
-        if (klagebehandling.currentDelbehandling().avsluttet != null) {
-            throw BehandlingAvsluttetException("Kan ikke endre avsluttet klagebehandling")
+    fun verifySystembrukersSkrivetilgang(behandling: Behandling) {
+        if (behandling.currentDelbehandling().avsluttet != null) {
+            throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
         }
     }
 

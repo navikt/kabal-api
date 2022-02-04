@@ -172,9 +172,9 @@ class VedtakService(
         utfoerendeSaksbehandlerIdent: String,
         journalpostId: JournalpostId
     ): Klagebehandling {
-        val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(
+        val klagebehandling = behandlingService.getBehandlingForUpdateBySystembruker(
             klagebehandlingId
-        )
+        ) as Klagebehandling
 
         val event =
             klagebehandling.setHovedadressatJournalpostIdInVedtak(journalpostId.value, utfoerendeSaksbehandlerIdent)

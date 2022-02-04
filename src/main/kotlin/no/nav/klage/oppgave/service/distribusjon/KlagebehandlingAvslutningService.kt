@@ -10,6 +10,7 @@ import no.nav.klage.oppgave.domain.kafka.KlagevedtakFattet
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setAvsluttet
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
+import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -24,7 +25,8 @@ class KlagebehandlingAvslutningService(
     private val kafkaEventRepository: KafkaEventRepository,
     private val klagebehandlingService: KlagebehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val kabalDocumentGateway: KabalDocumentGateway
+    private val kabalDocumentGateway: KabalDocumentGateway,
+    private val behandlingService: BehandlingService,
 ) {
 
     companion object {
@@ -39,7 +41,7 @@ class KlagebehandlingAvslutningService(
 
     @Transactional
     fun avsluttKlagebehandling(klagebehandlingId: UUID): Klagebehandling {
-        val klagebehandling = klagebehandlingService.getKlagebehandlingForUpdateBySystembruker(klagebehandlingId)
+        val klagebehandling = behandlingService.getBehandlingForUpdateBySystembruker(klagebehandlingId) as Klagebehandling
 
         val journalpostId = klagebehandling.currentDelbehandling().hovedAdressatJournalpostId
 

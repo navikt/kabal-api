@@ -5,6 +5,8 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus.FEILET
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus.IKKE_SENDT
+import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.KafkaDispatcher
 import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.util.getLogger
@@ -15,6 +17,7 @@ import java.util.*
 @Service
 class KlagebehandlingSchedulerService(
     private val klagebehandlingService: KlagebehandlingService,
+    private val behandlingService: BehandlingService,
     private val klagebehandlingDistribusjonService: KlagebehandlingDistribusjonService,
     private val kafkaDispatcher: KafkaDispatcher,
     private val kakaApiGateway: KakaApiGateway
@@ -33,9 +36,9 @@ class KlagebehandlingSchedulerService(
 
         klagebehandlingIdList.forEach { klagebehandlingId ->
             kakaApiGateway.finalizeKlagebehandling(
-                klagebehandlingService.getKlagebehandlingForReadWithoutCheckForAccess(
+                behandlingService.getBehandlingForReadWithoutCheckForAccess(
                     klagebehandlingId
-                )
+                ) as Klagebehandling
             )
             klagebehandlingDistribusjonService.distribuerKlagebehandling(klagebehandlingId)
         }

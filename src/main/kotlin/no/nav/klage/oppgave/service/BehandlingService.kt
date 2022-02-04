@@ -172,6 +172,21 @@ class BehandlingService(
         return behandling.modified
     }
 
+    fun getBehandlingForUpdateBySystembruker(
+        behandlingId: UUID,
+    ): Behandling =
+        behandlingRepository.getOne(behandlingId)
+            .also { checkSkrivetilgangForSystembruker(it) }
+
+    @Transactional(readOnly = true)
+    fun getBehandlingForReadWithoutCheckForAccess(behandlingId: UUID): Behandling =
+        behandlingRepository.findById(behandlingId)
+            .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
+
+    fun checkSkrivetilgangForSystembruker(behandling: Behandling) {
+        tilgangService.verifySystembrukersSkrivetilgang(behandling)
+    }
+
     fun getBehandlingForUpdate(
         behandlingId: UUID,
         ignoreCheckSkrivetilgang: Boolean = false
@@ -187,7 +202,7 @@ class BehandlingService(
         tilgangService.verifyInnloggetSaksbehandlersTilgangTilYtelse(behandling.ytelse)
     }
 
-    private fun checkSkrivetilgang(behandling: Behandling) {
+    fun checkSkrivetilgang(behandling: Behandling) {
         tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling)
     }
 
