@@ -63,7 +63,7 @@ class BehandlingEndretKafkaProducer(
             val errorMessage =
                 "Could not send klage endret to Kafka. Need to resend klagebehandling ${klagebehandling.id} manually. Check secure logs for more information."
             logger.error(errorMessage)
-            secureLogger.error("Could not send klage endret to Kafka", it)
+            secureLogger.error("Could not send klagebehandling ${klagebehandling.id} endret to Kafka", it)
         }
     }
 
@@ -81,7 +81,7 @@ class BehandlingEndretKafkaProducer(
             val errorMessage =
                 "Could not send anke endret to Kafka. Need to resend ankebehandling ${ankebehandling.id} manually. Check secure logs for more information."
             logger.error(errorMessage)
-            secureLogger.error("Could not send anke endret to Kafka", it)
+            secureLogger.error("Could not send ankebehandling ${ankebehandling.id} endret to Kafka", it)
         }
     }
 

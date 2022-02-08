@@ -126,7 +126,9 @@ fun Klagebehandling.mapToSkjemaV2(): BehandlingSkjemaV2 {
                 hjemler = vedtak.first().hjemler.map { it.mapToSkjemaV2() },
             )
         },
-        status = BehandlingSkjemaV2.StatusType.valueOf(getStatus().name)
+        sattPaaVent = sattPaaVent,
+        sattPaaVentExpires = sattPaaVent?.plusWeeks(4),
+        status = BehandlingSkjemaV2.StatusType.valueOf(getStatus().name),
     )
 }
 
@@ -165,6 +167,8 @@ fun Ankebehandling.mapToSkjemaV2(): BehandlingSkjemaV2 {
                 hjemler = vedtak.first().hjemler.map { it.mapToSkjemaV2() },
             )
         },
+        sattPaaVent = sattPaaVent,
+        sattPaaVentExpires = sattPaaVent?.plusWeeks(4),
         status = BehandlingSkjemaV2.StatusType.valueOf(getStatus().name)
     )
 }
@@ -203,7 +207,8 @@ data class BehandlingSkjemaV2(
 
     val saksdokumenter: List<Dokument>,
     val vedtak: Vedtak?,
-
+    val sattPaaVent: LocalDateTime? = null,
+    val sattPaaVentExpires: LocalDateTime? = null,
     val status: StatusType,
 ) {
 
@@ -213,7 +218,7 @@ data class BehandlingSkjemaV2(
     )
 
     enum class StatusType {
-        IKKE_TILDELT, TILDELT, MEDUNDERSKRIVER_VALGT, SENDT_TIL_MEDUNDERSKRIVER, RETURNERT_TIL_SAKSBEHANDLER, AVSLUTTET_AV_SAKSBEHANDLER, FULLFOERT, UKJENT
+        IKKE_TILDELT, TILDELT, MEDUNDERSKRIVER_VALGT, SENDT_TIL_MEDUNDERSKRIVER, RETURNERT_TIL_SAKSBEHANDLER, AVSLUTTET_AV_SAKSBEHANDLER, FULLFOERT, UKJENT, SATT_PAA_VENT
     }
 
     data class Person(
