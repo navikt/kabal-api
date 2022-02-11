@@ -338,7 +338,7 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke koble et dokument som er ferdigstilt")
         }
         if (hovedDokumentSomSkalBliVedlegg.dokumentType != DokumentType.VEDLEGG) {
-            throw DokumentValidationException("Kan ikke koble et dokument ikke er et vedlegg")
+            throw DokumentValidationException("Kan ikke koble et dokument som ikke er et vedlegg")
         }
         if (hovedDokumentSomSkalBliVedlegg.harVedlegg()) {
             throw DokumentValidationException("Et dokument som selv har vedlegg kan ikke bli et vedlegg")
