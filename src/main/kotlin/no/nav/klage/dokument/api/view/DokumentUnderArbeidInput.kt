@@ -10,4 +10,6 @@ data class PersistentDokumentIdInput(val dokumentId: UUID)
 
 data class OptionalPersistentDokumentIdInput(val dokumentId: UUID?)
 
+data class DokumentTitleInput(val title: String)
+
 data class DokumentTypeInput(val dokumentTypeId: String)

@@ -46,14 +46,14 @@ abstract class DokumentUnderArbeid(
     }
 
     fun ferdigstillHvisIkkeAlleredeFerdigstilt(tidspunkt: LocalDateTime) {
-        if (ferdigstilt != null) {
+        if (ferdigstilt == null) {
             ferdigstilt = tidspunkt
             modified = tidspunkt
         }
     }
 
     fun markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt: LocalDateTime) {
-        if (markertFerdig != null) {
+        if (markertFerdig == null) {
             markertFerdig = tidspunkt
             modified = tidspunkt
         }

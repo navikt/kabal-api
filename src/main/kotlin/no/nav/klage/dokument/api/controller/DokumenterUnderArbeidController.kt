@@ -203,4 +203,21 @@ class DokumentUnderArbeidController(
             )
         )
     }
+
+    @PutMapping("/{dokumentid}/title")
+    fun changeDocumentTitle(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentid") dokumentId: UUID,
+        @RequestBody input: DokumentTitleInput,
+    ): DokumentView {
+        val ident = innloggetSaksbehandlerService.getInnloggetIdent()
+        return dokumentMapper.mapToDokumentView(
+            dokumentUnderArbeidService.updateDokumentTitle(
+                behandlingId = behandlingId,
+                persistentDokumentId = PersistentDokumentId(dokumentId),
+                dokumentTitle = input.title,
+                innloggetIdent = ident,
+            )
+        )
+    }
 }

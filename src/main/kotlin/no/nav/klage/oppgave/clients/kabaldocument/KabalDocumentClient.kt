@@ -50,10 +50,10 @@ class KabalDocumentClient(
         input: DokumentEnhetWithDokumentreferanserInput
     ): DokumentEnhetOutput {
         return kabalDocumentWebClient.post()
-            .uri { it.path("/meddokumentreferanser").build() }
+            .uri { it.path("/dokumentenheter/meddokumentreferanser").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalDocumentScope()}"
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalDocumentScope()}"
             )
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)

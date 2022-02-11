@@ -42,29 +42,6 @@ class DokumentUnderArbeidService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun finnOgMarkerFerdigHovedDokument(
-        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
-        hovedDokumentPersistentDokumentId: PersistentDokumentId,
-        ident: String
-    ): DokumentMedParentReferanse {
-        val hovedDokument = hovedDokumentRepository.findByPersistentDokumentId(hovedDokumentPersistentDokumentId)
-            ?: throw DokumentValidationException("Dokument ikke funnet")
-
-        //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingForUpdate(hovedDokument.behandlingId)
-
-        if (hovedDokument.erFerdigstilt()) {
-            throw DokumentValidationException("Kan ikke endre dokumenttype på et dokument som er ferdigstilt")
-        }
-
-        if (hovedDokument.dokumentType == DokumentType.VEDLEGG) {
-            throw DokumentValidationException("Kan ikke markere et vedlegg som ferdig")
-        }
-
-        hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig()
-        return hovedDokument.toDokumentMedParentReferanse()
-    }
-
     fun opprettOgMellomlagreNyttHoveddokument(
         behandlingId: UUID,
         dokumentType: DokumentType,
@@ -155,6 +132,105 @@ class DokumentUnderArbeidService(
         )
         return hovedDokument.toDokumentMedParentReferanse()
     }
+
+    fun updateDokumentTitle(
+        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        persistentDokumentId: PersistentDokumentId,
+        dokumentTitle: String,
+        innloggetIdent: String
+    ): DokumentMedParentReferanse {
+
+        val hovedDokument: HovedDokument? = hovedDokumentRepository.findByPersistentDokumentId(persistentDokumentId)
+        if (hovedDokument != null) {
+
+            //Sjekker tilgang på behandlingsnivå:
+            val behandling = behandlingService.getBehandlingForUpdate(hovedDokument.behandlingId)
+
+            if (hovedDokument.erMarkertFerdig()) {
+                throw DokumentValidationException("Kan ikke endre tittel på et dokument som er ferdigstilt")
+            }
+
+            if (hovedDokument.smartEditorId != null) {
+                //TODO: Legg til støtte for endring av navn på disse.
+                throw DokumentValidationException("Mangler støtte for endring av tittel på smartdokument.")
+            }
+            val oldValue = hovedDokument.name
+            hovedDokument.name = dokumentTitle
+            behandling.publishEndringsloggEvent(
+                saksbehandlerident = innloggetIdent,
+                felt = Felt.DOKUMENT_UNDER_ARBEID_NAME,
+                fraVerdi = oldValue,
+                tilVerdi = hovedDokument.name,
+                tidspunkt = LocalDateTime.now(),
+                persistentDokumentId = hovedDokument.persistentDokumentId,
+            )
+            return hovedDokument.toDokumentMedParentReferanse()
+        } else {
+            val hovedDokumentMedVedlegg =
+                hovedDokumentRepository.findByVedleggPersistentDokumentId(persistentDokumentId)
+                    ?: throw DokumentValidationException("Dokument ikke funnet")
+
+            //Sjekker tilgang på behandlingsnivå:
+            val behandling = behandlingService.getBehandlingForUpdate(hovedDokumentMedVedlegg.behandlingId)
+
+            if (hovedDokumentMedVedlegg.erMarkertFerdig()) {
+                throw DokumentValidationException("Kan ikke endre tittel på et dokument som er ferdigstilt")
+            }
+
+            var vedlegg = hovedDokumentMedVedlegg.findDokumentUnderArbeidByPersistentDokumentId(persistentDokumentId)
+                ?: throw DokumentValidationException("Dokument ikke funnet")
+
+            vedlegg = vedlegg as Vedlegg
+
+            if (vedlegg.smartEditorId != null) {
+                //TODO: Legg til støtte for endring av navn på disse.
+                throw DokumentValidationException("Mangler støtte for endring av tittel på smartdokument.")
+            }
+            val oldValue = vedlegg.name
+            vedlegg.name = dokumentTitle
+            behandling.publishEndringsloggEvent(
+                saksbehandlerident = innloggetIdent,
+                felt = Felt.DOKUMENT_UNDER_ARBEID_NAME,
+                fraVerdi = oldValue,
+                tilVerdi = vedlegg.name,
+                tidspunkt = LocalDateTime.now(),
+                persistentDokumentId = vedlegg.persistentDokumentId,
+            )
+            return vedlegg.toDokumentMedParentReferanse(hovedDokumentMedVedlegg.persistentDokumentId)
+        }
+    }
+
+    fun finnOgMarkerFerdigHovedDokument(
+        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        hovedDokumentPersistentDokumentId: PersistentDokumentId,
+        ident: String
+    ): DokumentMedParentReferanse {
+        val hovedDokument = hovedDokumentRepository.findByPersistentDokumentId(hovedDokumentPersistentDokumentId)
+            ?: throw DokumentValidationException("Dokument ikke funnet")
+
+        //Sjekker tilgang på behandlingsnivå:
+        val behandling = behandlingService.getBehandlingForUpdate(hovedDokument.behandlingId)
+
+        if (hovedDokument.erFerdigstilt()) {
+            throw DokumentValidationException("Kan ikke endre dokumenttype på et dokument som er ferdigstilt")
+        }
+
+        if (hovedDokument.dokumentType == DokumentType.VEDLEGG) {
+            throw DokumentValidationException("Kan ikke markere et vedlegg som ferdig")
+        }
+
+        hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig()
+        behandling.publishEndringsloggEvent(
+            saksbehandlerident = ident,
+            felt = Felt.DOKUMENT_UNDER_ARBEID_MARKERT_FERDIG,
+            fraVerdi = null,
+            tilVerdi = hovedDokument.markertFerdig.toString(),
+            tidspunkt = LocalDateTime.now(),
+            persistentDokumentId = hovedDokument.persistentDokumentId,
+        )
+        return hovedDokument.toDokumentMedParentReferanse()
+    }
+
 
     fun hentMellomlagretDokument(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
@@ -342,7 +418,6 @@ class DokumentUnderArbeidService(
             .toSortedSet()
     }
 
-    //Denne kan kjøres asynkront vha en scheduled task. Er ikke ferdig koda
     fun opprettDokumentEnhet(hovedDokumentId: DokumentId) {
 
         val hovedDokument = hovedDokumentRepository.getById(hovedDokumentId)
