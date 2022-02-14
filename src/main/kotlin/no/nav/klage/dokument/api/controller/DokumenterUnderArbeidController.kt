@@ -45,6 +45,7 @@ class DokumentUnderArbeidController(
                 opplastetFil = dokumenInputMapper.mapToMellomlagretDokument(input.file),
                 json = null,
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                tittel = input.tittel
             )
         )
     }
@@ -62,6 +63,7 @@ class DokumentUnderArbeidController(
                 opplastetFil = null,
                 json = body.json,
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                tittel = body.tittel
             )
         )
     }
@@ -204,7 +206,7 @@ class DokumentUnderArbeidController(
         )
     }
 
-    @PutMapping("/{dokumentid}/title")
+    @PutMapping("/{dokumentid}/tittel")
     fun changeDocumentTitle(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentid") dokumentId: UUID,

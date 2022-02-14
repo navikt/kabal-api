@@ -14,7 +14,7 @@ class DokumentInputMapper {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        const val DEFAULT_FILENAME = "vedtaksbrev.pdf"
+        const val DEFAULT_FILENAME = "filnavn.pdf"
     }
 
     fun mapToMellomlagretDokument(

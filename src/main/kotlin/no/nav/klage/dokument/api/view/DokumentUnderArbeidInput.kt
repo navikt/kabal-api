@@ -4,7 +4,10 @@ import java.util.*
 
 data class HovedDokumentInput(val eksternReferanse: UUID)
 
-data class SmartHovedDokumentInput(val json: String)
+data class SmartHovedDokumentInput(
+    val json: String,
+    val tittel: String?
+)
 
 data class PersistentDokumentIdInput(val dokumentId: UUID)
 

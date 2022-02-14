@@ -63,6 +63,7 @@ internal class DokumentUnderArbeidControllerTest {
                 any(),
                 any(),
                 any(),
+                any(),
             )
         } returns DokumentMedParentReferanse(
             persistentDokumentId = PersistentDokumentId(UUID.randomUUID()),
@@ -105,11 +106,12 @@ internal class DokumentUnderArbeidControllerTest {
 
         val behandlingId = UUID.randomUUID()
         val smartHovedDokumentInput =
-            SmartHovedDokumentInput("{ \"json\": \"is cool\" }")
+            SmartHovedDokumentInput("{ \"json\": \"is cool\" }", "Tittel")
 
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns "IDENT"
         every {
             dokumentUnderArbeidService.opprettOgMellomlagreNyttHoveddokument(
+                any(),
                 any(),
                 any(),
                 any(),

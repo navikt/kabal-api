@@ -48,6 +48,7 @@ class DokumentUnderArbeidService(
         opplastetFil: MellomlagretDokument?,
         json: String?,
         innloggetIdent: String,
+        tittel: String?,
     ): DokumentMedParentReferanse {
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingForUpdate(behandlingId)
@@ -60,7 +61,7 @@ class DokumentUnderArbeidService(
                     mellomlagerId = mellomlagerId,
                     opplastet = LocalDateTime.now(),
                     size = opplastetFil.content.size.toLong(),
-                    name = opplastetFil.title,
+                    name = tittel ?: opplastetFil.title,
                     dokumentType = dokumentType,
                     behandlingId = behandlingId,
                 )
@@ -86,7 +87,7 @@ class DokumentUnderArbeidService(
                     mellomlagerId = mellomlagerId,
                     opplastet = opplastet,
                     size = smartEditorDokument.content.size.toLong(),
-                    name = smartEditorDokument.title,
+                    name = tittel ?: "filnavn.pdf",
                     dokumentType = dokumentType,
                     behandlingId = behandlingId,
                     smartEditorId = smartEditorDokument.smartEditorId,
@@ -150,10 +151,6 @@ class DokumentUnderArbeidService(
                 throw DokumentValidationException("Kan ikke endre tittel på et dokument som er ferdigstilt")
             }
 
-            if (hovedDokument.smartEditorId != null) {
-                //TODO: Legg til støtte for endring av navn på disse.
-                throw DokumentValidationException("Mangler støtte for endring av tittel på smartdokument.")
-            }
             val oldValue = hovedDokument.name
             hovedDokument.name = dokumentTitle
             behandling.publishEndringsloggEvent(
@@ -182,10 +179,6 @@ class DokumentUnderArbeidService(
 
             vedlegg = vedlegg as Vedlegg
 
-            if (vedlegg.smartEditorId != null) {
-                //TODO: Legg til støtte for endring av navn på disse.
-                throw DokumentValidationException("Mangler støtte for endring av tittel på smartdokument.")
-            }
             val oldValue = vedlegg.name
             vedlegg.name = dokumentTitle
             behandling.publishEndringsloggEvent(
