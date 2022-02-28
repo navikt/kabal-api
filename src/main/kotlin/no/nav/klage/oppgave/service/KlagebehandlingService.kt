@@ -16,7 +16,6 @@ import java.util.*
 @Transactional
 class KlagebehandlingService(
     private val klagebehandlingRepository: KlagebehandlingRepository,
-    private val tilgangService: TilgangService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokumentService: DokumentService,
     private val kakaApiGateway: KakaApiGateway,
@@ -26,16 +25,6 @@ class KlagebehandlingService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
-
-    private fun checkSkrivetilgangForSystembruker(klagebehandling: Klagebehandling) {
-        tilgangService.verifySystembrukersSkrivetilgang(klagebehandling)
-    }
-
-    fun getKlagebehandlingForUpdateBySystembruker(
-        klagebehandlingId: UUID,
-    ): Klagebehandling =
-        klagebehandlingRepository.getOne(klagebehandlingId)
-            .also { checkSkrivetilgangForSystembruker(it) }
 
     var muligAnkeUtfall = setOf(
         Utfall.MEDHOLD,

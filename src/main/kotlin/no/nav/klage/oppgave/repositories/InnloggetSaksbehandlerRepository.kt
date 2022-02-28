@@ -44,10 +44,6 @@ class InnloggetSaksbehandlerRepository(
 
     fun kanBehandleEgenAnsatt(): Boolean = tokenUtil.getRollerFromToken().hasRole(kanBehandleEgenAnsattRole)
 
-    fun harTilgangTilEnhet(enhetId: String): Boolean {
-        return saksbehandlerRepository.harTilgangTilEnhet(getInnloggetIdent(), enhetId)
-    }
-
     fun harTilgangTilYtelse(ytelse: Ytelse): Boolean {
         return saksbehandlerRepository.harTilgangTilYtelse(getInnloggetIdent(), ytelse)
     }

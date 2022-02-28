@@ -44,16 +44,6 @@ internal class SaksbehandlerInfoRepositoryTest {
     }
 
     @Test
-    fun harTilgangTilEnhet() {
-        every { msClient.getDataOmInnloggetSaksbehandler() } returns personligInfo()
-
-        val softly = SoftAssertions()
-        softly.assertThat(repo.harTilgangTilEnhet("01010112345", "4295")).isEqualTo(true)
-        softly.assertThat(repo.harTilgangTilEnhet("01010112345", "4291")).isEqualTo(false)
-        softly.assertAll()
-    }
-
-    @Test
     fun harTilgangTilYtelse() {
         every { msClient.getDataOmInnloggetSaksbehandler() } returns personligInfo()
 

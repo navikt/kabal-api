@@ -6,6 +6,7 @@ import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 
 @Service
+//TODO: Fjern denne og bakenforliggende greier
 class OppgaveService(val oppgaveClient: OppgaveClient) {
 
     companion object {

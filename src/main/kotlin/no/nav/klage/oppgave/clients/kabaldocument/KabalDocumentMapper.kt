@@ -33,32 +33,6 @@ class KabalDocumentMapper(
         private const val KLAGEBEHANDLING_ID_KEY = "klagebehandling_id"
     }
 
-    fun mapBehandlingToDokumentEnhetInput(
-        behandling: Behandling
-    ): DokumentEnhetInput {
-        return DokumentEnhetInput(
-            brevMottakere = mapBrevMottakere(behandling),
-            journalfoeringData = JournalfoeringDataInput(
-                sakenGjelder = PartIdInput(
-                    partIdTypeId = behandling.sakenGjelder.partId.type.id,
-                    value = behandling.sakenGjelder.partId.value
-                ),
-                temaId = behandling.ytelse.toTema().id,
-                sakFagsakId = behandling.sakFagsakId,
-                sakFagsystemId = behandling.sakFagsystem?.id,
-                kildeReferanse = behandling.id.toString(),
-                enhet = behandling.tildeling!!.enhet!!,
-                behandlingstema = BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS,
-                tittel = BREV_TITTEL,
-                brevKode = BREVKODE,
-                tilleggsopplysning = TilleggsopplysningInput(
-                    key = KLAGEBEHANDLING_ID_KEY,
-                    value = behandling.id.toString()
-                )
-            )
-        )
-    }
-
     fun mapBehandlingToDokumentEnhetWithDokumentreferanser(
         behandling: Behandling,
         hovedDokument: DokumentUnderArbeid,

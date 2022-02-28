@@ -40,10 +40,6 @@ class SaksbehandlerRepository(
         ) ?: false
     }
 
-    fun harTilgangTilEnhet(ident: String, enhetId: String): Boolean {
-        return getEnheterMedYtelserForSaksbehandler(ident).enheter.firstOrNull { it.enhet.enhetId == enhetId } != null
-    }
-
     fun harTilgangTilYtelse(ident: String, ytelse: Ytelse): Boolean {
         return getEnheterMedYtelserForSaksbehandler(ident).enheter.flatMap { it.ytelser }.contains(ytelse)
     }

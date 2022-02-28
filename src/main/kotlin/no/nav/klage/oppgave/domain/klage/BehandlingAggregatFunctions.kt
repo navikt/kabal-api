@@ -7,7 +7,6 @@ import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
 
 object BehandlingAggregatFunctions {
 
@@ -172,27 +171,6 @@ object BehandlingAggregatFunctions {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
-    fun Behandling.setDokumentEnhetIdInVedtak(
-        nyVerdi: UUID?,
-        saksbehandlerident: String
-    ): BehandlingEndretEvent {
-        val gammelVerdi = currentDelbehandling().dokumentEnhetId
-        val tidspunkt = LocalDateTime.now()
-        currentDelbehandling().dokumentEnhetId = nyVerdi
-        currentDelbehandling().modified = tidspunkt
-        modified = tidspunkt
-        val endringslogg = listOfNotNull(
-            endringslogg(
-                saksbehandlerident,
-                Felt.DOKUMENT_ENHET_ID_I_VEDTAK,
-                gammelVerdi.toString(),
-                nyVerdi.toString(),
-                tidspunkt
-            )
-        )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogg)
-    }
-
     fun Behandling.setAvsluttetAvSaksbehandler(
         saksbehandlerident: String
     ): BehandlingEndretEvent {
@@ -265,46 +243,6 @@ object BehandlingAggregatFunctions {
             id,
             tidspunkt
         )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
-    }
-
-    fun Behandling.setSmartEditorIdInVedtak(
-        nyVerdi: String?,
-        saksbehandlerident: String
-    ): BehandlingEndretEvent {
-        val gammelVerdi = currentDelbehandling().smartEditorId
-        val tidspunkt = LocalDateTime.now()
-        currentDelbehandling().smartEditorId = nyVerdi
-        currentDelbehandling().modified = tidspunkt
-        modified = tidspunkt
-        val endringslogg =
-            endringslogg(
-                saksbehandlerident,
-                Felt.SMART_EDITOR_ID,
-                gammelVerdi,
-                nyVerdi,
-                tidspunkt
-            )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
-    }
-
-    fun Behandling.setHovedadressatJournalpostIdInVedtak(
-        nyVerdi: String?,
-        saksbehandlerident: String
-    ): BehandlingEndretEvent {
-        val gammelVerdi = currentDelbehandling().hovedAdressatJournalpostId
-        val tidspunkt = LocalDateTime.now()
-        currentDelbehandling().hovedAdressatJournalpostId = nyVerdi
-        currentDelbehandling().modified = tidspunkt
-        modified = tidspunkt
-        val endringslogg =
-            endringslogg(
-                saksbehandlerident,
-                Felt.HOVEDADRESSAT_JOURNALPOST,
-                gammelVerdi,
-                nyVerdi,
-                tidspunkt
-            )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 

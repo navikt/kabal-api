@@ -286,13 +286,6 @@ class BehandlingMapper(
             null
         }
 
-    fun mapToVedleggEditedView(behandling: Behandling): VedleggEditedView {
-        return VedleggEditedView(
-            behandling.modified,
-            file = getVedleggView(behandling.currentDelbehandling().dokumentEnhetId),
-        )
-    }
-
     fun mapToBehandlingFullfoertView(behandling: Behandling): BehandlingFullfoertView {
         return BehandlingFullfoertView(
             modified = behandling.modified,

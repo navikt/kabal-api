@@ -65,13 +65,6 @@ class TilgangService(
         }
     }
 
-    fun verifyInnloggetSaksbehandlersTilgangTilEnhet(enhetId: String) {
-        //TODO: Burde man sjekket tilgang til EnhetOgYtelse, ikke bare enhet?
-        if (!innloggetSaksbehandlerRepository.harTilgangTilEnhet(enhetId)) {
-            throw MissingTilgangException("Saksbehandler har ikke tilgang til enhet $enhetId")
-        }
-    }
-
     fun verifySaksbehandlersTilgangTilEnhetOgYtelse(saksbehandlerIdent: String, enhetId: String, ytelse: Ytelse) {
         if (!saksbehandlerRepository.harTilgangTilEnhetOgYtelse(saksbehandlerIdent, enhetId, ytelse)) {
             throw MissingTilgangException("Saksbehandler har ikke tilgang til ytelse $ytelse i enhet $enhetId")
