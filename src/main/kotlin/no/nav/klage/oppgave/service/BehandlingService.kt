@@ -87,7 +87,7 @@ class BehandlingService(
             sectionList.add(
                 ValidationSection(
                     section = "dokumenter",
-                    properties = behandlingValidationErrors
+                    properties = dokumentValidationErrors
                 )
             )
         }
