@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.clients.kabaldocument
 
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentType
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.clients.ereg.EregClient
@@ -28,6 +29,10 @@ class KabalDocumentMapper(
         private val secureLogger = getSecureLogger()
 
         private const val BREV_TITTEL = "Brev fra Klageinstans"
+        private const val VEDTAK_TITTEL = "Vedtaksbrev fra Klageinstans"
+        private const val BESLUTNING_TITTEL = "Beslutningsbrev fra Klageinstans"
+        private const val NOTAT_TITTEL = "Notat fra Klageinstans"
+
         private const val BREVKODE = "BREV_FRA_KLAGEINSTANS"
         private const val BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS = "ab0164"
         private const val KLAGEBEHANDLING_ID_KEY = "klagebehandling_id"
@@ -51,7 +56,7 @@ class KabalDocumentMapper(
                 kildeReferanse = behandling.id.toString(),
                 enhet = behandling.tildeling!!.enhet!!,
                 behandlingstema = BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS,
-                tittel = BREV_TITTEL,
+                tittel = getTittel(hovedDokument.dokumentType),
                 brevKode = BREVKODE,
                 tilleggsopplysning = TilleggsopplysningInput(
                     key = KLAGEBEHANDLING_ID_KEY,
@@ -63,6 +68,15 @@ class KabalDocumentMapper(
                 vedlegg = vedlegg.map { mapDokumentUnderArbeidToDokumentReferanse(it) }
             )
         )
+    }
+
+    private fun getTittel(dokumentType: DokumentType): String {
+        return when (dokumentType) {
+            DokumentType.BREV -> BREV_TITTEL
+            DokumentType.VEDTAK -> VEDTAK_TITTEL
+            DokumentType.BESLUTNING -> BESLUTNING_TITTEL
+            DokumentType.NOTAT -> NOTAT_TITTEL
+        }
     }
 
     private fun mapDokumentUnderArbeidToDokumentReferanse(dokument: DokumentUnderArbeid): DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument {
