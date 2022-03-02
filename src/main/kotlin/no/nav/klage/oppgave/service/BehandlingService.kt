@@ -67,45 +67,55 @@ class BehandlingService(
     }
 
     fun validateBehandlingBeforeFinalize(behandling: Behandling) {
-        val validationErrors = mutableListOf<InvalidProperty>()
+        val dokumentValidationErrors = mutableListOf<InvalidProperty>()
+        val behandlingValidationErrors = mutableListOf<InvalidProperty>()
         val sectionList = mutableListOf<ValidationSection>()
 
         val unfinishedDocuments =
             dokumentUnderArbeidRepository.findByBehandlingIdAndMarkertFerdigIsNull(behandling.id)
 
         if (unfinishedDocuments.isNotEmpty()) {
-            validationErrors.add(
+            dokumentValidationErrors.add(
                 InvalidProperty(
                     field = "dokument",
-                    reason = "Alle dokumenter er ikke ferdigstilt"
+                    reason = "Ferdigstill eller slett alle dokumenter under arbeid."
+                )
+            )
+        }
+
+        if (dokumentValidationErrors.isNotEmpty()) {
+            sectionList.add(
+                ValidationSection(
+                    section = "dokumenter",
+                    properties = behandlingValidationErrors
                 )
             )
         }
 
         if (behandling.currentDelbehandling().utfall == null) {
-            validationErrors.add(
+            behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "utfall",
-                    reason = "Utfall er ikke satt på vedtak"
+                    reason = "Sett et utfall på vedtaket."
                 )
             )
         }
         if (behandling.currentDelbehandling().utfall != Utfall.TRUKKET) {
             if (behandling.currentDelbehandling().hjemler.isEmpty()) {
-                validationErrors.add(
+                behandlingValidationErrors.add(
                     InvalidProperty(
                         field = "hjemmel",
-                        reason = "Hjemmel er ikke satt på vedtak"
+                        reason = "Sett en eller flere hjemler på vedtaket."
                     )
                 )
             }
         }
 
-        if (validationErrors.isNotEmpty()) {
+        if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
                 ValidationSection(
                     section = "behandling",
-                    properties = validationErrors
+                    properties = behandlingValidationErrors
                 )
             )
         }
