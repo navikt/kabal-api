@@ -56,6 +56,7 @@ class KabalDocumentMapper(
                 kildeReferanse = behandling.id.toString(),
                 enhet = behandling.tildeling!!.enhet!!,
                 behandlingstema = BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS,
+                //Tittel gjelder journalposten, ikke selve dokumentet som lastes opp. Vises i Gosys.
                 tittel = getTittel(hovedDokument.dokumentType),
                 brevKode = BREVKODE,
                 tilleggsopplysning = TilleggsopplysningInput(
