@@ -77,7 +77,7 @@ class BehandlingService(
         if (unfinishedDocuments.isNotEmpty()) {
             dokumentValidationErrors.add(
                 InvalidProperty(
-                    field = "dokument",
+                    field = "underArbeid",
                     reason = "Ferdigstill eller slett alle dokumenter under arbeid."
                 )
             )
