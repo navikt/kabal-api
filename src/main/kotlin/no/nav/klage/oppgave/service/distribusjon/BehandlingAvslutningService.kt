@@ -53,8 +53,6 @@ class BehandlingAvslutningService(
                 )
             }
 
-        val journalpostId = null
-
         val eventId = UUID.randomUUID()
 
         val vedtakFattet = KlagevedtakFattet(
@@ -62,7 +60,7 @@ class BehandlingAvslutningService(
             kildeReferanse = behandling.kildeReferanse,
             kilde = behandling.kildesystem.navn,
             utfall = ExternalUtfall.valueOf(behandling.currentDelbehandling().utfall!!.name),
-            vedtaksbrevReferanse = journalpostId,
+            vedtaksbrevReferanse = null,
             kabalReferanse = behandling.currentDelbehandling().id.toString()
         )
         kafkaEventRepository.save(

@@ -171,14 +171,14 @@ class DokumentUnderArbeidService(
         return dokument
     }
 
-    fun updateJournalpostId(
+    private fun updateJournalpostId(
         behandlingId: UUID,
         dokumentId: DokumentId,
         journalpostId: String
     ): DokumentUnderArbeid {
         val dokument = dokumentUnderArbeidRepository.getById(dokumentId)
 
-        val behandling = behandlingService.getBehandlingForUpdateBySystembruker(dokument.behandlingId)
+        val behandling = behandlingService.getBehandlingForUpdateBySystembruker(behandlingId)
 
         val oldValue = dokument.journalpostId
         dokument.journalpostId = journalpostId
