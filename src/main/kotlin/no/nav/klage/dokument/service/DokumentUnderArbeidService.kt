@@ -39,6 +39,7 @@ class DokumentUnderArbeidService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        const val SYSTEMBRUKER = "SYSTEMBRUKER"
     }
 
     fun opprettOgMellomlagreNyttHoveddokument(
@@ -167,6 +168,30 @@ class DokumentUnderArbeidService(
             tidspunkt = LocalDateTime.now(),
             dokumentId = dokument.id,
         )
+        return dokument
+    }
+
+    fun updateJournalpostId(
+        behandlingId: UUID,
+        dokumentId: DokumentId,
+        journalpostId: String
+    ): DokumentUnderArbeid {
+        val dokument = dokumentUnderArbeidRepository.getById(dokumentId)
+
+        val behandling = behandlingService.getBehandlingForUpdateBySystembruker(dokument.behandlingId)
+
+        val oldValue = dokument.journalpostId
+        dokument.journalpostId = journalpostId
+
+        behandling.publishEndringsloggEvent(
+            saksbehandlerident = SYSTEMBRUKER,
+            felt = Felt.DOKUMENT_UNDER_ARBEID_JOURNALPOST_ID,
+            fraVerdi = oldValue,
+            tilVerdi = dokument.journalpostId,
+            tidspunkt = LocalDateTime.now(),
+            dokumentId = dokument.id,
+        )
+
         return dokument
     }
 
@@ -358,7 +383,7 @@ class DokumentUnderArbeidService(
 
         val journalpost = safClient.getJournalpostAsSystembruker(journalpostId.value)
 
-        //TODO should also store journalpostId/dokumentInfoId in dokumentUnderArbeid
+        updateJournalpostId(behandling.id, hovedDokumentId, journalpostId.value)
 
         val saksdokumenter = journalpost.mapToSaksdokumenter()
         saksdokumenter.forEach { saksdokument ->

@@ -3,6 +3,8 @@ package no.nav.klage.oppgave.service.distribusjon
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentType
+import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setAvsluttet
@@ -21,6 +23,7 @@ class BehandlingAvslutningService(
     private val kafkaEventRepository: KafkaEventRepository,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
+    private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
 ) {
 
     companion object {
@@ -40,17 +43,16 @@ class BehandlingAvslutningService(
     fun avsluttBehandling(behandlingId: UUID): Behandling {
         val behandling = behandlingService.getBehandlingForUpdateBySystembruker(behandlingId)
 
-        //TODO: We don't have access to journalpostId in the new document model yet
-//        val hoveddokumenter =
-//            dokumenterUnderArbeidRepository.findByMarkertFerdigNotNullAndFerdigstiltNotNullAndParentIdIsNullAndBehandlingId(
-//                behandlingId
-//            )
-//            hoveddokumenter.find {
-//                it.dokumentType in listOf(
-//                    DokumentType.VEDTAK,
-//                    DokumentType.BESLUTNING
-//                )
-//            }
+        val hoveddokumenter =
+            dokumentUnderArbeidRepository.findByMarkertFerdigNotNullAndFerdigstiltNotNullAndParentIdIsNullAndBehandlingId(
+                behandlingId
+            ).filter {
+                it.dokumentType in listOf(
+                    DokumentType.VEDTAK,
+                    DokumentType.BESLUTNING
+                )
+            }
+
         val journalpostId = null
 
         val eventId = UUID.randomUUID()
@@ -84,10 +86,11 @@ class BehandlingAvslutningService(
                 klagebehandlingAvsluttet = KlagebehandlingAvsluttetDetaljer(
                     avsluttet = behandling.avsluttetAvSaksbehandler!!,
                     utfall = ExternalUtfall.valueOf(behandling.currentDelbehandling().utfall!!.name),
-                    journalpostReferanser = listOfNotNull(journalpostId) //TODO
+                    journalpostReferanser = hoveddokumenter.mapNotNull{ it.journalpostId }
                 )
             )
         )
+
         kafkaEventRepository.save(
             KafkaEvent(
                 id = UUID.randomUUID(),

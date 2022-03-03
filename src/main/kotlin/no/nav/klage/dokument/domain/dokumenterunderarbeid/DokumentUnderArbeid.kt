@@ -36,6 +36,8 @@ open class DokumentUnderArbeid(
     open var ferdigstilt: LocalDateTime? = null,
     @Column(name = "dokument_enhet_id")
     open var dokumentEnhetId: UUID? = null,
+    @Column(name = "journalpost_id")
+    open var journalpostId: String? = null,
     @Embedded
     @AttributeOverrides(
         value = [
