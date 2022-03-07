@@ -105,7 +105,6 @@ class MottakService(
         tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
         validatePartId(klager.id)
         sakenGjelder?.run { validatePartId(sakenGjelder.id) }
-        validateType(type)
         validateEnhet(forrigeBehandlendeEnhet)
     }
 
