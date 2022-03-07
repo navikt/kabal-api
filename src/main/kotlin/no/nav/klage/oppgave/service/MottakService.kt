@@ -35,7 +35,7 @@ class MottakService(
     private val createBehandlingFromMottakEventListener: CreateBehandlingFromMottakEventListener,
 ) {
 
-    private val lovligeTyperIKabal = LovligeTyper.lovligeTyper(environment)
+    private val lovligeTyperIMottakV2 = LovligeTyper.lovligeTyper(environment)
 
 
     companion object {
@@ -118,7 +118,7 @@ class MottakService(
     }
 
     private fun validateType(type: Type) {
-        if (!lovligeTyperIKabal.contains(type)) {
+        if (!lovligeTyperIMottakV2.contains(type)) {
             throw OversendtKlageNotValidException("Kabal kan ikke motta klager med type $type ennå")
         }
     }
