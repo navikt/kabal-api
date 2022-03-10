@@ -44,9 +44,7 @@ class AdminService(
             behandlingPage.content.map { behandling ->
                 try {
                     if (behandling.type == Type.KLAGE) {
-                        //TODO are both in use?
-                        behandlingEndretKafkaProducer.sendKlageEndretV1(behandling as Klagebehandling)
-                        behandlingEndretKafkaProducer.sendKlageEndretV2(behandling)
+                        behandlingEndretKafkaProducer.sendKlageEndretV2(behandling as Klagebehandling)
                     } else {
                         behandlingEndretKafkaProducer.sendAnkeEndretV2(behandling as Ankebehandling)
                     }

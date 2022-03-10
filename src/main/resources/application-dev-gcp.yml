@@ -19,7 +19,6 @@ AXSYS_APP: axsys
 
 VEDTAK_FATTET_TOPIC: klage.vedtak-fattet.v1
 DVH_STATISTIKK_TOPIC: klage.kabal-statistikk.v1
-KLAGE_ENDRET_TOPIC_V1: klage.klage-endret.v1
 BEHANDLING_ENDRET_TOPIC_V2: klage.behandling-endret.v2
 BEHANDLING_EVENTS_TOPIC: klage.behandling-events.v1
 

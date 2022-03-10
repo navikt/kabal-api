@@ -1,6 +1,8 @@
 apiVersion: kafka.nais.io/v1
 kind: Topic
 metadata:
+  annotations:
+    kafka.nais.io/removeDataWhenResourceIsDeleted: "true"
   name: klage-endret.v1
   namespace: klage
   labels:
