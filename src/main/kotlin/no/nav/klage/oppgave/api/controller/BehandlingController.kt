@@ -102,7 +102,7 @@ class BehandlingController(
 
         val modified = behandlingService.setMottattKlageinstans(
             behandlingId = behandlingId,
-            date = input.date,
+            date = input.date.atStartOfDay(),
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
         )
 

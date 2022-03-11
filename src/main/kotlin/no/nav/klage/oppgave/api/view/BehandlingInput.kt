@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.api.view
 
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 data class BehandlingDateInput(
-    val date: LocalDateTime
+    val date: LocalDate
 )
 
