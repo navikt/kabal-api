@@ -113,14 +113,7 @@ class BehandlingService(
             }
         }
 
-        if (behandling.mottattKlageinstans == null) {
-            behandlingValidationErrors.add(
-                InvalidProperty(
-                    field = "mottattKlageinstans",
-                    reason = "Sett en dato på for Anke mottatt."
-                )
-            )
-        } else if (LocalDateTime.now().isBefore(behandling.mottattKlageinstans)) {
+        if (LocalDateTime.now().isBefore(behandling.mottattKlageinstans)) {
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "mottattKlageinstans",
