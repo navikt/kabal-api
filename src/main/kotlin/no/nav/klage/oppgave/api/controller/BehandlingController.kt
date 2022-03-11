@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.annotations.Api
 import io.swagger.annotations.ApiParam
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
+import no.nav.klage.oppgave.api.view.BehandlingDateInput
 import no.nav.klage.oppgave.api.view.BehandlingEditedView
 import no.nav.klage.oppgave.api.view.BehandlingFullfoertView
 import no.nav.klage.oppgave.api.view.ValidationPassedResponse
@@ -83,6 +84,29 @@ class BehandlingController(
             innloggetSaksbehandlerRepository.getInnloggetIdent()
         )
         return behandlingMapper.mapToBehandlingFullfoertView(klagebehandling)
+    }
+
+
+
+    @PutMapping("/behandlinger/{id}/mottattklageinstans")
+    fun setMottattKlageinstans(
+        @PathVariable("id") behandlingId: UUID,
+        @RequestBody input: BehandlingDateInput
+    ): BehandlingEditedView {
+        logBehandlingMethodDetails(
+            ::setMottattKlageinstans.name,
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        val modified = behandlingService.setMottattKlageinstans(
+            behandlingId = behandlingId,
+            date = input.date,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
+        )
+
+        return BehandlingEditedView(modified = modified)
     }
 
     /**

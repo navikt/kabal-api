@@ -57,3 +57,5 @@ class BehandlingAvsluttetException(msg: String) : RuntimeException(msg)
 class BehandlingManglerMedunderskriverException(msg: String) : RuntimeException(msg)
 
 class EnhetNotFoundForSaksbehandlerException(msg: String) : RuntimeException(msg)
+
+class IllegalOperation(msg: String) : RuntimeException(msg)

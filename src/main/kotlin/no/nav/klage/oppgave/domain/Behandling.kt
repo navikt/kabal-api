@@ -32,7 +32,7 @@ abstract class Behandling(
     @Column(name = "kilde_referanse")
     open val kildeReferanse: String,
     @Column(name = "dato_mottatt_klageinstans")
-    open val mottattKlageinstans: LocalDateTime,
+    open var mottattKlageinstans: LocalDateTime,
     @Column(name = "mottak_id")
     open val mottakId: UUID,
     @Column(name = "kildesystem")

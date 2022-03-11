@@ -158,6 +158,13 @@ interface OurOwnExceptionAdviceTrait : AdviceTrait {
         create(Status.INTERNAL_SERVER_ERROR, ex, request)
 
     @ExceptionHandler
+    fun handleIllegalOperation(
+        ex: IllegalOperation,
+        request: NativeWebRequest
+    ): ResponseEntity<Problem> =
+        create(Status.BAD_REQUEST, ex, request)
+
+    @ExceptionHandler
     fun handleSectionedValidationErrorWithDetailsException(
         ex: SectionedValidationErrorWithDetailsException,
         request: NativeWebRequest

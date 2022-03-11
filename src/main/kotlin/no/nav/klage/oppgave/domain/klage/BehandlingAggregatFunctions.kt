@@ -131,6 +131,25 @@ object BehandlingAggregatFunctions {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
     }
 
+    fun Behandling.setMottattKlageinstans(
+        nyVerdi: LocalDateTime,
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val gammelVerdi = mottattKlageinstans
+        val tidspunkt = LocalDateTime.now()
+        mottattKlageinstans = nyVerdi
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident,
+                Felt.DATO_MOTTATT_KLAGEINSTANS,
+                gammelVerdi.toString(),
+                nyVerdi.toString(),
+                tidspunkt
+            )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
     fun Behandling.setHjemlerInVedtak(
         nyVerdi: Set<Registreringshjemmel>,
         saksbehandlerident: String

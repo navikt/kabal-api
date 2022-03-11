@@ -7,11 +7,13 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.Behandling
+import no.nav.klage.oppgave.domain.klage.Ankebehandling
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.addSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.removeSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setAvsluttetAvSaksbehandler
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setMedunderskriverFlyt
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setMedunderskriverIdentAndMedunderskriverFlyt
+import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setMottattKlageinstans
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setSattPaaVent
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setTildeling
 import no.nav.klage.oppgave.domain.klage.Saksdokument
@@ -111,6 +113,22 @@ class BehandlingService(
             }
         }
 
+        if (behandling.mottattKlageinstans == null) {
+            behandlingValidationErrors.add(
+                InvalidProperty(
+                    field = "mottattKlageinstans",
+                    reason = "Sett en dato på for Anke mottatt."
+                )
+            )
+        } else if (LocalDateTime.now().isBefore(behandling.mottattKlageinstans)) {
+            behandlingValidationErrors.add(
+                InvalidProperty(
+                    field = "mottattKlageinstans",
+                    reason = "Denne datoen kan ikke være i fremtiden."
+                )
+            )
+        }
+
         if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
                 ValidationSection(
@@ -174,6 +192,23 @@ class BehandlingService(
             )
         applicationEventPublisher.publishEvent(event)
         return behandling.modified
+    }
+
+    fun setMottattKlageinstans(
+        behandlingId: UUID,
+        date: LocalDateTime,
+        utfoerendeSaksbehandlerIdent: String
+    ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId
+        )
+
+        if (behandling is Ankebehandling) {
+            val event =
+                behandling.setMottattKlageinstans(date, utfoerendeSaksbehandlerIdent)
+            applicationEventPublisher.publishEvent(event)
+            return behandling.modified
+        } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker")
     }
 
     fun setMedunderskriverIdentAndMedunderskriverFlyt(
