@@ -109,8 +109,7 @@ class MottakService(
 
         val mottak = mottakRepository.save(klagebehandling.get().toAnkeMottak(input.innsendtAnkeJournalpostId))
 
-        secureLogger.debug("Har lagret følgende mottak basert på innsendt klagebehandlingId: {}", mottak)
-        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+        logger.debug("Har lagret mottak {}, basert på innsendt klagebehandlingId: {}", mottak.id, klagebehandlingId)
 
         return createBehandlingFromMottakEventListener.createBehandling(MottakLagretEvent(mottak))
     }
