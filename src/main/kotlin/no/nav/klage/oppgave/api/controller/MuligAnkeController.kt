@@ -1,19 +1,20 @@
 package no.nav.klage.oppgave.api.controller
 
+import no.nav.klage.oppgave.api.view.AnkeBasertPaaKlageInput
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.klage.MuligAnke
 import no.nav.klage.oppgave.service.KlagebehandlingService
+import no.nav.klage.oppgave.service.MottakService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 class MuligAnkeController(
-    private val klagebehandlingService: KlagebehandlingService
+    private val klagebehandlingService: KlagebehandlingService,
+    private val mottakService: MottakService
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -33,5 +34,12 @@ class MuligAnkeController(
         @PathVariable("uuid") uuid: UUID
     ): MuligAnke? {
         return klagebehandlingService.findMuligAnkeByPartIdAndKlagebehandlingId(fnr, uuid)
+    }
+
+    @PostMapping("/muliganke/opprettanke")
+    fun sendInnAnkeBasertPaaKabalKlage(
+        @RequestBody input: AnkeBasertPaaKlageInput
+    ) {
+        mottakService.createAnkeMottakBasertPaaKlagebehandlingId(input)
     }
 }
