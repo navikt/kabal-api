@@ -167,17 +167,27 @@ class MockDataController(
     @Unprotected
     @PostMapping("/randomklage")
     fun sendInnRandomKlage(
-        @RequestParam(required = false, name = "e2e") e2e: Boolean = true
+        @RequestParam(required = false, name = "e2e") e2e: Boolean = true,
+        @RequestParam(required = false, name = "ytelse") ytelse: String?
     ): MockDataResponse {
-        return createKlanke(Type.KLAGE, e2e)
+        return if (ytelse != null) {
+            createKlanke(Type.KLAGE, e2e, Ytelse.valueOf(ytelse))
+        } else {
+            createKlanke(Type.KLAGE, e2e)
+        }
     }
 
     @Unprotected
     @PostMapping("/randomanke")
     fun sendInnRandomAnke(
-        @RequestParam(required = false, name = "e2e") e2e: Boolean = true
+        @RequestParam(required = false, name = "e2e") e2e: Boolean = true,
+        @RequestParam(required = false, name = "ytelse") ytelse: String?
     ): MockDataResponse {
-        return createKlanke(Type.ANKE, e2e)
+        return if (ytelse != null) {
+            createKlanke(Type.ANKE, e2e, Ytelse.valueOf(ytelse))
+        } else {
+            createKlanke(Type.ANKE, e2e)
+        }
     }
 
     data class MockDataResponse(
@@ -187,7 +197,7 @@ class MockDataController(
         val hjemmelId: String,
     )
 
-    private fun createKlanke(type: Type, e2e: Boolean = true): MockDataResponse {
+    private fun createKlanke(type: Type, e2e: Boolean = true, ytelse: Ytelse? = null): MockDataResponse {
         val dollyDoc = listOf(
             SyntheticWithDoc("02446701749", "510534792"),
             SyntheticWithDoc("29437117843", "510534815"),
@@ -208,7 +218,7 @@ class MockDataController(
 
         val dato = LocalDate.of(Year.now().value - 1, (1..12).random(), (1..28).random())
 
-        val randomYtelse = if (e2e) Ytelse.SYK_SYK else ytelseTilHjemler.keys.random()
+        val randomYtelse = if (e2e) Ytelse.SYK_SYK else ytelse ?: ytelseTilHjemler.keys.random()
 
         val behandling = mottakService.createMottakForKlageAnkeV3ForE2ETests(
             OversendtKlageAnkeV3(
