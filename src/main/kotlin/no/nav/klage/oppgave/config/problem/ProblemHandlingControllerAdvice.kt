@@ -93,6 +93,13 @@ interface OurOwnExceptionAdviceTrait : AdviceTrait {
         create(Status.FORBIDDEN, ex, request)
 
     @ExceptionHandler
+    fun handlePreviousBehandlingNotFinalizedException(
+        ex: PreviousBehandlingNotFinalizedException,
+        request: NativeWebRequest
+    ): ResponseEntity<Problem> =
+        create(Status.FORBIDDEN, ex, request)
+
+    @ExceptionHandler
     fun handleMissingTilgang(ex: MissingTilgangException, request: NativeWebRequest): ResponseEntity<Problem> =
         create(Status.FORBIDDEN, ex, request)
 
@@ -132,6 +139,13 @@ interface OurOwnExceptionAdviceTrait : AdviceTrait {
     @ExceptionHandler
     fun handleBehandlingManglerMedunderskriverException(
         ex: BehandlingManglerMedunderskriverException,
+        request: NativeWebRequest
+    ): ResponseEntity<Problem> =
+        create(Status.BAD_REQUEST, ex, request)
+
+    @ExceptionHandler
+    fun handleBehandlingManglerTildelingException(
+        ex: BehandlingManglerTildelingException,
         request: NativeWebRequest
     ): ResponseEntity<Problem> =
         create(Status.BAD_REQUEST, ex, request)

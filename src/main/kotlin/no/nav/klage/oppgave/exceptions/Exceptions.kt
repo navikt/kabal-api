@@ -54,7 +54,11 @@ class KlagebehandlingSamtidigEndretException(msg: String) : RuntimeException(msg
 
 class BehandlingAvsluttetException(msg: String) : RuntimeException(msg)
 
+class PreviousBehandlingNotFinalizedException(msg: String) : RuntimeException(msg)
+
 class BehandlingManglerMedunderskriverException(msg: String) : RuntimeException(msg)
+
+class BehandlingManglerTildelingException(msg: String) : RuntimeException(msg)
 
 class EnhetNotFoundForSaksbehandlerException(msg: String) : RuntimeException(msg)
 

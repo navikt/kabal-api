@@ -7,4 +7,5 @@ import java.util.*
 
 @Repository
 interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
+    fun findByKlagebehandlingId(klagebehandlingId: UUID): Ankebehandling?
 }

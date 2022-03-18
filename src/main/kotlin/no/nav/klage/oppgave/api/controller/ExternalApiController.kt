@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
+import no.nav.klage.oppgave.api.view.AnkeBasertPaaKlageInput
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.config.SecurityConfiguration
@@ -47,6 +48,18 @@ class ExternalApiController(
         @Valid @RequestBody oversendtKlageAnke: OversendtKlageAnkeV3
     ) {
         mottakService.createMottakForKlageAnkeV3(oversendtKlageAnke)
+    }
+
+    @ApiOperation(
+        value = "Send inn ankesak til klageinstans basert på klage behandlet i Kabal.",
+        notes = "Endepunkt for å registrere en anke hos klageinstans. Krever at forrige klage er behandlet i Kabal."
+    )
+    @PostMapping("/oversendelse/v3/ankebasertpaaklage")
+    fun sendInnAnkeBasertPaaKabalKlage(
+        @ApiParam(value = "Id på klage behandlet i Kabal")
+        @Valid @RequestBody input: AnkeBasertPaaKlageInput
+    ) {
+        mottakService.createAnkeMottakBasertPaaKlagebehandlingId(input)
     }
 
     @ApiOperation(

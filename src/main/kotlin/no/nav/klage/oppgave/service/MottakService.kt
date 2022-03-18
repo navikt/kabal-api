@@ -8,12 +8,16 @@ import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.config.incrementMottattKlage
 import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.events.MottakLagretEvent
+import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.domain.klage.Mottak
+import no.nav.klage.oppgave.domain.klage.MottakDokument
+import no.nav.klage.oppgave.domain.klage.MottakDokumentType
 import no.nav.klage.oppgave.domain.kodeverk.LovligeTyper
 import no.nav.klage.oppgave.eventlisteners.CreateBehandlingFromMottakEventListener
-import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
-import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
-import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException
+import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.gateway.AzureGateway
+import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
+import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -22,11 +26,16 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 @Service
 class MottakService(
     environment: Environment,
     private val mottakRepository: MottakRepository,
+    private val klagebehandlingRepository: KlagebehandlingRepository,
+    private val ankebehandlingRepository: AnkebehandlingRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokumentService: DokumentService,
     private val norg2Client: Norg2Client,
@@ -84,10 +93,45 @@ class MottakService(
 
         val mottak = mottakRepository.save(oversendtKlageAnke.toMottak())
 
-        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlage: {}", mottak)
+        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlageAnkeV3: {}", mottak)
         logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
 
         return createBehandlingFromMottakEventListener.createBehandling(MottakLagretEvent(mottak))
+    }
+
+    @Transactional
+    fun createAnkeMottakBasertPaaKlagebehandlingId(input: AnkeBasertPaaKlageInput): Behandling {
+        val klagebehandlingId = input.klagebehandlingId
+        logger.debug("Prøver å lagre anke basert på klagebehandlingId {}", klagebehandlingId)
+        val klagebehandling = klagebehandlingRepository.findById(klagebehandlingId)
+
+        validateAnkeCreationBasedOnKlagebehandling(klagebehandling, klagebehandlingId)
+
+        val mottak = mottakRepository.save(klagebehandling.get().toAnkeMottak(input.innsendtAnkeJournalpostId))
+
+        secureLogger.debug("Har lagret følgende mottak basert på innsendt klagebehandlingId: {}", mottak)
+        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+
+        return createBehandlingFromMottakEventListener.createBehandling(MottakLagretEvent(mottak))
+    }
+
+    fun validateAnkeCreationBasedOnKlagebehandling(klagebehandling: Optional<Klagebehandling>, klagebehandlingId: UUID) {
+        if (klagebehandling.isEmpty) {
+            throw BehandlingNotFoundException("Klagebehandling med id $klagebehandlingId ikke funnet")
+        } else if (klagebehandling.get().tildeling == null) {
+            throw BehandlingManglerTildelingException("Klagebehandling med id $klagebehandlingId mangler tildeling")
+        } else if (klagebehandling.get().avsluttet != null) {
+            throw PreviousBehandlingNotFinalizedException("Klagebehanlding med id $klagebehandlingId er ikke fullført")
+        }
+
+        val existingAnke = ankebehandlingRepository.findByKlagebehandlingId(klagebehandlingId)
+
+        if (existingAnke != null) {
+            val message =
+                "Anke har allerede blir opprettet på klagebehandling med id $klagebehandlingId"
+            logger.warn(message)
+            throw DuplicateOversendelseException(message)
+        }
     }
 
     fun OversendtKlageV2.validate() {
@@ -154,5 +198,43 @@ class MottakService(
         if (!isValidFnrOrDnr(partId.verdi)) {
             throw OversendtKlageNotValidException("Ugyldig fødselsnummer")
         }
+    }
+
+    private fun Klagebehandling.toAnkeMottak(innsendtAnkeJournalpostId: String?): Mottak {
+        val innsendtDokument =
+            if (innsendtAnkeJournalpostId != null) {
+                mutableSetOf(
+                    MottakDokument(
+                        type = MottakDokumentType.BRUKERS_ANKE,
+                        journalpostId = innsendtAnkeJournalpostId
+                    )
+                )
+            } else mutableSetOf()
+
+        return Mottak(
+            type = Type.ANKE,
+            klager = klager,
+            sakenGjelder = sakenGjelder,
+            sakFagsystem = sakFagsystem,
+            sakFagsakId = sakFagsakId,
+            kildeReferanse = kildeReferanse,
+            dvhReferanse = dvhReferanse,
+            //Dette er søkehjemler, registreringshjemler blir kopiert over i AnkebehandlingService.
+            hjemler = mottakRepository.getById(id).hjemler,
+            forrigeSaksbehandlerident = tildeling!!.saksbehandlerident,
+            forrigeBehandlendeEnhet = tildeling!!.enhet!!,
+            mottakDokument = innsendtDokument,
+            innsendtDato = LocalDate.now(),
+            brukersHenvendelseMottattNavDato = LocalDate.now(),
+            sakMottattKaDato = LocalDateTime.now(),
+            fristFraFoersteinstans = null,
+            created = LocalDateTime.now(),
+            modified = LocalDateTime.now(),
+            kildesystem = kildesystem,
+            ytelse = ytelse,
+            kommentar = null,
+            forrigeBehandlingId = id,
+            innsynUrl = null
+        )
     }
 }

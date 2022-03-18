@@ -12,6 +12,7 @@ import javax.persistence.*
 class Mottak(
     @Id
     val id: UUID = UUID.randomUUID(),
+    //Ikke i bruk
     @Column(name = "tema_id")
     @Convert(converter = TemaConverter::class)
     val tema: Tema? = null,

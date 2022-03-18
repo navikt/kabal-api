@@ -79,6 +79,7 @@ class BehandlingAvslutningService(
             kildeReferanse = behandling.kildeReferanse,
             kilde = behandling.kildesystem.navn,
             kabalReferanse = behandling.currentDelbehandling().id.toString(),
+            //TODO: sjekk behandlingstype, spesifiser anke når det er tilfellet
             type = BehandlingEventType.KLAGEBEHANDLING_AVSLUTTET,
             detaljer = BehandlingDetaljer(
                 klagebehandlingAvsluttet = KlagebehandlingAvsluttetDetaljer(

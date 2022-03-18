@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.domain.klage.Delbehandling
 import no.nav.klage.oppgave.domain.klage.Mottak
 import no.nav.klage.oppgave.domain.klage.MottakHjemmel
 import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
+import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -17,14 +18,18 @@ import javax.transaction.Transactional
 @Transactional
 class AnkebehandlingService(
     private val ankebehandlingRepository: AnkebehandlingRepository,
+    private val klagebehandlingRepository: KlagebehandlingRepository,
     private val kakaApiGateway: KakaApiGateway,
     private val dokumentService: DokumentService,
+    private val vedtakService: VedtakService,
+    private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        const val SYSTEMBRUKER = "SYSTEMBRUKER"
     }
 
     fun createAnkebehandlingFromMottak(mottak: Mottak): Ankebehandling {
@@ -49,9 +54,33 @@ class AnkebehandlingService(
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
                 kildesystem = mottak.kildesystem,
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
+                klagebehandlingId = mottak.forrigeBehandlingId,
             )
         )
         logger.debug("Created ankebehandling ${ankebehandling.id} for mottak ${mottak.id}")
+
+        if (mottak.forrigeBehandlingId != null) {
+            logger.debug("Getting registreringshjemler from klagebehandling ${mottak.forrigeBehandlingId} for ankebehandling ${ankebehandling.id}")
+            val klagebehandling = klagebehandlingRepository.getById(mottak.forrigeBehandlingId)
+            vedtakService.setHjemler(
+                behandlingId = ankebehandling.id,
+                hjemler = klagebehandling.currentDelbehandling().hjemler,
+                utfoerendeSaksbehandlerIdent = SYSTEMBRUKER,
+            )
+
+            val klagebehandlingDokumenter = klagebehandling.saksdokumenter
+
+            logger.debug("Adding saksdokumenter from klagebehandling ${mottak.forrigeBehandlingId} to ankebehandling ${ankebehandling.id}")
+            klagebehandlingDokumenter.forEach{
+                behandlingService.connectDokumentToBehandling(
+                    behandlingId = ankebehandling.id,
+                    journalpostId = it.journalpostId,
+                    dokumentInfoId = it.dokumentInfoId,
+                    saksbehandlerIdent = SYSTEMBRUKER
+                )
+            }
+        }
+
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = ankebehandling,
