@@ -114,7 +114,10 @@ class MottakService(
         return createBehandlingFromMottakEventListener.createBehandling(MottakLagretEvent(mottak))
     }
 
-    fun validateAnkeCreationBasedOnKlagebehandling(klagebehandling: Optional<Klagebehandling>, klagebehandlingId: UUID) {
+    fun validateAnkeCreationBasedOnKlagebehandling(
+        klagebehandling: Optional<Klagebehandling>,
+        klagebehandlingId: UUID
+    ) {
         if (klagebehandling.isEmpty) {
             throw BehandlingNotFoundException("Klagebehandling med id $klagebehandlingId ikke funnet")
         } else if (klagebehandling.get().tildeling == null) {
@@ -172,6 +175,7 @@ class MottakService(
             throw DuplicateOversendelseException(message)
         }
     }
+
     private fun validateOptionalDateTimeNotInFuture(inputDateTime: LocalDateTime?, parameterName: String) {
         if (inputDateTime != null && LocalDateTime.now().isBefore(inputDateTime))
             throw OversendtKlageNotValidException("$parameterName kan ikke være i fremtiden, innsendt dato var $inputDateTime.")
@@ -183,7 +187,7 @@ class MottakService(
     }
 
     private fun validateKildeReferanse(kildeReferanse: String) {
-        if (kildeReferanse == "")
+        if (kildeReferanse.isEmpty())
             throw OversendtKlageNotValidException("Kildereferanse kan ikke være en tom streng.")
     }
 
