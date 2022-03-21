@@ -201,7 +201,7 @@ class MottakService(
             if (ytelse in ytelseTilHjemler.keys) {
                 hjemler.forEach {
                     if (!ytelseTilHjemler[ytelse]!!.contains(it)) {
-                        throw OversendtKlageNotValidException("Klage med ytelse ${ytelse.navn} kan ikke registreres med hjemmel $it")
+                        throw OversendtKlageNotValidException("Behandling med ytelse ${ytelse.navn} kan ikke registreres med hjemmel $it")
                     }
                 }
             }
