@@ -114,10 +114,7 @@ class MottakService(
         return createBehandlingFromMottakEventListener.createBehandling(MottakLagretEvent(mottak))
     }
 
-    fun validateAnkeCreationBasedOnKlagebehandling(
-        klagebehandling: Optional<Klagebehandling>,
-        klagebehandlingId: UUID
-    ) {
+    fun validateAnkeCreationBasedOnKlagebehandling(klagebehandling: Optional<Klagebehandling>, klagebehandlingId: UUID) {
         if (klagebehandling.isEmpty) {
             throw BehandlingNotFoundException("Klagebehandling med id $klagebehandlingId ikke funnet")
         } else if (klagebehandling.get().tildeling == null) {
@@ -143,6 +140,10 @@ class MottakService(
         sakenGjelder?.run { validatePartId(sakenGjelder.id) }
         validateType(type)
         validateEnhet(avsenderEnhet)
+        validateKildeReferanse(kildeReferanse)
+        validateDateNotInFuture(mottattFoersteinstans, ::mottattFoersteinstans.name)
+        validateDateNotInFuture(innsendtTilNav, ::innsendtTilNav.name)
+        validateOptionalDateTimeNotInFuture(oversendtKaDato, ::oversendtKaDato.name)
         validateSaksbehandler(avsenderSaksbehandlerIdent, avsenderEnhet)
     }
 
@@ -151,6 +152,10 @@ class MottakService(
         tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
         validatePartId(klager.id)
         sakenGjelder?.run { validatePartId(sakenGjelder.id) }
+        validateDateNotInFuture(brukersHenvendelseMottattNavDato, ::brukersHenvendelseMottattNavDato.name)
+        validateDateNotInFuture(innsendtTilNav, ::innsendtTilNav.name)
+        validateOptionalDateTimeNotInFuture(sakMottattKaDato, ::sakMottattKaDato.name)
+        validateKildeReferanse(kildeReferanse)
         validateEnhet(forrigeBehandlendeEnhet)
     }
 
@@ -166,6 +171,20 @@ class MottakService(
             logger.warn(message)
             throw DuplicateOversendelseException(message)
         }
+    }
+    private fun validateOptionalDateTimeNotInFuture(inputDateTime: LocalDateTime?, parameterName: String) {
+        if (inputDateTime != null && LocalDateTime.now().isBefore(inputDateTime))
+            throw OversendtKlageNotValidException("$parameterName kan ikke være i fremtiden, innsendt dato var $inputDateTime.")
+    }
+
+    private fun validateDateNotInFuture(inputDate: LocalDate, parameterName: String) {
+        if (LocalDate.now().isBefore(inputDate))
+            throw OversendtKlageNotValidException("$parameterName kan ikke være i fremtiden, innsendt dato var $inputDate.")
+    }
+
+    private fun validateKildeReferanse(kildeReferanse: String) {
+        if (kildeReferanse == "")
+            throw OversendtKlageNotValidException("Kildereferanse kan ikke være en tom streng.")
     }
 
     private fun validateType(type: Type) {

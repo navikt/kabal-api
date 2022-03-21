@@ -20,5 +20,23 @@ fun isValidFnrOrDnr(fnr: String): Boolean {
     if (k1 == 11) k1 = 0
     if (k2 == 11) k2 = 0
 
-    return k1 < 10 && k2 < 10 && k1 < 10 && k2 < 10 && k1 == fnr.substring(9, 10).toInt() && k2 == fnr.substring(10, 11).toInt()
+    return k1 < 10 && k2 < 10 && k1 < 10 && k2 < 10 && k1 == fnr.substring(9, 10).toInt() && k2 == fnr.substring(10, 11)
+        .toInt()
+}
+
+private val ORGNR_VEKTER = intArrayOf(3, 2, 7, 6, 5, 4, 3, 2)
+
+fun isValidOrgnr(orgnr: String): Boolean {
+    return if (orgnr.isEmpty()) {
+        true
+    } else {
+        var sum = 0
+        for (i in 0..7) {
+            val verdi = orgnr.substring(i, i + 1).toInt()
+            sum += ORGNR_VEKTER[i] * verdi
+        }
+        val rest = sum % 11
+        val kontrollSiffer = if (rest == 0) 0 else 11 - rest
+        kontrollSiffer == orgnr.substring(8, 9).toInt()
+    }
 }

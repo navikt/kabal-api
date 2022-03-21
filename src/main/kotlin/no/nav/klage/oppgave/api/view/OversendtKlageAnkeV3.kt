@@ -61,7 +61,7 @@ data class OversendtKlageAnkeV3(
     )
     val forrigeBehandlendeEnhet: String,
     @ApiModelProperty(
-        notes = "Liste med relevante journalposter til klagen. Liste kan være tom.",
+        notes = "Liste med relevante journalposter til klagen. Listen kan være tom.",
         required = true
     )
     val tilknyttedeJournalposter: List<OversendtDokumentReferanse> = emptyList(),
@@ -75,7 +75,7 @@ data class OversendtKlageAnkeV3(
     )
     val frist: LocalDate? = null,
     @ApiModelProperty(
-        notes = "Kan settes dersom denne saken har blitt sendt til Gosys og derfor har fristen begynt å løpe",
+        notes = "Kan settes dersom denne saken har blitt sendt til Gosys og fristen derfor har begynt å løpe",
         required = false,
         example = "2020-12-20T00:00"
     )
