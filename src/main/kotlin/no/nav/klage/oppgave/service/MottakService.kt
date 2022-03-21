@@ -114,7 +114,10 @@ class MottakService(
         return createBehandlingFromMottakEventListener.createBehandling(MottakLagretEvent(mottak))
     }
 
-    fun validateAnkeCreationBasedOnKlagebehandling(klagebehandling: Optional<Klagebehandling>, klagebehandlingId: UUID) {
+    fun validateAnkeCreationBasedOnKlagebehandling(
+        klagebehandling: Optional<Klagebehandling>,
+        klagebehandlingId: UUID
+    ) {
         if (klagebehandling.isEmpty) {
             throw BehandlingNotFoundException("Klagebehandling med id $klagebehandlingId ikke funnet")
         } else if (klagebehandling.get().tildeling == null) {
@@ -134,7 +137,7 @@ class MottakService(
     }
 
     fun OversendtKlageV2.validate() {
-        validateDuplicate(kilde, kildeReferanse)
+        validateDuplicate(kilde, kildeReferanse, type)
         tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
         validatePartId(klager.id)
         sakenGjelder?.run { validatePartId(sakenGjelder.id) }
@@ -144,15 +147,20 @@ class MottakService(
     }
 
     fun OversendtKlageAnkeV3.validate() {
-        validateDuplicate(kilde, kildeReferanse)
+        validateDuplicate(kilde, kildeReferanse, type)
         tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
         validatePartId(klager.id)
         sakenGjelder?.run { validatePartId(sakenGjelder.id) }
         validateEnhet(forrigeBehandlendeEnhet)
     }
 
-    private fun validateDuplicate(kildeFagsystem: KildeFagsystem, kildeReferanse: String) {
-        if (mottakRepository.existsByKildesystemAndKildeReferanse(kildeFagsystem.mapFagsystem(), kildeReferanse)) {
+    private fun validateDuplicate(kildeFagsystem: KildeFagsystem, kildeReferanse: String, type: Type) {
+        if (mottakRepository.existsByKildesystemAndKildeReferanseAndType(
+                kildeFagsystem.mapFagsystem(),
+                kildeReferanse,
+                type
+            )
+        ) {
             val message =
                 "Kunne ikke lagre oversendelse grunnet duplikat: kilde ${kildeFagsystem.name} og kildereferanse: $kildeReferanse"
             logger.warn(message)
@@ -165,7 +173,7 @@ class MottakService(
             throw OversendtKlageNotValidException("Kabal kan ikke motta klager med type $type ennå")
         }
     }
-    
+
     private fun validateSaksbehandler(saksbehandlerident: String, enhetNr: String) {
         if (azureGateway.getPersonligDataOmSaksbehandlerMedIdent(saksbehandlerident).enhet.enhetId != enhetNr) {
             //throw OversendtKlageNotValidException("$saksbehandlerident er ikke saksbehandler i enhet $enhet")
