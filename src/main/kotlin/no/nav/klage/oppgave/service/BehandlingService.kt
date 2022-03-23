@@ -125,6 +125,17 @@ class BehandlingService(
             )
         }
 
+        if (behandling is Klagebehandling &&
+            LocalDate.now().isBefore(behandling.mottattFoersteinstans)
+        ) {
+            behandlingValidationErrors.add(
+                InvalidProperty(
+                    field = "mottattVedaksinstans",
+                    reason = "Denne datoen kan ikke være i fremtiden."
+                )
+            )
+        }
+
         if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
                 ValidationSection(
