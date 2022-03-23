@@ -65,7 +65,9 @@ class BehandlingMapper(
             fraSaksbehandlerident = klagebehandling.avsenderSaksbehandleridentFoersteinstans,
             forrigeSaksbehandlerident = klagebehandling.avsenderSaksbehandleridentFoersteinstans,
             forrigeVedtaksDato = null,
+            //TODO: Fjern denne når FE har byttet til mottattVedtaksinstans
             mottattFoersteinstans = klagebehandling.mottattFoersteinstans,
+            mottattVedtaksinstans = klagebehandling.mottattFoersteinstans,
             sakenGjelder = klagebehandling.sakenGjelder.mapToView(),
             klager = klagebehandling.klager.mapToView(),
             sakenGjelderFoedselsnummer = sakenGjelderFoedselsnummer,
@@ -98,7 +100,9 @@ class BehandlingMapper(
             modified = klagebehandling.modified,
             created = klagebehandling.created,
             resultat = klagebehandling.currentDelbehandling().mapToVedtakView(),
+            //TODO: Fjern denne når FE tar i bruk kommentarFraVedtaksinstans
             kommentarFraFoersteinstans = klagebehandling.kommentarFraFoersteinstans,
+            kommentarFraVedtaksinstans = klagebehandling.kommentarFraFoersteinstans,
             tilknyttedeDokumenter = klagebehandling.saksdokumenter.map {
                 TilknyttetDokument(
                     journalpostId = it.journalpostId,
@@ -137,6 +141,7 @@ class BehandlingMapper(
             forrigeNAVEnhet = ankebehandling.klageBehandlendeEnhet,
             forrigeNAVEnhetNavn = forrigeEnhetNavn,
             mottattFoersteinstans = null,
+            mottattVedtaksinstans = null,
             sakenGjelder = ankebehandling.sakenGjelder.mapToView(),
             klager = ankebehandling.klager.mapToView(),
             sakenGjelderFoedselsnummer = sakenGjelderFoedselsnummer,
@@ -173,6 +178,7 @@ class BehandlingMapper(
             forrigeVedtaksDato = ankebehandling.klageVedtaksDato,
             resultat = ankebehandling.currentDelbehandling().mapToVedtakView(),
             kommentarFraFoersteinstans = null,
+            kommentarFraVedtaksinstans = null,
             tilknyttedeDokumenter = ankebehandling.saksdokumenter.map {
                 TilknyttetDokument(
                     journalpostId = it.journalpostId,

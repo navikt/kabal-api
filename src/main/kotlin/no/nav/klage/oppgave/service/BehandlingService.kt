@@ -16,6 +16,8 @@ import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setMedunder
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setMottattKlageinstans
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setSattPaaVent
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setTildeling
+import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMottattFoersteinstans
 import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
@@ -23,6 +25,7 @@ import no.nav.klage.oppgave.util.getLogger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -202,6 +205,23 @@ class BehandlingService(
             applicationEventPublisher.publishEvent(event)
             return behandling.modified
         } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker")
+    }
+
+    fun setMottattVedtaksinstans(
+        behandlingId: UUID,
+        date: LocalDate,
+        utfoerendeSaksbehandlerIdent: String
+    ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId
+        )
+
+        if (behandling is Klagebehandling) {
+            val event =
+                behandling.setMottattFoersteinstans(date, utfoerendeSaksbehandlerIdent)
+            applicationEventPublisher.publishEvent(event)
+            return behandling.modified
+        } else throw IllegalOperation("Dette feltet kan bare settes i klagesaker")
     }
 
     fun setMedunderskriverIdentAndMedunderskriverFlyt(
