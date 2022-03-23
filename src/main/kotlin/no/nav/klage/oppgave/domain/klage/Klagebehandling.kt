@@ -19,7 +19,7 @@ const val KLAGEENHET_PREFIX = "42"
 class Klagebehandling(
     //Brukes ikke i anke
     @Column(name = "dato_mottatt_foersteinstans")
-    var mottattFoersteinstans: LocalDate,
+    var mottattVedtaksinstans: LocalDate,
     //Mulig at identen ikke brukes. Sjekk om dette kan droppes.
     @Column(name = "avsender_saksbehandlerident_foersteinstans")
     val avsenderSaksbehandleridentFoersteinstans: String? = null,

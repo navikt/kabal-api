@@ -76,7 +76,7 @@ class KlagebehandlingRepositoryTest {
             kildeReferanse = "abc",
             mottakId = mottak.id,
             avsenderEnhetFoersteinstans = "0101",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
             delbehandlinger = setOf(Delbehandling()),
         )
 
@@ -123,7 +123,7 @@ class KlagebehandlingRepositoryTest {
             kildesystem = Fagsystem.K9,
             kildeReferanse = "abc",
             mottakId = mottak.id,
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
             avsenderEnhetFoersteinstans = "enhet",
             delbehandlinger = setOf(Delbehandling()),
             saksdokumenter = mutableSetOf(
@@ -178,7 +178,7 @@ class KlagebehandlingRepositoryTest {
             kildesystem = Fagsystem.K9,
             kildeReferanse = "abc",
             mottakId = mottak.id,
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
             avsenderEnhetFoersteinstans = "enhet",
             delbehandlinger = setOf(Delbehandling()),
             saksdokumenter = mutableSetOf(

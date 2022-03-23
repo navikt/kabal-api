@@ -66,8 +66,8 @@ class BehandlingMapper(
             forrigeSaksbehandlerident = klagebehandling.avsenderSaksbehandleridentFoersteinstans,
             forrigeVedtaksDato = null,
             //TODO: Fjern denne når FE har byttet til mottattVedtaksinstans
-            mottattFoersteinstans = klagebehandling.mottattFoersteinstans,
-            mottattVedtaksinstans = klagebehandling.mottattFoersteinstans,
+            mottattFoersteinstans = klagebehandling.mottattVedtaksinstans,
+            mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
             sakenGjelder = klagebehandling.sakenGjelder.mapToView(),
             klager = klagebehandling.klager.mapToView(),
             sakenGjelderFoedselsnummer = sakenGjelderFoedselsnummer,

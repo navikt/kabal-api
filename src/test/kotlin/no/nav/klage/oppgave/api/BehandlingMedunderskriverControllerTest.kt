@@ -77,7 +77,7 @@ class BehandlingMedunderskriverControllerTest {
                 ),
             )
         ),
-        mottattFoersteinstans = LocalDate.now(),
+        mottattVedtaksinstans = LocalDate.now(),
         avsenderEnhetFoersteinstans = "0101"
     )
 

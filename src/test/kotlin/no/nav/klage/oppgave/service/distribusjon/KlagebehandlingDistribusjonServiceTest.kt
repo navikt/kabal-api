@@ -169,7 +169,7 @@ internal class KlagebehandlingDistribusjonServiceTest {
             )
         ),
         avsenderEnhetFoersteinstans = "0101",
-        mottattFoersteinstans = LocalDate.now(),
+        mottattVedtaksinstans = LocalDate.now(),
     )
 
     @Test

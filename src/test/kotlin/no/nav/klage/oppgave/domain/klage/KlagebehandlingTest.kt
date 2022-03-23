@@ -30,7 +30,7 @@ internal class KlagebehandlingTest {
                 mottattKlageinstans = LocalDateTime.now(),
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                mottattFoersteinstans = LocalDate.now(),
+                mottattVedtaksinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
                 delbehandlinger = setOf(Delbehandling()),
             )
@@ -49,7 +49,7 @@ internal class KlagebehandlingTest {
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
                 tildeling = Tildeling(saksbehandlerident = null, tidspunkt = LocalDateTime.now()),
-                mottattFoersteinstans = LocalDate.now(),
+                mottattVedtaksinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
                 delbehandlinger = setOf(Delbehandling()),
             )
@@ -68,7 +68,7 @@ internal class KlagebehandlingTest {
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
                 tildeling = Tildeling(saksbehandlerident = "abc", tidspunkt = LocalDateTime.now()),
-                mottattFoersteinstans = LocalDate.now(),
+                mottattVedtaksinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
                 delbehandlinger = setOf(Delbehandling()),
             )
@@ -86,7 +86,7 @@ internal class KlagebehandlingTest {
                 mottattKlageinstans = LocalDateTime.now(),
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                mottattFoersteinstans = LocalDate.now(),
+                mottattVedtaksinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
                 delbehandlinger = setOf(
                     Delbehandling(
@@ -109,7 +109,7 @@ internal class KlagebehandlingTest {
                 mottattKlageinstans = LocalDateTime.now(),
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                mottattFoersteinstans = LocalDate.now(),
+                mottattVedtaksinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
                 delbehandlinger = setOf(
                     Delbehandling(
@@ -132,7 +132,7 @@ internal class KlagebehandlingTest {
                 mottattKlageinstans = LocalDateTime.now(),
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                mottattFoersteinstans = LocalDate.now(),
+                mottattVedtaksinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
                 delbehandlinger = setOf(
                     Delbehandling(
@@ -155,7 +155,7 @@ internal class KlagebehandlingTest {
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
                 tildeling = Tildeling(saksbehandlerident = "abc", tidspunkt = LocalDateTime.now()),
-                mottattFoersteinstans = LocalDate.now(),
+                mottattVedtaksinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
                 delbehandlinger = setOf(
                     Delbehandling(
@@ -177,7 +177,7 @@ internal class KlagebehandlingTest {
                 mottattKlageinstans = LocalDateTime.now(),
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                mottattFoersteinstans = LocalDate.now(),
+                mottattVedtaksinstans = LocalDate.now(),
                 avsenderEnhetFoersteinstans = enhet,
                 delbehandlinger = setOf(
                     Delbehandling(

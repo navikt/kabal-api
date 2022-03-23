@@ -48,7 +48,8 @@ class KlagebehandlingService(
         partId: String,
         klagebehandlingId: UUID
     ): MuligAnke? {
-        val klagebehandling = klagebehandlingRepository.findByIdAndDelbehandlingerAvsluttetIsNotNull(klagebehandlingId) ?: return null
+        val klagebehandling =
+            klagebehandlingRepository.findByIdAndDelbehandlingerAvsluttetIsNotNull(klagebehandlingId) ?: return null
         return if (
             klagebehandling.klager.partId.value == partId && muligAnkeUtfall.contains(klagebehandling.currentDelbehandling().utfall)
         ) {
@@ -71,7 +72,7 @@ class KlagebehandlingService(
                 sakFagsystem = mottak.sakFagsystem,
                 sakFagsakId = mottak.sakFagsakId,
                 innsendt = mottak.innsendtDato,
-                mottattFoersteinstans = mottak.brukersHenvendelseMottattNavDato,
+                mottattVedtaksinstans = mottak.brukersHenvendelseMottattNavDato,
                 avsenderEnhetFoersteinstans = mottak.forrigeBehandlendeEnhet,
                 avsenderSaksbehandleridentFoersteinstans = mottak.forrigeSaksbehandlerident,
                 mottattKlageinstans = mottak.sakMottattKaDato,
@@ -103,7 +104,7 @@ class KlagebehandlingService(
             hjemler.map { Hjemmel.of(it.hjemmelId) }.toMutableSet()
         }
 
-     private fun Klagebehandling.toMuligAnke(): MuligAnke = MuligAnke(
+    private fun Klagebehandling.toMuligAnke(): MuligAnke = MuligAnke(
         this.id,
         this.ytelse.toTema(),
         this.currentDelbehandling().utfall!!,

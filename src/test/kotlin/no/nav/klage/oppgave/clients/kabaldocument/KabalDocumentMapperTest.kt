@@ -70,11 +70,13 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            delbehandlinger = setOf(Delbehandling(
-                id = vedtakId
-            )),
+            delbehandlinger = setOf(
+                Delbehandling(
+                    id = vedtakId
+                )
+            ),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
         )
 
         val fasitMottakere = listOf(
@@ -84,7 +86,9 @@ class KabalDocumentMapperTest {
                 rolle = "HOVEDADRESSAT"
             )
         )
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+            fasitMottakere
+        )
     }
 
     @Test
@@ -98,11 +102,13 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            delbehandlinger = setOf(Delbehandling(
-                id = vedtakId
-            )),
+            delbehandlinger = setOf(
+                Delbehandling(
+                    id = vedtakId
+                )
+            ),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
         )
 
         val fasitMottakere = setOf(
@@ -113,7 +119,9 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+            fasitMottakere
+        )
     }
 
     @Test
@@ -127,11 +135,13 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            delbehandlinger = setOf(Delbehandling(
-                id = vedtakId
-            )),
+            delbehandlinger = setOf(
+                Delbehandling(
+                    id = vedtakId
+                )
+            ),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
         )
 
         val fasitMottakere = setOf(
@@ -148,7 +158,9 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+            fasitMottakere
+        )
     }
 
     @Test
@@ -171,11 +183,13 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            delbehandlinger = setOf(Delbehandling(
-                id = vedtakId
-            )),
+            delbehandlinger = setOf(
+                Delbehandling(
+                    id = vedtakId
+                )
+            ),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
         )
 
         val fasitMottakere = setOf(
@@ -186,7 +200,9 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+            fasitMottakere
+        )
     }
 
     @Test
@@ -209,11 +225,13 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            delbehandlinger = setOf(Delbehandling(
-                id = vedtakId
-            )),
+            delbehandlinger = setOf(
+                Delbehandling(
+                    id = vedtakId
+                )
+            ),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
         )
 
         val fasitMottakere = setOf(
@@ -229,7 +247,9 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+            fasitMottakere
+        )
     }
 
     @Test
@@ -252,11 +272,13 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            delbehandlinger = setOf(Delbehandling(
-                id = vedtakId
-            )),
+            delbehandlinger = setOf(
+                Delbehandling(
+                    id = vedtakId
+                )
+            ),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
         )
 
         val fasitMottakere = setOf(
@@ -272,7 +294,9 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+            fasitMottakere
+        )
     }
 
     @Test
@@ -295,11 +319,13 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            delbehandlinger = setOf(Delbehandling(
-                id = vedtakId
-            )),
+            delbehandlinger = setOf(
+                Delbehandling(
+                    id = vedtakId
+                )
+            ),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
 
             )
 
@@ -321,7 +347,9 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+            fasitMottakere
+        )
     }
 
     @Test
@@ -344,11 +372,13 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            delbehandlinger = setOf(Delbehandling(
-                id = vedtakId
-            )),
+            delbehandlinger = setOf(
+                Delbehandling(
+                    id = vedtakId
+                )
+            ),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
         )
 
         val fasitMottakere = setOf(
@@ -359,7 +389,9 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+            fasitMottakere
+        )
     }
 
     @Test
@@ -382,11 +414,13 @@ class KabalDocumentMapperTest {
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            delbehandlinger = setOf(Delbehandling(
-                id = vedtakId
-            )),
+            delbehandlinger = setOf(
+                Delbehandling(
+                    id = vedtakId
+                )
+            ),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
         )
 
         val fasitMottakere = setOf(
@@ -402,6 +436,8 @@ class KabalDocumentMapperTest {
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(fasitMottakere)
+        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+            fasitMottakere
+        )
     }
 }

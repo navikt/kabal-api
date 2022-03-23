@@ -436,7 +436,7 @@ class BehandlingServiceTest {
                     avsluttetAvSaksbehandler = if (fullfoert) LocalDateTime.now() else null,
                 )
             ),
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
             avsenderEnhetFoersteinstans = "enhet"
         )
 

@@ -79,7 +79,7 @@ class MeldingRepositoryTest {
             kildeReferanse = "abc",
             mottakId = mottak.id,
             avsenderEnhetFoersteinstans = "0101",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
             delbehandlinger = setOf(Delbehandling()),
         )
 

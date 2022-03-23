@@ -57,10 +57,12 @@ class TilgangServiceTest {
             kildeReferanse = "abc",
             mottakId = UUID.randomUUID(),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
-            delbehandlinger = setOf(Delbehandling(
-                avsluttet = LocalDateTime.now(),
-            )),
+            mottattVedtaksinstans = LocalDate.now(),
+            delbehandlinger = setOf(
+                Delbehandling(
+                    avsluttet = LocalDateTime.now(),
+                )
+            ),
         )
 
         assertThrows<BehandlingAvsluttetException> {
@@ -91,10 +93,12 @@ class TilgangServiceTest {
             kildeReferanse = "abc",
             mottakId = UUID.randomUUID(),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
-            delbehandlinger = setOf(Delbehandling(
-                avsluttetAvSaksbehandler = LocalDateTime.now(),
-            )),
+            mottattVedtaksinstans = LocalDate.now(),
+            delbehandlinger = setOf(
+                Delbehandling(
+                    avsluttetAvSaksbehandler = LocalDateTime.now(),
+                )
+            ),
         )
 
         assertThrows<BehandlingAvsluttetException> {
@@ -126,7 +130,7 @@ class TilgangServiceTest {
             mottakId = UUID.randomUUID(),
             tildeling = Tildeling(saksbehandlerident = "Z123456", enhet = "", tidspunkt = LocalDateTime.now()),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
             delbehandlinger = setOf(Delbehandling()),
         )
 
@@ -156,7 +160,7 @@ class TilgangServiceTest {
             kildeReferanse = "abc",
             mottakId = UUID.randomUUID(),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
             delbehandlinger = setOf(Delbehandling()),
         )
 
@@ -187,7 +191,7 @@ class TilgangServiceTest {
             mottakId = UUID.randomUUID(),
             tildeling = Tildeling(saksbehandlerident = "Z123456", enhet = "", tidspunkt = LocalDateTime.now()),
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
             delbehandlinger = setOf(Delbehandling()),
         )
 

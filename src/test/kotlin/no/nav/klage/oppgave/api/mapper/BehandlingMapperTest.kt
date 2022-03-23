@@ -86,7 +86,7 @@ class BehandlingMapperTest {
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             avsenderEnhetFoersteinstans = "4100",
-            mottattFoersteinstans = LocalDate.now(),
+            mottattVedtaksinstans = LocalDate.now(),
             delbehandlinger = setOf(Delbehandling()),
         )
     }

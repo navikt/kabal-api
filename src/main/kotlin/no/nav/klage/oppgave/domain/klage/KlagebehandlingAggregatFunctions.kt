@@ -7,13 +7,13 @@ import java.time.LocalDateTime
 
 object KlagebehandlingAggregatFunctions {
 
-    fun Klagebehandling.setMottattFoersteinstans(
+    fun Klagebehandling.setMottattVedtaksinstans(
         nyVerdi: LocalDate,
         saksbehandlerident: String
     ): KlagebehandlingEndretEvent {
-        val gammelVerdi = mottattFoersteinstans
+        val gammelVerdi = mottattVedtaksinstans
         val tidspunkt = LocalDateTime.now()
-        mottattFoersteinstans = nyVerdi
+        mottattVedtaksinstans = nyVerdi
         modified = tidspunkt
         val endringslogg =
             endringslogg(

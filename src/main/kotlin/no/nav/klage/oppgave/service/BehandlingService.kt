@@ -17,7 +17,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setMottattK
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setSattPaaVent
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setTildeling
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMottattFoersteinstans
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMottattVedtaksinstans
 import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
@@ -126,7 +126,7 @@ class BehandlingService(
         }
 
         if (behandling is Klagebehandling &&
-            LocalDate.now().isBefore(behandling.mottattFoersteinstans)
+            LocalDate.now().isBefore(behandling.mottattVedtaksinstans)
         ) {
             behandlingValidationErrors.add(
                 InvalidProperty(
@@ -229,7 +229,7 @@ class BehandlingService(
 
         if (behandling is Klagebehandling) {
             val event =
-                behandling.setMottattFoersteinstans(date, utfoerendeSaksbehandlerIdent)
+                behandling.setMottattVedtaksinstans(date, utfoerendeSaksbehandlerIdent)
             applicationEventPublisher.publishEvent(event)
             return behandling.modified
         } else throw IllegalOperation("Dette feltet kan bare settes i klagesaker")
