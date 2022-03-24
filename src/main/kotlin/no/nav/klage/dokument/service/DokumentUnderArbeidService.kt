@@ -81,7 +81,7 @@ class DokumentUnderArbeidService(
                 throw DokumentValidationException("Ingen json angitt")
             }
             val (smartEditorDokument, opplastet) =
-                smartEditorApiGateway.createDocument(json, dokumentType, innloggetIdent)
+                smartEditorApiGateway.createDocument(json, dokumentType, innloggetIdent, tittel)
             //TODO: smartEditorDokument har bogus tittel, ble ikke sendt med i kallet til smartEditorApi
             val mellomlagerId = mellomlagerService.uploadByteArray(tittel, smartEditorDokument.content)
             val hovedDokument = dokumentUnderArbeidRepository.save(
@@ -347,7 +347,10 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNullOrderByCreated(behandlingId)
     }
 
-    fun findFinishedDokumenterAfterDateTime(behandlingId: UUID, fromDateTime: LocalDateTime): SortedSet<DokumentUnderArbeid> {
+    fun findFinishedDokumenterAfterDateTime(
+        behandlingId: UUID,
+        fromDateTime: LocalDateTime
+    ): SortedSet<DokumentUnderArbeid> {
         val data =
             dokumentUnderArbeidRepository.findByMarkertFerdigNotNullAndFerdigstiltNotNullAndParentIdIsNullAndBehandlingIdAndFerdigstiltAfter(
                 behandlingId,
@@ -416,7 +419,12 @@ class DokumentUnderArbeidService(
 
     private fun mellomlagreNyVersjonAvSmartEditorDokument(dokument: DokumentUnderArbeid) {
         val mellomlagerId =
-            mellomlagerService.uploadDocument(smartEditorApiGateway.getDocumentAsPDF(dokument.smartEditorId!!))
+            mellomlagerService.uploadDocument(
+                smartEditorApiGateway.getDocumentAsPDF(
+                    dokument.smartEditorId!!,
+                    dokument.name
+                )
+            )
         //Sletter gammelt:
         mellomlagerService.deleteDocument(dokument.mellomlagerId)
         dokument.mellomlagerId = mellomlagerId

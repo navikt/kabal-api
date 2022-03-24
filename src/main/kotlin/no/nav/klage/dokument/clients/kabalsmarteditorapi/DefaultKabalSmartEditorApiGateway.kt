@@ -24,7 +24,7 @@ class DefaultKabalSmartEditorApiGateway(private val kabalSmartEditorApiClient: K
     }
 
     @Retryable
-    fun getDocumentAsPDF(smartEditorId: UUID): SmartEditorDokument {
+    fun getDocumentAsPDF(smartEditorId: UUID, documentTitle: String): SmartEditorDokument {
         val responseEntity = kabalSmartEditorApiClient.getDocumentAsPDF(smartEditorId)
         return responseEntity.let {
             SmartEditorDokument(
@@ -32,7 +32,7 @@ class DefaultKabalSmartEditorApiGateway(private val kabalSmartEditorApiClient: K
                 mellomlagretDokument =
                 OpplastetMellomlagretDokument(
                     content = it,
-                    title = "vedtak.pdf", //TODO: Get from header,
+                    title = documentTitle,
                     contentType = MediaType.valueOf(Tika().detect(it)) //TODO Fra header?
                 )
             )
@@ -42,10 +42,11 @@ class DefaultKabalSmartEditorApiGateway(private val kabalSmartEditorApiClient: K
     fun createDocument(
         json: String,
         dokumentType: DokumentType,
-        innloggetIdent: String
+        innloggetIdent: String,
+        documentTitle: String,
     ): Pair<SmartEditorDokument, LocalDateTime> {
         val documentOutput = kabalSmartEditorApiClient.createDocument(json)
-        return Pair(getDocumentAsPDF(documentOutput.id), documentOutput.modified)
+        return Pair(getDocumentAsPDF(documentOutput.id, documentTitle), documentOutput.modified)
     }
 
     fun deleteDocument(smartEditorId: UUID) {
