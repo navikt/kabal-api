@@ -6,7 +6,8 @@ data class HovedDokumentInput(val eksternReferanse: UUID)
 
 data class SmartHovedDokumentInput(
     val json: String,
-    val tittel: String?
+    val tittel: String?,
+    val dokumentTypeId: String?
 )
 
 data class PersistentDokumentIdInput(val dokumentId: UUID)

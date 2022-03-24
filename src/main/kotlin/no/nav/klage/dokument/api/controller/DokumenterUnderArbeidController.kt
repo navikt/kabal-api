@@ -71,7 +71,7 @@ class DokumentUnderArbeidController(
         return dokumentMapper.mapToDokumentView(
             dokumentUnderArbeidService.opprettOgMellomlagreNyttHoveddokument(
                 behandlingId = behandlingId,
-                dokumentType = DokumentType.VEDTAK,
+                dokumentType = if (body.dokumentTypeId != null) DokumentType.valueOf(body.dokumentTypeId) else DokumentType.VEDTAK,
                 opplastetFil = null,
                 json = body.json,
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
