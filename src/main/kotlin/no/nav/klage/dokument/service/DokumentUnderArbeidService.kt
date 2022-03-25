@@ -283,6 +283,9 @@ class DokumentUnderArbeidService(
             smartEditorApiGateway.deleteDocument(dokumentUnderArbeid.smartEditorId!!)
         }
         dokumentUnderArbeidRepository.delete(dokumentUnderArbeid)
+
+        mellomlagerService.deleteDocument(dokumentUnderArbeid.mellomlagerId)
+
         behandling.publishEndringsloggEvent(
             saksbehandlerident = innloggetIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_OPPLASTET,
