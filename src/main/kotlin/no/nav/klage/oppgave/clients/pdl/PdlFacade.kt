@@ -30,6 +30,15 @@ class PdlFacade(
         return hentPersonMapper.mapToPerson(fnr, pdlPerson).also { personCacheService.updatePersonCache(it) }
     }
 
+    fun personExists(fnr: String): Boolean {
+        try {
+            getPersonInfo(fnr)
+        } catch (e: Exception) {
+            return false
+        }
+        return true
+    }
+
     private fun HentPersonResponse.getPersonOrLogErrors(fnr: String): PdlPerson =
         if (this.errors.isNullOrEmpty() && this.data != null && this.data.hentPerson != null) {
             this.data.hentPerson

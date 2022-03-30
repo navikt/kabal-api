@@ -46,4 +46,8 @@ class EregClient(
 
         )
     }
+
+    fun organisasjonExists(orgnummer: String): Boolean {
+        return hentOrganisasjon(orgnummer) != null
+    }
 }

@@ -4,7 +4,9 @@ package no.nav.klage.oppgave.service
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
+import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.config.incrementMottattKlage
 import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.events.MottakLagretEvent
@@ -22,6 +24,7 @@ import no.nav.klage.oppgave.repositories.MottakRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.isValidFnrOrDnr
+import no.nav.klage.oppgave.util.isValidOrgnr
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
@@ -42,6 +45,8 @@ class MottakService(
     private val azureGateway: AzureGateway,
     private val meterRegistry: MeterRegistry,
     private val createBehandlingFromMottakEventListener: CreateBehandlingFromMottakEventListener,
+    private val pdlFacade: PdlFacade,
+    private val eregClient: EregClient,
 ) {
 
     private val lovligeTyperIMottakV2 = LovligeTyper.lovligeTyper(environment)
@@ -221,12 +226,24 @@ class MottakService(
         }
 
     private fun validatePartId(partId: OversendtPartId) {
-        if (partId.type == OversendtPartIdType.VIRKSOMHET) {
-            return
-        }
+        when (partId.type) {
+            OversendtPartIdType.VIRKSOMHET -> {
+                if (!isValidOrgnr(partId.verdi)) {
+                    throw OversendtKlageNotValidException("Ugyldig organisasjonsnummer")
+                }
+                if (!eregClient.organisasjonExists(partId.verdi)) {
+                    throw OversendtKlageNotValidException("Organisasjonen fins ikke i Ereg")
+                }
+            }
+            OversendtPartIdType.PERSON -> {
+                if (!isValidFnrOrDnr(partId.verdi)) {
+                    throw OversendtKlageNotValidException("Ugyldig fødselsnummer")
+                }
 
-        if (!isValidFnrOrDnr(partId.verdi)) {
-            throw OversendtKlageNotValidException("Ugyldig fødselsnummer")
+                if (!pdlFacade.personExists(partId.verdi)) {
+                    throw OversendtKlageNotValidException("Personen fins ikke i PDL")
+                }
+            }
         }
     }
 
