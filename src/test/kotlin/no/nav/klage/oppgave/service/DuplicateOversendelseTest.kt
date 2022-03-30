@@ -6,7 +6,9 @@ import io.mockk.every
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
+import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
@@ -60,6 +62,12 @@ internal class DuplicateOversendelseTest {
     @MockkBean(relaxed = true)
     lateinit var meterReqistry: MeterRegistry
 
+    @MockkBean(relaxed = true)
+    lateinit var pdlFacade: PdlFacade
+
+    @MockkBean(relaxed = true)
+    lateinit var eregClient: EregClient
+
     @Autowired
     lateinit var mottakService: MottakService
 
@@ -77,6 +85,8 @@ internal class DuplicateOversendelseTest {
             epost = "test.saksbehandler@trygdeetaten.no",
             enhet = Enhet("4295", "KA Nord")
         )
+
+        every { pdlFacade.personExists(any()) } returns true
 
         val oversendtKlage = OversendtKlageV2(
             avsenderEnhet = "4455",
