@@ -11,8 +11,8 @@ import no.nav.klage.oppgave.service.MottakService
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.time.Year
@@ -167,27 +167,17 @@ class MockDataController(
     @Unprotected
     @PostMapping("/randomklage")
     fun sendInnRandomKlage(
-        @RequestParam(required = false, name = "e2e") e2e: Boolean = true,
-        @RequestParam(required = false, name = "ytelse") ytelse: String?
+        @RequestBody(required = false) input: MockInput? = null
     ): MockDataResponse {
-        return if (ytelse != null) {
-            createKlanke(Type.KLAGE, e2e, Ytelse.valueOf(ytelse))
-        } else {
-            createKlanke(Type.KLAGE, e2e)
-        }
+        return createKlanke(Type.KLAGE, input)
     }
 
     @Unprotected
     @PostMapping("/randomanke")
     fun sendInnRandomAnke(
-        @RequestParam(required = false, name = "e2e") e2e: Boolean = true,
-        @RequestParam(required = false, name = "ytelse") ytelse: String?
+        @RequestBody(required = false) input: MockInput? = null
     ): MockDataResponse {
-        return if (ytelse != null) {
-            createKlanke(Type.ANKE, e2e, Ytelse.valueOf(ytelse))
-        } else {
-            createKlanke(Type.ANKE, e2e)
-        }
+        return createKlanke(Type.ANKE, input)
     }
 
     data class MockDataResponse(
@@ -197,7 +187,7 @@ class MockDataController(
         val hjemmelId: String,
     )
 
-    private fun createKlanke(type: Type, e2e: Boolean = true, ytelse: Ytelse? = null): MockDataResponse {
+    private fun createKlanke(type: Type, input: MockInput?): MockDataResponse {
         val dollyDoc = listOf(
             SyntheticWithDoc("02446701749", "510534792"),
             SyntheticWithDoc("29437117843", "510534815"),
@@ -218,21 +208,25 @@ class MockDataController(
 
         val dato = LocalDate.of(Year.now().value - 1, (1..12).random(), (1..28).random())
 
-        val randomYtelse = if (e2e) Ytelse.SYK_SYK else ytelse ?: ytelseTilHjemler.keys.random()
+        val randomYtelse = if (input == null) Ytelse.SYK_SYK else input.ytelse ?: ytelseTilHjemler.keys.random()
+        val klager = input?.klager ?: OversendtKlager(
+            id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
+        )
+
+        val sakenGjelder = input?.sakenGjelder
 
         val behandling = mottakService.createMottakForKlageAnkeV3ForE2ETests(
             OversendtKlageAnkeV3(
                 ytelse = randomYtelse,
                 type = type,
-                klager = OversendtKlager(
-                    id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
-                ),
+                klager = klager,
                 fagsak = journalpost?.sak?.let {
                     OversendtSak(
                         fagsakId = it.fagsakId ?: "UKJENT",
                         fagsystem = KildeFagsystem.AO01
                     )
                 },
+                sakenGjelder = sakenGjelder,
                 kildeReferanse = UUID.randomUUID().toString(),
                 innsynUrl = "https://nav.no",
                 hjemler = listOf(ytelseTilHjemler[randomYtelse]!!.random()),
@@ -268,5 +262,11 @@ class MockDataController(
     data class SyntheticWithDoc(
         val fnr: String,
         val journalpost: String
+    )
+
+    data class MockInput(
+        val ytelse: Ytelse? = null,
+        val klager: OversendtKlager? = null,
+        val sakenGjelder: OversendtSakenGjelder? = null
     )
 }
