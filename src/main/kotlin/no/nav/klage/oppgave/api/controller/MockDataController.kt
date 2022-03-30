@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.controller
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.domain.klage.MottakDokumentType
@@ -11,6 +12,7 @@ import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.time.Year
@@ -164,14 +166,28 @@ class MockDataController(
 
     @Unprotected
     @PostMapping("/randomklage")
-    fun sendInnRandomKlage(): MockDataResponse {
-        return createKlanke(Type.KLAGE)
+    fun sendInnRandomKlage(
+        @RequestParam(required = false, name = "e2e") e2e: Boolean = true,
+        @RequestParam(required = false, name = "ytelse") ytelse: String?
+    ): MockDataResponse {
+        return if (ytelse != null) {
+            createKlanke(Type.KLAGE, e2e, Ytelse.valueOf(ytelse))
+        } else {
+            createKlanke(Type.KLAGE, e2e)
+        }
     }
 
     @Unprotected
     @PostMapping("/randomanke")
-    fun sendInnRandomAnke(): MockDataResponse {
-        return createKlanke(Type.ANKE)
+    fun sendInnRandomAnke(
+        @RequestParam(required = false, name = "e2e") e2e: Boolean = true,
+        @RequestParam(required = false, name = "ytelse") ytelse: String?
+    ): MockDataResponse {
+        return if (ytelse != null) {
+            createKlanke(Type.ANKE, e2e, Ytelse.valueOf(ytelse))
+        } else {
+            createKlanke(Type.ANKE, e2e)
+        }
     }
 
     data class MockDataResponse(
@@ -181,7 +197,7 @@ class MockDataController(
         val hjemmelId: String,
     )
 
-    private fun createKlanke(type: Type): MockDataResponse {
+    private fun createKlanke(type: Type, e2e: Boolean = true, ytelse: Ytelse? = null): MockDataResponse {
         val dollyDoc = listOf(
             SyntheticWithDoc("02446701749", "510534792"),
             SyntheticWithDoc("29437117843", "510534815"),
@@ -202,38 +218,7 @@ class MockDataController(
 
         val dato = LocalDate.of(Year.now().value - 1, (1..12).random(), (1..28).random())
 
-        val randomYtelse = listOf(
-            Ytelse.SYK_SYK,
-//            Ytelse.OMS_OLP,
-//            Ytelse.OMS_OMP,
-//            Ytelse.OMS_PLS,
-//            Ytelse.OMS_PSB
-        ).random()
-
-        val randomHjemmelList = if (randomYtelse == Ytelse.SYK_SYK) {
-            listOf(
-                listOf(
-                    Hjemmel.FTRL_8_2,
-                    Hjemmel.FTRL_8_3,
-                    Hjemmel.FTRL_8_4,
-                    Hjemmel.FTRL_8_8,
-                    Hjemmel.FTRL_8_13,
-                )
-                    .random()
-            )
-        } else {
-            listOf(
-                listOf(
-                    Hjemmel.FTRL_8_13,
-                    Hjemmel.FTRL_9_2,
-                    Hjemmel.FTRL_9_3,
-                    Hjemmel.FTRL_9_11,
-                    Hjemmel.FTRL_9_14,
-                    Hjemmel.FTRL_22_13
-                )
-                    .random()
-            )
-        }
+        val randomYtelse = if (e2e) Ytelse.SYK_SYK else ytelse ?: ytelseTilHjemler.keys.random()
 
         val behandling = mottakService.createMottakForKlageAnkeV3ForE2ETests(
             OversendtKlageAnkeV3(
@@ -250,7 +235,7 @@ class MockDataController(
                 },
                 kildeReferanse = UUID.randomUUID().toString(),
                 innsynUrl = "https://nav.no",
-                hjemler = randomHjemmelList,
+                hjemler = listOf(ytelseTilHjemler[randomYtelse]!!.random()),
                 forrigeBehandlendeEnhet = "4295", //NAV Klageinstans nord
                 tilknyttedeJournalposter = listOf(
                     OversendtDokumentReferanse(
