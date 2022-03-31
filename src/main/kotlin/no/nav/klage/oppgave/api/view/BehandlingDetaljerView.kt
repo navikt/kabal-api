@@ -12,21 +12,9 @@ data class BehandlingDetaljerView(
     val fraNAVEnhetNavn: String?,
     val forrigeNAVEnhet: String? = null,
     val forrigeNAVEnhetNavn: String? = null,
-    //TODO: Fjern denne når FE tar i bruk mottattVedtaksinstans
-    val mottattFoersteinstans: LocalDate? = null,
     val mottattVedtaksinstans: LocalDate? = null,
     val sakenGjelder: SakenGjelderView,
     val klager: KlagerView?,
-    val sakenGjelderFoedselsnummer: String?,
-    val sakenGjelderNavn: NavnView?,
-    val sakenGjelderKjoenn: String?,
-    val sakenGjelderVirksomhetsnummer: String?,
-    val sakenGjelderVirksomhetsnavn: String?,
-    val klagerFoedselsnummer: String?,
-    val klagerVirksomhetsnummer: String?,
-    val klagerVirksomhetsnavn: String?,
-    val klagerNavn: NavnView?,
-    val klagerKjoenn: String?,
     val tema: String,
     val ytelse: String? = null,
     val type: String,
@@ -50,8 +38,6 @@ data class BehandlingDetaljerView(
     val forrigeSaksbehandlerident: String? = null,
     val forrigeVedtaksDato: LocalDate? = null,
     val resultat: VedtakView?,
-    //TODO: Fjern denne når FE tar i bruk kommentarFraVedtaksinstans
-    val kommentarFraFoersteinstans: String?,
     val kommentarFraVedtaksinstans: String?,
     val tilknyttedeDokumenter: Set<TilknyttetDokument>,
     val egenAnsatt: Boolean,
@@ -86,5 +72,7 @@ data class BehandlingDetaljerView(
         val foedselsnummer: String?,
         val navn: NavnView?,
         val kjoenn: String?,
+        val harBeskyttelsesbehovFortrolig: Boolean = false,
+        val harBeskyttelsesbehovStrengtFortrolig: Boolean = false,
     )
 }

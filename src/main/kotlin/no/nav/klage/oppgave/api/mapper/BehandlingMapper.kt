@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.api.mapper
 
 
-import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
@@ -42,18 +41,12 @@ class BehandlingMapper(
 
     fun mapKlagebehandlingToBehandlingDetaljerView(klagebehandling: Klagebehandling): BehandlingDetaljerView {
         val enhetNavn = klagebehandling.avsenderEnhetFoersteinstans.let { norg2Client.fetchEnhet(it) }.navn
-        val sakenGjelderFoedselsnummer = foedselsnummer(klagebehandling.sakenGjelder.partId)
-        val sakenGjelder = sakenGjelderFoedselsnummer?.let { pdlFacade.getPersonInfo(it) }
-        val sakenGjelderVirksomhetsnummer = virksomhetsnummer(klagebehandling.sakenGjelder.partId)
-        val sakenGjelderVirksomhet = sakenGjelderVirksomhetsnummer?.let { eregClient.hentOrganisasjon(it) }
-        val klagerFoedselsnummer = foedselsnummer(klagebehandling.klager.partId)
-        val klager = klagerFoedselsnummer?.let { pdlFacade.getPersonInfo(it) }
-        val klagerVirksomhetsnummer = virksomhetsnummer(klagebehandling.klager.partId)
-        val klagerVirksomhet = klagerVirksomhetsnummer?.let { eregClient.hentOrganisasjon(it) }
 
-        val erFortrolig = sakenGjelder?.harBeskyttelsesbehovFortrolig() ?: false
-        val erStrengtFortrolig = sakenGjelder?.harBeskyttelsesbehovStrengtFortrolig() ?: false
-        val erEgenAnsatt = sakenGjelderFoedselsnummer?.let { egenAnsattService.erEgenAnsatt(it) } ?: false
+        val sakenGjelder = getSakenGjelder(klagebehandling.sakenGjelder)
+
+        val erFortrolig = sakenGjelder.person?.harBeskyttelsesbehovFortrolig ?: false
+        val erStrengtFortrolig = sakenGjelder.person?.harBeskyttelsesbehovStrengtFortrolig ?: false
+        val erEgenAnsatt = sakenGjelder.person?.foedselsnummer?.let { egenAnsattService.erEgenAnsatt(it) } ?: false
 
         return BehandlingDetaljerView(
             id = klagebehandling.id,
@@ -65,21 +58,9 @@ class BehandlingMapper(
             fraSaksbehandlerident = klagebehandling.avsenderSaksbehandleridentFoersteinstans,
             forrigeSaksbehandlerident = klagebehandling.avsenderSaksbehandleridentFoersteinstans,
             forrigeVedtaksDato = null,
-            //TODO: Fjern denne når FE har byttet til mottattVedtaksinstans
-            mottattFoersteinstans = klagebehandling.mottattVedtaksinstans,
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
-            sakenGjelder = klagebehandling.sakenGjelder.mapToView(),
-            klager = klagebehandling.klager.mapToView(),
-            sakenGjelderFoedselsnummer = sakenGjelderFoedselsnummer,
-            sakenGjelderNavn = sakenGjelder.mapNavnToView(),
-            sakenGjelderKjoenn = sakenGjelder?.kjoenn,
-            sakenGjelderVirksomhetsnummer = sakenGjelderVirksomhetsnummer,
-            sakenGjelderVirksomhetsnavn = sakenGjelderVirksomhet?.navn?.sammensattNavn(),
-            klagerFoedselsnummer = klagerFoedselsnummer,
-            klagerVirksomhetsnummer = klagerVirksomhetsnummer,
-            klagerVirksomhetsnavn = klagerVirksomhet?.navn?.sammensattNavn(),
-            klagerNavn = klager.mapNavnToView(),
-            klagerKjoenn = klager?.kjoenn,
+            sakenGjelder = sakenGjelder,
+            klager = getKlager(klagebehandling.klager),
             tema = klagebehandling.ytelse.toTema().id,
             ytelse = klagebehandling.ytelse.id,
             type = klagebehandling.type.id,
@@ -100,8 +81,6 @@ class BehandlingMapper(
             modified = klagebehandling.modified,
             created = klagebehandling.created,
             resultat = klagebehandling.currentDelbehandling().mapToVedtakView(),
-            //TODO: Fjern denne når FE tar i bruk kommentarFraVedtaksinstans
-            kommentarFraFoersteinstans = klagebehandling.kommentarFraFoersteinstans,
             kommentarFraVedtaksinstans = klagebehandling.kommentarFraFoersteinstans,
             tilknyttedeDokumenter = klagebehandling.saksdokumenter.map {
                 TilknyttetDokument(
@@ -120,18 +99,12 @@ class BehandlingMapper(
 
     fun mapAnkebehandlingToBehandlingDetaljerView(ankebehandling: Ankebehandling): BehandlingDetaljerView {
         val forrigeEnhetNavn = ankebehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
-        val sakenGjelderFoedselsnummer = foedselsnummer(ankebehandling.sakenGjelder.partId)
-        val sakenGjelder = sakenGjelderFoedselsnummer?.let { pdlFacade.getPersonInfo(it) }
-        val sakenGjelderVirksomhetsnummer = virksomhetsnummer(ankebehandling.sakenGjelder.partId)
-        val sakenGjelderVirksomhet = sakenGjelderVirksomhetsnummer?.let { eregClient.hentOrganisasjon(it) }
-        val klagerFoedselsnummer = foedselsnummer(ankebehandling.klager.partId)
-        val klager = klagerFoedselsnummer?.let { pdlFacade.getPersonInfo(it) }
-        val klagerVirksomhetsnummer = virksomhetsnummer(ankebehandling.klager.partId)
-        val klagerVirksomhet = klagerVirksomhetsnummer?.let { eregClient.hentOrganisasjon(it) }
 
-        val erFortrolig = sakenGjelder?.harBeskyttelsesbehovFortrolig() ?: false
-        val erStrengtFortrolig = sakenGjelder?.harBeskyttelsesbehovStrengtFortrolig() ?: false
-        val erEgenAnsatt = sakenGjelderFoedselsnummer?.let { egenAnsattService.erEgenAnsatt(it) } ?: false
+        val sakenGjelder = getSakenGjelder(ankebehandling.sakenGjelder)
+
+        val erFortrolig = sakenGjelder.person?.harBeskyttelsesbehovFortrolig ?: false
+        val erStrengtFortrolig = sakenGjelder.person?.harBeskyttelsesbehovStrengtFortrolig ?: false
+        val erEgenAnsatt = sakenGjelder.person?.foedselsnummer?.let { egenAnsattService.erEgenAnsatt(it) } ?: false
 
         return BehandlingDetaljerView(
             id = ankebehandling.id,
@@ -140,20 +113,9 @@ class BehandlingMapper(
             fraNAVEnhetNavn = forrigeEnhetNavn,
             forrigeNAVEnhet = ankebehandling.klageBehandlendeEnhet,
             forrigeNAVEnhetNavn = forrigeEnhetNavn,
-            mottattFoersteinstans = null,
             mottattVedtaksinstans = null,
-            sakenGjelder = ankebehandling.sakenGjelder.mapToView(),
-            klager = ankebehandling.klager.mapToView(),
-            sakenGjelderFoedselsnummer = sakenGjelderFoedselsnummer,
-            sakenGjelderNavn = sakenGjelder.mapNavnToView(),
-            sakenGjelderKjoenn = sakenGjelder?.kjoenn,
-            sakenGjelderVirksomhetsnummer = sakenGjelderVirksomhetsnummer,
-            sakenGjelderVirksomhetsnavn = sakenGjelderVirksomhet?.navn?.sammensattNavn(),
-            klagerFoedselsnummer = klagerFoedselsnummer,
-            klagerVirksomhetsnummer = klagerVirksomhetsnummer,
-            klagerVirksomhetsnavn = klagerVirksomhet?.navn?.sammensattNavn(),
-            klagerNavn = klager.mapNavnToView(),
-            klagerKjoenn = klager?.kjoenn,
+            sakenGjelder = sakenGjelder,
+            klager = getKlager(ankebehandling.klager),
             tema = ankebehandling.ytelse.toTema().id,
             ytelse = ankebehandling.ytelse.id,
             type = ankebehandling.type.id,
@@ -177,7 +139,6 @@ class BehandlingMapper(
             forrigeSaksbehandlerident = null,
             forrigeVedtaksDato = ankebehandling.klageVedtaksDato,
             resultat = ankebehandling.currentDelbehandling().mapToVedtakView(),
-            kommentarFraFoersteinstans = null,
             kommentarFraVedtaksinstans = null,
             tilknyttedeDokumenter = ankebehandling.saksdokumenter.map {
                 TilknyttetDokument(
@@ -200,29 +161,32 @@ class BehandlingMapper(
         }
     }
 
-    private fun SakenGjelder.mapToView(): BehandlingDetaljerView.SakenGjelderView {
-        if (erPerson()) {
-            val person = pdlFacade.getPersonInfo(partId.value)
+    private fun getSakenGjelder(sakenGjelder: SakenGjelder): BehandlingDetaljerView.SakenGjelderView {
+        if (sakenGjelder.erPerson()) {
+            val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
             return BehandlingDetaljerView.SakenGjelderView(
                 person = BehandlingDetaljerView.PersonView(
                     foedselsnummer = person.foedselsnr,
                     navn = person.mapNavnToView(),
-                    kjoenn = person.kjoenn
+                    kjoenn = person.kjoenn,
+                    harBeskyttelsesbehovFortrolig = person.harBeskyttelsesbehovFortrolig(),
+                    harBeskyttelsesbehovStrengtFortrolig = person.harBeskyttelsesbehovStrengtFortrolig(),
                 ), virksomhet = null
             )
         } else {
             return BehandlingDetaljerView.SakenGjelderView(
-                person = null, virksomhet = BehandlingDetaljerView.VirksomhetView(
-                    virksomhetsnummer = partId.value,
-                    navn = eregClient.hentOrganisasjon(partId.value)?.navn?.sammensattNavn()
+                person = null,
+                virksomhet = BehandlingDetaljerView.VirksomhetView(
+                    virksomhetsnummer = sakenGjelder.partId.value,
+                    navn = eregClient.hentOrganisasjon(sakenGjelder.partId.value)?.navn?.sammensattNavn()
                 )
             )
         }
     }
 
-    private fun Klager.mapToView(): BehandlingDetaljerView.KlagerView {
-        if (erPerson()) {
-            val person = pdlFacade.getPersonInfo(partId.value)
+    private fun getKlager(klager: Klager): BehandlingDetaljerView.KlagerView {
+        if (klager.erPerson()) {
+            val person = pdlFacade.getPersonInfo(klager.partId.value)
             return BehandlingDetaljerView.KlagerView(
                 person = BehandlingDetaljerView.PersonView(
                     foedselsnummer = person.foedselsnr,
@@ -233,8 +197,8 @@ class BehandlingMapper(
         } else {
             return BehandlingDetaljerView.KlagerView(
                 person = null, virksomhet = BehandlingDetaljerView.VirksomhetView(
-                    virksomhetsnummer = partId.value,
-                    navn = eregClient.hentOrganisasjon(partId.value)?.navn?.sammensattNavn()
+                    virksomhetsnummer = klager.partId.value,
+                    navn = eregClient.hentOrganisasjon(klager.partId.value)?.navn?.sammensattNavn()
                 )
             )
         }
@@ -266,20 +230,6 @@ class BehandlingMapper(
             dokumentMetadata.opplastet
         )
     }
-
-    private fun foedselsnummer(partId: PartId) =
-        if (partId.type == PartIdType.PERSON) {
-            partId.value
-        } else {
-            null
-        }
-
-    private fun virksomhetsnummer(partId: PartId) =
-        if (partId.type == PartIdType.VIRKSOMHET) {
-            partId.value
-        } else {
-            null
-        }
 
     private fun Person?.mapNavnToView(): BehandlingDetaljerView.NavnView? =
         if (this != null) {

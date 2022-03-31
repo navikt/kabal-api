@@ -54,7 +54,7 @@ class BehandlingDetaljerController(
             auditLogger.log(
                 AuditLogEvent(
                     navIdent = innloggetSaksbehandlerRepository.getInnloggetIdent(),
-                    personFnr = it.sakenGjelderFoedselsnummer
+                    personFnr = it.sakenGjelder.person?.foedselsnummer
                 )
             )
         }
