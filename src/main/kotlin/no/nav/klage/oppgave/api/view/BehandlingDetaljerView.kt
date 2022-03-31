@@ -19,7 +19,7 @@ data class BehandlingDetaljerView(
     val ytelse: String? = null,
     val type: String,
     val mottatt: LocalDate?,
-    val mottattKlageinstans: LocalDate?,
+    val mottattKlageinstans: LocalDate,
     val tildelt: LocalDate? = null,
     val avsluttetAvSaksbehandlerDate: LocalDate?,
     val isAvsluttetAvSaksbehandler: Boolean,
@@ -72,7 +72,5 @@ data class BehandlingDetaljerView(
         val foedselsnummer: String?,
         val navn: NavnView?,
         val kjoenn: String?,
-        val harBeskyttelsesbehovFortrolig: Boolean = false,
-        val harBeskyttelsesbehovStrengtFortrolig: Boolean = false,
     )
 }
