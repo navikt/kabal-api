@@ -265,8 +265,8 @@ class MockDataController(
     )
 
     data class MockInput(
-        val ytelse: Ytelse? = null,
-        val klager: OversendtKlager? = null,
-        val sakenGjelder: OversendtSakenGjelder? = null
+        val ytelse: Ytelse?,
+        val klager: OversendtKlager?,
+        val sakenGjelder: OversendtSakenGjelder?,
     )
 }
