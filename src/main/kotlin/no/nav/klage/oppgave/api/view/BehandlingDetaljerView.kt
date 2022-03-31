@@ -14,7 +14,7 @@ data class BehandlingDetaljerView(
     val forrigeNAVEnhetNavn: String? = null,
     val mottattVedtaksinstans: LocalDate? = null,
     val sakenGjelder: SakenGjelderView,
-    val klager: KlagerView?,
+    val klager: KlagerView,
     val tema: String,
     val ytelse: String? = null,
     val type: String,

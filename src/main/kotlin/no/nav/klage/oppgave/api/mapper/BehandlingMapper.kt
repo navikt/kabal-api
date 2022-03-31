@@ -42,7 +42,7 @@ class BehandlingMapper(
     fun mapKlagebehandlingToBehandlingDetaljerView(klagebehandling: Klagebehandling): BehandlingDetaljerView {
         val enhetNavn = klagebehandling.avsenderEnhetFoersteinstans.let { norg2Client.fetchEnhet(it) }.navn
 
-        val sakenGjelder = getSakenGjelder(klagebehandling.sakenGjelder)
+        val sakenGjelder = getSakenGjelderView(klagebehandling.sakenGjelder)
 
         val erFortrolig = sakenGjelder.person?.harBeskyttelsesbehovFortrolig ?: false
         val erStrengtFortrolig = sakenGjelder.person?.harBeskyttelsesbehovStrengtFortrolig ?: false
@@ -60,7 +60,7 @@ class BehandlingMapper(
             forrigeVedtaksDato = null,
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
             sakenGjelder = sakenGjelder,
-            klager = getKlager(klagebehandling.klager),
+            klager = getKlagerView(klagebehandling.klager),
             tema = klagebehandling.ytelse.toTema().id,
             ytelse = klagebehandling.ytelse.id,
             type = klagebehandling.type.id,
@@ -100,7 +100,7 @@ class BehandlingMapper(
     fun mapAnkebehandlingToBehandlingDetaljerView(ankebehandling: Ankebehandling): BehandlingDetaljerView {
         val forrigeEnhetNavn = ankebehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
-        val sakenGjelder = getSakenGjelder(ankebehandling.sakenGjelder)
+        val sakenGjelder = getSakenGjelderView(ankebehandling.sakenGjelder)
 
         val erFortrolig = sakenGjelder.person?.harBeskyttelsesbehovFortrolig ?: false
         val erStrengtFortrolig = sakenGjelder.person?.harBeskyttelsesbehovStrengtFortrolig ?: false
@@ -115,7 +115,7 @@ class BehandlingMapper(
             forrigeNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
             sakenGjelder = sakenGjelder,
-            klager = getKlager(ankebehandling.klager),
+            klager = getKlagerView(ankebehandling.klager),
             tema = ankebehandling.ytelse.toTema().id,
             ytelse = ankebehandling.ytelse.id,
             type = ankebehandling.type.id,
@@ -161,7 +161,7 @@ class BehandlingMapper(
         }
     }
 
-    private fun getSakenGjelder(sakenGjelder: SakenGjelder): BehandlingDetaljerView.SakenGjelderView {
+    private fun getSakenGjelderView(sakenGjelder: SakenGjelder): BehandlingDetaljerView.SakenGjelderView {
         if (sakenGjelder.erPerson()) {
             val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
             return BehandlingDetaljerView.SakenGjelderView(
@@ -184,7 +184,7 @@ class BehandlingMapper(
         }
     }
 
-    private fun getKlager(klager: Klager): BehandlingDetaljerView.KlagerView {
+    private fun getKlagerView(klager: Klager): BehandlingDetaljerView.KlagerView {
         if (klager.erPerson()) {
             val person = pdlFacade.getPersonInfo(klager.partId.value)
             return BehandlingDetaljerView.KlagerView(
