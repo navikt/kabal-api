@@ -130,7 +130,7 @@ class BehandlingService(
         ) {
             behandlingValidationErrors.add(
                 InvalidProperty(
-                    field = "mottattVedaksinstans",
+                    field = "mottattVedtaksinstans",
                     reason = "Denne datoen kan ikke være i fremtiden."
                 )
             )
