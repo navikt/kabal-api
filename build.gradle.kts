@@ -3,11 +3,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val mockkVersion = "1.12.1"
 val tokenValidationVersion = "1.3.9"
 val logstashVersion = "7.0"
-val springSleuthVersion = "3.0.4"
+val springSleuthVersion = "3.1.1"
 val unleashVersion = "4.4.1"
 val problemSpringWebStartVersion = "0.27.0"
-val springRetryVersion = "1.3.1"
-val springMockkVersion = "3.0.1"
+val springRetryVersion = "1.3.2"
+val springMockkVersion = "3.1.1"
 val springFoxVersion = "3.0.0"
 val testContainersVersion = "1.16.2"
 val shedlockVersion = "4.29.0"
@@ -24,7 +24,7 @@ val verapdfVersion = "1.18.8"
 //val githubPassword: String by project
 
 plugins {
-    id("org.springframework.boot") version "2.5.7"
+    id("org.springframework.boot") version "2.6.6"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     kotlin("jvm") version "1.6.0"
     kotlin("plugin.spring") version "1.6.0"
