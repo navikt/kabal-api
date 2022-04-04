@@ -1,11 +1,9 @@
 package no.nav.klage.oppgave.api.view
 
-data class BrevMottakerView(
-    val partId: PartIdView,
-    val navn: String?,
-)
+enum class BrevMottagerRolle { KLAGER, SAKEN_GJELDER, PROSESSFULLMEKTIG }
 
-data class PartIdView(
-    val partIdTypeId: String,
-    val value: String
+data class BrevMottakerView(
+    val partId: String,
+    val navn: String?,
+    val rolle: BrevMottagerRolle,
 )
