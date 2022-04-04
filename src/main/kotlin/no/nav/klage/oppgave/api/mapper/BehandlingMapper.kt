@@ -309,6 +309,7 @@ class BehandlingMapper(
     private fun Klager.getBrevMottakerView() =
         BrevMottakerView(
             partId = partId.value,
+            partIdType = partId.type.name,
             navn = partId.getNavn(),
             rolle = BrevMottagerRolle.KLAGER,
         )
@@ -316,6 +317,7 @@ class BehandlingMapper(
     private fun SakenGjelder.getBrevMottakerView() =
         BrevMottakerView(
             partId = partId.value,
+            partIdType = partId.type.name,
             navn = partId.getNavn(),
             rolle = BrevMottagerRolle.SAKEN_GJELDER,
         )
@@ -323,6 +325,7 @@ class BehandlingMapper(
     private fun Prosessfullmektig.getBrevMottakerView() =
         BrevMottakerView(
             partId = partId.value,
+            partIdType = partId.type.name,
             navn = partId.getNavn(),
             rolle = BrevMottagerRolle.PROSESSFULLMEKTIG,
         )
