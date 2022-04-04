@@ -1,11 +1,13 @@
 package no.nav.klage.oppgave.api.mapper
 
 
+import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.kabaldocument.model.Rolle
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
@@ -88,6 +90,7 @@ class BehandlingMapper(
             kvalitetsvurderingId = klagebehandling.kakaKvalitetsvurderingId,
             isPossibleToUseDokumentUnderArbeid = klagebehandling.currentDelbehandling().avsluttetAvSaksbehandler != null || klagebehandling.currentDelbehandling().dokumentEnhetId == null,
             sattPaaVent = klagebehandling.sattPaaVent,
+            brevMottakere = klagebehandling.mapToBrevMottakerViewList(),
         )
     }
 
@@ -140,6 +143,7 @@ class BehandlingMapper(
             kvalitetsvurderingId = ankebehandling.kakaKvalitetsvurderingId,
             isPossibleToUseDokumentUnderArbeid = ankebehandling.currentDelbehandling().avsluttetAvSaksbehandler != null || ankebehandling.currentDelbehandling().dokumentEnhetId == null,
             sattPaaVent = ankebehandling.sattPaaVent,
+            brevMottakere = ankebehandling.mapToBrevMottakerViewList(),
         )
     }
 
@@ -277,4 +281,71 @@ class BehandlingMapper(
             medunderskriverFlyt = behandling.currentDelbehandling().medunderskriverFlyt
         )
     }
+
+    private fun Behandling.mapToBrevMottakerViewList(): List<BrevMottakerView> {
+        val brevMottakere = mutableListOf<BrevMottakerView>()
+        if (klager.prosessfullmektig != null) {
+            brevMottakere.add(
+                klager.prosessfullmektig!!.getBrevMottakerView(
+                    Rolle.HOVEDADRESSAT.name
+                )
+            )
+            if (klager.prosessfullmektig!!.skalPartenMottaKopi) {
+                brevMottakere.add(
+                    klager.getBrevMottakerView(
+                        Rolle.KOPIADRESSAT.name
+                    )
+                )
+            }
+        } else {
+            brevMottakere.add(
+                klager.getBrevMottakerView(
+                    Rolle.HOVEDADRESSAT.name
+                )
+            )
+        }
+        if (sakenGjelder.partId != klager.partId && sakenGjelder.skalMottaKopi) {
+            brevMottakere.add(
+                sakenGjelder.getBrevMottakerView(
+                    Rolle.KOPIADRESSAT.name
+                )
+            )
+        }
+
+        return brevMottakere
+    }
+
+    private fun Klager.getBrevMottakerView(rolle: String) =
+        BrevMottakerView(
+            partId = partId.getPartIdView(),
+            navn = partId.getNavn(),
+            rolle = rolle
+        )
+
+    private fun SakenGjelder.getBrevMottakerView(rolle: String) =
+        BrevMottakerView(
+            partId = partId.getPartIdView(),
+            navn = partId.getNavn(),
+            rolle = rolle
+        )
+
+    private fun Prosessfullmektig.getBrevMottakerView(rolle: String) =
+        BrevMottakerView(
+            partId = partId.getPartIdView(),
+            navn = partId.getNavn(),
+            rolle = rolle
+        )
+
+    private fun PartId.getPartIdView() =
+        PartIdView(
+            partIdTypeId = type.id,
+            value = value
+        )
+
+    private fun PartId.getNavn(): String? =
+        if (type == PartIdType.PERSON) {
+            pdlFacade.getPersonInfo(value).settSammenNavn()
+        } else {
+            eregClient.hentOrganisasjon(value)?.navn?.navnelinje1
+        }
 }
