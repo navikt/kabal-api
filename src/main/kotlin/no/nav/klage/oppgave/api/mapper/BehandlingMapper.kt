@@ -7,7 +7,6 @@ import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
-import no.nav.klage.oppgave.clients.kabaldocument.model.Rolle
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
@@ -286,54 +285,43 @@ class BehandlingMapper(
         val brevMottakere = mutableListOf<BrevMottakerView>()
         if (klager.prosessfullmektig != null) {
             brevMottakere.add(
-                klager.prosessfullmektig!!.getBrevMottakerView(
-                    Rolle.HOVEDADRESSAT.name
-                )
+                klager.prosessfullmektig!!.getBrevMottakerView()
             )
             if (klager.prosessfullmektig!!.skalPartenMottaKopi) {
                 brevMottakere.add(
-                    klager.getBrevMottakerView(
-                        Rolle.KOPIADRESSAT.name
-                    )
+                    klager.getBrevMottakerView()
                 )
             }
         } else {
             brevMottakere.add(
-                klager.getBrevMottakerView(
-                    Rolle.HOVEDADRESSAT.name
-                )
+                klager.getBrevMottakerView()
             )
         }
         if (sakenGjelder.partId != klager.partId && sakenGjelder.skalMottaKopi) {
             brevMottakere.add(
-                sakenGjelder.getBrevMottakerView(
-                    Rolle.KOPIADRESSAT.name
-                )
+                sakenGjelder.getBrevMottakerView()
             )
         }
 
         return brevMottakere
     }
 
-    private fun Klager.getBrevMottakerView(rolle: String) =
+    private fun Klager.getBrevMottakerView() =
         BrevMottakerView(
             partId = partId.getPartIdView(),
             navn = partId.getNavn(),
-            rolle = rolle
         )
 
-    private fun SakenGjelder.getBrevMottakerView(rolle: String) =
+    private fun SakenGjelder.getBrevMottakerView() =
         BrevMottakerView(
             partId = partId.getPartIdView(),
             navn = partId.getNavn(),
-            rolle = rolle
         )
 
-    private fun Prosessfullmektig.getBrevMottakerView(rolle: String) =
+    private fun Prosessfullmektig.getBrevMottakerView() =
         BrevMottakerView(
             partId = partId.getPartIdView(),
             navn = partId.getNavn(),
-            rolle = rolle
         )
 
     private fun PartId.getPartIdView() =
