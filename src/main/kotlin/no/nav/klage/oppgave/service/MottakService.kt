@@ -84,6 +84,7 @@ class MottakService(
                 val previousHandledKlage =
                     klagebehandlingRepository.findByKildeReferanse(oversendtKlageAnke.kildeReferanse)
                 if (previousHandledKlage != null) {
+                    logger.debug("Fant tidligere behandlet klage i Kabal, med id ${previousHandledKlage.id}")
                     mottakRepository.save(oversendtKlageAnke.toMottak(previousHandledKlage.id))
                 } else {
                     mottakRepository.save(oversendtKlageAnke.toMottak())
