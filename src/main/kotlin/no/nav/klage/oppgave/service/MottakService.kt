@@ -77,6 +77,32 @@ class MottakService(
     @Transactional
     fun createMottakForKlageAnkeV3(oversendtKlageAnke: OversendtKlageAnkeV3) {
         secureLogger.debug("Prøver å lagre oversendtKlageAnkeV3: {}", oversendtKlageAnke)
+
+        val mottak = validateAndSaveMottak(oversendtKlageAnke)
+
+        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlage: {}", mottak)
+        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+
+        applicationEventPublisher.publishEvent(MottakLagretEvent(mottak))
+
+        //TODO: Move to outside of transaction to make sure it went well
+        meterRegistry.incrementMottattKlage(oversendtKlageAnke.kilde.name, oversendtKlageAnke.ytelse.toTema().navn)
+
+    }
+
+    @Transactional
+    fun createMottakForKlageAnkeV3ForE2ETests(oversendtKlageAnke: OversendtKlageAnkeV3): Behandling {
+        secureLogger.debug("Prøver å lagre oversendtKlageAnkeV3 for E2E-tests: {}", oversendtKlageAnke)
+
+        val mottak = validateAndSaveMottak(oversendtKlageAnke)
+
+        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlageAnkeV3: {}", mottak)
+        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+
+        return createBehandlingFromMottakEventListener.createBehandling(MottakLagretEvent(mottak))
+    }
+
+    private fun validateAndSaveMottak(oversendtKlageAnke: OversendtKlageAnkeV3): Mottak {
         oversendtKlageAnke.validate()
 
         val mottak =
@@ -102,27 +128,7 @@ class MottakService(
                 mottakRepository.save(oversendtKlageAnke.toMottak())
             }
 
-        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlage: {}", mottak)
-        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
-
-        applicationEventPublisher.publishEvent(MottakLagretEvent(mottak))
-
-        //TODO: Move to outside of transaction to make sure it went well
-        meterRegistry.incrementMottattKlage(oversendtKlageAnke.kilde.name, oversendtKlageAnke.ytelse.toTema().navn)
-
-    }
-
-    @Transactional
-    fun createMottakForKlageAnkeV3ForE2ETests(oversendtKlageAnke: OversendtKlageAnkeV3): Behandling {
-        secureLogger.debug("Prøver å lagre oversendtKlageAnkeV3 for E2E-tests: {}", oversendtKlageAnke)
-        oversendtKlageAnke.validate()
-
-        val mottak = mottakRepository.save(oversendtKlageAnke.toMottak())
-
-        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlageAnkeV3: {}", mottak)
-        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
-
-        return createBehandlingFromMottakEventListener.createBehandling(MottakLagretEvent(mottak))
+        return mottak
     }
 
     @Transactional
