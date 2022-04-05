@@ -10,6 +10,7 @@ import no.nav.klage.oppgave.domain.klage.MottakHjemmel
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 import javax.validation.constraints.PastOrPresent
 
 @ApiModel
@@ -101,7 +102,7 @@ data class OversendtKlageAnkeV3(
 
 )
 
-fun OversendtKlageAnkeV3.toMottak() = Mottak(
+fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
     type = type,
     klager = klager.toKlagepart(),
     sakenGjelder = sakenGjelder?.toSakenGjelder(),
@@ -119,4 +120,5 @@ fun OversendtKlageAnkeV3.toMottak() = Mottak(
     fristFraFoersteinstans = frist,
     kildesystem = kilde.mapFagsystem(),
     ytelse = ytelse,
+    forrigeBehandlingId = forrigeBehandlingId
 )

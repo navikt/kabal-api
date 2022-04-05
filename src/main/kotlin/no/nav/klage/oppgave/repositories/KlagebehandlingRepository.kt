@@ -17,6 +17,8 @@ interface KlagebehandlingRepository : JpaRepository<Klagebehandling, UUID> {
 
     fun findByDelbehandlingerAvsluttetIsNotNull(): List<Klagebehandling>
 
+    fun findByKildeReferanse(kildeReferanse: String): Klagebehandling?
+
     @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
     override fun getOne(id: UUID): Klagebehandling
 

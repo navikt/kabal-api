@@ -79,7 +79,18 @@ class MottakService(
         secureLogger.debug("Prøver å lagre oversendtKlageAnkeV3: {}", oversendtKlageAnke)
         oversendtKlageAnke.validate()
 
-        val mottak = mottakRepository.save(oversendtKlageAnke.toMottak())
+        val mottak =
+            if (oversendtKlageAnke.type == Type.ANKE) {
+                val previousHandledKlage =
+                    klagebehandlingRepository.findByKildeReferanse(oversendtKlageAnke.kildeReferanse)
+                if (previousHandledKlage != null) {
+                    mottakRepository.save(oversendtKlageAnke.toMottak(previousHandledKlage.id))
+                } else {
+                    mottakRepository.save(oversendtKlageAnke.toMottak())
+                }
+            } else {
+                mottakRepository.save(oversendtKlageAnke.toMottak())
+            }
 
         secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlage: {}", mottak)
         logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
