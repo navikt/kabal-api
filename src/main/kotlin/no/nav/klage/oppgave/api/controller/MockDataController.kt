@@ -227,7 +227,8 @@ class MockDataController(
                     )
                 },
                 sakenGjelder = sakenGjelder,
-                kildeReferanse = UUID.randomUUID().toString(),
+                kildeReferanse = input?.kildeReferanse ?: UUID.randomUUID().toString(),
+                dvhReferanse = input?.dvhReferanse,
                 innsynUrl = "https://nav.no",
                 hjemler = listOf(ytelseTilHjemler[randomYtelse]!!.random()),
                 forrigeBehandlendeEnhet = "4295", //NAV Klageinstans nord
@@ -268,5 +269,7 @@ class MockDataController(
         val ytelse: Ytelse?,
         val klager: OversendtKlager?,
         val sakenGjelder: OversendtSakenGjelder?,
+        val kildeReferanse: String?,
+        val dvhReferanse: String?,
     )
 }
