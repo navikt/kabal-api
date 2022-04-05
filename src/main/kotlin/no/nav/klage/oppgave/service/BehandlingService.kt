@@ -365,7 +365,7 @@ class BehandlingService(
         ignoreCheckSkrivetilgang: Boolean = false
     ): Behandling =
         behandlingRepository.findById(behandlingId).get()
-            .also { checkLeseTilgang(it) }
+            .also { if (!ignoreCheckSkrivetilgang) checkLeseTilgang(it) }
             .also { if (!ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
 
     private fun checkLeseTilgang(behandling: Behandling) {
