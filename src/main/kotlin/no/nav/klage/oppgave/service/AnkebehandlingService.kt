@@ -66,6 +66,7 @@ class AnkebehandlingService(
                 behandlingId = ankebehandling.id,
                 hjemler = klagebehandling.currentDelbehandling().hjemler,
                 utfoerendeSaksbehandlerIdent = SYSTEMBRUKER,
+                systemUserContext = true,
             )
 
             val klagebehandlingDokumenter = klagebehandling.saksdokumenter
@@ -76,7 +77,8 @@ class AnkebehandlingService(
                     behandlingId = ankebehandling.id,
                     journalpostId = it.journalpostId,
                     dokumentInfoId = it.dokumentInfoId,
-                    saksbehandlerIdent = SYSTEMBRUKER
+                    saksbehandlerIdent = SYSTEMBRUKER,
+                    systemUserContext = true,
                 )
             }
         }

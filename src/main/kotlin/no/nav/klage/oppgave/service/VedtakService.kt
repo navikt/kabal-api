@@ -42,10 +42,12 @@ class VedtakService(
     fun setHjemler(
         behandlingId: UUID,
         hjemler: Set<Registreringshjemmel>,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
+        systemUserContext: Boolean = false
     ): Behandling {
         val behandling = behandlingService.getBehandlingForUpdate(
-            behandlingId
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = systemUserContext
         )
         val event =
             behandling.setHjemlerInVedtak(hjemler, utfoerendeSaksbehandlerIdent)

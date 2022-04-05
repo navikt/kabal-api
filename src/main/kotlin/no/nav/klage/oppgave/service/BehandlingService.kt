@@ -316,10 +316,19 @@ class BehandlingService(
         behandlingId: UUID,
         journalpostId: String,
         dokumentInfoId: String,
-        saksbehandlerIdent: String
+        saksbehandlerIdent: String,
+        systemUserContext: Boolean = false
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(behandlingId)
-        dokumentService.validateJournalpostExists(journalpostId)
+        val behandling = getBehandlingForUpdate(
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = systemUserContext
+        )
+        if (systemUserContext) {
+            dokumentService.validateJournalpostExistsAsSystembruker(journalpostId)
+        } else {
+            dokumentService.validateJournalpostExists(journalpostId)
+        }
+
         addDokument(
             behandling,
             journalpostId,
