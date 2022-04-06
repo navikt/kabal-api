@@ -51,7 +51,7 @@ class KabalDocumentGateway(
     }
 
     fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): JournalpostId =
-        kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId).brevmottakerWithJoarkAndDokDistInfoList.first {
+        kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId).brevMottakerWithJoarkAndDokDistInfoList.first {
             it.rolle == Rolle.HOVEDADRESSAT
         }.journalpostId
 
