@@ -18,7 +18,7 @@ class VedtakNotFoundException(msg: String) : RuntimeException(msg)
 
 class ResultatDokumentNotFoundException(msg: String) : RuntimeException(msg)
 
-class BrevMottakerNotFoundException(msg: String) : RuntimeException(msg)
+class BrevmottakerNotFoundException(msg: String) : RuntimeException(msg)
 
 class MeldingNotFoundException(msg: String) : RuntimeException(msg)
 

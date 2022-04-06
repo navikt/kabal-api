@@ -5,10 +5,10 @@ import no.nav.klage.oppgave.domain.klage.PartId
 import java.util.*
 
 data class DokumentEnhetFullfoerOutput(
-    val brevMottakerWithJoarkAndDokDistInfoList: List<BrevMottakerWithJoarkAndDokDistInfo>
+    val brevmottakerWithJoarkAndDokDistInfoList: List<BrevmottakerWithJoarkAndDokDistInfo>
 )
 
-data class BrevMottakerWithJoarkAndDokDistInfo(
+data class BrevmottakerWithJoarkAndDokDistInfo(
     val partId: PartId,
     val navn: String?,
     val rolle: Rolle,

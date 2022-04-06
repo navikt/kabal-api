@@ -89,7 +89,7 @@ class BehandlingMapper(
             kvalitetsvurderingId = klagebehandling.kakaKvalitetsvurderingId,
             isPossibleToUseDokumentUnderArbeid = klagebehandling.currentDelbehandling().avsluttetAvSaksbehandler != null || klagebehandling.currentDelbehandling().dokumentEnhetId == null,
             sattPaaVent = klagebehandling.sattPaaVent,
-            brevMottakere = klagebehandling.mapToBrevMottakerViewList(),
+            brevmottakere = klagebehandling.mapToBrevmottakerViewList(),
         )
     }
 
@@ -142,7 +142,7 @@ class BehandlingMapper(
             kvalitetsvurderingId = ankebehandling.kakaKvalitetsvurderingId,
             isPossibleToUseDokumentUnderArbeid = ankebehandling.currentDelbehandling().avsluttetAvSaksbehandler != null || ankebehandling.currentDelbehandling().dokumentEnhetId == null,
             sattPaaVent = ankebehandling.sattPaaVent,
-            brevMottakere = ankebehandling.mapToBrevMottakerViewList(),
+            brevmottakere = ankebehandling.mapToBrevmottakerViewList(),
         )
     }
 
@@ -281,53 +281,53 @@ class BehandlingMapper(
         )
     }
 
-    private fun Behandling.mapToBrevMottakerViewList(): List<BrevMottakerView> {
-        val brevMottakere = mutableListOf<BrevMottakerView>()
+    private fun Behandling.mapToBrevmottakerViewList(): List<BrevmottakerView> {
+        val brevmottakere = mutableListOf<BrevmottakerView>()
         if (klager.prosessfullmektig != null) {
-            brevMottakere.add(
-                klager.prosessfullmektig!!.getBrevMottakerView()
+            brevmottakere.add(
+                klager.prosessfullmektig!!.getBrevmottakerView()
             )
             if (klager.prosessfullmektig!!.skalPartenMottaKopi) {
-                brevMottakere.add(
-                    klager.getBrevMottakerView()
+                brevmottakere.add(
+                    klager.getBrevmottakerView()
                 )
             }
         } else {
-            brevMottakere.add(
-                klager.getBrevMottakerView()
+            brevmottakere.add(
+                klager.getBrevmottakerView()
             )
         }
         if (sakenGjelder.partId != klager.partId && sakenGjelder.skalMottaKopi) {
-            brevMottakere.add(
-                sakenGjelder.getBrevMottakerView()
+            brevmottakere.add(
+                sakenGjelder.getBrevmottakerView()
             )
         }
 
-        return brevMottakere
+        return brevmottakere
     }
 
-    private fun Klager.getBrevMottakerView() =
-        BrevMottakerView(
+    private fun Klager.getBrevmottakerView() =
+        BrevmottakerView(
             partId = partId.value,
             partIdType = partId.type.name,
             navn = partId.getNavn(),
-            rolle = BrevMottagerRolle.KLAGER,
+            rolle = BrevmottakerRolle.KLAGER,
         )
 
-    private fun SakenGjelder.getBrevMottakerView() =
-        BrevMottakerView(
+    private fun SakenGjelder.getBrevmottakerView() =
+        BrevmottakerView(
             partId = partId.value,
             partIdType = partId.type.name,
             navn = partId.getNavn(),
-            rolle = BrevMottagerRolle.SAKEN_GJELDER,
+            rolle = BrevmottakerRolle.SAKEN_GJELDER,
         )
 
-    private fun Prosessfullmektig.getBrevMottakerView() =
-        BrevMottakerView(
+    private fun Prosessfullmektig.getBrevmottakerView() =
+        BrevmottakerView(
             partId = partId.value,
             partIdType = partId.type.name,
             navn = partId.getNavn(),
-            rolle = BrevMottagerRolle.PROSESSFULLMEKTIG,
+            rolle = BrevmottakerRolle.PROSESSFULLMEKTIG,
         )
 
     private fun PartId.getNavn(): String? =

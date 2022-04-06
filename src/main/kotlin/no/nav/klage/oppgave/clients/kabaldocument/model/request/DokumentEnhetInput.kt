@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.clients.kabaldocument.model.request
 import java.time.LocalDateTime
 
 data class DokumentEnhetWithDokumentreferanserInput(
-    val brevMottakere: List<BrevMottakerInput>,
+    val brevMottakere: List<BrevmottakerInput>,
     val journalfoeringData: JournalfoeringDataInput,
     val dokumentreferanser: DokumentInput,
 ) {

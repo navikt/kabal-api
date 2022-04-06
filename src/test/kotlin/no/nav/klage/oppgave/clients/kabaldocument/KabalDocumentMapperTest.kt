@@ -9,7 +9,7 @@ import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.ereg.Navn
 import no.nav.klage.oppgave.clients.ereg.Organisasjon
-import no.nav.klage.oppgave.clients.kabaldocument.model.request.BrevMottakerInput
+import no.nav.klage.oppgave.clients.kabaldocument.model.request.BrevmottakerInput
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.PartIdInput
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
@@ -80,13 +80,13 @@ class KabalDocumentMapperTest {
         )
 
         val fasitMottakere = listOf(
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
                 rolle = "HOVEDADRESSAT"
             )
         )
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+        assertThat(mapper.mapBrevmottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
         )
     }
@@ -112,14 +112,14 @@ class KabalDocumentMapperTest {
         )
 
         val fasitMottakere = setOf(
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
                 rolle = "HOVEDADRESSAT"
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+        assertThat(mapper.mapBrevmottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
         )
     }
@@ -145,20 +145,20 @@ class KabalDocumentMapperTest {
         )
 
         val fasitMottakere = setOf(
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
                 rolle = "HOVEDADRESSAT"
             ),
 
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
                 rolle = "KOPIADRESSAT"
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+        assertThat(mapper.mapBrevmottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
         )
     }
@@ -193,14 +193,14 @@ class KabalDocumentMapperTest {
         )
 
         val fasitMottakere = setOf(
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
                 rolle = "HOVEDADRESSAT"
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+        assertThat(mapper.mapBrevmottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
         )
     }
@@ -235,19 +235,19 @@ class KabalDocumentMapperTest {
         )
 
         val fasitMottakere = setOf(
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
                 rolle = "KOPIADRESSAT"
             ),
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
                 rolle = "HOVEDADRESSAT"
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+        assertThat(mapper.mapBrevmottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
         )
     }
@@ -282,19 +282,19 @@ class KabalDocumentMapperTest {
         )
 
         val fasitMottakere = setOf(
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
                 rolle = "KOPIADRESSAT"
             ),
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
                 rolle = "HOVEDADRESSAT"
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+        assertThat(mapper.mapBrevmottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
         )
     }
@@ -330,24 +330,24 @@ class KabalDocumentMapperTest {
             )
 
         val fasitMottakere = setOf(
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr),
                 navn = "fornavn etternavn",
                 rolle = "KOPIADRESSAT"
             ),
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr3),
                 navn = "fornavn etternavn",
                 rolle = "KOPIADRESSAT"
             ),
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
                 rolle = "HOVEDADRESSAT"
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+        assertThat(mapper.mapBrevmottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
         )
     }
@@ -382,14 +382,14 @@ class KabalDocumentMapperTest {
         )
 
         val fasitMottakere = setOf(
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
                 rolle = "HOVEDADRESSAT"
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+        assertThat(mapper.mapBrevmottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
         )
     }
@@ -424,19 +424,19 @@ class KabalDocumentMapperTest {
         )
 
         val fasitMottakere = setOf(
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr3),
                 navn = "fornavn etternavn",
                 rolle = "KOPIADRESSAT"
             ),
-            BrevMottakerInput(
+            BrevmottakerInput(
                 partId = PartIdInput("PERSON", fnr2),
                 navn = "fornavn etternavn",
                 rolle = "HOVEDADRESSAT"
             )
         )
 
-        assertThat(mapper.mapBrevMottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
+        assertThat(mapper.mapBrevmottakere(klagebehandling as Behandling)).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
         )
     }

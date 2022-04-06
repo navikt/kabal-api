@@ -46,7 +46,7 @@ data class BehandlingDetaljerView(
     val kvalitetsvurderingId: UUID?,
     val isPossibleToUseDokumentUnderArbeid: Boolean = false,
     val sattPaaVent: LocalDateTime? = null,
-    val brevMottakere: List<BrevMottakerView>,
+    val brevmottakere: List<BrevmottakerView>,
 ) {
     data class NavnView(
         val fornavn: String?,
