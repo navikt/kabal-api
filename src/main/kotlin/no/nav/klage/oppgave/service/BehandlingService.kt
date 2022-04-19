@@ -263,7 +263,7 @@ class BehandlingService(
         }
 
         if (behandling.currentDelbehandling().medunderskriver?.saksbehandlerident == utfoerendeSaksbehandlerIdent) {
-            checkMedunderskriverStatus(behandling)
+            verifyMedunderskriverStatusAndBehandlingNotFinalized(behandling)
             if (behandling.currentDelbehandling().medunderskriverFlyt != MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER) {
                 val event = behandling.setMedunderskriverFlyt(
                     MedunderskriverFlyt.RETURNERT_TIL_SAKSBEHANDLER,
@@ -397,7 +397,8 @@ class BehandlingService(
         )
     }
 
-    private fun checkMedunderskriverStatus(behandling: Behandling) {
+    //TODO: Se om ansvar for sjekk av medunderskriver og finalize kan deles opp.
+    private fun verifyMedunderskriverStatusAndBehandlingNotFinalized(behandling: Behandling) {
         tilgangService.verifyInnloggetSaksbehandlerErMedunderskriverAndNotFinalized(behandling)
     }
 
@@ -453,7 +454,7 @@ class BehandlingService(
     fun getBehandlingForSmartEditor(behandlingId: UUID, utfoerendeSaksbehandlerIdent: String): Behandling {
         val behandling = behandlingRepository.findById(behandlingId).get()
         if (behandling.currentDelbehandling().medunderskriver?.saksbehandlerident == utfoerendeSaksbehandlerIdent) {
-            checkMedunderskriverStatus(behandling)
+            verifyMedunderskriverStatusAndBehandlingNotFinalized(behandling)
         } else {
             checkSkrivetilgang(behandling)
         }
