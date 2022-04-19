@@ -353,13 +353,11 @@ class BehandlingService(
 
     fun getBehandlingForUpdate(
         behandlingId: UUID,
-        ignoreCheckSkrivetilgang: Boolean = false,
-        checkMedunderskriver: Boolean = false,
+        ignoreCheckSkrivetilgang: Boolean = false
     ): Behandling =
         behandlingRepository.findById(behandlingId).get()
             .also { checkLeseTilgang(it) }
-            .also { if (checkMedunderskriver) checkMedunderskriverStatus(it) }
-            .also { if (!checkMedunderskriver && !ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
+            .also { if (!ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
 
     private fun checkLeseTilgang(behandling: Behandling) {
         if (behandling.sakenGjelder.erPerson()) {
@@ -450,6 +448,18 @@ class BehandlingService(
             throw e
         }
     }
+
+    @Transactional(readOnly = true)
+    fun getBehandlingForSmartEditor(behandlingId: UUID, utfoerendeSaksbehandlerIdent: String): Behandling {
+        val behandling = behandlingRepository.findById(behandlingId).get()
+        if (behandling.currentDelbehandling().medunderskriver?.saksbehandlerident == utfoerendeSaksbehandlerIdent) {
+            checkMedunderskriverStatus(behandling)
+        } else {
+            checkSkrivetilgang(behandling)
+        }
+        return behandling
+    }
+
 
     @Transactional(readOnly = true)
     fun getBehandling(behandlingId: UUID): Behandling =

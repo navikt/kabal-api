@@ -17,6 +17,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.addSaksdoku
 import no.nav.klage.oppgave.domain.klage.Endringslogginnslag
 import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.domain.klage.Saksdokument
+import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.context.ApplicationEventPublisher
@@ -37,6 +38,7 @@ class DokumentUnderArbeidService(
     private val dokumentEnhetService: KabalDocumentGateway,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val safClient: SafGraphQlClient,
+    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerRepository,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -410,15 +412,15 @@ class DokumentUnderArbeidService(
 
     fun getSmartEditorId(dokumentId: DokumentId, readOnly: Boolean): UUID {
         val dokumentUnderArbeid = dokumentUnderArbeidRepository.getById(dokumentId)
+        val ident = innloggetSaksbehandlerService.getInnloggetIdent()
 
         //Sjekker tilgang på behandlingsnivå:
         if (readOnly) {
             behandlingService.getBehandling(dokumentUnderArbeid.behandlingId)
         } else {
-            behandlingService.getBehandlingForUpdate(
+            behandlingService.getBehandlingForSmartEditor(
                 behandlingId = dokumentUnderArbeid.behandlingId,
-                ignoreCheckSkrivetilgang = false,
-                checkMedunderskriver = true
+                utfoerendeSaksbehandlerIdent = ident,
             )
         }
 
