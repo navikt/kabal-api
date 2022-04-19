@@ -398,7 +398,7 @@ class BehandlingService(
     }
 
     private fun checkMedunderskriverStatus(behandling: Behandling) {
-        tilgangService.verifyInnloggetSaksbehandlerErMedunderskriver(behandling)
+        tilgangService.verifyInnloggetSaksbehandlerErMedunderskriverAndNotFinalized(behandling)
     }
 
     private fun addDokument(
