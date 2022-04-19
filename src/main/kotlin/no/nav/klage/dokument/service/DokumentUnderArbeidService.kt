@@ -415,7 +415,11 @@ class DokumentUnderArbeidService(
         if (readOnly) {
             behandlingService.getBehandling(dokumentUnderArbeid.behandlingId)
         } else {
-            behandlingService.getBehandlingForUpdate(dokumentUnderArbeid.behandlingId)
+            behandlingService.getBehandlingForUpdate(
+                behandlingId = dokumentUnderArbeid.behandlingId,
+                ignoreCheckSkrivetilgang = false,
+                checkMedunderskriver = true
+            )
         }
 
         return dokumentUnderArbeid.smartEditorId

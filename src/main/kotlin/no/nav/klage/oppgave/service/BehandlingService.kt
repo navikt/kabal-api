@@ -353,11 +353,13 @@ class BehandlingService(
 
     fun getBehandlingForUpdate(
         behandlingId: UUID,
-        ignoreCheckSkrivetilgang: Boolean = false
+        ignoreCheckSkrivetilgang: Boolean = false,
+        checkMedunderskriver: Boolean = false,
     ): Behandling =
         behandlingRepository.findById(behandlingId).get()
             .also { checkLeseTilgang(it) }
-            .also { if (!ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
+            .also { if (checkMedunderskriver) checkMedunderskriverStatus(it) }
+            .also { if (!checkMedunderskriver && !ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
 
     private fun checkLeseTilgang(behandling: Behandling) {
         if (behandling.sakenGjelder.erPerson()) {

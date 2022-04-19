@@ -27,6 +27,7 @@ class TilgangService(
         private val securelogger = getSecureLogger()
     }
 
+    //TODO: Denne brukes bare i tester, rydd opp ved anledning.
     fun verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling: Klagebehandling) {
         if (klagebehandling.currentDelbehandling().avsluttetAvSaksbehandler != null || klagebehandling.currentDelbehandling().avsluttet != null) {
             throw BehandlingAvsluttetException("Kan ikke endre avsluttet klagebehandling")
