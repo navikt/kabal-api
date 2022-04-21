@@ -3,6 +3,9 @@ package no.nav.klage.oppgave.service
 
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
@@ -164,6 +167,7 @@ class MottakService(
 
     fun OversendtKlageV2.validate() {
         validateDuplicate(kilde, kildeReferanse, type)
+        validateYtelseAndHjemler(ytelse, hjemler)
         tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
         validatePartId(klager.id)
         sakenGjelder?.run { validatePartId(sakenGjelder.id) }
@@ -177,6 +181,7 @@ class MottakService(
     }
 
     fun OversendtKlageAnkeV3.validate() {
+        validateYtelseAndHjemler(ytelse, hjemler)
         validateDuplicate(kilde, kildeReferanse, type)
         tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
         validatePartId(klager.id)
@@ -215,6 +220,20 @@ class MottakService(
     private fun validateKildeReferanse(kildeReferanse: String) {
         if (kildeReferanse.isEmpty())
             throw OversendtKlageNotValidException("Kildereferanse kan ikke være en tom streng.")
+    }
+
+    private fun validateYtelseAndHjemler(ytelse: Ytelse, hjemler: List<Hjemmel>?) {
+        if (ytelse in ytelseTilHjemler.keys) {
+            if (!hjemler.isNullOrEmpty()) {
+                hjemler.forEach {
+                    if (!ytelseTilHjemler[ytelse]!!.contains(it)) {
+                        throw OversendtKlageNotValidException("Behandling med ytelse ${ytelse.navn} kan ikke registreres med hjemmel $it. Ta kontakt med team klage dersom du mener hjemmelen skal være mulig å bruke for denne ytelsen.")
+                    }
+                }
+            }
+        } else {
+            throw OversendtKlageNotValidException("Behandling med ytelse ${ytelse.navn} kan ikke registreres. Ta kontakt med team klage dersom du vil ta i bruk ytelsen.")
+        }
     }
 
     private fun validateType(type: Type) {
