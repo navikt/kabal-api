@@ -80,7 +80,7 @@ class MottakService(
 
         val mottak = validateAndSaveMottak(oversendtKlageAnke)
 
-        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlage: {}", mottak)
+        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlageAnke: {}", mottak)
         logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
 
         applicationEventPublisher.publishEvent(MottakLagretEvent(mottak))

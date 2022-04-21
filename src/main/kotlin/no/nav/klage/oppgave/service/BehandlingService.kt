@@ -170,7 +170,7 @@ class BehandlingService(
         enhetId: String?,
         utfoerendeSaksbehandlerIdent: String
     ): Behandling {
-        val behandling = getBehandlingForUpdate(behandlingId, true)
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
         if (tildeltSaksbehandlerIdent != null) {
             //Denne sjekken gjøres kun når det er en tildeling:
             checkEnhetOgTemaTilgang(tildeltSaksbehandlerIdent, enhetId!!, behandling)
@@ -190,7 +190,7 @@ class BehandlingService(
         setNull: Boolean = false,
         utfoerendeSaksbehandlerIdent: String
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(behandlingId, true)
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
         val nyVerdi = if (setNull) null else LocalDateTime.now()
         val event =
             behandling.setSattPaaVent(
@@ -362,11 +362,12 @@ class BehandlingService(
 
     fun getBehandlingForUpdate(
         behandlingId: UUID,
-        ignoreCheckSkrivetilgang: Boolean = false
+        ignoreCheckSkrivetilgang: Boolean = false,
+        systemUserContext: Boolean = false
     ): Behandling =
         behandlingRepository.findById(behandlingId).get()
-            .also { if (!ignoreCheckSkrivetilgang) checkLeseTilgang(it) }
-            .also { if (!ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
+            .also { if (!systemUserContext) checkLeseTilgang(it) }
+            .also { if (!systemUserContext && !ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
 
     private fun checkLeseTilgang(behandling: Behandling) {
         if (behandling.sakenGjelder.erPerson()) {

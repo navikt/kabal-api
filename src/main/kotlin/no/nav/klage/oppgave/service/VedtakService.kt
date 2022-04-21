@@ -47,7 +47,7 @@ class VedtakService(
     ): Behandling {
         val behandling = behandlingService.getBehandlingForUpdate(
             behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = systemUserContext
+            systemUserContext = systemUserContext,
         )
         val event =
             behandling.setHjemlerInVedtak(hjemler, utfoerendeSaksbehandlerIdent)
