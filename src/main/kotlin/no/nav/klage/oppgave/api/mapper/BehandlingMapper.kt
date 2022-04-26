@@ -56,6 +56,7 @@ class BehandlingMapper(
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
             sakenGjelder = klagebehandling.sakenGjelder.getSakenGjelderView(),
             klager = klagebehandling.klager.getKlagerView(),
+            prosessfullmektig = klagebehandling.klager.prosessfullmektig?.getProsessfullmektigView(),
             tema = klagebehandling.ytelse.toTema().id,
             ytelse = klagebehandling.ytelse.id,
             type = klagebehandling.type.id,
@@ -106,6 +107,7 @@ class BehandlingMapper(
             mottattVedtaksinstans = null,
             sakenGjelder = ankebehandling.sakenGjelder.getSakenGjelderView(),
             klager = ankebehandling.klager.getKlagerView(),
+            prosessfullmektig = ankebehandling.klager.prosessfullmektig?.getProsessfullmektigView(),
             tema = ankebehandling.ytelse.toTema().id,
             ytelse = ankebehandling.ytelse.id,
             type = ankebehandling.type.id,
@@ -185,6 +187,26 @@ class BehandlingMapper(
             )
         } else {
             return BehandlingDetaljerView.KlagerView(
+                person = null, virksomhet = BehandlingDetaljerView.VirksomhetView(
+                    virksomhetsnummer = partId.value,
+                    navn = eregClient.hentOrganisasjon(partId.value)?.navn?.sammensattNavn()
+                )
+            )
+        }
+    }
+
+    private fun Prosessfullmektig.getProsessfullmektigView(): BehandlingDetaljerView.ProsessfullmektigView {
+        if (erPerson()) {
+            val person = pdlFacade.getPersonInfo(partId.value)
+            return BehandlingDetaljerView.ProsessfullmektigView(
+                person = BehandlingDetaljerView.PersonView(
+                    foedselsnummer = person.foedselsnr,
+                    navn = person.mapNavnToView(),
+                    kjoenn = person.kjoenn,
+                ), virksomhet = null
+            )
+        } else {
+            return BehandlingDetaljerView.ProsessfullmektigView(
                 person = null, virksomhet = BehandlingDetaljerView.VirksomhetView(
                     virksomhetsnummer = partId.value,
                     navn = eregClient.hentOrganisasjon(partId.value)?.navn?.sammensattNavn()

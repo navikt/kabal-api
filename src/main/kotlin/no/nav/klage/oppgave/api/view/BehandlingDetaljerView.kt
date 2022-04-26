@@ -15,6 +15,7 @@ data class BehandlingDetaljerView(
     val mottattVedtaksinstans: LocalDate? = null,
     val sakenGjelder: SakenGjelderView,
     val klager: KlagerView,
+    val prosessfullmektig: ProsessfullmektigView?,
     val tema: String,
     val ytelse: String? = null,
     val type: String,
@@ -55,6 +56,11 @@ data class BehandlingDetaljerView(
     )
 
     data class KlagerView(
+        val person: PersonView?,
+        val virksomhet: VirksomhetView?
+    )
+
+    data class ProsessfullmektigView(
         val person: PersonView?,
         val virksomhet: VirksomhetView?
     )
