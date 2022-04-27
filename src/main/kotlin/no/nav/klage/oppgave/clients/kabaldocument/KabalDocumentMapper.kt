@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.clients.kabaldocument
 
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentType
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
+import no.nav.klage.dokument.domain.kodeverk.BrevmottakerType
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.model.Rolle
@@ -44,7 +45,7 @@ class KabalDocumentMapper(
         vedlegg: SortedSet<DokumentUnderArbeid>
     ): DokumentEnhetWithDokumentreferanserInput {
         return DokumentEnhetWithDokumentreferanserInput(
-            brevMottakere = mapBrevmottakere(behandling),
+            brevMottakere = mapBrevmottakere(behandling, hovedDokument.brevmottakerTyper),
             journalfoeringData = JournalfoeringDataInput(
                 sakenGjelder = PartIdInput(
                     partIdTypeId = behandling.sakenGjelder.partId.type.id,
@@ -89,22 +90,34 @@ class KabalDocumentMapper(
         )
     }
 
-    fun mapBrevmottakere(behandling: Behandling): List<BrevmottakerInput> {
+    fun mapBrevmottakere(
+        behandling: Behandling,
+        brevMottakerTyper: MutableSet<BrevmottakerType>
+    ): List<BrevmottakerInput> {
         val brevmottakere = mutableListOf<BrevmottakerInput>()
         if (behandling.klager.prosessfullmektig != null) {
-            brevmottakere.add(
-                mapProsessfullmektig(
-                    behandling.klager.prosessfullmektig!!,
-                    Rolle.HOVEDADRESSAT.name
+            if (brevMottakerTyper.contains(BrevmottakerType.PROSESSFULLMEKTIG)) {
+                brevmottakere.add(
+                    mapProsessfullmektig(
+                        behandling.klager.prosessfullmektig!!,
+                        Rolle.HOVEDADRESSAT.name
+                    )
                 )
-            )
-            if (behandling.klager.prosessfullmektig!!.skalPartenMottaKopi) {
+            }
+            if (behandling.klager.prosessfullmektig!!.skalPartenMottaKopi &&
+                brevMottakerTyper.contains(BrevmottakerType.KLAGER)
+            ) {
                 brevmottakere.add(mapKlager(behandling.klager, Rolle.KOPIADRESSAT.name))
             }
         } else {
-            brevmottakere.add(mapKlager(behandling.klager, Rolle.HOVEDADRESSAT.name))
+            if (brevMottakerTyper.contains(BrevmottakerType.KLAGER)) {
+                brevmottakere.add(mapKlager(behandling.klager, Rolle.HOVEDADRESSAT.name))
+            }
         }
-        if (behandling.sakenGjelder.partId != behandling.klager.partId && behandling.sakenGjelder.skalMottaKopi) {
+        if (behandling.sakenGjelder.partId != behandling.klager.partId &&
+            behandling.sakenGjelder.skalMottaKopi &&
+            brevMottakerTyper.contains(BrevmottakerType.SAKEN_GJELDER)
+        ) {
             brevmottakere.add(mapSakenGjeder(behandling.sakenGjelder, Rolle.KOPIADRESSAT.name))
         }
 

@@ -7,6 +7,7 @@ import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentId
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentType
+import no.nav.klage.dokument.domain.kodeverk.BrevmottakerType
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.oppgave.config.SecurityConfiguration
@@ -179,14 +180,21 @@ class DokumentUnderArbeidController(
     @PostMapping("/{dokumentid}/ferdigstill")
     fun idempotentOpprettOgFerdigstillDokumentEnhetFraHovedDokument(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @PathVariable("dokumentid") dokumentId: UUID
+        @PathVariable("dokumentid") dokumentId: UUID,
+        @RequestBody input: FerdigstillDokumentInput,
     ): DokumentView {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         return dokumentMapper.mapToDokumentView(
             dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
                 behandlingId = behandlingId,
                 dokumentId = DokumentId(dokumentId),
-                ident = ident
+                ident = ident,
+                brevmottakerTyper = input.brevmottakerTyper?.map { BrevmottakerType.valueOf(it) }?.toSet()
+                    ?: setOf(
+                        BrevmottakerType.KLAGER,
+                        BrevmottakerType.SAKEN_GJELDER,
+                        BrevmottakerType.PROSESSFULLMEKTIG
+                    ),
             )
         )
     }

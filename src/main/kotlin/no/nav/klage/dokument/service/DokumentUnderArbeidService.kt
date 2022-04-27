@@ -6,6 +6,7 @@ import no.nav.klage.dokument.domain.OpplastetMellomlagretDokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentId
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentType
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
+import no.nav.klage.dokument.domain.kodeverk.BrevmottakerType
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
@@ -199,7 +200,8 @@ class DokumentUnderArbeidService(
     fun finnOgMarkerFerdigHovedDokument(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: DokumentId,
-        ident: String
+        ident: String,
+        brevmottakerTyper: Set<BrevmottakerType>
     ): DokumentUnderArbeid {
         val hovedDokument = dokumentUnderArbeidRepository.getById(dokumentId)
 
@@ -217,6 +219,7 @@ class DokumentUnderArbeidService(
         val now = LocalDateTime.now()
         val vedlegg = dokumentUnderArbeidRepository.findByParentIdOrderByCreated(hovedDokument.id)
         hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(now)
+        hovedDokument.brevmottakerTyper = brevmottakerTyper.toMutableSet()
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(now) }
 
         //Etter at et dokument er markert som ferdig skal det ikke kunne endres. Vi henter derfor en snapshot av tilstanden slik den er nå
@@ -234,6 +237,15 @@ class DokumentUnderArbeidService(
             felt = Felt.DOKUMENT_UNDER_ARBEID_MARKERT_FERDIG,
             fraVerdi = null,
             tilVerdi = hovedDokument.markertFerdig.toString(),
+            tidspunkt = LocalDateTime.now(),
+            dokumentId = hovedDokument.id,
+        )
+
+        behandling.publishEndringsloggEvent(
+            saksbehandlerident = ident,
+            felt = Felt.DOKUMENT_UNDER_ARBEID_BREVMOTTAKER_TYPER,
+            fraVerdi = null,
+            tilVerdi = hovedDokument.brevmottakerTyper.joinToString { it.id },
             tidspunkt = LocalDateTime.now(),
             dokumentId = hovedDokument.id,
         )
