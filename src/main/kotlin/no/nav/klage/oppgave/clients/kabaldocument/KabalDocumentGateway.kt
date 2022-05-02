@@ -1,8 +1,7 @@
 package no.nav.klage.oppgave.clients.kabaldocument
 
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
-import no.nav.klage.oppgave.clients.kabaldocument.model.Rolle
-import no.nav.klage.oppgave.clients.kabaldocument.model.response.JournalpostId
+import no.nav.klage.oppgave.clients.kabaldocument.model.response.BrevmottakerWithJoarkAndDokDistInfo
 import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.DokumentMetadata
 import no.nav.klage.oppgave.util.getLogger
@@ -50,10 +49,8 @@ class KabalDocumentGateway(
         }
     }
 
-    fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): JournalpostId =
-        kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId).brevMottakerWithJoarkAndDokDistInfoList.first {
-            it.rolle == Rolle.HOVEDADRESSAT
-        }.journalpostId
+    fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): List<BrevmottakerWithJoarkAndDokDistInfo> =
+        kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId).brevMottakerWithJoarkAndDokDistInfoList
 
     /*
     fun ferdigstillDokumentEnhet(dokumentEnhetId: UUID): Saksdokument =

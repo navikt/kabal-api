@@ -10,6 +10,7 @@ import no.nav.klage.dokument.domain.kodeverk.BrevmottakerType
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.kabaldocument.model.Rolle
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.domain.Behandling
@@ -402,21 +403,32 @@ class DokumentUnderArbeidService(
         val hovedDokument = dokumentUnderArbeidRepository.getById(hovedDokumentId)
         val vedlegg = dokumentUnderArbeidRepository.findByParentIdOrderByCreated(hovedDokument.id)
         val behandling: Behandling = behandlingService.getBehandlingForUpdateBySystembruker(hovedDokument.behandlingId)
-        val journalpostId =
+        val documentInfoList =
             dokumentEnhetService.fullfoerDokumentEnhet(dokumentEnhetId = hovedDokument.dokumentEnhetId!!)
 
-        val journalpost = safClient.getJournalpostAsSystembruker(journalpostId.value)
+        documentInfoList.forEach { documentInfo ->
+            val journalpost = safClient.getJournalpostAsSystembruker(documentInfo.journalpostId.value)
 
-        updateJournalpostId(behandling.id, hovedDokumentId, journalpostId.value)
-
-        val saksdokumenter = journalpost.mapToSaksdokumenter()
-        saksdokumenter.forEach { saksdokument ->
-            val saksbehandlerIdent =
-                behandling.tildelingHistorikk.maxByOrNull { it.tildeling.tidspunkt }?.tildeling?.saksbehandlerident
-                    ?: "SYSTEMBRUKER" //TODO: Er dette innafor? Burde vi evt lagre ident i HovedDokument, så vi kan hente det derfra?
-            behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
-                ?.also { applicationEventPublisher.publishEvent(it) }
+            val saksdokumenter = journalpost.mapToSaksdokumenter()
+            saksdokumenter.forEach { saksdokument ->
+                val saksbehandlerIdent =
+                    behandling.tildelingHistorikk.maxByOrNull { it.tildeling.tidspunkt }?.tildeling?.saksbehandlerident
+                        ?: "SYSTEMBRUKER" //TODO: Er dette innafor? Burde vi evt lagre ident i HovedDokument, så vi kan hente det derfra?
+                behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
+                    ?.also { applicationEventPublisher.publishEvent(it) }
+            }
         }
+
+        var hovedJournalpostId = documentInfoList.firstOrNull {
+            it.rolle == Rolle.HOVEDADRESSAT
+        }?.journalpostId
+
+        if (hovedJournalpostId == null) {
+            hovedJournalpostId = documentInfoList.first().journalpostId
+        }
+
+        updateJournalpostId(behandling.id, hovedDokumentId, hovedJournalpostId.value)
+
         val now = LocalDateTime.now()
         hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
         vedlegg.forEach { it.ferdigstillHvisIkkeAlleredeFerdigstilt(now) }
