@@ -1,6 +1,7 @@
 package no.nav.klage.dokument.domain.kodeverk
 
 import io.swagger.annotations.ApiModel
+import no.nav.klage.kodeverk.Kode
 import javax.persistence.AttributeConverter
 import javax.persistence.Converter
 
@@ -13,7 +14,7 @@ enum class BrevmottakerType(override val id: String, override val navn: String, 
     ;
 
     override fun toString(): String {
-        return "BrevmottakerRolle(id=$id, " +
+        return "BrevmottakerType(id=$id, " +
                 "navn=$navn)"
     }
 
