@@ -12,6 +12,7 @@ import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = ISSUER_AAD)
+@RequestMapping("muliganke")
 class MuligAnkeController(
     private val klagebehandlingService: KlagebehandlingService,
     private val mottakService: MottakService
@@ -21,22 +22,22 @@ class MuligAnkeController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @GetMapping("/muliganke/{fnr}")
+    @GetMapping("/{fnr}")
     fun getMuligeAnkerByFnr(
         @PathVariable("fnr") fnr: String
     ): List<MuligAnke> {
         return klagebehandlingService.findMuligAnkeByPartId(fnr)
     }
 
-    @GetMapping("/muliganke/{fnr}/{uuid}")
-    fun getMuligAnkeByFnrAndUUID(
+    @GetMapping("/{fnr}/{klagebehandlingId}")
+    fun getMuligAnkeByFnrAndKlagebehandlingId(
         @PathVariable("fnr") fnr: String,
-        @PathVariable("uuid") uuid: UUID
+        @PathVariable("klagebehandlingId") klagebehandlingId: UUID
     ): MuligAnke? {
-        return klagebehandlingService.findMuligAnkeByPartIdAndKlagebehandlingId(fnr, uuid)
+        return klagebehandlingService.findMuligAnkeByPartIdAndKlagebehandlingId(fnr, klagebehandlingId)
     }
 
-    @PostMapping("/muliganke/opprettanke")
+    @PostMapping("/opprettanke")
     fun sendInnAnkeBasertPaaKabalKlage(
         @RequestBody input: AnkeBasertPaaKlageInput
     ) {

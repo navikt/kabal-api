@@ -16,6 +16,7 @@ externalHosts:
 inboundApplications:
   - application: kabal-frontend
   - application: klage-dittnav-api
+  - application: klage-arkiver-journalpost
   - application: k9-klage
     namespace: k9saksbehandling
     cluster: prod-fss
