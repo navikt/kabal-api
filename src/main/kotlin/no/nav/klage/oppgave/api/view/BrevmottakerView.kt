@@ -7,4 +7,5 @@ data class BrevmottakerView(
     val partIdType: String,
     val navn: String?,
     val rolle: BrevmottakerRolle,
+    val brevmottakertype: String?
 )

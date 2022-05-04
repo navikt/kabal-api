@@ -7,9 +7,9 @@ import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentId
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentType
-import no.nav.klage.dokument.domain.kodeverk.BrevmottakerType
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
+import no.nav.klage.kodeverk.Brevmottakertype
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.BehandlingService
@@ -189,15 +189,16 @@ class DokumentUnderArbeidController(
                 behandlingId = behandlingId,
                 dokumentId = DokumentId(dokumentId),
                 ident = ident,
-                brevmottakerTyper = input?.brevmottakerTyper?.map { BrevmottakerType.valueOf(it) }?.toSet()
+                brevmottakertyper = input?.brevmottakertyper?.map { Brevmottakertype.of(it) }?.toSet()
                     ?: setOf(
-                        BrevmottakerType.KLAGER,
-                        BrevmottakerType.SAKEN_GJELDER,
-                        BrevmottakerType.PROSESSFULLMEKTIG
+                        Brevmottakertype.KLAGER,
+                        Brevmottakertype.SAKEN_GJELDER,
+                        Brevmottakertype.PROSESSFULLMEKTIG
                     ),
             )
         )
     }
+
 
     @GetMapping("/events")
     fun documentEvents(

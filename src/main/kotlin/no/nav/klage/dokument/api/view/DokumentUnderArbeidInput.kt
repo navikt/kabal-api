@@ -18,4 +18,4 @@ data class DokumentTitleInput(val title: String)
 
 data class DokumentTypeInput(val dokumentTypeId: String)
 
-data class FerdigstillDokumentInput(val brevmottakerTyper: Set<String>?)
+data class FerdigstillDokumentInput(val brevmottakertyper: Set<String>?)

@@ -21,8 +21,8 @@ enum class DokumentType(
     ;
 
     override fun toString(): String {
-        return "DokumentType(id=$id, "
-        "navn=$navn)"
+        return "DokumentType(id=$id, " +
+                "navn=$navn)"
     }
 
     companion object {

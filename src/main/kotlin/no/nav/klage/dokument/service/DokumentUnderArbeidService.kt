@@ -6,9 +6,9 @@ import no.nav.klage.dokument.domain.OpplastetMellomlagretDokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentId
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentType
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
-import no.nav.klage.dokument.domain.kodeverk.BrevmottakerType
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
+import no.nav.klage.kodeverk.Brevmottakertype
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kabaldocument.model.Rolle
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
@@ -202,14 +202,14 @@ class DokumentUnderArbeidService(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: DokumentId,
         ident: String,
-        brevmottakerTyper: Set<BrevmottakerType>
+        brevmottakertyper: Set<Brevmottakertype>
     ): DokumentUnderArbeid {
         val hovedDokument = dokumentUnderArbeidRepository.getById(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingForUpdate(hovedDokument.behandlingId)
 
-        if (hovedDokument.erFerdigstilt()) {
+        if (hovedDokument.erMarkertFerdig() || hovedDokument.erFerdigstilt()) {
             throw DokumentValidationException("Kan ikke endre dokumenttype på et dokument som er ferdigstilt")
         }
 
@@ -220,7 +220,7 @@ class DokumentUnderArbeidService(
         val now = LocalDateTime.now()
         val vedlegg = dokumentUnderArbeidRepository.findByParentIdOrderByCreated(hovedDokument.id)
         hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(now)
-        hovedDokument.brevmottakerTyper = brevmottakerTyper.toMutableSet()
+        hovedDokument.brevmottakertyper = brevmottakertyper.toMutableSet()
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(now) }
 
         //Etter at et dokument er markert som ferdig skal det ikke kunne endres. Vi henter derfor en snapshot av tilstanden slik den er nå
@@ -246,7 +246,7 @@ class DokumentUnderArbeidService(
             saksbehandlerident = ident,
             felt = Felt.DOKUMENT_UNDER_ARBEID_BREVMOTTAKER_TYPER,
             fraVerdi = null,
-            tilVerdi = hovedDokument.brevmottakerTyper.joinToString { it.id },
+            tilVerdi = hovedDokument.brevmottakertyper.joinToString { it.id },
             tidspunkt = LocalDateTime.now(),
             dokumentId = hovedDokument.id,
         )
@@ -411,9 +411,7 @@ class DokumentUnderArbeidService(
 
             val saksdokumenter = journalpost.mapToSaksdokumenter()
             saksdokumenter.forEach { saksdokument ->
-                val saksbehandlerIdent =
-                    behandling.tildelingHistorikk.maxByOrNull { it.tildeling.tidspunkt }?.tildeling?.saksbehandlerident
-                        ?: "SYSTEMBRUKER" //TODO: Er dette innafor? Burde vi evt lagre ident i HovedDokument, så vi kan hente det derfra?
+                val saksbehandlerIdent = SYSTEMBRUKER
                 behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
                     ?.also { applicationEventPublisher.publishEvent(it) }
             }

@@ -2,11 +2,7 @@ package no.nav.klage.oppgave.clients.kabaldocument
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.klage.dokument.domain.kodeverk.BrevmottakerType
-import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.ereg.Navn
 import no.nav.klage.oppgave.clients.ereg.Organisasjon
@@ -38,8 +34,8 @@ class KabalDocumentMapperTest {
     private val pdlFacade = mockk<PdlFacade>()
     private val eregClient = mockk<EregClient>()
     private val mapper = KabalDocumentMapper(pdlFacade, eregClient)
-    private val brevmottakerTyper =
-        mutableSetOf(BrevmottakerType.SAKEN_GJELDER, BrevmottakerType.KLAGER, BrevmottakerType.PROSESSFULLMEKTIG)
+    private val brevmottakertyper =
+        mutableSetOf(Brevmottakertype.SAKEN_GJELDER, Brevmottakertype.KLAGER, Brevmottakertype.PROSESSFULLMEKTIG)
 
     @BeforeAll
     fun setup() {
@@ -92,7 +88,7 @@ class KabalDocumentMapperTest {
         assertThat(
             mapper.mapBrevmottakere(
                 klagebehandling as Behandling,
-                brevmottakerTyper
+                brevmottakertyper
             )
         ).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
@@ -130,7 +126,7 @@ class KabalDocumentMapperTest {
         assertThat(
             mapper.mapBrevmottakere(
                 klagebehandling as Behandling,
-                brevmottakerTyper
+                brevmottakertyper
             )
         ).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
@@ -174,7 +170,7 @@ class KabalDocumentMapperTest {
         assertThat(
             mapper.mapBrevmottakere(
                 klagebehandling as Behandling,
-                brevmottakerTyper
+                brevmottakertyper
             )
         ).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
@@ -221,7 +217,7 @@ class KabalDocumentMapperTest {
         assertThat(
             mapper.mapBrevmottakere(
                 klagebehandling as Behandling,
-                brevmottakerTyper
+                brevmottakertyper
             )
         ).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
@@ -273,7 +269,7 @@ class KabalDocumentMapperTest {
         assertThat(
             mapper.mapBrevmottakere(
                 klagebehandling as Behandling,
-                brevmottakerTyper
+                brevmottakertyper
             )
         ).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
@@ -325,7 +321,7 @@ class KabalDocumentMapperTest {
         assertThat(
             mapper.mapBrevmottakere(
                 klagebehandling as Behandling,
-                brevmottakerTyper
+                brevmottakertyper
             )
         ).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
@@ -383,7 +379,7 @@ class KabalDocumentMapperTest {
         assertThat(
             mapper.mapBrevmottakere(
                 klagebehandling as Behandling,
-                brevmottakerTyper
+                brevmottakertyper
             )
         ).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
@@ -430,7 +426,7 @@ class KabalDocumentMapperTest {
         assertThat(
             mapper.mapBrevmottakere(
                 klagebehandling as Behandling,
-                brevmottakerTyper
+                brevmottakertyper
             )
         ).containsExactlyInAnyOrderElementsOf(
             fasitMottakere
@@ -482,7 +478,7 @@ class KabalDocumentMapperTest {
         assertThat(
             mapper.mapBrevmottakere(
                 klagebehandling as Behandling,
-                brevmottakerTyper
+                brevmottakertyper
             )
         ).containsExactlyInAnyOrderElementsOf(
             fasitMottakere

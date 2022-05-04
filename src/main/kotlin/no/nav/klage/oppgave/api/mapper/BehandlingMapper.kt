@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.api.mapper
 
 
+import no.nav.klage.kodeverk.Brevmottakertype
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.*
@@ -334,6 +335,7 @@ class BehandlingMapper(
             partIdType = partId.type.name,
             navn = partId.getNavn(),
             rolle = BrevmottakerRolle.KLAGER,
+            brevmottakertype = Brevmottakertype.KLAGER.id,
         )
 
     private fun SakenGjelder.getBrevmottakerView() =
@@ -342,6 +344,7 @@ class BehandlingMapper(
             partIdType = partId.type.name,
             navn = partId.getNavn(),
             rolle = BrevmottakerRolle.SAKEN_GJELDER,
+            brevmottakertype = Brevmottakertype.SAKEN_GJELDER.id,
         )
 
     private fun Prosessfullmektig.getBrevmottakerView() =
@@ -350,6 +353,7 @@ class BehandlingMapper(
             partIdType = partId.type.name,
             navn = partId.getNavn(),
             rolle = BrevmottakerRolle.PROSESSFULLMEKTIG,
+            brevmottakertype = Brevmottakertype.PROSESSFULLMEKTIG.id,
         )
 
     private fun PartId.getNavn(): String? =

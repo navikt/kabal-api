@@ -1,7 +1,7 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import no.nav.klage.dokument.domain.kodeverk.BrevmottakerType
-import no.nav.klage.dokument.domain.kodeverk.BrevmottakerTypeConverter
+import no.nav.klage.kodeverk.Brevmottakertype
+import no.nav.klage.kodeverk.BrevmottakertypeConverter
 import org.hibernate.annotations.DynamicUpdate
 import java.time.LocalDateTime
 import java.util.*
@@ -40,15 +40,15 @@ open class DokumentUnderArbeid(
     open var dokumentEnhetId: UUID? = null,
     @Column(name = "journalpost_id")
     open var journalpostId: String? = null,
-    @ElementCollection(targetClass = BrevmottakerType::class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = Brevmottakertype::class, fetch = FetchType.EAGER)
     @CollectionTable(
         name = "dokument_under_arbeid_brevmottaker_type",
         schema = "klage",
         joinColumns = [JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = true)]
     )
-    @Convert(converter = BrevmottakerTypeConverter::class)
+    @Convert(converter = BrevmottakertypeConverter::class)
     @Column(name = "id")
-    var brevmottakerTyper: MutableSet<BrevmottakerType> = mutableSetOf(),
+    var brevmottakertyper: MutableSet<Brevmottakertype> = mutableSetOf(),
     @Embedded
     @AttributeOverrides(
         value = [
