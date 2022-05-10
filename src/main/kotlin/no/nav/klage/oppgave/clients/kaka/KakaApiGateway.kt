@@ -49,12 +49,10 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
         val vedtaksinstansEnhet =
             when (this) {
                 is Klagebehandling -> {
-                    Enhet.values().find { it.navn == avsenderEnhetFoersteinstans }
-                        ?: throw RuntimeException("Could not find enhet: $avsenderEnhetFoersteinstans")
+                    avsenderEnhetFoersteinstans
                 }
                 is Ankebehandling -> {
-                    Enhet.values().find { it.navn == klageBehandlendeEnhet }
-                        ?: throw RuntimeException("Could not find enhet: $klageBehandlendeEnhet")
+                    klageBehandlendeEnhet
                 }
                 else -> {
                     throw RuntimeException("Wrong behandling type")
@@ -68,7 +66,7 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
             sakstype = type.id,
             ytelseId = ytelse.id,
             mottattKlageinstans = mottattKlageinstans.toLocalDate(),
-            vedtaksinstansEnhet = vedtaksinstansEnhet.navn,
+            vedtaksinstansEnhet = vedtaksinstansEnhet,
             mottattVedtaksinstans = if (this is Klagebehandling) mottattVedtaksinstans else null,
             utfall = currentDelbehandling().utfall!!.id,
             registreringshjemler = currentDelbehandling().hjemler.map { it.id },
