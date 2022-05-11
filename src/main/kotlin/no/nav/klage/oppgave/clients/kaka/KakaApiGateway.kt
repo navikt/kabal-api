@@ -49,9 +49,15 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
         val vedtaksinstansEnhet =
             when (this) {
                 is Klagebehandling -> {
+                    if (Enhet.values().none { it.navn == avsenderEnhetFoersteinstans }) {
+                        logger.error("avsenderEnhetFoersteinstans $avsenderEnhetFoersteinstans not found in internal kodeverk")
+                    }
                     avsenderEnhetFoersteinstans
                 }
                 is Ankebehandling -> {
+                    if (Enhet.values().none { it.navn == klageBehandlendeEnhet }) {
+                        logger.error("klageBehandlendeEnhet $klageBehandlendeEnhet not found in internal kodeverk")
+                    }
                     klageBehandlendeEnhet
                 }
                 else -> {
