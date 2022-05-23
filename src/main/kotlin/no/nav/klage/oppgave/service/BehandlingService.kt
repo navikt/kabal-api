@@ -342,7 +342,8 @@ class BehandlingService(
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = systemUserContext
+            ignoreCheckSkrivetilgang = systemUserContext,
+            systemUserContext = systemUserContext,
         )
         if (systemUserContext) {
             dokumentService.validateJournalpostExistsAsSystembruker(journalpostId)
