@@ -62,7 +62,8 @@ class KabalDocumentMapper(
             dokumentreferanser = DokumentEnhetWithDokumentreferanserInput.DokumentInput(
                 hoveddokument = mapDokumentUnderArbeidToDokumentReferanse(hovedDokument),
                 vedlegg = vedlegg.map { mapDokumentUnderArbeidToDokumentReferanse(it) }
-            )
+            ),
+            dokumentTypeId = hovedDokument.dokumentType.id,
         )
     }
 

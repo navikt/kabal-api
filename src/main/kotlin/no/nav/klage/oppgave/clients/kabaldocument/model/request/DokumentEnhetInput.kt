@@ -6,6 +6,7 @@ data class DokumentEnhetWithDokumentreferanserInput(
     val brevMottakere: List<BrevmottakerInput>,
     val journalfoeringData: JournalfoeringDataInput,
     val dokumentreferanser: DokumentInput,
+    val dokumentTypeId: String,
 ) {
     data class DokumentInput(
         val hoveddokument: Dokument,
