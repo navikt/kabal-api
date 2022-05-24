@@ -1,7 +1,7 @@
 package no.nav.klage.dokument.repositories
 
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentType
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
+import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

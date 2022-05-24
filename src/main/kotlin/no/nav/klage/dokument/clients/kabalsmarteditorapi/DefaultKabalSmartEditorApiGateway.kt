@@ -2,7 +2,7 @@ package no.nav.klage.dokument.clients.kabalsmarteditorapi
 
 import no.nav.klage.dokument.domain.OpplastetMellomlagretDokument
 import no.nav.klage.dokument.domain.SmartEditorDokument
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentType
+import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.util.getLogger
 import org.apache.tika.Tika
 import org.springframework.http.MediaType

@@ -2,7 +2,7 @@ package no.nav.klage.dokument.api.mapper
 
 import no.nav.klage.dokument.domain.MellomlagretDokument
 import no.nav.klage.dokument.domain.OpplastetMellomlagretDokument
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentType
+import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.util.getLogger
 import org.apache.tika.Tika
 import org.springframework.http.MediaType
@@ -22,7 +22,8 @@ class DokumentInputMapper {
         tittel: String?,
         dokumentType: DokumentType
     ): MellomlagretDokument {
-        val dokumentTittel = tittel ?: multipartFile.originalFilename ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i MultipartFile") })
+        val dokumentTittel = tittel ?: multipartFile.originalFilename
+        ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i MultipartFile") })
         return OpplastetMellomlagretDokument(
             title = dokumentTittel,
             content = multipartFile.bytes,

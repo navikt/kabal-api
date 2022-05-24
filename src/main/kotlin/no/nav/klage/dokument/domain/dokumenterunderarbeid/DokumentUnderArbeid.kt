@@ -2,6 +2,8 @@ package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
 import no.nav.klage.kodeverk.Brevmottakertype
 import no.nav.klage.kodeverk.BrevmottakertypeConverter
+import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.kodeverk.DokumentTypeConverter
 import org.hibernate.annotations.DynamicUpdate
 import java.time.LocalDateTime
 import java.util.*
