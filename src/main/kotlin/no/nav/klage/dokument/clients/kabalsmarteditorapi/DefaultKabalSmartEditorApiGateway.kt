@@ -19,7 +19,7 @@ class DefaultKabalSmartEditorApiGateway(private val kabalSmartEditorApiClient: K
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun isMellomlagretDokumentStale(smartEditorId: UUID, sistOpplastet: LocalDateTime): Boolean {
+    fun isMellomlagretDokumentStale(smartEditorId: UUID, sistOpplastet: LocalDateTime?): Boolean {
         return kabalSmartEditorApiClient.getDocument(smartEditorId).modified.isAfter(sistOpplastet)
     }
 
@@ -44,9 +44,8 @@ class DefaultKabalSmartEditorApiGateway(private val kabalSmartEditorApiClient: K
         dokumentType: DokumentType,
         innloggetIdent: String,
         documentTitle: String,
-    ): Pair<SmartEditorDokument, LocalDateTime> {
-        val documentOutput = kabalSmartEditorApiClient.createDocument(json)
-        return Pair(getDocumentAsPDF(documentOutput.id, documentTitle), documentOutput.modified)
+    ): UUID {
+        return kabalSmartEditorApiClient.createDocument(json).id
     }
 
     fun deleteDocument(smartEditorId: UUID) {

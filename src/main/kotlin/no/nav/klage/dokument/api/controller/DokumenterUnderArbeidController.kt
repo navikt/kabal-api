@@ -49,15 +49,16 @@ class DokumentUnderArbeidController(
         @ModelAttribute input: FilInput
     ): DokumentView {
         logger.debug("Kall mottatt på createAndUploadHoveddokument")
-        val opplastetFil = dokumenInputMapper.mapToMellomlagretDokument(input.file, input.tittel, DokumentType.VEDTAK)
+        val opplastetFil = dokumenInputMapper.mapToMellomlagretDokument(
+            multipartFile = input.file,
+            tittel = input.tittel,
+            dokumentType = DokumentType.VEDTAK
+        )
         return dokumentMapper.mapToDokumentView(
             dokumentUnderArbeidService.opprettOgMellomlagreNyttHoveddokument(
                 behandlingId = behandlingId,
                 dokumentType = DokumentType.VEDTAK,
                 opplastetFil = opplastetFil,
-                json = null,
-                smartEditorTemplateId = null,
-                smartEditorVersion = null,
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
                 tittel = opplastetFil.title,
             )
@@ -80,8 +81,6 @@ class DokumentUnderArbeidController(
         )
     }
 
-    //TODO: Har hoppet over endepunkter for å oppdatere/erstatte dokumentet
-
     @ResponseBody
     @GetMapping("/{dokumentId}/pdf")
     fun getPdf(
@@ -90,7 +89,7 @@ class DokumentUnderArbeidController(
     ): ResponseEntity<ByteArray> {
         logger.debug("Kall mottatt på getPdf for $dokumentId")
         return dokumentMapper.mapToByteArray(
-            dokumentUnderArbeidService.hentMellomlagretDokument(
+            dokumentUnderArbeidService.hentOgMellomlagreDokument(
                 behandlingId = behandlingId,
                 dokumentId = DokumentId(dokumentId),
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()

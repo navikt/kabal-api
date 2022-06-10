@@ -64,7 +64,7 @@ class AdminService(
 
         for (dub in dokumenterUnderBehandling) {
             try {
-                fileApiClient.deleteDocument(id = dub.mellomlagerId, systemUser = true)
+                fileApiClient.deleteDocument(id = dub.mellomlagerId!!, systemUser = true)
             } catch (e: Exception) {
                 logger.warn("Delete test data in dev: Could not delete from file api")
             }

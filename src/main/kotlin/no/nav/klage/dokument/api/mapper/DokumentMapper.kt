@@ -29,7 +29,7 @@ class DokumentMapper {
             id = dokumentUnderArbeid.id.id,
             tittel = dokumentUnderArbeid.name,
             dokumentTypeId = dokumentUnderArbeid.dokumentType.id,
-            opplastet = dokumentUnderArbeid.opplastet,
+            opplastet = dokumentUnderArbeid.created,
             isSmartDokument = dokumentUnderArbeid.smartEditorId != null,
             templateId = dokumentUnderArbeid.smartEditorTemplateId,
             version = dokumentUnderArbeid.smartEditorVersion,

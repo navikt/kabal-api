@@ -52,6 +52,45 @@ class DokumentUnderArbeidService(
         behandlingId: UUID,
         dokumentType: DokumentType,
         opplastetFil: MellomlagretDokument?,
+        innloggetIdent: String,
+        tittel: String,
+    ): DokumentUnderArbeid {
+        //Sjekker tilgang på behandlingsnivå:
+        val behandling = behandlingService.getBehandlingForUpdate(behandlingId)
+
+        if (opplastetFil == null) {
+            throw DokumentValidationException("No file uploaded")
+        }
+
+        attachmentValidator.validateAttachment(opplastetFil)
+        val mellomlagerId = mellomlagerService.uploadDocument(opplastetFil)
+        val hovedDokument = dokumentUnderArbeidRepository.save(
+            DokumentUnderArbeid(
+                mellomlagerId = mellomlagerId,
+                opplastet = LocalDateTime.now(),
+                size = opplastetFil.content.size.toLong(),
+                name = tittel,
+                dokumentType = dokumentType,
+                behandlingId = behandlingId,
+                smartEditorId = null,
+                smartEditorTemplateId = null,
+                smartEditorVersion = null,
+            )
+        )
+        behandling.publishEndringsloggEvent(
+            saksbehandlerident = innloggetIdent,
+            felt = Felt.DOKUMENT_UNDER_ARBEID_OPPLASTET,
+            fraVerdi = null,
+            tilVerdi = hovedDokument.opplastet.toString(),
+            tidspunkt = hovedDokument.opplastet!!,
+            dokumentId = hovedDokument.id,
+        )
+        return hovedDokument
+    }
+
+    fun opprettSmartdokument(
+        behandlingId: UUID,
+        dokumentType: DokumentType,
         json: String?,
         smartEditorTemplateId: String?,
         smartEditorVersion: Int?,
@@ -61,67 +100,39 @@ class DokumentUnderArbeidService(
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingForUpdate(behandlingId)
 
-        if (opplastetFil != null) {
-            attachmentValidator.validateAttachment(opplastetFil)
-            val mellomlagerId = mellomlagerService.uploadDocument(opplastetFil)
-            val hovedDokument = dokumentUnderArbeidRepository.save(
-                DokumentUnderArbeid(
-                    mellomlagerId = mellomlagerId,
-                    opplastet = LocalDateTime.now(),
-                    size = opplastetFil.content.size.toLong(),
-                    name = tittel,
-                    dokumentType = dokumentType,
-                    behandlingId = behandlingId,
-                    smartEditorId = null,
-                    smartEditorTemplateId = null,
-                    smartEditorVersion = null,
-                )
-            )
-            behandling.publishEndringsloggEvent(
-                saksbehandlerident = innloggetIdent,
-                felt = Felt.DOKUMENT_UNDER_ARBEID_OPPLASTET,
-                fraVerdi = null,
-                tilVerdi = hovedDokument.opplastet.toString(),
-                tidspunkt = hovedDokument.opplastet,
-                dokumentId = hovedDokument.id,
-            )
-            return hovedDokument
-        } else {
-            if (json == null) {
-                throw DokumentValidationException("Ingen json angitt")
-            }
-            val (smartEditorDokument, opplastet) =
-                smartEditorApiGateway.createDocument(
-                    json = json,
-                    dokumentType = dokumentType,
-                    innloggetIdent = innloggetIdent,
-                    documentTitle = tittel
-                )
-            //TODO: smartEditorDokument har bogus tittel, ble ikke sendt med i kallet til smartEditorApi
-            val mellomlagerId = mellomlagerService.uploadByteArray(tittel, smartEditorDokument.content)
-            val hovedDokument = dokumentUnderArbeidRepository.save(
-                DokumentUnderArbeid(
-                    mellomlagerId = mellomlagerId,
-                    opplastet = opplastet,
-                    size = smartEditorDokument.content.size.toLong(),
-                    name = tittel,
-                    dokumentType = dokumentType,
-                    behandlingId = behandlingId,
-                    smartEditorId = smartEditorDokument.smartEditorId,
-                    smartEditorTemplateId = smartEditorTemplateId,
-                    smartEditorVersion = smartEditorVersion,
-                )
-            )
-            behandling.publishEndringsloggEvent(
-                saksbehandlerident = innloggetIdent,
-                felt = Felt.DOKUMENT_UNDER_ARBEID_OPPLASTET,
-                fraVerdi = null,
-                tilVerdi = hovedDokument.opplastet.toString(),
-                tidspunkt = hovedDokument.opplastet,
-                dokumentId = hovedDokument.id,
-            )
-            return hovedDokument
+        if (json == null) {
+            throw DokumentValidationException("Ingen json angitt")
         }
+        val smartEditorDocumentId =
+            smartEditorApiGateway.createDocument(
+                json = json,
+                dokumentType = dokumentType,
+                innloggetIdent = innloggetIdent,
+                documentTitle = tittel
+            )
+
+        val hovedDokument = dokumentUnderArbeidRepository.save(
+            DokumentUnderArbeid(
+                mellomlagerId = null,
+                opplastet = null,
+                size = null,
+                name = tittel,
+                dokumentType = dokumentType,
+                behandlingId = behandlingId,
+                smartEditorId = smartEditorDocumentId,
+                smartEditorTemplateId = smartEditorTemplateId,
+                smartEditorVersion = smartEditorVersion,
+            )
+        )
+        behandling.publishEndringsloggEvent(
+            saksbehandlerident = innloggetIdent,
+            felt = Felt.SMARTDOKUMENT_OPPRETTET,
+            fraVerdi = null,
+            tilVerdi = hovedDokument.created.toString(),
+            tidspunkt = hovedDokument.created,
+            dokumentId = hovedDokument.id,
+        )
+        return hovedDokument
     }
 
     fun getDokumentUnderArbeid(dokumentId: DokumentId) = dokumentUnderArbeidRepository.getById(dokumentId)
@@ -146,13 +157,16 @@ class DokumentUnderArbeidService(
         if (dokumentUnderArbeid.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke endre dokumenttype på et dokument som er ferdigstilt")
         }
+
+        val previousValue = dokumentUnderArbeid.dokumentType
         dokumentUnderArbeid.dokumentType = dokumentType
+        dokumentUnderArbeid.modified = LocalDateTime.now()
         behandling.publishEndringsloggEvent(
             saksbehandlerident = innloggetIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_TYPE,
-            fraVerdi = null,
-            tilVerdi = dokumentUnderArbeid.opplastet.toString(),
-            tidspunkt = dokumentUnderArbeid.opplastet,
+            fraVerdi = previousValue.id,
+            tilVerdi = dokumentUnderArbeid.modified.toString(),
+            tidspunkt = dokumentUnderArbeid.modified,
             dokumentId = dokumentUnderArbeid.id,
         )
         return dokumentUnderArbeid
@@ -241,6 +255,7 @@ class DokumentUnderArbeidService(
 
         val oldValue = dokument.smartEditorTemplateId
         dokument.smartEditorTemplateId = templateId
+        dokument.modified = LocalDateTime.now()
         behandling.publishEndringsloggEvent(
             saksbehandlerident = innloggetIdent,
             felt = Felt.SMARTDOKUMENT_TEMPLATE_ID,
@@ -332,7 +347,7 @@ class DokumentUnderArbeidService(
     }
 
 
-    fun hentMellomlagretDokument(
+    fun hentOgMellomlagreDokument(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: DokumentId,
         innloggetIdent: String
@@ -349,7 +364,7 @@ class DokumentUnderArbeidService(
 
         return OpplastetMellomlagretDokument(
             title = dokument.name,
-            content = mellomlagerService.getUploadedDocument(dokument.mellomlagerId),
+            content = mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!),
             contentType = MediaType.APPLICATION_PDF
         )
     }
@@ -377,7 +392,9 @@ class DokumentUnderArbeidService(
         }
         dokumentUnderArbeidRepository.delete(dokumentUnderArbeid)
 
-        mellomlagerService.deleteDocument(dokumentUnderArbeid.mellomlagerId)
+        if (dokumentUnderArbeid.mellomlagerId != null) {
+            mellomlagerService.deleteDocument(dokumentUnderArbeid.mellomlagerId!!)
+        }
 
         behandling.publishEndringsloggEvent(
             saksbehandlerident = innloggetIdent,
@@ -539,15 +556,17 @@ class DokumentUnderArbeidService(
                 )
             )
         //Sletter gammelt:
-        mellomlagerService.deleteDocument(dokument.mellomlagerId)
+        if (dokument.mellomlagerId != null) {
+            mellomlagerService.deleteDocument(dokument.mellomlagerId!!)
+        }
         dokument.mellomlagerId = mellomlagerId
         dokument.opplastet = LocalDateTime.now()
     }
 
     private fun DokumentUnderArbeid.isStaleSmartEditorDokument() =
         this.smartEditorId != null && !this.erMarkertFerdig() && smartEditorApiGateway.isMellomlagretDokumentStale(
-            this.smartEditorId!!,
-            this.opplastet
+            smartEditorId = this.smartEditorId!!,
+            sistOpplastet = this.opplastet
         )
 
     private fun Behandling.endringslogg(

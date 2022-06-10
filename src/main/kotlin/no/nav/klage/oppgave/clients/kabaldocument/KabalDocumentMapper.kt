@@ -69,9 +69,9 @@ class KabalDocumentMapper(
 
     private fun mapDokumentUnderArbeidToDokumentReferanse(dokument: DokumentUnderArbeid): DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument {
         return DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument(
-            mellomlagerId = dokument.mellomlagerId,
-            opplastet = dokument.opplastet,
-            size = dokument.size,
+            mellomlagerId = dokument.mellomlagerId!!,
+            opplastet = dokument.opplastet!!,
+            size = dokument.size!!,
             name = dokument.name,
         )
     }

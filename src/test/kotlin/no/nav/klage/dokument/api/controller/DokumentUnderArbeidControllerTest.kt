@@ -76,9 +76,6 @@ internal class DokumentUnderArbeidControllerTest {
                 any(),
                 any(),
                 any(),
-                any(),
-                any(),
-                any(),
             )
         } returns DokumentUnderArbeid(
             mellomlagerId = "mellomlagerId",
@@ -138,9 +135,9 @@ internal class DokumentUnderArbeidControllerTest {
             modified = LocalDateTime.now(),
         )
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns "IDENT"
+
         every {
-            dokumentUnderArbeidService.opprettOgMellomlagreNyttHoveddokument(
-                any(),
+            dokumentUnderArbeidService.opprettSmartdokument(
                 any(),
                 any(),
                 any(),
@@ -167,7 +164,6 @@ internal class DokumentUnderArbeidControllerTest {
             parentId = null,
             id = DokumentId(UUID.randomUUID())
         )
-
 
         val json = mockMvc.perform(
             MockMvcRequestBuilders.post("/behandlinger/$behandlingId/smartdokumenter")

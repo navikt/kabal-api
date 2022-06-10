@@ -16,11 +16,11 @@ open class DokumentUnderArbeid(
     @EmbeddedId
     open var id: DokumentId = DokumentId(UUID.randomUUID()),
     @Column(name = "mellomlager_id")
-    open var mellomlagerId: String,
+    open var mellomlagerId: String?,
     @Column(name = "opplastet")
-    open var opplastet: LocalDateTime,
+    open var opplastet: LocalDateTime?,
     @Column(name = "size")
-    open var size: Long,
+    open var size: Long?,
     @Column(name = "name")
     open var name: String,
     @Column(name = "smarteditor_id")

@@ -44,10 +44,9 @@ class SmartEditorController(
         @RequestBody body: SmartHovedDokumentInput,
     ): SmartEditorDocumentView {
         logger.debug("Kall mottatt på createSmartHoveddokument")
-        val dokumentUnderArbeid = dokumentUnderArbeidService.opprettOgMellomlagreNyttHoveddokument(
+        val dokumentUnderArbeid = dokumentUnderArbeidService.opprettSmartdokument(
             behandlingId = behandlingId,
             dokumentType = if (body.dokumentTypeId != null) DokumentType.of(body.dokumentTypeId) else DokumentType.VEDTAK,
-            opplastetFil = null,
             json = body.content.toString(),
             smartEditorTemplateId = body.templateId,
             smartEditorVersion = body.version,
