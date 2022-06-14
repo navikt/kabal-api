@@ -548,18 +548,20 @@ class DokumentUnderArbeidService(
     }
 
     private fun mellomlagreNyVersjonAvSmartEditorDokument(dokument: DokumentUnderArbeid) {
+        val smartdocument = smartEditorApiGateway.getDocumentAsPDF(
+            dokument.smartEditorId!!,
+            dokument.name
+        )
         val mellomlagerId =
             mellomlagerService.uploadDocument(
-                smartEditorApiGateway.getDocumentAsPDF(
-                    dokument.smartEditorId!!,
-                    dokument.name
-                )
+                smartdocument
             )
         //Sletter gammelt:
         if (dokument.mellomlagerId != null) {
             mellomlagerService.deleteDocument(dokument.mellomlagerId!!)
         }
         dokument.mellomlagerId = mellomlagerId
+        dokument.size = smartdocument.mellomlagretDokument.content.size.toLong()
         dokument.opplastet = LocalDateTime.now()
     }
 
