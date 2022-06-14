@@ -20,7 +20,9 @@ class DefaultKabalSmartEditorApiGateway(private val kabalSmartEditorApiClient: K
     }
 
     fun isMellomlagretDokumentStale(smartEditorId: UUID, sistOpplastet: LocalDateTime?): Boolean {
-        return kabalSmartEditorApiClient.getDocument(smartEditorId).modified.isAfter(sistOpplastet)
+        return sistOpplastet == null || kabalSmartEditorApiClient.getDocument(smartEditorId).modified.isAfter(
+            sistOpplastet
+        )
     }
 
     @Retryable
