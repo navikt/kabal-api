@@ -251,7 +251,7 @@ class MockDataController(
                         frist = dato.plusWeeks(8L),
                         saksdokumenter = mutableSetOf(),
                         innsendingsHjemler = mutableSetOf(ytelseTilHjemler[randomYtelse]!!.random()),
-                        kildesystem = Fagsystem.fromNavn(oversendtSak!!.fagsystem.name),
+                        kildesystem = Fagsystem.FS36,
                         sendtTilTrygderetten = LocalDateTime.now(),
                         registreringsHjemmelSet = mutableSetOf(ytelseTilRegistreringshjemler[randomYtelse]!!.random())
                     )
