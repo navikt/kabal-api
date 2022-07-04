@@ -1,12 +1,16 @@
 package no.nav.klage.oppgave.api.controller
 
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
+import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemler
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
+import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.klage.MottakDokumentType
+import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.MottakService
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.Year
 import java.util.*
 
@@ -23,7 +28,8 @@ import java.util.*
 @RequestMapping("mockdata")
 class MockDataController(
     private val mottakService: MottakService,
-    private val safClient: SafGraphQlClient
+    private val safClient: SafGraphQlClient,
+    private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService
 ) {
 
     // Alle syntetiske personer under her er registrert under https://dolly.dev.adeo.no/gruppe/2960
@@ -147,6 +153,14 @@ class MockDataController(
         return createKlanke(Type.ANKE, input)
     }
 
+    @Unprotected
+    @PostMapping("/randomankeitrygderetten")
+    fun sendInnRandomAnkeITrygderetten(
+        @RequestBody(required = false) input: MockInput? = null
+    ): MockDataResponse {
+        return createKlanke(Type.ANKE_I_TRYGDERETTEN, input)
+    }
+
     data class MockDataResponse(
         val id: UUID,
         val typeId: String,
@@ -182,35 +196,68 @@ class MockDataController(
 
         val sakenGjelder = input?.sakenGjelder
 
-        val behandling = mottakService.createMottakForKlageAnkeV3ForE2ETests(
-            OversendtKlageAnkeV3(
-                ytelse = randomYtelse,
-                type = type,
-                klager = klager,
-                fagsak = journalpost?.sak?.let {
+        val behandling = when (type) {
+            Type.KLAGE, Type.ANKE -> {
+                mottakService.createMottakForKlageAnkeV3ForE2ETests(
+                    OversendtKlageAnkeV3(
+                        ytelse = randomYtelse,
+                        type = type,
+                        klager = klager,
+                        fagsak = journalpost?.sak?.let {
+                            OversendtSak(
+                                fagsakId = it.fagsakId ?: "UKJENT",
+                                fagsystem = KildeFagsystem.AO01
+                            )
+                        },
+                        sakenGjelder = sakenGjelder,
+                        kildeReferanse = input?.kildeReferanse ?: UUID.randomUUID().toString(),
+                        dvhReferanse = input?.dvhReferanse,
+                        innsynUrl = "https://nav.no",
+                        hjemler = listOf(ytelseTilHjemler[randomYtelse]!!.random()),
+                        forrigeBehandlendeEnhet = input?.forrigeBehandlendeEnhet ?: "4295", //NAV Klageinstans nord
+                        tilknyttedeJournalposter = listOf(
+                            OversendtDokumentReferanse(
+                                randomMottakDokumentType(),
+                                journalpostId
+                            )
+                        ),
+                        brukersHenvendelseMottattNavDato = dato,
+                        sakMottattKaDato = dato,
+                        innsendtTilNav = dato.minusDays(3),
+                        kilde = KildeFagsystem.AO01,
+                    )
+                )
+            }
+
+            Type.ANKE_I_TRYGDERETTEN -> {
+                val oversendtSak = journalpost!!.sak?.let {
                     OversendtSak(
                         fagsakId = it.fagsakId ?: "UKJENT",
-                        fagsystem = KildeFagsystem.AO01
+                        fagsystem = KildeFagsystem.valueOf(it.fagsaksystem ?: "UKJENT")
                     )
-                },
-                sakenGjelder = sakenGjelder,
-                kildeReferanse = input?.kildeReferanse ?: UUID.randomUUID().toString(),
-                dvhReferanse = input?.dvhReferanse,
-                innsynUrl = "https://nav.no",
-                hjemler = listOf(ytelseTilHjemler[randomYtelse]!!.random()),
-                forrigeBehandlendeEnhet = input?.forrigeBehandlendeEnhet ?: "4295", //NAV Klageinstans nord
-                tilknyttedeJournalposter = listOf(
-                    OversendtDokumentReferanse(
-                        randomMottakDokumentType(),
-                        journalpostId
+                }
+
+                ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
+                    input = AnkeITrygderettenbehandlingInput(
+                        klager = klager.toKlagepart(),
+                        sakenGjelder = sakenGjelder?.toSakenGjelder(),
+                        ytelse = randomYtelse,
+                        type = type,
+                        kildeReferanse = input?.kildeReferanse ?: UUID.randomUUID().toString(),
+                        dvhReferanse = input?.dvhReferanse ?: UUID.randomUUID().toString(),
+                        sakFagsystem = Fagsystem.fromNavn(oversendtSak!!.fagsystem.name),
+                        sakFagsakId = oversendtSak.fagsakId,
+                        sakMottattKlageinstans = dato.atStartOfDay(),
+                        frist = dato.plusWeeks(8L),
+                        saksdokumenter = mutableSetOf(),
+                        innsendingsHjemler = mutableSetOf(ytelseTilHjemler[randomYtelse]!!.random()),
+                        kildesystem = Fagsystem.fromNavn(oversendtSak!!.fagsystem.name),
+                        sendtTilTrygderetten = LocalDateTime.now(),
+                        registreringsHjemmelSet = mutableSetOf(ytelseTilRegistreringshjemler[randomYtelse]!!.random())
                     )
-                ),
-                brukersHenvendelseMottattNavDato = dato,
-                sakMottattKaDato = dato,
-                innsendtTilNav = dato.minusDays(3),
-                kilde = KildeFagsystem.AO01,
-            )
-        )
+                )
+            }
+        }
 
         return MockDataResponse(
             id = behandling.id,
@@ -219,6 +266,7 @@ class MockDataController(
             hjemmelId = behandling.hjemler.first().id
         )
     }
+
 
     private fun randomMottakDokumentType() = listOf(
         MottakDokumentType.OVERSENDELSESBREV,
