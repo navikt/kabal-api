@@ -233,7 +233,7 @@ class MockDataController(
                 val oversendtSak = journalpost!!.sak?.let {
                     OversendtSak(
                         fagsakId = it.fagsakId ?: "UKJENT",
-                        fagsystem = KildeFagsystem.valueOf(it.fagsaksystem ?: "UKJENT")
+                        fagsystem = KildeFagsystem.FS36
                     )
                 }
 
