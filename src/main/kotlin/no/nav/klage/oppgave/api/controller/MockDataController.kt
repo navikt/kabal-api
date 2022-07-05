@@ -233,7 +233,7 @@ class MockDataController(
                 val oversendtSak = journalpost!!.sak?.let {
                     OversendtSak(
                         fagsakId = it.fagsakId ?: "UKJENT",
-                        fagsystem = KildeFagsystem.FS36
+                        fagsystem = KildeFagsystem.AO01
                     )
                 }
 
@@ -245,13 +245,13 @@ class MockDataController(
                         type = type,
                         kildeReferanse = input?.kildeReferanse ?: UUID.randomUUID().toString(),
                         dvhReferanse = input?.dvhReferanse ?: UUID.randomUUID().toString(),
-                        sakFagsystem = Fagsystem.FS36,
-                        sakFagsakId = oversendtSak!!.fagsakId,
+                        sakFagsystem = Fagsystem.fromNavn(oversendtSak!!.fagsystem.name),
+                        sakFagsakId = oversendtSak.fagsakId,
                         sakMottattKlageinstans = dato.atStartOfDay(),
                         frist = dato.plusWeeks(8L),
                         saksdokumenter = mutableSetOf(),
                         innsendingsHjemler = mutableSetOf(ytelseTilHjemler[randomYtelse]!!.random()),
-                        kildesystem = Fagsystem.FS36,
+                        kildesystem = Fagsystem.fromNavn(oversendtSak.fagsystem.name),
                         sendtTilTrygderetten = LocalDateTime.now(),
                         registreringsHjemmelSet = mutableSetOf(ytelseTilRegistreringshjemler[randomYtelse]!!.random())
                     )
