@@ -5,7 +5,6 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class AnkeITrygderettenbehandlingInput(
@@ -18,7 +17,6 @@ data class AnkeITrygderettenbehandlingInput(
     val sakFagsystem: Fagsystem,
     val sakFagsakId: String? = null,
     val sakMottattKlageinstans: LocalDateTime,
-    val frist: LocalDate,
     val saksdokumenter: MutableSet<Saksdokument>,
     val innsendingsHjemler: MutableSet<Hjemmel>,
     val kildesystem: Fagsystem,

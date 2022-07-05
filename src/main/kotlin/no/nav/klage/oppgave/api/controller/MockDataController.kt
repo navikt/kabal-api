@@ -248,7 +248,6 @@ class MockDataController(
                         sakFagsystem = Fagsystem.fromNavn(oversendtSak!!.fagsystem.name),
                         sakFagsakId = oversendtSak.fagsakId,
                         sakMottattKlageinstans = dato.atStartOfDay(),
-                        frist = dato.plusWeeks(8L),
                         saksdokumenter = mutableSetOf(),
                         innsendingsHjemler = mutableSetOf(ytelseTilHjemler[randomYtelse]!!.random()),
                         kildesystem = Fagsystem.fromNavn(oversendtSak.fagsystem.name),

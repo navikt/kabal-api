@@ -39,7 +39,6 @@ class AnkeITrygderettenbehandlingService(
                 sakFagsakId = input.sakFagsakId,
                 mottattKlageinstans = input.sakMottattKlageinstans,
                 tildeling = null,
-                frist = input.frist,
                 delbehandlinger = setOf(Delbehandling()),
                 hjemler = input.innsendingsHjemler,
                 kildesystem = input.kildesystem,
