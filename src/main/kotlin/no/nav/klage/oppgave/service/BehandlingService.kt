@@ -4,6 +4,7 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.MedunderskriverFlyt
 import no.nav.klage.kodeverk.MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.api.view.DokumenterResponse
@@ -307,12 +308,15 @@ class BehandlingService(
     }
 
     //TODO Quick fix to make sure all old klagebehandlinger get kakaKvalitetsvurderingId
+    //TODO: Sjekk om dette fremdeles trengs
     fun createAndStoreKakaKvalitetsvurderingIdIfMissing(behandlingId: UUID) {
         logger.debug("Checking if behandling contains kvalitetsvurdering from Kaka.")
         val behandling = behandlingRepository.findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
 
-        if (behandling.kakaKvalitetsvurderingId == null) {
+        if (behandling.type == Type.ANKE_I_TRYGDERETTEN) {
+            logger.debug("AnkeITrygderetten should not have kvalitetsvurdering. Returning.")
+        } else if (behandling.kakaKvalitetsvurderingId == null) {
             logger.debug("Klagebehandling did not contain a kvalitetsvurdering from Kaka, so will create it.")
             behandling.kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering()
         }

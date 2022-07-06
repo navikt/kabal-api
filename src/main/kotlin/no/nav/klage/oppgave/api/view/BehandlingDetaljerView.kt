@@ -48,6 +48,8 @@ data class BehandlingDetaljerView(
     val isPossibleToUseDokumentUnderArbeid: Boolean = false,
     val sattPaaVent: LocalDateTime? = null,
     val brevmottakere: List<BrevmottakerView>,
+    val sendtTilTrygderetten: LocalDateTime? = null,
+    val kjennelseMottatt: LocalDateTime? = null,
 ) {
     data class NavnView(
         val fornavn: String?,

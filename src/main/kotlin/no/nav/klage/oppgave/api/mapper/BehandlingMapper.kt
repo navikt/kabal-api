@@ -38,7 +38,7 @@ class BehandlingMapper(
         return when (behandling.type) {
             Type.KLAGE -> mapKlagebehandlingToBehandlingDetaljerView(behandling as Klagebehandling)
             Type.ANKE -> mapAnkebehandlingToBehandlingDetaljerView(behandling as Ankebehandling)
-            Type.ANKE_I_TRYGDERETTEN -> TODO()
+            Type.ANKE_I_TRYGDERETTEN -> mapAnkeITrygderettenbehandlingToBehandlingDetaljerView(behandling as AnkeITrygderettenbehandling)
         }
     }
 
@@ -147,6 +147,60 @@ class BehandlingMapper(
             isPossibleToUseDokumentUnderArbeid = ankebehandling.currentDelbehandling().avsluttetAvSaksbehandler != null || ankebehandling.currentDelbehandling().dokumentEnhetId == null,
             sattPaaVent = ankebehandling.sattPaaVent,
             brevmottakere = ankebehandling.mapToBrevmottakerViewList(),
+        )
+    }
+
+    fun mapAnkeITrygderettenbehandlingToBehandlingDetaljerView(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): BehandlingDetaljerView {
+        return BehandlingDetaljerView(
+            id = ankeITrygderettenbehandling.id,
+            klageInnsendtdato = null,
+            fraNAVEnhet = null,
+            fraNAVEnhetNavn = null,
+            forrigeNAVEnhet = null,
+            forrigeNAVEnhetNavn = null,
+            mottattVedtaksinstans = null,
+            sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.getSakenGjelderView(),
+            klager = ankeITrygderettenbehandling.klager.getKlagerView(),
+            prosessfullmektig = ankeITrygderettenbehandling.klager.prosessfullmektig?.getProsessfullmektigView(),
+            tema = ankeITrygderettenbehandling.ytelse.toTema().id,
+            ytelse = ankeITrygderettenbehandling.ytelse.id,
+            type = ankeITrygderettenbehandling.type.id,
+            mottatt = ankeITrygderettenbehandling.mottattKlageinstans.toLocalDate(),
+            mottattKlageinstans = ankeITrygderettenbehandling.mottattKlageinstans.toLocalDate(),
+            tildelt = ankeITrygderettenbehandling.tildeling?.tidspunkt?.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = ankeITrygderettenbehandling.currentDelbehandling().avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = ankeITrygderettenbehandling.currentDelbehandling().avsluttetAvSaksbehandler != null,
+            frist = ankeITrygderettenbehandling.frist,
+            tildeltSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
+            tildeltSaksbehandler = berikSaksbehandler(ankeITrygderettenbehandling.tildeling?.saksbehandlerident),
+            tildeltSaksbehandlerEnhet = ankeITrygderettenbehandling.tildeling?.enhet,
+            medunderskriverident = ankeITrygderettenbehandling.currentDelbehandling().medunderskriver?.saksbehandlerident,
+            medunderskriver = berikSaksbehandler(ankeITrygderettenbehandling.currentDelbehandling().medunderskriver?.saksbehandlerident),
+            medunderskriverFlyt = ankeITrygderettenbehandling.currentDelbehandling().medunderskriverFlyt,
+            datoSendtMedunderskriver = ankeITrygderettenbehandling.currentDelbehandling().medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemler = ankeITrygderettenbehandling.hjemler.map { it.id },
+            modified = ankeITrygderettenbehandling.modified,
+            created = ankeITrygderettenbehandling.created,
+            fraSaksbehandlerident = null,
+            forrigeSaksbehandlerident = null,
+            forrigeVedtaksDato = null,
+            resultat = ankeITrygderettenbehandling.currentDelbehandling().mapToVedtakView(),
+            kommentarFraVedtaksinstans = null,
+            tilknyttedeDokumenter = ankeITrygderettenbehandling.saksdokumenter.map {
+                TilknyttetDokument(
+                    journalpostId = it.journalpostId,
+                    dokumentInfoId = it.dokumentInfoId
+                )
+            }.toSet(),
+            egenAnsatt = ankeITrygderettenbehandling.sakenGjelder.erEgenAnsatt(),
+            fortrolig = ankeITrygderettenbehandling.sakenGjelder.harBeskyttelsesbehovFortrolig(),
+            strengtFortrolig = ankeITrygderettenbehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
+            kvalitetsvurderingId = ankeITrygderettenbehandling.kakaKvalitetsvurderingId,
+            isPossibleToUseDokumentUnderArbeid = ankeITrygderettenbehandling.currentDelbehandling().avsluttetAvSaksbehandler != null || ankeITrygderettenbehandling.currentDelbehandling().dokumentEnhetId == null,
+            sattPaaVent = ankeITrygderettenbehandling.sattPaaVent,
+            brevmottakere = ankeITrygderettenbehandling.mapToBrevmottakerViewList(),
+            sendtTilTrygderetten = ankeITrygderettenbehandling.sendtTilTrygderetten,
+            kjennelseMottatt = ankeITrygderettenbehandling.kjennelseMottatt,
         )
     }
 

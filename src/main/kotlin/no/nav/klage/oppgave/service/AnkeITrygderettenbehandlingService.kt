@@ -12,10 +12,8 @@ import javax.transaction.Transactional
 
 @Service
 @Transactional
-
 class AnkeITrygderettenbehandlingService(
     private val ankeITrygderettenbehandlingRepository: AnkeITrygderettenbehandlingRepository,
-    private val dokumentService: DokumentService,
     private val vedtakService: VedtakService,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher

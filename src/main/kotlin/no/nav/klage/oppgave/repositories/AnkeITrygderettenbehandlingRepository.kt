@@ -6,7 +6,5 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface AnkeITrygderettenbehandlingRepository : JpaRepository<AnkeITrygderettenbehandling, UUID> {
-
-}
+interface AnkeITrygderettenbehandlingRepository : JpaRepository<AnkeITrygderettenbehandling, UUID>
 

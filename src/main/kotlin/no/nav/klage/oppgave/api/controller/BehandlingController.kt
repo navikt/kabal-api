@@ -84,7 +84,6 @@ class BehandlingController(
     }
 
 
-
     @PutMapping("/behandlinger/{id}/mottattklageinstans")
     fun setMottattKlageinstans(
         @PathVariable("id") behandlingId: UUID,
