@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.oppgave.domain.events.KlagebehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.Endringslogginnslag.Companion.endringslogg
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -10,7 +10,7 @@ object KlagebehandlingAggregatFunctions {
     fun Klagebehandling.setMottattVedtaksinstans(
         nyVerdi: LocalDate,
         saksbehandlerident: String
-    ): KlagebehandlingEndretEvent {
+    ): BehandlingEndretEvent {
         val gammelVerdi = mottattVedtaksinstans
         val tidspunkt = LocalDateTime.now()
         mottattVedtaksinstans = nyVerdi
@@ -24,6 +24,6 @@ object KlagebehandlingAggregatFunctions {
                 behandlingId = this.id,
                 tidspunkt = tidspunkt,
             )
-        return KlagebehandlingEndretEvent(klagebehandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 }

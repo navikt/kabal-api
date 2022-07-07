@@ -9,6 +9,9 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.Behandling
+import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingAggregatFunctions.setKjennelseMottatt
+import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingAggregatFunctions.setSendtTilTrygderetten
 import no.nav.klage.oppgave.domain.klage.Ankebehandling
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.addSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.removeSaksdokument
@@ -236,6 +239,40 @@ class BehandlingService(
             applicationEventPublisher.publishEvent(event)
             return behandling.modified
         } else throw IllegalOperation("Dette feltet kan bare settes i klagesaker")
+    }
+
+    fun setSendtTilTrygderetten(
+        behandlingId: UUID,
+        date: LocalDateTime,
+        utfoerendeSaksbehandlerIdent: String
+    ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId
+        )
+
+        if (behandling is AnkeITrygderettenbehandling) {
+            val event =
+                behandling.setSendtTilTrygderetten(date, utfoerendeSaksbehandlerIdent)
+            applicationEventPublisher.publishEvent(event)
+            return behandling.modified
+        } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
+    }
+
+    fun setKjennelseMottatt(
+        behandlingId: UUID,
+        date: LocalDateTime,
+        utfoerendeSaksbehandlerIdent: String
+    ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId
+        )
+
+        if (behandling is AnkeITrygderettenbehandling) {
+            val event =
+                behandling.setKjennelseMottatt(date, utfoerendeSaksbehandlerIdent)
+            applicationEventPublisher.publishEvent(event)
+            return behandling.modified
+        } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
     }
 
     fun setInnsendingshjemler(

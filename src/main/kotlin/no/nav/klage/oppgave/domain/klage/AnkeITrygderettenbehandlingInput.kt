@@ -5,6 +5,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
+import no.nav.klage.oppgave.domain.Behandling
 import java.time.LocalDateTime
 
 data class AnkeITrygderettenbehandlingInput(
@@ -23,3 +24,22 @@ data class AnkeITrygderettenbehandlingInput(
     val sendtTilTrygderetten: LocalDateTime,
     val registreringsHjemmelSet: MutableSet<Registreringshjemmel>
 )
+
+fun Behandling.createAnkeITrygderettenbehandlingInput(sendtTilTrygderetten: LocalDateTime? = null): AnkeITrygderettenbehandlingInput {
+    return AnkeITrygderettenbehandlingInput(
+        klager = klager,
+        sakenGjelder = sakenGjelder,
+        ytelse = ytelse,
+        type = Type.ANKE_I_TRYGDERETTEN,
+        kildeReferanse = kildeReferanse,
+        dvhReferanse = dvhReferanse,
+        sakFagsystem = sakFagsystem,
+        sakFagsakId = sakFagsakId,
+        sakMottattKlageinstans = mottattKlageinstans,
+        saksdokumenter = saksdokumenter,
+        innsendingsHjemler = hjemler,
+        kildesystem = kildesystem,
+        sendtTilTrygderetten = sendtTilTrygderetten ?: LocalDateTime.now(),
+        registreringsHjemmelSet = currentDelbehandling().hjemler
+    )
+}

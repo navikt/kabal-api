@@ -12,7 +12,9 @@ import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.ANKEBEHANDLING_AVSLUTTET
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.KLAGEBEHANDLING_AVSLUTTET
 import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setAvsluttet
+import no.nav.klage.oppgave.domain.klage.createAnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
+import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -28,6 +30,7 @@ class BehandlingAvslutningService(
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
+    private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
 ) {
 
     companion object {
@@ -98,10 +101,22 @@ class BehandlingAvslutningService(
             )
         )
 
+        if (behandling.currentDelbehandling().shouldBeSentToTrygderetten()) {
+            //TODO: Legg inn når FE er klar til å vise disse.
+            //createAnkeITrygderettenbehandling(behandling)
+        }
+
         val event = behandling.setAvsluttet(SYSTEMBRUKER)
         applicationEventPublisher.publishEvent(event)
 
         return behandling
+    }
+
+    private fun createAnkeITrygderettenbehandling(behandling: Behandling) {
+        logger.debug("Creating ankeITrygderettenbehandling based on behandling with id ${behandling.id}")
+        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
+            behandling.createAnkeITrygderettenbehandlingInput()
+        )
     }
 
     private fun getBehandlingDetaljer(

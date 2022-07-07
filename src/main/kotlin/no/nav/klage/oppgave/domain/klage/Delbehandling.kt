@@ -88,4 +88,8 @@ class Delbehandling(
     override fun hashCode(): Int {
         return id.hashCode()
     }
+
+    fun shouldBeSentToTrygderetten(): Boolean {
+        return setOf(Utfall.DELVIS_MEDHOLD, Utfall.STADFESTELSE, Utfall.AVVIST).contains(utfall)
+    }
 }

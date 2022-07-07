@@ -114,6 +114,9 @@ internal class BehandlingAvslutningServiceTest {
     @MockkBean(relaxed = true)
     lateinit var dokumentUnderArbeidRepository: DokumentUnderArbeidRepository
 
+    @MockkBean
+    lateinit var ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService
+
     @SpykBean
     lateinit var behandlingAvslutningService: BehandlingAvslutningService
 

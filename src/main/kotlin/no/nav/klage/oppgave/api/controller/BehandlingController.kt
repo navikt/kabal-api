@@ -126,6 +126,48 @@ class BehandlingController(
         return BehandlingEditedView(modified = modified)
     }
 
+    @PutMapping("/behandlinger/{id}/sendttiltrygderetten")
+    fun setSendtTilTrygderetten(
+        @PathVariable("id") behandlingId: UUID,
+        @RequestBody input: BehandlingDateInput
+    ): BehandlingEditedView {
+        logBehandlingMethodDetails(
+            ::setSendtTilTrygderetten.name,
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        val modified = behandlingService.setSendtTilTrygderetten(
+            behandlingId = behandlingId,
+            date = input.date.atStartOfDay(),
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
+        )
+
+        return BehandlingEditedView(modified = modified)
+    }
+
+    @PutMapping("/behandlinger/{id}/kjennelsemottatt")
+    fun setKjennelseMottatt(
+        @PathVariable("id") behandlingId: UUID,
+        @RequestBody input: BehandlingDateInput
+    ): BehandlingEditedView {
+        logBehandlingMethodDetails(
+            ::setKjennelseMottatt.name,
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        val modified = behandlingService.setKjennelseMottatt(
+            behandlingId = behandlingId,
+            date = input.date.atStartOfDay(),
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
+        )
+
+        return BehandlingEditedView(modified = modified)
+    }
+
     /**
      * Valgfri validering før innsending/fullføring.
      * Gjøres uansett ved fullføring av behandlingen.
