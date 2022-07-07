@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.annotations.Api
 import io.swagger.annotations.ApiOperation
 import io.swagger.annotations.ApiParam
+import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.config.SecurityConfiguration
@@ -55,16 +56,16 @@ class ExternalApiController(
     ) {
         mottakService.createMottakForKlageAnkeV3(oversendtKlageAnke)
     }
-//TODO: Legg til når FE er klare
-//    @ApiOperation(
-//        value = "Send inn anker i trygderetten til Kabal",
-//        notes = "Endepunkt for å registrere anker som allerede har blitt oversendt til Trygderetten i Kabal"
-//    )
-//    @PostMapping("/ankeritrygderetten")
-//    fun sendInnAnkeITrygderettenV1(
-//        @Valid @RequestBody oversendtAnkeITrygderetten: OversendtAnkeITrygderettenV1
-//    ) {
-//        secureLogger.debug("Ankeitrygderetten data $oversendtAnkeITrygderetten sent to Kabal")
-//        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(oversendtAnkeITrygderetten)
-//    }
+
+    @ApiOperation(
+        value = "Send inn anker i trygderetten til Kabal",
+        notes = "Endepunkt for å registrere anker som allerede har blitt oversendt til Trygderetten i Kabal"
+    )
+    @PostMapping("/ankeritrygderetten")
+    fun sendInnAnkeITrygderettenV1(
+        @Valid @RequestBody oversendtAnkeITrygderetten: OversendtAnkeITrygderettenV1
+    ) {
+        secureLogger.debug("Ankeitrygderetten data $oversendtAnkeITrygderetten sent to Kabal")
+        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(oversendtAnkeITrygderetten)
+    }
 }
