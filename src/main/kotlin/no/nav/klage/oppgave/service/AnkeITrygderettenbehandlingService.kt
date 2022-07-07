@@ -1,5 +1,8 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
+import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingInput
@@ -16,7 +19,9 @@ class AnkeITrygderettenbehandlingService(
     private val ankeITrygderettenbehandlingRepository: AnkeITrygderettenbehandlingRepository,
     private val vedtakService: VedtakService,
     private val behandlingService: BehandlingService,
-    private val applicationEventPublisher: ApplicationEventPublisher
+    private val applicationEventPublisher: ApplicationEventPublisher,
+    private val mottakService: MottakService,
+    private val dokumentService: DokumentService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -38,20 +43,26 @@ class AnkeITrygderettenbehandlingService(
                 mottattKlageinstans = input.sakMottattKlageinstans,
                 tildeling = null,
                 delbehandlinger = setOf(Delbehandling()),
-                hjemler = input.innsendingsHjemler,
-                kildesystem = input.kildesystem,
+                hjemler = if (input.innsendingsHjemler == null || input.innsendingsHjemler.isEmpty()) {
+                    mutableSetOf(Hjemmel.MANGLER)
+                } else {
+                    input.innsendingsHjemler
+                },
+                kildesystem = input.sakFagsystem,
                 sendtTilTrygderetten = input.sendtTilTrygderetten,
                 kjennelseMottatt = null,
             )
         )
         logger.debug("Created ankeITrygderettenbehandling ${ankeITrygderettenbehandling.id}")
 
-        vedtakService.setHjemler(
-            behandlingId = ankeITrygderettenbehandling.id,
-            hjemler = input.registreringsHjemmelSet,
-            utfoerendeSaksbehandlerIdent = SYSTEMBRUKER,
-            systemUserContext = true,
-        )
+        if (input.registreringsHjemmelSet != null) {
+            vedtakService.setHjemler(
+                behandlingId = ankeITrygderettenbehandling.id,
+                hjemler = input.registreringsHjemmelSet,
+                utfoerendeSaksbehandlerIdent = SYSTEMBRUKER,
+                systemUserContext = true,
+            )
+        }
 
         input.saksdokumenter.forEach {
             behandlingService.connectDokumentToBehandling(
@@ -70,5 +81,14 @@ class AnkeITrygderettenbehandlingService(
             )
         )
         return ankeITrygderettenbehandling
+    }
+
+    fun createAnkeITrygderettenbehandling(input: OversendtAnkeITrygderettenV1) {
+        mottakService.validateAnkeITrygderettenV1(input)
+        val inputDocuments =
+            dokumentService.createSaksdokumenterFromJournalpostIdSet(input.tilknyttedeJournalposter.map { it.journalpostId })
+        createAnkeITrygderettenbehandling(
+            input.createAnkeITrygderettenbehandlingInput(inputDocuments)
+        )
     }
 }

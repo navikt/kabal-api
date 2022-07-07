@@ -5,7 +5,7 @@ import no.nav.klage.oppgave.domain.klage.Endringslogginnslag.Companion.endringsl
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-object KlagebehandlingAggregatFunctions {
+object KlagebehandlingSetters {
 
     fun Klagebehandling.setMottattVedtaksinstans(
         nyVerdi: LocalDate,

@@ -15,7 +15,7 @@ import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
-import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.addSaksdokument
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
 import no.nav.klage.oppgave.domain.klage.Endringslogginnslag
 import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.domain.klage.Saksdokument

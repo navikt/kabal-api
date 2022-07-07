@@ -6,6 +6,7 @@ import no.finn.unleash.Unleash
 import no.finn.unleash.UnleashContext
 import no.nav.klage.oppgave.api.controller.UnprotectedDataFeeder
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
+import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.MottakService
 import org.intellij.lang.annotations.Language
 import org.junit.jupiter.api.BeforeEach
@@ -33,6 +34,9 @@ class UnprotectedDataFeederTest {
 
     @MockkBean
     lateinit var mottakService: MottakService
+
+    @MockkBean
+    lateinit var ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService
 
     @BeforeEach
     fun setup() {

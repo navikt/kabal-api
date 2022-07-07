@@ -250,7 +250,6 @@ class MockDataController(
                         sakMottattKlageinstans = dato.atStartOfDay(),
                         saksdokumenter = mutableSetOf(),
                         innsendingsHjemler = mutableSetOf(ytelseTilHjemler[randomYtelse]!!.random()),
-                        kildesystem = Fagsystem.fromNavn(oversendtSak.fagsystem.name),
                         sendtTilTrygderetten = LocalDateTime.now(),
                         registreringsHjemmelSet = mutableSetOf(ytelseTilRegistreringshjemler[randomYtelse]!!.random())
                     )

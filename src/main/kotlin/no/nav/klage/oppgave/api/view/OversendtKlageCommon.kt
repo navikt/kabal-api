@@ -161,10 +161,10 @@ data class OversendtDokumentReferanse(
 
 data class OversendtSak(
     @ApiModelProperty(
-        required = true,
+        required = false,
         example = "134132412"
     )
-    val fagsakId: String,
+    val fagsakId: String? = null,
     @ApiModelProperty(
         required = true,
         example = "K9"

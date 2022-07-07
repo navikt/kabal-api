@@ -15,14 +15,13 @@ data class AnkeITrygderettenbehandlingInput(
     val type: Type,
     val kildeReferanse: String,
     val dvhReferanse: String?,
-    val sakFagsystem: Fagsystem?,
+    val sakFagsystem: Fagsystem,
     val sakFagsakId: String? = null,
     val sakMottattKlageinstans: LocalDateTime,
     val saksdokumenter: MutableSet<Saksdokument>,
-    val innsendingsHjemler: MutableSet<Hjemmel>,
-    val kildesystem: Fagsystem,
+    val innsendingsHjemler: Set<Hjemmel>?,
     val sendtTilTrygderetten: LocalDateTime,
-    val registreringsHjemmelSet: MutableSet<Registreringshjemmel>
+    val registreringsHjemmelSet: Set<Registreringshjemmel>? = null,
 )
 
 fun Behandling.createAnkeITrygderettenbehandlingInput(sendtTilTrygderetten: LocalDateTime? = null): AnkeITrygderettenbehandlingInput {
@@ -33,12 +32,11 @@ fun Behandling.createAnkeITrygderettenbehandlingInput(sendtTilTrygderetten: Loca
         type = Type.ANKE_I_TRYGDERETTEN,
         kildeReferanse = kildeReferanse,
         dvhReferanse = dvhReferanse,
-        sakFagsystem = sakFagsystem,
+        sakFagsystem = kildesystem,
         sakFagsakId = sakFagsakId,
         sakMottattKlageinstans = mottattKlageinstans,
         saksdokumenter = saksdokumenter,
         innsendingsHjemler = hjemler,
-        kildesystem = kildesystem,
         sendtTilTrygderetten = sendtTilTrygderetten ?: LocalDateTime.now(),
         registreringsHjemmelSet = currentDelbehandling().hjemler
     )

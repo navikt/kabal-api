@@ -62,7 +62,7 @@ class Klagebehandling(
     kildesystem: Fagsystem,
     delbehandlinger: Set<Delbehandling>,
     saksdokumenter: MutableSet<Saksdokument> = mutableSetOf(),
-    hjemler: MutableSet<Hjemmel> = mutableSetOf(),
+    hjemler: Set<Hjemmel> = emptySet(),
     sattPaaVent: LocalDateTime? = null,
 ) : Behandling(
     id = id,

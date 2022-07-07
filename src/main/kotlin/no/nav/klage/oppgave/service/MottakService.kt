@@ -22,6 +22,7 @@ import no.nav.klage.oppgave.eventlisteners.CreateBehandlingFromMottakEventListen
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
+import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -42,6 +43,7 @@ class MottakService(
     private val mottakRepository: MottakRepository,
     private val klagebehandlingRepository: KlagebehandlingRepository,
     private val ankebehandlingRepository: AnkebehandlingRepository,
+    private val behandlingRepository: BehandlingRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokumentService: DokumentService,
     private val norg2Client: Norg2Client,
@@ -209,6 +211,37 @@ class MottakService(
         validateEnhet(forrigeBehandlendeEnhet)
     }
 
+    fun validateAnkeITrygderettenV1(input: OversendtAnkeITrygderettenV1) {
+        validateYtelseAndHjemler(input.ytelse, input.hjemler)
+        validatePartId(input.klager.id)
+        input.tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
+        input.sakenGjelder?.run { validatePartId(input.sakenGjelder.id) }
+        validateOptionalDateTimeNotInFuture(
+            input.sakMottattKaTidspunkt,
+            OversendtAnkeITrygderettenV1::sakMottattKaTidspunkt.name
+        )
+        validateOptionalDateTimeNotInFuture(
+            input.sendtTilTrygderetten,
+            OversendtAnkeITrygderettenV1::sendtTilTrygderetten.name
+        )
+        validateKildeReferanse(input.kildeReferanse)
+        if (input.dvhReferanse != null && input.dvhReferanse.isBlank()) {
+            throw OversendtKlageNotValidException("DVHReferanse kan ikke være en tom streng.")
+        }
+
+        if (behandlingRepository.existsByKildesystemAndKildeReferanseAndType(
+                input.fagsak.fagsystem.mapFagsystem(),
+                input.kildeReferanse,
+                Type.ANKE_I_TRYGDERETTEN
+            )
+        ) {
+            val message =
+                "Kunne ikke lagre oversendelse grunnet duplikat: kilde ${input.fagsak.fagsystem.name} og kildereferanse: {$input.kildeReferanse}"
+            logger.warn(message)
+            throw DuplicateOversendelseException(message)
+        }
+    }
+
     private fun validateDuplicate(kildeFagsystem: KildeFagsystem, kildeReferanse: String, type: Type) {
         if (mottakRepository.existsByKildesystemAndKildeReferanseAndType(
                 kildeFagsystem.mapFagsystem(),
@@ -238,7 +271,7 @@ class MottakService(
             throw OversendtKlageNotValidException("Kildereferanse kan ikke være en tom streng.")
     }
 
-    private fun validateYtelseAndHjemler(ytelse: Ytelse, hjemler: List<Hjemmel>?) {
+    private fun validateYtelseAndHjemler(ytelse: Ytelse, hjemler: Collection<Hjemmel>?) {
         if (ytelse in ytelseTilHjemler.keys) {
             if (!hjemler.isNullOrEmpty()) {
                 hjemler.forEach {

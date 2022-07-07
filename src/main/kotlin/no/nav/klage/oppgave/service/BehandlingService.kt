@@ -10,20 +10,20 @@ import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingAggregatFunctions.setKjennelseMottatt
-import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingAggregatFunctions.setSendtTilTrygderetten
+import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setKjennelseMottatt
+import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setSendtTilTrygderetten
 import no.nav.klage.oppgave.domain.klage.Ankebehandling
-import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.addSaksdokument
-import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.removeSaksdokument
-import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setAvsluttetAvSaksbehandler
-import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setInnsendingshjemler
-import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setMedunderskriverFlyt
-import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setMedunderskriverIdentAndMedunderskriverFlyt
-import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setMottattKlageinstans
-import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setSattPaaVent
-import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setTildeling
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.removeSaksdokument
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttetAvSaksbehandler
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setInnsendingshjemler
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverFlyt
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverIdentAndMedunderskriverFlyt
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMottattKlageinstans
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setSattPaaVent
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setTildeling
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingAggregatFunctions.setMottattVedtaksinstans
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
@@ -286,7 +286,7 @@ class BehandlingService(
 
         val event =
             behandling.setInnsendingshjemler(
-                hjemler.map { Hjemmel.of(it) }.toMutableSet(),
+                hjemler.map { Hjemmel.of(it) }.toSet(),
                 utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)

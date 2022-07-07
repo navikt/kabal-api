@@ -11,7 +11,7 @@ import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.ANKEBEHANDLING_AVSLUTTET
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.KLAGEBEHANDLING_AVSLUTTET
-import no.nav.klage.oppgave.domain.klage.BehandlingAggregatFunctions.setAvsluttet
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttet
 import no.nav.klage.oppgave.domain.klage.createAnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService

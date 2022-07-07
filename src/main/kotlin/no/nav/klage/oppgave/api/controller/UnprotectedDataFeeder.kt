@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.api.controller
 
+import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
+import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.MottakService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -12,7 +14,8 @@ import javax.validation.Valid
 
 @RestController
 class UnprotectedDataFeeder(
-    private val mottakService: MottakService
+    private val mottakService: MottakService,
+    private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
 ) {
 
     companion object {
@@ -29,6 +32,16 @@ class UnprotectedDataFeeder(
         logger.warn("Data manually fed to Kabal through unprotected endpoint")
         secureLogger.warn("Data $oversendtKlage fed to Kabal through unprotected endpoint")
         mottakService.createMottakForKlageAnkeV3(oversendtKlage)
+    }
+
+    @Unprotected
+    @PostMapping("/internal/manualankeitrygderettenfeed")
+    fun sendInnAnkeITrygderettenV1(
+        @Valid @RequestBody oversendtAnkeITrygderetten: OversendtAnkeITrygderettenV1
+    ) {
+        logger.warn("Ankeitrygderetten data manually fed to Kabal through unprotected endpoint")
+        secureLogger.warn("Ankeitrygderetten data $oversendtAnkeITrygderetten fed to Kabal through unprotected endpoint")
+        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(oversendtAnkeITrygderetten)
     }
 
 }

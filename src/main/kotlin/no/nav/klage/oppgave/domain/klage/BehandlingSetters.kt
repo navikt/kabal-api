@@ -9,7 +9,7 @@ import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-object BehandlingAggregatFunctions {
+object BehandlingSetters {
 
     fun Behandling.setTildeling(
         nyVerdiSaksbehandlerident: String?,
@@ -152,7 +152,7 @@ object BehandlingAggregatFunctions {
     }
 
     fun Behandling.setInnsendingshjemler(
-        nyVerdi: MutableSet<Hjemmel>,
+        nyVerdi: Set<Hjemmel>,
         saksbehandlerident: String
     ): BehandlingEndretEvent {
         val gammelVerdi = hjemler

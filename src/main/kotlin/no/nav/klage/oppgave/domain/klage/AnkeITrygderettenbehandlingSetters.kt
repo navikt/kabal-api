@@ -4,7 +4,7 @@ import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.Endringslogginnslag.Companion.endringslogg
 import java.time.LocalDateTime
 
-object AnkeITrygderettenbehandlingAggregatFunctions {
+object AnkeITrygderettenbehandlingSetters {
 
     fun AnkeITrygderettenbehandling.setSendtTilTrygderetten(
         nyVerdi: LocalDateTime,
