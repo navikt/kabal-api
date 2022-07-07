@@ -236,7 +236,7 @@ class MottakService(
             )
         ) {
             val message =
-                "Kunne ikke lagre oversendelse grunnet duplikat: kilde ${input.fagsak.fagsystem.name} og kildereferanse: {$input.kildeReferanse}"
+                "Kunne ikke lagre oversendelse grunnet duplikat: kilde ${input.fagsak.fagsystem.name} og kildereferanse: ${input.kildeReferanse}"
             logger.warn(message)
             throw DuplicateOversendelseException(message)
         }
