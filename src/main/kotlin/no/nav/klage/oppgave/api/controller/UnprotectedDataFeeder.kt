@@ -7,11 +7,13 @@ import no.nav.klage.oppgave.service.MottakService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.security.token.support.core.api.Unprotected
+import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
+@Profile("dev-gcp")
 @RestController
 class UnprotectedDataFeeder(
     private val mottakService: MottakService,
