@@ -49,7 +49,7 @@ class BehandlingRepositoryTest {
             klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
             kildeReferanse = "1234234",
             sakMottattKaDato = LocalDateTime.now(),
-            kildesystem = Fagsystem.K9,
+            sakFagsystem = Fagsystem.K9,
             forrigeBehandlendeEnhet = "0101",
             brukersHenvendelseMottattNavDato = LocalDate.now()
         )
@@ -71,7 +71,7 @@ class BehandlingRepositoryTest {
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
             mottattKlageinstans = LocalDateTime.now(),
-            kildesystem = Fagsystem.K9,
+            sakFagsystem = Fagsystem.K9,
             kildeReferanse = "abc",
             mottakId = mottak.id,
             avsenderEnhetFoersteinstans = "0101",

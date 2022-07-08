@@ -22,7 +22,7 @@ internal class KlagebehandlingTest {
         @Test
         fun `status IKKE_TILDELT`() {
             val klagebehandling = Klagebehandling(
-                kildesystem = Fagsystem.AO01,
+                sakFagsystem = Fagsystem.AO01,
                 kildeReferanse = "abc",
                 klager = Klager(PartId(PartIdType.PERSON, fnr)),
                 sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
@@ -40,7 +40,7 @@ internal class KlagebehandlingTest {
         @Test
         fun `status IKKE_TILDELT etter tidligere tildeling`() {
             val klagebehandling = Klagebehandling(
-                kildesystem = Fagsystem.AO01,
+                sakFagsystem = Fagsystem.AO01,
                 kildeReferanse = "abc",
                 klager = Klager(PartId(PartIdType.PERSON, fnr)),
                 sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
@@ -59,7 +59,7 @@ internal class KlagebehandlingTest {
         @Test
         fun `status TILDELT`() {
             val klagebehandling = Klagebehandling(
-                kildesystem = Fagsystem.AO01,
+                sakFagsystem = Fagsystem.AO01,
                 kildeReferanse = "abc",
                 klager = Klager(PartId(PartIdType.PERSON, fnr)),
                 sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
@@ -78,7 +78,7 @@ internal class KlagebehandlingTest {
         @Test
         fun `status SENDT_TIL_MEDUNDERSKRIVER`() {
             val klagebehandling = Klagebehandling(
-                kildesystem = Fagsystem.AO01,
+                sakFagsystem = Fagsystem.AO01,
                 kildeReferanse = "abc",
                 klager = Klager(PartId(PartIdType.PERSON, fnr)),
                 sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
@@ -101,7 +101,7 @@ internal class KlagebehandlingTest {
         @Test
         fun `status RETURNERT_TIL_SAKSBEHANDLER`() {
             val klagebehandling = Klagebehandling(
-                kildesystem = Fagsystem.AO01,
+                sakFagsystem = Fagsystem.AO01,
                 kildeReferanse = "abc",
                 klager = Klager(PartId(PartIdType.PERSON, fnr)),
                 sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
@@ -124,7 +124,7 @@ internal class KlagebehandlingTest {
         @Test
         fun `status MEDUNDERSKRIVER_VALGT`() {
             val klagebehandling = Klagebehandling(
-                kildesystem = Fagsystem.AO01,
+                sakFagsystem = Fagsystem.AO01,
                 kildeReferanse = "abc",
                 klager = Klager(PartId(PartIdType.PERSON, fnr)),
                 sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
@@ -146,7 +146,7 @@ internal class KlagebehandlingTest {
         @Test
         fun `status TILDELT når medunderskriver er fjernet`() {
             val klagebehandling = Klagebehandling(
-                kildesystem = Fagsystem.AO01,
+                sakFagsystem = Fagsystem.AO01,
                 kildeReferanse = "abc",
                 klager = Klager(PartId(PartIdType.PERSON, fnr)),
                 sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
@@ -169,7 +169,7 @@ internal class KlagebehandlingTest {
         @Test
         fun `status FULLFOERT`() {
             val klagebehandling = Klagebehandling(
-                kildesystem = Fagsystem.AO01,
+                sakFagsystem = Fagsystem.AO01,
                 kildeReferanse = "abc",
                 klager = Klager(PartId(PartIdType.PERSON, fnr)),
                 sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),

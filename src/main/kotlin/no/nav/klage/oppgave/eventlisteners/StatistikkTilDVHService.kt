@@ -44,7 +44,7 @@ class StatistikkTilDVHService(
                 KafkaEvent(
                     id = eventId,
                     behandlingId = behandlingEndretEvent.behandling.id,
-                    kilde = behandlingEndretEvent.behandling.kildesystem.navn,
+                    kilde = behandlingEndretEvent.behandling.sakFagsystem.navn,
                     kildeReferanse = behandlingEndretEvent.behandling.kildeReferanse,
                     status = UtsendingStatus.IKKE_SENDT,
                     jsonPayload = statistikkTilDVH.toJson(),
@@ -95,7 +95,7 @@ class StatistikkTilDVHService(
             endringstid = funksjoneltEndringstidspunkt,
             hjemmel = behandling.hjemler.map { it.toSearchableString() },
             klager = getPart(behandling.klager.partId.type, behandling.klager.partId.value),
-            opprinneligFagsaksystem = behandling.kildesystem.navn,
+            opprinneligFagsaksystem = behandling.sakFagsystem.navn,
             overfoertKA = behandling.mottattKlageinstans.toLocalDate(),
             resultat = resultat,
             sakenGjelder = getPart(behandling.sakenGjelder.partId.type, behandling.sakenGjelder.partId.value),

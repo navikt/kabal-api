@@ -229,7 +229,7 @@ class MottakService(
             throw OversendtKlageNotValidException("DVHReferanse kan ikke være en tom streng.")
         }
 
-        if (behandlingRepository.existsByKildesystemAndKildeReferanseAndType(
+        if (behandlingRepository.existsBySakFagsystemAndKildeReferanseAndType(
                 input.fagsak.fagsystem.mapFagsystem(),
                 input.kildeReferanse,
                 Type.ANKE_I_TRYGDERETTEN
@@ -242,15 +242,15 @@ class MottakService(
         }
     }
 
-    private fun validateDuplicate(kildeFagsystem: KildeFagsystem, kildeReferanse: String, type: Type) {
-        if (mottakRepository.existsByKildesystemAndKildeReferanseAndType(
-                kildeFagsystem.mapFagsystem(),
+    private fun validateDuplicate(sakFagsystem: KildeFagsystem, kildeReferanse: String, type: Type) {
+        if (mottakRepository.existsBySakFagsystemAndKildeReferanseAndType(
+                sakFagsystem.mapFagsystem(),
                 kildeReferanse,
                 type
             )
         ) {
             val message =
-                "Kunne ikke lagre oversendelse grunnet duplikat: kilde ${kildeFagsystem.name} og kildereferanse: $kildeReferanse"
+                "Kunne ikke lagre oversendelse grunnet duplikat: kildesystem ${sakFagsystem.name} og kildereferanse: $kildeReferanse"
             logger.warn(message)
             throw DuplicateOversendelseException(message)
         }
@@ -366,7 +366,6 @@ class MottakService(
             fristFraFoersteinstans = null,
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
-            kildesystem = kildesystem,
             ytelse = ytelse,
             kommentar = null,
             forrigeBehandlingId = id,

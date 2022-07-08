@@ -77,7 +77,7 @@ class BehandlingMapperTest {
 
     private fun getKlagebehandling(): Klagebehandling {
         return Klagebehandling(
-            kildesystem = Fagsystem.AO01,
+            sakFagsystem = Fagsystem.AO01,
             kildeReferanse = "abc",
             klager = Klager(PartId(PartIdType.PERSON, FNR)),
             sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, FNR), false),

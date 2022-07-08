@@ -83,7 +83,6 @@ class KlagebehandlingService(
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdSet(mottak.mottakDokument.map { it.journalpostId }),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(),
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
-                kildesystem = mottak.kildesystem,
                 kommentarFraFoersteinstans = mottak.kommentar
             )
         )

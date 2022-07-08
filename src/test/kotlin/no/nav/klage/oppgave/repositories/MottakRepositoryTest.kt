@@ -48,7 +48,7 @@ class MottakRepositoryTest {
             kildeReferanse = "54321",
             dvhReferanse = "5342523",
             hjemler = mutableSetOf(MottakHjemmel(hjemmelId = Hjemmel.FTRL_8_7.id)),
-            forrigeSaksbehandlerident =  "Z123456",
+            forrigeSaksbehandlerident = "Z123456",
             forrigeBehandlendeEnhet = "1234",
             mottakDokument = mutableSetOf(
                 MottakDokument(
@@ -57,7 +57,6 @@ class MottakRepositoryTest {
                 )
             ),
             sakMottattKaDato = LocalDateTime.now(),
-            kildesystem = Fagsystem.AO01,
             brukersHenvendelseMottattNavDato = LocalDate.now()
         )
 

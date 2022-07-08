@@ -14,7 +14,11 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID> {
 
     fun findByDelbehandlingerAvsluttetIsNullAndDelbehandlingerAvsluttetAvSaksbehandlerIsNotNull(): List<Behandling>
 
-    fun existsByKildesystemAndKildeReferanseAndType(kildesystem: Fagsystem, kildeReferanse: String, type: Type): Boolean
+    fun existsBySakFagsystemAndKildeReferanseAndType(
+        sakFagsystem: Fagsystem,
+        kildeReferanse: String,
+        type: Type
+    ): Boolean
 
     @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
     override fun getOne(id: UUID): Behandling

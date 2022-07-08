@@ -113,7 +113,7 @@ fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
     klager = klager.toKlagepart(),
     sakenGjelder = sakenGjelder?.toSakenGjelder(),
     innsynUrl = innsynUrl,
-    sakFagsystem = fagsak?.fagsystem?.mapFagsystem(),
+    sakFagsystem = kilde.mapFagsystem(),
     sakFagsakId = fagsak?.fagsakId,
     kildeReferanse = kildeReferanse,
     dvhReferanse = dvhReferanse,
@@ -128,7 +128,6 @@ fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
         else -> LocalDateTime.now()
     },
     fristFraFoersteinstans = frist,
-    kildesystem = kilde.mapFagsystem(),
     ytelse = ytelse,
     forrigeBehandlingId = forrigeBehandlingId
 )

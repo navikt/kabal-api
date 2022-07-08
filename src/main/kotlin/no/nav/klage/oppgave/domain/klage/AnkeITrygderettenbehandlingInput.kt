@@ -32,7 +32,7 @@ fun Behandling.createAnkeITrygderettenbehandlingInput(sendtTilTrygderetten: Loca
         type = Type.ANKE_I_TRYGDERETTEN,
         kildeReferanse = kildeReferanse,
         dvhReferanse = dvhReferanse,
-        sakFagsystem = kildesystem,
+        sakFagsystem = sakFagsystem,
         sakFagsakId = sakFagsakId,
         sakMottattKlageinstans = mottattKlageinstans,
         saksdokumenter = saksdokumenter,

@@ -28,7 +28,7 @@ class AnkeITrygderettenbehandling(
     type: Type,
     kildeReferanse: String,
     dvhReferanse: String? = null,
-    sakFagsystem: Fagsystem? = null,
+    sakFagsystem: Fagsystem,
     sakFagsakId: String? = null,
     //Settes automatisk i klage, må kunne justeres i anke. Bør også representeres i delbehandlinger. Må gjøres entydig i anke, hører antageligvis ikke hjemme i felles klasse.
     mottattKlageinstans: LocalDateTime,
@@ -43,8 +43,6 @@ class AnkeITrygderettenbehandling(
     kakaKvalitetsvurderingId: UUID? = null,
     created: LocalDateTime = LocalDateTime.now(),
     modified: LocalDateTime = LocalDateTime.now(),
-    //Kommer fra innsending
-    kildesystem: Fagsystem,
     delbehandlinger: Set<Delbehandling>,
     saksdokumenter: MutableSet<Saksdokument> = mutableSetOf(),
     hjemler: Set<Hjemmel> = emptySet(),
@@ -57,7 +55,6 @@ class AnkeITrygderettenbehandling(
     type = type,
     kildeReferanse = kildeReferanse,
     mottattKlageinstans = mottattKlageinstans,
-    kildesystem = kildesystem,
     modified = modified,
     created = created,
     kakaKvalitetsvurderingId = kakaKvalitetsvurderingId,

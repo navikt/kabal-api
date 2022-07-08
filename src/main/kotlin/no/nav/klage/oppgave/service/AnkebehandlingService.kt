@@ -52,7 +52,6 @@ class AnkebehandlingService(
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdSet(mottak.mottakDokument.map { it.journalpostId }),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(),
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
-                kildesystem = mottak.kildesystem,
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
                 klagebehandlingId = mottak.forrigeBehandlingId,
             )

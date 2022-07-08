@@ -25,7 +25,7 @@ class Mottak(
     val sakenGjelder: SakenGjelder? = null,
     @Column(name = "sak_fagsystem")
     @Convert(converter = FagsystemConverter::class)
-    val sakFagsystem: Fagsystem? = null,
+    val sakFagsystem: Fagsystem,
     @Column(name = "sak_fagsak_id")
     val sakFagsakId: String? = null,
     @Column(name = "kilde_referanse")
@@ -57,9 +57,6 @@ class Mottak(
     val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "modified")
     val modified: LocalDateTime = LocalDateTime.now(),
-    @Column(name = "kildesystem")
-    @Convert(converter = FagsystemConverter::class)
-    val kildesystem: Fagsystem,
     @Convert(converter = YtelseConverter::class)
     @Column(name = "ytelse_id")
     val ytelse: Ytelse,
@@ -68,7 +65,7 @@ class Mottak(
     @Column(name = "forrige_behandling_id")
     val forrigeBehandlingId: UUID? = null,
 
-) {
+    ) {
 
     override fun toString(): String {
         return "Mottak(id=$id, " +

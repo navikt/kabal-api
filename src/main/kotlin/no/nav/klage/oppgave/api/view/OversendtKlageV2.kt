@@ -101,7 +101,7 @@ fun OversendtKlageV2.toMottak() = Mottak(
     klager = klager.toKlagepart(),
     sakenGjelder = sakenGjelder?.toSakenGjelder(),
     innsynUrl = innsynUrl,
-    sakFagsystem = fagsak?.fagsystem?.mapFagsystem(),
+    sakFagsystem = kilde.mapFagsystem(),
     sakFagsakId = fagsak?.fagsakId,
     kildeReferanse = kildeReferanse,
     dvhReferanse = dvhReferanse,
@@ -113,6 +113,5 @@ fun OversendtKlageV2.toMottak() = Mottak(
     brukersHenvendelseMottattNavDato = mottattFoersteinstans,
     sakMottattKaDato = oversendtKaDato ?: LocalDateTime.now(),
     fristFraFoersteinstans = frist,
-    kildesystem = kilde.mapFagsystem(),
     ytelse = ytelse
 )

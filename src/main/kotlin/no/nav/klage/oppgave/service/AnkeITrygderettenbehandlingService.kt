@@ -48,7 +48,6 @@ class AnkeITrygderettenbehandlingService(
                 } else {
                     input.innsendingsHjemler
                 },
-                kildesystem = input.sakFagsystem,
                 sendtTilTrygderetten = input.sendtTilTrygderetten,
                 kjennelseMottatt = null,
             )

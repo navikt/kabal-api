@@ -33,10 +33,6 @@ abstract class Behandling(
     open val kildeReferanse: String,
     @Column(name = "dato_mottatt_klageinstans")
     open var mottattKlageinstans: LocalDateTime,
-    //Remove duplicate
-    @Column(name = "kildesystem")
-    @Convert(converter = FagsystemConverter::class)
-    open val kildesystem: Fagsystem,
     @Column(name = "modified")
     open var modified: LocalDateTime = LocalDateTime.now(),
     @Column(name = "created")
@@ -61,10 +57,9 @@ abstract class Behandling(
     open var frist: LocalDate? = null,
     @Column(name = "sak_fagsak_id")
     open val sakFagsakId: String? = null,
-    //Remove duplicate
     @Column(name = "sak_fagsystem")
     @Convert(converter = FagsystemConverter::class)
-    open val sakFagsystem: Fagsystem? = null,
+    open val sakFagsystem: Fagsystem,
     @Column(name = "dvh_referanse")
     open val dvhReferanse: String? = null,
     //Her går vi mot en løsning der en behandling har flere delbehandlingerer, som nok er bedre begrep enn vedtak.

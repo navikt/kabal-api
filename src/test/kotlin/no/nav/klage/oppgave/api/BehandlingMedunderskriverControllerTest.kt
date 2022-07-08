@@ -62,7 +62,7 @@ class BehandlingMedunderskriverControllerTest {
         created = LocalDateTime.now(),
         modified = LocalDateTime.now(),
         mottattKlageinstans = LocalDateTime.now(),
-        kildesystem = Fagsystem.K9,
+        sakFagsystem = Fagsystem.K9,
         kildeReferanse = "abc",
         mottakId = UUID.randomUUID(),
         delbehandlinger = setOf(

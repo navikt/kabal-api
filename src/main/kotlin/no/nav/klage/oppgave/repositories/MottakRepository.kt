@@ -10,6 +10,10 @@ import java.util.*
 @Repository
 interface MottakRepository : JpaRepository<Mottak, UUID> {
 
-    fun existsByKildesystemAndKildeReferanseAndType(kildesystem: Fagsystem, kildeReferanse: String, type: Type): Boolean
+    fun existsBySakFagsystemAndKildeReferanseAndType(
+        sakFagsystem: Fagsystem,
+        kildeReferanse: String,
+        type: Type
+    ): Boolean
 
 }
