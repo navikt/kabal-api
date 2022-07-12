@@ -17,6 +17,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.oppgave.clients.events.KafkaEventClient
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.service.BehandlingService
 import org.assertj.core.api.Assertions.assertThat
@@ -48,6 +49,9 @@ internal class DokumentUnderArbeidControllerTest {
 
     @MockkBean
     private lateinit var kabalSmartEditorApiClient: KabalSmartEditorApiClient
+
+    @MockkBean
+    private lateinit var kafkaEventClient: KafkaEventClient
 
     @MockkBean
     private lateinit var dokumentUnderArbeidService: DokumentUnderArbeidService

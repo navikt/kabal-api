@@ -55,6 +55,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.kafka:spring-kafka")
+    implementation("io.projectreactor.kafka:reactor-kafka")
     implementation("org.flywaydb:flyway-core")
     implementation("com.zaxxer:HikariCP")
     implementation("org.postgresql:postgresql")

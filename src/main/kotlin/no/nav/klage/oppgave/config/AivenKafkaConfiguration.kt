@@ -19,7 +19,15 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+import reactor.kafka.receiver.KafkaReceiver
+import reactor.kafka.receiver.ReceiverOptions
+import reactor.kafka.receiver.internals.DefaultKafkaReceiver
+import reactor.kafka.sender.KafkaSender
+import reactor.kafka.sender.SenderOptions
+import reactor.kafka.sender.internals.DefaultKafkaSender
+import reactor.kafka.sender.internals.ProducerFactory
 import java.time.Duration
+import java.util.*
 
 @Configuration
 class AivenKafkaConfiguration(
@@ -39,7 +47,7 @@ class AivenKafkaConfiguration(
         private val secureLogger = getSecureLogger()
     }
 
-    //Producer bean
+    //Producer beans
     @Bean
     fun aivenKafkaTemplate(): KafkaTemplate<String, String> {
         val config = mapOf(
@@ -52,7 +60,40 @@ class AivenKafkaConfiguration(
         return KafkaTemplate(DefaultKafkaProducerFactory(config))
     }
 
+    @Bean
+    fun kafkaEventSender(): KafkaSender<String, String> {
+        val config = mapOf(
+            ProducerConfig.CLIENT_ID_CONFIG to "kabal-api-event-producer",
+            ProducerConfig.ACKS_CONFIG to "1",
+            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+        ) + commonConfig()
+
+        return DefaultKafkaSender(
+            ProducerFactory.INSTANCE,
+            SenderOptions.create(config)
+        )
+    }
+
     //Consumer beans
+
+    @Bean
+    fun kafkaEventReceiver(): KafkaReceiver<String, String> {
+        val uniqueIdPerInstance = UUID.randomUUID().toString()
+        val config = mapOf(
+            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api-event-consumer-$uniqueIdPerInstance",
+            ConsumerConfig.CLIENT_ID_CONFIG to "kabal-api-event-client-$uniqueIdPerInstance",
+            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to true,
+            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+        ) + commonConfig()
+
+        return DefaultKafkaReceiver(
+            reactor.kafka.receiver.internals.ConsumerFactory.INSTANCE,
+            ReceiverOptions.create<String, String>(config).subscription(listOf("klage.internal-events.v1"))
+        )
+    }
+
     @Bean
     fun egenAnsattKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()

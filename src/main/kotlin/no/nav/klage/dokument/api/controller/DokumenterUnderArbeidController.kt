@@ -1,29 +1,29 @@
 package no.nav.klage.dokument.api.controller
 
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.swagger.annotations.Api
 import no.nav.klage.dokument.api.mapper.DokumentInputMapper
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
+import no.nav.klage.dokument.domain.Event
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentId
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Brevmottakertype
 import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.oppgave.clients.events.KafkaEventClient
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
+import org.springframework.http.codec.ServerSentEvent
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
-import java.time.Duration
-import java.time.LocalDateTime
+import reactor.core.publisher.Flux
 import java.util.*
 import javax.servlet.http.HttpServletRequest
-import kotlin.concurrent.timer
 
 @RestController
 @Api(tags = ["kabal-api-dokumenter"])
@@ -35,6 +35,7 @@ class DokumentUnderArbeidController(
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     private val dokumentMapper: DokumentMapper,
     private val dokumenInputMapper: DokumentInputMapper,
+    private val kafkaEventClient: KafkaEventClient,
     @Value("\${EVENT_DELAY_SECONDS}") private val eventDelay: Long,
 ) {
 
@@ -172,63 +173,28 @@ class DokumentUnderArbeidController(
         )
     }
 
-    @Unprotected
     @GetMapping("/events")
     fun documentEvents(
-        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("behandlingId") behandlingId: String,
         @RequestParam("lastEventIdInput", required = false) lastEventIdInput: UUID?,
         request: HttpServletRequest,
-    ): SseEmitter {
+    ): Flux<ServerSentEvent<Event?>> {
         logger.debug("Kall mottatt på documentEvents for behandlingId $behandlingId")
 
-        val emitter = SseEmitter(Duration.ofHours(20).toMillis())
-
-        val initial = SseEmitter.event()
-            .reconnectTime(200)
-        emitter.send(initial)
-
-        //Try header first
-        val lastEventIdHeaderName = "last-event-id"
-        val lastEventId = if (request.getHeader(lastEventIdHeaderName) != null) {
-            UUID.fromString(request.getHeader(lastEventIdHeaderName))
-        } else {
-            lastEventIdInput
-        }
-
-        var lastFinishedDocumentDateTime = if (lastEventId != null) {
-            dokumentUnderArbeidRepository.findById(DokumentId(lastEventId)).get().ferdigstilt!!
-        } else {
-            LocalDateTime.now().minusMinutes(10)
-        }
-
-        timer(period = Duration.ofSeconds(eventDelay).toMillis()) {
-            try {
-                val documents = dokumentUnderArbeidService.findFinishedDokumenterAfterDateTime(
-                    behandlingId = behandlingId,
-                    fromDateTime = lastFinishedDocumentDateTime
-                )
-
-                if (documents.isNotEmpty()) {
-                    lastFinishedDocumentDateTime = documents.maxOf { it.ferdigstilt!! }
-                }
-
-                documents.forEach {
-                    val builder = SseEmitter.event()
-                        .name("finished")
-                        .data(it.id.id.toString())
-                        .reconnectTime(200)
-                        .id(it.id.id.toString())
-                    emitter.send(builder)
-                }
-
-            } catch (e: Exception) {
-                logger.warn("Failed polling. Stopping timer.", e)
-                emitter.completeWithError(e)
-                this.cancel()
-            }
-        }
-        return emitter
+        return kafkaEventClient.getEventPublisher()
+            .mapNotNull { event -> jsonToEvent(event.data()) }
+            .filter { Objects.nonNull(it) }
+            .filter { it.id == behandlingId }
+            .mapNotNull { eventToServerSentEvent(it) }
     }
+
+    private fun eventToServerSentEvent(event: Event): ServerSentEvent<Event?> {
+        return ServerSentEvent.builder<Event>()
+            .data(event)
+            .build()
+    }
+
+    private fun jsonToEvent(json: String?) = jacksonObjectMapper().readValue(json, Event::class.java)
 
     @PutMapping("/{dokumentid}/tittel")
     fun changeDocumentTitle(
