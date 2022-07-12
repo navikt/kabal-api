@@ -39,17 +39,19 @@ class FerdigstillDokumentService(
 
                 //Send to all subscribers. If this fails, it's not the end of the world.
                 try {
+                    val event = Event(
+                        name = "finished",
+                        id = it.id.id.toString(),
+                        data = it.id.id.toString(),
+                    )
+                    logger.debug("sending event to subscribing clients: {}", event)
                     kafkaEventSender.send(
                         Mono.just<SenderRecord<String, String, String>>(
                             SenderRecord.create(
                                 ProducerRecord(
                                     "klage.internal-events.v1",
                                     jacksonObjectMapper().writeValueAsString(
-                                        Event(
-                                            name = "finished",
-                                            id = it.id.id.toString(),
-                                            data = it.id.id.toString(),
-                                        )
+                                        event
                                     )
                                 ), it.id.id.toString()
                             )
@@ -58,6 +60,7 @@ class FerdigstillDokumentService(
                         //is this triggered?
                         logger.error("Could not inform subscribers", it)
                     }
+                    logger.debug("event sent to subscribing clients")
                 } catch (e: Exception) {
                     //or this?
                     logger.error("Caught exception. Could not inform subscribers", e)

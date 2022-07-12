@@ -18,10 +18,12 @@ import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.ServerSentEvent
 import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
+import java.time.Duration
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 
@@ -173,28 +175,48 @@ class DokumentUnderArbeidController(
         )
     }
 
-    @GetMapping("/events")
+    @GetMapping("/events", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun documentEvents(
         @PathVariable("behandlingId") behandlingId: String,
         @RequestParam("lastEventIdInput", required = false) lastEventIdInput: UUID?,
         request: HttpServletRequest,
-    ): Flux<ServerSentEvent<Event?>> {
+    ): Flux<ServerSentEvent<Event>> {
         logger.debug("Kall mottatt på documentEvents for behandlingId $behandlingId")
+
+        val heartbeatStream: Flux<ServerSentEvent<Event>> = Flux.interval(Duration.ofSeconds(10))
+            .take(10)
+            .map { tick -> toHeartBeatServerSentEvent(tick) }
 
         return kafkaEventClient.getEventPublisher()
             .mapNotNull { event -> jsonToEvent(event.data()) }
             .filter { Objects.nonNull(it) }
             .filter { it.id == behandlingId }
             .mapNotNull { eventToServerSentEvent(it) }
+            .mergeWith(heartbeatStream)
     }
 
-    private fun eventToServerSentEvent(event: Event): ServerSentEvent<Event?> {
+    private fun toHeartBeatServerSentEvent(tick: Long): ServerSentEvent<Event> {
+        return eventToServerSentEvent(
+            Event(
+                id = "0",
+                name = "Heart-Beat-Match-$tick",
+                data = "empty"
+            )
+        )
+    }
+
+    private fun eventToServerSentEvent(event: Event): ServerSentEvent<Event> {
         return ServerSentEvent.builder<Event>()
             .data(event)
             .build()
     }
 
-    private fun jsonToEvent(json: String?) = jacksonObjectMapper().readValue(json, Event::class.java)
+    private fun jsonToEvent(json: String?): Event {
+        val event = jacksonObjectMapper().readValue(json, Event::class.java)
+        logger.debug("Received event from Kafka: {}", event)
+        return event
+    }
+
 
     @PutMapping("/{dokumentid}/tittel")
     fun changeDocumentTitle(
