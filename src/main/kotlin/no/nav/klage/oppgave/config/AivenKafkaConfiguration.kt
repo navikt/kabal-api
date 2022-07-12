@@ -22,10 +22,6 @@ import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
 import reactor.kafka.receiver.KafkaReceiver
 import reactor.kafka.receiver.ReceiverOptions
 import reactor.kafka.receiver.internals.DefaultKafkaReceiver
-import reactor.kafka.sender.KafkaSender
-import reactor.kafka.sender.SenderOptions
-import reactor.kafka.sender.internals.DefaultKafkaSender
-import reactor.kafka.sender.internals.ProducerFactory
 import java.time.Duration
 import java.util.*
 
@@ -60,23 +56,7 @@ class AivenKafkaConfiguration(
         return KafkaTemplate(DefaultKafkaProducerFactory(config))
     }
 
-    @Bean
-    fun kafkaEventSender(): KafkaSender<String, String> {
-        val config = mapOf(
-            ProducerConfig.CLIENT_ID_CONFIG to "kabal-api-event-producer",
-            ProducerConfig.ACKS_CONFIG to "1",
-            ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-            ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-        ) + commonConfig()
-
-        return DefaultKafkaSender(
-            ProducerFactory.INSTANCE,
-            SenderOptions.create(config)
-        )
-    }
-
     //Consumer beans
-
     @Bean
     fun kafkaEventReceiver(): KafkaReceiver<String, String> {
         val uniqueIdPerInstance = UUID.randomUUID().toString()

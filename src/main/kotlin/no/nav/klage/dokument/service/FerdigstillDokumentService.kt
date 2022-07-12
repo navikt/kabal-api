@@ -6,18 +6,15 @@ import no.nav.klage.dokument.domain.Event
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
-import org.apache.kafka.clients.producer.ProducerRecord
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
-import reactor.kafka.sender.KafkaSender
-import reactor.kafka.sender.SenderRecord
 
 @Service
 class FerdigstillDokumentService(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
-    private val kafkaEventSender: KafkaSender<String, String>,
+    private val aivenKafkaTemplate: KafkaTemplate<String, String>,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -38,33 +35,21 @@ class FerdigstillDokumentService(
                 dokumentUnderArbeidService.ferdigstillDokumentEnhet(it.id)
 
                 //Send to all subscribers. If this fails, it's not the end of the world.
-                try {
+                runCatching {
                     val event = Event(
                         name = "finished",
                         id = it.id.id.toString(),
                         data = it.id.id.toString(),
                     )
-                    logger.debug("sending event to subscribing clients: {}", event)
-                    kafkaEventSender.send(
-                        Mono.just<SenderRecord<String, String, String>>(
-                            SenderRecord.create(
-                                ProducerRecord(
-                                    "klage.internal-events.v1",
-                                    jacksonObjectMapper().writeValueAsString(
-                                        event
-                                    )
-                                ), it.id.id.toString()
-                            )
-                        )
-                    ).doOnError {
-                        //is this triggered?
-                        logger.error("Could not inform subscribers", it)
-                    }.blockFirst()
+                    logger.debug("Publishing document event to Kafka for subscribers: {}", event)
 
-                    logger.debug("event sent to subscribing clients")
-                } catch (e: Exception) {
-                    //or this?
-                    logger.error("Caught exception. Could not inform subscribers", e)
+                    val result = aivenKafkaTemplate.send(
+                        "klage.internal-events.v1",
+                        jacksonObjectMapper().writeValueAsString(event)
+                    ).get()
+                    logger.debug("Published document event to Kafka for subscribers: {}", result)
+                }.onFailure {
+                    logger.error("Could not publish document event to subscribers", it)
                 }
 
             } catch (e: Exception) {
