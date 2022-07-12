@@ -190,7 +190,7 @@ class DokumentUnderArbeidController(
         return kafkaEventClient.getEventPublisher()
             .mapNotNull { event -> jsonToEvent(event.data()) }
             .filter { Objects.nonNull(it) }
-            .filter { it.id == behandlingId }
+            .filter { it.behandlingId == behandlingId }
             .mapNotNull { eventToServerSentEvent(it) }
             .mergeWith(heartbeatStream)
     }
@@ -198,6 +198,7 @@ class DokumentUnderArbeidController(
     private fun toHeartBeatServerSentEvent(tick: Long): ServerSentEvent<Event> {
         return eventToServerSentEvent(
             Event(
+                behandlingId = "",
                 id = "0",
                 name = "Heart-Beat-Match-$tick",
                 data = "empty"

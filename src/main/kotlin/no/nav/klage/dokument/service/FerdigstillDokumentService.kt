@@ -37,6 +37,7 @@ class FerdigstillDokumentService(
                 //Send to all subscribers. If this fails, it's not the end of the world.
                 runCatching {
                     val event = Event(
+                        behandlingId = it.behandlingId.toString(),
                         name = "finished",
                         id = it.id.id.toString(),
                         data = it.id.id.toString(),
