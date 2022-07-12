@@ -59,7 +59,8 @@ class FerdigstillDokumentService(
                     ).doOnError {
                         //is this triggered?
                         logger.error("Could not inform subscribers", it)
-                    }
+                    }.blockFirst()
+
                     logger.debug("event sent to subscribing clients")
                 } catch (e: Exception) {
                     //or this?
