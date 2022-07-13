@@ -1,5 +1,7 @@
 package no.nav.klage.oppgave.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.klage.dokument.domain.Event
 import no.nav.klage.oppgave.domain.klage.Melding
@@ -22,6 +24,8 @@ class MeldingService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+
+        val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
     }
 
     fun addMelding(
@@ -102,7 +106,7 @@ class MeldingService(
                 behandlingId = melding.behandlingId.toString(),
                 name = type,
                 id = melding.id.toString(),
-                data = jacksonObjectMapper().writeValueAsString(melding),
+                data = objectMapper.writeValueAsString(melding),
             )
         )
     }

@@ -31,10 +31,10 @@ class EventController(
     }
 
     @GetMapping(produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-    fun documentEvents(
+    fun events(
         @PathVariable("behandlingId") behandlingId: String,
     ): Flux<ServerSentEvent<JsonNode>> {
-        logger.debug("Kall mottatt på documentEvents for behandlingId $behandlingId")
+        logger.debug("Kall mottatt på events for behandlingId $behandlingId")
 
         //https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-async-disconnects
         val heartbeatStream: Flux<ServerSentEvent<JsonNode>> = Flux.interval(Duration.ofSeconds(10))
