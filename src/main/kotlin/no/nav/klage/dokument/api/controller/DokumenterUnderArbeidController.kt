@@ -183,8 +183,9 @@ class DokumentUnderArbeidController(
     ): Flux<ServerSentEvent<Event>> {
         logger.debug("Kall mottatt på documentEvents for behandlingId $behandlingId")
 
+        //https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-async-disconnects
         val heartbeatStream: Flux<ServerSentEvent<Event>> = Flux.interval(Duration.ofSeconds(10))
-            .take(10)
+            .takeWhile { true }
             .map { tick -> toHeartBeatServerSentEvent(tick) }
 
         return kafkaEventClient.getEventPublisher()
@@ -199,15 +200,17 @@ class DokumentUnderArbeidController(
         return eventToServerSentEvent(
             Event(
                 behandlingId = "",
-                id = "0",
-                name = "Heart-Beat-Match-$tick",
-                data = "empty"
+                id = "",
+                name = "heartbeat-event-$tick",
+                data = ""
             )
         )
     }
 
     private fun eventToServerSentEvent(event: Event): ServerSentEvent<Event> {
         return ServerSentEvent.builder<Event>()
+            .id(event.id)
+            .event(event.name)
             .data(event)
             .build()
     }
