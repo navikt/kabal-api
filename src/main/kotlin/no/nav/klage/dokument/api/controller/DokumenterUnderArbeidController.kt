@@ -180,11 +180,11 @@ class DokumentUnderArbeidController(
         @PathVariable("behandlingId") behandlingId: String,
         @RequestParam("lastEventIdInput", required = false) lastEventIdInput: UUID?,
         request: HttpServletRequest,
-    ): Flux<ServerSentEvent<Event>> {
+    ): Flux<ServerSentEvent<String>> {
         logger.debug("Kall mottatt på documentEvents for behandlingId $behandlingId")
 
         //https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-async-disconnects
-        val heartbeatStream: Flux<ServerSentEvent<Event>> = Flux.interval(Duration.ofSeconds(10))
+        val heartbeatStream: Flux<ServerSentEvent<String>> = Flux.interval(Duration.ofSeconds(10))
             .takeWhile { true }
             .map { tick -> toHeartBeatServerSentEvent(tick) }
 
@@ -196,7 +196,7 @@ class DokumentUnderArbeidController(
             .mergeWith(heartbeatStream)
     }
 
-    private fun toHeartBeatServerSentEvent(tick: Long): ServerSentEvent<Event> {
+    private fun toHeartBeatServerSentEvent(tick: Long): ServerSentEvent<String> {
         return eventToServerSentEvent(
             Event(
                 behandlingId = "",
@@ -207,11 +207,11 @@ class DokumentUnderArbeidController(
         )
     }
 
-    private fun eventToServerSentEvent(event: Event): ServerSentEvent<Event> {
-        return ServerSentEvent.builder<Event>()
+    private fun eventToServerSentEvent(event: Event): ServerSentEvent<String> {
+        return ServerSentEvent.builder<String>()
             .id(event.id)
             .event(event.name)
-            .data(event)
+            .data(event.data)
             .build()
     }
 
@@ -220,7 +220,6 @@ class DokumentUnderArbeidController(
         logger.debug("Received event from Kafka: {}", event)
         return event
     }
-
 
     @PutMapping("/{dokumentid}/tittel")
     fun changeDocumentTitle(
