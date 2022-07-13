@@ -8,6 +8,7 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import org.hibernate.Hibernate
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
@@ -41,7 +42,8 @@ class FerdigstillDokumentService(
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun listenToFerdigstilteDokumenterAvSaksbehandler(dokumentFerdigstiltAvSaksbehandler: DokumentFerdigstiltAvSaksbehandler) {
         logger.debug("listenToFerdigstilteDokumenterAvSaksbehandler called")
-        ferdigstill(dokumentFerdigstiltAvSaksbehandler.dokumentUnderArbeid)
+        val dua = Hibernate.unproxy(dokumentFerdigstiltAvSaksbehandler.dokumentUnderArbeid) as DokumentUnderArbeid
+        ferdigstill(dua)
     }
 
     private fun ferdigstill(it: DokumentUnderArbeid) {
