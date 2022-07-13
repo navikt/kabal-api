@@ -8,7 +8,6 @@ import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.Event
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentId
-import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Brevmottakertype
 import no.nav.klage.kodeverk.DokumentType
@@ -17,7 +16,6 @@ import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.ServerSentEvent
@@ -34,11 +32,9 @@ import javax.servlet.http.HttpServletRequest
 class DokumentUnderArbeidController(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerRepository,
-    private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     private val dokumentMapper: DokumentMapper,
-    private val dokumenInputMapper: DokumentInputMapper,
+    private val dokumentInputMapper: DokumentInputMapper,
     private val kafkaEventClient: KafkaEventClient,
-    @Value("\${EVENT_DELAY_SECONDS}") private val eventDelay: Long,
 ) {
 
     companion object {
@@ -52,7 +48,7 @@ class DokumentUnderArbeidController(
         @ModelAttribute input: FilInput
     ): DokumentView {
         logger.debug("Kall mottatt på createAndUploadHoveddokument")
-        val opplastetFil = dokumenInputMapper.mapToMellomlagretDokument(
+        val opplastetFil = dokumentInputMapper.mapToMellomlagretDokument(
             multipartFile = input.file,
             tittel = input.tittel,
             dokumentType = DokumentType.VEDTAK
@@ -175,6 +171,7 @@ class DokumentUnderArbeidController(
         )
     }
 
+    //Old event stuff. Clients should read from EventController instead, and this can be deleted.
     @GetMapping("/events", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun documentEvents(
         @PathVariable("behandlingId") behandlingId: String,
