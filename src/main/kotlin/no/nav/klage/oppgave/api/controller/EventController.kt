@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.clients.events.KafkaEventClient
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
+import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
 import org.springframework.web.bind.annotation.GetMapping
@@ -30,11 +31,12 @@ class EventController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    @Unprotected //for testing
     @GetMapping(produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun events(
         @PathVariable("behandlingId") behandlingId: String,
     ): Flux<ServerSentEvent<JsonNode>> {
-        logger.debug("Kall mottatt på events for behandlingId $behandlingId")
+        logger.debug("events called for behandlingId: {}", behandlingId)
 
         //https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-async-disconnects
         val heartbeatStream: Flux<ServerSentEvent<JsonNode>> = Flux.interval(Duration.ofSeconds(10))

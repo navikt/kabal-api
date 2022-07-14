@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.klage.dokument.domain.Event
+import no.nav.klage.oppgave.api.mapper.MeldingMapper
 import no.nav.klage.oppgave.domain.klage.Melding
 import no.nav.klage.oppgave.exceptions.MeldingNotFoundException
 import no.nav.klage.oppgave.repositories.MeldingRepository
@@ -19,6 +20,7 @@ import javax.persistence.EntityNotFoundException
 class MeldingService(
     private val meldingRepository: MeldingRepository,
     private val kafkaInternalEventService: KafkaInternalEventService,
+    private val meldingMapper: MeldingMapper,
 ) {
 
     companion object {
@@ -106,7 +108,7 @@ class MeldingService(
                 behandlingId = melding.behandlingId.toString(),
                 name = type,
                 id = melding.id.toString(),
-                data = objectMapper.writeValueAsString(melding),
+                data = objectMapper.writeValueAsString(meldingMapper.toMeldingView(melding)),
             )
         )
     }

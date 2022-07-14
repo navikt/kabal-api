@@ -16,6 +16,7 @@ import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
+import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.ServerSentEvent
@@ -117,8 +118,6 @@ class DokumentUnderArbeidController(
     ): DokumentView {
         logger.debug("Kall mottatt på kobleEllerFrikobleVedlegg for $persistentDokumentId")
         try {
-
-
             val hovedDokument = if (input.dokumentId == null) {
                 dokumentUnderArbeidService.frikobleVedlegg(
                     behandlingId = behandlingId,
@@ -172,6 +171,7 @@ class DokumentUnderArbeidController(
     }
 
     //Old event stuff. Clients should read from EventController instead, and this can be deleted.
+    @Unprotected
     @GetMapping("/events", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun documentEvents(
         @PathVariable("behandlingId") behandlingId: String,
@@ -188,7 +188,7 @@ class DokumentUnderArbeidController(
         return kafkaEventClient.getEventPublisher()
             .mapNotNull { event -> jsonToEvent(event.data()) }
             .filter { Objects.nonNull(it) }
-            .filter { it.behandlingId == behandlingId }
+            .filter { it.behandlingId == behandlingId && it.name == "finished" }
             .mapNotNull { eventToServerSentEvent(it) }
             .mergeWith(heartbeatStream)
     }
