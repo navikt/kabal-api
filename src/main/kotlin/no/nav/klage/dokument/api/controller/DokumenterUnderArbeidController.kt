@@ -16,7 +16,6 @@ import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.repositories.InnloggetSaksbehandlerRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.ServerSentEvent
@@ -171,7 +170,6 @@ class DokumentUnderArbeidController(
     }
 
     //Old event stuff. Clients should read from EventController instead, and this can be deleted.
-    @Unprotected
     @GetMapping("/events", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun documentEvents(
         @PathVariable("behandlingId") behandlingId: String,
