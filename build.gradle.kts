@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val mockkVersion = "1.12.5"
-val tokenValidationVersion = "2.1.2"
+val tokenValidationVersion = "2.1.4"
 val logstashVersion = "7.2"
 val springSleuthVersion = "3.0.4"
 val unleashVersion = "4.4.1"
