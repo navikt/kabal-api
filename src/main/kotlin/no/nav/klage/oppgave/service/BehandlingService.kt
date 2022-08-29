@@ -16,6 +16,7 @@ import no.nav.klage.oppgave.domain.klage.Ankebehandling
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.removeSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttetAvSaksbehandler
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFrist
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setInnsendingshjemler
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverFlyt
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverIdentAndMedunderskriverFlyt
@@ -203,6 +204,22 @@ class BehandlingService(
                 nyVerdi,
                 utfoerendeSaksbehandlerIdent
             )
+        applicationEventPublisher.publishEvent(event)
+        return behandling.modified
+    }
+
+    fun setFrist(
+        behandlingId: UUID,
+        frist: LocalDate,
+        utfoerendeSaksbehandlerIdent: String,
+    ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId
+        )
+        val event =
+            behandling.setFrist(frist, utfoerendeSaksbehandlerIdent)
+        applicationEventPublisher.publishEvent(event)
+
         applicationEventPublisher.publishEvent(event)
         return behandling.modified
     }
@@ -550,5 +567,4 @@ class BehandlingService(
     fun findBehandlingerForAvslutning(): List<UUID> =
         behandlingRepository.findByDelbehandlingerAvsluttetIsNullAndDelbehandlingerAvsluttetAvSaksbehandlerIsNotNull()
             .map { it.id }
-
 }

@@ -6,6 +6,7 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.domain.Behandling
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -144,6 +145,25 @@ object BehandlingSetters {
             endringslogg(
                 saksbehandlerident,
                 Felt.DATO_MOTTATT_KLAGEINSTANS,
+                gammelVerdi.toString(),
+                nyVerdi.toString(),
+                tidspunkt
+            )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
+    fun Behandling.setFrist(
+        nyVerdi: LocalDate,
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val gammelVerdi = frist
+        val tidspunkt = LocalDateTime.now()
+        frist = nyVerdi
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident,
+                Felt.FRIST,
                 gammelVerdi.toString(),
                 nyVerdi.toString(),
                 tidspunkt

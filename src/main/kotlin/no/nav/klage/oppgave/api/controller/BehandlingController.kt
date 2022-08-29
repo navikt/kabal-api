@@ -168,6 +168,27 @@ class BehandlingController(
         return BehandlingEditedView(modified = modified)
     }
 
+    @PutMapping("/behandlinger/{id}/frist")
+    fun setFrist(
+        @PathVariable("id") behandlingId: UUID,
+        @RequestBody input: BehandlingDateInput
+    ): BehandlingEditedView {
+        logBehandlingMethodDetails(
+            ::setFrist.name,
+            innloggetSaksbehandlerRepository.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        val modified = behandlingService.setFrist(
+            behandlingId = behandlingId,
+            frist = input.date,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerRepository.getInnloggetIdent()
+        )
+
+        return BehandlingEditedView(modified = modified)
+    }
+
     /**
      * Valgfri validering før innsending/fullføring.
      * Gjøres uansett ved fullføring av behandlingen.
