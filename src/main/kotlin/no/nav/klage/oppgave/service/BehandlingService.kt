@@ -218,7 +218,6 @@ class BehandlingService(
         )
         val event =
             behandling.setFrist(frist, utfoerendeSaksbehandlerIdent)
-        applicationEventPublisher.publishEvent(event)
 
         applicationEventPublisher.publishEvent(event)
         return behandling.modified
