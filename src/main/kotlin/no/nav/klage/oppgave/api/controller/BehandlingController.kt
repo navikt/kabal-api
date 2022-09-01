@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.api.controller
 
-import io.swagger.annotations.Api
-import io.swagger.annotations.ApiParam
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
-@Api(tags = ["kabal-api"])
+@Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 class BehandlingController(
     private val behandlingService: BehandlingService,
@@ -29,7 +29,7 @@ class BehandlingController(
 
     @PostMapping("/klagebehandlinger/{behandlingId}/sattpaavent")
     fun setSattPaaVent(
-        @ApiParam(value = "Id til en behandling")
+        @Parameter(description = "Id til en behandling")
         @PathVariable("behandlingId") behandlingId: UUID,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
@@ -48,7 +48,7 @@ class BehandlingController(
 
     @DeleteMapping("/klagebehandlinger/{behandlingId}/sattpaavent")
     fun deleteSattPaaVent(
-        @ApiParam(value = "Id til en behandling")
+        @Parameter(description = "Id til en behandling")
         @PathVariable("behandlingId") behandlingId: UUID,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(

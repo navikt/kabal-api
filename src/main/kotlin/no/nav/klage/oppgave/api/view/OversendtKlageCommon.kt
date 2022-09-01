@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.api.view
 
-import io.swagger.annotations.ApiModel
-import io.swagger.annotations.ApiModelProperty
+import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.LovKilde
@@ -30,17 +29,17 @@ fun KildeFagsystem.mapFagsystem(): Fagsystem =
     }
 
 class HjemmelFraFoersteInstans private constructor(
-    @ApiModelProperty(
+    @Schema(
         required = false,
         example = "9"
     )
     val kapittel: Int?,
-    @ApiModelProperty(
+    @Schema(
         required = false,
         example = "1"
     )
     val paragraf: Int?,
-    @ApiModelProperty(
+    @Schema(
         required = true
     )
     val lov: Lov
@@ -69,11 +68,11 @@ class HjemmelFraFoersteInstans private constructor(
 }
 
 data class OversendtSakenGjelder(
-    @ApiModelProperty(
+    @Schema(
         required = true
     )
     val id: OversendtPartId,
-    @ApiModelProperty(
+    @Schema(
         required = true,
         example = "true"
     )
@@ -86,13 +85,13 @@ data class OversendtSakenGjelder(
 }
 
 data class OversendtKlager(
-    @ApiModelProperty(
+    @Schema(
         required = true
     )
     val id: OversendtPartId,
-    @ApiModelProperty(
+    @Schema(
         name = "klagersProsessfullmektig",
-        notes = "Kan settes dersom klager har en prosessfullmektig",
+        description = "Kan settes dersom klager har en prosessfullmektig",
         required = false
     )
     val klagersProsessfullmektig: OversendtProsessfullmektig? = null
@@ -104,11 +103,11 @@ data class OversendtKlager(
 }
 
 data class OversendtProsessfullmektig(
-    @ApiModelProperty(
+    @Schema(
         required = true
     )
     val id: OversendtPartId,
-    @ApiModelProperty(
+    @Schema(
         required = true,
         example = "true"
     )
@@ -121,12 +120,12 @@ data class OversendtProsessfullmektig(
 }
 
 data class OversendtPartId(
-    @ApiModelProperty(
+    @Schema(
         required = true,
         example = "PERSON / VIRKSOMHET"
     )
     val type: OversendtPartIdType,
-    @ApiModelProperty(
+    @Schema(
         required = true,
         example = "12345678910"
     )
@@ -142,12 +141,12 @@ enum class OversendtPartIdType { PERSON, VIRKSOMHET }
 
 
 data class OversendtDokumentReferanse(
-    @ApiModelProperty(
+    @Schema(
         required = true,
         example = "BRUKERS_KLAGE"
     )
     val type: MottakDokumentType,
-    @ApiModelProperty(
+    @Schema(
         required = true,
         example = "830498203"
     )
@@ -160,19 +159,19 @@ data class OversendtDokumentReferanse(
 }
 
 data class OversendtSak(
-    @ApiModelProperty(
+    @Schema(
         required = false,
         example = "134132412"
     )
     val fagsakId: String? = null,
-    @ApiModelProperty(
+    @Schema(
         required = true,
         example = "K9"
     )
     val fagsystem: KildeFagsystem
 )
 
-@ApiModel
+@Schema
 enum class KildeFagsystem {
     FS36,
     AO01,

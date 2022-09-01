@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.api.controller
 
-import io.swagger.annotations.Api
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiParam
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 
 @RestController
-@Api(tags = ["kabal-api-external"])
+@Tag(name = "kabal-api-external")
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 @RequestMapping("api")
 class ExternalApiController(
@@ -33,33 +33,33 @@ class ExternalApiController(
         private val secureLogger = getSecureLogger()
     }
 
-    @ApiOperation(
-        value = "Send inn klage til klageinstans",
-        notes = "Endepunkt for å registrere en klage/anke som skal behandles av klageinstans"
+    @Operation(
+        summary = "Send inn klage til klageinstans",
+        description = "Endepunkt for å registrere en klage/anke som skal behandles av klageinstans"
     )
     @PostMapping("/oversendelse/v2/klage")
     fun sendInnKlageV2(
-        @ApiParam(value = "Oversendt klage")
+        @Parameter(description = "Oversendt klage")
         @Valid @RequestBody oversendtKlage: OversendtKlageV2
     ) {
         mottakService.createMottakForKlageV2(oversendtKlage)
     }
 
-    @ApiOperation(
-        value = "Send inn sak til klageinstans",
-        notes = "Endepunkt for å registrere en klage/anke som skal behandles av klageinstans"
+    @Operation(
+        summary = "Send inn sak til klageinstans",
+        description = "Endepunkt for å registrere en klage/anke som skal behandles av klageinstans"
     )
     @PostMapping("/oversendelse/v3/sak")
     fun sendInnSakV3(
-        @ApiParam(value = "Oversendt sak")
+        @Parameter(description = "Oversendt sak")
         @Valid @RequestBody oversendtKlageAnke: OversendtKlageAnkeV3
     ) {
         mottakService.createMottakForKlageAnkeV3(oversendtKlageAnke)
     }
 
-    @ApiOperation(
-        value = "Send inn anker i trygderetten til Kabal",
-        notes = "Endepunkt for å registrere anker som allerede har blitt oversendt til Trygderetten i Kabal"
+    @Operation(
+        summary = "Send inn anker i trygderetten til Kabal",
+        description = "Endepunkt for å registrere anker som allerede har blitt oversendt til Trygderetten i Kabal"
     )
     @PostMapping("/ankeritrygderetten")
     fun sendInnAnkeITrygderettenV1(

@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.api.controller
 
+import io.swagger.v3.oas.annotations.Hidden
 import no.finn.unleash.Unleash
 import no.finn.unleash.UnleashContext
 import no.nav.klage.oppgave.config.SecurityConfiguration
@@ -10,10 +11,9 @@ import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
-import springfox.documentation.annotations.ApiIgnore
 
 @RestController
-@ApiIgnore
+@Hidden
 class FeatureToggleController(
     private val unleash: Unleash,
     private val innloggetSaksbehandlerRepository: InnloggetSaksbehandlerRepository

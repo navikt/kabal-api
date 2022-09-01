@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.api.controller
 
-import io.swagger.annotations.Api
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
 @RestController
-@Api(tags = ["kabal-api"])
+@Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/klagebehandlinger")
 //TODO: Flytte dette inn i BehandlingController?

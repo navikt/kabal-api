@@ -1,10 +1,10 @@
 package no.nav.klage.oppgave.domain.kodeverk
 
-import io.swagger.annotations.ApiModel
+import io.swagger.v3.oas.annotations.media.Schema
 import javax.persistence.AttributeConverter
 import javax.persistence.Converter
 
-@ApiModel
+@Schema
 enum class SivilstandType(override val id: String, override val navn: String, override val beskrivelse: String) : Kode {
 
     GIFT("1", "Gift", "Gift"),

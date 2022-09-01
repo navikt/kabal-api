@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.api.view
 
-import io.swagger.annotations.ApiModel
-import io.swagger.annotations.ApiModelProperty
+import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -9,56 +8,56 @@ import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.klage.Saksdokument
 import java.time.LocalDateTime
 
-@ApiModel
+@Schema
 data class OversendtAnkeITrygderettenV1(
-    @ApiModelProperty(
+    @Schema(
         required = true
     )
     val klager: OversendtKlager,
-    @ApiModelProperty(
-        notes = "Kan settes dersom klagen gjelder en annen enn den som har levert klagen",
+    @Schema(
+        description = "Kan settes dersom klagen gjelder en annen enn den som har levert klagen",
         required = false
     )
     val sakenGjelder: OversendtSakenGjelder? = null,
-    @ApiModelProperty(
-        notes = "Fagsak brukt til journalføring. Dersom denne er tom journalfører vi på generell sak",
+    @Schema(
+        description = "Fagsak brukt til journalføring. Dersom denne er tom journalfører vi på generell sak",
         required = false
     )
     val fagsak: OversendtSak,
-    @ApiModelProperty(
-        notes = "Id som er intern for kildesystemet (f.eks. K9) så vedtak fra oss knyttes riktig i kilde",
+    @Schema(
+        description = "Id som er intern for kildesystemet (f.eks. K9) så vedtak fra oss knyttes riktig i kilde",
         required = true
     )
     val kildeReferanse: String,
-    @ApiModelProperty(
-        notes = "Id som rapporters på til DVH, bruker kildeReferanse hvis denne ikke er satt",
+    @Schema(
+        description = "Id som rapporters på til DVH, bruker kildeReferanse hvis denne ikke er satt",
         required = false
     )
     val dvhReferanse: String? = null,
-    @ApiModelProperty(
-        notes = "Hjemler knyttet til klagen",
+    @Schema(
+        description = "Hjemler knyttet til klagen",
         required = false
     )
     val hjemler: Set<Hjemmel>?,
-    @ApiModelProperty(
-        notes = "Liste med relevante journalposter til klagen. Listen kan være tom.",
+    @Schema(
+        description = "Liste med relevante journalposter til klagen. Listen kan være tom.",
         required = true
     )
     val tilknyttedeJournalposter: List<OversendtDokumentReferanse> = emptyList(),
-    @ApiModelProperty(
-        notes = "Tidspunkt for når KA mottok anken.",
+    @Schema(
+        description = "Tidspunkt for når KA mottok anken.",
         required = true,
         example = "2020-12-20T00:00"
     )
     val sakMottattKaTidspunkt: LocalDateTime,
-    @ApiModelProperty(
+    @Schema(
         example = "OMS_OMP",
-        notes = "Ytelse",
+        description = "Ytelse",
         required = true
     )
     val ytelse: Ytelse,
-    @ApiModelProperty(
-        notes = "Tidspunkt for når saken ble oversendt til Trygderetten.",
+    @Schema(
+        description = "Tidspunkt for når saken ble oversendt til Trygderetten.",
         required = true,
         example = "2020-12-20T00:00"
     )

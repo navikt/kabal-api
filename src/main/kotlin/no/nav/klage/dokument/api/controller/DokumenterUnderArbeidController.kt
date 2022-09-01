@@ -2,7 +2,7 @@ package no.nav.klage.dokument.api.controller
 
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.swagger.annotations.Api
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.mapper.DokumentInputMapper
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
@@ -26,7 +26,7 @@ import java.util.*
 import javax.servlet.http.HttpServletRequest
 
 @RestController
-@Api(tags = ["kabal-api-dokumenter"])
+@Tag(name = "kabal-api-dokumenter")
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 @RequestMapping("/behandlinger/{behandlingId}/dokumenter")
 class DokumentUnderArbeidController(

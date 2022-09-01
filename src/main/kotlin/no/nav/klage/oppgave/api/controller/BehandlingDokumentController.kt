@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.api.controller
 
-import io.swagger.annotations.Api
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiParam
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.BehandlingEditedView
 import no.nav.klage.oppgave.api.view.DokumenterResponse
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
-@Api(tags = ["kabal-api"])
+@Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/klagebehandlinger")
 class BehandlingDokumentController(
@@ -35,12 +35,12 @@ class BehandlingDokumentController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @ApiOperation(
-        value = "Hent metadata om dokumenter for brukeren som saken gjelder"
+    @Operation(
+        summary = "Hent metadata om dokumenter for brukeren som saken gjelder"
     )
     @GetMapping("/{id}/arkivertedokumenter", produces = ["application/json"])
     fun fetchDokumenter(
-        @ApiParam(value = "Id til klagebehandlingen i vårt system")
+        @Parameter(description = "Id til klagebehandlingen i vårt system")
         @PathVariable("id") behandlingId: UUID,
         @RequestParam(required = false, name = "antall", defaultValue = "10") pageSize: Int,
         @RequestParam(required = false, name = "forrigeSide") previousPageRef: String? = null,
@@ -54,18 +54,18 @@ class BehandlingDokumentController(
         )
     }
 
-    @ApiOperation(
-        value = "Henter fil fra dokumentarkivet",
-        notes = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang"
+    @Operation(
+        summary = "Henter fil fra dokumentarkivet",
+        description = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang"
     )
     @ResponseBody
     @GetMapping("/{id}/arkivertedokumenter/{journalpostId}/{dokumentInfoId}/pdf")
     fun getArkivertDokument(
-        @ApiParam(value = "Id til behandlingen i vårt system")
+        @Parameter(description = "Id til behandlingen i vårt system")
         @PathVariable("id") behandlingId: UUID,
-        @ApiParam(value = "Id til journalpost")
+        @Parameter(description = "Id til journalpost")
         @PathVariable journalpostId: String,
-        @ApiParam(value = "Id til dokumentInfo")
+        @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String
 
     ): ResponseEntity<ByteArray> {
@@ -88,13 +88,13 @@ class BehandlingDokumentController(
         )
     }
 
-    @ApiOperation(
-        value = "Henter metadata om dokumenter knyttet til en behandling",
-        notes = "Henter metadata om dokumenter knyttet til en behandling. Berikes med data fra SAF."
+    @Operation(
+        summary = "Henter metadata om dokumenter knyttet til en behandling",
+        description = "Henter metadata om dokumenter knyttet til en behandling. Berikes med data fra SAF."
     )
     @GetMapping("/{id}/dokumenttilknytninger", produces = ["application/json"])
     fun fetchConnectedDokumenter(
-        @ApiParam(value = "Id til behandlingen i vårt system")
+        @Parameter(description = "Id til behandlingen i vårt system")
         @PathVariable("id") behandlingId: UUID
     ): DokumenterResponse {
         return behandlingService.fetchJournalposterConnectedToBehandling(behandlingId)

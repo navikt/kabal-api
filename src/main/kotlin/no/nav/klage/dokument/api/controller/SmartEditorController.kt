@@ -1,7 +1,7 @@
 package no.nav.klage.dokument.api.controller
 
-import io.swagger.annotations.Api
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.PatchSmartHovedDokumentInput
 import no.nav.klage.dokument.api.view.SmartEditorDocumentView
@@ -22,7 +22,7 @@ import java.util.*
 
 
 @RestController
-@Api(tags = ["kabal-api-dokumenter"])
+@Tag(name = "kabal-api-dokumenter")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/behandlinger/{behandlingId}/smartdokumenter")
 class SmartEditorController(
@@ -89,9 +89,9 @@ class SmartEditorController(
             }
     }
 
-    @ApiOperation(
-        value = "Update document",
-        notes = "Update document"
+    @Operation(
+        summary = "Update document",
+        description = "Update document"
     )
     @PatchMapping("/{dokumentId}")
     fun patchDocument(
@@ -129,9 +129,9 @@ class SmartEditorController(
         )
     }
 
-    @ApiOperation(
-        value = "Get document",
-        notes = "Get document"
+    @Operation(
+        summary = "Get document",
+        description = "Get document"
     )
     @GetMapping("/{dokumentId}")
     fun getDocument(@PathVariable("dokumentId") documentId: UUID): SmartEditorDocumentView {
@@ -148,9 +148,9 @@ class SmartEditorController(
         )
     }
 
-    @ApiOperation(
-        value = "Create comment for a given document",
-        notes = "Create comment for a given document"
+    @Operation(
+        summary = "Create comment for a given document",
+        description = "Create comment for a given document"
     )
     @PostMapping("/{dokumentId}/comments")
     fun createComment(
@@ -168,9 +168,9 @@ class SmartEditorController(
         return kabalSmartEditorApiClient.createcomment(smartEditorId, commentInput)
     }
 
-    @ApiOperation(
-        value = "Get all comments for a given document",
-        notes = "Get all comments for a given document"
+    @Operation(
+        summary = "Get all comments for a given document",
+        description = "Get all comments for a given document"
     )
     @GetMapping("/{dokumentId}/comments")
     fun getAllCommentsWithPossibleThreads(
@@ -184,9 +184,9 @@ class SmartEditorController(
         return kabalSmartEditorApiClient.getAllCommentsWithPossibleThreads(smartEditorId)
     }
 
-    @ApiOperation(
-        value = "Reply to a given comment",
-        notes = "Reply to a given comment"
+    @Operation(
+        summary = "Reply to a given comment",
+        description = "Reply to a given comment"
     )
     @PostMapping("/{dokumentId}/comments/{commentId}/replies")
     fun replyToComment(
@@ -205,9 +205,9 @@ class SmartEditorController(
         return kabalSmartEditorApiClient.replyToComment(smartEditorId, commentId, commentInput)
     }
 
-    @ApiOperation(
-        value = "Get a given comment",
-        notes = "Get a given comment"
+    @Operation(
+        summary = "Get a given comment",
+        description = "Get a given comment"
     )
     @GetMapping("/{dokumentId}/comments/{commentId}")
     fun getCommentWithPossibleThread(

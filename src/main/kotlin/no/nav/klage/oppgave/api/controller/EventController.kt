@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.api.controller
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.swagger.annotations.Api
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.domain.Event
 import no.nav.klage.oppgave.clients.events.KafkaEventClient
 import no.nav.klage.oppgave.config.SecurityConfiguration
@@ -18,7 +18,7 @@ import reactor.core.publisher.Flux
 import java.time.Duration
 
 @RestController
-@Api(tags = ["kabal-api"])
+@Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 @RequestMapping("/behandlinger/{behandlingId}/events")
 class EventController(

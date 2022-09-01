@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.api.controller
 
-import io.swagger.annotations.Api
-import io.swagger.annotations.ApiOperation
-import io.swagger.annotations.ApiParam
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.BehandlingMedunderskriveridentInput
 import no.nav.klage.oppgave.api.view.MedunderskriverFlytResponse
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
-@Api(tags = ["kabal-api"])
+@Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/klagebehandlinger")
 class BehandlingMedunderskriverController(
@@ -52,13 +52,13 @@ class BehandlingMedunderskriverController(
         return behandlingMapper.mapToMedunderskriverFlytResponse(behandling)
     }
 
-    @ApiOperation(
-        value = "Flytter behandlingen mellom saksbehandler og medunderskriver.",
-        notes = "Flytter fra saksbehandler til medunderskriver dersom saksbehandler utfører, flytter til saksbehandler med returnert-status dersom medunderskriver utfører."
+    @Operation(
+        summary = "Flytter behandlingen mellom saksbehandler og medunderskriver.",
+        description = "Flytter fra saksbehandler til medunderskriver dersom saksbehandler utfører, flytter til saksbehandler med returnert-status dersom medunderskriver utfører."
     )
     @PostMapping("/{id}/send")
     fun switchMedunderskriverFlyt(
-        @ApiParam(value = "Id til behandlingen i vårt system")
+        @Parameter(description = "Id til behandlingen i vårt system")
         @PathVariable("id") behandlingId: UUID
     ): MedunderskriverFlytResponse {
         logKlagebehandlingMethodDetails(

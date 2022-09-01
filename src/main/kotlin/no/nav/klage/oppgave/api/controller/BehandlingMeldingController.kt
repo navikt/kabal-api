@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.api.controller
 
-import io.swagger.annotations.Api
-import io.swagger.annotations.ApiOperation
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.mapper.MeldingMapper
 import no.nav.klage.oppgave.api.view.MeldingInput
 import no.nav.klage.oppgave.api.view.MeldingModified
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
-@Api(tags = ["kabal-api"])
+@Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/klagebehandlinger")
 class BehandlingMeldingController(
@@ -33,9 +33,9 @@ class BehandlingMeldingController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @ApiOperation(
-        value = "Legg til ny melding til behandling",
-        notes = "Legger inn ny melding på en behandling"
+    @Operation(
+        summary = "Legg til ny melding til behandling",
+        description = "Legger inn ny melding på en behandling"
     )
     @PostMapping("/{id}/meldinger")
     @ResponseStatus(HttpStatus.CREATED)
@@ -62,9 +62,9 @@ class BehandlingMeldingController(
         )
     }
 
-    @ApiOperation(
-        value = "Hent alle meldinger på en behandling",
-        notes = "Henter alle meldinger på en behandling. Sist først."
+    @Operation(
+        summary = "Hent alle meldinger på en behandling",
+        description = "Henter alle meldinger på en behandling. Sist først."
     )
     @GetMapping("/{id}/meldinger")
     fun getMeldinger(
@@ -83,9 +83,9 @@ class BehandlingMeldingController(
         return meldingMapper.toMeldingerView(meldingService.getMeldingerForBehandling(behandlingId))
     }
 
-    @ApiOperation(
-        value = "Slett melding på en behandling",
-        notes = "Sletter en melding på en behandling"
+    @Operation(
+        summary = "Slett melding på en behandling",
+        description = "Sletter en melding på en behandling"
     )
     @DeleteMapping("/{id}/meldinger/{meldingId}")
     fun deleteMelding(
@@ -109,9 +109,9 @@ class BehandlingMeldingController(
         )
     }
 
-    @ApiOperation(
-        value = "Endre meldingstekst på en melding i en behandling",
-        notes = "Endrer tekst på en melding"
+    @Operation(
+        summary = "Endre meldingstekst på en melding i en behandling",
+        description = "Endrer tekst på en melding"
     )
     @PutMapping("/{id}/meldinger/{meldingId}")
     fun modifyMelding(

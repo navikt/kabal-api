@@ -3,12 +3,12 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val mockkVersion = "1.12.7"
 val tokenValidationVersion = "2.1.4"
 val logstashVersion = "7.2"
-val springSleuthVersion = "3.0.4"
+val springSleuthVersion = "3.1.3"
 val unleashVersion = "4.4.1"
 val problemSpringWebStartVersion = "0.27.0"
 val springRetryVersion = "1.3.3"
 val springMockkVersion = "3.1.1"
-val springFoxVersion = "3.0.0"
+val springDocVersion = "1.6.11"
 val testContainersVersion = "1.17.3"
 val shedlockVersion = "4.41.0"
 val archunitVersion = "0.22.0"
@@ -17,20 +17,21 @@ val logbackSyslog4jVersion = "1.0.0"
 val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "2.0.26"
 val tikaVersion = "2.4.1"
-val verapdfVersion = "1.18.8"
+val verapdfVersion = "1.20.1"
 
 
 //val githubUser: String by project
 //val githubPassword: String by project
 
 plugins {
-    id("org.springframework.boot") version "2.5.12"
-    id("io.spring.dependency-management") version "1.0.13.RELEASE"
+    id("org.springframework.boot") version "2.7.3"
     kotlin("jvm") version "1.7.10"
     kotlin("plugin.spring") version "1.7.10"
     kotlin("plugin.jpa") version "1.7.10"
     idea
 }
+
+apply(plugin = "io.spring.dependency-management")
 
 java.sourceCompatibility = JavaVersion.VERSION_17
 
@@ -67,7 +68,7 @@ dependencies {
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:$shedlockVersion")
 
     implementation("org.springframework.cloud:spring-cloud-starter-sleuth:$springSleuthVersion")
-    implementation("io.springfox:springfox-boot-starter:$springFoxVersion")
+    implementation("org.springdoc:springdoc-openapi-ui:$springDocVersion")
 
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
     implementation("com.papertrailapp:logback-syslog4j:$logbackSyslog4jVersion")

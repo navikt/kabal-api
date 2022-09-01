@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.api.controller
 
-import io.swagger.annotations.Api
-import io.swagger.annotations.ApiParam
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.view.Saksbehandlertildeling
 import no.nav.klage.oppgave.api.view.TildelingEditedView
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
-@Api(tags = ["kabal-api"])
+@Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/ansatte")
 class BehandlingAssignmentController(
@@ -31,9 +31,9 @@ class BehandlingAssignmentController(
     //TODO: Move this to KlagebehandlingController and URL /klagebehandlinger/{id}/saksbehandlerident , equal to medunderskriverident-operations?
     @PostMapping("/{navIdent}/klagebehandlinger/{id}/saksbehandlertildeling")
     fun assignSaksbehandler(
-        @ApiParam(value = "NavIdent til en ansatt")
+        @Parameter(description = "NavIdent til en ansatt")
         @PathVariable navIdent: String,
-        @ApiParam(value = "Id til en behandling")
+        @Parameter(description = "Id til en behandling")
         @PathVariable("id") behandlingId: UUID,
         @RequestBody saksbehandlertildeling: Saksbehandlertildeling
     ): TildelingEditedView {
@@ -52,9 +52,9 @@ class BehandlingAssignmentController(
 
     @PostMapping("/{navIdent}/klagebehandlinger/{id}/saksbehandlerfradeling")
     fun unassignSaksbehandler(
-        @ApiParam(value = "NavIdent til en ansatt")
+        @Parameter(description = "NavIdent til en ansatt")
         @PathVariable navIdent: String,
-        @ApiParam(value = "Id til en behandling")
+        @Parameter(description = "Id til en behandling")
         @PathVariable("id") behandlingId: UUID
     ): TildelingEditedView {
         logger.debug("unassignSaksbehandler is requested for behandling: {}", behandlingId)

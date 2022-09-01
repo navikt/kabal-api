@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.api.view
 
-import io.swagger.annotations.ApiModel
-import io.swagger.annotations.ApiModelProperty
+import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -13,56 +12,56 @@ import java.time.LocalDateTime
 import java.util.*
 import javax.validation.constraints.PastOrPresent
 
-@ApiModel
+@Schema
 data class OversendtKlageAnkeV3(
-    @ApiModelProperty(
+    @Schema(
         required = true,
         example = "KLAGE",
-        notes = "Gyldige verdier er KLAGE og ANKE"
+        description = "Gyldige verdier er KLAGE og ANKE"
     )
     val type: Type,
-    @ApiModelProperty(
+    @Schema(
         required = true
     )
     val klager: OversendtKlager,
-    @ApiModelProperty(
-        notes = "Kan settes dersom klagen gjelder en annen enn den som har levert klagen",
+    @Schema(
+        description = "Kan settes dersom klagen gjelder en annen enn den som har levert klagen",
         required = false
     )
     val sakenGjelder: OversendtSakenGjelder? = null,
-    @ApiModelProperty(
-        notes = "Fagsak brukt til journalføring. Dersom denne er tom journalfører vi på generell sak",
+    @Schema(
+        description = "Fagsak brukt til journalføring. Dersom denne er tom journalfører vi på generell sak",
         required = false
     )
     val fagsak: OversendtSak? = null,
-    @ApiModelProperty(
-        notes = "Id som er intern for kildesystemet (f.eks. K9) så vedtak fra oss knyttes riktig i kilde",
+    @Schema(
+        description = "Id som er intern for kildesystemet (f.eks. K9) så vedtak fra oss knyttes riktig i kilde",
         required = true
     )
     val kildeReferanse: String,
-    @ApiModelProperty(
-        notes = "Id som rapporters på til DVH, bruker kildeReferanse hvis denne ikke er satt",
+    @Schema(
+        description = "Id som rapporters på til DVH, bruker kildeReferanse hvis denne ikke er satt",
         required = false
     )
     val dvhReferanse: String? = null,
-    @ApiModelProperty(
-        notes = "Url tilbake til kildesystem for innsyn i sak",
+    @Schema(
+        description = "Url tilbake til kildesystem for innsyn i sak",
         required = false,
         example = "https://k9-sak.adeo.no/behandling/12345678"
     )
     val innsynUrl: String? = null,
-    @ApiModelProperty(
-        notes = "Hjemler knyttet til klagen",
+    @Schema(
+        description = "Hjemler knyttet til klagen",
         required = false
     )
     val hjemler: List<Hjemmel>? = emptyList(),
-    @ApiModelProperty(
-        notes = "ID på enheten som behandlet vedtaket som denne henvendelsen gjelder.",
+    @Schema(
+        description = "ID på enheten som behandlet vedtaket som denne henvendelsen gjelder.",
         required = true
     )
     val forrigeBehandlendeEnhet: String,
-    @ApiModelProperty(
-        notes = "Liste med relevante journalposter til klagen. Listen kan være tom.",
+    @Schema(
+        description = "Liste med relevante journalposter til klagen. Listen kan være tom.",
         required = true
     )
     val tilknyttedeJournalposter: List<OversendtDokumentReferanse> = emptyList(),
@@ -70,38 +69,38 @@ data class OversendtKlageAnkeV3(
     @field:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     val brukersHenvendelseMottattNavDato: LocalDate,
     val innsendtTilNav: LocalDate,
-    @ApiModelProperty(
-        notes = "Kan settes dersom førsteinstans ønsker å overstyre frist. Ikke i bruk per i dag.",
+    @Schema(
+        description = "Kan settes dersom førsteinstans ønsker å overstyre frist. Ikke i bruk per i dag.",
         required = false
     )
     val frist: LocalDate? = null,
-    @ApiModelProperty(
-        notes = "Deprecated. Bruk sakMottattKaTidspunkt i stedet. Kan settes for å overstyre når KA mottok klage/anke.",
+    @Schema(
+        description = "Deprecated. Bruk sakMottattKaTidspunkt i stedet. Kan settes for å overstyre når KA mottok klage/anke.",
         required = false,
         example = "2020-12-20"
     )
     @field:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     val sakMottattKaDato: LocalDate? = null,
-    @ApiModelProperty(
-        notes = "Kan settes for å overstyre når KA mottok klage/anke.",
+    @Schema(
+        description = "Kan settes for å overstyre når KA mottok klage/anke.",
         required = false,
         example = "2020-12-20T00:00"
     )
     val sakMottattKaTidspunkt: LocalDateTime? = null,
-    @ApiModelProperty(
-        notes = "Legges ved melding ut fra KA på Kafka, brukes for filtrering",
+    @Schema(
+        description = "Legges ved melding ut fra KA på Kafka, brukes for filtrering",
         required = true,
         example = "K9"
     )
     val kilde: KildeFagsystem,
-    @ApiModelProperty(
+    @Schema(
         example = "OMS_OMP",
-        notes = "Ytelse",
+        description = "Ytelse",
         required = true
     )
     val ytelse: Ytelse,
-    @ApiModelProperty(
-        notes = "Kommentarer fra saksbehandler i førsteinstans som ikke er med i oversendelsesbrevet klager mottar",
+    @Schema(
+        description = "Kommentarer fra saksbehandler i førsteinstans som ikke er med i oversendelsesbrevet klager mottar",
         required = false
     )
     val kommentar: String? = null
