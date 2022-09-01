@@ -41,7 +41,7 @@ POST <kabal-api-url>/oversendelse/klage <oversendt-klage-json>
 - DEV-url: `https://kabal-api.dev.intern.nav.no`
 - PROD-url: `https://kabal-api.intern.nav.no`
 
-[OpenAPI/Swagger doc for å sende over klager](https://kabal-api.dev.intern.nav.no/swagger-ui/?urls.primaryName=external#/) (
+[OpenAPI/Swagger doc for å sende over klager](https://kabal-api.dev.intern.nav.no/swagger-ui/index.html?urls.primaryName=external) (
 husk naisdevice)
 
 Eksempel
