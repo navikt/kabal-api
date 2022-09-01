@@ -22,7 +22,7 @@ import java.util.*
 
 
 @RestController
-@Tag(name = "kabal-api-dokumenter")
+@Tag(name = "kabal-api-smartdokumenter")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/behandlinger/{behandlingId}/smartdokumenter")
 class SmartEditorController(
