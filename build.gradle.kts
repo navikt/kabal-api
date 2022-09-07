@@ -77,7 +77,7 @@ dependencies {
 
     implementation("org.redundent:kotlin-xml-builder:$kotlinXmlBuilderVersion")
 
-    implementation("com.github.navikt:kabal-kodeverk:2022.06.29-15.54.59a60be3d1f7")
+    implementation("com.github.navikt:kabal-kodeverk:ankeITrygderetten-SNAPSHOT")
 
     implementation("no.nav.security:token-validation-spring:$tokenValidationVersion")
     implementation("no.nav.security:token-client-spring:$tokenValidationVersion")

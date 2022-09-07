@@ -6,6 +6,7 @@ import no.nav.klage.kodeverk.MedunderskriverFlyt.OVERSENDT_TIL_MEDUNDERSKRIVER
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.typeTilUtfall
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.Behandling
@@ -112,6 +113,17 @@ class BehandlingService(
                 )
             )
         }
+
+        //TODO: Create test for invalid utfall when such are added
+        if (!typeTilUtfall[behandling.type]!!.contains(behandling.currentDelbehandling().utfall)) {
+            behandlingValidationErrors.add(
+                InvalidProperty(
+                    field = "utfall",
+                    reason = "Dette utfallet er ikke gyldig for denne behandlingstypen."
+                )
+            )
+        }
+
         if (behandling.currentDelbehandling().utfall != Utfall.TRUKKET) {
             if (behandling.currentDelbehandling().hjemler.isEmpty()) {
                 behandlingValidationErrors.add(
