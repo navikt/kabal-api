@@ -25,7 +25,7 @@ val verapdfVersion = "1.22.2"
 
 plugins {
     val kotlinVersion = "1.7.22"
-    id("org.springframework.boot") version "2.7.5"
+    id("org.springframework.boot") version "3.0.1"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
