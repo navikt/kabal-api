@@ -24,7 +24,7 @@ val verapdfVersion = "1.22.2"
 //val githubPassword: String by project
 
 plugins {
-    val kotlinVersion = "1.7.22"
+    val kotlinVersion = "1.8.0"
     id("org.springframework.boot") version "2.7.5"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
