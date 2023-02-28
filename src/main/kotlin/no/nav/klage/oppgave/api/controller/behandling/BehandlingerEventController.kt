@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.api.controller
+package no.nav.klage.oppgave.api.controller.behandling
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -21,7 +21,7 @@ import java.time.Duration
 @Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 @RequestMapping("/behandlinger/{behandlingId}/events")
-class EventController(
+class BehandlingerEventController(
     private val kafkaEventClient: KafkaEventClient,
 ) {
 

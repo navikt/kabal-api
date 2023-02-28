@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.api.controller
+package no.nav.klage.oppgave.api.controller.behandling
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
@@ -18,7 +18,7 @@ import java.util.*
 @RestController
 @Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
-@RequestMapping("/klagebehandlinger")
+@RequestMapping(value = ["/klagebehandlinger", "/behandlinger"])
 class BehandlingMedunderskriverController(
     private val behandlingMapper: BehandlingMapper,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
@@ -30,9 +30,9 @@ class BehandlingMedunderskriverController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @PutMapping("/{id}/medunderskriverident")
+    @PutMapping("/{behandlingId}/medunderskriverident")
     fun putMedunderskriverident(
-        @PathVariable("id") behandlingId: UUID,
+        @PathVariable("behandlingId") behandlingId: UUID,
         @RequestBody input: BehandlingMedunderskriveridentInput
     ): MedunderskriverFlytResponse {
         logBehandlingMethodDetails(
@@ -49,9 +49,9 @@ class BehandlingMedunderskriverController(
         return behandlingMapper.mapToMedunderskriverFlytResponse(behandling)
     }
 
-    @PutMapping("/{id}/medunderskriver")
+    @PutMapping("/{behandlingId}/medunderskriver")
     fun putMedunderskriver(
-        @PathVariable("id") behandlingId: UUID,
+        @PathVariable("behandlingId") behandlingId: UUID,
         @RequestBody input: SaksbehandlerInput
     ): MedunderskriverWrapped {
         logBehandlingMethodDetails(
@@ -72,10 +72,10 @@ class BehandlingMedunderskriverController(
         summary = "Flytter behandlingen mellom saksbehandler og medunderskriver.",
         description = "Flytter fra saksbehandler til medunderskriver dersom saksbehandler utfører, flytter til saksbehandler med returnert-status dersom medunderskriver utfører."
     )
-    @PostMapping("/{id}/send")
+    @PostMapping("/{behandlingId}/send")
     fun switchMedunderskriverFlyt(
         @Parameter(description = "Id til behandlingen i vårt system")
-        @PathVariable("id") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID
     ): MedunderskriverFlytResponse {
         logKlagebehandlingMethodDetails(
             ::switchMedunderskriverFlyt.name,
@@ -91,9 +91,9 @@ class BehandlingMedunderskriverController(
         return behandlingMapper.mapToMedunderskriverFlytResponse(behandling)
     }
 
-    @GetMapping("/{id}/medunderskriver")
+    @GetMapping("/{behandlingId}/medunderskriver")
     fun getMedunderskriver(
-        @PathVariable("id") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID
     ): MedunderskriverWrapped {
         logBehandlingMethodDetails(
             ::getMedunderskriver.name,

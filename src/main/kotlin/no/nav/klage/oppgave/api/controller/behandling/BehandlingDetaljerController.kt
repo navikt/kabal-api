@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.api.controller
+package no.nav.klage.oppgave.api.controller.behandling
 
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
@@ -20,8 +20,7 @@ import java.util.*
 @RestController
 @Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
-@RequestMapping("/klagebehandlinger")
-//TODO: Flytte dette inn i BehandlingController?
+@RequestMapping(value = ["/klagebehandlinger", "/behandlinger"])
 class BehandlingDetaljerController(
     private val behandlingService: BehandlingService,
     private val behandlingMapper: BehandlingMapper,
@@ -34,9 +33,9 @@ class BehandlingDetaljerController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @GetMapping("/{id}/detaljer")
+    @GetMapping("/{behandlingId}/detaljer")
     fun getBehandlingDetaljer(
-        @PathVariable("id") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID
     ): BehandlingDetaljerView {
         logBehandlingMethodDetails(
             ::getBehandlingDetaljer.name,

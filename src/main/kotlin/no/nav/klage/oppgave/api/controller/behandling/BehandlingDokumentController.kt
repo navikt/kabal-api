@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.api.controller
+package no.nav.klage.oppgave.api.controller.behandling
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -11,26 +11,21 @@ import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.api.view.TilknyttetDokument
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.BehandlingService
-import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
 @Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
-@RequestMapping("/klagebehandlinger")
+@RequestMapping(value = ["/klagebehandlinger", "/behandlinger"])
 class BehandlingDokumentController(
     private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val dokumentService: DokumentService
 ) {
 
     companion object {
@@ -44,10 +39,10 @@ class BehandlingDokumentController(
     @Operation(
         summary = "Hent metadata om dokumenter for brukeren som saken gjelder"
     )
-    @GetMapping("/{id}/arkivertedokumenter", produces = ["application/json"])
+    @GetMapping("/{behandlingId}/arkivertedokumenter", produces = ["application/json"])
     fun fetchDokumenter(
-        @Parameter(description = "Id til klagebehandlingen i vårt system")
-        @PathVariable("id") behandlingId: UUID,
+        @Parameter(description = "Id til behandlingen i vårt system")
+        @PathVariable("behandlingId") behandlingId: UUID,
         @RequestParam(required = false, name = "antall", defaultValue = "10") pageSize: Int,
         @RequestParam(required = false, name = "forrigeSide") previousPageRef: String? = null,
         @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList()
@@ -57,41 +52,6 @@ class BehandlingDokumentController(
             temaer = temaer?.map { Tema.of(it) } ?: emptyList(),
             pageSize = pageSize,
             previousPageRef = previousPageRef
-        )
-    }
-
-    //TODO: Fjern når FE har tatt i bruk tilsvarende i JournalfoertDokumentCont
-    @Operation(
-        summary = "Henter fil fra dokumentarkivet",
-        description = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang"
-    )
-    @ResponseBody
-    @GetMapping("/{id}/arkivertedokumenter/{journalpostId}/{dokumentInfoId}/pdf")
-    fun getArkivertDokument(
-        @Parameter(description = "Id til behandlingen i vårt system")
-        @PathVariable("id") behandlingId: UUID,
-        @Parameter(description = "Id til journalpost")
-        @PathVariable journalpostId: String,
-        @Parameter(description = "Id til dokumentInfo")
-        @PathVariable dokumentInfoId: String
-
-    ): ResponseEntity<ByteArray> {
-        logger.debug(
-            "Get getArkivertDokument is requested. behandlingsid: {} - journalpostId: {} - dokumentInfoId: {}",
-            behandlingId,
-            journalpostId,
-            dokumentInfoId
-        )
-
-        val arkivertDokument = dokumentService.getArkivertDokument(journalpostId, dokumentInfoId)
-
-        val responseHeaders = HttpHeaders()
-        responseHeaders.contentType = arkivertDokument.contentType
-        responseHeaders.add("Content-Disposition", "inline")
-        return ResponseEntity(
-            arkivertDokument.bytes,
-            responseHeaders,
-            HttpStatus.OK
         )
     }
 

@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.api.controller
+package no.nav.klage.oppgave.api.controller.behandling
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -20,7 +20,7 @@ import java.util.*
 @RestController
 @Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
-@RequestMapping("/klagebehandlinger")
+@RequestMapping(value = ["/klagebehandlinger", "/behandlinger"])
 class BehandlingMeldingController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val meldingService: MeldingService,
@@ -37,10 +37,10 @@ class BehandlingMeldingController(
         summary = "Legg til ny melding til behandling",
         description = "Legger inn ny melding på en behandling"
     )
-    @PostMapping("/{id}/meldinger")
+    @PostMapping("/{behandlingId}/meldinger")
     @ResponseStatus(HttpStatus.CREATED)
     fun addMelding(
-        @PathVariable("id") behandlingId: UUID,
+        @PathVariable("behandlingId") behandlingId: UUID,
         @RequestBody input: MeldingInput
     ): MeldingView {
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
@@ -66,9 +66,9 @@ class BehandlingMeldingController(
         summary = "Hent alle meldinger på en behandling",
         description = "Henter alle meldinger på en behandling. Sist først."
     )
-    @GetMapping("/{id}/meldinger")
+    @GetMapping("/{behandlingId}/meldinger")
     fun getMeldinger(
-        @PathVariable("id") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID
     ): List<MeldingView> {
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         logBehandlingMethodDetails(
@@ -87,9 +87,9 @@ class BehandlingMeldingController(
         summary = "Slett melding på en behandling",
         description = "Sletter en melding på en behandling"
     )
-    @DeleteMapping("/{id}/meldinger/{meldingId}")
+    @DeleteMapping("/{behandlingId}/meldinger/{meldingId}")
     fun deleteMelding(
-        @PathVariable("id") behandlingId: UUID,
+        @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("meldingId") meldingId: UUID
     ) {
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
@@ -113,9 +113,9 @@ class BehandlingMeldingController(
         summary = "Endre meldingstekst på en melding i en behandling",
         description = "Endrer tekst på en melding"
     )
-    @PutMapping("/{id}/meldinger/{meldingId}")
+    @PutMapping("/{behandlingId}/meldinger/{meldingId}")
     fun modifyMelding(
-        @PathVariable("id") behandlingId: UUID,
+        @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("meldingId") meldingId: UUID,
         @RequestBody input: MeldingInput
     ): MeldingModified {
