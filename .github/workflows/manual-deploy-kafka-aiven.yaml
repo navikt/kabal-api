@@ -18,7 +18,7 @@ jobs:
         topic: [behandling-endret.v2, behandling-events.v1, kabal-statistikk.v1, internal-events.v1]
     steps:
       - name: Checkout code
-        uses: actions/checkout@main
+        uses: actions/checkout@v3
       - name: deploy kafka-topic ${{ matrix.topic }} to ${{ matrix.cluster }}
         uses: nais/deploy/actions/deploy@master
         env:

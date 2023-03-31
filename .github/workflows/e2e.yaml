@@ -1,25 +1,28 @@
-name: End-to-end tests
+name: Manual E2E
 
 on:
   workflow_dispatch:
+    inputs:
+      e2e_tag:
+        description: "Tag of E2E image to run"
+        required: false
+        default: latest
+        type: string
+
+run-name: E2E (${{ inputs.e2e_tag }})
 
 jobs:
-  acceptance-tests:
-    name: Run acceptance tests
+  e2e_tests:
+    name: E2E
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@main
+      - name: E2E
+        uses: navikt/kabal-e2e-tests/.github/actions/run@main
         with:
-          repository: navikt/kabal-api
-      - name: Set UUID
-        id: generate-uuid
-        uses: filipstefansson/uuid-action@v1
-      - name: Run acceptance tests
-        uses: nais/deploy/actions/deploy@master
-        env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_API_KEY }}
-          CLUSTER: dev-gcp
-          VAR: app=kabal,jobname=klage-job-${{ steps.generate-uuid.outputs.uuid }}
-          TEAM: klage
-          RESOURCE: deploy/e2ejob.yml
-        timeout-minutes: 5
+          e2e_tag: ${{ inputs.e2e_tag }}
+          nais_deploy_apikey: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          nais_management_project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          nais_workload_identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
