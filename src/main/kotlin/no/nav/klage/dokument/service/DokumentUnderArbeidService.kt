@@ -163,6 +163,16 @@ class DokumentUnderArbeidService(
 
         val behandling = behandlingService.getBehandling(behandlingId)
 
+        journalfoerteDokumenter.forEach{
+            behandlingService.connectDokumentToBehandling(
+                behandlingId = behandlingId,
+                journalpostId = it.journalpostId,
+                dokumentInfoId = it.dokumentInfoId,
+                saksbehandlerIdent = innloggetIdent,
+                systemUserContext = false
+            )
+        }
+
         val alreadyAddedDocuments =
             dokumentUnderArbeidRepository.findByParentIdAndJournalfoertDokumentReferenceIsNotNull(parentId).map {
                 JournalfoertDokumentReference(
