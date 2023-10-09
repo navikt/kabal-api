@@ -44,7 +44,7 @@ class DokumentUnderArbeidRepositoryTest {
         val hovedDokument = OpplastetDokumentUnderArbeidAsHoveddokument(
             mellomlagerId = UUID.randomUUID().toString(),
             markertFerdig = LocalDateTime.now(),
-            size = 1001,
+            size = 1002,
             name = "Vedtak.pdf",
             behandlingId = behandlingId,
             dokumentType = DokumentType.BREV,
