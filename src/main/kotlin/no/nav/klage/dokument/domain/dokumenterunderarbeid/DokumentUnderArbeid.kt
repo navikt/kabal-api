@@ -13,7 +13,7 @@ import java.util.*
 @Table(name = "dokument_under_arbeid", schema = "klage")
 @DynamicUpdate
 @DiscriminatorColumn(name = "dokument_under_arbeid_type")
-abstract class DokumentUnderArbeid(
+open class DokumentUnderArbeid(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Column(name = "dokument_type_id")
