@@ -1,14 +1,14 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val mockkVersion = "1.13.7"
-val tokenValidationVersion = "3.1.5"
+val mockkVersion = "1.13.8"
+val tokenValidationVersion = "3.1.7"
 val logstashVersion = "7.4"
 val unleashVersion = "4.4.1"
-val springRetryVersion = "2.0.2"
+val springRetryVersion = "2.0.3"
 val springMockkVersion = "4.0.2"
 val springDocVersion = "2.2.0"
-val testContainersVersion = "1.19.0"
-val shedlockVersion = "5.7.0"
+val testContainersVersion = "1.19.1"
+val shedlockVersion = "5.8.0"
 val archunitVersion = "1.1.0"
 val kotlinXmlBuilderVersion = "1.9.0"
 val logbackSyslog4jVersion = "1.0.0"
@@ -20,7 +20,7 @@ val klageKodeverkVersion = "1.6.10"
 
 plugins {
     val kotlinVersion = "1.9.10"
-    id("org.springframework.boot") version "3.1.3"
+    id("org.springframework.boot") version "3.1.4"
     id("io.spring.dependency-management") version "1.1.3"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
@@ -45,10 +45,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    implementation("org.apache.tomcat.embed:tomcat-embed-core:10.1.11")
-    implementation("org.apache.tomcat.embed:tomcat-embed-el:10.1.11")
-    implementation("org.apache.tomcat:tomcat-annotations-api:10.1.11")
-    implementation("org.apache.tomcat.embed:tomcat-embed-websocket:10.1.11")
+    implementation("org.apache.tomcat.embed:tomcat-embed-core:10.1.13")
+    implementation("org.apache.tomcat.embed:tomcat-embed-el:10.1.13")
+    implementation("org.apache.tomcat:tomcat-annotations-api:10.1.13")
+    implementation("org.apache.tomcat.embed:tomcat-embed-websocket:10.1.13")
 
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("javax.cache:cache-api")
