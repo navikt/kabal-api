@@ -101,7 +101,7 @@ class BehandlingAvslutningService(
             createNewAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
         } else {
             val hoveddokumenter =
-                dokumentUnderArbeidCommonService.findHoveddokumenterByMarkertFerdigNotNullAndFerdigstiltNotNullAndBehandlingId(
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     behandlingId
                 ).filter {
                     it.dokumentType in listOf(

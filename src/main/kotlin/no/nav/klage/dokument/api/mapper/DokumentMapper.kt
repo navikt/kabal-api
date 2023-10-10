@@ -101,7 +101,7 @@ class DokumentMapper(
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentInDokarkiv.tittel ?: "Tittel ikke funnet i SAF",
             tema = Tema.fromNavn(journalpost.tema?.name).navn,
-            opprettet = journalpost.datoOpprettet,
+            opprettet = dokumentUnderArbeid.opprettet,
             avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
             saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
             type = journalpost.journalposttype?.name ?: "Type ikke funnet i SAF"
@@ -127,19 +127,28 @@ class DokumentMapper(
     fun mapToDokumentView(dokumentUnderArbeid: DokumentUnderArbeid): DokumentView {
         var journalfoertDokumentReference: DokumentView.JournalfoertDokumentReference? = null
 
+        var tittel = dokumentUnderArbeid.name
+
         if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
+            val journalpostInDokarkiv =
+                safClient.getJournalpostAsSaksbehandler(dokumentUnderArbeid.journalpostId)
+
+            val dokument = journalpostInDokarkiv.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+                ?: throw RuntimeException("Document not found in Dokarkiv")
+
+            tittel = (dokument.tittel ?: "Tittel ikke funnet i SAF")
+
             journalfoertDokumentReference = DokumentView.JournalfoertDokumentReference(
                 journalpostId = dokumentUnderArbeid.journalpostId,
                 dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
-                //TODO?
-                harTilgangTilArkivvariant = true,
+                harTilgangTilArkivvariant = harTilgangTilArkivvariant(dokument),
                 datoOpprettet = dokumentUnderArbeid.opprettet,
             )
         }
 
         return DokumentView(
             id = dokumentUnderArbeid.id,
-            tittel = dokumentUnderArbeid.name,
+            tittel = tittel,
             dokumentTypeId = dokumentUnderArbeid.dokumentType?.id,
             created = dokumentUnderArbeid.created,
             modified = dokumentUnderArbeid.modified,

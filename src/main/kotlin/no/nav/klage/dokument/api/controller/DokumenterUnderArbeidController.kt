@@ -42,7 +42,7 @@ class DokumentUnderArbeidController(
     }
 
     @GetMapping
-    fun findHovedDokumenter(
+    fun findDokumenter(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): List<DokumentView> {
         val allDokumenterUnderArbeid = dokumentUnderArbeidService.findDokumenterNotFinished(behandlingId = behandlingId)

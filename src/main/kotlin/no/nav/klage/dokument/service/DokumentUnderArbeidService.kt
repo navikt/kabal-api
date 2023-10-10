@@ -266,7 +266,10 @@ class DokumentUnderArbeidService(
                 safClient.getJournalpostAsSaksbehandler(journalfoertDokumentReference.journalpostId)
 
             val document = JournalfoertDokumentUnderArbeidAsVedlegg(
-                name = "TODO / Hentes fra SAF",
+                name = getDokumentTitle(
+                    journalpost = journalpostInDokarkiv,
+                    dokumentInfoId = journalfoertDokumentReference.dokumentInfoId
+                ),
                 behandlingId = behandlingId,
                 parentId = parentId,
                 journalpostId = journalfoertDokumentReference.journalpostId,
@@ -297,6 +300,11 @@ class DokumentUnderArbeidService(
         }
 
         return resultingDocuments to duplicates
+    }
+
+    private fun getDokumentTitle(journalpost: Journalpost, dokumentInfoId: String): String {
+        return journalpost.dokumenter?.find { it.dokumentInfoId == dokumentInfoId }?.tittel
+            ?: error("can't be null")
     }
 
     private fun Behandling.getRoleInBehandling(innloggetIdent: String) = if (rolIdent == innloggetIdent) {
@@ -583,6 +591,14 @@ class DokumentUnderArbeidService(
         vedlegg.forEach {
             if (it is SmartdokumentUnderArbeidAsVedlegg && it.isStaleSmartEditorDokument()) {
                 mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(it)
+            } else if (it is JournalfoertDokumentUnderArbeidAsVedlegg) {
+                val journalpostInDokarkiv =
+                    safClient.getJournalpostAsSaksbehandler(it.journalpostId)
+
+                it.name = getDokumentTitle(
+                    journalpost = journalpostInDokarkiv,
+                    dokumentInfoId = it.dokumentInfoId
+                )
             }
         }
 
@@ -878,7 +894,7 @@ class DokumentUnderArbeidService(
         }
 
         return if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
-            if (journalfoertDokumentUnderArbeidRepository.findByParentIdAndJournalpostIdNotAndDokumentInfoIdNotAndIdNot(
+            if (journalfoertDokumentUnderArbeidRepository.findByParentIdAndJournalpostIdAndDokumentInfoIdAndIdNot(
                     parentId = parentId,
                     journalpostId = dokumentUnderArbeid.journalpostId,
                     dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
@@ -961,7 +977,7 @@ class DokumentUnderArbeidService(
             behandlingService.getBehandling(behandlingId)
         }
 
-        return dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNullOrderByCreatedDesc(behandlingId)
+        return dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId)
     }
 
     fun getSmartDokumenterUnderArbeid(behandlingId: UUID, ident: String): List<DokumentUnderArbeid> {
@@ -973,7 +989,7 @@ class DokumentUnderArbeidService(
                 behandlingId
             )
 
-        val vedlegg = smartDokumentUnderArbeidAsVedleggRepository.findByBehandlingIdAndMarkertFerdigIsNullOrderByCreated(
+        val vedlegg = smartDokumentUnderArbeidAsVedleggRepository.findByBehandlingIdAndMarkertFerdigIsNull(
             behandlingId
         )
 
@@ -985,7 +1001,8 @@ class DokumentUnderArbeidService(
     }
 
     fun opprettDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
-        val hovedDokument = dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+        val hovedDokument =
+            dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         //Denne er alltid sann
         if (hovedDokument.dokumentEnhetId == null) {
@@ -1003,7 +1020,8 @@ class DokumentUnderArbeidService(
     }
 
     fun ferdigstillDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
-        val hovedDokument = dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+        val hovedDokument =
+            dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         val behandling: Behandling = behandlingService.getBehandlingForUpdateBySystembruker(hovedDokument.behandlingId)
         val documentInfoList =

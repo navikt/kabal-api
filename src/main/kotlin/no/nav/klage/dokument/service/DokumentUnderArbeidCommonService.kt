@@ -26,10 +26,10 @@ class DokumentUnderArbeidCommonService(
 //                smartdokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingId(behandlingId)
 //    }
 
-    fun findHoveddokumenterByMarkertFerdigNotNullAndFerdigstiltNotNullAndBehandlingId(behandlingId: UUID): Set<DokumentUnderArbeidAsHoveddokument> {
-        return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndMarkertFerdigIsNull(
+    fun findHoveddokumenterByBehandlingIdAndHasJournalposter(behandlingId: UUID): Set<DokumentUnderArbeidAsHoveddokument> {
+        return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndJournalposterIsNotEmpty(
             behandlingId
-        ) + smartdokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingId(behandlingId)
+        ) + smartdokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndJournalposterIsNotEmpty(behandlingId)
     }
 
     fun findHoveddokumenterByMarkertFerdigNotNullAndFerdigstiltNull(): Set<DokumentUnderArbeidAsHoveddokument> {
