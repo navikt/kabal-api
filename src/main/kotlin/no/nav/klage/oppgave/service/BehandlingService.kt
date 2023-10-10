@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
-import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
@@ -62,7 +61,6 @@ class BehandlingService(
     private val kakaApiGateway: KakaApiGateway,
     private val dokumentService: DokumentService,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
-    private val dokumentUnderArbeidCommonService: DokumentUnderArbeidCommonService,
     private val kabalInnstillingerService: KabalInnstillingerService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val arbeidOgInntektClient: ArbeidOgInntektClient,
