@@ -6,7 +6,10 @@ import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.CompletedKlagebehandling
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.domain.klage.Mottak
+import no.nav.klage.oppgave.domain.klage.MottakHjemmel
+import no.nav.klage.oppgave.domain.klage.MuligAnke
 import no.nav.klage.oppgave.exceptions.BehandlingNotFoundException
 import no.nav.klage.oppgave.exceptions.PDLErrorException
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository

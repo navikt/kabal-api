@@ -351,7 +351,27 @@ object BehandlingSetters {
                 saksbehandlerident = saksbehandlerident,
                 felt = Felt.UTFALL_ID,
                 fraVerdi = gammelVerdi?.id,
-                tilVerdi = nyVerdi?.id,
+                tilVerdi = utfall?.id,
+                tidspunkt = tidspunkt
+            )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
+    fun Behandling.setExtraUtfallSet(
+        nyVerdi: Set<Utfall>,
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val gammelVerdi = extraUtfallSet
+        val tidspunkt = LocalDateTime.now()
+        extraUtfallSet = nyVerdi
+        modified = tidspunkt
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident = saksbehandlerident,
+                felt = Felt.EXTRA_UTFALL_SET,
+                fraVerdi = gammelVerdi.joinToString { it.id },
+                tilVerdi = extraUtfallSet.joinToString { it.id },
                 tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))

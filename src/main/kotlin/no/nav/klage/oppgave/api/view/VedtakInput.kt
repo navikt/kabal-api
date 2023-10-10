@@ -5,6 +5,10 @@ data class VedtakUtfallInput(
     val utfallId: String?,
 )
 
+data class VedtakExtraUtfallSetInput(
+    val extraUtfallIdSet: Set<String>,
+)
+
 data class VedtakHjemlerInput(
     val hjemler: Set<String>?,
     val hjemmelIdSet: Set<String>?,

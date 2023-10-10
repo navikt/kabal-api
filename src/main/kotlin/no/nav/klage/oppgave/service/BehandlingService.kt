@@ -22,6 +22,7 @@ import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setS
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.removeSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttetAvSaksbehandler
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setExtraUtfallSet
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFeilregistrering
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFrist
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFullmektig
@@ -296,6 +297,7 @@ class BehandlingService(
                         )
                     )
                 }
+
                 Utfall.OPPHEVET -> {
                     behandlingValidationErrors.add(
                         InvalidProperty(
@@ -304,6 +306,7 @@ class BehandlingService(
                         )
                     )
                 }
+
                 else -> {
                     behandlingValidationErrors.add(
                         InvalidProperty(
@@ -1065,8 +1068,54 @@ class BehandlingService(
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
+
+        val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+
+        if (utfall != null) {
+            if (utfall in behandling.extraUtfallSet) {
+                val event =
+                    behandling.setExtraUtfallSet(
+                        nyVerdi = behandling.extraUtfallSet.minus(utfall),
+                        saksbehandlerident = utfoerendeSaksbehandlerIdent
+                    )
+                endringslogginnslag += event.endringslogginnslag
+            }
+        }
+
         val event =
-            behandling.setUtfall(utfall, utfoerendeSaksbehandlerIdent)
+            behandling.setUtfall(
+                nyVerdi = utfall,
+                saksbehandlerident = utfoerendeSaksbehandlerIdent
+            )
+        endringslogginnslag += event.endringslogginnslag
+
+        val groupedEvent = BehandlingEndretEvent(
+            behandling = behandling,
+            endringslogginnslag = endringslogginnslag,
+        )
+        applicationEventPublisher.publishEvent(groupedEvent)
+
+        return behandling
+    }
+
+    fun setExtraUtfallSet(
+        behandlingId: UUID,
+        extraUtfallSet: Set<Utfall>,
+        utfoerendeSaksbehandlerIdent: String
+    ): Behandling {
+        val behandling = getBehandlingForUpdate(
+            behandlingId
+        )
+
+        val curatedExtraUtfallSet = if (behandling.utfall != null && behandling.utfall in extraUtfallSet) {
+            extraUtfallSet.minus(behandling.utfall!!)
+        } else extraUtfallSet
+
+        val event =
+            behandling.setExtraUtfallSet(
+                nyVerdi = curatedExtraUtfallSet,
+                saksbehandlerident = utfoerendeSaksbehandlerIdent
+            )
         applicationEventPublisher.publishEvent(event)
         return behandling
     }

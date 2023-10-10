@@ -189,6 +189,7 @@ internal class BehandlingAvslutningServiceTest {
         kakaKvalitetsvurderingId = UUID.randomUUID(),
         kakaKvalitetsvurderingVersion = 2,
         utfall = Utfall.MEDHOLD,
+        extraUtfallSet = setOf(Utfall.MEDHOLD),
     )
 
     @Test

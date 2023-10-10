@@ -432,6 +432,11 @@ class BehandlingServiceTest {
                 utfall -> Utfall.AVVIST
                 else -> null
             },
+            extraUtfallSet = when {
+                trukket -> setOf(Utfall.TRUKKET)
+                utfall -> setOf(Utfall.AVVIST)
+                else -> emptySet()
+            },
             registreringshjemler = if (hjemler) mutableSetOf(
                 Registreringshjemmel.ANDRE_TRYGDEAVTALER
             ) else mutableSetOf(),
