@@ -88,7 +88,9 @@ open class DokumentUnderArbeid(
     enum class DokumentUnderArbeidType {
         UPLOADED,
         SMART,
-        JOURNALFOERT
+        JOURNALFOERT,
+        //TODO: Fiks
+        UNKNOWN,
     }
 
     fun getType(): DokumentUnderArbeidType {
@@ -109,7 +111,7 @@ open class DokumentUnderArbeid(
                 DokumentUnderArbeidType.UPLOADED
             }
 
-            else -> error("unknown type: ${this::class.java.name}")
+            else -> DokumentUnderArbeidType.UNKNOWN //error("unknown type: ${this::class.java.name}")
         }
     }
 }
