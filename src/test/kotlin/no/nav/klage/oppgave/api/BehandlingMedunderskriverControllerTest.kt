@@ -63,6 +63,7 @@ class BehandlingMedunderskriverControllerTest {
         kildeReferanse = "abc",
         mottakId = UUID.randomUUID(),
         utfall = Utfall.AVVIST,
+        extraUtfallSet = setOf(Utfall.AVVIST),
         registreringshjemler = mutableSetOf(
             Registreringshjemmel.ARBML_13
         ),

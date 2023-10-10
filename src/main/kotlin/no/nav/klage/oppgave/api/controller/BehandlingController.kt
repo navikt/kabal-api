@@ -423,7 +423,7 @@ class BehandlingController(
     fun setUtfall(
         @PathVariable("behandlingId") behandlingId: UUID,
         @RequestBody input: VedtakUtfallInput
-    ): BehandlingEditedView {
+    ): UtfallEditedView {
         logBehandlingMethodDetails(
             ::setUtfall.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -431,13 +431,43 @@ class BehandlingController(
             logger
         )
 
-        val modified = behandlingService.setUtfall(
-            behandlingId = behandlingId,
-            utfall = input.utfallId?.let { Utfall.of(it) } ?: input.utfall?.let { Utfall.of(it) },
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        ).modified
+        val utfallId = input.utfallId ?: input.utfall
 
-        return BehandlingEditedView(modified = modified)
+        val behandling = behandlingService.setUtfall(
+            behandlingId = behandlingId,
+            utfall = if (utfallId != null) Utfall.of(utfallId) else null,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+
+        return UtfallEditedView(
+            modified = behandling.modified,
+            utfallId = behandling.utfall?.id,
+            extraUtfallIdSet = behandling.extraUtfallSet.map { it.id }.toSet(),
+        )
+    }
+
+    @PutMapping("/{behandlingId}/resultat/extra-utfall-set")
+    fun setUtfallSet(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @RequestBody input: VedtakExtraUtfallSetInput
+    ): ExtraUtfallEditedView {
+        logBehandlingMethodDetails(
+            ::setUtfallSet.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        val behandling = behandlingService.setExtraUtfallSet(
+            behandlingId = behandlingId,
+            extraUtfallSet = input.extraUtfallIdSet.map { Utfall.of(it) }.toSet(),
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+
+        return ExtraUtfallEditedView(
+            modified = behandling.modified,
+            extraUtfallIdSet = behandling.extraUtfallSet.map { it.id }.toSet(),
+        )
     }
 
     @PutMapping("/{behandlingId}/resultat/hjemler")

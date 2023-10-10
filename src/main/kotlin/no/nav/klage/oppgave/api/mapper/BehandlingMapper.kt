@@ -331,6 +331,7 @@ class BehandlingMapper(
         return VedtakView(
             id = id,
             utfallId = utfall?.id,
+            extraUtfallIdSet = extraUtfallSet.map { it.id }.toSet(),
             hjemmelIdSet = registreringshjemler.map { it.id }.toSet(),
         )
     }
