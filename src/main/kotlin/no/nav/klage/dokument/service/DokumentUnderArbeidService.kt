@@ -541,7 +541,7 @@ class DokumentUnderArbeidService(
     ): List<DocumentValidationResponse> {
         val documentValidationResults = mutableListOf<DocumentValidationResponse>()
 
-        val hovedDokument = smartDokumentUnderArbeidAsHoveddokumentRepository.getReferenceById(dokumentId)
+        val hovedDokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
         val vedlegg = getVedlegg(hovedDokument.id)
 
         (vedlegg + hovedDokument).forEach {
@@ -1013,9 +1013,12 @@ class DokumentUnderArbeidService(
         logger.debug("opprettDokumentEnhet hoveddokument with id {}", hovedDokumentId)
         val hovedDokument =
             dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+        logger.debug("got hoveddokument with id {}, dokmentEnhetId {}", hovedDokumentId, hovedDokument.dokumentEnhetId)
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
+        logger.debug("got vedlegg for hoveddokument id {}, size: {}", hovedDokumentId, vedlegg.size)
         //Denne er alltid sann
         if (hovedDokument.dokumentEnhetId == null) {
+            logger.debug("hoveddokument.dokumentEnhetId == null, id {}", hovedDokumentId)
             //Vi vet at smartEditor-dokumentene har en oppdatert snapshot i mellomlageret fordi det ble fikset i finnOgMarkerFerdigHovedDokument
             val behandling = behandlingService.getBehandlingForUpdateBySystembruker(hovedDokument.behandlingId)
             val dokumentEnhetId = kabalDocumentGateway.createKomplettDokumentEnhet(
@@ -1024,7 +1027,9 @@ class DokumentUnderArbeidService(
                 vedlegg = vedlegg,
                 innholdsfortegnelse = innholdsfortegnelseService.getInnholdsfortegnelse(hovedDokumentId)
             )
+            logger.debug("got dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokumentId)
             hovedDokument.dokumentEnhetId = dokumentEnhetId
+            logger.debug("wrote dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokumentId)
         }
         return hovedDokument
     }
