@@ -48,7 +48,7 @@ class DevOnlyAdminController(
             logger.info("Delete behandling i dev")
             adminService.deleteBehandlingInDev(behandlingId)
         } catch (e: Exception) {
-            logger.warn("Failed to delete behandling i dev")
+            logger.warn("Failed to delete behandling i dev", e)
             throw e
         }
     }

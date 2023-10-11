@@ -86,6 +86,9 @@ class InnholdsfortegnelseService(
     }
 
     fun deleteInnholdsfortegnelse(hoveddokumentId: UUID) {
-        innholdsfortegnelseRepository.delete(innholdsfortegnelseRepository.findByHoveddokumentId(hoveddokumentId)!!)
+        val innholdsfortegnelse = innholdsfortegnelseRepository.findByHoveddokumentId(hoveddokumentId)
+        if (innholdsfortegnelse != null) {
+            innholdsfortegnelseRepository.delete(innholdsfortegnelse)
+        }
     }
 }
