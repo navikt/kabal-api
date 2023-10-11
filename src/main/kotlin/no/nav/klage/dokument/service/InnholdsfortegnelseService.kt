@@ -61,7 +61,7 @@ class InnholdsfortegnelseService(
 
         val document = dokumentUnderArbeidRepository.getReferenceById(dokumentUnderArbeidId)
 
-        if (document !is DokumentUnderArbeidAsVedlegg) {
+        if (document is DokumentUnderArbeidAsVedlegg) {
             throw IllegalArgumentException("must be hoveddokument")
         }
 
