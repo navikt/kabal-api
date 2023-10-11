@@ -37,7 +37,7 @@ class SmartdokumentUnderArbeidAsHoveddokument(
     dokumentType: DokumentType?,
     dokumentEnhetId: UUID? = null,
     brevmottakerIdents: Set<String> = emptySet(),
-    journalposter: Set<DokumentUnderArbeidJournalpostId> = emptySet(),
+    journalposter: MutableSet<DokumentUnderArbeidJournalpostId> = mutableSetOf(),
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsSmartdokument, DokumentUnderArbeidAsHoveddokument(
     id = id,
     name = name,

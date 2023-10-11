@@ -25,7 +25,7 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     @JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 5)
-    var journalposter: Set<DokumentUnderArbeidJournalpostId> = emptySet(),
+    var journalposter: MutableSet<DokumentUnderArbeidJournalpostId> = mutableSetOf(),
 
     //Common properties
     id: UUID = UUID.randomUUID(),

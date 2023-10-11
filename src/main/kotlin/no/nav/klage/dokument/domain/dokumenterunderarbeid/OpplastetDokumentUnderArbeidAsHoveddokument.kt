@@ -33,7 +33,7 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     dokumentType: DokumentType?,
     dokumentEnhetId: UUID? = null,
     brevmottakerIdents: Set<String> = emptySet(),
-    journalposter: Set<DokumentUnderArbeidJournalpostId> = emptySet(),
+    journalposter: MutableSet<DokumentUnderArbeidJournalpostId> = mutableSetOf(),
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsHoveddokument(
     id = id,
     name = name,

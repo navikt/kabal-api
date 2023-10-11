@@ -503,6 +503,22 @@ class DokumentUnderArbeidService(
         return dokument
     }
 
+    fun debugfunction(
+        dokumentId: UUID,
+        journalpostIdSet: Set<DokumentUnderArbeidJournalpostId>
+    ) {
+        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        if (dokument !is DokumentUnderArbeidAsHoveddokument) {
+            throw RuntimeException("this document does not support journalposter.")
+        }
+//        val oldValue = dokument.journalposter
+
+        dokument.journalposter.clear()
+        dokument.journalposter.addAll(journalpostIdSet)
+        dokumentUnderArbeidRepository.save(dokument)
+    }
+
+
     private fun updateJournalposter(
         behandlingId: UUID,
         dokumentId: UUID,
@@ -520,7 +536,9 @@ class DokumentUnderArbeidService(
         val behandling = behandlingService.getBehandlingForUpdateBySystembruker(behandlingId)
 
         val oldValue = dokument.journalposter
-        dokument.journalposter = journalpostIdSet
+
+        dokument.journalposter.clear()
+        dokument.journalposter.addAll(journalpostIdSet)
 
         behandling.publishEndringsloggEvent(
             saksbehandlerident = SYSTEMBRUKER,
@@ -624,9 +642,11 @@ class DokumentUnderArbeidService(
 
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = ident) }
 
-        innholdsfortegnelseService.saveInnholdsfortegnelse(
-            dokumentId,
-            mapBrevmottakerIdentToBrevmottakerInput.map { it.navn })
+        if (vedlegg.size > 1) {
+            innholdsfortegnelseService.saveInnholdsfortegnelse(
+                dokumentId,
+                mapBrevmottakerIdentToBrevmottakerInput.map { it.navn })
+        }
 
         behandling.publishEndringsloggEvent(
             saksbehandlerident = ident,
@@ -1041,7 +1061,11 @@ class DokumentUnderArbeidService(
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         val behandling: Behandling = behandlingService.getBehandlingForUpdateBySystembruker(hovedDokument.behandlingId)
 
-        logger.debug("calling fullfoerDokumentEnhet ({}) for hoveddokument with id {}", hovedDokument.dokumentEnhetId, hovedDokumentId)
+        logger.debug(
+            "calling fullfoerDokumentEnhet ({}) for hoveddokument with id {}",
+            hovedDokument.dokumentEnhetId,
+            hovedDokumentId
+        )
         val documentInfoList =
             kabalDocumentGateway.fullfoerDokumentEnhet(dokumentEnhetId = hovedDokument.dokumentEnhetId!!)
 
@@ -1066,7 +1090,10 @@ class DokumentUnderArbeidService(
 
         val now = LocalDateTime.now()
 
-        logger.debug("about to call hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now) for dokument with id {}", hovedDokumentId)
+        logger.debug(
+            "about to call hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now) for dokument with id {}",
+            hovedDokumentId
+        )
         hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
         if (hovedDokument is DokumentUnderArbeidAsSmartdokument) {
             try {
@@ -1076,7 +1103,10 @@ class DokumentUnderArbeidService(
             }
         }
 
-        logger.debug("about to call ferdigstillHvisIkkeAlleredeFerdigstilt(now) for vedlegg of dokument with id {}", hovedDokumentId)
+        logger.debug(
+            "about to call ferdigstillHvisIkkeAlleredeFerdigstilt(now) for vedlegg of dokument with id {}",
+            hovedDokumentId
+        )
         vedlegg.forEach {
             it.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
             if (it is DokumentUnderArbeidAsSmartdokument) {
@@ -1087,7 +1117,7 @@ class DokumentUnderArbeidService(
                 }
             }
         }
-
+        logger.debug("about to return hoveddokument for hoveddokumentId {}", hovedDokumentId)
         return hovedDokument
     }
 
