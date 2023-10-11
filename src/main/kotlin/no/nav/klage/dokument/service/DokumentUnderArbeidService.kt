@@ -915,7 +915,7 @@ class DokumentUnderArbeidService(
         currentDokumentId: UUID,
         parentId: UUID,
     ): Pair<DokumentUnderArbeid?, DokumentUnderArbeid?> {
-        val dokumentUnderArbeid =
+        var dokumentUnderArbeid: DokumentUnderArbeid =
             dokumentUnderArbeidRepository.getReferenceById(currentDokumentId)
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
@@ -940,14 +940,14 @@ class DokumentUnderArbeidService(
             when (dokumentUnderArbeid) {
                 is SmartdokumentUnderArbeidAsHoveddokument -> {
                     smartDokumentUnderArbeidAsHoveddokumentRepository.delete(dokumentUnderArbeid)
-                    smartDokumentUnderArbeidAsVedleggRepository.save(
+                    dokumentUnderArbeid = smartDokumentUnderArbeidAsVedleggRepository.save(
                         dokumentUnderArbeid.asVedlegg(parentId = parentId)
                     )
                 }
 
                 is OpplastetDokumentUnderArbeidAsHoveddokument -> {
                     opplastetDokumentUnderArbeidAsHoveddokumentRepository.delete(dokumentUnderArbeid)
-                    opplastetDokumentUnderArbeidAsVedleggRepository.save(
+                    dokumentUnderArbeid = opplastetDokumentUnderArbeidAsVedleggRepository.save(
                         dokumentUnderArbeid.asVedlegg(parentId = parentId)
                     )
                 }
