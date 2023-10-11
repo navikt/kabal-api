@@ -325,6 +325,7 @@ class BehandlingServiceTest {
                     sortedSetOf(
                         SmartdokumentUnderArbeidAsHoveddokument(
                             mellomlagerId = "",
+                            mellomlagretDate = LocalDateTime.now(),
                             size = 0,
                             name = "",
                             smartEditorId = UUID.randomUUID(),

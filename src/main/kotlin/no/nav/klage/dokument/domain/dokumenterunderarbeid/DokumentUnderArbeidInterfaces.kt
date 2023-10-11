@@ -13,4 +13,5 @@ interface DokumentUnderArbeidAsSmartdokument: DokumentUnderArbeidAsMellomlagret 
 
 interface DokumentUnderArbeidAsMellomlagret {
     var mellomlagerId: String?
+    val mellomlagretDate: LocalDateTime?
 }

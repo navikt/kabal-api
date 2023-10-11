@@ -89,6 +89,7 @@ internal class DokumentUnderArbeidControllerTest {
             )
         } returns OpplastetDokumentUnderArbeidAsHoveddokument(
             mellomlagerId = "mellomlagerId",
+            mellomlagretDate = LocalDateTime.now(),
             size = 1001,
             name = "vedtak.pdf",
             behandlingId = behandlingId,
@@ -154,6 +155,7 @@ internal class DokumentUnderArbeidControllerTest {
             )
         } returns SmartdokumentUnderArbeidAsHoveddokument(
             mellomlagerId = "mellomlagerId",
+            mellomlagretDate = LocalDateTime.now(),
             size = 1001,
             name = "vedtak.pdf",
             behandlingId = behandlingId,

@@ -16,6 +16,8 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
     var size: Long?,
     @Column(name = "mellomlager_id")
     override var mellomlagerId: String?,
+    @Column(name = "mellomlagret_date")
+    override var mellomlagretDate: LocalDateTime?,
 
     //Common properties
     id: UUID = UUID.randomUUID(),
@@ -48,6 +50,7 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
         return OpplastetDokumentUnderArbeidAsHoveddokument(
             size = size,
             mellomlagerId = mellomlagerId,
+            mellomlagretDate = mellomlagretDate,
             id = id,
             name = name,
             behandlingId = behandlingId,

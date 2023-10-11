@@ -98,6 +98,7 @@ class DokumentUnderArbeidService(
             opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
                 OpplastetDokumentUnderArbeidAsHoveddokument(
                     mellomlagerId = mellomlagerId,
+                    mellomlagretDate = now,
                     size = opplastetFil.content.size.toLong(),
                     name = tittel,
                     dokumentType = dokumentType,
@@ -112,6 +113,7 @@ class DokumentUnderArbeidService(
             opplastetDokumentUnderArbeidAsVedleggRepository.save(
                 OpplastetDokumentUnderArbeidAsVedlegg(
                     mellomlagerId = mellomlagerId,
+                    mellomlagretDate = now,
                     size = opplastetFil.content.size.toLong(),
                     name = tittel,
                     behandlingId = behandlingId,
@@ -172,6 +174,7 @@ class DokumentUnderArbeidService(
             smartDokumentUnderArbeidAsHoveddokumentRepository.save(
                 SmartdokumentUnderArbeidAsHoveddokument(
                     mellomlagerId = null,
+                    mellomlagretDate = null,
                     size = null,
                     name = tittel,
                     dokumentType = dokumentType,
@@ -188,6 +191,7 @@ class DokumentUnderArbeidService(
             smartDokumentUnderArbeidAsVedleggRepository.save(
                 SmartdokumentUnderArbeidAsVedlegg(
                     mellomlagerId = null,
+                    mellomlagretDate = null,
                     size = null,
                     name = tittel,
                     behandlingId = behandlingId,
@@ -1118,8 +1122,8 @@ class DokumentUnderArbeidService(
 
     private fun DokumentUnderArbeidAsSmartdokument.isStaleSmartEditorDokument() =
         smartEditorApiGateway.isMellomlagretDokumentStale(
+            mellomlagretDate = this.mellomlagretDate,
             smartEditorId = this.smartEditorId,
-            sistOpplastet = this.modified, //TODO changed from opplastet. Verify.
         )
 
     private fun Behandling.endringslogg(

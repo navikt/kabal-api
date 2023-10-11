@@ -43,6 +43,7 @@ class DokumentUnderArbeidRepositoryTest {
         val behandlingId = UUID.randomUUID()
         val hovedDokument = OpplastetDokumentUnderArbeidAsHoveddokument(
             mellomlagerId = UUID.randomUUID().toString(),
+            mellomlagretDate = LocalDateTime.now(),
             markertFerdig = LocalDateTime.now(),
             size = 1002,
             name = "Vedtak.pdf",
@@ -69,6 +70,7 @@ class DokumentUnderArbeidRepositoryTest {
         val behandlingId = UUID.randomUUID()
         val hovedDokument = OpplastetDokumentUnderArbeidAsHoveddokument(
             mellomlagerId = UUID.randomUUID().toString(),
+            mellomlagretDate = LocalDateTime.now(),
             size = 1001,
             name = "Vedtak.pdf",
             behandlingId = behandlingId,
@@ -86,6 +88,7 @@ class DokumentUnderArbeidRepositoryTest {
         dokumentUnderArbeidRepository.save(
             OpplastetDokumentUnderArbeidAsVedlegg(
                 mellomlagerId = UUID.randomUUID().toString(),
+                mellomlagretDate = LocalDateTime.now(),
                 size = 1001,
                 name = "Vedtak.pdf",
                 behandlingId = behandlingId,
@@ -112,6 +115,7 @@ class DokumentUnderArbeidRepositoryTest {
 
         val hovedDokument = OpplastetDokumentUnderArbeidAsHoveddokument(
             mellomlagerId = UUID.randomUUID().toString(),
+            mellomlagretDate = LocalDateTime.now(),
             size = 1001,
             name = "other name",
             behandlingId = behandlingId,

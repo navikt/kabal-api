@@ -20,6 +20,8 @@ class SmartdokumentUnderArbeidAsVedlegg(
     override var smartEditorTemplateId: String,
     @Column(name = "mellomlager_id")
     override var mellomlagerId: String?,
+    @Column(name = "mellomlagret_date")
+    override var mellomlagretDate: LocalDateTime?,
 
     //Common properties
     id: UUID = UUID.randomUUID(),
@@ -54,6 +56,7 @@ class SmartdokumentUnderArbeidAsVedlegg(
             smartEditorId = smartEditorId,
             smartEditorTemplateId = smartEditorTemplateId,
             mellomlagerId = mellomlagerId,
+            mellomlagretDate = mellomlagretDate,
             id = id,
             name = name,
             behandlingId = behandlingId,
