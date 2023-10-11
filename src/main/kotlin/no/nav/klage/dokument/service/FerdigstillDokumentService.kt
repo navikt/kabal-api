@@ -45,6 +45,7 @@ class FerdigstillDokumentService(
     }
 
     private fun ferdigstill(it: DokumentUnderArbeidAsHoveddokument) {
+        logger.debug("ferdigstill hoveddokument with id {}", it.id)
         var updatedDokument = it
         try {
             if (updatedDokument.dokumentEnhetId == null) {
@@ -52,6 +53,10 @@ class FerdigstillDokumentService(
             }
             updatedDokument = dokumentUnderArbeidService.ferdigstillDokumentEnhet(updatedDokument.id)
 
+            logger.debug("dokumentUnderArbeidService.ferdigstillDokumentEnhet(updatedDokument.id) for document with id {} done", updatedDokument.id)
+
+
+            logger.debug("about to publish 'finished' to Kafak for document with id {}", updatedDokument.id)
             //Send to all subscribers. If this fails, it's not the end of the world.
             kafkaInternalEventService.publishEvent(
                 Event(
@@ -69,5 +74,6 @@ class FerdigstillDokumentService(
                 e
             )
         }
+        logger.debug("ferdigstill for document with id {} successful", updatedDokument.id)
     }
 }

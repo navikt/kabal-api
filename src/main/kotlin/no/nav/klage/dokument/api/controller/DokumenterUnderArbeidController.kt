@@ -240,7 +240,7 @@ class DokumentUnderArbeidController(
         @PathVariable("dokumentid") dokumentId: UUID,
     ): List<DocumentValidationResponse> {
         //TODO only called for hoveddokumenter?
-        return dokumentUnderArbeidService.validateSmartDokument(dokumentId)
+        return dokumentUnderArbeidService.validateIfSmartDokument(dokumentId)
     }
 
     //Old event stuff. Clients should read from EventController instead, and this can be deleted.

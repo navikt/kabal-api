@@ -31,6 +31,7 @@ import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -64,6 +65,7 @@ class DokumentUnderArbeidService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val securLogger = getSecureLogger()
         const val SYSTEMBRUKER = "SYSTEMBRUKER"
     }
 
@@ -506,11 +508,14 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         journalpostIdSet: Set<DokumentUnderArbeidJournalpostId>
     ): DokumentUnderArbeid {
+        logger.debug("updateJournalposter for dokument with id {}", dokumentId)
         val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
 
         if (dokument !is DokumentUnderArbeidAsHoveddokument) {
             throw RuntimeException("this document does not support journalposter.")
         }
+
+        logger.debug("in updateJournalposter() found document ({}) with journalposter: {}", dokumentId, dokument.journalposter)
 
         val behandling = behandlingService.getBehandlingForUpdateBySystembruker(behandlingId)
 
@@ -526,10 +531,12 @@ class DokumentUnderArbeidService(
             dokumentId = dokument.id,
         )
 
+        logger.debug("in updateJournalposter() updated document ({}) with journalposter. Now has: {}", dokumentId, dokument.journalposter)
+
         return dokument
     }
 
-    fun validateSmartDokument(
+    fun validateIfSmartDokument(
         dokumentId: UUID
     ): List<DocumentValidationResponse> {
         val documentValidationResults = mutableListOf<DocumentValidationResponse>()
@@ -537,10 +544,8 @@ class DokumentUnderArbeidService(
         val hovedDokument = smartDokumentUnderArbeidAsHoveddokumentRepository.getReferenceById(dokumentId)
         val vedlegg = getVedlegg(hovedDokument.id)
 
-        documentValidationResults += validateSingleSmartdocument(hovedDokument)
-
-        vedlegg.forEach {
-            if (it is SmartdokumentUnderArbeidAsVedlegg) {
+        (vedlegg + hovedDokument).forEach {
+            if (it is DokumentUnderArbeidAsSmartdokument) {
                 documentValidationResults += validateSingleSmartdocument(it)
             }
         }
@@ -659,7 +664,7 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke endre dokumenttype på et dokument som er ferdigstilt")
         }
 
-        val documentValidationErrors = validateSmartDokument(hovedDokument.id)
+        val documentValidationErrors = validateIfSmartDokument(hovedDokument.id)
         if (documentValidationErrors.any { it.errors.isNotEmpty() }) {
             throw JsonToPdfValidationException(
                 msg = "Validation error from json to pdf",
@@ -1005,6 +1010,7 @@ class DokumentUnderArbeidService(
     }
 
     fun opprettDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
+        logger.debug("opprettDokumentEnhet hoveddokument with id {}", hovedDokumentId)
         val hovedDokument =
             dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
@@ -1024,13 +1030,18 @@ class DokumentUnderArbeidService(
     }
 
     fun ferdigstillDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
+        logger.debug("ferdigstillDokumentEnhet hoveddokument with id {}", hovedDokumentId)
         val hovedDokument =
             dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         val behandling: Behandling = behandlingService.getBehandlingForUpdateBySystembruker(hovedDokument.behandlingId)
+
+        logger.debug("calling fullfoerDokumentEnhet ({}) for hoveddokument with id {}", hovedDokument.dokumentEnhetId, hovedDokumentId)
         val documentInfoList =
             kabalDocumentGateway.fullfoerDokumentEnhet(dokumentEnhetId = hovedDokument.dokumentEnhetId!!)
 
+
+        logger.debug("addSaksdokument to behandling for hoveddokument with id {}", hovedDokumentId)
         documentInfoList.forEach { documentInfo ->
             val journalpost = safClient.getJournalpostAsSystembruker(documentInfo.journalpostId.value)
 
@@ -1050,6 +1061,7 @@ class DokumentUnderArbeidService(
 
         val now = LocalDateTime.now()
 
+        logger.debug("about to call hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now) for dokument with id {}", hovedDokumentId)
         hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
         if (hovedDokument is DokumentUnderArbeidAsSmartdokument) {
             try {
@@ -1059,6 +1071,7 @@ class DokumentUnderArbeidService(
             }
         }
 
+        logger.debug("about to call ferdigstillHvisIkkeAlleredeFerdigstilt(now) for vedlegg of dokument with id {}", hovedDokumentId)
         vedlegg.forEach {
             it.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
             if (it is DokumentUnderArbeidAsSmartdokument) {
