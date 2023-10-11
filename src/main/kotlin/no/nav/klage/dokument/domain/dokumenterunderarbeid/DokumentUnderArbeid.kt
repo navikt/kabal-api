@@ -13,7 +13,7 @@ import java.util.*
 @Table(name = "dokument_under_arbeid", schema = "klage")
 @DynamicUpdate
 @DiscriminatorColumn(name = "dokument_under_arbeid_type")
-open class DokumentUnderArbeid(
+abstract class DokumentUnderArbeid(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Column(name = "dokument_type_id")
@@ -89,8 +89,6 @@ open class DokumentUnderArbeid(
         UPLOADED,
         SMART,
         JOURNALFOERT,
-        //TODO: Fiks
-        UNKNOWN,
     }
 
     fun getType(): DokumentUnderArbeidType {
@@ -111,7 +109,7 @@ open class DokumentUnderArbeid(
                 DokumentUnderArbeidType.UPLOADED
             }
 
-            else -> DokumentUnderArbeidType.UNKNOWN //error("unknown type: ${this::class.java.name}")
+            else -> error("unknown type: ${this::class.java.name}")
         }
     }
 }
