@@ -642,11 +642,15 @@ class DokumentUnderArbeidService(
 
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = ident) }
 
+/*
+        //Don't create innholdsfortegnelse yet
+
         if (vedlegg.size > 1) {
             innholdsfortegnelseService.saveInnholdsfortegnelse(
                 dokumentId,
                 mapBrevmottakerIdentToBrevmottakerInput.map { it.navn })
         }
+*/
 
         behandling.publishEndringsloggEvent(
             saksbehandlerident = ident,
