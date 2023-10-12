@@ -955,6 +955,10 @@ class DokumentUnderArbeidService(
                         dokumentUnderArbeid.asVedlegg(parentId = parentId)
                     )
                 }
+
+                is DokumentUnderArbeidAsVedlegg -> {
+                    dokumentUnderArbeid.parentId = parentId
+                }
             }
             dokumentUnderArbeid to null
         }
