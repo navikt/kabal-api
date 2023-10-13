@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.clients.kabaldocument
 
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.clients.ereg.EregClient
@@ -13,7 +13,6 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
 class KabalDocumentMapper(
@@ -35,11 +34,49 @@ class KabalDocumentMapper(
 
     fun mapBehandlingToDokumentEnhetWithDokumentreferanser(
         behandling: Behandling,
-        hovedDokument: DokumentUnderArbeid,
-        vedlegg: SortedSet<DokumentUnderArbeid>
+        hovedDokument: DokumentUnderArbeidAsHoveddokument,
+        vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
+        innholdsfortegnelse: Innholdsfortegnelse?,
     ): DokumentEnhetWithDokumentreferanserInput {
+
+        val innholdsfortegnelseDocument = if (innholdsfortegnelse != null && vedlegg.size > 1) {
+            DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument(
+                mellomlagerId = innholdsfortegnelse.mellomlagerId!!,
+                name = "Innholdsfortegnelse"
+            )
+        } else null
+
+        val vedleggMapped = vedlegg.filter { it !is JournalfoertDokumentUnderArbeidAsVedlegg }
+            .sortedByDescending { it.created }
+            .map { currentVedlegg ->
+                mapDokumentUnderArbeidToDokumentReferanse(
+                    dokument = currentVedlegg,
+                )
+            }.toMutableList()
+        if (innholdsfortegnelseDocument != null) {
+            vedleggMapped.add(0, innholdsfortegnelseDocument)
+        }
+
+        val journalfoerteVedlegg =
+            vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+                .sortedWith { document1, document2 ->
+                    val dateCompare =
+                        document2.opprettet.compareTo(document1.opprettet)
+                    if (dateCompare != 0) {
+                        dateCompare
+                    } else {
+                        (document1.name).compareTo(
+                            document2.name
+                        )
+                    }
+                }
+
         return DokumentEnhetWithDokumentreferanserInput(
-            brevMottakere = mapBrevmottakerIdentToBrevmottakerInput(behandling, hovedDokument.brevmottakerIdents, hovedDokument.dokumentType!!),
+            brevMottakere = mapBrevmottakerIdentToBrevmottakerInput(
+                behandling,
+                hovedDokument.brevmottakerIdents,
+                hovedDokument.dokumentType!!
+            ),
             journalfoeringData = JournalfoeringDataInput(
                 sakenGjelder = PartIdInput(
                     partIdTypeId = behandling.sakenGjelder.partId.type.id,
@@ -61,21 +98,12 @@ class KabalDocumentMapper(
             ),
             dokumentreferanser = DokumentEnhetWithDokumentreferanserInput.DokumentInput(
                 hoveddokument = mapDokumentUnderArbeidToDokumentReferanse(hovedDokument),
-                vedlegg = vedlegg.filter { it.getType() != DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT }
-                    .sortedByDescending { it.created }
-                    .map { currentVedlegg -> mapDokumentUnderArbeidToDokumentReferanse(
-                        dokument = currentVedlegg,
-                    ) },
-                journalfoerteVedlegg = vedlegg.filter { it.getType() == DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT }
-                    .sortedByDescending {
-                        val journalpostInDokarkiv =
-                            safClient.getJournalpostAsSystembruker(it.journalfoertDokumentReference!!.journalpostId)
-                        journalpostInDokarkiv.datoOpprettet
-                    }
+                vedlegg = vedleggMapped,
+                journalfoerteVedlegg = journalfoerteVedlegg
                     .map { currentVedlegg ->
                         DokumentEnhetWithDokumentreferanserInput.DokumentInput.JournalfoertDokument(
-                            kildeJournalpostId = currentVedlegg.journalfoertDokumentReference!!.journalpostId,
-                            dokumentInfoId = currentVedlegg.journalfoertDokumentReference.dokumentInfoId,
+                            kildeJournalpostId = currentVedlegg.journalpostId,
+                            dokumentInfoId = currentVedlegg.dokumentInfoId,
                         )
                     },
             ),
@@ -85,10 +113,11 @@ class KabalDocumentMapper(
     }
 
     private fun mapDokumentUnderArbeidToDokumentReferanse(dokument: DokumentUnderArbeid): DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument {
+        if (dokument !is DokumentUnderArbeidAsMellomlagret) {
+            error("Must be mellomlagret document")
+        }
         return DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument(
             mellomlagerId = dokument.mellomlagerId!!,
-            opplastet = dokument.opplastet!!,
-            size = dokument.size!!,
             name = dokument.name,
         )
     }

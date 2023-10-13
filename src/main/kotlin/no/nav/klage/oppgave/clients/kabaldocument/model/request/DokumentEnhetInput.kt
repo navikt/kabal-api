@@ -1,7 +1,5 @@
 package no.nav.klage.oppgave.clients.kabaldocument.model.request
 
-import java.time.LocalDateTime
-
 data class DokumentEnhetWithDokumentreferanserInput(
     val brevMottakere: List<BrevmottakerInput>,
     val journalfoeringData: JournalfoeringDataInput,
@@ -16,8 +14,6 @@ data class DokumentEnhetWithDokumentreferanserInput(
     ) {
         data class Dokument(
             val mellomlagerId: String,
-            val opplastet: LocalDateTime,
-            val size: Long,
             val name: String,
         )
 

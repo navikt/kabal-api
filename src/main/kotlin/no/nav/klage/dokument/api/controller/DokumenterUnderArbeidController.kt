@@ -42,7 +42,7 @@ class DokumentUnderArbeidController(
     }
 
     @GetMapping
-    fun findHovedDokumenter(
+    fun findDokumenter(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): List<DokumentView> {
         val allDokumenterUnderArbeid = dokumentUnderArbeidService.findDokumenterNotFinished(behandlingId = behandlingId)
@@ -61,7 +61,7 @@ class DokumentUnderArbeidController(
             dokumentType = DokumentType.of(input.dokumentTypeId),
         )
         return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeidService.opprettOgMellomlagreNyttHoveddokument(
+            dokumentUnderArbeidService.createOpplastetDokumentUnderArbeid(
                 behandlingId = behandlingId,
                 dokumentType = DokumentType.of(input.dokumentTypeId),
                 opplastetFil = opplastetFil,
@@ -137,6 +137,36 @@ class DokumentUnderArbeidController(
         )
     }
 
+    @GetMapping("/{dokumentId}/vedleggsoversikt")
+    fun getMetadataForInnholdsfortegnelse(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") dokumentId: UUID,
+    ): DokumentUnderArbeidMetadata {
+        logger.debug("Kall mottatt på getMetadataForInnholdsfortegnelse for {}", dokumentId)
+
+        return DokumentUnderArbeidMetadata(
+            behandlingId = behandlingId,
+            documentId = dokumentId,
+            title = "Innholdsfortegnelse"
+        )
+    }
+
+    @GetMapping("/{hoveddokumentId}/vedleggsoversikt/pdf")
+    @ResponseBody
+    fun getInnholdsfortegnelsePdf(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("hoveddokumentId") hoveddokumentId: UUID,
+    ): ResponseEntity<ByteArray> {
+        logger.debug("Kall mottatt på getInnholdsfortegnelsePdf for {}", hoveddokumentId)
+        return dokumentMapper.mapToByteArray(
+            dokumentUnderArbeidService.getInnholdsfortegnelseAsFysiskDokument(
+                behandlingId = behandlingId,
+                hoveddokumentId = hoveddokumentId,
+                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            )
+        )
+    }
+
     @DeleteMapping("/{dokumentId}")
     fun deleteDokument(
         @PathVariable("behandlingId") behandlingId: UUID,
@@ -160,7 +190,7 @@ class DokumentUnderArbeidController(
             return if (input.dokumentId == null) {
                 dokumentMapper.mapToDokumentListView(
                     dokumentUnderArbeidList = listOf(
-                        dokumentUnderArbeidService.frikobleVedlegg(
+                        dokumentUnderArbeidService.setAsHoveddokument(
                             behandlingId = behandlingId,
                             dokumentId = persistentDokumentId,
                             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
@@ -170,7 +200,7 @@ class DokumentUnderArbeidController(
                 )
             } else {
                 val (alteredDocuments, duplicateJournalfoerteDokumenter) =
-                    dokumentUnderArbeidService.setParentDocument(
+                    dokumentUnderArbeidService.setAsVedlegg(
                         parentId = input.dokumentId,
                         dokumentId = persistentDokumentId,
                         innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
@@ -209,7 +239,8 @@ class DokumentUnderArbeidController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentid") dokumentId: UUID,
     ): List<DocumentValidationResponse> {
-        return dokumentUnderArbeidService.validateSmartDokument(dokumentId)
+        //TODO only called for hoveddokumenter?
+        return dokumentUnderArbeidService.validateIfSmartDokument(dokumentId)
     }
 
     //Old event stuff. Clients should read from EventController instead, and this can be deleted.

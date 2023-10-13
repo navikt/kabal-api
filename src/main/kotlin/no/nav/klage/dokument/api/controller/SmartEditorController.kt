@@ -77,7 +77,7 @@ class SmartEditorController(
             behandlingId = behandlingId,
             dokumentType = if (body.dokumentTypeId != null) DokumentType.of(body.dokumentTypeId) else DokumentType.VEDTAK,
             json = body.content.toString(),
-            smartEditorTemplateId = body.templateId,
+            smartEditorTemplateId = body.templateId ?: error("TODO. Can be null?"),
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             tittel = body.tittel ?: DokumentType.VEDTAK.defaultFilnavn,
             parentId = body.parentId,

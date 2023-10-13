@@ -92,19 +92,6 @@ class AdminController(
         }
     }
 
-    @PostMapping("/internal/migratetables")
-    fun migrateTablesInSmartdocuments() {
-        logger.debug("migrateTablesInSmartdocuments is called")
-        krevAdminTilgang()
-
-        try {
-            adminService.migrateTablesInSmartdocuments()
-        } catch (e: Exception) {
-            logger.warn("Failed to migrateTablesInSmartdocuments", e)
-            throw e
-        }
-    }
-
     @GetMapping("/internal/invalidregistreringshjemler")
     fun getInvalidRegistreringshjemler() {
         logger.debug("getInvalidRegistreringshjemler is called")

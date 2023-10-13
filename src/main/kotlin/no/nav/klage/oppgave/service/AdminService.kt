@@ -6,7 +6,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.KabalSmartEditorApiClient
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
+import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
 import no.nav.klage.oppgave.clients.skjermede.SkjermedeApiClient
@@ -44,6 +47,7 @@ class AdminService(
     private val endringsloggRepository: EndringsloggRepository,
     private val skjermedeApiClient: SkjermedeApiClient,
     private val kabalSmartEditorApiClient: KabalSmartEditorApiClient,
+    private val innholdsfortegnelseService: InnholdsfortegnelseService,
 ) {
 
     companion object {
@@ -83,17 +87,27 @@ class AdminService(
     /** only for use in dev */
     fun deleteBehandlingInDev(behandlingId: UUID) {
         logger.debug("Delete test data in dev: attempt to delete behandling with id {}", behandlingId)
-        val dokumenterUnderBehandling = dokumentUnderArbeidRepository.findByBehandlingId(behandlingId)
+        val dokumenterUnderArbeid = dokumentUnderArbeidRepository.findByBehandlingId(behandlingId)
 
-        for (dub in dokumenterUnderBehandling) {
+        for (dua in dokumenterUnderArbeid) {
             try {
-                fileApiClient.deleteDocument(id = dub.mellomlagerId!!, systemUser = true)
+                if (dua is DokumentUnderArbeidAsMellomlagret && dua.mellomlagerId != null) {
+                    fileApiClient.deleteDocument(id = dua.mellomlagerId!!, systemUser = true)
+                }
             } catch (e: Exception) {
                 logger.warn("Delete test data in dev: Could not delete from file api")
             }
+
+            try {
+                if (dua is DokumentUnderArbeidAsHoveddokument) {
+                    innholdsfortegnelseService.deleteInnholdsfortegnelse(dua.id)
+                }
+            } catch (e: Exception) {
+                logger.warn("Couldn't delete innholdsfortegnelse. May be b/c there never was one.")
+            }
         }
 
-        dokumentUnderArbeidRepository.deleteAll(dokumenterUnderBehandling)
+        dokumentUnderArbeidRepository.deleteAll(dokumenterUnderArbeid)
 
         endringsloggRepository.deleteAll(endringsloggRepository.findByBehandlingIdOrderByTidspunktDesc(behandlingId))
 
@@ -217,30 +231,6 @@ class AdminService(
                     it.jsonPayload
                 )
             }
-        }
-    }
-
-    fun migrateTablesInSmartdocuments() {
-        val documents =
-            dokumentUnderArbeidRepository.findByMarkertFerdigIsNullAndSmartEditorIdNotNull()
-
-        secureLogger.debug("found ${documents.size} dokumenterUnderArbeid")
-
-        val candidates = documents.map {
-            kabalSmartEditorApiClient.getDocument(it.smartEditorId!!)
-        }.filter { smartDocument ->
-            smartDocument.json?.contains("table") ?: false
-        }
-
-        secureLogger.debug("found ${candidates.size} candidates for migration of table")
-
-        candidates.forEach { smartDocument ->
-            kabalSmartEditorApiClient.updateDocument(
-                smartDocument.id, migrateTables(
-                    fromJsonString = smartDocument.json,
-                    secureLogger = secureLogger
-                )
-            )
         }
     }
 

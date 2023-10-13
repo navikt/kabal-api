@@ -12,7 +12,8 @@ import no.nav.klage.dokument.api.view.SmartEditorDocumentView
 import no.nav.klage.dokument.api.view.SmartHovedDokumentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.KabalSmartEditorApiClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.DocumentOutput
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.DokumentType
@@ -78,7 +79,7 @@ internal class DokumentUnderArbeidControllerTest {
 
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns "IDENT"
         every {
-            dokumentUnderArbeidService.opprettOgMellomlagreNyttHoveddokument(
+            dokumentUnderArbeidService.createOpplastetDokumentUnderArbeid(
                 any(),
                 any(),
                 any(),
@@ -86,27 +87,21 @@ internal class DokumentUnderArbeidControllerTest {
                 any(),
                 any(),
             )
-        } returns DokumentUnderArbeid(
+        } returns OpplastetDokumentUnderArbeidAsHoveddokument(
             mellomlagerId = "mellomlagerId",
-            opplastet = LocalDateTime.now(),
+            mellomlagretDate = LocalDateTime.now(),
             size = 1001,
             name = "vedtak.pdf",
             behandlingId = behandlingId,
-            smartEditorId = null,
-            smartEditorTemplateId = null,
             dokumentType = DokumentType.BREV,
             markertFerdig = null,
             ferdigstilt = null,
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
-            dokumentEnhetId = null,
-            parentId = null,
             id = UUID.randomUUID(),
-            journalfoertDokumentReference = null,
             creatorIdent = "null",
             creatorRole = BehandlingRole.KABAL_SAKSBEHANDLING,
         )
-
 
         val file =
             MockMultipartFile("file", "file-name.pdf", "application/pdf", "whatever".toByteArray())
@@ -158,9 +153,9 @@ internal class DokumentUnderArbeidControllerTest {
                 any(),
                 any(),
             )
-        } returns DokumentUnderArbeid(
+        } returns SmartdokumentUnderArbeidAsHoveddokument(
             mellomlagerId = "mellomlagerId",
-            opplastet = LocalDateTime.now(),
+            mellomlagretDate = LocalDateTime.now(),
             size = 1001,
             name = "vedtak.pdf",
             behandlingId = behandlingId,
@@ -172,9 +167,7 @@ internal class DokumentUnderArbeidControllerTest {
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
             dokumentEnhetId = null,
-            parentId = null,
             id = UUID.randomUUID(),
-            journalfoertDokumentReference = null,
             creatorIdent = "null",
             creatorRole = BehandlingRole.KABAL_SAKSBEHANDLING,
         )

@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.service
 import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -323,13 +323,13 @@ class BehandlingServiceTest {
             val behandling = simpleInsert()
             every { dokumentUnderArbeidRepository.findByBehandlingIdAndMarkertFerdigIsNull(any()) } returns
                     sortedSetOf(
-                        DokumentUnderArbeid(
+                        SmartdokumentUnderArbeidAsHoveddokument(
                             mellomlagerId = "",
-                            opplastet = LocalDateTime.now(),
+                            mellomlagretDate = LocalDateTime.now(),
                             size = 0,
                             name = "",
-                            smartEditorId = null,
-                            smartEditorTemplateId = null,
+                            smartEditorId = UUID.randomUUID(),
+                            smartEditorTemplateId = "null",
                             behandlingId = UUID.randomUUID(),
                             dokumentType = DokumentType.VEDTAK,
                             created = LocalDateTime.now(),
@@ -337,8 +337,6 @@ class BehandlingServiceTest {
                             markertFerdig = null,
                             ferdigstilt = null,
                             dokumentEnhetId = null,
-                            parentId = null,
-                            journalfoertDokumentReference = null,
                             creatorIdent = "null",
                             creatorRole = KABAL_SAKSBEHANDLING,
                         )

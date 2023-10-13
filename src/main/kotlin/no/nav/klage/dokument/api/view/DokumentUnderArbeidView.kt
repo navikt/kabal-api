@@ -21,14 +21,14 @@ data class DokumentView(
     val isSmartDokument: Boolean,
     val templateId: String?,
     val isMarkertAvsluttet: Boolean,
-    //Deprecated
+    @Deprecated("use parentId")
     val parent: UUID?,
     val parentId: UUID?,
     val journalfoertDokumentReference: JournalfoertDokumentReference?,
     val creatorIdent: String,
     val creatorRole: BehandlingRole,
 ) {
-    data class JournalfoertDokumentReference (
+    data class JournalfoertDokumentReference(
         val journalpostId: String,
         val dokumentInfoId: String,
         val harTilgangTilArkivvariant: Boolean,

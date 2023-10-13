@@ -6,6 +6,7 @@ import io.micrometer.tracing.Tracer
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
+import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
@@ -51,9 +52,9 @@ import java.util.*
 
 @ActiveProfiles("local")
 @Import(BehandlingAvslutningServiceTest.MyTestConfiguration::class)
-@SpringBootTest(classes = [KlagebehandlingService::class, BehandlingAvslutningService::class, BehandlingService::class, AnkebehandlingService::class])
-@EnableJpaRepositories(basePackages = ["no.nav.klage.oppgave.repositories"])
-@EntityScan("no.nav.klage.oppgave.domain")
+@SpringBootTest(classes = [KlagebehandlingService::class, BehandlingAvslutningService::class, BehandlingService::class, AnkebehandlingService::class, DokumentUnderArbeidCommonService::class])
+@EnableJpaRepositories(basePackages = ["no.nav.klage.oppgave.repositories", "no.nav.klage.dokument.repositories"])
+@EntityScan(basePackages = ["no.nav.klage.oppgave.domain", "no.nav.klage.dokument.domain"])
 @AutoConfigureDataJpa
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

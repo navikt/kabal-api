@@ -4,9 +4,14 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.dokument.api.view.DokumentViewWithList
 import no.nav.klage.dokument.api.view.SmartEditorDocumentView
+import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.DocumentOutput
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.JournalfoertDokumentUnderArbeidAsVedlegg
+import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.DokumentReferanse
@@ -17,6 +22,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
+import java.time.LocalDateTime
 
 @Component
 class DokumentMapper(
@@ -39,39 +45,106 @@ class DokumentMapper(
 
     fun getSortedDokumentViewList(allDokumenterUnderArbeid: List<DokumentUnderArbeid>): List<DokumentView> {
         val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
-            it.getType() != DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT
+            it !is JournalfoertDokumentUnderArbeidAsVedlegg
         }
 
         return dokumenterUnderArbeid.sortedByDescending { it.created }
-            .map { mapToDokumentView(it) } + journalfoerteDokumenterUnderArbeid.map { mapToDokumentView(it) }
-            .sortedByDescending { it.journalfoertDokumentReference?.datoOpprettet }
+            .map { mapToDokumentView(it) }
+            .plus(journalfoerteDokumenterUnderArbeid
+                .map { mapToDokumentView(it) }
+                .sortedWith(compareByDescending<DokumentView> { it.journalfoertDokumentReference?.datoOpprettet }.thenBy { it.tittel })
+            )
+    }
+
+    fun getSortedDokumentViewListForInnholdsfortegnelse(
+        allDokumenterUnderArbeid: List<DokumentUnderArbeid>,
+        mottakere: List<String>,
+        behandling: Behandling,
+        hoveddokument: DokumentUnderArbeid,
+    ): Pair<List<InnholdsfortegnelseRequest.Document>, List<InnholdsfortegnelseRequest.Document>> {
+        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
+            it !is JournalfoertDokumentUnderArbeidAsVedlegg
+        }
+
+        return dokumenterUnderArbeid.sortedByDescending { it.created }
+            .map {
+                mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
+                    dokumentUnderArbeid = it,
+                    mottakere = mottakere,
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                )
+            } to journalfoerteDokumenterUnderArbeid
+            .map {
+                mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
+                    dokumentUnderArbeid = it,
+                    behandling = behandling
+                )
+            }
+            .sortedWith(compareByDescending<InnholdsfortegnelseRequest.Document> { it.opprettet }.thenBy { it.tittel })
+    }
+
+    fun mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
+        dokumentUnderArbeid: DokumentUnderArbeid,
+        mottakere: List<String> = emptyList(),
+        behandling: Behandling,
+    ): InnholdsfortegnelseRequest.Document {
+        if (dokumentUnderArbeid !is JournalfoertDokumentUnderArbeidAsVedlegg) {
+            error("Document must be JOURNALFOERT")
+        }
+        val journalpost =
+            safClient.getJournalpostAsSaksbehandler(dokumentUnderArbeid.journalpostId)
+        val dokumentInDokarkiv =
+            journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+                ?: throw RuntimeException("Document not found in Dokarkiv")
+
+        return InnholdsfortegnelseRequest.Document(
+            tittel = dokumentInDokarkiv.tittel ?: "Tittel ikke funnet i SAF",
+            tema = Tema.fromNavn(journalpost.tema?.name).navn,
+            opprettet = dokumentUnderArbeid.opprettet,
+            avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
+            saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
+            type = journalpost.journalposttype?.name ?: "Type ikke funnet i SAF"
+        )
+    }
+
+    fun mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
+        dokumentUnderArbeid: DokumentUnderArbeid,
+        mottakere: List<String> = emptyList(),
+        behandling: Behandling,
+        hoveddokument: DokumentUnderArbeid,
+    ): InnholdsfortegnelseRequest.Document {
+        return InnholdsfortegnelseRequest.Document(
+            tittel = dokumentUnderArbeid.name,
+            tema = behandling.ytelse.toTema().navn,
+            opprettet = LocalDateTime.now(),
+            avsenderMottaker = mottakere.joinToString(),
+            saksnummer = behandling.fagsakId,
+            type = if (hoveddokument.dokumentType == DokumentType.NOTAT) "N" else "U"
+        )
     }
 
     fun mapToDokumentView(dokumentUnderArbeid: DokumentUnderArbeid): DokumentView {
-        val type = dokumentUnderArbeid.getType()
-
         var journalfoertDokumentReference: DokumentView.JournalfoertDokumentReference? = null
 
-        val dokumentInDokarkiv = if (type == DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT) {
+        var tittel = dokumentUnderArbeid.name
+
+        if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
             val journalpostInDokarkiv =
-                safClient.getJournalpostAsSaksbehandler(dokumentUnderArbeid.journalfoertDokumentReference!!.journalpostId)
-            val dokumentInDokarkiv =
-                journalpostInDokarkiv.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.journalfoertDokumentReference.dokumentInfoId }
-                    ?: throw RuntimeException("Document not found in Dokarkiv")
+                safClient.getJournalpostAsSaksbehandler(dokumentUnderArbeid.journalpostId)
 
-            journalfoertDokumentReference =
-                DokumentView.JournalfoertDokumentReference(
-                    journalpostId = journalpostInDokarkiv.journalpostId,
-                    dokumentInfoId = dokumentInDokarkiv.dokumentInfoId,
-                    harTilgangTilArkivvariant = harTilgangTilArkivvariant(dokumentInDokarkiv),
-                    datoOpprettet = journalpostInDokarkiv.datoOpprettet,
-                )
-            dokumentInDokarkiv
-        } else null
+            val dokument = journalpostInDokarkiv.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+                ?: throw RuntimeException("Document not found in Dokarkiv")
 
-        val tittel = if (dokumentInDokarkiv != null) {
-            (dokumentInDokarkiv.tittel ?: "Tittel ikke funnet i SAF")
-        } else dokumentUnderArbeid.name
+            tittel = (dokument.tittel ?: "Tittel ikke funnet i SAF")
+
+            journalfoertDokumentReference = DokumentView.JournalfoertDokumentReference(
+                journalpostId = dokumentUnderArbeid.journalpostId,
+                dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
+                harTilgangTilArkivvariant = harTilgangTilArkivvariant(dokument),
+                datoOpprettet = dokumentUnderArbeid.opprettet,
+            )
+        }
 
         return DokumentView(
             id = dokumentUnderArbeid.id,
@@ -79,12 +152,12 @@ class DokumentMapper(
             dokumentTypeId = dokumentUnderArbeid.dokumentType?.id,
             created = dokumentUnderArbeid.created,
             modified = dokumentUnderArbeid.modified,
-            isSmartDokument = dokumentUnderArbeid.smartEditorId != null,
-            templateId = dokumentUnderArbeid.smartEditorTemplateId,
+            isSmartDokument = dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument,
+            templateId = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) dokumentUnderArbeid.smartEditorTemplateId else null,
             isMarkertAvsluttet = dokumentUnderArbeid.markertFerdig != null,
-            parent = dokumentUnderArbeid.parentId,
-            parentId = dokumentUnderArbeid.parentId,
-            type = type,
+            parent = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
+            parentId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
+            type = dokumentUnderArbeid.getType(),
             journalfoertDokumentReference = journalfoertDokumentReference,
             creatorIdent = dokumentUnderArbeid.creatorIdent,
             creatorRole = dokumentUnderArbeid.creatorRole,
@@ -126,9 +199,9 @@ class DokumentMapper(
             id = dokumentUnderArbeid.id,
             tittel = dokumentUnderArbeid.name,
             dokumentTypeId = dokumentUnderArbeid.dokumentType!!.id,
-            templateId = dokumentUnderArbeid.smartEditorTemplateId,
-            parent = dokumentUnderArbeid.parentId,
-            parentId = dokumentUnderArbeid.parentId,
+            templateId = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) dokumentUnderArbeid.smartEditorTemplateId else null,
+            parent = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
+            parentId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
             content = jacksonObjectMapper().readTree(smartEditorDocument.json),
             created = smartEditorDocument.created,
             modified = smartEditorDocument.modified,

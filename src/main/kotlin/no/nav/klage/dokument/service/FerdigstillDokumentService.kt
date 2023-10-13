@@ -1,8 +1,7 @@
 package no.nav.klage.dokument.service
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
-import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.Event
 import no.nav.klage.oppgave.service.KafkaInternalEventService
@@ -18,7 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener
 @Service
 class FerdigstillDokumentService(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
-    private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
+    private val dokumentUnderArbeidCommonService: DokumentUnderArbeidCommonService,
     private val kafkaInternalEventService: KafkaInternalEventService,
 ) {
     companion object {
@@ -30,8 +29,7 @@ class FerdigstillDokumentService(
     @Scheduled(fixedDelayString = "\${FERDIGSTILLE_DOKUMENTER_DELAY_MILLIS}", initialDelay = 45000)
     @SchedulerLock(name = "ferdigstillDokumenter")
     fun ferdigstillHovedDokumenter() {
-        val hovedDokumenterIkkeFerdigstilte =
-            dokumentUnderArbeidRepository.findByMarkertFerdigNotNullAndFerdigstiltNullAndParentIdIsNull()
+        val hovedDokumenterIkkeFerdigstilte = dokumentUnderArbeidCommonService.findHoveddokumenterByMarkertFerdigNotNullAndFerdigstiltNull()
         for (it in hovedDokumenterIkkeFerdigstilte) {
             ferdigstill(it)
         }
@@ -42,11 +40,12 @@ class FerdigstillDokumentService(
     @SchedulerLock(name = "ferdigstillDokumenter")
     fun listenToFerdigstilteDokumenterAvSaksbehandler(dokumentFerdigstiltAvSaksbehandler: DokumentFerdigstiltAvSaksbehandler) {
         logger.debug("listenToFerdigstilteDokumenterAvSaksbehandler called")
-        val dua = Hibernate.unproxy(dokumentFerdigstiltAvSaksbehandler.dokumentUnderArbeid) as DokumentUnderArbeid
+        val dua = Hibernate.unproxy(dokumentFerdigstiltAvSaksbehandler.dokumentUnderArbeid) as DokumentUnderArbeidAsHoveddokument
         ferdigstill(dua)
     }
 
-    private fun ferdigstill(it: DokumentUnderArbeid) {
+    private fun ferdigstill(it: DokumentUnderArbeidAsHoveddokument) {
+        logger.debug("ferdigstill hoveddokument with id {}", it.id)
         var updatedDokument = it
         try {
             if (updatedDokument.dokumentEnhetId == null) {
@@ -54,6 +53,10 @@ class FerdigstillDokumentService(
             }
             updatedDokument = dokumentUnderArbeidService.ferdigstillDokumentEnhet(updatedDokument.id)
 
+            logger.debug("dokumentUnderArbeidService.ferdigstillDokumentEnhet(updatedDokument.id) for document with id {} done", updatedDokument.id)
+
+
+            logger.debug("about to publish 'finished' to Kafak for document with id {}", updatedDokument.id)
             //Send to all subscribers. If this fails, it's not the end of the world.
             kafkaInternalEventService.publishEvent(
                 Event(
@@ -71,5 +74,6 @@ class FerdigstillDokumentService(
                 e
             )
         }
+        logger.debug("ferdigstill for document with id {} successful", updatedDokument.id)
     }
 }
