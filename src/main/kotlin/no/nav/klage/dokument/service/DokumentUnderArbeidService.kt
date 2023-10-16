@@ -1182,9 +1182,11 @@ class DokumentUnderArbeidService(
             mellomlagerService.deleteDocument(dokument.mellomlagerId!!)
         }
 
+        val now = LocalDateTime.now()
         dokument.mellomlagerId = mellomlagerId
+        dokument.mellomlagretDate = now
         dokument.size = pdfDocument.bytes.size.toLong()
-        dokument.modified = LocalDateTime.now()
+        dokument.modified = now
 
         return pdfDocument
     }
