@@ -35,6 +35,7 @@ import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import org.w3c.dom.Document
 import java.time.LocalDateTime
 import java.util.*
 
@@ -752,6 +753,25 @@ class DokumentUnderArbeidService(
             ),
             contentType = MediaType.APPLICATION_PDF
         )
+    }
+
+    fun getHtmlDocument(
+        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        dokumentId: UUID,
+        innloggetIdent: String
+    ): Document {
+        val dokument =
+            dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+
+        //Sjekker tilgang på behandlingsnivå:
+        behandlingService.getBehandling(dokument.behandlingId)
+
+        if (dokument !is DokumentUnderArbeidAsSmartdokument) {
+            error("Only available for smartdokument")
+        }
+
+        val documentJson = smartEditorApiGateway.getDocumentAsJson(dokument.smartEditorId)
+        return kabalJsonToPdfClient.getHTML(documentJson)
     }
 
     fun getFysiskDokument(
