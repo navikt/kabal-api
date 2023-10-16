@@ -21,11 +21,6 @@ class DokumentUnderArbeidCommonService(
                 smartdokumentUnderArbeidAsVedleggRepository.findByParentId(parentId)
     }
 
-//    fun findHoveddokumenterByBehandlingId(behandlingId: UUID): Set<DokumentUnderArbeid> {
-//        return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingId(behandlingId) +
-//                smartdokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingId(behandlingId)
-//    }
-
     fun findHoveddokumenterByBehandlingIdAndHasJournalposter(behandlingId: UUID): Set<DokumentUnderArbeidAsHoveddokument> {
         return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndJournalposterIsNotEmpty(
             behandlingId

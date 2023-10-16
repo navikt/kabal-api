@@ -89,10 +89,10 @@ class AdminService(
     /** only for use in dev */
     fun deleteBehandlingInDev(behandlingId: UUID) {
         logger.debug("Delete test data in dev: attempt to delete behandling with id {}", behandlingId)
-        val hoveddokumenter = dokumentUnderArbeidRepository.findByBehandlingId(behandlingId)
-        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(behandlingId)
+        val (hoveddokumenter, vedlegg) = dokumentUnderArbeidRepository.findByBehandlingId(behandlingId)
+            .partition { it is DokumentUnderArbeidAsHoveddokument }
 
-        for (dua in vedlegg + hoveddokumenter) {
+        for (dua in hoveddokumenter + vedlegg) {
             try {
                 if (dua is DokumentUnderArbeidAsMellomlagret && dua.mellomlagerId != null) {
                     fileApiClient.deleteDocument(id = dua.mellomlagerId!!, systemUser = true)
