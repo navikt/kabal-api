@@ -9,6 +9,7 @@ import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
+import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
@@ -40,6 +41,7 @@ class AdminService(
     private val ankebehandlingRepository: AnkebehandlingRepository,
     private val ankeITrygderettenbehandlingRepository: AnkeITrygderettenbehandlingRepository,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
+    private val dokumentUnderArbeidCommonService: DokumentUnderArbeidCommonService,
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
     private val kafkaEventRepository: KafkaEventRepository,
     private val fileApiClient: FileApiClient,
@@ -87,9 +89,10 @@ class AdminService(
     /** only for use in dev */
     fun deleteBehandlingInDev(behandlingId: UUID) {
         logger.debug("Delete test data in dev: attempt to delete behandling with id {}", behandlingId)
-        val dokumenterUnderArbeid = dokumentUnderArbeidRepository.findByBehandlingId(behandlingId)
+        val hoveddokumenter = dokumentUnderArbeidRepository.findByBehandlingId(behandlingId)
+        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(behandlingId)
 
-        for (dua in dokumenterUnderArbeid) {
+        for (dua in vedlegg + hoveddokumenter) {
             try {
                 if (dua is DokumentUnderArbeidAsMellomlagret && dua.mellomlagerId != null) {
                     fileApiClient.deleteDocument(id = dua.mellomlagerId!!, systemUser = true)
@@ -105,9 +108,13 @@ class AdminService(
             } catch (e: Exception) {
                 logger.warn("Couldn't delete innholdsfortegnelse. May be b/c there never was one.")
             }
+
+            //TODO Slette smartdocs
         }
 
-        dokumentUnderArbeidRepository.deleteAll(dokumenterUnderArbeid)
+        dokumentUnderArbeidRepository.deleteAll(vedlegg)
+
+        dokumentUnderArbeidRepository.deleteAll(hoveddokumenter)
 
         endringsloggRepository.deleteAll(endringsloggRepository.findByBehandlingIdOrderByTidspunktDesc(behandlingId))
 
