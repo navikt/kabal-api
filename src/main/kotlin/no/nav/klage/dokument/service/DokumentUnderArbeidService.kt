@@ -811,13 +811,13 @@ class DokumentUnderArbeidService(
             behandlingId = document.behandlingId,
         )
 
+        //first vedlegg
         dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentId)
-            .plus(document)
             .map {
-                if (document.erMarkertFerdig()) {
+                if (it.erMarkertFerdig()) {
                     throw MissingTilgangException("Attempting to delete finalized document ${document.id}")
                 }
-                document
+                it
             }
             .forEach { dokumentUnderArbeid ->
                 slettEnkeltdokument(
@@ -827,6 +827,19 @@ class DokumentUnderArbeidService(
                     behandling = behandling,
                 )
             }
+
+        if (document.erMarkertFerdig()) {
+            throw MissingTilgangException("Attempting to delete finalized document ${document.id}")
+        }
+
+        //then hoveddokument
+        slettEnkeltdokument(
+            document = document,
+            innloggetIdent = innloggetIdent,
+            behandlingRole = behandling.getRoleInBehandling(innloggetIdent),
+            behandling = behandling,
+        )
+
     }
 
     private fun slettEnkeltdokument(
