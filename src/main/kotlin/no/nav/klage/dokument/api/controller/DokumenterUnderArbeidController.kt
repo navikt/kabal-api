@@ -20,7 +20,6 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.codec.ServerSentEvent
 import org.springframework.web.bind.annotation.*
-import org.w3c.dom.Document
 import reactor.core.publisher.Flux
 import java.time.Duration
 import java.util.*
@@ -129,7 +128,7 @@ class DokumentUnderArbeidController(
     fun getHtml(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
-    ): Document {
+    ): String {
         logger.debug("Kall mottatt på getHtml for {}", dokumentId)
 
         return dokumentUnderArbeidService.getHtmlDocument(

@@ -9,7 +9,6 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import org.w3c.dom.Document
 
 
 @Component
@@ -41,14 +40,14 @@ class KabalJsonToPdfClient(
             .block() ?: throw RuntimeException("PDF could not be created")
     }
 
-    fun getHTML(json: String): Document {
+    fun getHTML(json: String): String {
         logger.debug("Getting HTML document from kabalJsontoPdf.")
         return kabalJsonToPdfWebClient.post()
             .uri { it.path("/tohtml").build() }
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(json)
             .retrieve()
-            .bodyToMono<Document>()
+            .bodyToMono<String>()
             .block() ?: throw RuntimeException("PDF could not be created")
     }
 

@@ -35,7 +35,6 @@ import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
-import org.w3c.dom.Document
 import java.time.LocalDateTime
 import java.util.*
 
@@ -759,7 +758,7 @@ class DokumentUnderArbeidService(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         innloggetIdent: String
-    ): Document {
+    ): String {
         val dokument =
             dokumentUnderArbeidRepository.getReferenceById(dokumentId)
 
