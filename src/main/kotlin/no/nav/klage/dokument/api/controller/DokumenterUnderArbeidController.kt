@@ -138,6 +138,21 @@ class DokumentUnderArbeidController(
         )
     }
 
+    @ResponseBody
+    @GetMapping("/{dokumentId}/pdfhtml")
+    fun getPdfHtml(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") dokumentId: UUID,
+    ): String {
+        logger.debug("Kall mottatt på getPdfHtml for {}", dokumentId)
+
+        return dokumentUnderArbeidService.getPdfToHtmlDocument(
+            behandlingId = behandlingId,
+            dokumentId = dokumentId,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+    }
+
     @GetMapping("/{dokumentId}", "/{dokumentId}/title")
     fun getMetadata(
         @PathVariable("behandlingId") behandlingId: UUID,

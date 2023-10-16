@@ -51,6 +51,17 @@ class KabalJsonToPdfClient(
             .block() ?: throw RuntimeException("PDF could not be created")
     }
 
+    fun getPDFHTML(json: String): String {
+        logger.debug("Getting PDF to HTML document from kabalJsontoPdf.")
+        return kabalJsonToPdfWebClient.post()
+            .uri { it.path("/topdftohtml").build() }
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(json)
+            .retrieve()
+            .bodyToMono<String>()
+            .block() ?: throw RuntimeException("PDF could not be created")
+    }
+
     fun getInnholdsfortegnelse(innholdsfortegnelseRequest: InnholdsfortegnelseRequest): PDFDocument {
         logger.debug("Getting innholdsfortegnelse from kabalJsontoPdf.")
         return kabalJsonToPdfWebClient.post()
