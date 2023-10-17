@@ -63,6 +63,8 @@ adRoles:
     value: a9f5ef81-4e81-42e8-b368-0273071b64b9
   - name: KABAL_ROL_ROLE_ID
     value: 615a97fc-f49c-48d1-8265-28bd9f435ce4
+  - name: KABAL_KROL_ROLE_ID
+    value: c3cbba77-ce3b-4d47-b136-79c1ce4ad4c0
 
 envs:
   - name: JAVA_TOOL_OPTIONS

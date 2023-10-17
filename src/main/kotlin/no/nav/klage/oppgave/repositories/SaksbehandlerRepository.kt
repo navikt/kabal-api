@@ -16,6 +16,7 @@ class SaksbehandlerRepository(
     @Value("\${KABAL_ADMIN_ROLE_ID}") private val kabalAdminRoleId: String,
     @Value("\${KABAL_INNSYN_EGEN_ENHET_ROLE_ID}") private val kabalInnsynEgenEnhetRoleId: String,
     @Value("\${KABAL_ROL_ROLE_ID}") private val kabalROLRoleId: String,
+    @Value("\${KABAL_KROL_ROLE_ID}") private val kabalKROLRoleId: String,
 ) {
 
     companion object {
@@ -45,6 +46,8 @@ class SaksbehandlerRepository(
     }
 
     fun isROL(ident: String): Boolean = getRoleIds(ident).contains(kabalROLRoleId)
+
+    fun isKROL(ident: String): Boolean = getRoleIds(ident).contains(kabalKROLRoleId)
 
     fun hasFortroligRole(ident: String): Boolean = getRoleIds(ident).contains(fortroligRoleId)
 

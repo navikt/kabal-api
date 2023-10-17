@@ -1173,9 +1173,14 @@ class BehandlingService(
     ): Behandling {
         val behandlingForCheck = getBehandling(behandlingId)
         val behandling =
-            if (saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
+            if (saksbehandlerRepository.isKROL(utfoerendeSaksbehandlerIdent)) {
+                if (behandlingForCheck.rolFlowState == FlowState.RETURNED) {
+                    throw MissingTilgangException("KROL har ikke lov til å endre ROL når den er returnert.")
+                }
+                getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
+            } else if (saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
                 if (behandlingForCheck.rolFlowState != FlowState.SENT && behandlingForCheck.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent) {
-                    throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre ROL når den ikke er sent.")
+                    throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre ROL når den ikke er sendt.")
                 }
                 getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
             } else {
