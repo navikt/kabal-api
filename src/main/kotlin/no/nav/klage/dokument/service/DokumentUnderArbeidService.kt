@@ -331,7 +331,7 @@ class DokumentUnderArbeidService(
         }
 
         if (parentDocument != null && behandlingRole == BehandlingRole.KABAL_ROL) {
-            if (!(parentDocument is SmartdokumentUnderArbeidAsVedlegg && parentDocument.smartEditorTemplateId == Template.ROL_QUESTIONS.id)) {
+            if (!(parentDocument is SmartdokumentUnderArbeidAsHoveddokument && parentDocument.smartEditorTemplateId == Template.ROL_QUESTIONS.id)) {
                 throw MissingTilgangException("ROL kan ikke opprette vedlegg til dette hoveddokumentet.")
             }
         }
