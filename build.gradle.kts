@@ -4,7 +4,7 @@ val mockkVersion = "1.13.8"
 val tokenValidationVersion = "3.1.7"
 val logstashVersion = "7.4"
 val unleashVersion = "4.4.1"
-val springRetryVersion = "2.0.3"
+val springRetryVersion = "2.0.4"
 val springMockkVersion = "4.0.2"
 val springDocVersion = "2.2.0"
 val testContainersVersion = "1.19.1"
@@ -16,7 +16,7 @@ val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.0"
 val tikaVersion = "2.9.0"
 val verapdfVersion = "1.24.1"
-val klageKodeverkVersion = "1.6.11"
+val klageKodeverkVersion = "1.6.12"
 
 plugins {
     val kotlinVersion = "1.9.10"
@@ -45,10 +45,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
-    implementation("org.apache.tomcat.embed:tomcat-embed-core:10.1.14")
-    implementation("org.apache.tomcat.embed:tomcat-embed-el:10.1.14")
-    implementation("org.apache.tomcat:tomcat-annotations-api:10.1.14")
-    implementation("org.apache.tomcat.embed:tomcat-embed-websocket:10.1.14")
+    implementation("org.apache.tomcat.embed:tomcat-embed-core:10.1.15")
+    implementation("org.apache.tomcat.embed:tomcat-embed-el:10.1.15")
+    implementation("org.apache.tomcat:tomcat-annotations-api:10.1.15")
+    implementation("org.apache.tomcat.embed:tomcat-embed-websocket:10.1.15")
 
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("javax.cache:cache-api")
