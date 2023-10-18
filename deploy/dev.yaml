@@ -37,9 +37,10 @@ inboundApplications:
     cluster: dev-gcp
 springProfile: dev-gcp
 tenant: trygdeetaten.no
-db_tier: db-custom-1-3840
+db_tier: db-f1-micro
 db_size: 10
-db_ha: true
+db_ha: false
+db_type: POSTGRES_15
 kafka_pool: nav-dev
 
 adRoles:
