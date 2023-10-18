@@ -7,7 +7,7 @@ class TestPostgresqlContainer private constructor() :
     PostgreSQLContainer<TestPostgresqlContainer?>(IMAGE_VERSION) {
 
     companion object {
-        private const val IMAGE_VERSION = "postgres:15.2"
+        private const val IMAGE_VERSION = "postgres:15.4"
 
         private val CONTAINER: TestPostgresqlContainer = TestPostgresqlContainer().waitingFor(HostPortWaitStrategy())!!
 
