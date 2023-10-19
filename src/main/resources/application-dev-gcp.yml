@@ -32,3 +32,8 @@ ARBEID_OG_INNTEKT_URL: https://arbeid-og-inntekt-q1.dev-fss-pub.nais.io/
 KLAGE_FSS_PROXY_URL: https://klage-fss-proxy.dev-fss-pub.nais.io
 
 FSS_CLUSTER: dev-fss
+
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 5
