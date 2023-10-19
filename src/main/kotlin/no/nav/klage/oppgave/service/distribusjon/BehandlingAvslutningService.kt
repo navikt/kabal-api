@@ -142,9 +142,7 @@ class BehandlingAvslutningService(
                         status = SakFinishedInput.Status.RETURNERT_TK,
                         nivaa = SakFinishedInput.Nivaa.KA,
                         typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
-                        utfall = SakFinishedInput.Utfall.valueOf(infotrygdKlageutfallToUtfall.entries.find { entry ->
-                            entry.value == behandling.utfall
-                        }!!.key),
+                        utfall = SakFinishedInput.Utfall.valueOf(klageutfallToInfotrygdutfall[behandling.utfall!!]!!),
                         mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
                         saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!
                     )
