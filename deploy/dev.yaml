@@ -72,3 +72,8 @@ envs:
     value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
   - name: JAVA_OPTS
     value: "-Xms512m -Xmx4096m"
+
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 5
