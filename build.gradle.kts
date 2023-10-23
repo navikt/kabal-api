@@ -14,7 +14,7 @@ val kotlinXmlBuilderVersion = "1.9.0"
 val logbackSyslog4jVersion = "1.0.0"
 val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.0"
-val tikaVersion = "2.9.0"
+val tikaVersion = "2.9.1"
 val verapdfVersion = "1.24.1"
 val klageKodeverkVersion = "1.6.14"
 
