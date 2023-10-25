@@ -112,8 +112,7 @@ class BehandlingAvslutningService(
                 }
 
             //if fagsystem is Infotrygd also do this.
-            //TODO Remove special case after behandling is avsluttet.
-            if (behandling.fagsystem == Fagsystem.IT01 && behandling.id != UUID.fromString("fcd7eaf2-b510-4527-b3b1-8d7274470f44")) {
+            if (behandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
                 fssProxyClient.setToFinished(
                     sakId = behandling.kildeReferanse,
