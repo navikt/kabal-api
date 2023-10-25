@@ -52,7 +52,8 @@ class BehandlingAvslutningService(
     @Transactional
     fun avsluttBehandling(behandlingId: UUID) {
         try {
-            val hovedDokumenterIkkeFerdigstilte = dokumentUnderArbeidCommonService.findHoveddokumenterByMarkertFerdigNotNullAndFerdigstiltNull()
+            val hovedDokumenterIkkeFerdigstilte =
+                dokumentUnderArbeidCommonService.findHoveddokumenterByMarkertFerdigNotNullAndFerdigstiltNull()
             if (hovedDokumenterIkkeFerdigstilte.isNotEmpty()) {
                 logger.warn(
                     "Kunne ikke avslutte behandling {} fordi noen dokumenter mangler ferdigstilling. Prøver på nytt senere.",
@@ -110,6 +111,24 @@ class BehandlingAvslutningService(
                     )
                 }
 
+            //if fagsystem is Infotrygd also do this.
+            //TODO Remove special case after behandling is avsluttet.
+            if (behandling.fagsystem == Fagsystem.IT01 && behandling.id != UUID.fromString("fcd7eaf2-b510-4527-b3b1-8d7274470f44")) {
+                logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
+                fssProxyClient.setToFinished(
+                    sakId = behandling.kildeReferanse,
+                    SakFinishedInput(
+                        status = SakFinishedInput.Status.RETURNERT_TK,
+                        nivaa = SakFinishedInput.Nivaa.KA,
+                        typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
+                        utfall = SakFinishedInput.Utfall.valueOf(klageutfallToInfotrygdutfall[behandling.utfall!!]!!),
+                        mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
+                        saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!
+                    )
+                )
+                logger.debug("Behandlingen som er avsluttet ble sendt tilbake til Infotrygd.")
+            }
+
             val behandlingEvent = BehandlingEvent(
                 eventId = UUID.randomUUID(),
                 kildeReferanse = behandling.kildeReferanse,
@@ -133,22 +152,6 @@ class BehandlingAvslutningService(
                 )
             )
 
-            //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01) {
-                logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
-                fssProxyClient.setToFinished(
-                    sakId = behandling.kildeReferanse,
-                    SakFinishedInput(
-                        status = SakFinishedInput.Status.RETURNERT_TK,
-                        nivaa = SakFinishedInput.Nivaa.KA,
-                        typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
-                        utfall = SakFinishedInput.Utfall.valueOf(klageutfallToInfotrygdutfall[behandling.utfall!!]!!),
-                        mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
-                        saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!
-                    )
-                )
-                logger.debug("Behandlingen som er avsluttet ble sendt tilbake til Infotrygd.")
-            }
         }
 
         val event = behandling.setAvsluttet(SYSTEMBRUKER)
