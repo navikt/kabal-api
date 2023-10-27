@@ -1132,7 +1132,7 @@ class DokumentUnderArbeidService(
             it.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
             if (it is DokumentUnderArbeidAsSmartdokument) {
                 try {
-                    smartEditorApiGateway.deleteDocumentAsSystemUser(it.smartEditorId!!)
+                    smartEditorApiGateway.deleteDocumentAsSystemUser(it.smartEditorId)
                 } catch (e: Exception) {
                     logger.warn("Couldn't delete vedlegg from smartEditorApi", e)
                 }

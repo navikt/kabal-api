@@ -32,6 +32,7 @@ data class DokumentReferanse(
     val avsenderMottaker: AvsenderMottaker?,
     val opprettetAvNavn: String?,
     val datoOpprettet: LocalDateTime,
+    val datoRegSendt: LocalDateTime?,
     val relevanteDatoer: List<RelevantDato>?,
     val kanal: Kanal,
     val kanalnavn: String,
