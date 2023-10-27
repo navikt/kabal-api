@@ -18,6 +18,8 @@ import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.clients.saf.graphql.*
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Saksdokument
+import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -28,6 +30,12 @@ import java.time.LocalDateTime
 class DokumentMapper(
     private val safClient: SafGraphQlClient,
 ) {
+
+    companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+        private val secureLogger = getSecureLogger()
+    }
 
     fun mapToByteArray(fysiskDokument: FysiskDokument): ResponseEntity<ByteArray> {
         return ResponseEntity(
@@ -133,8 +141,9 @@ class DokumentMapper(
             val journalpostInDokarkiv =
                 safClient.getJournalpostAsSaksbehandler(dokumentUnderArbeid.journalpostId)
 
-            val dokument = journalpostInDokarkiv.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
-                ?: throw RuntimeException("Document not found in Dokarkiv")
+            val dokument =
+                journalpostInDokarkiv.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+                    ?: throw RuntimeException("Document not found in Dokarkiv")
 
             tittel = (dokument.tittel ?: "Tittel ikke funnet i SAF")
 
@@ -258,6 +267,7 @@ class DokumentMapper(
             },
             opprettetAvNavn = journalpost.opprettetAvNavn,
             datoOpprettet = journalpost.datoOpprettet,
+            datoRegSendt = journalpost.getDatoRegSendt(),
             relevanteDatoer = journalpost.relevanteDatoer?.map {
                 DokumentReferanse.RelevantDato(
                     dato = it.dato,
@@ -340,4 +350,40 @@ class DokumentMapper(
         any {
             it.journalpostId == journalpostId && it.dokumentInfoId == dokumentInfoId
         }
+
+    private fun Journalpost.getDatoRegSendt(): LocalDateTime? {
+        return try {
+            when (this.journalposttype) {
+                Journalposttype.I -> {
+                    this.getRelevantDato(Datotype.DATO_REGISTRERT)
+                        ?: error("could not find datoRegSendt for inngående dokument")
+                }
+
+                Journalposttype.N -> {
+                    this.dokumenter?.firstOrNull()?.datoFerdigstilt
+                        ?: this.getRelevantDato(Datotype.DATO_JOURNALFOERT)
+                        ?: this.getRelevantDato(Datotype.DATO_DOKUMENT)
+                        ?: error("could not find datoRegSendt for notat")
+                }
+
+                Journalposttype.U -> {
+                    this.getRelevantDato(Datotype.DATO_EKSPEDERT)
+                        ?: this.getRelevantDato(Datotype.DATO_SENDT_PRINT)
+                        ?: this.getRelevantDato(Datotype.DATO_JOURNALFOERT)
+                        ?: this.getRelevantDato(Datotype.DATO_DOKUMENT)
+                        ?: error("could not find datoRegSendt for utgående dokument")
+                }
+
+                null -> error("cannot happen")
+            }
+        } catch (e: Exception) {
+            logger.error("could not getDatoRegSendt", e)
+            null
+        }
+
+    }
+
+    fun Journalpost.getRelevantDato(datotype: Datotype): LocalDateTime? {
+        return this.relevanteDatoer?.find { it.datotype == datotype }?.dato
+    }
 }
