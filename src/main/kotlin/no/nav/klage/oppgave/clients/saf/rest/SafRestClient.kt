@@ -4,9 +4,11 @@ import io.micrometer.tracing.Tracer
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
@@ -50,6 +52,9 @@ class SafRestClient(
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithSafScope()}"
                     )
                     .retrieve()
+                    .onStatus(HttpStatusCode::isError) { response ->
+                        logErrorResponse(response, ::getDokument.name, secureLogger)
+                    }
                     .toEntity(ByteArray::class.java)
                     .map {
                         val type = it.headers.contentType
@@ -96,6 +101,9 @@ class SafRestClient(
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithSafScope()}"
                     )
                     .retrieve()
+                    .onStatus(HttpStatusCode::isError) { response ->
+                        logErrorResponse(response, ::downloadDocumentAsMono.name, secureLogger)
+                    }
                     .bodyToFlux(DataBuffer::class.java)
 
                 DataBufferUtils.write(flux, pathToFile)

@@ -6,7 +6,9 @@ import no.nav.klage.oppgave.clients.kaka.model.response.ValidationErrors
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -34,6 +36,9 @@ class KakaApiClient(
             )
             .contentType(MediaType.APPLICATION_JSON)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::createKvalitetsvurdering.name, secureLogger)
+            }
             .bodyToMono<KakaOutput>()
             .block() ?: throw RuntimeException("Kvalitetsvurdering could not be created")
     }
@@ -48,6 +53,9 @@ class KakaApiClient(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(saksdataInput)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::finalizeBehandling.name, secureLogger)
+            }
             .bodyToMono<Void>()
             .block()
     }
@@ -60,6 +68,9 @@ class KakaApiClient(
                 "Bearer ${tokenUtil.getAppAccessTokenWithKakaApiScope()}"
             )
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::deleteKvalitetsvurderingV2.name, secureLogger)
+            }
             .bodyToMono<Void>()
             .block()
     }
@@ -83,6 +94,9 @@ class KakaApiClient(
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKakaApiScope()}"
             )
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getValidationErrors.name, secureLogger)
+            }
             .bodyToMono<ValidationErrors>()
             .block() ?: throw RuntimeException("Validation errors could not be retrieved")
     }

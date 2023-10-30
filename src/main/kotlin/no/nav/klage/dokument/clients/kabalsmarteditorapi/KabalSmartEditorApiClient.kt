@@ -8,7 +8,10 @@ import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.CommentO
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.DocumentOutput
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -24,6 +27,7 @@ class KabalSmartEditorApiClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val secureLogger = getSecureLogger()
     }
 
     fun createDocument(
@@ -38,6 +42,9 @@ class KabalSmartEditorApiClient(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(jsonInput)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::createDocument.name, secureLogger)
+            }
             .bodyToMono<DocumentOutput>()
             .block() ?: throw RuntimeException("Document could not be created")
     }
@@ -55,6 +62,9 @@ class KabalSmartEditorApiClient(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(jsonInput)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::updateDocument.name, secureLogger)
+            }
             .bodyToMono<DocumentOutput>()
             .block() ?: throw RuntimeException("Document could not be updated")
     }
@@ -69,6 +79,9 @@ class KabalSmartEditorApiClient(
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalSmartEditorApiScope()}"
             )
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getDocument.name, secureLogger)
+            }
             .bodyToMono<DocumentOutput>()
             .block() ?: throw RuntimeException("Document could not be retrieved")
     }
@@ -83,6 +96,9 @@ class KabalSmartEditorApiClient(
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalSmartEditorApiScope()}"
             )
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::deleteDocument.name, secureLogger)
+            }
             .bodyToMono<Unit>()
             .block()
     }
@@ -97,6 +113,9 @@ class KabalSmartEditorApiClient(
                 "Bearer ${tokenUtil.getAppAccessTokenWithKabalSmartEditorApiScope()}"
             )
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::deleteDocumentAsSystemUser.name, secureLogger)
+            }
             .bodyToMono<Unit>()
             .block()
     }
@@ -114,6 +133,9 @@ class KabalSmartEditorApiClient(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::createComment.name, secureLogger)
+            }
             .bodyToMono<CommentOutput>()
             .block() ?: throw RuntimeException("Comment could not be created")
     }
@@ -128,6 +150,9 @@ class KabalSmartEditorApiClient(
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalSmartEditorApiScope()}"
             )
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getAllCommentsWithPossibleThreads.name, secureLogger)
+            }
             .bodyToMono<List<CommentOutput>>()
             .block() ?: throw RuntimeException("Comments could not be retrieved")
     }
@@ -146,6 +171,9 @@ class KabalSmartEditorApiClient(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::replyToComment.name, secureLogger)
+            }
             .bodyToMono<CommentOutput>()
             .block() ?: throw RuntimeException("Comment could not be replied to")
     }
@@ -161,6 +189,9 @@ class KabalSmartEditorApiClient(
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalSmartEditorApiScope()}"
             )
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getCommentWithPossibleThread.name, secureLogger)
+            }
             .bodyToMono<CommentOutput>()
             .block() ?: throw RuntimeException("Comment could not be retrieved")
     }
@@ -182,6 +213,9 @@ class KabalSmartEditorApiClient(
                 )
             )
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::deleteCommentWithPossibleThread.name, secureLogger)
+            }
             .bodyToMono<Unit>()
             .block()
     }
@@ -200,6 +234,9 @@ class KabalSmartEditorApiClient(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::modifyComment.name, secureLogger)
+            }
             .bodyToMono<CommentOutput>()
             .block() ?: throw RuntimeException("Comment could not be modified")
     }

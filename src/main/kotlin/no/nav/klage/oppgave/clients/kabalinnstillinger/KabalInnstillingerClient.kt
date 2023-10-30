@@ -4,7 +4,9 @@ import no.nav.klage.oppgave.clients.kabalinnstillinger.model.*
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -30,6 +32,9 @@ class KabalInnstillingerClient(
                 "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}"
             )
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getTildelteYtelserForEnhet.name, secureLogger)
+            }
             .bodyToMono<TildelteYtelserResponse>()
             .block() ?: throw RuntimeException("Could not get tildelte ytelser for enhet $enhet")
     }
@@ -43,6 +48,9 @@ class KabalInnstillingerClient(
                 "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}"
             )
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getSaksbehandlersTildelteYtelser.name, secureLogger)
+            }
             .bodyToMono<SaksbehandlerAccess>()
             .block() ?: throw RuntimeException("Could not get tildelte ytelser")
     }
@@ -58,6 +66,9 @@ class KabalInnstillingerClient(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::searchMedunderskrivere.name, secureLogger)
+            }
             .bodyToMono<Medunderskrivere>()
             .block() ?: throw RuntimeException("Could not search medunderskrivere")
     }
@@ -73,6 +84,9 @@ class KabalInnstillingerClient(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::searchSaksbehandlere.name, secureLogger)
+            }
             .bodyToMono<Saksbehandlere>()
             .block() ?: throw RuntimeException("Could not search saksbehandlere")
     }
@@ -88,6 +102,9 @@ class KabalInnstillingerClient(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::searchROL.name, secureLogger)
+            }
             .bodyToMono<Saksbehandlere>()
             .block() ?: throw RuntimeException("Could not search rol")
     }

@@ -4,7 +4,9 @@ import io.micrometer.tracing.Tracer
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -32,6 +34,9 @@ class SkjermedeApiClient(
             )
             .bodyValue(SkjermetRequest(personident = fnr))
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::isSkjermet.name, secureLogger)
+            }
             .bodyToMono<Boolean>()
             .block() ?: throw RuntimeException("Null response from skjermede")
     }

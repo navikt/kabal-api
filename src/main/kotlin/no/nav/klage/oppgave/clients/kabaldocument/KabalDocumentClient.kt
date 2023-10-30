@@ -6,7 +6,10 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFu
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetOutput
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -21,6 +24,7 @@ class KabalDocumentClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val secureLogger = getSecureLogger()
     }
 
     fun createDokumentEnhetWithDokumentreferanser(
@@ -35,6 +39,9 @@ class KabalDocumentClient(
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::createDokumentEnhetWithDokumentreferanser.name, secureLogger)
+            }
             .bodyToMono<DokumentEnhetOutput>()
             .block() ?: throw RuntimeException("Dokumentenhet could not be created")
     }
@@ -49,6 +56,9 @@ class KabalDocumentClient(
                 "Bearer ${tokenUtil.getAppAccessTokenWithKabalDocumentScope()}"
             )
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::fullfoerDokumentEnhet.name, secureLogger)
+            }
             .bodyToMono<DokumentEnhetFullfoerOutput>()
             .block() ?: throw RuntimeException("DokumentEnhet could not be finalized")
     }
@@ -68,6 +78,9 @@ class KabalDocumentClient(
             )
             .bodyValue(input)
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::updateDocumentTitle.name, secureLogger)
+            }
             .bodyToMono<Void>()
             .block()
     }

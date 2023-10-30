@@ -3,7 +3,10 @@ package no.nav.klage.dokument.clients.klagefileapi
 import io.micrometer.tracing.Tracer
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
@@ -19,6 +22,7 @@ class FileApiClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val secureLogger = getSecureLogger()
     }
 
     fun getDocument(id: String, systemUser: Boolean = false): ByteArray {
@@ -34,6 +38,9 @@ class FileApiClient(
             .uri { it.path("/document/{id}").build(id) }
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getDocument.name, secureLogger)
+            }
             .bodyToMono<ByteArray>()
             .block() ?: throw RuntimeException("Document could not be fetched")
     }
@@ -53,6 +60,9 @@ class FileApiClient(
                 .uri { it.path("/document/{id}").build(id) }
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
                 .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(response, ::deleteDocument.name, secureLogger)
+                }
                 .bodyToMono<Boolean>()
                 .block()
 
@@ -83,6 +93,9 @@ class FileApiClient(
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::uploadDocument.name, secureLogger)
+            }
             .bodyToMono<DocumentUploadedResponse>()
             .block()
 

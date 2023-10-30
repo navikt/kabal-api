@@ -3,7 +3,9 @@ package no.nav.klage.oppgave.clients.pdl.graphql
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -40,6 +42,9 @@ class PdlClient(
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $stsSystembrukerToken")
                 .bodyValue(hentPersonQuery(fnr))
                 .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(response, ::getPersonInfo.name, secureLogger)
+                }
                 .bodyToMono<HentPersonResponse>()
                 .block() ?: throw RuntimeException("Person not found")
         }

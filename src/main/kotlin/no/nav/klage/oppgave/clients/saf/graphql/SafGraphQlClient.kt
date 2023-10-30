@@ -3,7 +3,9 @@ package no.nav.klage.oppgave.clients.saf.graphql
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatusCode
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -39,6 +41,9 @@ class SafGraphQlClient(
                 )
                 .bodyValue(hentDokumentoversiktBrukerQuery(fnr, tema, pageSize, previousPageRef))
                 .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(response, ::getDokumentoversiktBruker.name, secureLogger)
+                }
                 .bodyToMono<DokumentoversiktBrukerResponse>()
                 .block()
                 ?.let { logErrorsFromSaf(it, fnr, pageSize, previousPageRef); it }
@@ -79,6 +84,9 @@ class SafGraphQlClient(
         )
         .bodyValue(hentJournalpostQuery(journalpostId))
         .retrieve()
+        .onStatus(HttpStatusCode::isError) { response ->
+            logErrorResponse(response, "getJournalpostWithToken", secureLogger)
+        }
         .bodyToMono<JournalpostResponse>()
         .block()
         .let { if (it == null) throw RuntimeException("No response from SAF") ; it }

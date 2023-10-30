@@ -4,7 +4,9 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.http.HttpStatusCode
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -45,6 +47,9 @@ class MicrosoftGraphClient(
             }.header("Authorization", "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGraphScope()}")
 
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getInnloggetSaksbehandler.name, secureLogger)
+            }
             .bodyToMono<AzureUser>()
             .block().let { secureLogger.debug("me: {}", it); it }
             ?: throw RuntimeException("AzureAD data about authenticated user could not be fetched")
@@ -67,6 +72,9 @@ class MicrosoftGraphClient(
                     .build()
             }.header("Authorization", "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGraphScope()}")
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getInnloggetSaksbehandlersGroups.name, secureLogger)
+            }
             .bodyToMono<AzureGroupList>()
             .block()?.value?.map { secureLogger.debug("AD Gruppe: {}", it); it }
             ?: throw RuntimeException("AzureAD data about authenticated users groups could not be fetched")
@@ -112,6 +120,9 @@ class MicrosoftGraphClient(
                         .build()
                 }.header("Authorization", "Bearer ${tokenUtil.getAppAccessTokenWithGraphScope()}")
                 .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(response, ::getDisplayNames.name, secureLogger)
+                }
                 .bodyToMono()
         } catch (e: Exception) {
             logger.warn("Could not fetch displayname for idents: $navIdents", e)
@@ -131,6 +142,9 @@ class MicrosoftGraphClient(
             }
             .header("Authorization", "Bearer ${tokenUtil.getAppAccessTokenWithGraphScope()}")
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getGroupMembersNavIdents.name, secureLogger)
+            }
             .bodyToMono<AzureGroupMemberList>().block()?.value
             ?: throw RuntimeException("AzureAD data about group members nav idents could not be fetched")
         return azureGroupMember.map { secureLogger.debug("Group member {}", it); it }
@@ -153,6 +167,9 @@ class MicrosoftGraphClient(
             .header("Authorization", "Bearer ${tokenUtil.getAppAccessTokenWithGraphScope()}")
             .header("ConsistencyLevel", "eventual")
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getEnhetensAnsattesNavIdents.name, secureLogger)
+            }
             .bodyToMono<AzureSlimUserList>()
             .block()
             .let { userList -> userList?.value?.map { it.onPremisesSamAccountName } }
@@ -168,6 +185,9 @@ class MicrosoftGraphClient(
             }
             .header("Authorization", "Bearer ${tokenUtil.getAppAccessTokenWithGraphScope()}")
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getGroupsByUserPrincipalName.name, secureLogger)
+            }
             .bodyToMono<AzureGroupList>().block()?.value?.map { secureLogger.debug("AD Gruppe by navident: {}", it); it }
             ?: throw RuntimeException("AzureAD data about groups by user principal name could not be fetched")
         return aadAzureGroups
@@ -187,6 +207,9 @@ class MicrosoftGraphClient(
             .header("Authorization", "Bearer ${tokenUtil.getAppAccessTokenWithGraphScope()}")
             .header("ConsistencyLevel", "eventual")
             .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::findUserByNavIdent.name, secureLogger)
+            }
             .bodyToMono<AzureUserList>().block()?.value?.firstOrNull()
             ?.let { secureLogger.debug("Saksbehandler: {}", it); it }
             ?: throw RuntimeException("AzureAD data about user by nav ident could not be fetched")
