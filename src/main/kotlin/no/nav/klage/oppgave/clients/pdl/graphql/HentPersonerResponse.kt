@@ -1,8 +1,10 @@
 package no.nav.klage.oppgave.clients.pdl.graphql
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class HentPersonResponse(val data: DataWrapper?, val errors: List<PdlError>? = null)
 
 data class DataWrapper(val hentPerson: PdlPerson?)
@@ -60,8 +62,8 @@ data class PdlPerson(
     ) {
         data class VergeEllerFullmektig(
             val motpartsPersonident: String,
-            val omfang: String,
-            val omfangetErInnenPersonligOmraad: Boolean
+            val omfang: String?,
+            val omfangetErInnenPersonligOmraad: Boolean?
         )
     }
 
