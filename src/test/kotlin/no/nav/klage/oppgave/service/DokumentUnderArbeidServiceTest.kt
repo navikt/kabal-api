@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.service
 import com.ninjasquad.springmockk.MockkBean
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.DefaultKabalSmartEditorApiGateway
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidJournalpostId
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidDokarkivReference
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.dokument.service.*
@@ -131,8 +131,9 @@ class DokumentUnderArbeidServiceTest {
         dokumentUnderArbeidService.debugfunction(
             UUID.fromString("0a57804e-6da4-4e4b-9f74-33e8791dbe7e"),
             setOf(
-                DokumentUnderArbeidJournalpostId(
-                    journalpostId = "journalpostId"
+                DokumentUnderArbeidDokarkivReference(
+                    journalpostId = "journalpostId",
+                    dokumentInfoId = "dokumentInfoId",
                 )
             )
         )

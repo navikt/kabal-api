@@ -22,9 +22,9 @@ class DokumentUnderArbeidCommonService(
     }
 
     fun findHoveddokumenterByBehandlingIdAndHasJournalposter(behandlingId: UUID): Set<DokumentUnderArbeidAsHoveddokument> {
-        return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndJournalposterIsNotEmpty(
+        return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndDokarkivReferencesIsNotEmpty(
             behandlingId
-        ) + smartdokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndJournalposterIsNotEmpty(behandlingId)
+        ) + smartdokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndDokarkivReferencesIsNotEmpty(behandlingId)
     }
 
     fun findHoveddokumenterByMarkertFerdigNotNullAndFerdigstiltNull(): Set<DokumentUnderArbeidAsHoveddokument> {

@@ -1,15 +1,19 @@
 package no.nav.klage.oppgave.clients.kabaldocument.model.response
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import java.util.*
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DokumentEnhetFullfoerOutput(
-    val brevMottakerWithJoarkAndDokDistInfoList: List<BrevmottakerWithJoarkAndDokDistInfo>
+    val sourceReferenceWithJoarkReferencesList: List<SourceReferenceWithJoarkReferences>,
 )
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class BrevmottakerWithJoarkAndDokDistInfo(
-    val journalpostId: JournalpostId,
+data class SourceReferenceWithJoarkReferences(
+    val sourceReference: UUID?,
+    val joarkReferenceList: List<JoarkReference>
 )
 
-data class JournalpostId(val value: String)
+data class JoarkReference(
+    val journalpostId: String,
+    val dokumentInfoId: String,
+)

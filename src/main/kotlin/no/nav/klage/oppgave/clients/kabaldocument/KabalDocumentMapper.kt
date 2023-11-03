@@ -42,7 +42,8 @@ class KabalDocumentMapper(
         val innholdsfortegnelseDocument = if (innholdsfortegnelse != null && vedlegg.size > 1) {
             DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument(
                 mellomlagerId = innholdsfortegnelse.mellomlagerId!!,
-                name = "Innholdsfortegnelse"
+                name = "Innholdsfortegnelse",
+                sourceReference = null,
             )
         } else null
 
@@ -119,6 +120,7 @@ class KabalDocumentMapper(
         return DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument(
             mellomlagerId = dokument.mellomlagerId!!,
             name = dokument.name,
+            sourceReference = dokument.id,
         )
     }
 
