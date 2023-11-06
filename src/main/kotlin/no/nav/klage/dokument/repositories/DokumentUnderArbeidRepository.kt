@@ -13,5 +13,4 @@ interface DokumentUnderArbeidRepository : JpaRepository<DokumentUnderArbeid, UUI
     fun findByBehandlingIdAndFerdigstiltIsNull(behandlingId: UUID): List<DokumentUnderArbeid>
 
     fun findByBehandlingIdAndMarkertFerdigIsNull(behandlingId: UUID): Set<DokumentUnderArbeid>
-
 }

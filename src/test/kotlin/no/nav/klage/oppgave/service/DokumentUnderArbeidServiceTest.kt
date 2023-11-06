@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.service
 import com.ninjasquad.springmockk.MockkBean
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.DefaultKabalSmartEditorApiGateway
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidJournalpostId
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.dokument.service.*
@@ -15,7 +14,6 @@ import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.BehandlingRole.KABAL_SAKSBEHANDLING
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
@@ -124,17 +122,5 @@ class DokumentUnderArbeidServiceTest {
             modified = LocalDateTime.now(),
         )
         dokumentUnderArbeidRepository.save(hovedDokument)
-    }
-
-    @Test
-    fun `updateJournalposter`() {
-        dokumentUnderArbeidService.debugfunction(
-            UUID.fromString("0a57804e-6da4-4e4b-9f74-33e8791dbe7e"),
-            setOf(
-                DokumentUnderArbeidJournalpostId(
-                    journalpostId = "journalpostId"
-                )
-            )
-        )
     }
 }

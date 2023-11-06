@@ -4,7 +4,10 @@ import jakarta.persistence.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.DokumentTypeConverter
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.DynamicUpdate
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
 import java.time.LocalDateTime
 import java.util.*
 
@@ -38,6 +41,11 @@ abstract class DokumentUnderArbeid(
     @Column(name = "creator_role")
     @Enumerated(EnumType.STRING)
     open var creatorRole: BehandlingRole,
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = false)
+    @Fetch(FetchMode.SELECT)
+    @BatchSize(size = 5)
+    var dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
 ) : Comparable<DokumentUnderArbeid> {
 
     override fun compareTo(other: DokumentUnderArbeid): Int =

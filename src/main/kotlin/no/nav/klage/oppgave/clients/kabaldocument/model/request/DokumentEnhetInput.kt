@@ -1,5 +1,7 @@
 package no.nav.klage.oppgave.clients.kabaldocument.model.request
 
+import java.util.*
+
 data class DokumentEnhetWithDokumentreferanserInput(
     val brevMottakere: List<BrevmottakerInput>,
     val journalfoeringData: JournalfoeringDataInput,
@@ -15,6 +17,7 @@ data class DokumentEnhetWithDokumentreferanserInput(
         data class Dokument(
             val mellomlagerId: String,
             val name: String,
+            val sourceReference: UUID?,
         )
 
         data class JournalfoertDokument(

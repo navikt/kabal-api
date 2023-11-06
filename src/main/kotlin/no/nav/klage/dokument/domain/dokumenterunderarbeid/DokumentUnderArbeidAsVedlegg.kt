@@ -24,6 +24,7 @@ abstract class DokumentUnderArbeidAsVedlegg(
     creatorIdent: String,
     creatorRole: BehandlingRole,
     dokumentType: DokumentType?,
+    dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
 ) : DokumentUnderArbeid(
     id = id,
     name = name,
@@ -36,4 +37,5 @@ abstract class DokumentUnderArbeidAsVedlegg(
     creatorIdent = creatorIdent,
     creatorRole = creatorRole,
     dokumentType = dokumentType,
+    dokarkivReferences = dokarkivReferences,
 )

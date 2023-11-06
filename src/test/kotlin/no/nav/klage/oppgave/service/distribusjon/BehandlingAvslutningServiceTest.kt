@@ -13,13 +13,11 @@ import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
-import no.nav.klage.oppgave.clients.kabaldocument.model.response.BrevmottakerWithJoarkAndDokDistInfo
-import no.nav.klage.oppgave.clients.kabaldocument.model.response.JournalpostId
+import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFullfoerOutput
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
-
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
@@ -208,10 +206,8 @@ internal class BehandlingAvslutningServiceTest {
     fun `distribusjon av klagebehandling fører til avsluttet klagebehandling`() {
 
         every { kafkaEventRepository.save(any()) } returns mockk()
-        every { kabalDocumentGateway.fullfoerDokumentEnhet(any()) } returns listOf(
-            BrevmottakerWithJoarkAndDokDistInfo(
-                journalpostId = JournalpostId(value = journalpostId),
-            )
+        every { kabalDocumentGateway.fullfoerDokumentEnhet(any()) } returns DokumentEnhetFullfoerOutput(
+            sourceReferenceWithJoarkReferencesList = listOf(),
         )
 
         mottakRepository.save(mottak)

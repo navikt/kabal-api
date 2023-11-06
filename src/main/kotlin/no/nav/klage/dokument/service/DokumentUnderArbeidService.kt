@@ -503,57 +503,6 @@ class DokumentUnderArbeidService(
         return dokument
     }
 
-    fun debugfunction(
-        dokumentId: UUID,
-        journalpostIdSet: Set<DokumentUnderArbeidJournalpostId>
-    ) {
-        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
-        if (dokument !is DokumentUnderArbeidAsHoveddokument) {
-            throw RuntimeException("this document does not support journalposter.")
-        }
-//        val oldValue = dokument.journalposter
-
-        dokument.journalposter.clear()
-        dokument.journalposter.addAll(journalpostIdSet)
-        dokumentUnderArbeidRepository.save(dokument)
-    }
-
-
-    private fun updateJournalposter(
-        behandlingId: UUID,
-        dokumentId: UUID,
-        journalpostIdSet: Set<DokumentUnderArbeidJournalpostId>
-    ): DokumentUnderArbeid {
-        logger.debug("updateJournalposter for dokument with id {}", dokumentId)
-        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
-
-        if (dokument !is DokumentUnderArbeidAsHoveddokument) {
-            throw RuntimeException("this document does not support journalposter.")
-        }
-
-        logger.debug("in updateJournalposter() found document ({}) with journalposter: {}", dokumentId, dokument.journalposter)
-
-        val behandling = behandlingService.getBehandlingForUpdateBySystembruker(behandlingId)
-
-        val oldValue = dokument.journalposter
-
-        dokument.journalposter.clear()
-        dokument.journalposter.addAll(journalpostIdSet)
-
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = SYSTEMBRUKER,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_JOURNALPOST_ID,
-            fraVerdi = oldValue.joinToString { it.journalpostId },
-            tilVerdi = dokument.journalposter.joinToString { it.journalpostId },
-            tidspunkt = LocalDateTime.now(),
-            dokumentId = dokument.id,
-        )
-
-        logger.debug("in updateJournalposter() updated document ({}) with journalposter. Now has: {}", dokumentId, dokument.journalposter)
-
-        return dokument
-    }
-
     fun validateIfSmartDokument(
         dokumentId: UUID
     ): List<DocumentValidationResponse> {
@@ -642,15 +591,15 @@ class DokumentUnderArbeidService(
 
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = ident) }
 
-/*
-        //Don't create innholdsfortegnelse yet
+        /*
+                //Don't create innholdsfortegnelse yet
 
-        if (vedlegg.size > 1) {
-            innholdsfortegnelseService.saveInnholdsfortegnelse(
-                dokumentId,
-                mapBrevmottakerIdentToBrevmottakerInput.map { it.navn })
-        }
-*/
+                if (vedlegg.size > 1) {
+                    innholdsfortegnelseService.saveInnholdsfortegnelse(
+                        dokumentId,
+                        mapBrevmottakerIdentToBrevmottakerInput.map { it.navn })
+                }
+        */
 
         behandling.publishEndringsloggEvent(
             saksbehandlerident = ident,
@@ -1087,27 +1036,38 @@ class DokumentUnderArbeidService(
             hovedDokument.dokumentEnhetId,
             hovedDokumentId
         )
-        val documentInfoList =
+        val dokumentEnhetFullfoerOutput =
             kabalDocumentGateway.fullfoerDokumentEnhet(dokumentEnhetId = hovedDokument.dokumentEnhetId!!)
 
+        val journalpostIdSet = dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.flatMap {
+            it.joarkReferenceList.map { joarkReference ->
+                joarkReference.journalpostId
+            }
+        }.toSet()
 
-        logger.debug("addSaksdokument to behandling for hoveddokument with id {}", hovedDokumentId)
-        documentInfoList.forEach { documentInfo ->
-            val journalpost = safClient.getJournalpostAsSystembruker(documentInfo.journalpostId.value)
-
+        journalpostIdSet.forEach { documentInfo ->
+            val journalpost = safClient.getJournalpostAsSystembruker(documentInfo)
+            val saksbehandlerIdent = SYSTEMBRUKER
             val saksdokumenter = journalpost.mapToSaksdokumenter()
+
             saksdokumenter.forEach { saksdokument ->
-                val saksbehandlerIdent = SYSTEMBRUKER
                 behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
                     ?.also { applicationEventPublisher.publishEvent(it) }
             }
         }
 
-        updateJournalposter(
-            behandlingId = behandling.id,
-            dokumentId = hovedDokumentId,
-            journalpostIdSet = HashSet(documentInfoList.map { DokumentUnderArbeidJournalpostId(journalpostId = it.journalpostId.value) })
-        )
+        dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.forEach { sourceReferenceWithJoarkReferences ->
+            val currentDokumentUnderArbeid =
+                dokumentUnderArbeidRepository.getReferenceById(sourceReferenceWithJoarkReferences.sourceReference!!)
+            sourceReferenceWithJoarkReferences.joarkReferenceList.forEach { joarkReference ->
+                currentDokumentUnderArbeid.dokarkivReferences.add(
+                    DokumentUnderArbeidDokarkivReference(
+                        journalpostId = joarkReference.journalpostId,
+                        dokumentInfoId = joarkReference.dokumentInfoId,
+                    )
+                )
+            }
+        }
 
         val now = LocalDateTime.now()
 
