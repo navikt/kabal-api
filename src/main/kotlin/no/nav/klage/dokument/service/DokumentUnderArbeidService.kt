@@ -511,56 +511,11 @@ class DokumentUnderArbeidService(
         if (dokument !is DokumentUnderArbeidAsHoveddokument) {
             throw RuntimeException("this document does not support journalposter.")
         }
-//        val oldValue = dokument.journalposter
 
         dokument.dokarkivReferences.clear()
         dokument.dokarkivReferences.addAll(journalpostIdSet)
         dokumentUnderArbeidRepository.save(dokument)
     }
-
-
-//    private fun updateJournalpostInHoveddokument(
-//        behandlingId: UUID,
-//        dokumentId: UUID,
-//        journalpostIdSet: Set<DokumentUnderArbeidDokarkivReference>
-//    ): DokumentUnderArbeid {
-//        logger.debug("updateJournalposter for dokument with id {}", dokumentId)
-//        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
-//
-//        if (dokument !is DokumentUnderArbeidAsHoveddokument) {
-//            throw RuntimeException("this document does not support journalposter.")
-//        }
-//
-//        logger.debug(
-//            "in updateJournalposter() found document ({}) with journalposter: {}",
-//            dokumentId,
-//            dokument.dokarkivReferences
-//        )
-//
-//        val behandling = behandlingService.getBehandlingForUpdateBySystembruker(behandlingId)
-//
-//        val oldValue = dokument.dokarkivReferences
-//
-//        dokument.dokarkivReferences.clear()
-//        dokument.dokarkivReferences.addAll(journalpostIdSet)
-//
-//        behandling.publishEndringsloggEvent(
-//            saksbehandlerident = SYSTEMBRUKER,
-//            felt = Felt.DOKUMENT_UNDER_ARBEID_JOURNALPOST_ID,
-//            fraVerdi = oldValue.joinToString { it.journalpostId },
-//            tilVerdi = dokument.dokarkivReferences.joinToString { it.journalpostId },
-//            tidspunkt = LocalDateTime.now(),
-//            dokumentId = dokument.id,
-//        )
-//
-//        logger.debug(
-//            "in updateJournalposter() updated document ({}) with journalposter. Now has: {}",
-//            dokumentId,
-//            dokument.dokarkivReferences
-//        )
-//
-//        return dokument
-//    }
 
     fun validateIfSmartDokument(
         dokumentId: UUID
