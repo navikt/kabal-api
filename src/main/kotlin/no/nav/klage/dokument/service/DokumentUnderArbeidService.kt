@@ -1098,11 +1098,26 @@ class DokumentUnderArbeidService(
         val dokumentEnhetFullfoerOutput =
             kabalDocumentGateway.fullfoerDokumentEnhet(dokumentEnhetId = hovedDokument.dokumentEnhetId!!)
 
+        val journalpostIdSet = dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.flatMap {
+            it.joarkReferenceList.map { joarkReference ->
+                joarkReference.journalpostId
+            }
+        }.toSet()
 
-        logger.debug("addSaksdokument to behandling for hoveddokument with id {}", hovedDokumentId)
+        journalpostIdSet.forEach { documentInfo ->
+            val journalpost = safClient.getJournalpostAsSystembruker(documentInfo)
+            val saksbehandlerIdent = SYSTEMBRUKER
+            val saksdokumenter = journalpost.mapToSaksdokumenter()
 
-        dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.forEachIndexed { index, sourceReferenceWithJoarkReferences ->
-            val currentDokumentUnderArbeid = dokumentUnderArbeidRepository.getReferenceById(sourceReferenceWithJoarkReferences.sourceReference!!)
+            saksdokumenter.forEach { saksdokument ->
+                behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
+                    ?.also { applicationEventPublisher.publishEvent(it) }
+            }
+        }
+
+        dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.forEach { sourceReferenceWithJoarkReferences ->
+            val currentDokumentUnderArbeid =
+                dokumentUnderArbeidRepository.getReferenceById(sourceReferenceWithJoarkReferences.sourceReference!!)
             sourceReferenceWithJoarkReferences.joarkReferenceList.forEach { joarkReference ->
                 currentDokumentUnderArbeid.dokarkivReferences.add(
                     DokumentUnderArbeidDokarkivReference(
@@ -1110,15 +1125,6 @@ class DokumentUnderArbeidService(
                         dokumentInfoId = joarkReference.dokumentInfoId,
                     )
                 )
-
-                val saksbehandlerIdent = SYSTEMBRUKER
-                val saksdokument = Saksdokument(
-                    journalpostId = joarkReference.journalpostId,
-                    dokumentInfoId = joarkReference.dokumentInfoId,
-                )
-
-                behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
-                    ?.also { applicationEventPublisher.publishEvent(it) }
             }
         }
 
