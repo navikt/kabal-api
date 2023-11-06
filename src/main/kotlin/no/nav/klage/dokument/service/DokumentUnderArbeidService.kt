@@ -503,20 +503,6 @@ class DokumentUnderArbeidService(
         return dokument
     }
 
-    fun debugfunction(
-        dokumentId: UUID,
-        journalpostIdSet: Set<DokumentUnderArbeidDokarkivReference>
-    ) {
-        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
-        if (dokument !is DokumentUnderArbeidAsHoveddokument) {
-            throw RuntimeException("this document does not support journalposter.")
-        }
-
-        dokument.dokarkivReferences.clear()
-        dokument.dokarkivReferences.addAll(journalpostIdSet)
-        dokumentUnderArbeidRepository.save(dokument)
-    }
-
     fun validateIfSmartDokument(
         dokumentId: UUID
     ): List<DocumentValidationResponse> {
