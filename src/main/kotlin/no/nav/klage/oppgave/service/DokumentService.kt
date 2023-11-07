@@ -7,12 +7,14 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.api.view.JournalfoertDokumentMetadata
+import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.graphql.*
 import no.nav.klage.oppgave.clients.saf.rest.SafRestClient
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.DocumentToMerge
 import no.nav.klage.oppgave.domain.klage.MergedDocument
 import no.nav.klage.oppgave.domain.klage.Saksdokument
+import no.nav.klage.oppgave.exceptions.IllegalUpdateException
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.repositories.MergedDocumentRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -46,6 +48,7 @@ class DokumentService(
     private val safClient: SafGraphQlClient,
     private val mergedDocumentRepository: MergedDocumentRepository,
     private val dokumentMapper: DokumentMapper,
+    private val kabalDocumentGateway: KabalDocumentGateway,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -310,4 +313,28 @@ class DokumentService(
     }
 
     fun getMergedDocument(id: UUID) = mergedDocumentRepository.getReferenceById(id)
+
+    fun updateDocumentTitle(
+        journalpostId: String,
+        dokumentInfoId: String,
+        title: String
+    ) {
+        validateJournalpostChange(journalpostId = journalpostId)
+
+        return kabalDocumentGateway.updateDocumentTitle(
+            journalpostId = journalpostId,
+            dokumentInfoId = dokumentInfoId,
+            title = title
+        )
+    }
+
+    private fun validateJournalpostChange(journalpostId: String) {
+        val journalpost = safClient.getJournalpostAsSaksbehandler(journalpostId = journalpostId)
+        val datoJournalfoert = journalpost.relevanteDatoer?.find { it.datotype == Datotype.DATO_JOURNALFOERT }?.dato
+        val journalpostType = journalpost.journalposttype
+
+        if (journalpostType == Journalposttype.I && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true) {
+            throw IllegalUpdateException("Kan ikke oppdatere tittel på inngående dokument journalført for over et år siden.")
+        }
+    }
 }

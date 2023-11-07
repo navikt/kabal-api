@@ -4,6 +4,8 @@ class DuplicateOversendelseException(msg: String) : RuntimeException(msg)
 
 class JournalpostNotFoundException(msg: String) : ValidationException(msg)
 
+class IllegalUpdateException(msg: String) : RuntimeException(msg)
+
 class BehandlingNotFoundException(msg: String) : RuntimeException(msg)
 
 class MeldingNotFoundException(msg: String) : RuntimeException(msg)

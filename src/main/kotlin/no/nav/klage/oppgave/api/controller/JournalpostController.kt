@@ -4,7 +4,10 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
-import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.api.view.JournalfoertDokumentMetadata
+import no.nav.klage.oppgave.api.view.MergedDocumentsMetadata
+import no.nav.klage.oppgave.api.view.ReferenceToMergedDocumentsResponse
+import no.nav.klage.oppgave.api.view.UpdateDocumentTitleView
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.DokumentService
@@ -57,7 +60,8 @@ class JournalpostController(
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger,
         )
-        kabalDocumentClient.updateDocumentTitle(
+
+        dokumentService.updateDocumentTitle(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId,
             title = input.tittel
