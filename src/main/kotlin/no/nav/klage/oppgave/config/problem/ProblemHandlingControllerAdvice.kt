@@ -183,6 +183,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     ): ProblemDetail =
         create(HttpStatus.BAD_REQUEST, ex)
 
+    @ExceptionHandler(IllegalUpdateException::class)
+    fun handleIllegalUpdateException(
+        ex: IllegalUpdateException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.BAD_REQUEST, ex)
+
     @ExceptionHandler
     fun handleJsonToPdfValidationException(
         ex: JsonToPdfValidationException,
