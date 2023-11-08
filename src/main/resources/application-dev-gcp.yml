@@ -24,6 +24,9 @@ SAF_SCOPE: dev-fss.teamdokumenthandtering.saf-q1
 OPPGAVE_API_BASE_URL: https://oppgave-q1.dev-fss-pub.nais.io
 OPPGAVE_API_SCOPE: dev-fss.oppgavehandtering.oppgave-q1
 
+OPPGAVE_API_Q2_BASE_URL: https://oppgave.dev-fss-pub.nais.io
+OPPGAVE_API_Q2_SCOPE: dev-fss.oppgavehandtering.oppgave
+
 CLAM_AV_URL: http://clamav.nais-system/scan
 
 FERDIGSTILLE_DOKUMENTER_DELAY_MILLIS: 20000
