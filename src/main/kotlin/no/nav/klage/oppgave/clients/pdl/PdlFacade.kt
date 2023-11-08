@@ -1,9 +1,6 @@
 package no.nav.klage.oppgave.clients.pdl
 
-import no.nav.klage.oppgave.clients.pdl.graphql.HentPersonMapper
-import no.nav.klage.oppgave.clients.pdl.graphql.HentPersonResponse
-import no.nav.klage.oppgave.clients.pdl.graphql.PdlClient
-import no.nav.klage.oppgave.clients.pdl.graphql.PdlPerson
+import no.nav.klage.oppgave.clients.pdl.graphql.*
 import no.nav.klage.oppgave.exceptions.PDLErrorException
 import no.nav.klage.oppgave.exceptions.PDLPersonNotFoundException
 import no.nav.klage.oppgave.util.getLogger
@@ -30,6 +27,11 @@ class PdlFacade(
         val hentPersonResponse: HentPersonResponse = pdlClient.getPersonInfo(fnr)
         val pdlPerson = hentPersonResponse.getPersonOrThrowError(fnr)
         return hentPersonMapper.mapToPerson(fnr, pdlPerson).also { personCacheService.updatePersonCache(it) }
+    }
+
+    fun getAktorId(fnr: String): String {
+        val hentIdenterResponse = pdlClient.getPersonIdents(fnr = fnr)
+        return hentIdenterResponse.data.hentIdenter.identer.find { it.gruppe == Gruppe.AKTORID }?.ident ?: "Fant ikke aktørid"
     }
 
     fun personExists(fnr: String): Boolean {

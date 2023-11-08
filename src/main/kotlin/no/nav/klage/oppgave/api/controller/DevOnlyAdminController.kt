@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
+import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.TokenUtil
@@ -20,6 +21,7 @@ class DevOnlyAdminController(
     private val adminService: AdminService,
     private val tokenUtil: TokenUtil,
     private val behandlingService: BehandlingService,
+    private val pdlFacade: PdlFacade,
 ) {
 
     companion object {
@@ -103,6 +105,14 @@ class DevOnlyAdminController(
             "\ngetAppAccessTokenWithGraphScope\n" to tokenUtil.getAppAccessTokenWithGraphScope(),
 
         )
+    }
+
+    @Unprotected
+    @GetMapping("/internal/aktorid/{fnr}")
+    fun getAktorId(
+        @PathVariable("fnr") fnr: String
+    ): String {
+        return pdlFacade.getAktorId(fnr = fnr)
     }
 
     @Unprotected

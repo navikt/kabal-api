@@ -14,3 +14,12 @@ fun hentPersonQuery(fnr: String): PersonGraphqlQuery {
         PersonGraphqlQuery::class.java.getResource("/pdl/hentPerson.graphql").cleanForGraphql()
     return PersonGraphqlQuery(query, FnrVariables(fnr))
 }
+
+fun hentIdenterQuery(fnr: String): PersonGraphqlQuery {
+    val query =
+        PersonGraphqlQuery::class.java.getResource("/pdl/hentIdenter.graphql").cleanForGraphql()
+    return PersonGraphqlQuery(query, FnrVariables(fnr))
+}
+
+
+

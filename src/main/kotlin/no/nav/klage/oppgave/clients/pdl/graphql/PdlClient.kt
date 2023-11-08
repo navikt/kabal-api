@@ -49,4 +49,20 @@ class PdlClient(
                 .block() ?: throw RuntimeException("Person not found")
         }
     }
+
+    @Retryable
+    fun getPersonIdents(fnr: String): HentIdenterResponse {
+        return runWithTiming {
+            val stsSystembrukerToken = tokenUtil.getAppAccessTokenWithPdlScope()
+            pdlWebClient.post()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $stsSystembrukerToken")
+                .bodyValue(hentIdenterQuery(fnr))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(response, ::getPersonInfo.name, secureLogger)
+                }
+                .bodyToMono<HentIdenterResponse>()
+                .block() ?: throw RuntimeException("Identer not found")
+        }
+    }
 }
