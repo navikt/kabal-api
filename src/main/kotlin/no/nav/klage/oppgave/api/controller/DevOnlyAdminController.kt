@@ -99,7 +99,9 @@ class DevOnlyAdminController(
             "\ngetSaksbehandlerAccessTokenWithGraphScope\n" to tokenUtil.getSaksbehandlerAccessTokenWithGraphScope(),
             "\ngetSaksbehandlerAccessTokenWithSafScope\n" to tokenUtil.getSaksbehandlerAccessTokenWithSafScope(),
             "\ngetSaksbehandlerAccessTokenWithPdlScope\n" to tokenUtil.getSaksbehandlerAccessTokenWithPdlScope(),
+            "\ngetSaksbehandlerAccessTokenWithOppgaveApiScope\n" to tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope(),
             "\ngetAppAccessTokenWithGraphScope\n" to tokenUtil.getAppAccessTokenWithGraphScope(),
+
         )
     }
 
