@@ -14,7 +14,6 @@ import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.DocumentToMerge
 import no.nav.klage.oppgave.domain.klage.MergedDocument
 import no.nav.klage.oppgave.domain.klage.Saksdokument
-import no.nav.klage.oppgave.exceptions.IllegalUpdateException
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.repositories.MergedDocumentRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -319,25 +318,10 @@ class DokumentService(
         dokumentInfoId: String,
         title: String
     ) {
-        validateJournalpostChange(journalpostId = journalpostId)
-
         return kabalDocumentGateway.updateDocumentTitle(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId,
             title = title
         )
-    }
-
-    private fun validateJournalpostChange(journalpostId: String) {
-        val journalpost = safClient.getJournalpostAsSaksbehandler(journalpostId = journalpostId)
-        val datoJournalfoert = journalpost.relevanteDatoer?.find { it.datotype == Datotype.DATO_JOURNALFOERT }?.dato
-        val journalpostType = journalpost.journalposttype
-        val journalStatus = journalpost?.journalstatus
-
-        if (journalpostType == Journalposttype.I
-            && journalStatus == Journalstatus.JOURNALFOERT
-            && datoJournalfoert?.isBefore(LocalDateTime.now().minusYears(1)) == true) {
-            throw IllegalUpdateException("Kan ikke oppdatere tittel på inngående dokument journalført for over et år siden.")
-        }
     }
 }
