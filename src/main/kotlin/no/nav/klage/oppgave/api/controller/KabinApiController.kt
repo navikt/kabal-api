@@ -18,6 +18,7 @@ import java.util.*
 @RequestMapping("/api/internal")
 class KabinApiController(
     private val klagebehandlingService: KlagebehandlingService,
+    private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val mottakService: MottakService,
     private val partSearchService: PartSearchService,
@@ -89,18 +90,18 @@ class KabinApiController(
         )
     }
 
-    @GetMapping("/completedklagebehandlinger/{klagebehandlingId}")
-    fun getCompletedKlagebehandling(
-        @PathVariable klagebehandlingId: UUID
-    ): CompletedKlagebehandling {
+    @GetMapping("/completedklagebehandlinger/{behandlingId}")
+    fun getCompletedBehandling(
+        @PathVariable behandlingId: UUID
+    ): CompletedBehandling {
         logMethodDetails(
-            methodName = ::getCompletedKlagebehandling.name,
+            methodName = ::getCompletedBehandling.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
 
-        return klagebehandlingService.findCompletedKlagebehandlingById(
-            klagebehandlingId = klagebehandlingId
+        return behandlingService.findCompletedBehandlingById(
+            behandlingId = behandlingId
         )
     }
 

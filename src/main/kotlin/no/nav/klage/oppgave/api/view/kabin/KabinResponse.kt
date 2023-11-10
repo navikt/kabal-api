@@ -24,6 +24,23 @@ data class CompletedKlagebehandling(
     val tildeltSaksbehandlerNavn: String?,
 )
 
+data class CompletedBehandling(
+    val behandlingId: UUID,
+    val ytelseId: String,
+    val utfallId: String,
+    val hjemmelId: String,
+    val vedtakDate: LocalDateTime,
+    val sakenGjelder: BehandlingDetaljerView.SakenGjelderView,
+    val klager: BehandlingDetaljerView.PartView,
+    val fullmektig: BehandlingDetaljerView.PartView?,
+    val fagsakId: String,
+    val fagsystem: Fagsystem,
+    val fagsystemId: String,
+    val klageBehandlendeEnhet: String,
+    val tildeltSaksbehandlerIdent: String?,
+    val tildeltSaksbehandlerNavn: String?,
+)
+
 data class Ankemulighet(
     val behandlingId: UUID,
     val typeId: String,
