@@ -110,7 +110,7 @@ class KlagebehandlingRepositoryTest {
     }
 
     @Test
-    fun `get ankemuligheter returns only one with no existing anke`() {
+    fun `get ankemuligheter returns two instances with no existing anke`() {
         val mottak1 = getMottak()
         val mottak2 = getMottak()
         val mottak3 = getMottak()
@@ -124,12 +124,12 @@ class KlagebehandlingRepositoryTest {
         klageWithNoAnke.utfall = Utfall.STADFESTELSE
         klageWithNoAnke.extraUtfallSet = setOf(Utfall.STADFESTELSE)
 
-        val klageWithNoAnkeButNoAnkemulighet = getKlagebehandling(
+        val klageWithNoAnke2 = getKlagebehandling(
             mottakId = mottak1.id
         )
-        klageWithNoAnkeButNoAnkemulighet.avsluttet = LocalDateTime.now()
-        klageWithNoAnkeButNoAnkemulighet.utfall = Utfall.RETUR
-        klageWithNoAnkeButNoAnkemulighet.extraUtfallSet = setOf(Utfall.RETUR)
+        klageWithNoAnke2.avsluttet = LocalDateTime.now()
+        klageWithNoAnke2.utfall = Utfall.RETUR
+        klageWithNoAnke2.extraUtfallSet = setOf(Utfall.RETUR)
 
         val klageWithAnke = getKlagebehandling(
             mottakId = mottak2.id
@@ -138,11 +138,11 @@ class KlagebehandlingRepositoryTest {
         klageWithAnke.utfall = Utfall.STADFESTELSE
         klageWithAnke.extraUtfallSet = setOf(Utfall.STADFESTELSE)
 
-        klagebehandlingRepository.saveAll(listOf(klageWithNoAnke, klageWithNoAnkeButNoAnkemulighet, klageWithAnke))
+        klagebehandlingRepository.saveAll(listOf(klageWithNoAnke, klageWithNoAnke2, klageWithAnke))
 
         val ankebehandling = Ankebehandling(
             klageBehandlendeEnhet = "",
-            klagebehandlingId = klageWithAnke.id,
+            sourceBehandlingId = klageWithAnke.id,
             klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
             sakenGjelder = SakenGjelder(
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
@@ -167,7 +167,7 @@ class KlagebehandlingRepositoryTest {
         testEntityManager.flush()
         testEntityManager.clear()
 
-        assertThat(klagebehandlingRepository.getAnkemuligheter("23452354")).containsExactly(klageWithNoAnke)
+        assertThat(klagebehandlingRepository.getCompletedKlagebehandlinger("23452354")).containsExactly(klageWithNoAnke, klageWithNoAnke2)
     }
 
 

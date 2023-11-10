@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.CompletedKlagebehandling
@@ -44,27 +43,24 @@ class KlagebehandlingService(
         private val secureLogger = getSecureLogger()
     }
 
-    var muligAnkeUtfall = setOf(
-        Utfall.MEDHOLD,
-        Utfall.DELVIS_MEDHOLD,
-        Utfall.STADFESTELSE,
-        Utfall.UGUNST,
-        Utfall.AVVIST
-    )
-
     @Transactional(propagation = Propagation.NEVER)
-    fun findCompletedKlagebehandlingerByPartIdValue(
+    fun getAndMapCompletedKlagebehandlingerByPartIdValue(
         partIdValue: String
     ): List<CompletedKlagebehandling> {
         return try {
             behandlingService.checkLeseTilgang(partIdValue)
-            val results =
-                klagebehandlingRepository.getAnkemuligheter(partIdValue)
+            val results = getCompletedKlagebehandlingerByPartIdValue(partIdValue = partIdValue)
             results.map { it.toCompletedKlagebehandling() }
         } catch (pdlee: PDLErrorException) {
             logger.warn("Returning empty list of CompletedKlagebehandling b/c pdl gave error response. Check secure logs")
             emptyList()
         }
+    }
+
+    fun getCompletedKlagebehandlingerByPartIdValue(
+        partIdValue: String
+    ): List<Klagebehandling> {
+        return klagebehandlingRepository.getCompletedKlagebehandlinger(partIdValue)
     }
 
     fun findCompletedKlagebehandlingById(
@@ -95,31 +91,6 @@ class KlagebehandlingService(
         tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
         tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdent(tildeling!!.saksbehandlerident!!),
     )
-
-    fun findMuligAnkeByPartId(
-        partId: String
-    ): List<MuligAnke> =
-        klagebehandlingRepository.findByAvsluttetIsNotNullAndFeilregistreringIsNull()
-            .filter {
-                it.klager.partId.value == partId &&
-                        muligAnkeUtfall.contains(it.utfall)
-            }
-            .map { it.toMuligAnke() }
-
-    fun findMuligAnkeByPartIdAndKlagebehandlingId(
-        partId: String,
-        klagebehandlingId: UUID
-    ): MuligAnke? {
-        val klagebehandling =
-            klagebehandlingRepository.findByIdAndAvsluttetIsNotNull(klagebehandlingId) ?: return null
-        return if (
-            klagebehandling.klager.partId.value == partId && muligAnkeUtfall.contains(klagebehandling.utfall)
-        ) {
-            klagebehandling.toMuligAnke()
-        } else {
-            null
-        }
-    }
 
     fun createKlagebehandlingFromMottak(mottak: Mottak): Klagebehandling {
         val kvalitetsvurderingVersion = getKakaVersion()

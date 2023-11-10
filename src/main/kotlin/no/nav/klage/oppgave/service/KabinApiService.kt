@@ -5,10 +5,7 @@ import no.nav.klage.kodeverk.infotrygdKlageutfallToUtfall
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
-import no.nav.klage.oppgave.domain.klage.Ankebehandling
-import no.nav.klage.oppgave.domain.klage.Klagebehandling
-import no.nav.klage.oppgave.domain.klage.Mottak
-import no.nav.klage.oppgave.domain.klage.MottakDokumentType
+import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.exceptions.BehandlingNotFoundException
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -21,11 +18,24 @@ class KabinApiService(
     private val saksbehandlerService: SaksbehandlerService,
     private val mottakService: MottakService,
     private val ankebehandlingService: AnkebehandlingService,
+    private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
     private val behandlingService: BehandlingService,
     private val klagebehandlingService: KlagebehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val klageFssProxyClient: KlageFssProxyClient
 ) {
+
+    fun getCombinedAnkemuligheter(partIdValue: String): List<Ankemulighet> {
+        behandlingService.checkLeseTilgang(partIdValue)
+        val ankemuligheterFromKlagebehandlinger =
+            klagebehandlingService.getCompletedKlagebehandlingerByPartIdValue(partIdValue = partIdValue).map { it.toAnkemulighet() }
+        val ankemuligheterFromAnkebehandlinger =
+            ankebehandlingService.getCompletedAnkebehandlingerByPartIdValue(partIdValue = partIdValue).map { it.toAnkemulighet() }
+        val ankemuligheterFromAnkeITrygderettenbehandlinger =
+            ankeITrygderettenbehandlingService.getCompletedAnkeITrygderettenbehandlingerByPartIdValue(partIdValue = partIdValue).map { it.toAnkemulighet() }
+
+        return ankemuligheterFromKlagebehandlinger + ankemuligheterFromAnkebehandlinger + ankemuligheterFromAnkeITrygderettenbehandlinger
+    }
 
     fun createAnke(input: CreateAnkeBasedOnKabinInput): CreatedAnkeResponse {
         val mottakId = mottakService.createAnkeMottakFromKabinInput(input = input)
@@ -68,14 +78,13 @@ class KabinApiService(
         val ankebehandling = ankebehandlingService.getAnkebehandlingFromMottakId(mottakId)
             ?: throw BehandlingNotFoundException("anke not found")
 
-        return if (ankebehandling.klagebehandlingId != null) {
-            val completedKlagebehandling =
-                klagebehandlingService.findCompletedKlagebehandlingById(ankebehandling.klagebehandlingId!!)
+        return if (ankebehandling.sourceBehandlingId != null) {
+            val sourceBehandling = behandlingService.getBehandling(ankebehandling.sourceBehandlingId!!)
             getCreatedAnkebehandlingStatusForKabin(
                 ankebehandling = ankebehandling,
                 mottak = mottak,
-                utfallId = completedKlagebehandling.utfallId,
-                vedtakDate = completedKlagebehandling.vedtakDate,
+                utfallId = sourceBehandling.utfall!!.id,
+                vedtakDate = sourceBehandling.avsluttetAvSaksbehandler!!,
             )
         } else {
             val klageInInfotrygd = klageFssProxyClient.getSak(sakId = ankebehandling.kildeReferanse)
@@ -179,4 +188,23 @@ class KabinApiService(
             },
         )
     }
+
+    private fun Behandling.toAnkemulighet(): Ankemulighet = Ankemulighet(
+        behandlingId = id,
+        ytelseId = ytelse.id,
+        utfallId = utfall!!.id,
+        hjemmelId = hjemler.first().id,
+        vedtakDate = avsluttetAvSaksbehandler!!,
+        sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder),
+        klager = behandlingMapper.getPartView(klager),
+        fullmektig = klager.prosessfullmektig?.let { behandlingMapper.getPartView(it) },
+        fagsakId = fagsakId,
+        fagsystem = fagsystem,
+        fagsystemId = fagsystem.id,
+        klageBehandlendeEnhet = tildeling!!.enhet!!,
+        tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
+        tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdent(tildeling!!.saksbehandlerident!!),
+        typeId = type.id,
+        previouslyUsed = false,
+    )
 }

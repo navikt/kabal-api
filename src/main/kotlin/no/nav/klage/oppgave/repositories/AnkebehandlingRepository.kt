@@ -7,8 +7,8 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
-    fun findByKlagebehandlingIdAndFeilregistreringIsNull(klagebehandlingId: UUID): Ankebehandling?
+interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID>, AnkebehandlingRepositoryCustom {
+    fun findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId: UUID): Ankebehandling?
     fun findByAvsluttetIsNotNullAndFeilregistreringIsNullAndUtfallIn(utfallSet: Set<Utfall>): List<Ankebehandling>
     fun findByMottakId(mottakId: UUID): Ankebehandling?
     fun findByKakaKvalitetsvurderingVersionIs(version: Int): List<Ankebehandling>

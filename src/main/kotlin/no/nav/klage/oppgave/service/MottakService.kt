@@ -8,7 +8,6 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
-import no.nav.klage.oppgave.api.view.AnkeBasertPaaKlageInput
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnCompleteKabinInput
@@ -170,37 +169,17 @@ class MottakService(
     }
 
     @Transactional
-    fun createAnkeMottakBasertPaaKlagebehandlingId(input: AnkeBasertPaaKlageInput): Behandling {
-        val klagebehandlingId = input.klagebehandlingId
-        logger.debug("Prøver å lagre anke basert på klagebehandlingId {}", klagebehandlingId)
-        val klagebehandling = klagebehandlingRepository.getReferenceById(klagebehandlingId)
-
-        validateAnkeCreationBasedOnKlagebehandling(
-            klagebehandling = klagebehandling,
-            klagebehandlingId = klagebehandlingId,
-            ankeJournalpostId = input.innsendtAnkeJournalpostId!!
-        )
-
-        val mottak = mottakRepository.save(klagebehandling.toAnkeMottak(input.innsendtAnkeJournalpostId))
-
-        logger.debug("Har lagret mottak {}, basert på innsendt klagebehandlingId: {}", mottak.id, klagebehandlingId)
-
-        return createBehandlingFromMottakEventListener.createBehandling(MottakLagretEvent(mottak))
-    }
-
-    @Transactional
     fun createAnkeMottakFromKabinInput(input: CreateAnkeBasedOnKabinInput): UUID {
-        val klagebehandlingId = input.klagebehandlingId
-        logger.debug("Prøver å lagre anke basert på Kabin-input med klagebehandlingId {}", klagebehandlingId)
-        val klagebehandling = klagebehandlingRepository.getReferenceById(klagebehandlingId)
+        val sourceId = input.sourceId
+        logger.debug("Prøver å lagre anke basert på Kabin-input med behandlingId {}", sourceId)
+        val sourceBehandling = behandlingRepository.getReferenceById(sourceId)
 
-        validateAnkeCreationBasedOnKlagebehandling(
-            klagebehandling = klagebehandling,
-            klagebehandlingId = klagebehandlingId,
+        validateAnkeCreationBasedOnBehandling(
+            behandling = sourceBehandling,
             ankeJournalpostId = input.ankeDocumentJournalpostId
         )
 
-        val mottak = mottakRepository.save(klagebehandling.toAnkeMottak(input))
+        val mottak = mottakRepository.save(sourceBehandling.toAnkeMottak(input))
 
         publishEventAndUpdateMetrics(
             mottak = mottak,
@@ -210,9 +189,9 @@ class MottakService(
         )
 
         logger.debug(
-            "Har lagret mottak {}, basert på innsendt klagebehandlingId: {} fra Kabin",
+            "Har lagret mottak {}, basert på innsendt behandlingId: {} fra Kabin",
             mottak.id,
-            klagebehandlingId
+            sourceId
         )
 
         return mottak.id
@@ -260,25 +239,24 @@ class MottakService(
         return mottak.id
     }
 
-    private fun validateAnkeCreationBasedOnKlagebehandling(
-        klagebehandling: Klagebehandling,
-        klagebehandlingId: UUID,
+    private fun validateAnkeCreationBasedOnBehandling(
+        behandling: Behandling,
         ankeJournalpostId: String,
     ) {
-        if (klagebehandling.avsluttet == null) {
-            throw PreviousBehandlingNotFinalizedException("Klagebehandling med id $klagebehandlingId er ikke fullført")
+        if (behandling.avsluttet == null) {
+            throw PreviousBehandlingNotFinalizedException("Behandling med id ${behandling.id} er ikke fullført")
         }
 
-        val existingAnke = ankebehandlingRepository.findByKlagebehandlingIdAndFeilregistreringIsNull(klagebehandlingId)
+        val existingAnke = ankebehandlingRepository.findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId = behandling.id)
 
         if (existingAnke != null) {
             val message =
-                "Anke har allerede blitt opprettet på klagebehandling med id $klagebehandlingId"
+                "Anke har allerede blitt opprettet på behandling med id ${behandling.id}"
             logger.warn(message)
             throw DuplicateOversendelseException(message)
         }
 
-        validateDocumentNotAlreadyUsed(ankeJournalpostId, klagebehandling.sakenGjelder.partId.value)
+        validateDocumentNotAlreadyUsed(ankeJournalpostId, behandling.sakenGjelder.partId.value)
     }
 
     private fun validateDocumentNotAlreadyUsed(journalpostId: String, sakenGjelder: String) {
@@ -360,6 +338,7 @@ class MottakService(
     }
 
     fun isDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): Boolean {
+        //TODO: Annen sjekk her?
         return isBehandlingDuplicate(
             fagsystem = fagsystem,
             kildeReferanse = kildeReferanse,
@@ -470,44 +449,7 @@ class MottakService(
         }
     }
 
-    private fun Klagebehandling.toAnkeMottak(innsendtAnkeJournalpostId: String?): Mottak {
-        val innsendtDokument =
-            if (innsendtAnkeJournalpostId != null) {
-                mutableSetOf(
-                    MottakDokument(
-                        type = MottakDokumentType.BRUKERS_ANKE,
-                        journalpostId = innsendtAnkeJournalpostId
-                    )
-                )
-            } else mutableSetOf()
-
-        return Mottak(
-            type = Type.ANKE,
-            klager = klager,
-            sakenGjelder = sakenGjelder,
-            fagsystem = fagsystem,
-            fagsakId = fagsakId,
-            kildeReferanse = kildeReferanse,
-            dvhReferanse = dvhReferanse,
-            //Dette er søkehjemler
-            hjemler = mottakRepository.getReferenceById(id).hjemler,
-            forrigeSaksbehandlerident = tildeling!!.saksbehandlerident,
-            forrigeBehandlendeEnhet = tildeling!!.enhet!!,
-            mottakDokument = innsendtDokument,
-            innsendtDato = LocalDate.now(),
-            brukersHenvendelseMottattNavDato = LocalDate.now(),
-            sakMottattKaDato = LocalDateTime.now(),
-            created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
-            ytelse = ytelse,
-            kommentar = null,
-            forrigeBehandlingId = id,
-            innsynUrl = null,
-            sentFrom = Mottak.Sender.BRUKER,
-        )
-    }
-
-    private fun Klagebehandling.toAnkeMottak(input: CreateAnkeBasedOnKabinInput): Mottak {
+    private fun Behandling.toAnkeMottak(input: CreateAnkeBasedOnKabinInput): Mottak {
         val prosessfullmektig = if (input.fullmektig != null) {
             Prosessfullmektig(
                 partId = PartId(

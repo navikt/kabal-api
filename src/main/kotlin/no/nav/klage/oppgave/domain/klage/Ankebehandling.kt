@@ -18,8 +18,8 @@ class Ankebehandling(
     @Column(name = "klage_behandlende_enhet")
     val klageBehandlendeEnhet: String,
     //Fins i noen tilfeller, men ikke alle.
-    @Column(name = "klage_id")
-    var klagebehandlingId: UUID? = null,
+    @Column(name = "source_behandling_id")
+    var sourceBehandlingId: UUID?,
     @Column(name = "mottak_id")
     val mottakId: UUID? = null,
     @Column(name = "dato_innsendt")

@@ -27,4 +27,6 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID> {
     @Deprecated("See getOne")
     @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
     override fun getOne(id: UUID): Behandling
+
+    fun findByIdAndAvsluttetIsNotNull(id: UUID): Behandling?
 }
