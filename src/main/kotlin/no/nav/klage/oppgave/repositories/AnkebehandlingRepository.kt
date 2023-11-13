@@ -11,5 +11,6 @@ interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID>, Ankebe
     fun findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId: UUID): Ankebehandling?
     fun findByAvsluttetIsNotNullAndFeilregistreringIsNullAndUtfallIn(utfallSet: Set<Utfall>): List<Ankebehandling>
     fun findByMottakId(mottakId: UUID): Ankebehandling?
+    fun findBySourceBehandlingId(sourceBehandlingId: UUID): List<Ankebehandling>?
     fun findByKakaKvalitetsvurderingVersionIs(version: Int): List<Ankebehandling>
 }

@@ -44,7 +44,7 @@ data class CompletedBehandling(
 data class Ankemulighet(
     val behandlingId: UUID,
     val typeId: String,
-    val previouslyUsed: Boolean,
+    val sourceOfAnkebehandlingWithId: List<UUID>?,
     val ytelseId: String,
     val utfallId: String,
     val hjemmelId: String,

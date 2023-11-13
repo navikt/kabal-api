@@ -28,11 +28,14 @@ class KabinApiService(
     fun getCombinedAnkemuligheter(partIdValue: String): List<Ankemulighet> {
         behandlingService.checkLeseTilgang(partIdValue)
         val ankemuligheterFromKlagebehandlinger =
-            klagebehandlingService.getCompletedKlagebehandlingerByPartIdValue(partIdValue = partIdValue).map { it.toAnkemulighet() }
+            klagebehandlingService.getCompletedKlagebehandlingerByPartIdValue(partIdValue = partIdValue)
+                .map { it.toAnkemulighet() }
         val ankemuligheterFromAnkebehandlinger =
-            ankebehandlingService.getCompletedAnkebehandlingerByPartIdValue(partIdValue = partIdValue).map { it.toAnkemulighet() }
+            ankebehandlingService.getCompletedAnkebehandlingerByPartIdValue(partIdValue = partIdValue)
+                .map { it.toAnkemulighet() }
         val ankemuligheterFromAnkeITrygderettenbehandlinger =
-            ankeITrygderettenbehandlingService.getCompletedAnkeITrygderettenbehandlingerByPartIdValue(partIdValue = partIdValue).map { it.toAnkemulighet() }
+            ankeITrygderettenbehandlingService.getCompletedAnkeITrygderettenbehandlingerByPartIdValue(partIdValue = partIdValue)
+                .map { it.toAnkemulighet() }
 
         return ankemuligheterFromKlagebehandlinger + ankemuligheterFromAnkebehandlinger + ankemuligheterFromAnkeITrygderettenbehandlinger
     }
@@ -189,22 +192,26 @@ class KabinApiService(
         )
     }
 
-    private fun Behandling.toAnkemulighet(): Ankemulighet = Ankemulighet(
-        behandlingId = id,
-        ytelseId = ytelse.id,
-        utfallId = utfall!!.id,
-        hjemmelId = hjemler.first().id,
-        vedtakDate = avsluttetAvSaksbehandler!!,
-        sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder),
-        klager = behandlingMapper.getPartView(klager),
-        fullmektig = klager.prosessfullmektig?.let { behandlingMapper.getPartView(it) },
-        fagsakId = fagsakId,
-        fagsystem = fagsystem,
-        fagsystemId = fagsystem.id,
-        klageBehandlendeEnhet = tildeling!!.enhet!!,
-        tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
-        tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdent(tildeling!!.saksbehandlerident!!),
-        typeId = type.id,
-        previouslyUsed = false,
-    )
+    private fun Behandling.toAnkemulighet(): Ankemulighet {
+        val ankebehandlingerBasedOnThisBehandling = ankebehandlingService.getAnkebehandlingerBasedOnId(sourceId = id)
+
+        return Ankemulighet(
+            behandlingId = id,
+            ytelseId = ytelse.id,
+            utfallId = utfall!!.id,
+            hjemmelId = hjemler.first().id,
+            vedtakDate = avsluttetAvSaksbehandler!!,
+            sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder),
+            klager = behandlingMapper.getPartView(klager),
+            fullmektig = klager.prosessfullmektig?.let { behandlingMapper.getPartView(it) },
+            fagsakId = fagsakId,
+            fagsystem = fagsystem,
+            fagsystemId = fagsystem.id,
+            klageBehandlendeEnhet = tildeling!!.enhet!!,
+            tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
+            tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdent(tildeling!!.saksbehandlerident!!),
+            typeId = type.id,
+            sourceOfAnkebehandlingWithId = ankebehandlingerBasedOnThisBehandling?.map { it.id },
+        )
+    }
 }

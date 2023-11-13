@@ -17,7 +17,6 @@ import java.util.*
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/api/internal")
 class KabinApiController(
-    private val klagebehandlingService: KlagebehandlingService,
     private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val mottakService: MottakService,
@@ -75,22 +74,7 @@ class KabinApiController(
         return kabinApiService.getCombinedAnkemuligheter(partIdValue = input.idnummer)
     }
 
-    @PostMapping("/completedklagebehandlinger")
-    fun getCompletedKlagebehandlinger(
-        @RequestBody input: GetCompletedKlagebehandlingerInput
-    ): List<CompletedKlagebehandling> {
-        logMethodDetails(
-            methodName = ::getCompletedKlagebehandlinger.name,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
-        )
-
-        return klagebehandlingService.getAndMapCompletedKlagebehandlingerByPartIdValue(
-            partIdValue = input.idnummer
-        )
-    }
-
-    @GetMapping("/completedklagebehandlinger/{behandlingId}")
+    @GetMapping("/completedbehandlinger/{behandlingId}")
     fun getCompletedBehandling(
         @PathVariable behandlingId: UUID
     ): CompletedBehandling {

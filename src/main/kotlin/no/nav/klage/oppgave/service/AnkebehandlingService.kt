@@ -39,6 +39,10 @@ class AnkebehandlingService(
         return ankebehandlingRepository.findByMottakId(mottakId)
     }
 
+    fun getAnkebehandlingerBasedOnId(sourceId: UUID): List<Ankebehandling>? {
+        return ankebehandlingRepository.findBySourceBehandlingId(sourceBehandlingId = sourceId)
+    }
+
     fun getCompletedAnkebehandlingerByPartIdValue(
         partIdValue: String
     ): List<Ankebehandling> {
