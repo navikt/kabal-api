@@ -5,6 +5,7 @@ import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.dokument.api.view.DokumentViewWithList
 import no.nav.klage.dokument.api.view.SmartEditorDocumentView
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
+import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest.Document.Type
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.DocumentOutput
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
@@ -69,7 +70,7 @@ class DokumentMapper(
         mottakere: List<String>,
         behandling: Behandling,
         hoveddokument: DokumentUnderArbeid,
-    ): Pair<List<InnholdsfortegnelseRequest.Document>, List<InnholdsfortegnelseRequest.Document>> {
+    ): List<InnholdsfortegnelseRequest.Document> {
         val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
             it !is JournalfoertDokumentUnderArbeidAsVedlegg
         }
@@ -82,14 +83,15 @@ class DokumentMapper(
                     behandling = behandling,
                     hoveddokument = hoveddokument,
                 )
-            } to journalfoerteDokumenterUnderArbeid
-            .map {
-                mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
-                    dokumentUnderArbeid = it,
-                    behandling = behandling
-                )
-            }
-            .sortedWith(compareByDescending<InnholdsfortegnelseRequest.Document> { it.opprettet }.thenBy { it.tittel })
+            } +
+                journalfoerteDokumenterUnderArbeid
+                    .map {
+                        mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
+                            dokumentUnderArbeid = it,
+                            behandling = behandling
+                        )
+                    }
+                    .sortedWith(compareByDescending<InnholdsfortegnelseRequest.Document> { it.dato }.thenBy { it.tittel })
     }
 
     fun mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
@@ -109,10 +111,12 @@ class DokumentMapper(
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentInDokarkiv.tittel ?: "Tittel ikke funnet i SAF",
             tema = Tema.fromNavn(journalpost.tema?.name).navn,
-            opprettet = dokumentUnderArbeid.opprettet,
+            dato = dokumentUnderArbeid.opprettet.toLocalDate(),
             avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
             saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
-            type = journalpost.journalposttype?.name ?: "Type ikke funnet i SAF"
+            type = Type.valueOf(
+                journalpost.journalposttype?.name ?: error("Type ikke funnet i SAF")
+            )
         )
     }
 
@@ -125,10 +129,10 @@ class DokumentMapper(
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentUnderArbeid.name,
             tema = behandling.ytelse.toTema().navn,
-            opprettet = LocalDateTime.now(),
+            dato = LocalDateTime.now().toLocalDate(),
             avsenderMottaker = mottakere.joinToString(),
             saksnummer = behandling.fagsakId,
-            type = if (hoveddokument.dokumentType == DokumentType.NOTAT) "N" else "U"
+            type = if (hoveddokument.dokumentType == DokumentType.NOTAT) Type.N else Type.U
         )
     }
 
