@@ -246,16 +246,6 @@ class MottakService(
         if (behandling.avsluttet == null) {
             throw PreviousBehandlingNotFinalizedException("Behandling med id ${behandling.id} er ikke fullført")
         }
-
-        val existingAnke = ankebehandlingRepository.findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId = behandling.id)
-
-        if (existingAnke != null) {
-            val message =
-                "Anke har allerede blitt opprettet på behandling med id ${behandling.id}"
-            logger.warn(message)
-            throw DuplicateOversendelseException(message)
-        }
-
         validateDocumentNotAlreadyUsed(ankeJournalpostId, behandling.sakenGjelder.partId.value)
     }
 

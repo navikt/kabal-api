@@ -20,8 +20,7 @@ class KlagebehandlingRepositoryCustomImpl : KlagebehandlingRepositoryCustom {
             FROM Klagebehandling k
             WHERE k.avsluttet != null            
             AND k.fagsystem != :infotrygdFagsystem
-            AND k.sakenGjelder.partId.value = :sakenGjelder
-            AND (SELECT COUNT(a) FROM Ankebehandling a WHERE a.sourceBehandlingId = k.id AND a.feilregistrering = null) = 0
+            AND k.sakenGjelder.partId.value = :sakenGjelder            
         """,
             Klagebehandling::class.java
         )
