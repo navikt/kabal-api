@@ -110,7 +110,7 @@ class KlagebehandlingRepositoryTest {
     }
 
     @Test
-    fun `get ankemuligheter returns two instances with no existing anke`() {
+    fun `get ankemuligheter returns all three instances`() {
         val mottak1 = getMottak()
         val mottak2 = getMottak()
         val mottak3 = getMottak()
@@ -167,7 +167,7 @@ class KlagebehandlingRepositoryTest {
         testEntityManager.flush()
         testEntityManager.clear()
 
-        assertThat(klagebehandlingRepository.getCompletedKlagebehandlinger("23452354")).containsExactly(klageWithNoAnke, klageWithNoAnke2)
+        assertThat(klagebehandlingRepository.getCompletedKlagebehandlinger("23452354")).containsExactly(klageWithNoAnke, klageWithNoAnke2, klageWithAnke)
     }
 
 
