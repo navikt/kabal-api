@@ -67,7 +67,7 @@ class InnholdsfortegnelseService(
 
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentUnderArbeidId)
 
-        val (dokumenterUnderArbeid, journalfoerteDokumenter) = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+        val documents = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
             allDokumenterUnderArbeid = vedlegg.toList(),
             mottakere = mottakere,
             behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
@@ -77,8 +77,7 @@ class InnholdsfortegnelseService(
         val pdfDocument =
             kabalJsonToPdfClient.getInnholdsfortegnelse(
                 InnholdsfortegnelseRequest(
-                    dokumenterUnderArbeid = dokumenterUnderArbeid,
-                    journalfoerteDokumenter = journalfoerteDokumenter
+                    documents = documents
                 )
             )
 

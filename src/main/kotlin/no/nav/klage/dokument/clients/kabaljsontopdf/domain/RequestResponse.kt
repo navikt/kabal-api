@@ -1,6 +1,6 @@
 package no.nav.klage.dokument.clients.kabaljsontopdf.domain
 
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 data class DocumentValidationResponse(
     val errors: List<DocumentValidationError> = emptyList()
@@ -12,15 +12,20 @@ data class DocumentValidationResponse(
 }
 
 data class InnholdsfortegnelseRequest(
-    val dokumenterUnderArbeid: List<Document>,
-    val journalfoerteDokumenter: List<Document>,
+    val documents: List<Document>,
 ) {
     data class Document(
         val tittel: String,
         val tema: String,
-        val opprettet: LocalDateTime,
+        val dato: LocalDate,
         val avsenderMottaker: String,
         val saksnummer: String,
-        val type: String,
-    )
+        val type: Type,
+    ) {
+        enum class Type {
+            I,
+            U,
+            N,
+        }
+    }
 }
