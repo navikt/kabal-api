@@ -170,12 +170,12 @@ class MottakService(
 
     @Transactional
     fun createAnkeMottakFromKabinInput(input: CreateAnkeBasedOnKabinInput): UUID {
-        val sourceId = input.sourceId
-        logger.debug("Prøver å lagre anke basert på Kabin-input med behandlingId {}", sourceId)
-        val sourceBehandling = behandlingRepository.getReferenceById(sourceId)
+        val sourceBehandlingId = input.sourceBehandlingId
+        logger.debug("Prøver å lagre anke basert på Kabin-input med sourceBehandlingId {}", sourceBehandlingId)
+        val sourceBehandling = behandlingRepository.getReferenceById(sourceBehandlingId)
 
-        validateAnkeCreationBasedOnBehandling(
-            behandling = sourceBehandling,
+        validateAnkeCreationBasedOnSourceBehandling(
+            sourceBehandling = sourceBehandling,
             ankeJournalpostId = input.ankeDocumentJournalpostId
         )
 
@@ -191,7 +191,7 @@ class MottakService(
         logger.debug(
             "Har lagret mottak {}, basert på innsendt behandlingId: {} fra Kabin",
             mottak.id,
-            sourceId
+            sourceBehandlingId
         )
 
         return mottak.id
@@ -239,14 +239,14 @@ class MottakService(
         return mottak.id
     }
 
-    private fun validateAnkeCreationBasedOnBehandling(
-        behandling: Behandling,
+    private fun validateAnkeCreationBasedOnSourceBehandling(
+        sourceBehandling: Behandling,
         ankeJournalpostId: String,
     ) {
-        if (behandling.avsluttet == null) {
-            throw PreviousBehandlingNotFinalizedException("Behandling med id ${behandling.id} er ikke fullført")
+        if (sourceBehandling.avsluttet == null) {
+            throw PreviousBehandlingNotFinalizedException("Behandling med id ${sourceBehandling.id} er ikke fullført")
         }
-        validateDocumentNotAlreadyUsed(ankeJournalpostId, behandling.sakenGjelder.partId.value)
+        validateDocumentNotAlreadyUsed(ankeJournalpostId, sourceBehandling.sakenGjelder.partId.value)
     }
 
     private fun validateDocumentNotAlreadyUsed(journalpostId: String, sakenGjelder: String) {
@@ -328,7 +328,6 @@ class MottakService(
     }
 
     fun isDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): Boolean {
-        //TODO: Annen sjekk her?
         return isBehandlingDuplicate(
             fagsystem = fagsystem,
             kildeReferanse = kildeReferanse,

@@ -39,8 +39,8 @@ class AnkebehandlingService(
         return ankebehandlingRepository.findByMottakId(mottakId)
     }
 
-    fun getAnkebehandlingerBasedOnId(sourceId: UUID): List<Ankebehandling>? {
-        return ankebehandlingRepository.findBySourceBehandlingId(sourceBehandlingId = sourceId)
+    fun getAnkebehandlingerBasedOnSourceBehandlingId(sourceBehandlingId: UUID): List<Ankebehandling> {
+        return ankebehandlingRepository.findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId = sourceBehandlingId)
     }
 
     fun getCompletedAnkebehandlingerByPartIdValue(

@@ -193,7 +193,7 @@ class KabinApiService(
     }
 
     private fun Behandling.toAnkemulighet(): Ankemulighet {
-        val ankebehandlingerBasedOnThisBehandling = ankebehandlingService.getAnkebehandlingerBasedOnId(sourceId = id)
+        val ankebehandlingerBasedOnThisBehandling = ankebehandlingService.getAnkebehandlingerBasedOnSourceBehandlingId(sourceBehandlingId = id)
 
         return Ankemulighet(
             behandlingId = id,
@@ -211,7 +211,7 @@ class KabinApiService(
             tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
             tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdent(tildeling!!.saksbehandlerident!!),
             typeId = type.id,
-            sourceOfAnkebehandlingWithId = ankebehandlingerBasedOnThisBehandling?.map { it.id },
+            sourceOfAnkebehandlingWithId = ankebehandlingerBasedOnThisBehandling.map { it.id },
         )
     }
 }
