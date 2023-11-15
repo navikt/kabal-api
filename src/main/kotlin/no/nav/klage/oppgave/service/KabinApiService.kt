@@ -216,7 +216,7 @@ class KabinApiService(
                     id = it.id,
                     created = it.created,
                     completed = it.avsluttetAvSaksbehandler,
-                ),
+                )
             },
         )
     }
