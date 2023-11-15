@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.IdentifikatorInput
 import no.nav.klage.oppgave.api.view.kabin.*
@@ -38,13 +40,11 @@ class KabinApiController(
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
-        //TODO: Annen sjekk her?
-        return false
-//        return mottakService.isDuplicate(
-//            fagsystem = Fagsystem.of(input.fagsystemId),
-//            kildeReferanse = input.kildereferanse,
-//            type = Type.of(input.typeId)
-//        )
+        return mottakService.isDuplicate(
+            fagsystem = Fagsystem.of(input.fagsystemId),
+            kildeReferanse = input.kildereferanse,
+            type = Type.of(input.typeId)
+        )
     }
 
     @PostMapping("/searchpart")
