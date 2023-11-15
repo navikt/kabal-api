@@ -27,7 +27,7 @@ data class CompletedBehandling(
 data class Ankemulighet(
     val behandlingId: UUID,
     val typeId: String,
-    val sourceOfAnkebehandlingWithId: List<UUID>,
+    val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val ytelseId: String,
     val utfallId: String,
     val hjemmelId: String,
@@ -41,6 +41,12 @@ data class Ankemulighet(
     val klageBehandlendeEnhet: String,
     val tildeltSaksbehandlerIdent: String?,
     val tildeltSaksbehandlerNavn: String?,
+)
+
+data class ExistingAnkebehandling(
+    val id: UUID,
+    val created: LocalDateTime,
+    val completed: LocalDateTime?,
 )
 
 data class CreatedAnkeResponse(

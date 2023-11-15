@@ -21,11 +21,16 @@ interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
             FROM Ankebehandling a
             WHERE a.avsluttet != null            
             AND a.fagsystem != :infotrygdFagsystem
-            AND a.sakenGjelder.partId.value = :partIdValue            
+            AND a.sakenGjelder.partId.value = :partIdValue
+            AND a.utfall NOT IN :utfallWithoutAnkemulighet
         """
     )
     fun getCompletedAnkebehandlinger(
         partIdValue: String,
-        infotrygdFagsystem: Fagsystem = Fagsystem.IT01
+        infotrygdFagsystem: Fagsystem = Fagsystem.IT01,
+        utfallWithoutAnkemulighet: List<Utfall> = listOf(
+            Utfall.INNSTILLING_AVVIST,
+            Utfall.INNSTILLING_STADFESTELSE,
+        )
     ): List<Ankebehandling>
 }

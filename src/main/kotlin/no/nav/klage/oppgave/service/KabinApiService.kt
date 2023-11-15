@@ -211,7 +211,13 @@ class KabinApiService(
             tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
             tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdent(tildeling!!.saksbehandlerident!!),
             typeId = type.id,
-            sourceOfAnkebehandlingWithId = ankebehandlingerBasedOnThisBehandling.map { it.id },
+            sourceOfExistingAnkebehandling = ankebehandlingerBasedOnThisBehandling.map {
+                ExistingAnkebehandling(
+                    id = it.id,
+                    created = it.created,
+                    completed = it.avsluttetAvSaksbehandler,
+                ),
+            },
         )
     }
 }
