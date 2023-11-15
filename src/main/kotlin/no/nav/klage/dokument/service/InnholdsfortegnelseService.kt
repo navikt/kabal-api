@@ -5,6 +5,7 @@ import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Innholdsfortegnelse
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.JournalfoertDokumentUnderArbeidAsVedlegg
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.InnholdsfortegnelseRepository
 import no.nav.klage.oppgave.service.BehandlingService
@@ -24,7 +25,7 @@ class InnholdsfortegnelseService(
     private val kabalJsonToPdfClient: KabalJsonToPdfClient,
     private val innholdsfortegnelseRepository: InnholdsfortegnelseRepository,
     private val behandlingService: BehandlingService,
-    ) {
+) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -35,10 +36,10 @@ class InnholdsfortegnelseService(
         return innholdsfortegnelseRepository.findByHoveddokumentId(hoveddokumentId)
     }
 
-    fun saveInnholdsfortegnelse(dokumentUnderArbeidId: UUID, mottakere: List<String>) {
+    fun saveInnholdsfortegnelse(dokumentUnderArbeidId: UUID) {
         logger.debug("Received saveInnholdsfortegnelse")
 
-        val content = getInnholdsfortegnelseAsPdf(dokumentUnderArbeidId = dokumentUnderArbeidId, mottakere = mottakere)
+        val content = getInnholdsfortegnelseAsPdf(dokumentUnderArbeidId = dokumentUnderArbeidId)
 
         val mellomlagerId =
             mellomlagerService.uploadByteArray(
@@ -56,7 +57,8 @@ class InnholdsfortegnelseService(
         )
     }
 
-    fun getInnholdsfortegnelseAsPdf(dokumentUnderArbeidId: UUID, mottakere: List<String> = emptyList()): ByteArray {
+    @Suppress("UNCHECKED_CAST")
+    fun getInnholdsfortegnelseAsPdf(dokumentUnderArbeidId: UUID): ByteArray {
         logger.debug("Received getInnholdsfortegnelseAsPdf")
 
         val document = dokumentUnderArbeidRepository.getReferenceById(dokumentUnderArbeidId)
@@ -67,17 +69,20 @@ class InnholdsfortegnelseService(
 
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentUnderArbeidId)
 
-        val documents = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-            allDokumenterUnderArbeid = vedlegg.toList(),
-            mottakere = mottakere,
-            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
-            hoveddokument = document,
-        )
+        if (vedlegg.any { it !is JournalfoertDokumentUnderArbeidAsVedlegg }) {
+            error("All documents must be JournalfoertDokumentUnderArbeidAsVedlegg")
+        } else {
+            vedlegg as Set<JournalfoertDokumentUnderArbeidAsVedlegg>
+        }
 
         val pdfDocument =
             kabalJsonToPdfClient.getInnholdsfortegnelse(
                 InnholdsfortegnelseRequest(
-                    documents = documents
+                    documents = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                        journalfoerteDokumenterUnderArbeid = vedlegg,
+                        behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
+                        hoveddokument = document,
+                    )
                 )
             )
 

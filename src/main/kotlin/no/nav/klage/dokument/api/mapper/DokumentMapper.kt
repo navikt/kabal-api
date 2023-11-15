@@ -12,7 +12,6 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.JournalfoertDokumentUnderArbeidAsVedlegg
-import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.DokumentReferanse
@@ -66,73 +65,37 @@ class DokumentMapper(
     }
 
     fun getSortedDokumentViewListForInnholdsfortegnelse(
-        allDokumenterUnderArbeid: List<DokumentUnderArbeid>,
-        mottakere: List<String>,
+        journalfoerteDokumenterUnderArbeid: Set<JournalfoertDokumentUnderArbeidAsVedlegg>,
         behandling: Behandling,
         hoveddokument: DokumentUnderArbeid,
     ): List<InnholdsfortegnelseRequest.Document> {
-        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
-            it !is JournalfoertDokumentUnderArbeidAsVedlegg
-        }
-
-        return dokumenterUnderArbeid.sortedByDescending { it.created }
+        return journalfoerteDokumenterUnderArbeid
             .map {
-                mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
-                    dokumentUnderArbeid = it,
-                    mottakere = mottakere,
-                    behandling = behandling,
-                    hoveddokument = hoveddokument,
+                mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
+                    journalfoertDokumentUnderArbeidAsVedlegg = it,
                 )
-            } +
-                journalfoerteDokumenterUnderArbeid
-                    .map {
-                        mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
-                            dokumentUnderArbeid = it,
-                            behandling = behandling
-                        )
-                    }
-                    .sortedWith(compareByDescending<InnholdsfortegnelseRequest.Document> { it.dato }.thenBy { it.tittel })
+            }
+            .sortedWith(compareByDescending<InnholdsfortegnelseRequest.Document> { it.dato }.thenBy { it.tittel })
     }
 
-    fun mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
-        dokumentUnderArbeid: DokumentUnderArbeid,
-        mottakere: List<String> = emptyList(),
-        behandling: Behandling,
+    private fun mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
+        journalfoertDokumentUnderArbeidAsVedlegg: JournalfoertDokumentUnderArbeidAsVedlegg,
     ): InnholdsfortegnelseRequest.Document {
-        if (dokumentUnderArbeid !is JournalfoertDokumentUnderArbeidAsVedlegg) {
-            error("Document must be JOURNALFOERT")
-        }
         val journalpost =
-            safClient.getJournalpostAsSaksbehandler(dokumentUnderArbeid.journalpostId)
+            safClient.getJournalpostAsSaksbehandler(journalfoertDokumentUnderArbeidAsVedlegg.journalpostId)
         val dokumentInDokarkiv =
-            journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+            journalpost.dokumenter?.find { it.dokumentInfoId == journalfoertDokumentUnderArbeidAsVedlegg.dokumentInfoId }
                 ?: throw RuntimeException("Document not found in Dokarkiv")
 
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentInDokarkiv.tittel ?: "Tittel ikke funnet i SAF",
             tema = Tema.fromNavn(journalpost.tema?.name).navn,
-            dato = dokumentUnderArbeid.opprettet.toLocalDate(),
+            dato = journalfoertDokumentUnderArbeidAsVedlegg.opprettet.toLocalDate(),
             avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
             saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
             type = Type.valueOf(
                 journalpost.journalposttype?.name ?: error("Type ikke funnet i SAF")
             )
-        )
-    }
-
-    fun mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
-        dokumentUnderArbeid: DokumentUnderArbeid,
-        mottakere: List<String> = emptyList(),
-        behandling: Behandling,
-        hoveddokument: DokumentUnderArbeid,
-    ): InnholdsfortegnelseRequest.Document {
-        return InnholdsfortegnelseRequest.Document(
-            tittel = dokumentUnderArbeid.name,
-            tema = behandling.ytelse.toTema().navn,
-            dato = LocalDateTime.now().toLocalDate(),
-            avsenderMottaker = mottakere.joinToString(),
-            saksnummer = behandling.fagsakId,
-            type = if (hoveddokument.dokumentType == DokumentType.NOTAT) Type.N else Type.U
         )
     }
 

@@ -597,7 +597,7 @@ class DokumentUnderArbeidService(
                 if (vedlegg.size > 1) {
                     innholdsfortegnelseService.saveInnholdsfortegnelse(
                         dokumentId,
-                        mapBrevmottakerIdentToBrevmottakerInput.map { it.navn })
+                    )
                 }
         */
 
