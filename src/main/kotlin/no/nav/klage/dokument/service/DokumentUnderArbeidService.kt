@@ -703,6 +703,44 @@ class DokumentUnderArbeidService(
         )
     }
 
+    fun getHtmlDocument(
+        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        dokumentId: UUID,
+        innloggetIdent: String
+    ): String {
+        val dokument =
+            dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+
+        //Sjekker tilgang på behandlingsnivå:
+        behandlingService.getBehandling(dokument.behandlingId)
+
+        if (dokument !is DokumentUnderArbeidAsSmartdokument) {
+            error("Only available for smartdokument")
+        }
+
+        val documentJson = smartEditorApiGateway.getDocumentAsJson(dokument.smartEditorId)
+        return kabalJsonToPdfClient.getHTML(documentJson)
+    }
+
+    fun getPdfToHtmlDocument(
+        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        dokumentId: UUID,
+        innloggetIdent: String
+    ): String {
+        val dokument =
+            dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+
+        //Sjekker tilgang på behandlingsnivå:
+        behandlingService.getBehandling(dokument.behandlingId)
+
+        if (dokument !is DokumentUnderArbeidAsSmartdokument) {
+            error("Only available for smartdokument")
+        }
+
+        val documentJson = smartEditorApiGateway.getDocumentAsJson(dokument.smartEditorId)
+        return kabalJsonToPdfClient.getPDFHTML(documentJson)
+    }
+
     fun getFysiskDokument(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
