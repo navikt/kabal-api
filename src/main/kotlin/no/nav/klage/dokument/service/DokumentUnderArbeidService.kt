@@ -591,15 +591,11 @@ class DokumentUnderArbeidService(
 
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = ident) }
 
-        /*
-                //Don't create innholdsfortegnelse yet
-
-                if (vedlegg.size > 1) {
-                    innholdsfortegnelseService.saveInnholdsfortegnelse(
-                        dokumentId,
-                    )
-                }
-        */
+        if (vedlegg.size > 1) {
+            innholdsfortegnelseService.saveInnholdsfortegnelse(
+                dokumentId,
+            )
+        }
 
         behandling.publishEndringsloggEvent(
             saksbehandlerident = ident,
@@ -1056,18 +1052,19 @@ class DokumentUnderArbeidService(
             }
         }
 
-        dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.forEach { sourceReferenceWithJoarkReferences ->
-            val currentDokumentUnderArbeid =
-                dokumentUnderArbeidRepository.getReferenceById(sourceReferenceWithJoarkReferences.sourceReference!!)
-            sourceReferenceWithJoarkReferences.joarkReferenceList.forEach { joarkReference ->
-                currentDokumentUnderArbeid.dokarkivReferences.add(
-                    DokumentUnderArbeidDokarkivReference(
-                        journalpostId = joarkReference.journalpostId,
-                        dokumentInfoId = joarkReference.dokumentInfoId,
+        dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.filter { it.sourceReference != null }
+            .forEach { sourceReferenceWithJoarkReferences ->
+                val currentDokumentUnderArbeid =
+                    dokumentUnderArbeidRepository.getReferenceById(sourceReferenceWithJoarkReferences.sourceReference!!)
+                sourceReferenceWithJoarkReferences.joarkReferenceList.forEach { joarkReference ->
+                    currentDokumentUnderArbeid.dokarkivReferences.add(
+                        DokumentUnderArbeidDokarkivReference(
+                            journalpostId = joarkReference.journalpostId,
+                            dokumentInfoId = joarkReference.dokumentInfoId,
+                        )
                     )
-                )
+                }
             }
-        }
 
         val now = LocalDateTime.now()
 
