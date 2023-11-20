@@ -20,6 +20,7 @@ import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getSortKey
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -58,9 +59,8 @@ class DokumentMapper(
 
         return dokumenterUnderArbeid.sortedByDescending { it.created }
             .map { mapToDokumentView(it) }
-            .plus(journalfoerteDokumenterUnderArbeid
+            .plus(journalfoerteDokumenterUnderArbeid.sortedByDescending { (it as JournalfoertDokumentUnderArbeidAsVedlegg).sortKey }
                 .map { mapToDokumentView(it) }
-                .sortedWith(compareByDescending<DokumentView> { it.journalfoertDokumentReference?.datoOpprettet }.thenBy { it.tittel })
             )
     }
 
@@ -69,13 +69,12 @@ class DokumentMapper(
         behandling: Behandling,
         hoveddokument: DokumentUnderArbeid,
     ): List<InnholdsfortegnelseRequest.Document> {
-        return journalfoerteDokumenterUnderArbeid
+        return journalfoerteDokumenterUnderArbeid.sortedByDescending { it.sortKey }
             .map {
                 mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
                     journalfoertDokumentUnderArbeidAsVedlegg = it,
                 )
             }
-            .sortedWith(compareByDescending<InnholdsfortegnelseRequest.Document> { it.dato }.thenBy { it.tittel })
     }
 
     private fun mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
@@ -119,6 +118,7 @@ class DokumentMapper(
                 dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
                 harTilgangTilArkivvariant = harTilgangTilArkivvariant(dokument),
                 datoOpprettet = dokumentUnderArbeid.opprettet,
+                sortKey = dokumentUnderArbeid.sortKey!!
             )
         }
 
@@ -245,6 +245,7 @@ class DokumentMapper(
             kanalnavn = journalpost.kanalnavn,
             utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
             originalJournalpostId = hoveddokument.originalJournalpostId,
+            sortKey = getSortKey(journalpost = journalpost, dokumentInfoId = hoveddokument.dokumentInfoId)
         )
 
         dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost, behandling))
@@ -301,6 +302,7 @@ class DokumentMapper(
                         vedlegg.dokumentInfoId
                     ),
                     originalJournalpostId = vedlegg.originalJournalpostId,
+                    sortKey = getSortKey(journalpost = journalpost, dokumentInfoId = vedlegg.dokumentInfoId)
                 )
             } ?: throw RuntimeException("could not create VedleggReferanser from dokumenter")
         } else {

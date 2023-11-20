@@ -33,6 +33,7 @@ data class DokumentView(
         val dokumentInfoId: String,
         val harTilgangTilArkivvariant: Boolean,
         val datoOpprettet: LocalDateTime,
+        val sortKey: String,
     )
 }
 

@@ -60,17 +60,7 @@ class KabalDocumentMapper(
 
         val journalfoerteVedlegg =
             vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-                .sortedWith { document1, document2 ->
-                    val dateCompare =
-                        document2.opprettet.compareTo(document1.opprettet)
-                    if (dateCompare != 0) {
-                        dateCompare
-                    } else {
-                        (document1.name).compareTo(
-                            document2.name
-                        )
-                    }
-                }
+                .sortedByDescending { it.sortKey }
 
         return DokumentEnhetWithDokumentreferanserInput(
             brevMottakere = mapBrevmottakerIdentToBrevmottakerInput(

@@ -147,7 +147,7 @@ class DokumentUnderArbeidController(
         return DokumentUnderArbeidMetadata(
             behandlingId = behandlingId,
             documentId = dokumentId,
-            title = "Innholdsfortegnelse"
+            title = "Vedleggsoversikt"
         )
     }
 

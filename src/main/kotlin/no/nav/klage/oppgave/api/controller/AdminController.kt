@@ -100,6 +100,19 @@ class AdminController(
         adminService.logInvalidRegistreringshjemler()
     }
 
+    @PostMapping("/internal/setsortkeytodua")
+    fun setSortKeyToDUA() {
+        logger.debug("setSortKeyToDUA is called")
+        krevAdminTilgang()
+
+        try {
+            adminService.setSortKeyToDUA()
+        } catch (e: Exception) {
+            logger.warn("Failed to setSortKeyToDUA", e)
+            throw e
+        }
+    }
+
     data class Fnr(val fnr: String)
 
     private fun krevAdminTilgang() {
