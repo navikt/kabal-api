@@ -19,7 +19,7 @@ import java.util.*
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/api/internal")
 class KabinApiController(
-    private val klagebehandlingService: KlagebehandlingService,
+    private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val mottakService: MottakService,
     private val partSearchService: PartSearchService,
@@ -61,33 +61,31 @@ class KabinApiController(
         )
     }
 
-    @PostMapping("/completedklagebehandlinger")
-    fun getCompletedKlagebehandlinger(
+    @PostMapping("/ankemuligheter")
+    fun getAnkemuligheter(
         @RequestBody input: GetCompletedKlagebehandlingerInput
-    ): List<CompletedKlagebehandling> {
+    ): List<Ankemulighet> {
         logMethodDetails(
-            methodName = ::getCompletedKlagebehandlinger.name,
+            methodName = ::getAnkemuligheter.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
 
-        return klagebehandlingService.findCompletedKlagebehandlingerByPartIdValue(
-            partIdValue = input.idnummer
-        )
+        return kabinApiService.getCombinedAnkemuligheter(partIdValue = input.idnummer)
     }
 
-    @GetMapping("/completedklagebehandlinger/{klagebehandlingId}")
-    fun getCompletedKlagebehandling(
-        @PathVariable klagebehandlingId: UUID
-    ): CompletedKlagebehandling {
+    @GetMapping("/completedbehandlinger/{behandlingId}")
+    fun getCompletedBehandling(
+        @PathVariable behandlingId: UUID
+    ): CompletedBehandling {
         logMethodDetails(
-            methodName = ::getCompletedKlagebehandling.name,
+            methodName = ::getCompletedBehandling.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
 
-        return klagebehandlingService.findCompletedKlagebehandlingById(
-            klagebehandlingId = klagebehandlingId
+        return behandlingService.findCompletedBehandlingById(
+            behandlingId = behandlingId
         )
     }
 

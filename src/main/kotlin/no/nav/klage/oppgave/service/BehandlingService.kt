@@ -6,6 +6,7 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.api.view.kabin.CompletedBehandling
 import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
@@ -1209,4 +1210,31 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
         return behandling
     }
+
+    fun findCompletedBehandlingById(behandlingId: UUID): CompletedBehandling {
+        val behandling = behandlingRepository.findByIdAndAvsluttetIsNotNull(id = behandlingId)
+        if (behandling != null) {
+            checkLeseTilgang(behandling)
+            return behandling.toCompletedBehandling()
+        } else {
+            throw BehandlingNotFoundException("Completed behandling with id $behandlingId not found")
+        }
+    }
+
+    private fun Behandling.toCompletedBehandling(): CompletedBehandling = CompletedBehandling(
+        behandlingId = id,
+        ytelseId = ytelse.id,
+        utfallId = utfall!!.id,
+        hjemmelId = hjemler.first().id,
+        vedtakDate = avsluttetAvSaksbehandler!!,
+        sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder),
+        klager = behandlingMapper.getPartView(klager),
+        fullmektig = klager.prosessfullmektig?.let { behandlingMapper.getPartView(it) },
+        fagsakId = fagsakId,
+        fagsystem = fagsystem,
+        fagsystemId = fagsystem.id,
+        klageBehandlendeEnhet = tildeling!!.enhet!!,
+        tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
+        tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdent(tildeling!!.saksbehandlerident!!),
+    )
 }

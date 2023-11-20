@@ -7,7 +7,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-data class CompletedKlagebehandling(
+data class CompletedBehandling(
     val behandlingId: UUID,
     val ytelseId: String,
     val utfallId: String,
@@ -22,6 +22,31 @@ data class CompletedKlagebehandling(
     val klageBehandlendeEnhet: String,
     val tildeltSaksbehandlerIdent: String?,
     val tildeltSaksbehandlerNavn: String?,
+)
+
+data class Ankemulighet(
+    val behandlingId: UUID,
+    val typeId: String,
+    val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
+    val ytelseId: String,
+    val utfallId: String,
+    val hjemmelId: String,
+    val vedtakDate: LocalDateTime,
+    val sakenGjelder: BehandlingDetaljerView.SakenGjelderView,
+    val klager: BehandlingDetaljerView.PartView,
+    val fullmektig: BehandlingDetaljerView.PartView?,
+    val fagsakId: String,
+    val fagsystem: Fagsystem,
+    val fagsystemId: String,
+    val klageBehandlendeEnhet: String,
+    val tildeltSaksbehandlerIdent: String?,
+    val tildeltSaksbehandlerNavn: String?,
+)
+
+data class ExistingAnkebehandling(
+    val id: UUID,
+    val created: LocalDateTime,
+    val completed: LocalDateTime?,
 )
 
 data class CreatedAnkeResponse(

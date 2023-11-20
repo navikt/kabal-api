@@ -231,7 +231,7 @@ class StatistikkTilDVHServiceTest {
         sattPaaVent = null,
         klageVedtaksDato = null,
         klageBehandlendeEnhet = "",
-        klagebehandlingId = null,
+        sourceBehandlingId = null,
     )
 
     private val ankeITrygderettenbehandlingOMP = AnkeITrygderettenbehandling(
