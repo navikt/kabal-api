@@ -22,7 +22,7 @@ data class IsDuplicateInput(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CreateAnkeBasedOnKabinInput(
-    val klagebehandlingId: UUID,
+    val sourceBehandlingId: UUID,
     val mottattNav: LocalDate,
     val frist: LocalDate,
     val klager: OversendtPartId?,

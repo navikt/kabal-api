@@ -7,7 +7,7 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
-import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
+import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
@@ -20,7 +20,7 @@ import java.util.*
 @Transactional
 class AnkebehandlingService(
     private val ankebehandlingRepository: AnkebehandlingRepository,
-    private val klagebehandlingRepository: KlagebehandlingRepository,
+    private val behandlingRepository: BehandlingRepository,
     private val kakaApiGateway: KakaApiGateway,
     private val dokumentService: DokumentService,
     private val behandlingService: BehandlingService,
@@ -37,6 +37,16 @@ class AnkebehandlingService(
 
     fun getAnkebehandlingFromMottakId(mottakId: UUID): Ankebehandling? {
         return ankebehandlingRepository.findByMottakId(mottakId)
+    }
+
+    fun getAnkebehandlingerBasedOnSourceBehandlingId(sourceBehandlingId: UUID): List<Ankebehandling> {
+        return ankebehandlingRepository.findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId = sourceBehandlingId)
+    }
+
+    fun getCompletedAnkebehandlingerByPartIdValue(
+        partIdValue: String
+    ): List<Ankebehandling> {
+        return ankebehandlingRepository.getCompletedAnkebehandlinger(partIdValue = partIdValue)
     }
 
     fun createAnkebehandlingFromMottak(mottak: Mottak): Ankebehandling {
@@ -62,21 +72,21 @@ class AnkebehandlingService(
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                klagebehandlingId = mottak.forrigeBehandlingId,
+                sourceBehandlingId = mottak.forrigeBehandlingId,
             )
         )
         logger.debug("Created ankebehandling {} for mottak {}", ankebehandling.id, mottak.id)
 
         if (mottak.forrigeBehandlingId != null) {
-            val klagebehandling = klagebehandlingRepository.getReferenceById(mottak.forrigeBehandlingId)
-            val klagebehandlingDokumenter = klagebehandling.saksdokumenter
+            val behandling = behandlingRepository.getReferenceById(mottak.forrigeBehandlingId)
+            val dokumenter = behandling.saksdokumenter
 
             logger.debug(
-                "Adding saksdokumenter from klagebehandling {} to ankebehandling {}",
+                "Adding saksdokumenter from behandling {} to ankebehandling {}",
                 mottak.forrigeBehandlingId,
                 ankebehandling.id
             )
-            klagebehandlingDokumenter.forEach {
+            dokumenter.forEach {
                 behandlingService.connectDokumentToBehandling(
                     behandlingId = ankebehandling.id,
                     journalpostId = it.journalpostId,
@@ -127,6 +137,7 @@ class AnkebehandlingService(
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                 hjemler = ankeITrygderettenbehandling.hjemler,
                 klageBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
+                sourceBehandlingId = ankeITrygderettenbehandling.id,
             )
         )
         logger.debug(
