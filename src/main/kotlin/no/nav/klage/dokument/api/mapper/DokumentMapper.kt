@@ -89,7 +89,7 @@ class DokumentMapper(
 
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentInDokarkiv.tittel ?: "Tittel ikke funnet i SAF",
-            tema = Tema.fromNavn(journalpost.tema?.name).navn,
+            tema = Tema.fromNavn(journalpost.tema?.name).beskrivelse,
             dato = journalfoertDokumentUnderArbeidAsVedlegg.opprettet.toLocalDate(),
             avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
             saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
