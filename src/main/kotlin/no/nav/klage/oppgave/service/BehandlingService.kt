@@ -109,7 +109,7 @@ class BehandlingService(
     }
 
     fun validateBehandlingBeforeFinalize(behandlingId: UUID, nyBehandling: Boolean) {
-        val behandling = getBehandling(behandlingId)
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
         val behandlingValidationErrors = mutableListOf<InvalidProperty>()
         val sectionList = mutableListOf<ValidationSection>()
@@ -259,7 +259,7 @@ class BehandlingService(
     }
 
     fun validateAnkeITrygderettenbehandlingBeforeNyAnkebehandling(behandlingId: UUID) {
-        val behandling = getBehandling(behandlingId) as AnkeITrygderettenbehandling
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId) as AnkeITrygderettenbehandling
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
         val behandlingValidationErrors = mutableListOf<InvalidProperty>()
         val sectionList = mutableListOf<ValidationSection>()
@@ -355,7 +355,7 @@ class BehandlingService(
     }
 
     fun validateFeilregistrering(behandlingId: UUID) {
-        val behandling = getBehandling(behandlingId)
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
         val behandlingValidationErrors = mutableListOf<InvalidProperty>()
         val sectionList = mutableListOf<ValidationSection>()
@@ -461,7 +461,7 @@ class BehandlingService(
     }
 
     fun getSaksbehandler(behandlingId: UUID): SaksbehandlerViewWrapped {
-        return getSaksbehandlerViewWrapped(getBehandling((behandlingId)))
+        return getSaksbehandlerViewWrapped(getBehandlingAndCheckLeseTilgangForPerson((behandlingId)))
     }
 
     private fun getSaksbehandlerViewWrapped(behandling: Behandling): SaksbehandlerViewWrapped {
@@ -484,12 +484,12 @@ class BehandlingService(
     }
 
     fun getMedunderskriver(behandlingId: UUID): MedunderskriverWrapped {
-        val behandling = getBehandling(behandlingId)
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         return behandlingMapper.mapToMedunderskriverWrapped(behandling)
     }
 
     fun getMedunderskriverFlowState(behandlingId: UUID): FlowStateView {
-        val behandling = getBehandling(behandlingId)
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         return behandlingMapper.mapToMedunderskriverFlowStateView(behandling)
     }
 
@@ -717,7 +717,7 @@ class BehandlingService(
     ): MedunderskriverWrapped {
         val behandling =
             if (saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
-                val behandling = getBehandling(behandlingId)
+                val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
                 if (behandling.medunderskriverFlowState != FlowState.SENT && behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent) {
                     throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre medunderskriver når den ikke er sent.")
                 }
@@ -749,7 +749,7 @@ class BehandlingService(
         pageSize: Int,
         previousPageRef: String?
     ): DokumenterResponse {
-        val behandling = getBehandling(behandlingId)
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         return dokumentService.fetchDokumentlisteForBehandling(behandling, temaer, pageSize, previousPageRef)
     }
 
@@ -814,16 +814,16 @@ class BehandlingService(
                     throw BehandlingAvsluttetException("Behandlingen er feilregistrert")
                 }
             }
-            .also { if (!systemUserContext) checkLeseTilgang(it) }
+            .also { if (!systemUserContext) checkLesetilgangForPerson(it) }
             .also { if (!systemUserContext && !ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
 
-    fun checkLeseTilgang(behandling: Behandling) {
+    fun checkLesetilgangForPerson(behandling: Behandling) {
         if (behandling.sakenGjelder.erPerson()) {
-            checkLeseTilgang(behandling.sakenGjelder.partId.value)
+            checkLesetilgangForPerson(behandling.sakenGjelder.partId.value)
         }
     }
 
-    fun checkLeseTilgang(partIdValue: String) {
+    fun checkLesetilgangForPerson(partIdValue: String) {
         tilgangService.verifyInnloggetSaksbehandlersTilgangTil(partIdValue)
     }
 
@@ -926,10 +926,10 @@ class BehandlingService(
     }
 
     @Transactional(readOnly = true)
-    fun getBehandling(behandlingId: UUID): Behandling =
+    fun getBehandlingAndCheckLeseTilgangForPerson(behandlingId: UUID): Behandling =
         behandlingRepository.findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
-            .also { checkLeseTilgang(it) }
+            .also { checkLesetilgangForPerson(it) }
 
     @Transactional(readOnly = true)
     fun findBehandlingerForAvslutning(): List<Pair<UUID, Type>> =
@@ -937,17 +937,17 @@ class BehandlingService(
             .map { it.id to it.type }
 
     fun getPotentialSaksbehandlereForBehandling(behandlingId: UUID): Saksbehandlere {
-        val behandling = getBehandling(behandlingId)
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         return kabalInnstillingerService.getPotentialSaksbehandlere(behandling)
     }
 
     fun getPotentialMedunderskrivereForBehandling(behandlingId: UUID): Medunderskrivere {
-        val behandling = getBehandling(behandlingId)
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         return kabalInnstillingerService.getPotentialMedunderskrivere(behandling)
     }
 
     fun getPotentialROLForBehandling(behandlingId: UUID): Rols {
-        val behandling = getBehandling(behandlingId)
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         return Rols(
             rols = kabalInnstillingerService.getPotentialROL(behandling).saksbehandlere.map {
                 Rols.Rol(
@@ -965,18 +965,18 @@ class BehandlingService(
     }
 
     fun getAInntektUrl(behandlingId: UUID): String {
-        val behandling = getBehandling(behandlingId = behandlingId)
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
         return arbeidOgInntektClient.getAInntektUrl(behandling.sakenGjelder.partId.value)
     }
 
     fun getAARegisterUrl(behandlingId: UUID): String {
-        val behandling = getBehandling(behandlingId = behandlingId)
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
         return arbeidOgInntektClient.getAARegisterUrl(behandling.sakenGjelder.partId.value)
     }
 
     fun feilregistrer(behandlingId: UUID, reason: String, fagsystem: Fagsystem): FeilregistreringResponse {
         val navIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        val behandlingForCheck = getBehandling(behandlingId)
+        val behandlingForCheck = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val behandling =
             if (saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(navIdent) || behandlingForCheck.tildeling == null) {
@@ -1172,7 +1172,7 @@ class BehandlingService(
         utfoerendeSaksbehandlerIdent: String,
         systemUserContext: Boolean = false
     ): Behandling {
-        val behandlingForCheck = getBehandling(behandlingId)
+        val behandlingForCheck = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         val behandling =
             if (saksbehandlerRepository.isKROL(utfoerendeSaksbehandlerIdent)) {
                 if (behandlingForCheck.rolFlowState == FlowState.RETURNED) {
@@ -1214,7 +1214,7 @@ class BehandlingService(
     fun findCompletedBehandlingById(behandlingId: UUID): CompletedBehandling {
         val behandling = behandlingRepository.findByIdAndAvsluttetIsNotNull(id = behandlingId)
         if (behandling != null) {
-            checkLeseTilgang(behandling)
+            checkLesetilgangForPerson(behandling)
             return behandling.toCompletedBehandling()
         } else {
             throw BehandlingNotFoundException("Completed behandling with id $behandlingId not found")

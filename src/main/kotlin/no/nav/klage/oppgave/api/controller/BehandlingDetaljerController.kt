@@ -45,7 +45,7 @@ class BehandlingDetaljerController(
         )
 
         return behandlingMapper.mapBehandlingToBehandlingDetaljerView(
-            behandlingService.getBehandling(behandlingId)
+            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         ).also {
             auditLogger.log(
                 AuditLogEvent(
