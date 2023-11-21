@@ -17,6 +17,8 @@ class JournalfoertDokumentUnderArbeidAsVedlegg (
     val journalpostId: String,
     @Column(name = "journalfoert_dokument_dokument_info_id")
     val dokumentInfoId: String,
+    @Column(name = "sort_key")
+    var sortKey: String?,
 
     //Common properties
     id: UUID = UUID.randomUUID(),

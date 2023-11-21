@@ -4,15 +4,16 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import no.nav.klage.dokument.clients.kabalsmarteditorapi.KabalSmartEditorApiClient
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
-import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
+import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
+import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
+import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.clients.skjermede.SkjermedeApiClient
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
@@ -23,6 +24,7 @@ import no.nav.klage.oppgave.eventlisteners.StatistikkTilDVHService.Companion.TR_
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getSortKey
 import org.slf4j.Logger
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -41,15 +43,16 @@ class AdminService(
     private val ankebehandlingRepository: AnkebehandlingRepository,
     private val ankeITrygderettenbehandlingRepository: AnkeITrygderettenbehandlingRepository,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
-    private val dokumentUnderArbeidCommonService: DokumentUnderArbeidCommonService,
+    private val journalfoertDokumentUnderArbeidAsVedleggRepository: JournalfoertDokumentUnderArbeidAsVedleggRepository,
+    private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
     private val kafkaEventRepository: KafkaEventRepository,
     private val fileApiClient: FileApiClient,
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
     private val endringsloggRepository: EndringsloggRepository,
     private val skjermedeApiClient: SkjermedeApiClient,
-    private val kabalSmartEditorApiClient: KabalSmartEditorApiClient,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
+    private val safGraphQlClient: SafGraphQlClient,
 ) {
 
     companion object {
@@ -265,6 +268,22 @@ class AdminService(
         }
         val filteredAnkeInvalidHjemler = ankeinvalidHjemler.filter { it.second.isNotEmpty() }
         secureLogger.debug("Invalid registreringshjemler in ankebehandlinger v2: {}", filteredAnkeInvalidHjemler)
+    }
+
+    fun setSortKeyToDUA() {
+        val allDUAs = journalfoertDokumentUnderArbeidAsVedleggRepository.findAll()
+        var keys = ""
+        allDUAs.forEach {
+            val journalpostInDokarkiv =
+                safGraphQlClient.getJournalpostAsSystembruker(it.journalpostId)
+            val sortKey = getSortKey(
+                journalpost = journalpostInDokarkiv,
+                dokumentInfoId = it.dokumentInfoId
+            )
+            keys += sortKey + "\n"
+            it.sortKey = sortKey
+        }
+        logger.debug("setSortKeyToDUA: ${allDUAs.size} DUAs were updated with sortKeys: $keys")
     }
 }
 
