@@ -122,5 +122,18 @@ class DevOnlyAdminController(
         )
     }
 
+    @Unprotected
+    @GetMapping("/internal/setsortkeytodua")
+    fun setSortKeyToDUA() {
+        logger.debug("setSortKeyToDUA is called in dev")
+
+        try {
+            adminService.setSortKeyToDUA()
+        } catch (e: Exception) {
+            logger.warn("Failed to setSortKeyToDUA", e)
+            throw e
+        }
+    }
+
     data class Fnr(val fnr: String)
 }

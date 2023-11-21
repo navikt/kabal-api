@@ -32,6 +32,7 @@ import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getSortKey
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -291,6 +292,10 @@ class DokumentUnderArbeidService(
                 markertFerdigBy = null,
                 ferdigstilt = null,
                 dokumentType = null,
+                sortKey = getSortKey(
+                    journalpost = journalpostInDokarkiv,
+                    dokumentInfoId = journalfoertDokumentReference.dokumentInfoId
+                )
             )
 
             behandling.publishEndringsloggEvent(
