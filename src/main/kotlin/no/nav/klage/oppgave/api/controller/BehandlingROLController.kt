@@ -41,7 +41,7 @@ class BehandlingROLController(
             behandlingId,
             logger
         )
-        val behandling = behandlingService.getBehandling(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         return behandling.toRolView()
     }
@@ -56,7 +56,7 @@ class BehandlingROLController(
             behandlingId,
             logger
         )
-        return FlowStateView(flowState = behandlingService.getBehandling(behandlingId).rolFlowState)
+        return FlowStateView(flowState = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId).rolFlowState)
     }
 
     @PutMapping("/{behandlingId}/rolnavident")
