@@ -596,7 +596,7 @@ class DokumentUnderArbeidService(
 
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = ident) }
 
-        if (vedlegg.size > 1) {
+        if (vedlegg.isNotEmpty()) {
             innholdsfortegnelseService.saveInnholdsfortegnelse(
                 dokumentId,
             )
