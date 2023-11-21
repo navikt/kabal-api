@@ -1091,21 +1091,13 @@ class DokumentUnderArbeidService(
 
     fun getSmartEditorId(dokumentId: UUID, readOnly: Boolean): UUID {
         val dokumentUnderArbeid = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
-        val ident = innloggetSaksbehandlerService.getInnloggetIdent()
 
         if (dokumentUnderArbeid !is DokumentUnderArbeidAsSmartdokument) {
             throw RuntimeException("dokument is not smartdokument")
         }
 
         //Sjekker tilgang på behandlingsnivå:
-        if (readOnly) {
-            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
-        } else {
-            behandlingService.getBehandlingForWriteAllowROLAndMU(
-                behandlingId = dokumentUnderArbeid.behandlingId,
-                utfoerendeSaksbehandlerIdent = ident,
-            )
-        }
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
 
         return dokumentUnderArbeid.smartEditorId
     }
