@@ -235,7 +235,7 @@ class DokumentUnderArbeidService(
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
-        if (behandling.avsluttetAvSaksbehandler != null) {
+        if (behandling.avsluttetAvSaksbehandler == null) {
             val isCurrentROL = behandling.rolIdent == innloggetIdent
 
             journalfoerteDokumenter.forEach {
