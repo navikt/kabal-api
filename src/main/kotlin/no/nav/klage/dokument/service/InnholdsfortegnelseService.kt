@@ -8,6 +8,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.Innholdsfortegnelse
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.JournalfoertDokumentUnderArbeidAsVedlegg
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.InnholdsfortegnelseRepository
+import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
@@ -69,17 +70,17 @@ class InnholdsfortegnelseService(
 
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentUnderArbeidId)
 
-        if (vedlegg.any { it !is JournalfoertDokumentUnderArbeidAsVedlegg }) {
-            error("All documents must be JournalfoertDokumentUnderArbeidAsVedlegg")
-        } else {
-            vedlegg as Set<JournalfoertDokumentUnderArbeidAsVedlegg>
+        if (document.dokumentType in listOf(DokumentType.BREV, DokumentType.VEDTAK, DokumentType.BESLUTNING)) {
+            if (vedlegg.any { it !is JournalfoertDokumentUnderArbeidAsVedlegg }) {
+                error("All documents must be JournalfoertDokumentUnderArbeidAsVedlegg")
+            }
         }
 
         val pdfDocument =
             kabalJsonToPdfClient.getInnholdsfortegnelse(
                 InnholdsfortegnelseRequest(
                     documents = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                        journalfoerteDokumenterUnderArbeid = vedlegg,
+                        allDokumenterUnderArbeid = vedlegg,
                         behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
                         hoveddokument = document,
                     )

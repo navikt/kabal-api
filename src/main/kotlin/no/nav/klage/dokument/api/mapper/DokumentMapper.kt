@@ -12,6 +12,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.JournalfoertDokumentUnderArbeidAsVedlegg
+import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.DokumentReferanse
@@ -65,17 +66,46 @@ class DokumentMapper(
     }
 
     fun getSortedDokumentViewListForInnholdsfortegnelse(
-        journalfoerteDokumenterUnderArbeid: Set<JournalfoertDokumentUnderArbeidAsVedlegg>,
+        allDokumenterUnderArbeid: Set<DokumentUnderArbeidAsVedlegg>,
         behandling: Behandling,
         hoveddokument: DokumentUnderArbeid,
     ): List<InnholdsfortegnelseRequest.Document> {
-        return journalfoerteDokumenterUnderArbeid.sortedByDescending { it.sortKey }
+        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
+            it !is JournalfoertDokumentUnderArbeidAsVedlegg
+        }
+
+        return dokumenterUnderArbeid.sortedByDescending { it.created }
             .map {
-                mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
-                    journalfoertDokumentUnderArbeidAsVedlegg = it,
+                mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
+                    dokumentUnderArbeid = it,
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
                 )
-            }
+            } +
+                journalfoerteDokumenterUnderArbeid
+                    .sortedByDescending { (it as JournalfoertDokumentUnderArbeidAsVedlegg).sortKey }
+                    .map {
+                        mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
+                            journalfoertDokumentUnderArbeidAsVedlegg = it as JournalfoertDokumentUnderArbeidAsVedlegg
+                        )
+                    }
     }
+
+    fun mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
+        dokumentUnderArbeid: DokumentUnderArbeid,
+        behandling: Behandling,
+        hoveddokument: DokumentUnderArbeid,
+    ): InnholdsfortegnelseRequest.Document {
+        return InnholdsfortegnelseRequest.Document(
+            tittel = dokumentUnderArbeid.name,
+            tema = behandling.ytelse.toTema().navn,
+            dato = LocalDateTime.now().toLocalDate(),
+            avsenderMottaker = "",
+            saksnummer = behandling.fagsakId,
+            type = if (hoveddokument.dokumentType == DokumentType.NOTAT) Type.N else throw RuntimeException("Wrong hoveddokument type: ${hoveddokument.dokumentType}.")
+        )
+    }
+
 
     private fun mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
         journalfoertDokumentUnderArbeidAsVedlegg: JournalfoertDokumentUnderArbeidAsVedlegg,
