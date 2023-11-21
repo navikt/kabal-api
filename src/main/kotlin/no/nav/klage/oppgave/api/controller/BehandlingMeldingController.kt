@@ -140,7 +140,7 @@ class BehandlingMeldingController(
     }
 
     private fun validateAccessToBehandling(behandlingId: UUID) {
-        behandlingService.getBehandling(behandlingId)
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
     }
 
 }

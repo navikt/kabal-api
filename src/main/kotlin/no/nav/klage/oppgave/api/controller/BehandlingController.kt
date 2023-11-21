@@ -371,7 +371,7 @@ class BehandlingController(
         )
 
         return behandlingMapper.getSakenGjelderView(
-            behandlingService.getBehandling(behandlingId).sakenGjelder
+            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId).sakenGjelder
         )
     }
 

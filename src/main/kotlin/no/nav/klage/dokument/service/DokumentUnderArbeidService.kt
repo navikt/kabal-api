@@ -79,7 +79,7 @@ class DokumentUnderArbeidService(
         parentId: UUID?,
     ): DokumentUnderArbeid {
         //Sjekker lesetilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandling(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
@@ -151,7 +151,7 @@ class DokumentUnderArbeidService(
         parentId: UUID?,
     ): DokumentUnderArbeid {
         //Sjekker lesetilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandling(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
@@ -233,19 +233,21 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
         }
 
-        val behandling = behandlingService.getBehandling(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
-        val isCurrentROL = behandling.rolIdent == innloggetIdent
+        if (behandling.avsluttetAvSaksbehandler != null) {
+            val isCurrentROL = behandling.rolIdent == innloggetIdent
 
-        journalfoerteDokumenter.forEach {
-            behandlingService.connectDokumentToBehandling(
-                behandlingId = behandlingId,
-                journalpostId = it.journalpostId,
-                dokumentInfoId = it.dokumentInfoId,
-                saksbehandlerIdent = innloggetIdent,
-                systemUserContext = false,
-                ignoreCheckSkrivetilgang = isCurrentROL,
-            )
+            journalfoerteDokumenter.forEach {
+                behandlingService.connectDokumentToBehandling(
+                    behandlingId = behandlingId,
+                    journalpostId = it.journalpostId,
+                    dokumentInfoId = it.dokumentInfoId,
+                    saksbehandlerIdent = innloggetIdent,
+                    systemUserContext = false,
+                    ignoreCheckSkrivetilgang = isCurrentROL,
+                )
+            }
         }
 
         val alreadyAddedDocuments =
@@ -354,7 +356,7 @@ class DokumentUnderArbeidService(
         val dokumentUnderArbeid = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingForUpdate(dokumentUnderArbeid.behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         if (dokumentUnderArbeid.isVedlegg()) {
             //Vi skal ikke kunne endre dokumentType på vedlegg
@@ -401,21 +403,13 @@ class DokumentUnderArbeidService(
 
         val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
 
-        val behandlingForCheck = behandlingService.getBehandling(dokument.behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
 
-        val behandlingRole = behandlingForCheck.getRoleInBehandling(innloggetIdent)
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
         if (dokument.creatorRole != behandlingRole) {
             throw MissingTilgangException("$behandlingRole har ikke anledning til å endre tittel på dette dokumentet eiet av ${dokument.creatorRole}.")
         }
-
-        val isCurrentROL = behandlingForCheck.rolIdent == innloggetIdent
-
-        //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingForUpdate(
-            behandlingId = dokument.behandlingId,
-            ignoreCheckSkrivetilgang = isCurrentROL
-        )
 
         if (dokument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke endre tittel på et dokument som er ferdigstilt")
@@ -442,7 +436,7 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Dokument er allerede ferdigstilt.")
         }
 
-        val behandling = behandlingService.getBehandling(dokument.behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
 
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
@@ -488,7 +482,7 @@ class DokumentUnderArbeidService(
         }
 
         //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingForUpdate(dokument.behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         if (dokument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke endre smartEditorTemplateId på et dokument som er ferdigstilt")
@@ -557,7 +551,7 @@ class DokumentUnderArbeidService(
             throw RuntimeException("document is not hoveddokument")
         }
 
-        val behandling = behandlingService.getBehandlingForUpdate(hovedDokument.behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
 
         validateHoveddokumentBeforeFerdig(
             brevmottakerIdents = brevmottakerIdents,
@@ -690,7 +684,7 @@ class DokumentUnderArbeidService(
         innloggetIdent: String
     ): FysiskDokument {
         //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandling(behandlingId)
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val title = "Innholdsfortegnelse"
 
@@ -713,7 +707,7 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeidRepository.getReferenceById(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandling(dokument.behandlingId)
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
 
         val (content, title) = when (dokument) {
             is OpplastetDokumentUnderArbeidAsHoveddokument -> {
@@ -757,7 +751,7 @@ class DokumentUnderArbeidService(
         val document = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandling(
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
             behandlingId = document.behandlingId,
         )
 
@@ -842,18 +836,9 @@ class DokumentUnderArbeidService(
         }
         val parentDocument = dokumentUnderArbeidRepository.getReferenceById(parentId)
 
-        val behandling = behandlingService.getBehandling(
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
             behandlingId = parentDocument.behandlingId,
         )
-
-        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
-
-        if (!(behandlingRole == BehandlingRole.KABAL_ROL && (parentDocument is DokumentUnderArbeidAsSmartdokument && parentDocument.smartEditorTemplateId == Template.ROL_QUESTIONS.id))) {
-            //Sjekker generell tilgang på behandlingsnivå:
-            behandlingService.getBehandlingForUpdate(
-                behandlingId = parentDocument.behandlingId,
-            )
-        }
 
         if (parentDocument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
@@ -935,7 +920,7 @@ class DokumentUnderArbeidService(
         val vedlegg = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandlingForUpdate(
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
             behandlingId = vedlegg.behandlingId,
         )
         //TODO: Skal det lages endringslogg på dette??
@@ -974,7 +959,7 @@ class DokumentUnderArbeidService(
     fun findDokumenterNotFinished(behandlingId: UUID, checkReadAccess: Boolean = true): List<DokumentUnderArbeid> {
         //Sjekker tilgang på behandlingsnivå:
         if (checkReadAccess) {
-            behandlingService.getBehandling(behandlingId)
+            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         }
 
         return dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId)
@@ -982,7 +967,7 @@ class DokumentUnderArbeidService(
 
     fun getSmartDokumenterUnderArbeid(behandlingId: UUID, ident: String): List<DokumentUnderArbeid> {
         //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandling(behandlingId)
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val hoveddokumenter =
             smartDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndMarkertFerdigIsNull(
@@ -1114,7 +1099,7 @@ class DokumentUnderArbeidService(
 
         //Sjekker tilgang på behandlingsnivå:
         if (readOnly) {
-            behandlingService.getBehandling(dokumentUnderArbeid.behandlingId)
+            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
         } else {
             behandlingService.getBehandlingForWriteAllowROLAndMU(
                 behandlingId = dokumentUnderArbeid.behandlingId,

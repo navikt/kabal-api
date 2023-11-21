@@ -26,7 +26,7 @@ class KabinApiService(
 ) {
 
     fun getCombinedAnkemuligheter(partIdValue: String): List<Ankemulighet> {
-        behandlingService.checkLeseTilgang(partIdValue)
+        behandlingService.checkLesetilgangForPerson(partIdValue)
         val ankemuligheterFromKlagebehandlinger =
             klagebehandlingService.getCompletedKlagebehandlingerByPartIdValue(partIdValue = partIdValue)
                 .map { it.toAnkemulighet() }
@@ -82,7 +82,7 @@ class KabinApiService(
             ?: throw BehandlingNotFoundException("anke not found")
 
         return if (ankebehandling.sourceBehandlingId != null) {
-            val sourceBehandling = behandlingService.getBehandling(ankebehandling.sourceBehandlingId!!)
+            val sourceBehandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(ankebehandling.sourceBehandlingId!!)
             getCreatedAnkebehandlingStatusForKabin(
                 ankebehandling = ankebehandling,
                 mottak = mottak,

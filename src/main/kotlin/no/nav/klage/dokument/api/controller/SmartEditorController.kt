@@ -162,7 +162,6 @@ class SmartEditorController(
     )
     @PostMapping("/{dokumentId}/comments")
     fun createComment(
-        @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") documentId: UUID,
         @RequestBody commentInput: CommentInput
     ): CommentOutput {
@@ -226,7 +225,6 @@ class SmartEditorController(
     )
     @PostMapping("/{dokumentId}/comments/{commentId}/replies")
     fun replyToComment(
-        @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") documentId: UUID,
         @PathVariable("commentId") commentId: UUID,
         @RequestBody commentInput: CommentInput,
@@ -277,7 +275,7 @@ class SmartEditorController(
                 readOnly = true
             )
 
-        val behandling = behandlingService.getBehandling(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         kabalSmartEditorApiClient.deleteCommentWithPossibleThread(
             documentId = smartEditorId,
