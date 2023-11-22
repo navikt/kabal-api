@@ -566,14 +566,6 @@ class DokumentUnderArbeidService(
         vedlegg.forEach {
             if (it is SmartdokumentUnderArbeidAsVedlegg && it.isStaleSmartEditorDokument()) {
                 mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(it)
-            } else if (it is JournalfoertDokumentUnderArbeidAsVedlegg) {
-                val journalpostInDokarkiv =
-                    safClient.getJournalpostAsSaksbehandler(it.journalpostId)
-
-                it.name = getDokumentTitle(
-                    journalpost = journalpostInDokarkiv,
-                    dokumentInfoId = it.dokumentInfoId
-                )
             }
         }
 
