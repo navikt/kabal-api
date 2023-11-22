@@ -34,9 +34,10 @@ class SafFacade(
                 previousPageRef = previousPageRef
             )
 
-            dokumentOversiktBruker.journalposter.filter { it.journalpostId in journalpostIdList }
+            journalpostIdList.map { journalpostId -> dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }!! }
         } else {
             journalpostIdList.map {
+                //Kan parallelliseres
                 safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId = it)
             }
         }

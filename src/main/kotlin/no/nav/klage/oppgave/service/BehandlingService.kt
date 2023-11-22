@@ -766,12 +766,6 @@ class BehandlingService(
             ignoreCheckSkrivetilgang = ignoreCheckSkrivetilgang,
             systemUserContext = systemUserContext,
         )
-        //Tester uten denne valideringen
-//        if (systemUserContext) {
-//            dokumentService.validateJournalpostExistsAsSystembruker(journalpostId)
-//        } else {
-//            dokumentService.validateJournalpostExists(journalpostId)
-//        }
 
         addDokument(
             behandling,

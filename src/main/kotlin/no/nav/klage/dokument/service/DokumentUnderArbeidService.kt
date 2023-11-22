@@ -145,6 +145,44 @@ class DokumentUnderArbeidService(
         return document
     }
 
+    fun kobleEllerFrikobleVedlegg(
+        behandlingId: UUID,
+        persistentDokumentId: UUID,
+        input: OptionalPersistentDokumentIdInput,
+    ): DokumentViewWithList {
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+
+        val (dokumentUnderArbeidList, duplicateJournalfoerteDokumenter) = if (input.dokumentId == null) {
+            listOf(
+                setAsHoveddokument(
+                    behandlingId = behandlingId,
+                    dokumentId = persistentDokumentId,
+                    innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+                )
+            ) to emptyList()
+        } else {
+            setAsVedlegg(
+                parentId = input.dokumentId,
+                dokumentId = persistentDokumentId,
+                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            )
+        }
+
+        val journalpostIdList = dokumentUnderArbeidList.plus(duplicateJournalfoerteDokumenter).filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+            .map { it.journalpostId }
+
+        val journalpostListForUser = safFacade.getJournalposter(
+            journalpostIdList = journalpostIdList,
+            fnr = behandling.sakenGjelder.partId.value,
+        )
+
+        return dokumentMapper.mapToDokumentListView(
+            dokumentUnderArbeidList = dokumentUnderArbeidList,
+            duplicateJournalfoerteDokumenter = duplicateJournalfoerteDokumenter,
+            journalpostList = journalpostListForUser,
+        )
+    }
+
     fun opprettSmartdokument(
         behandlingId: UUID,
         dokumentType: DokumentType,
@@ -462,6 +500,10 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke endre tittel på et dokument som er ferdigstilt")
         }
 
+        if (dokument is JournalfoertDokumentUnderArbeidAsVedlegg) {
+            throw DokumentValidationException("Kan ikke endre tittel på journalført dokument i denne konteksten")
+        }
+
         val oldValue = dokument.name
         dokument.name = dokumentTitle
         behandling.publishEndringsloggEvent(
@@ -631,7 +673,8 @@ class DokumentUnderArbeidService(
 
         if (vedlegg.isNotEmpty()) {
             innholdsfortegnelseService.saveInnholdsfortegnelse(
-                dokumentId,
+                dokumentUnderArbeidId = dokumentId,
+                fnr = behandling.sakenGjelder.partId.value,
             )
         }
 
@@ -723,14 +766,17 @@ class DokumentUnderArbeidService(
         innloggetIdent: String
     ): FysiskDokument {
         //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val title = "Innholdsfortegnelse"
 
         return FysiskDokument(
             title = title,
             content = dokumentService.changeTitleInPDF(
-                documentBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(hoveddokumentId),
+                documentBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
+                    dokumentUnderArbeidId = hoveddokumentId, 
+                    fnr = behandling.sakenGjelder.partId.value,
+                ),
                 title = title
             ),
             contentType = MediaType.APPLICATION_PDF
@@ -1013,6 +1059,7 @@ class DokumentUnderArbeidService(
         )
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun getDokumentViewList(
         dokumentUnderArbeidList: List<DokumentUnderArbeid>,
         behandling: Behandling,
@@ -1026,21 +1073,17 @@ class DokumentUnderArbeidService(
                 safFacade.getJournalposter(
                     journalpostIdList = journalfoerteDokumenterUnderArbeid.map { it.journalpostId },
                     fnr = behandling.sakenGjelder.partId.value,
-                    tema = listOf(),
-                    pageSize = 50000,
-                    previousPageRef = null,
                 )
             } else emptyList()
 
         return dokumenterUnderArbeid.sortedByDescending { it.created }
-            .map { dokumentMapper.mapToDokumentView(it) }
-            .plus(journalfoerteDokumenterUnderArbeid.sortedByDescending { it.sortKey }
-                .map { journalfoertVedlegg ->
-                    dokumentMapper.mapToDokumentView(
-                        dokumentUnderArbeid = journalfoertVedlegg,
-                        journalpost = journalpostList.find { it.journalpostId == journalfoertVedlegg.journalpostId }!!
-                    )
-                }
+            .map { dokumentMapper.mapToDokumentView(dokumentUnderArbeid = it, journalpost = null) }
+            .plus(
+                getDokumentViewListForJournalfoertDokumentUnderArbeidAsVedleggList(
+                    dokumentUnderArbeidList = journalfoerteDokumenterUnderArbeid,
+                    behandling = behandling,
+                    journalpostList = journalpostList,
+                )
             )
     }
 

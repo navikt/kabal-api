@@ -60,14 +60,15 @@ class DokumentUnderArbeidController(
             dokumentType = DokumentType.of(input.dokumentTypeId),
         )
         return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeidService.createOpplastetDokumentUnderArbeid(
+            dokumentUnderArbeid = dokumentUnderArbeidService.createOpplastetDokumentUnderArbeid(
                 behandlingId = behandlingId,
                 dokumentType = DokumentType.of(input.dokumentTypeId),
                 opplastetFil = opplastetFil,
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
                 tittel = opplastetFil.title,
                 parentId = input.parentId,
-            )
+            ),
+            journalpost = null,
         )
     }
 
@@ -91,12 +92,13 @@ class DokumentUnderArbeidController(
         @RequestBody input: DokumentTypeInput
     ): DokumentView {
         return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeidService.updateDokumentType(
+            dokumentUnderArbeid = dokumentUnderArbeidService.updateDokumentType(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 dokumentType = DokumentType.of(input.dokumentTypeId),
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-            )
+            ),
+            journalpost = null,
         )
     }
 
@@ -180,30 +182,11 @@ class DokumentUnderArbeidController(
     ): DokumentViewWithList {
         logger.debug("Kall mottatt på kobleEllerFrikobleVedlegg for {}", persistentDokumentId)
         try {
-            return if (input.dokumentId == null) {
-                dokumentMapper.mapToDokumentListView(
-                    dokumentUnderArbeidList = listOf(
-                        dokumentUnderArbeidService.setAsHoveddokument(
-                            behandlingId = behandlingId,
-                            dokumentId = persistentDokumentId,
-                            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-                        )
-                    ),
-                    duplicateJournalfoerteDokumenter = emptyList()
-                )
-            } else {
-                val (alteredDocuments, duplicateJournalfoerteDokumenter) =
-                    dokumentUnderArbeidService.setAsVedlegg(
-                        parentId = input.dokumentId,
-                        dokumentId = persistentDokumentId,
-                        innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-                    )
-
-                return dokumentMapper.mapToDokumentListView(
-                    dokumentUnderArbeidList = alteredDocuments,
-                    duplicateJournalfoerteDokumenter = duplicateJournalfoerteDokumenter
-                )
-            }
+            return dokumentUnderArbeidService.kobleEllerFrikobleVedlegg(
+                behandlingId = behandlingId,
+                persistentDokumentId = persistentDokumentId,
+                input = input
+            )
         } catch (e: Exception) {
             logger.error("Feilet under kobling av dokument $persistentDokumentId med ${input.dokumentId}", e)
             throw e
@@ -218,12 +201,13 @@ class DokumentUnderArbeidController(
     ): DokumentView {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
+            dokumentUnderArbeid = dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 ident = ident,
                 brevmottakerIdents = input.brevmottakerIds,
-            )
+            ),
+            journalpost = null
         )
     }
 
@@ -291,12 +275,13 @@ class DokumentUnderArbeidController(
     ): DokumentView {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeidService.updateDokumentTitle(
+            dokumentUnderArbeid = dokumentUnderArbeidService.updateDokumentTitle(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 dokumentTitle = input.title,
                 innloggetIdent = ident,
-            )
+            ),
+            journalpost = null
         )
     }
 }

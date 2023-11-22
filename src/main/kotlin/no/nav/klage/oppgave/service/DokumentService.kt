@@ -122,15 +122,6 @@ class DokumentService(
     private fun mapTema(temaer: List<Tema>): List<no.nav.klage.oppgave.clients.saf.graphql.Tema> =
         temaer.map { tema -> no.nav.klage.oppgave.clients.saf.graphql.Tema.valueOf(tema.name) }
 
-    fun validateJournalpostExists(journalpostId: String) {
-        try {
-            safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
-        } catch (e: Exception) {
-            logger.warn("Unable to find journalpost $journalpostId", e)
-            throw JournalpostNotFoundException("Journalpost $journalpostId not found")
-        }
-    }
-
     fun validateJournalpostExistsAsSystembruker(journalpostId: String) {
         try {
             safGraphQlClient.getJournalpostAsSystembruker(journalpostId)

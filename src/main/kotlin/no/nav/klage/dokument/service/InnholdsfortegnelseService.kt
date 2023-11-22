@@ -9,6 +9,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.JournalfoertDokumentUn
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.InnholdsfortegnelseRepository
 import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
@@ -26,6 +27,7 @@ class InnholdsfortegnelseService(
     private val kabalJsonToPdfClient: KabalJsonToPdfClient,
     private val innholdsfortegnelseRepository: InnholdsfortegnelseRepository,
     private val behandlingService: BehandlingService,
+    private val safFacade: SafFacade,
 ) {
 
     companion object {
@@ -37,10 +39,16 @@ class InnholdsfortegnelseService(
         return innholdsfortegnelseRepository.findByHoveddokumentId(hoveddokumentId)
     }
 
-    fun saveInnholdsfortegnelse(dokumentUnderArbeidId: UUID) {
+    fun saveInnholdsfortegnelse(
+        dokumentUnderArbeidId: UUID,
+        fnr: String,
+    ) {
         logger.debug("Received saveInnholdsfortegnelse")
 
-        val content = getInnholdsfortegnelseAsPdf(dokumentUnderArbeidId = dokumentUnderArbeidId)
+        val content = getInnholdsfortegnelseAsPdf(
+            dokumentUnderArbeidId = dokumentUnderArbeidId,
+            fnr = fnr
+        )
 
         val mellomlagerId =
             mellomlagerService.uploadByteArray(
@@ -59,7 +67,7 @@ class InnholdsfortegnelseService(
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun getInnholdsfortegnelseAsPdf(dokumentUnderArbeidId: UUID): ByteArray {
+    fun getInnholdsfortegnelseAsPdf(dokumentUnderArbeidId: UUID, fnr: String): ByteArray {
         logger.debug("Received getInnholdsfortegnelseAsPdf")
 
         val document = dokumentUnderArbeidRepository.getReferenceById(dokumentUnderArbeidId)
@@ -76,6 +84,12 @@ class InnholdsfortegnelseService(
             }
         }
 
+        val journalpostList = safFacade.getJournalposter(
+            journalpostIdList = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+                .map { it.journalpostId },
+            fnr = fnr,
+        )
+
         val pdfDocument =
             kabalJsonToPdfClient.getInnholdsfortegnelse(
                 InnholdsfortegnelseRequest(
@@ -83,6 +97,7 @@ class InnholdsfortegnelseService(
                         allDokumenterUnderArbeid = vedlegg,
                         behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
                         hoveddokument = document,
+                        journalpostList = journalpostList,
                     )
                 )
             )

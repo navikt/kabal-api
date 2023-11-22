@@ -53,26 +53,16 @@ class DokumentMapper(
         )
     }
 
-    fun getSortedDokumentViewList(allDokumenterUnderArbeid: List<DokumentUnderArbeid>): List<DokumentView> {
-        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
-            it !is JournalfoertDokumentUnderArbeidAsVedlegg
-        }
-
-        return dokumenterUnderArbeid.sortedByDescending { it.created }
-            .map { mapToDokumentView(it) }
-            .plus(journalfoerteDokumenterUnderArbeid.sortedByDescending { (it as JournalfoertDokumentUnderArbeidAsVedlegg).sortKey }
-                .map { mapToDokumentView(it) }
-            )
-    }
-
+    @Suppress("UNCHECKED_CAST")
     fun getSortedDokumentViewListForInnholdsfortegnelse(
         allDokumenterUnderArbeid: Set<DokumentUnderArbeidAsVedlegg>,
         behandling: Behandling,
         hoveddokument: DokumentUnderArbeid,
+        journalpostList: List<Journalpost>,
     ): List<InnholdsfortegnelseRequest.Document> {
         val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
             it !is JournalfoertDokumentUnderArbeidAsVedlegg
-        }
+        } as Pair<List<DokumentUnderArbeid>, List<JournalfoertDokumentUnderArbeidAsVedlegg>>
 
         return dokumenterUnderArbeid.sortedByDescending { it.created }
             .map {
@@ -83,10 +73,11 @@ class DokumentMapper(
                 )
             } +
                 journalfoerteDokumenterUnderArbeid
-                    .sortedByDescending { (it as JournalfoertDokumentUnderArbeidAsVedlegg).sortKey }
-                    .map {
+                    .sortedByDescending { (it).sortKey }
+                    .map { journalfoerteDokumenterUnderArbeid ->
                         mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
-                            journalfoertDokumentUnderArbeidAsVedlegg = it as JournalfoertDokumentUnderArbeidAsVedlegg
+                            journalfoertDokumentUnderArbeidAsVedlegg = journalfoerteDokumenterUnderArbeid,
+                            journalpost = journalpostList.find { it.journalpostId == journalfoerteDokumenterUnderArbeid.journalpostId }!!
                         )
                     }
     }
@@ -109,9 +100,8 @@ class DokumentMapper(
 
     private fun mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
         journalfoertDokumentUnderArbeidAsVedlegg: JournalfoertDokumentUnderArbeidAsVedlegg,
+        journalpost: Journalpost,
     ): InnholdsfortegnelseRequest.Document {
-        val journalpost =
-            safClient.getJournalpostAsSaksbehandler(journalfoertDokumentUnderArbeidAsVedlegg.journalpostId)
         val dokumentInDokarkiv =
             journalpost.dokumenter?.find { it.dokumentInfoId == journalfoertDokumentUnderArbeidAsVedlegg.dokumentInfoId }
                 ?: throw RuntimeException("Document not found in Dokarkiv")
@@ -128,54 +118,57 @@ class DokumentMapper(
         )
     }
 
-    fun mapToDokumentView(dokumentUnderArbeid: DokumentUnderArbeid): DokumentView {
+//    fun mapToDokumentView(dokumentUnderArbeid: DokumentUnderArbeid): DokumentView {
+//        var journalfoertDokumentReference: DokumentView.JournalfoertDokumentReference? = null
+//
+//        var tittel = dokumentUnderArbeid.name
+//
+//        if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
+//            val journalpostInDokarkiv =
+//                safClient.getJournalpostAsSaksbehandler(dokumentUnderArbeid.journalpostId)
+//
+//            val dokument =
+//                journalpostInDokarkiv.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+//                    ?: throw RuntimeException("Document not found in Dokarkiv")
+//
+//            tittel = (dokument.tittel ?: "Tittel ikke funnet i SAF")
+//
+//            journalfoertDokumentReference = DokumentView.JournalfoertDokumentReference(
+//                journalpostId = dokumentUnderArbeid.journalpostId,
+//                dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
+//                harTilgangTilArkivvariant = harTilgangTilArkivvariant(dokument),
+//                datoOpprettet = dokumentUnderArbeid.opprettet,
+//                sortKey = dokumentUnderArbeid.sortKey!!
+//            )
+//        }
+//
+//        return DokumentView(
+//            id = dokumentUnderArbeid.id,
+//            tittel = tittel,
+//            dokumentTypeId = dokumentUnderArbeid.dokumentType?.id,
+//            created = dokumentUnderArbeid.created,
+//            modified = dokumentUnderArbeid.modified,
+//            isSmartDokument = dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument,
+//            templateId = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) dokumentUnderArbeid.smartEditorTemplateId else null,
+//            isMarkertAvsluttet = dokumentUnderArbeid.markertFerdig != null,
+//            parent = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
+//            parentId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
+//            type = dokumentUnderArbeid.getType(),
+//            journalfoertDokumentReference = journalfoertDokumentReference,
+//            creatorIdent = dokumentUnderArbeid.creatorIdent,
+//            creatorRole = dokumentUnderArbeid.creatorRole,
+//        )
+//    }
+
+    fun mapToDokumentView(dokumentUnderArbeid: DokumentUnderArbeid, journalpost: Journalpost?): DokumentView {
         var journalfoertDokumentReference: DokumentView.JournalfoertDokumentReference? = null
 
         var tittel = dokumentUnderArbeid.name
 
         if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
-            val journalpostInDokarkiv =
-                safClient.getJournalpostAsSaksbehandler(dokumentUnderArbeid.journalpostId)
-
-            val dokument =
-                journalpostInDokarkiv.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
-                    ?: throw RuntimeException("Document not found in Dokarkiv")
-
-            tittel = (dokument.tittel ?: "Tittel ikke funnet i SAF")
-
-            journalfoertDokumentReference = DokumentView.JournalfoertDokumentReference(
-                journalpostId = dokumentUnderArbeid.journalpostId,
-                dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
-                harTilgangTilArkivvariant = harTilgangTilArkivvariant(dokument),
-                datoOpprettet = dokumentUnderArbeid.opprettet,
-                sortKey = dokumentUnderArbeid.sortKey!!
-            )
-        }
-
-        return DokumentView(
-            id = dokumentUnderArbeid.id,
-            tittel = tittel,
-            dokumentTypeId = dokumentUnderArbeid.dokumentType?.id,
-            created = dokumentUnderArbeid.created,
-            modified = dokumentUnderArbeid.modified,
-            isSmartDokument = dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument,
-            templateId = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) dokumentUnderArbeid.smartEditorTemplateId else null,
-            isMarkertAvsluttet = dokumentUnderArbeid.markertFerdig != null,
-            parent = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
-            parentId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
-            type = dokumentUnderArbeid.getType(),
-            journalfoertDokumentReference = journalfoertDokumentReference,
-            creatorIdent = dokumentUnderArbeid.creatorIdent,
-            creatorRole = dokumentUnderArbeid.creatorRole,
-        )
-    }
-
-    fun mapToDokumentView(dokumentUnderArbeid: DokumentUnderArbeid, journalpost: Journalpost): DokumentView {
-        var journalfoertDokumentReference: DokumentView.JournalfoertDokumentReference? = null
-
-        var tittel = dokumentUnderArbeid.name
-
-        if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
+            if (journalpost == null) {
+                throw RuntimeException("Need journalpost to handle JournalfoertDokumentUnderArbeidAsVedlegg")
+            }
             val dokument =
                 journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
                     ?: throw RuntimeException("Document not found in Dokarkiv")
@@ -211,11 +204,18 @@ class DokumentMapper(
 
     fun mapToDokumentListView(
         dokumentUnderArbeidList: List<DokumentUnderArbeid>,
-        duplicateJournalfoerteDokumenter: List<DokumentUnderArbeid>
+        duplicateJournalfoerteDokumenter: List<DokumentUnderArbeid>,
+        journalpostList: List<Journalpost>,
     ): DokumentViewWithList {
         val firstDokument = dokumentUnderArbeidList.firstOrNull()
         val firstDokumentView = if (firstDokument != null) {
-            mapToDokumentView(dokumentUnderArbeidList.first())
+            if (firstDokument is JournalfoertDokumentUnderArbeidAsVedlegg) {
+                mapToDokumentView(
+                    dokumentUnderArbeid = dokumentUnderArbeidList.first(),
+                    journalpost = journalpostList.find { it.journalpostId == firstDokument.journalpostId })
+            } else {
+                mapToDokumentView(dokumentUnderArbeid = dokumentUnderArbeidList.first(), journalpost = null)
+            }
         } else null
 
         return DokumentViewWithList(
@@ -231,8 +231,24 @@ class DokumentMapper(
             parent = firstDokumentView?.parent,
             parentId = firstDokumentView?.parentId,
             journalfoertDokumentReference = firstDokumentView?.journalfoertDokumentReference,
-            alteredDocuments = dokumentUnderArbeidList.map { mapToDokumentView(it) },
-            duplicateJournalfoerteDokumenter = duplicateJournalfoerteDokumenter.map { mapToDokumentView(it) },
+            alteredDocuments = dokumentUnderArbeidList.map { dokumentUnderArbeid ->
+                if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
+                    mapToDokumentView(
+                        dokumentUnderArbeid = dokumentUnderArbeid,
+                        journalpost = journalpostList.find { it.journalpostId == dokumentUnderArbeid.journalpostId })
+                } else {
+                    mapToDokumentView(dokumentUnderArbeid = dokumentUnderArbeid, journalpost = null)
+                }
+            },
+            duplicateJournalfoerteDokumenter = duplicateJournalfoerteDokumenter.map { duplicateJournalfoertDokument ->
+                if (duplicateJournalfoertDokument is JournalfoertDokumentUnderArbeidAsVedlegg) {
+                    mapToDokumentView(
+                        dokumentUnderArbeid = duplicateJournalfoertDokument,
+                        journalpost = journalpostList.find { it.journalpostId == duplicateJournalfoertDokument.journalpostId })
+                } else {
+                    mapToDokumentView(dokumentUnderArbeid = duplicateJournalfoertDokument, journalpost = null)
+                }
+            },
         )
     }
 
