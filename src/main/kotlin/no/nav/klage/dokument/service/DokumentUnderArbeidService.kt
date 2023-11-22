@@ -1,7 +1,9 @@
 package no.nav.klage.dokument.service
 
 import jakarta.transaction.Transactional
+import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.DocumentValidationResponse
+import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.DefaultKabalSmartEditorApiGateway
@@ -17,6 +19,7 @@ import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentMapper
+import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
@@ -62,6 +65,8 @@ class DokumentUnderArbeidService(
     private val kabalDocumentMapper: KabalDocumentMapper,
     private val eregClient: EregClient,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
+    private val safFacade: SafFacade,
+    private val dokumentMapper: DokumentMapper,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -955,6 +960,43 @@ class DokumentUnderArbeidService(
         }
 
         return dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId)
+    }
+
+    fun findDokumenterNotFinishedNew(behandlingId: UUID): List<DokumentView> {
+        //Sjekker tilgang på behandlingsnivå:
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        return getDokumentViewList(
+            allDokumenterUnderArbeid = dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId),
+            behandling = behandling
+        )
+    }
+
+    fun getDokumentViewList(
+        allDokumenterUnderArbeid: List<DokumentUnderArbeid>,
+        behandling: Behandling,
+    ): List<DokumentView> {
+        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
+            it !is JournalfoertDokumentUnderArbeidAsVedlegg
+        }
+
+        val journalpostList = safFacade.getJournalposter(
+            journalpostIdList = journalfoerteDokumenterUnderArbeid.map { (it as JournalfoertDokumentUnderArbeidAsVedlegg).journalpostId },
+            fnr = behandling.sakenGjelder.partId.value,
+            tema = listOf(),
+            pageSize = 50000,
+            previousPageRef = null,
+        )
+
+        return dokumenterUnderArbeid.sortedByDescending { it.created }
+            .map { dokumentMapper.mapToDokumentView(it) }
+            .plus(journalfoerteDokumenterUnderArbeid.sortedByDescending { (it as JournalfoertDokumentUnderArbeidAsVedlegg).sortKey }
+                .map { journalfoertVedlegg ->
+                    dokumentMapper.mapToDokumentView(
+                        dokumentUnderArbeid = journalfoertVedlegg,
+                        journalpost = journalpostList.find { it.journalpostId == (journalfoertVedlegg as JournalfoertDokumentUnderArbeidAsVedlegg).journalpostId }!!
+                    )
+                }
+            )
     }
 
     fun getSmartDokumenterUnderArbeid(behandlingId: UUID, ident: String): List<DokumentUnderArbeid> {

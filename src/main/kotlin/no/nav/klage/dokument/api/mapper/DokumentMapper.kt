@@ -170,6 +170,45 @@ class DokumentMapper(
         )
     }
 
+    fun mapToDokumentView(dokumentUnderArbeid: DokumentUnderArbeid, journalpost: Journalpost): DokumentView {
+        var journalfoertDokumentReference: DokumentView.JournalfoertDokumentReference? = null
+
+        var tittel = dokumentUnderArbeid.name
+
+        if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
+            val dokument =
+                journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+                    ?: throw RuntimeException("Document not found in Dokarkiv")
+
+            tittel = (dokument.tittel ?: "Tittel ikke funnet i SAF")
+
+            journalfoertDokumentReference = DokumentView.JournalfoertDokumentReference(
+                journalpostId = dokumentUnderArbeid.journalpostId,
+                dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
+                harTilgangTilArkivvariant = harTilgangTilArkivvariant(dokument),
+                datoOpprettet = dokumentUnderArbeid.opprettet,
+                sortKey = dokumentUnderArbeid.sortKey!!
+            )
+        }
+
+        return DokumentView(
+            id = dokumentUnderArbeid.id,
+            tittel = tittel,
+            dokumentTypeId = dokumentUnderArbeid.dokumentType?.id,
+            created = dokumentUnderArbeid.created,
+            modified = dokumentUnderArbeid.modified,
+            isSmartDokument = dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument,
+            templateId = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) dokumentUnderArbeid.smartEditorTemplateId else null,
+            isMarkertAvsluttet = dokumentUnderArbeid.markertFerdig != null,
+            parent = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
+            parentId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
+            type = dokumentUnderArbeid.getType(),
+            journalfoertDokumentReference = journalfoertDokumentReference,
+            creatorIdent = dokumentUnderArbeid.creatorIdent,
+            creatorRole = dokumentUnderArbeid.creatorRole,
+        )
+    }
+
     fun mapToDokumentListView(
         dokumentUnderArbeidList: List<DokumentUnderArbeid>,
         duplicateJournalfoerteDokumenter: List<DokumentUnderArbeid>
