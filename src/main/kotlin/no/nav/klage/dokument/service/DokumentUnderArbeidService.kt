@@ -232,42 +232,62 @@ class DokumentUnderArbeidService(
     ): JournalfoerteDokumenterResponse {
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
+        val journalpostListForUser = safFacade.getJournalposter(
+            journalpostIdList = journalfoerteDokumenterInput.journalfoerteDokumenter.map { it.journalpostId },
+            fnr = behandling.sakenGjelder.partId.value,
+        )
+
         val (added, duplicates) = createJournalfoerteDokumenter(
             parentId = journalfoerteDokumenterInput.parentId,
             journalfoerteDokumenter = journalfoerteDokumenterInput.journalfoerteDokumenter,
-            behandlingId = behandlingId,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            behandling = behandling,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            journalpostListForUser = journalpostListForUser
         )
 
         return JournalfoerteDokumenterResponse(
-            addedJournalfoerteDokumenter = getDokumentViewList(
+            addedJournalfoerteDokumenter = getDokumentViewListForJournalfoertDokumentUnderArbeidAsVedleggList(
                 dokumentUnderArbeidList = added,
-                behandling = behandling
+                behandling = behandling,
+                journalpostList = journalpostListForUser,
             ),
             duplicateJournalfoerteDokumenter = duplicates
         )
     }
 
+    fun getDokumentViewListForJournalfoertDokumentUnderArbeidAsVedleggList(
+        dokumentUnderArbeidList: List<JournalfoertDokumentUnderArbeidAsVedlegg>,
+        behandling: Behandling,
+        journalpostList: List<Journalpost>
+    ): List<DokumentView> {
+        return dokumentUnderArbeidList.sortedByDescending { it.sortKey }
+            .map { journalfoertVedlegg ->
+                dokumentMapper.mapToDokumentView(
+                    dokumentUnderArbeid = journalfoertVedlegg,
+                    journalpost = journalpostList.find { it.journalpostId == journalfoertVedlegg.journalpostId }!!
+                )
+            }
+    }
+
     fun createJournalfoerteDokumenter(
         parentId: UUID,
         journalfoerteDokumenter: Set<JournalfoertDokumentReference>,
-        behandlingId: UUID,
+        behandling: Behandling,
         innloggetIdent: String,
-    ): Pair<List<DokumentUnderArbeid>, List<JournalfoertDokumentReference>> {
+        journalpostListForUser: List<Journalpost>,
+    ): Pair<List<JournalfoertDokumentUnderArbeidAsVedlegg>, List<JournalfoertDokumentReference>> {
         val parentDocument = dokumentUnderArbeidRepository.getReferenceById(parentId)
 
         if (parentDocument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
         }
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-
         if (behandling.avsluttetAvSaksbehandler == null) {
             val isCurrentROL = behandling.rolIdent == innloggetIdent
 
             journalfoerteDokumenter.forEach {
                 behandlingService.connectDokumentToBehandling(
-                    behandlingId = behandlingId,
+                    behandlingId = behandling.id,
                     journalpostId = it.journalpostId,
                     dokumentInfoId = it.dokumentInfoId,
                     saksbehandlerIdent = innloggetIdent,
@@ -299,14 +319,14 @@ class DokumentUnderArbeidService(
 
         val resultingDocuments = toAdd.map { journalfoertDokumentReference ->
             val journalpostInDokarkiv =
-                safClient.getJournalpostAsSaksbehandler(journalfoertDokumentReference.journalpostId)
+                journalpostListForUser.find { it.journalpostId == journalfoertDokumentReference.journalpostId }!!
 
             val document = JournalfoertDokumentUnderArbeidAsVedlegg(
                 name = getDokumentTitle(
                     journalpost = journalpostInDokarkiv,
                     dokumentInfoId = journalfoertDokumentReference.dokumentInfoId
                 ),
-                behandlingId = behandlingId,
+                behandlingId = behandling.id,
                 parentId = parentId,
                 journalpostId = journalfoertDokumentReference.journalpostId,
                 dokumentInfoId = journalfoertDokumentReference.dokumentInfoId,
@@ -1074,7 +1094,8 @@ class DokumentUnderArbeidService(
         val hovedDokument =
             dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
-        val behandling: Behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
+        val behandling: Behandling =
+            behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 
         logger.debug(
             "calling fullfoerDokumentEnhet ({}) for hoveddokument with id {}",

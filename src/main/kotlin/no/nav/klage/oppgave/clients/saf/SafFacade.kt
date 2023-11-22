@@ -22,11 +22,11 @@ class SafFacade(
     fun getJournalposter(
         journalpostIdList: List<String>,
         fnr: String,
-        tema: List<Tema>,
-        pageSize: Int,
-        previousPageRef: String?,
+        tema: List<Tema> = emptyList(),
+        pageSize: Int = 50000,
+        previousPageRef: String? = null,
     ): List<Journalpost> {
-        if (journalpostIdList.size > 10) {
+        return if (journalpostIdList.size > 10) {
             val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBruker(
                 fnr = fnr,
                 tema = tema,
@@ -34,9 +34,9 @@ class SafFacade(
                 previousPageRef = previousPageRef
             )
 
-            return dokumentOversiktBruker.journalposter.filter { it.journalpostId in journalpostIdList }
+            dokumentOversiktBruker.journalposter.filter { it.journalpostId in journalpostIdList }
         } else {
-            return journalpostIdList.map {
+            journalpostIdList.map {
                 safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId = it)
             }
         }
