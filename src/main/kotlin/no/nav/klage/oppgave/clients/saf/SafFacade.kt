@@ -26,13 +26,19 @@ class SafFacade(
         pageSize: Int,
         previousPageRef: String?,
     ): List<Journalpost> {
-        val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBruker(
-            fnr = fnr,
-            tema = tema,
-            pageSize = pageSize,
-            previousPageRef = previousPageRef
-        )
+        if (journalpostIdList.size > 10) {
+            val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBruker(
+                fnr = fnr,
+                tema = tema,
+                pageSize = pageSize,
+                previousPageRef = previousPageRef
+            )
 
-        return dokumentOversiktBruker.journalposter.filter { it.journalpostId in journalpostIdList }
+            return dokumentOversiktBruker.journalposter.filter { it.journalpostId in journalpostIdList }
+        } else {
+            return journalpostIdList.map {
+                safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId = it)
+            }
+        }
     }
 }

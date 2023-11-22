@@ -77,16 +77,10 @@ class DokumentUnderArbeidController(
         @RequestBody input: JournalfoerteDokumenterInput
     ): JournalfoerteDokumenterResponse {
         logger.debug("Kall mottatt på addJournalfoerteDokumenterAsVedlegg")
-        val (added, duplicates) = dokumentUnderArbeidService.createJournalfoerteDokumenter(
-            parentId = input.parentId,
-            journalfoerteDokumenter = input.journalfoerteDokumenter,
+        return dokumentUnderArbeidService.handleJournalfoerteDokumenterAsVedlegg(
             behandlingId = behandlingId,
+            journalfoerteDokumenterInput = input,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
-
-        return JournalfoerteDokumenterResponse(
-            addedJournalfoerteDokumenter = added.map { dokumentMapper.mapToDokumentView(it) },
-            duplicateJournalfoerteDokumenter = duplicates
         )
     }
 

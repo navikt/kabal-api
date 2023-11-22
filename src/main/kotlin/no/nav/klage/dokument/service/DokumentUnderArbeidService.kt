@@ -2,8 +2,7 @@ package no.nav.klage.dokument.service
 
 import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.mapper.DokumentMapper
-import no.nav.klage.dokument.api.view.DocumentValidationResponse
-import no.nav.klage.dokument.api.view.DokumentView
+import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.DefaultKabalSmartEditorApiGateway
@@ -224,6 +223,29 @@ class DokumentUnderArbeidService(
         )
 
         return document
+    }
+
+    fun handleJournalfoerteDokumenterAsVedlegg(
+        behandlingId: UUID,
+        journalfoerteDokumenterInput: JournalfoerteDokumenterInput,
+        innloggetIdent: String
+    ): JournalfoerteDokumenterResponse {
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+
+        val (added, duplicates) = createJournalfoerteDokumenter(
+            parentId = journalfoerteDokumenterInput.parentId,
+            journalfoerteDokumenter = journalfoerteDokumenterInput.journalfoerteDokumenter,
+            behandlingId = behandlingId,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+
+        return JournalfoerteDokumenterResponse(
+            addedJournalfoerteDokumenter = getDokumentViewList(
+                dokumentUnderArbeidList = added,
+                behandling = behandling
+            ),
+            duplicateJournalfoerteDokumenter = duplicates
+        )
     }
 
     fun createJournalfoerteDokumenter(
@@ -966,34 +988,37 @@ class DokumentUnderArbeidService(
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         return getDokumentViewList(
-            allDokumenterUnderArbeid = dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId),
+            dokumentUnderArbeidList = dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId),
             behandling = behandling
         )
     }
 
     fun getDokumentViewList(
-        allDokumenterUnderArbeid: List<DokumentUnderArbeid>,
+        dokumentUnderArbeidList: List<DokumentUnderArbeid>,
         behandling: Behandling,
     ): List<DokumentView> {
-        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
+        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = dokumentUnderArbeidList.partition {
             it !is JournalfoertDokumentUnderArbeidAsVedlegg
-        }
+        } as Pair<List<DokumentUnderArbeid>, List<JournalfoertDokumentUnderArbeidAsVedlegg>>
 
-        val journalpostList = safFacade.getJournalposter(
-            journalpostIdList = journalfoerteDokumenterUnderArbeid.map { (it as JournalfoertDokumentUnderArbeidAsVedlegg).journalpostId },
-            fnr = behandling.sakenGjelder.partId.value,
-            tema = listOf(),
-            pageSize = 50000,
-            previousPageRef = null,
-        )
+        val journalpostList =
+            if (journalfoerteDokumenterUnderArbeid.isNotEmpty()) {
+                safFacade.getJournalposter(
+                    journalpostIdList = journalfoerteDokumenterUnderArbeid.map { it.journalpostId },
+                    fnr = behandling.sakenGjelder.partId.value,
+                    tema = listOf(),
+                    pageSize = 50000,
+                    previousPageRef = null,
+                )
+            } else emptyList()
 
         return dokumenterUnderArbeid.sortedByDescending { it.created }
             .map { dokumentMapper.mapToDokumentView(it) }
-            .plus(journalfoerteDokumenterUnderArbeid.sortedByDescending { (it as JournalfoertDokumentUnderArbeidAsVedlegg).sortKey }
+            .plus(journalfoerteDokumenterUnderArbeid.sortedByDescending { it.sortKey }
                 .map { journalfoertVedlegg ->
                     dokumentMapper.mapToDokumentView(
                         dokumentUnderArbeid = journalfoertVedlegg,
-                        journalpost = journalpostList.find { it.journalpostId == (journalfoertVedlegg as JournalfoertDokumentUnderArbeidAsVedlegg).journalpostId }!!
+                        journalpost = journalpostList.find { it.journalpostId == journalfoertVedlegg.journalpostId }!!
                     )
                 }
             )
@@ -1030,7 +1055,7 @@ class DokumentUnderArbeidService(
         if (hovedDokument.dokumentEnhetId == null) {
             logger.debug("hoveddokument.dokumentEnhetId == null, id {}", hovedDokumentId)
             //Vi vet at smartEditor-dokumentene har en oppdatert snapshot i mellomlageret fordi det ble fikset i finnOgMarkerFerdigHovedDokument
-            val behandling = behandlingService.getBehandlingForUpdateBySystembruker(hovedDokument.behandlingId)
+            val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
             val dokumentEnhetId = kabalDocumentGateway.createKomplettDokumentEnhet(
                 behandling = behandling,
                 hovedDokument = hovedDokument,
@@ -1049,7 +1074,7 @@ class DokumentUnderArbeidService(
         val hovedDokument =
             dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
-        val behandling: Behandling = behandlingService.getBehandlingForUpdateBySystembruker(hovedDokument.behandlingId)
+        val behandling: Behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 
         logger.debug(
             "calling fullfoerDokumentEnhet ({}) for hoveddokument with id {}",
@@ -1070,9 +1095,11 @@ class DokumentUnderArbeidService(
             val saksbehandlerIdent = SYSTEMBRUKER
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 
-            saksdokumenter.forEach { saksdokument ->
-                behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
-                    ?.also { applicationEventPublisher.publishEvent(it) }
+            if (behandling.avsluttetAvSaksbehandler == null) {
+                saksdokumenter.forEach { saksdokument ->
+                    behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
+                        ?.also { applicationEventPublisher.publishEvent(it) }
+                }
             }
         }
 

@@ -832,7 +832,7 @@ class BehandlingService(
     }
 
     private fun checkSkrivetilgangForSystembruker(behandling: Behandling) {
-        tilgangService.verifySystembrukersSkrivetilgang(behandling)
+        tilgangService.checkIfBehandlingIsAvsluttet(behandling)
     }
 
     @Transactional(readOnly = true)
