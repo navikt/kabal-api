@@ -11,6 +11,11 @@ data class SaksbehandlerInput(
     val navIdent: String?,
 )
 
+data class SetSaksbehandlerInput(
+    val navIdent: String?,
+    val reason: String?,
+)
+
 data class SaksbehandlerViewWrapped(
     val saksbehandler: SaksbehandlerView?,
     val modified: LocalDateTime,

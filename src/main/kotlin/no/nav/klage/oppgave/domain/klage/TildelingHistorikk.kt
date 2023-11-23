@@ -12,7 +12,7 @@ class TildelingHistorikk(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Embedded
-    val tildeling: Tildeling
+    val tildeling: TildelingWithReason,
 ) : Comparable<TildelingHistorikk> {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -14,7 +14,8 @@ object BehandlingSetters {
     fun Behandling.setTildeling(
         nyVerdiSaksbehandlerident: String?,
         nyVerdiEnhet: String?,
-        saksbehandlerident: String
+        reason: String?,
+        utfoerendeIdent: String,
     ): BehandlingEndretEvent {
         if (!(nyVerdiSaksbehandlerident == null && nyVerdiEnhet == null) &&
             !(nyVerdiSaksbehandlerident != null && nyVerdiEnhet != null)
@@ -26,9 +27,19 @@ object BehandlingSetters {
         val gammelVerdiEnhet = tildeling?.enhet
         val gammelVerdiTidspunkt = tildeling?.tidspunkt
         val tidspunkt = LocalDateTime.now()
-        if (tildeling != null) {
-            tildelingHistorikk.add(TildelingHistorikk(tildeling = tildeling!!.copy()))
-        }
+
+        tildelingHistorikk.add(
+            TildelingHistorikk(
+                tildeling = TildelingWithReason(
+                    saksbehandlerident = nyVerdiSaksbehandlerident,
+                    enhet = nyVerdiEnhet,
+                    tidspunkt = tidspunkt,
+                    reason = reason,
+                    utfoerendeIdent = utfoerendeIdent,
+                )
+            )
+        )
+
         tildeling = if (nyVerdiSaksbehandlerident == null) {
             null
         } else {
@@ -39,7 +50,7 @@ object BehandlingSetters {
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
         endringslogg(
-            saksbehandlerident = saksbehandlerident,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.TILDELT_TIDSPUNKT,
             fraVerdi = gammelVerdiTidspunkt?.format(DateTimeFormatter.ISO_LOCAL_DATE),
             tilVerdi = tidspunkt.format(DateTimeFormatter.ISO_LOCAL_DATE),
@@ -47,7 +58,7 @@ object BehandlingSetters {
         )?.let { endringslogginnslag.add(it) }
 
         endringslogg(
-            saksbehandlerident = saksbehandlerident,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.TILDELT_SAKSBEHANDLERIDENT,
             fraVerdi = gammelVerdiSaksbehandlerident,
             tilVerdi = nyVerdiSaksbehandlerident,
@@ -55,7 +66,7 @@ object BehandlingSetters {
         )?.let { endringslogginnslag.add(it) }
 
         endringslogg(
-            saksbehandlerident = saksbehandlerident,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.TILDELT_ENHET,
             fraVerdi = gammelVerdiEnhet,
             tilVerdi = nyVerdiEnhet,

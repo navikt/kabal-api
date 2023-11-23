@@ -2,7 +2,8 @@ package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.api.view.SaksbehandlerViewWrapped
+import no.nav.klage.oppgave.api.view.SetSaksbehandlerInput
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -31,7 +32,7 @@ class BehandlingAssignmentController(
     fun setSaksbehandler(
         @Parameter(description = "Id til en behandling")
         @PathVariable("id") behandlingId: UUID,
-        @RequestBody saksbehandlerInput: SaksbehandlerInput
+        @RequestBody saksbehandlerInput: SetSaksbehandlerInput
     ): SaksbehandlerViewWrapped {
         logBehandlingMethodDetails(
             ::setSaksbehandler.name,
@@ -46,6 +47,7 @@ class BehandlingAssignmentController(
             enhetId = if (saksbehandlerInput.navIdent != null) saksbehandlerService.getEnhetForSaksbehandler(
                 saksbehandlerInput.navIdent
             ).enhetId else null,
+            reason = saksbehandlerInput.reason,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
     }

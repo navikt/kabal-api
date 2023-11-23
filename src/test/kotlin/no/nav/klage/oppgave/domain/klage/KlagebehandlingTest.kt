@@ -42,14 +42,14 @@ internal class KlagebehandlingTest {
         @Test
         fun `status IKKE_TILDELT etter tidligere tildeling`() {
             val klagebehandling = getKlagebehandling()
-            klagebehandling.tildeling = Tildeling(saksbehandlerident = null, tidspunkt = LocalDateTime.now())
+            klagebehandling.tildeling = Tildeling(saksbehandlerident = null, enhet = null, tidspunkt = LocalDateTime.now())
             assertThat(klagebehandling.getStatus()).isEqualTo(Behandling.Status.IKKE_TILDELT)
         }
 
         @Test
         fun `status TILDELT`() {
             val klagebehandling = getKlagebehandling()
-            klagebehandling.tildeling = Tildeling(saksbehandlerident = "abc", tidspunkt = LocalDateTime.now())
+            klagebehandling.tildeling = Tildeling(saksbehandlerident = "abc", enhet = null, tidspunkt = LocalDateTime.now())
             assertThat(klagebehandling.getStatus()).isEqualTo(Behandling.Status.TILDELT)
         }
 
@@ -79,7 +79,7 @@ internal class KlagebehandlingTest {
         @Test
         fun `status TILDELT når medunderskriver er fjernet`() {
             val klagebehandling = getKlagebehandling()
-            klagebehandling.tildeling = Tildeling(saksbehandlerident = "abc", tidspunkt = LocalDateTime.now())
+            klagebehandling.tildeling = Tildeling(saksbehandlerident = "abc", enhet = null, tidspunkt = LocalDateTime.now())
             klagebehandling.medunderskriver = MedunderskriverTildeling(null, LocalDateTime.now())
             assertThat(klagebehandling.getStatus()).isEqualTo(Behandling.Status.TILDELT)
         }
