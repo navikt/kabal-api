@@ -710,7 +710,7 @@ class BehandlingService(
         val event =
             behandling.setMedunderskriverFlowState(
                 nyMedunderskriverFlowState = flowState,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
         return behandlingMapper.mapToMedunderskriverWrapped(behandling)
@@ -743,7 +743,7 @@ class BehandlingService(
         val event =
             behandling.setMedunderskriverNavIdent(
                 nyMedunderskriverNavIdent = navIdent,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
         return behandlingMapper.mapToMedunderskriverWrapped(behandling)

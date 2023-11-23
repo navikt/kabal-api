@@ -12,7 +12,7 @@ class MedunderskriverHistorikk(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Embedded
-    val medunderskriver: MedunderskriverTildeling
+    val medunderskriver: MedunderskriverTildelingForHistory
 ) : Comparable<MedunderskriverHistorikk> {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
