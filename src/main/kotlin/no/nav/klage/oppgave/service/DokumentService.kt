@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.api.view.JournalfoertDokumentMetadata
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.*
 import no.nav.klage.oppgave.clients.saf.rest.SafRestClient
 import no.nav.klage.oppgave.domain.klage.Behandling
@@ -48,6 +49,7 @@ class DokumentService(
     private val mergedDocumentRepository: MergedDocumentRepository,
     private val dokumentMapper: DokumentMapper,
     private val kabalDocumentGateway: KabalDocumentGateway,
+    private val safFacade: SafFacade,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -63,7 +65,7 @@ class DokumentService(
     ): DokumenterResponse {
         if (behandling.sakenGjelder.erPerson()) {
             val dokumentoversiktBruker: DokumentoversiktBruker =
-                safGraphQlClient.getDokumentoversiktBruker(
+                safFacade.getDokumentoversiktBrukerAsSaksbehandler(
                     behandling.sakenGjelder.partId.value,
                     mapTema(temaer),
                     pageSize,
@@ -122,23 +124,22 @@ class DokumentService(
     private fun mapTema(temaer: List<Tema>): List<no.nav.klage.oppgave.clients.saf.graphql.Tema> =
         temaer.map { tema -> no.nav.klage.oppgave.clients.saf.graphql.Tema.valueOf(tema.name) }
 
-    fun validateJournalpostExistsAsSystembruker(journalpostId: String) {
+    fun validateJournalpostsExistsAsSystembruker(journalpostIdList: List<String>) {
         try {
-            safGraphQlClient.getJournalpostAsSystembruker(journalpostId)
+            safFacade.getJournalposter(
+                journalpostIdList = journalpostIdList,
+                fnr = null,
+                saksbehandlerContext = false,
+            )
+
         } catch (e: Exception) {
-            logger.warn("Unable to find journalpost $journalpostId", e)
+            logger.warn("Unable to find journalposts", e)
             null
-        } ?: throw JournalpostNotFoundException("Journalpost $journalpostId not found")
+        } ?: throw JournalpostNotFoundException("Journalposts not found")
     }
 
-    fun fetchDokumentInfoIdForJournalpostAsSystembruker(journalpostId: String): List<String> {
-        return try {
-            val journalpost = safGraphQlClient.getJournalpostAsSystembruker(journalpostId)
-            journalpost.dokumenter?.filter { harArkivVariantformat(it) }?.map { it.dokumentInfoId } ?: emptyList()
-        } catch (e: Exception) {
-            logger.warn("Unable to find journalpost $journalpostId", e)
-            emptyList()
-        }
+    fun fetchDokumentInfoIdFromJournalpost(journalpost: Journalpost): List<String> {
+        return journalpost.dokumenter?.filter { harArkivVariantformat(it) }?.map { it.dokumentInfoId } ?: emptyList()
     }
 
     fun getFysiskDokument(journalpostId: String, dokumentInfoId: String): FysiskDokument {
@@ -152,16 +153,22 @@ class DokumentService(
     }
 
     fun getDocumentTitle(journalpostId: String, dokumentInfoId: String): String {
-        val journalpostInDokarkiv =
-            safClient.getJournalpostAsSaksbehandler(journalpostId)
+        val journalpostInDokarkiv = safFacade.getJournalposter(
+            journalpostIdList = listOf(journalpostId),
+            fnr = null,
+            saksbehandlerContext = true,
+        ).first()
 
         return journalpostInDokarkiv.dokumenter?.find { it.dokumentInfoId == dokumentInfoId }?.tittel
             ?: throw RuntimeException("Document/title not found in Dokarkiv")
     }
 
     fun getJournalfoertDokumentMetadata(journalpostId: String, dokumentInfoId: String): JournalfoertDokumentMetadata {
-        val journalpostInDokarkiv =
-            safClient.getJournalpostAsSaksbehandler(journalpostId)
+        val journalpostInDokarkiv = safFacade.getJournalposter(
+            journalpostIdList = listOf(journalpostId),
+            fnr = null,
+            saksbehandlerContext = true,
+        ).first()
 
         val dokumentInfo = journalpostInDokarkiv.dokumenter?.find { it.dokumentInfoId == dokumentInfoId }
         return JournalfoertDokumentMetadata(
@@ -195,7 +202,12 @@ class DokumentService(
     }
 
     fun getDokumentReferanse(journalpostId: String, behandling: Behandling): DokumentReferanse {
-        val journalpost = safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId)
+        val journalpost = safFacade.getJournalposter(
+            journalpostIdList = listOf(journalpostId),
+            fnr = null,
+            saksbehandlerContext = true,
+        ).first()
+
         return dokumentMapper.mapJournalpostToDokumentReferanse(journalpost = journalpost, behandling = behandling)
     }
 
@@ -204,17 +216,23 @@ class DokumentService(
             dv.variantformat == Variantformat.ARKIV
         }
 
-    fun createSaksdokumenterFromJournalpostIdSet(journalpostIdSet: List<String>): MutableSet<Saksdokument> {
+    fun createSaksdokumenterFromJournalpostIdList(journalpostIdList: List<String>): MutableSet<Saksdokument> {
         val saksdokumenter: MutableSet<Saksdokument> = mutableSetOf()
-        journalpostIdSet.forEach {
+        val journalpostList = safFacade.getJournalposter(
+            journalpostIdList = journalpostIdList,
+            fnr = null,
+            saksbehandlerContext = false,
+        )
+        journalpostList.forEach {
             saksdokumenter.addAll(createSaksdokument(it))
         }
+
         return saksdokumenter
     }
 
-    private fun createSaksdokument(journalpostId: String) =
-        fetchDokumentInfoIdForJournalpostAsSystembruker(journalpostId)
-            .map { Saksdokument(journalpostId = journalpostId, dokumentInfoId = it) }
+    private fun createSaksdokument(journalpost: Journalpost) =
+        fetchDokumentInfoIdFromJournalpost(journalpost)
+            .map { Saksdokument(journalpostId = journalpost.journalpostId, dokumentInfoId = it) }
 
     fun storeDocumentsForMerging(documents: List<JournalfoertDokumentReference>): MergedDocument {
         val hash = documents.joinToString(separator = "") { it.journalpostId + it.dokumentInfoId }.toMd5Hash()
@@ -248,10 +266,21 @@ class DokumentService(
     private fun generateTitleForDocumentsToMerge(documents: List<JournalfoertDokumentReference>): String {
         val numberOfDocumentNamesToShow = 3
         val truncatedMessage = " ... " + (documents.size - numberOfDocumentNamesToShow) + " til"
+        val journalpostList = safFacade.getJournalposter(
+            journalpostIdList = documents.map { it.journalpostId },
+            fnr = null,
+            saksbehandlerContext = true,
+        )
 
         return "(${documents.size}) " + documents
-            .joinToString(limit = numberOfDocumentNamesToShow, truncated = truncatedMessage) {
-                getDocumentTitle(journalpostId = it.journalpostId, dokumentInfoId = it.dokumentInfoId)
+            .joinToString(
+                limit = numberOfDocumentNamesToShow,
+                truncated = truncatedMessage
+            ) { journalfoertDokumentReference ->
+                journalpostList
+                    .find { it.journalpostId == journalfoertDokumentReference.journalpostId }!!
+                    .dokumenter?.find { it.dokumentInfoId == journalfoertDokumentReference.dokumentInfoId }?.tittel
+                    ?: throw RuntimeException("Document/title not found in Dokarkiv")
             }
     }
 

@@ -68,8 +68,6 @@ class DokumentUnderArbeidServiceTest {
     @MockkBean
     lateinit var applicationEventPublisher: ApplicationEventPublisher
     @MockkBean
-    lateinit var safClient: SafGraphQlClient
-    @MockkBean
     lateinit var innloggetSaksbehandlerService: InnloggetSaksbehandlerService
     @MockkBean
     lateinit var dokumentService: DokumentService
@@ -105,7 +103,6 @@ class DokumentUnderArbeidServiceTest {
             behandlingService = behandlingService,
             kabalDocumentGateway = kabalDocumentGateway,
             applicationEventPublisher = applicationEventPublisher,
-            safClient = safClient,
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             dokumentService = dokumentService,
             kabalDocumentMapper = kabalDocumentMapper,

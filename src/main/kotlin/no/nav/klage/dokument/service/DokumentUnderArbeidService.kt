@@ -58,7 +58,6 @@ class DokumentUnderArbeidService(
     private val behandlingService: BehandlingService,
     private val kabalDocumentGateway: KabalDocumentGateway,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val safClient: SafGraphQlClient,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val dokumentService: DokumentService,
     private val kabalDocumentMapper: KabalDocumentMapper,
@@ -168,12 +167,14 @@ class DokumentUnderArbeidService(
             )
         }
 
-        val journalpostIdList = dokumentUnderArbeidList.plus(duplicateJournalfoerteDokumenter).filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+        val journalpostIdList = dokumentUnderArbeidList.plus(duplicateJournalfoerteDokumenter)
+            .filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
             .map { it.journalpostId }
 
         val journalpostListForUser = safFacade.getJournalposter(
             journalpostIdList = journalpostIdList,
             fnr = behandling.sakenGjelder.partId.value,
+            saksbehandlerContext = true,
         )
 
         return dokumentMapper.mapToDokumentListView(
@@ -273,6 +274,7 @@ class DokumentUnderArbeidService(
         val journalpostListForUser = safFacade.getJournalposter(
             journalpostIdList = journalfoerteDokumenterInput.journalfoerteDokumenter.map { it.journalpostId },
             fnr = behandling.sakenGjelder.partId.value,
+            saksbehandlerContext = true,
         )
 
         val (added, duplicates) = createJournalfoerteDokumenter(
@@ -774,7 +776,7 @@ class DokumentUnderArbeidService(
             title = title,
             content = dokumentService.changeTitleInPDF(
                 documentBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
-                    dokumentUnderArbeidId = hoveddokumentId, 
+                    dokumentUnderArbeidId = hoveddokumentId,
                     fnr = behandling.sakenGjelder.partId.value,
                 ),
                 title = title
@@ -1073,6 +1075,7 @@ class DokumentUnderArbeidService(
                 safFacade.getJournalposter(
                     journalpostIdList = journalfoerteDokumenterUnderArbeid.map { it.journalpostId },
                     fnr = behandling.sakenGjelder.partId.value,
+                    saksbehandlerContext = true,
                 )
             } else emptyList()
 
@@ -1154,8 +1157,14 @@ class DokumentUnderArbeidService(
             }
         }.toSet()
 
+        val journalpostList = safFacade.getJournalposter(
+            journalpostIdList = journalpostIdSet.toList(),
+            fnr = behandling.sakenGjelder.partId.value,
+            saksbehandlerContext = false,
+        )
+
         journalpostIdSet.forEach { documentInfo ->
-            val journalpost = safClient.getJournalpostAsSystembruker(documentInfo)
+            val journalpost = journalpostList.find { it.journalpostId == documentInfo }
             val saksbehandlerIdent = SYSTEMBRUKER
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 

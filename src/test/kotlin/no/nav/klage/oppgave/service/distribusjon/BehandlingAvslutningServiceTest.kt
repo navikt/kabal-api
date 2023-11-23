@@ -94,9 +94,6 @@ internal class BehandlingAvslutningServiceTest {
         lateinit var eregClient: EregClient
 
         @MockkBean(relaxed = true)
-        lateinit var safClient: SafGraphQlClient
-
-        @MockkBean(relaxed = true)
         lateinit var tokenUtil: TokenUtil
 
         @MockkBean(relaxed = true)
@@ -108,10 +105,6 @@ internal class BehandlingAvslutningServiceTest {
         @MockkBean(relaxed = true)
         lateinit var saksbehandlerService: SaksbehandlerService
     }
-
-    //@Autowired
-    //lateinit var entityManager: EntityManager
-    //lateinit var entityManager: TestEntityManager
 
     @Autowired
     lateinit var klagebehandlingRepository: KlagebehandlingRepository

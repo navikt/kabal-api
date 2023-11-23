@@ -29,9 +29,7 @@ import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 @Component
-class DokumentMapper(
-    private val safClient: SafGraphQlClient,
-) {
+class DokumentMapper {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")

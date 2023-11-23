@@ -8,7 +8,7 @@ import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV1
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
 import no.nav.klage.oppgave.api.view.*
-import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
+import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.klage.MottakDokumentType
@@ -33,10 +33,10 @@ import kotlin.random.Random
 @RequestMapping("mockdata")
 class MockDataController(
     private val mottakService: MottakService,
-    private val safClient: SafGraphQlClient,
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
     @Value("#{T(java.time.LocalDate).parse('\${KAKA_VERSION_2_DATE}')}")
     private val kakaVersion2Date: LocalDate,
+    private val safFacade: SafFacade
 ) {
 
     //https://dolly.ekstern.dev.nav.no/gruppe/6336
@@ -62,7 +62,12 @@ class MockDataController(
 
     fun createKlagebehandlingForASpecificPerson(fnr: String) {
         val journalpostId = "510534809"
-        val journalpost = safClient.getJournalpostAsSystembruker(journalpostId)
+        val journalpost = safFacade.getJournalposter(
+            journalpostIdList = listOf(journalpostId),
+            fnr = null,
+            saksbehandlerContext = false,
+        ).first()
+
         val dato = LocalDate.of(2022, 1, 13)
 
         mottakService.createMottakForKlageAnkeV3(
@@ -117,7 +122,12 @@ class MockDataController(
     fun createPersonWithFullmakt() {
         val fnr = "28497037273"
         val journalpostId = "510534808"
-        val journalpost = safClient.getJournalpostAsSystembruker(journalpostId)
+        val journalpost = safFacade.getJournalposter(
+            journalpostIdList = listOf(journalpostId),
+            fnr = null,
+            saksbehandlerContext = false,
+        ).first()
+
         val dato = LocalDate.of(2020, 1, 13)
 
         mottakService.createMottakForKlageAnkeV3(

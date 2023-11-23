@@ -88,6 +88,7 @@ class InnholdsfortegnelseService(
             journalpostIdList = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
                 .map { it.journalpostId },
             fnr = fnr,
+            saksbehandlerContext = true,
         )
 
         val pdfDocument =

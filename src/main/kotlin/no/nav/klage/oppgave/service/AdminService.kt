@@ -9,11 +9,10 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsH
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
-import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
-import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
+import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.skjermede.SkjermedeApiClient
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
@@ -44,7 +43,6 @@ class AdminService(
     private val ankeITrygderettenbehandlingRepository: AnkeITrygderettenbehandlingRepository,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     private val journalfoertDokumentUnderArbeidAsVedleggRepository: JournalfoertDokumentUnderArbeidAsVedleggRepository,
-    private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
     private val kafkaEventRepository: KafkaEventRepository,
     private val fileApiClient: FileApiClient,
@@ -52,7 +50,7 @@ class AdminService(
     private val endringsloggRepository: EndringsloggRepository,
     private val skjermedeApiClient: SkjermedeApiClient,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
-    private val safGraphQlClient: SafGraphQlClient,
+    private val safFacade: SafFacade,
 ) {
 
     companion object {
@@ -272,16 +270,20 @@ class AdminService(
 
     fun setSortKeyToDUA() {
         val allDUAs = journalfoertDokumentUnderArbeidAsVedleggRepository.findAll()
+        val journalpostList = safFacade.getJournalposter(
+            journalpostIdList = allDUAs.map { it.journalpostId },
+            fnr = null,
+            saksbehandlerContext = false,
+        )
         var keys = ""
-        allDUAs.forEach {
-            val journalpostInDokarkiv =
-                safGraphQlClient.getJournalpostAsSystembruker(it.journalpostId)
+        allDUAs.forEach { dua ->
+            val journalpostInDokarkiv = journalpostList.find { it.journalpostId == dua.journalpostId }!!
             val sortKey = getSortKey(
                 journalpost = journalpostInDokarkiv,
-                dokumentInfoId = it.dokumentInfoId
+                dokumentInfoId = dua.dokumentInfoId
             )
             keys += sortKey + "\n"
-            it.sortKey = sortKey
+            dua.sortKey = sortKey
         }
         logger.debug("setSortKeyToDUA: ${allDUAs.size} DUAs were updated with sortKeys: $keys")
     }
