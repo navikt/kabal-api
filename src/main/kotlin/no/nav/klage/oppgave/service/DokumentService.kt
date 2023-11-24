@@ -43,9 +43,7 @@ import kotlin.system.measureTimeMillis
 @Service
 @Transactional
 class DokumentService(
-    private val safGraphQlClient: SafGraphQlClient,
     private val safRestClient: SafRestClient,
-    private val safClient: SafGraphQlClient,
     private val mergedDocumentRepository: MergedDocumentRepository,
     private val dokumentMapper: DokumentMapper,
     private val kabalDocumentGateway: KabalDocumentGateway,
@@ -226,7 +224,6 @@ class DokumentService(
         journalpostList.forEach {
             saksdokumenter.addAll(createSaksdokument(it))
         }
-
         return saksdokumenter
     }
 

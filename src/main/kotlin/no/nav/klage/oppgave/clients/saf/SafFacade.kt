@@ -4,14 +4,12 @@ import no.nav.klage.oppgave.clients.saf.graphql.DokumentoversiktBruker
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.clients.saf.graphql.Tema
-import no.nav.klage.oppgave.clients.saf.rest.SafRestClient
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Component
 
 @Component
 class SafFacade(
-    private val safRestClient: SafRestClient,
     private val safGraphQlClient: SafGraphQlClient,
 ) {
     companion object {
@@ -42,28 +40,24 @@ class SafFacade(
         pageSize: Int = 50000,
         previousPageRef: String? = null,
     ): List<Journalpost> {
-        //Debug purposes
-        runWithTimingAndLogging({
-            safGraphQlClient.getJournalpostsAsSaksbehandler(journalpostIdSet= journalpostIdSet)
-        }, "parallell as saksbehandler extra")
-
         return if (saksbehandlerContext) {
             if (journalpostIdSet.size > 5 && fnr != null) {
                 runWithTimingAndLogging({
-                val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
-                    fnr = fnr,
-                    tema = tema,
-                    pageSize = pageSize,
-                    previousPageRef = previousPageRef
-                )
+                    val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
+                        fnr = fnr,
+                        tema = tema,
+                        pageSize = pageSize,
+                        previousPageRef = previousPageRef
+                    )
 
-                journalpostIdSet.map { journalpostId -> dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }!! }
+                    journalpostIdSet.map { journalpostId -> dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }!! }
                 }, "dokumentoversikt")
             } else {
-                journalpostIdSet.map { safGraphQlClient.getJournalpostAsSaksbehandler(it) }
+                safGraphQlClient.getJournalpostsAsSaksbehandler(journalpostIdSet = journalpostIdSet)
+
             }
         } else {
-            journalpostIdSet.map { safGraphQlClient.getJournalpostAsSystembruker(it) }
+            safGraphQlClient.getJournalpostsAsSystembruker(journalpostIdSet = journalpostIdSet)
         }
     }
 
