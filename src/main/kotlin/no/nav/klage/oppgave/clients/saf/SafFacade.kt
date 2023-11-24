@@ -35,34 +35,35 @@ class SafFacade(
     }
 
     fun getJournalposter(
-        journalpostIdList: List<String>,
+        journalpostIdSet: Set<String>,
         fnr: String?,
         saksbehandlerContext: Boolean,
         tema: List<Tema> = emptyList(),
         pageSize: Int = 50000,
         previousPageRef: String? = null,
     ): List<Journalpost> {
+        //Debug purposes
         runWithTimingAndLogging({
-            safGraphQlClient.getJournalpostsAsSaksbehandler(journalpostIdList = journalpostIdList)
-        }, "parallell extra")
+            safGraphQlClient.getJournalpostsAsSaksbehandler(journalpostIdSet= journalpostIdSet)
+        }, "parallell as saksbehandler extra")
 
         return if (saksbehandlerContext) {
-            if (journalpostIdList.size > 0 && fnr != null) {
+            if (journalpostIdSet.size > 5 && fnr != null) {
                 runWithTimingAndLogging({
-                    val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
-                        fnr = fnr,
-                        tema = tema,
-                        pageSize = pageSize,
-                        previousPageRef = previousPageRef
-                    )
+                val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
+                    fnr = fnr,
+                    tema = tema,
+                    pageSize = pageSize,
+                    previousPageRef = previousPageRef
+                )
 
-                    journalpostIdList.map { journalpostId -> dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }!! }
+                journalpostIdSet.map { journalpostId -> dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }!! }
                 }, "dokumentoversikt")
             } else {
-                safGraphQlClient.getJournalpostsAsSaksbehandler(journalpostIdList = journalpostIdList)
+                journalpostIdSet.map { safGraphQlClient.getJournalpostAsSaksbehandler(it) }
             }
         } else {
-            safGraphQlClient.getJournalpostsAsSystembruker(journalpostIdList = journalpostIdList)
+            journalpostIdSet.map { safGraphQlClient.getJournalpostAsSystembruker(it) }
         }
     }
 

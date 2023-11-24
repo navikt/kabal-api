@@ -85,8 +85,8 @@ class InnholdsfortegnelseService(
         }
 
         val journalpostList = safFacade.getJournalposter(
-            journalpostIdList = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-                .map { it.journalpostId },
+            journalpostIdSet = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+                .map { it.journalpostId }.toSet(),
             fnr = fnr,
             saksbehandlerContext = true,
         )

@@ -20,7 +20,6 @@ import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentMapper
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
-import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.klage.*
@@ -167,12 +166,12 @@ class DokumentUnderArbeidService(
             )
         }
 
-        val journalpostIdList = dokumentUnderArbeidList.plus(duplicateJournalfoerteDokumenter)
+        val journalpostIdSet = dokumentUnderArbeidList.plus(duplicateJournalfoerteDokumenter)
             .filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-            .map { it.journalpostId }
+            .map { it.journalpostId }.toSet()
 
         val journalpostListForUser = safFacade.getJournalposter(
-            journalpostIdList = journalpostIdList,
+            journalpostIdSet = journalpostIdSet,
             fnr = behandling.sakenGjelder.partId.value,
             saksbehandlerContext = true,
         )
@@ -272,7 +271,7 @@ class DokumentUnderArbeidService(
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val journalpostListForUser = safFacade.getJournalposter(
-            journalpostIdList = journalfoerteDokumenterInput.journalfoerteDokumenter.map { it.journalpostId },
+            journalpostIdSet = journalfoerteDokumenterInput.journalfoerteDokumenter.map { it.journalpostId }.toSet(),
             fnr = behandling.sakenGjelder.partId.value,
             saksbehandlerContext = true,
         )
@@ -1052,12 +1051,12 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId)
     }
 
-    fun findDokumenterNotFinishedNew(behandlingId: UUID): List<DokumentView> {
+    fun getDokumenterUnderArbeidViewList(behandlingId: UUID): List<DokumentView> {
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         return getDokumentViewList(
             dokumentUnderArbeidList = dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId),
-            behandling = behandling
+            behandling = behandling,
         )
     }
 
@@ -1073,7 +1072,7 @@ class DokumentUnderArbeidService(
         val journalpostList =
             if (journalfoerteDokumenterUnderArbeid.isNotEmpty()) {
                 safFacade.getJournalposter(
-                    journalpostIdList = journalfoerteDokumenterUnderArbeid.map { it.journalpostId },
+                    journalpostIdSet = journalfoerteDokumenterUnderArbeid.map { it.journalpostId }.toSet(),
                     fnr = behandling.sakenGjelder.partId.value,
                     saksbehandlerContext = true,
                 )
@@ -1157,14 +1156,14 @@ class DokumentUnderArbeidService(
             }
         }.toSet()
 
-        val journalpostList = safFacade.getJournalposter(
-            journalpostIdList = journalpostIdSet.toList(),
+        val journalpostSet = safFacade.getJournalposter(
+            journalpostIdSet = journalpostIdSet,
             fnr = behandling.sakenGjelder.partId.value,
             saksbehandlerContext = false,
         )
 
         journalpostIdSet.forEach { documentInfo ->
-            val journalpost = journalpostList.find { it.journalpostId == documentInfo }
+            val journalpost = journalpostSet.find { it.journalpostId == documentInfo }
             val saksbehandlerIdent = SYSTEMBRUKER
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 

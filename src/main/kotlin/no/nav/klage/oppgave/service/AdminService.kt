@@ -271,7 +271,7 @@ class AdminService(
     fun setSortKeyToDUA() {
         val allDUAs = journalfoertDokumentUnderArbeidAsVedleggRepository.findAll()
         val journalpostList = safFacade.getJournalposter(
-            journalpostIdList = allDUAs.map { it.journalpostId },
+            journalpostIdSet = allDUAs.map { it.journalpostId }.toSet(),
             fnr = null,
             saksbehandlerContext = false,
         )

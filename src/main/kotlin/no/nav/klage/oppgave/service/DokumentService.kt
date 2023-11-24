@@ -127,7 +127,7 @@ class DokumentService(
     fun validateJournalpostsExistsAsSystembruker(journalpostIdList: List<String>) {
         try {
             safFacade.getJournalposter(
-                journalpostIdList = journalpostIdList,
+                journalpostIdSet = journalpostIdList.toSet(),
                 fnr = null,
                 saksbehandlerContext = false,
             )
@@ -154,7 +154,7 @@ class DokumentService(
 
     fun getDocumentTitle(journalpostId: String, dokumentInfoId: String): String {
         val journalpostInDokarkiv = safFacade.getJournalposter(
-            journalpostIdList = listOf(journalpostId),
+            journalpostIdSet = setOf(journalpostId),
             fnr = null,
             saksbehandlerContext = true,
         ).first()
@@ -165,7 +165,7 @@ class DokumentService(
 
     fun getJournalfoertDokumentMetadata(journalpostId: String, dokumentInfoId: String): JournalfoertDokumentMetadata {
         val journalpostInDokarkiv = safFacade.getJournalposter(
-            journalpostIdList = listOf(journalpostId),
+            journalpostIdSet = setOf(journalpostId),
             fnr = null,
             saksbehandlerContext = true,
         ).first()
@@ -203,7 +203,7 @@ class DokumentService(
 
     fun getDokumentReferanse(journalpostId: String, behandling: Behandling): DokumentReferanse {
         val journalpost = safFacade.getJournalposter(
-            journalpostIdList = listOf(journalpostId),
+            journalpostIdSet = setOf(journalpostId),
             fnr = null,
             saksbehandlerContext = true,
         ).first()
@@ -219,7 +219,7 @@ class DokumentService(
     fun createSaksdokumenterFromJournalpostIdList(journalpostIdList: List<String>): MutableSet<Saksdokument> {
         val saksdokumenter: MutableSet<Saksdokument> = mutableSetOf()
         val journalpostList = safFacade.getJournalposter(
-            journalpostIdList = journalpostIdList,
+            journalpostIdSet = journalpostIdList.toSet(),
             fnr = null,
             saksbehandlerContext = false,
         )
@@ -267,7 +267,7 @@ class DokumentService(
         val numberOfDocumentNamesToShow = 3
         val truncatedMessage = " ... " + (documents.size - numberOfDocumentNamesToShow) + " til"
         val journalpostList = safFacade.getJournalposter(
-            journalpostIdList = documents.map { it.journalpostId },
+            journalpostIdSet = documents.map { it.journalpostId }.toSet(),
             fnr = null,
             saksbehandlerContext = true,
         )

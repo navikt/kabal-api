@@ -63,7 +63,7 @@ class MockDataController(
     fun createKlagebehandlingForASpecificPerson(fnr: String) {
         val journalpostId = "510534809"
         val journalpost = safFacade.getJournalposter(
-            journalpostIdList = listOf(journalpostId),
+            journalpostIdSet = setOf(journalpostId),
             fnr = null,
             saksbehandlerContext = false,
         ).first()
@@ -123,7 +123,7 @@ class MockDataController(
         val fnr = "28497037273"
         val journalpostId = "510534808"
         val journalpost = safFacade.getJournalposter(
-            journalpostIdList = listOf(journalpostId),
+            journalpostIdSet = setOf(journalpostId),
             fnr = null,
             saksbehandlerContext = false,
         ).first()
