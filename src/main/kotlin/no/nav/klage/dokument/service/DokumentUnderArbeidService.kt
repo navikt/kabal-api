@@ -672,12 +672,13 @@ class DokumentUnderArbeidService(
 
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = ident) }
 
-        if (vedlegg.isNotEmpty()) {
-            innholdsfortegnelseService.saveInnholdsfortegnelse(
-                dokumentUnderArbeidId = dokumentId,
-                fnr = behandling.sakenGjelder.partId.value,
-            )
-        }
+        // Disable vedleggsoversikt for now
+//        if (vedlegg.isNotEmpty()) {
+//            innholdsfortegnelseService.saveInnholdsfortegnelse(
+//                dokumentUnderArbeidId = dokumentId,
+//                fnr = behandling.sakenGjelder.partId.value,
+//            )
+//        }
 
         behandling.publishEndringsloggEvent(
             saksbehandlerident = ident,
