@@ -50,7 +50,7 @@ class KabinApiService(
                 enhetId = saksbehandlerService.getEnhetForSaksbehandler(
                     input.saksbehandlerIdent
                 ).enhetId,
-                reason = null,
+                fradelingReason = null,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
@@ -67,7 +67,7 @@ class KabinApiService(
                 enhetId = saksbehandlerService.getEnhetForSaksbehandler(
                     input.saksbehandlerIdent
                 ).enhetId,
-                reason = null,
+                fradelingReason = null,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
@@ -114,7 +114,7 @@ class KabinApiService(
                 enhetId = saksbehandlerService.getEnhetForSaksbehandler(
                     input.saksbehandlerIdent
                 ).enhetId,
-                reason = null,
+                fradelingReason = null,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }

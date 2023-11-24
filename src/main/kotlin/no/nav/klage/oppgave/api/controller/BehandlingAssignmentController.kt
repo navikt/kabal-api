@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.klage.kodeverk.FradelingReason
 import no.nav.klage.oppgave.api.view.SaksbehandlerViewWrapped
 import no.nav.klage.oppgave.api.view.SetSaksbehandlerInput
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
@@ -47,8 +48,8 @@ class BehandlingAssignmentController(
             enhetId = if (saksbehandlerInput.navIdent != null) saksbehandlerService.getEnhetForSaksbehandler(
                 saksbehandlerInput.navIdent
             ).enhetId else null,
-            reason = saksbehandlerInput.reason,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            fradelingReason = if (saksbehandlerInput.fradelingReasonId != null) FradelingReason.of(saksbehandlerInput.fradelingReasonId) else null,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
     }
 

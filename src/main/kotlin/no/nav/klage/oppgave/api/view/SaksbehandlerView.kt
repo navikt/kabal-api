@@ -13,7 +13,7 @@ data class SaksbehandlerInput(
 
 data class SetSaksbehandlerInput(
     val navIdent: String?,
-    val reason: String?,
+    val fradelingReasonId: String?,
 )
 
 data class SaksbehandlerViewWrapped(

@@ -1,9 +1,8 @@
 package no.nav.klage.oppgave.domain.klage
 
-import jakarta.persistence.Embedded
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import jakarta.persistence.*
+import no.nav.klage.kodeverk.FlowState
+import java.time.LocalDateTime
 import java.util.*
 
 @Entity
@@ -11,9 +10,16 @@ import java.util.*
 class MedunderskriverHistorikk(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Embedded
-    val medunderskriver: MedunderskriverTildelingForHistory
-) : Comparable<MedunderskriverHistorikk> {
+    @Column(name = "saksbehandlerident")
+    val saksbehandlerident: String?,
+    @Column(name = "tidspunkt")
+    val tidspunkt: LocalDateTime,
+    @Column(name = "utfoerende_ident")
+    val utfoerendeIdent: String,
+    @Column(name = "flow_state_id")
+    @Convert(converter = FlowStateConverter::class)
+    val flowState: FlowState,
+) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -30,10 +36,7 @@ class MedunderskriverHistorikk(
     }
 
     override fun toString(): String {
-        return "MedunderskriverHistorikk(id=$id, medunderskriver=$medunderskriver)"
+        return "MedunderskriverHistorikk(id=$id, saksbehandlerident=$saksbehandlerident, tidspunkt=$tidspunkt, utfoerendeIdent='$utfoerendeIdent', flowState=$flowState)"
     }
 
-    override fun compareTo(other: MedunderskriverHistorikk): Int {
-        return this.medunderskriver.tidspunkt.compareTo(other.medunderskriver.tidspunkt)
-    }
 }

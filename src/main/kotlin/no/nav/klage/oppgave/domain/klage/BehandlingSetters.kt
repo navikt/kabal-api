@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
 import no.nav.klage.kodeverk.FlowState
+import no.nav.klage.kodeverk.FradelingReason
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
@@ -14,7 +15,7 @@ object BehandlingSetters {
     fun Behandling.setTildeling(
         nyVerdiSaksbehandlerident: String?,
         nyVerdiEnhet: String?,
-        reason: String?,
+        fradelingReason: FradelingReason?,
         utfoerendeIdent: String,
     ): BehandlingEndretEvent {
         if (!(nyVerdiSaksbehandlerident == null && nyVerdiEnhet == null) &&
@@ -30,13 +31,11 @@ object BehandlingSetters {
 
         tildelingHistorikk.add(
             TildelingHistorikk(
-                tildeling = TildelingWithReason(
-                    saksbehandlerident = nyVerdiSaksbehandlerident,
-                    enhet = nyVerdiEnhet,
-                    tidspunkt = tidspunkt,
-                    reason = reason,
-                    utfoerendeIdent = utfoerendeIdent,
-                )
+                saksbehandlerident = nyVerdiSaksbehandlerident,
+                enhet = nyVerdiEnhet,
+                tidspunkt = tidspunkt,
+                fradelingReason = fradelingReason,
+                utfoerendeIdent = utfoerendeIdent,
             )
         )
 
@@ -147,12 +146,10 @@ object BehandlingSetters {
     ) {
         medunderskriverHistorikk.add(
             MedunderskriverHistorikk(
-                medunderskriver = MedunderskriverTildelingForHistory(
-                    saksbehandlerident = medunderskriver?.saksbehandlerident,
-                    tidspunkt = tidspunkt,
-                    utfoerendeIdent = utfoerendeIdent,
-                    flowState = medunderskriverFlowState,
-                )
+                saksbehandlerident = medunderskriver?.saksbehandlerident,
+                tidspunkt = tidspunkt,
+                utfoerendeIdent = utfoerendeIdent,
+                flowState = medunderskriverFlowState,
             )
         )
     }

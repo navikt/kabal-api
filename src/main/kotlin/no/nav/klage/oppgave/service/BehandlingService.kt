@@ -402,7 +402,7 @@ class BehandlingService(
         behandlingId: UUID,
         tildeltSaksbehandlerIdent: String?,
         enhetId: String?,
-        reason: String?,
+        fradelingReason: FradelingReason?,
         utfoerendeSaksbehandlerIdent: String,
     ): SaksbehandlerViewWrapped {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
@@ -424,7 +424,7 @@ class BehandlingService(
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
             }
         } else {
-            if (reason == null) {
+            if (fradelingReason == null) {
                 throw IllegalOperation("Kan ikke fradele behandling uten å oppgi årsak.")
             }
 
@@ -459,7 +459,7 @@ class BehandlingService(
             behandling.setTildeling(
                 nyVerdiSaksbehandlerident = tildeltSaksbehandlerIdent,
                 nyVerdiEnhet = enhetId,
-                reason = reason,
+                fradelingReason = fradelingReason,
                 utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)

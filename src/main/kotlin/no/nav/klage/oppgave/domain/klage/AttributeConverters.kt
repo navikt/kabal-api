@@ -105,3 +105,13 @@ class RegistreringshjemmelConverter : AttributeConverter<Registreringshjemmel, S
     override fun convertToEntityAttribute(id: String?): Registreringshjemmel? =
         id?.let { Registreringshjemmel.of(it) }
 }
+
+@Converter
+class FradelingReasonConverter : AttributeConverter<FradelingReason, String?> {
+
+    override fun convertToDatabaseColumn(entity: FradelingReason?): String? =
+        entity?.id
+
+    override fun convertToEntityAttribute(id: String?): FradelingReason? =
+        id?.let { FradelingReason.of(it) }
+}
