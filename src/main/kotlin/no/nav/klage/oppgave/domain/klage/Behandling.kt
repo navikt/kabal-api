@@ -146,6 +146,11 @@ abstract class Behandling(
     var rolFlowState: FlowState = FlowState.NOT_SENT,
     @Column(name = "rol_returned_date")
     var rolReturnedDate: LocalDateTime?,
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
+    @Fetch(FetchMode.SELECT)
+    @BatchSize(size = 100)
+    val rolHistorikk: MutableSet<RolHistorikk> = mutableSetOf(),
     ) {
 
     /**

@@ -22,7 +22,7 @@ data class MedunderskriverTildelingForHistory(
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
     val utfoerendeIdent: String,
-    @Column(name = "medunderskriver_flow_state_id")
+    @Column(name = "flow_state_id")
     @Convert(converter = FlowStateConverter::class)
-    val medunderskriverFlowState: FlowState,
+    val flowState: FlowState,
 )

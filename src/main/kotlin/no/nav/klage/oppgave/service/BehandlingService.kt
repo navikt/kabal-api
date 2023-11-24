@@ -1158,14 +1158,14 @@ class BehandlingService(
         val event1 =
             behandling.setROLFlowState(
                 newROLFlowStateState = flowState,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event1)
 
         val event2 =
             behandling.setROLReturnedDate(
                 setNull = flowState != FlowState.RETURNED,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event2)
 
@@ -1211,7 +1211,7 @@ class BehandlingService(
         val event =
             behandling.setROLIdent(
                 newROLIdent = rolIdent,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
         return behandling

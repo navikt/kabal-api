@@ -151,7 +151,7 @@ object BehandlingSetters {
                     saksbehandlerident = medunderskriver?.saksbehandlerident,
                     tidspunkt = tidspunkt,
                     utfoerendeIdent = utfoerendeIdent,
-                    medunderskriverFlowState = medunderskriverFlowState,
+                    flowState = medunderskriverFlowState,
                 )
             )
         )
@@ -159,7 +159,7 @@ object BehandlingSetters {
 
     fun Behandling.setROLFlowState(
         newROLFlowStateState: FlowState,
-        saksbehandlerident: String
+        utfoerendeIdent: String,
     ): BehandlingEndretEvent {
         val oldValue = rolFlowState
         val now = LocalDateTime.now()
@@ -167,10 +167,15 @@ object BehandlingSetters {
         rolFlowState = newROLFlowStateState
         modified = now
 
+        recordRolHistory(
+            tidspunkt = now,
+            utfoerendeIdent = utfoerendeIdent
+        )
+
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
         endringslogg(
-            saksbehandlerident = saksbehandlerident,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.ROL_FLOW_STATE_ID,
             fraVerdi = oldValue.id,
             tilVerdi = rolFlowState.id,
@@ -182,7 +187,7 @@ object BehandlingSetters {
 
     fun Behandling.setROLReturnedDate(
         setNull: Boolean,
-        saksbehandlerident: String
+        utfoerendeIdent: String
     ): BehandlingEndretEvent {
         val oldValue = rolReturnedDate
         val now = LocalDateTime.now()
@@ -193,7 +198,7 @@ object BehandlingSetters {
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
         endringslogg(
-            saksbehandlerident = saksbehandlerident,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.ROL_RETURNED_TIDSPUNKT,
             fraVerdi = oldValue.toString(),
             tilVerdi = rolReturnedDate.toString(),
@@ -205,7 +210,7 @@ object BehandlingSetters {
 
     fun Behandling.setROLIdent(
         newROLIdent: String?,
-        saksbehandlerident: String
+        utfoerendeIdent: String
     ): BehandlingEndretEvent {
         val oldValue = rolIdent
         val now = LocalDateTime.now()
@@ -217,10 +222,15 @@ object BehandlingSetters {
             rolFlowState = FlowState.NOT_SENT
         }
 
+        recordRolHistory(
+            tidspunkt = now,
+            utfoerendeIdent = utfoerendeIdent
+        )
+
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
         endringslogg(
-            saksbehandlerident = saksbehandlerident,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.ROL_IDENT,
             fraVerdi = oldValue,
             tilVerdi = rolIdent,
@@ -228,6 +238,20 @@ object BehandlingSetters {
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
+    }
+
+    private fun Behandling.recordRolHistory(
+        tidspunkt: LocalDateTime,
+        utfoerendeIdent: String,
+    ) {
+        rolHistorikk.add(
+            RolHistorikk(
+                rolIdent = rolIdent,
+                tidspunkt = tidspunkt,
+                utfoerendeIdent = utfoerendeIdent,
+                flowState = rolFlowState,
+            )
+        )
     }
 
     fun Behandling.setSattPaaVent(
