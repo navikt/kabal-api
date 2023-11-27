@@ -42,7 +42,7 @@ class SafFacade(
     ): List<Journalpost> {
         logger.debug("getJournalposter, number of journalpostIds: ${journalpostIdSet.size}. Fnr included: ${fnr?.isNotEmpty()}. SaksbehandlerContext: $saksbehandlerContext")
         return if (saksbehandlerContext) {
-            if (journalpostIdSet.size > 10 && fnr != null) {
+            if (journalpostIdSet.size > 20 && fnr != null) {
                 runWithTimingAndLogging({
                     val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
                         fnr = fnr,
