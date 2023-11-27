@@ -41,7 +41,7 @@ class SafFacade(
         previousPageRef: String? = null,
     ): List<Journalpost> {
         return if (saksbehandlerContext) {
-            if (journalpostIdSet.size > 5 && fnr != null) {
+            if (journalpostIdSet.size > 10 && fnr != null) {
                 runWithTimingAndLogging({
                     val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
                         fnr = fnr,
