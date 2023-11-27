@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import jakarta.transaction.Transactional
+import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
@@ -86,16 +87,19 @@ class AnkebehandlingService(
                 mottak.forrigeBehandlingId,
                 ankebehandling.id
             )
-            dokumenter.forEach {
-                behandlingService.connectDokumentToBehandling(
-                    behandlingId = ankebehandling.id,
-                    journalpostId = it.journalpostId,
-                    dokumentInfoId = it.dokumentInfoId,
-                    saksbehandlerIdent = SYSTEMBRUKER,
-                    systemUserContext = true,
-                    ignoreCheckSkrivetilgang = true,
-                )
-            }
+
+            behandlingService.connectDocumentsToBehandling(
+                behandlingId = ankebehandling.id,
+                journalfoertDokumentReferenceSet = dokumenter.map {
+                    JournalfoertDokumentReference(
+                        journalpostId = it.journalpostId,
+                        dokumentInfoId = it.dokumentInfoId
+                    )
+                }.toSet(),
+                saksbehandlerIdent = SYSTEMBRUKER,
+                systemUserContext = true,
+                ignoreCheckSkrivetilgang = true
+            )
         }
 
         applicationEventPublisher.publishEvent(
@@ -146,16 +150,18 @@ class AnkebehandlingService(
             ankeITrygderettenbehandling.id
         )
 
-        ankeITrygderettenbehandling.saksdokumenter.forEach {
-            behandlingService.connectDokumentToBehandling(
-                behandlingId = ankebehandling.id,
-                journalpostId = it.journalpostId,
-                dokumentInfoId = it.dokumentInfoId,
-                saksbehandlerIdent = SYSTEMBRUKER,
-                systemUserContext = true,
-                ignoreCheckSkrivetilgang = true,
-            )
-        }
+        behandlingService.connectDocumentsToBehandling(
+            behandlingId = ankebehandling.id,
+            journalfoertDokumentReferenceSet = ankeITrygderettenbehandling.saksdokumenter.map {
+                JournalfoertDokumentReference(
+                    journalpostId = it.journalpostId,
+                    dokumentInfoId = it.dokumentInfoId
+                )
+            }.toSet(),
+            saksbehandlerIdent = SYSTEMBRUKER,
+            systemUserContext = true,
+            ignoreCheckSkrivetilgang = true
+        )
 
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(

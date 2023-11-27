@@ -137,7 +137,6 @@ class DokumentUnderArbeidService(
             fraVerdi = null,
             tilVerdi = document.created.toString(),
             tidspunkt = document.created,
-            dokumentId = document.id,
         )
 
         return document
@@ -257,7 +256,6 @@ class DokumentUnderArbeidService(
             fraVerdi = null,
             tilVerdi = document.created.toString(),
             tidspunkt = document.created,
-            dokumentId = document.id,
         )
 
         return document
@@ -324,28 +322,26 @@ class DokumentUnderArbeidService(
         if (behandling.avsluttetAvSaksbehandler == null) {
             val isCurrentROL = behandling.rolIdent == innloggetIdent
 
-            journalfoerteDokumenter.forEach {
-                behandlingService.connectDokumentToBehandling(
-                    behandlingId = behandling.id,
-                    journalpostId = it.journalpostId,
-                    dokumentInfoId = it.dokumentInfoId,
-                    saksbehandlerIdent = innloggetIdent,
-                    systemUserContext = false,
-                    ignoreCheckSkrivetilgang = isCurrentROL,
-                )
-            }
+            behandlingService.connectDocumentsToBehandling(
+                behandlingId = behandling.id,
+                journalfoertDokumentReferenceSet = journalfoerteDokumenter,
+                saksbehandlerIdent = innloggetIdent,
+                systemUserContext = false,
+                ignoreCheckSkrivetilgang = isCurrentROL
+            )
         }
 
         val alreadyAddedDocuments =
             journalfoertDokumentUnderArbeidRepository.findByParentId(parentId)
-                .map {
-                    JournalfoertDokumentReference(
-                        journalpostId = it.journalpostId,
-                        dokumentInfoId = it.dokumentInfoId
-                    )
-                }.toSet()
 
-        val (toAdd, duplicates) = journalfoerteDokumenter.partition { it !in alreadyAddedDocuments }
+        val alreadAddedDocumentsMapped = alreadyAddedDocuments.map {
+            JournalfoertDokumentReference(
+                journalpostId = it.journalpostId,
+                dokumentInfoId = it.dokumentInfoId
+            )
+        }.toSet()
+
+        val (toAdd, duplicates) = journalfoerteDokumenter.partition { it !in alreadAddedDocumentsMapped }
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
@@ -384,19 +380,20 @@ class DokumentUnderArbeidService(
                 )
             )
 
-            behandling.publishEndringsloggEvent(
-                saksbehandlerident = innloggetIdent,
-                felt = Felt.JOURNALFOERT_DOKUMENT_UNDER_ARBEID_OPPRETTET,
-                fraVerdi = null,
-                tilVerdi = document.created.toString(),
-                tidspunkt = document.created,
-                dokumentId = document.id,
-            )
-
             journalfoertDokumentUnderArbeidRepository.save(
                 document
             )
         }
+
+        val resultingIdList = alreadyAddedDocuments.map { it.id }.union(resultingDocuments.map { it.id })
+
+        behandling.publishEndringsloggEvent(
+            saksbehandlerident = innloggetIdent,
+            felt = Felt.JOURNALFOERT_DOKUMENT_UNDER_ARBEID_OPPRETTET,
+            fraVerdi = alreadyAddedDocuments.joinToString { it.id.toString() },
+            tilVerdi =  resultingIdList.joinToString(),
+            tidspunkt = now,
+        )
 
         return resultingDocuments to duplicates
     }
@@ -468,7 +465,6 @@ class DokumentUnderArbeidService(
             fraVerdi = previousValue?.id,
             tilVerdi = dokumentUnderArbeid.dokumentType.toString(),
             tidspunkt = dokumentUnderArbeid.modified,
-            dokumentId = dokumentUnderArbeid.id,
         )
 
         return dokumentUnderArbeid
@@ -513,7 +509,6 @@ class DokumentUnderArbeidService(
             fraVerdi = oldValue,
             tilVerdi = dokument.name,
             tidspunkt = LocalDateTime.now(),
-            dokumentId = dokument.id,
         )
         return dokument
     }
@@ -587,7 +582,6 @@ class DokumentUnderArbeidService(
             fraVerdi = oldValue,
             tilVerdi = dokument.smartEditorTemplateId,
             tidspunkt = LocalDateTime.now(),
-            dokumentId = dokument.id,
         )
         return dokument
     }
@@ -672,13 +666,12 @@ class DokumentUnderArbeidService(
 
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = ident) }
 
-        // Disable vedleggsoversikt for now
-//        if (vedlegg.isNotEmpty()) {
-//            innholdsfortegnelseService.saveInnholdsfortegnelse(
-//                dokumentUnderArbeidId = dokumentId,
-//                fnr = behandling.sakenGjelder.partId.value,
-//            )
-//        }
+        if (vedlegg.isNotEmpty()) {
+            innholdsfortegnelseService.saveInnholdsfortegnelse(
+                dokumentUnderArbeidId = dokumentId,
+                fnr = behandling.sakenGjelder.partId.value,
+            )
+        }
 
         behandling.publishEndringsloggEvent(
             saksbehandlerident = ident,
@@ -686,7 +679,6 @@ class DokumentUnderArbeidService(
             fraVerdi = null,
             tilVerdi = hovedDokument.markertFerdig.toString(),
             tidspunkt = LocalDateTime.now(),
-            dokumentId = hovedDokument.id,
         )
 
         behandling.publishEndringsloggEvent(
@@ -695,7 +687,6 @@ class DokumentUnderArbeidService(
             fraVerdi = null,
             tilVerdi = hovedDokument.brevmottakerIdents.joinToString { it },
             tidspunkt = LocalDateTime.now(),
-            dokumentId = hovedDokument.id,
         )
 
         applicationEventPublisher.publishEvent(DokumentFerdigstiltAvSaksbehandler(hovedDokument))
@@ -909,7 +900,6 @@ class DokumentUnderArbeidService(
             fraVerdi = document.modified.toString(),
             tilVerdi = null,
             tidspunkt = LocalDateTime.now(),
-            dokumentId = document.id,
         )
     }
 
@@ -1293,16 +1283,8 @@ class DokumentUnderArbeidService(
         fraVerdi: String?,
         tilVerdi: String?,
         tidspunkt: LocalDateTime,
-        dokumentId: UUID,
     ) {
         listOfNotNull(
-            this.endringslogg(
-                saksbehandlerident = saksbehandlerident,
-                felt = Felt.DOKUMENT_UNDER_ARBEID_ID,
-                fraVerdi = fraVerdi.let { dokumentId.toString() },
-                tilVerdi = tilVerdi.let { dokumentId.toString() },
-                tidspunkt = tidspunkt,
-            ),
             this.endringslogg(
                 saksbehandlerident = saksbehandlerident,
                 felt = felt,
