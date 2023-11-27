@@ -6,7 +6,6 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
-import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.PartId
 import no.nav.klage.oppgave.util.getLogger
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service
 class KabalDocumentMapper(
     private val pdlFacade: PdlFacade,
     private val eregClient: EregClient,
-    private val safClient: SafGraphQlClient,
 ) {
 
     companion object {
@@ -39,10 +37,10 @@ class KabalDocumentMapper(
         innholdsfortegnelse: Innholdsfortegnelse?,
     ): DokumentEnhetWithDokumentreferanserInput {
 
-        val innholdsfortegnelseDocument = if (innholdsfortegnelse != null && vedlegg.size > 1) {
+        val innholdsfortegnelseDocument = if (innholdsfortegnelse != null && vedlegg.isNotEmpty()) {
             DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument(
                 mellomlagerId = innholdsfortegnelse.mellomlagerId!!,
-                name = "Innholdsfortegnelse",
+                name = "Vedleggsoversikt",
                 sourceReference = null,
             )
         } else null
@@ -60,17 +58,7 @@ class KabalDocumentMapper(
 
         val journalfoerteVedlegg =
             vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-                .sortedWith { document1, document2 ->
-                    val dateCompare =
-                        document2.opprettet.compareTo(document1.opprettet)
-                    if (dateCompare != 0) {
-                        dateCompare
-                    } else {
-                        (document1.name).compareTo(
-                            document2.name
-                        )
-                    }
-                }
+                .sortedByDescending { it.sortKey }
 
         return DokumentEnhetWithDokumentreferanserInput(
             brevMottakere = mapBrevmottakerIdentToBrevmottakerInput(

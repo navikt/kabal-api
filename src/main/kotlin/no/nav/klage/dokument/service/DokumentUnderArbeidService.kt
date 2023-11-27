@@ -1,7 +1,8 @@
 package no.nav.klage.dokument.service
 
 import jakarta.transaction.Transactional
-import no.nav.klage.dokument.api.view.DocumentValidationResponse
+import no.nav.klage.dokument.api.mapper.DokumentMapper
+import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.DefaultKabalSmartEditorApiGateway
@@ -17,8 +18,8 @@ import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentMapper
+import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
-import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.klage.*
@@ -56,12 +57,13 @@ class DokumentUnderArbeidService(
     private val behandlingService: BehandlingService,
     private val kabalDocumentGateway: KabalDocumentGateway,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val safClient: SafGraphQlClient,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val dokumentService: DokumentService,
     private val kabalDocumentMapper: KabalDocumentMapper,
     private val eregClient: EregClient,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
+    private val safFacade: SafFacade,
+    private val dokumentMapper: DokumentMapper,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -135,10 +137,49 @@ class DokumentUnderArbeidService(
             fraVerdi = null,
             tilVerdi = document.created.toString(),
             tidspunkt = document.created,
-            dokumentId = document.id,
         )
 
         return document
+    }
+
+    fun kobleEllerFrikobleVedlegg(
+        behandlingId: UUID,
+        persistentDokumentId: UUID,
+        input: OptionalPersistentDokumentIdInput,
+    ): DokumentViewWithList {
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+
+        val (dokumentUnderArbeidList, duplicateJournalfoerteDokumenter) = if (input.dokumentId == null) {
+            listOf(
+                setAsHoveddokument(
+                    behandlingId = behandlingId,
+                    dokumentId = persistentDokumentId,
+                    innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+                )
+            ) to emptyList()
+        } else {
+            setAsVedlegg(
+                parentId = input.dokumentId,
+                dokumentId = persistentDokumentId,
+                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            )
+        }
+
+        val journalpostIdSet = dokumentUnderArbeidList.plus(duplicateJournalfoerteDokumenter)
+            .filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+            .map { it.journalpostId }.toSet()
+
+        val journalpostListForUser = safFacade.getJournalposter(
+            journalpostIdSet = journalpostIdSet,
+            fnr = behandling.sakenGjelder.partId.value,
+            saksbehandlerContext = true,
+        )
+
+        return dokumentMapper.mapToDokumentListView(
+            dokumentUnderArbeidList = dokumentUnderArbeidList,
+            duplicateJournalfoerteDokumenter = duplicateJournalfoerteDokumenter,
+            journalpostList = journalpostListForUser,
+        )
     }
 
     fun opprettSmartdokument(
@@ -215,51 +256,92 @@ class DokumentUnderArbeidService(
             fraVerdi = null,
             tilVerdi = document.created.toString(),
             tidspunkt = document.created,
-            dokumentId = document.id,
         )
 
         return document
     }
 
+    fun handleJournalfoerteDokumenterAsVedlegg(
+        behandlingId: UUID,
+        journalfoerteDokumenterInput: JournalfoerteDokumenterInput,
+        innloggetIdent: String
+    ): JournalfoerteDokumenterResponse {
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+
+        val journalpostListForUser = safFacade.getJournalposter(
+            journalpostIdSet = journalfoerteDokumenterInput.journalfoerteDokumenter.map { it.journalpostId }.toSet(),
+            fnr = behandling.sakenGjelder.partId.value,
+            saksbehandlerContext = true,
+        )
+
+        val (added, duplicates) = createJournalfoerteDokumenter(
+            parentId = journalfoerteDokumenterInput.parentId,
+            journalfoerteDokumenter = journalfoerteDokumenterInput.journalfoerteDokumenter,
+            behandling = behandling,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            journalpostListForUser = journalpostListForUser
+        )
+
+        return JournalfoerteDokumenterResponse(
+            addedJournalfoerteDokumenter = getDokumentViewListForJournalfoertDokumentUnderArbeidAsVedleggList(
+                dokumentUnderArbeidList = added,
+                behandling = behandling,
+                journalpostList = journalpostListForUser,
+            ),
+            duplicateJournalfoerteDokumenter = duplicates
+        )
+    }
+
+    fun getDokumentViewListForJournalfoertDokumentUnderArbeidAsVedleggList(
+        dokumentUnderArbeidList: List<JournalfoertDokumentUnderArbeidAsVedlegg>,
+        behandling: Behandling,
+        journalpostList: List<Journalpost>
+    ): List<DokumentView> {
+        return dokumentUnderArbeidList.sortedByDescending { it.sortKey }
+            .map { journalfoertVedlegg ->
+                dokumentMapper.mapToDokumentView(
+                    dokumentUnderArbeid = journalfoertVedlegg,
+                    journalpost = journalpostList.find { it.journalpostId == journalfoertVedlegg.journalpostId }!!
+                )
+            }
+    }
+
     fun createJournalfoerteDokumenter(
         parentId: UUID,
         journalfoerteDokumenter: Set<JournalfoertDokumentReference>,
-        behandlingId: UUID,
+        behandling: Behandling,
         innloggetIdent: String,
-    ): Pair<List<DokumentUnderArbeid>, List<JournalfoertDokumentReference>> {
+        journalpostListForUser: List<Journalpost>,
+    ): Pair<List<JournalfoertDokumentUnderArbeidAsVedlegg>, List<JournalfoertDokumentReference>> {
         val parentDocument = dokumentUnderArbeidRepository.getReferenceById(parentId)
 
         if (parentDocument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
         }
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-
         if (behandling.avsluttetAvSaksbehandler == null) {
             val isCurrentROL = behandling.rolIdent == innloggetIdent
 
-            journalfoerteDokumenter.forEach {
-                behandlingService.connectDokumentToBehandling(
-                    behandlingId = behandlingId,
-                    journalpostId = it.journalpostId,
-                    dokumentInfoId = it.dokumentInfoId,
-                    saksbehandlerIdent = innloggetIdent,
-                    systemUserContext = false,
-                    ignoreCheckSkrivetilgang = isCurrentROL,
-                )
-            }
+            behandlingService.connectDocumentsToBehandling(
+                behandlingId = behandling.id,
+                journalfoertDokumentReferenceSet = journalfoerteDokumenter,
+                saksbehandlerIdent = innloggetIdent,
+                systemUserContext = false,
+                ignoreCheckSkrivetilgang = isCurrentROL
+            )
         }
 
         val alreadyAddedDocuments =
             journalfoertDokumentUnderArbeidRepository.findByParentId(parentId)
-                .map {
-                    JournalfoertDokumentReference(
-                        journalpostId = it.journalpostId,
-                        dokumentInfoId = it.dokumentInfoId
-                    )
-                }.toSet()
 
-        val (toAdd, duplicates) = journalfoerteDokumenter.partition { it !in alreadyAddedDocuments }
+        val alreadAddedDocumentsMapped = alreadyAddedDocuments.map {
+            JournalfoertDokumentReference(
+                journalpostId = it.journalpostId,
+                dokumentInfoId = it.dokumentInfoId
+            )
+        }.toSet()
+
+        val (toAdd, duplicates) = journalfoerteDokumenter.partition { it !in alreadAddedDocumentsMapped }
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
@@ -272,14 +354,14 @@ class DokumentUnderArbeidService(
 
         val resultingDocuments = toAdd.map { journalfoertDokumentReference ->
             val journalpostInDokarkiv =
-                safClient.getJournalpostAsSaksbehandler(journalfoertDokumentReference.journalpostId)
+                journalpostListForUser.find { it.journalpostId == journalfoertDokumentReference.journalpostId }!!
 
             val document = JournalfoertDokumentUnderArbeidAsVedlegg(
                 name = getDokumentTitle(
                     journalpost = journalpostInDokarkiv,
                     dokumentInfoId = journalfoertDokumentReference.dokumentInfoId
                 ),
-                behandlingId = behandlingId,
+                behandlingId = behandling.id,
                 parentId = parentId,
                 journalpostId = journalfoertDokumentReference.journalpostId,
                 dokumentInfoId = journalfoertDokumentReference.dokumentInfoId,
@@ -298,19 +380,20 @@ class DokumentUnderArbeidService(
                 )
             )
 
-            behandling.publishEndringsloggEvent(
-                saksbehandlerident = innloggetIdent,
-                felt = Felt.JOURNALFOERT_DOKUMENT_UNDER_ARBEID_OPPRETTET,
-                fraVerdi = null,
-                tilVerdi = document.created.toString(),
-                tidspunkt = document.created,
-                dokumentId = document.id,
-            )
-
             journalfoertDokumentUnderArbeidRepository.save(
                 document
             )
         }
+
+        val resultingIdList = alreadyAddedDocuments.map { it.id }.union(resultingDocuments.map { it.id })
+
+        behandling.publishEndringsloggEvent(
+            saksbehandlerident = innloggetIdent,
+            felt = Felt.JOURNALFOERT_DOKUMENT_UNDER_ARBEID_OPPRETTET,
+            fraVerdi = alreadyAddedDocuments.joinToString { it.id.toString() },
+            tilVerdi =  resultingIdList.joinToString(),
+            tidspunkt = now,
+        )
 
         return resultingDocuments to duplicates
     }
@@ -382,7 +465,6 @@ class DokumentUnderArbeidService(
             fraVerdi = previousValue?.id,
             tilVerdi = dokumentUnderArbeid.dokumentType.toString(),
             tidspunkt = dokumentUnderArbeid.modified,
-            dokumentId = dokumentUnderArbeid.id,
         )
 
         return dokumentUnderArbeid
@@ -415,6 +497,10 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke endre tittel på et dokument som er ferdigstilt")
         }
 
+        if (dokument is JournalfoertDokumentUnderArbeidAsVedlegg) {
+            throw DokumentValidationException("Kan ikke endre tittel på journalført dokument i denne konteksten")
+        }
+
         val oldValue = dokument.name
         dokument.name = dokumentTitle
         behandling.publishEndringsloggEvent(
@@ -423,7 +509,6 @@ class DokumentUnderArbeidService(
             fraVerdi = oldValue,
             tilVerdi = dokument.name,
             tidspunkt = LocalDateTime.now(),
-            dokumentId = dokument.id,
         )
         return dokument
     }
@@ -497,7 +582,6 @@ class DokumentUnderArbeidService(
             fraVerdi = oldValue,
             tilVerdi = dokument.smartEditorTemplateId,
             tidspunkt = LocalDateTime.now(),
-            dokumentId = dokument.id,
         )
         return dokument
     }
@@ -566,14 +650,6 @@ class DokumentUnderArbeidService(
         vedlegg.forEach {
             if (it is SmartdokumentUnderArbeidAsVedlegg && it.isStaleSmartEditorDokument()) {
                 mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(it)
-            } else if (it is JournalfoertDokumentUnderArbeidAsVedlegg) {
-                val journalpostInDokarkiv =
-                    safClient.getJournalpostAsSaksbehandler(it.journalpostId)
-
-                it.name = getDokumentTitle(
-                    journalpost = journalpostInDokarkiv,
-                    dokumentInfoId = it.dokumentInfoId
-                )
             }
         }
 
@@ -590,15 +666,14 @@ class DokumentUnderArbeidService(
 
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = ident) }
 
-        /*
-                //Don't create innholdsfortegnelse yet
+// No vedleggsoversikt yet.
+//        if (vedlegg.isNotEmpty()) {
+//            innholdsfortegnelseService.saveInnholdsfortegnelse(
+//                dokumentUnderArbeidId = dokumentId,
+//                fnr = behandling.sakenGjelder.partId.value,
+//            )
+//        }
 
-                if (vedlegg.size > 1) {
-                    innholdsfortegnelseService.saveInnholdsfortegnelse(
-                        dokumentId,
-                        mapBrevmottakerIdentToBrevmottakerInput.map { it.navn })
-                }
-        */
 
         behandling.publishEndringsloggEvent(
             saksbehandlerident = ident,
@@ -606,7 +681,6 @@ class DokumentUnderArbeidService(
             fraVerdi = null,
             tilVerdi = hovedDokument.markertFerdig.toString(),
             tidspunkt = LocalDateTime.now(),
-            dokumentId = hovedDokument.id,
         )
 
         behandling.publishEndringsloggEvent(
@@ -615,7 +689,6 @@ class DokumentUnderArbeidService(
             fraVerdi = null,
             tilVerdi = hovedDokument.brevmottakerIdents.joinToString { it },
             tidspunkt = LocalDateTime.now(),
-            dokumentId = hovedDokument.id,
         )
 
         applicationEventPublisher.publishEvent(DokumentFerdigstiltAvSaksbehandler(hovedDokument))
@@ -688,14 +761,17 @@ class DokumentUnderArbeidService(
         innloggetIdent: String
     ): FysiskDokument {
         //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val title = "Innholdsfortegnelse"
 
         return FysiskDokument(
             title = title,
             content = dokumentService.changeTitleInPDF(
-                documentBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(hoveddokumentId),
+                documentBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
+                    dokumentUnderArbeidId = hoveddokumentId,
+                    fnr = behandling.sakenGjelder.partId.value,
+                ),
                 title = title
             ),
             contentType = MediaType.APPLICATION_PDF
@@ -760,73 +836,74 @@ class DokumentUnderArbeidService(
         )
 
         //first vedlegg
-        dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentId)
+
+        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentId)
             .map {
                 if (it.erMarkertFerdig()) {
                     throw MissingTilgangException("Attempting to delete finalized document ${document.id}")
                 }
                 it
-            }
-            .forEach { dokumentUnderArbeid ->
-                slettEnkeltdokument(
-                    document = dokumentUnderArbeid,
-                    innloggetIdent = innloggetIdent,
-                    behandlingRole = behandling.getRoleInBehandling(innloggetIdent),
-                    behandling = behandling,
-                )
-            }
+            }.toSet()
+
+        deleteDocuments(
+            documentSet = vedlegg,
+            innloggetIdent = innloggetIdent,
+            behandlingRole = behandling.getRoleInBehandling(innloggetIdent),
+            behandling = behandling,
+        )
 
         if (document.erMarkertFerdig()) {
             throw MissingTilgangException("Attempting to delete finalized document ${document.id}")
         }
 
         //then hoveddokument
-        slettEnkeltdokument(
-            document = document,
+        deleteDocuments(
+            documentSet = setOf(document),
             innloggetIdent = innloggetIdent,
             behandlingRole = behandling.getRoleInBehandling(innloggetIdent),
             behandling = behandling,
         )
-
     }
 
-    private fun slettEnkeltdokument(
-        document: DokumentUnderArbeid,
+    private fun deleteDocuments(
+        documentSet: Set<DokumentUnderArbeid>,
         innloggetIdent: String,
         behandlingRole: BehandlingRole,
         behandling: Behandling,
     ) {
-        if (document.creatorRole != behandlingRole) {
-            throw MissingTilgangException("$behandlingRole har ikke anledning til å slette dokumentet eiet av ${document.creatorRole}.")
-        }
+        documentSet.forEach { document ->
+            if (document.creatorRole != behandlingRole) {
+                throw MissingTilgangException("$behandlingRole har ikke anledning til å slette dokumentet eiet av ${document.creatorRole}.")
+            }
 
-        if (document is DokumentUnderArbeidAsMellomlagret) {
-            try {
-                if (document.mellomlagerId != null) {
-                    mellomlagerService.deleteDocument(document.mellomlagerId!!)
+            if (document is DokumentUnderArbeidAsMellomlagret) {
+                try {
+                    if (document.mellomlagerId != null) {
+                        mellomlagerService.deleteDocument(document.mellomlagerId!!)
+                    }
+                } catch (e: Exception) {
+                    logger.warn("Couldn't delete mellomlager document", e)
                 }
-            } catch (e: Exception) {
-                logger.warn("Couldn't delete mellomlager document", e)
             }
+
+            if (document is DokumentUnderArbeidAsSmartdokument) {
+                try {
+                    smartEditorApiGateway.deleteDocument(document.smartEditorId)
+                } catch (e: Exception) {
+                    logger.warn("Couldn't delete smartEditor document", e)
+                }
+            }
+
         }
 
-        if (document is DokumentUnderArbeidAsSmartdokument) {
-            try {
-                smartEditorApiGateway.deleteDocument(document.smartEditorId)
-            } catch (e: Exception) {
-                logger.warn("Couldn't delete smartEditor document", e)
-            }
-        }
-
-        dokumentUnderArbeidRepository.delete(document)
+        dokumentUnderArbeidRepository.deleteAll(documentSet)
 
         behandling.publishEndringsloggEvent(
             saksbehandlerident = innloggetIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_SLETTET,
-            fraVerdi = document.modified.toString(),
+            fraVerdi = documentSet.joinToString { it.id.toString() },
             tilVerdi = null,
             tidspunkt = LocalDateTime.now(),
-            dokumentId = document.id,
         )
     }
 
@@ -969,6 +1046,44 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId)
     }
 
+    fun getDokumenterUnderArbeidViewList(behandlingId: UUID): List<DokumentView> {
+        //Sjekker tilgang på behandlingsnivå:
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        return getDokumentViewList(
+            dokumentUnderArbeidList = dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId),
+            behandling = behandling,
+        )
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun getDokumentViewList(
+        dokumentUnderArbeidList: List<DokumentUnderArbeid>,
+        behandling: Behandling,
+    ): List<DokumentView> {
+        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = dokumentUnderArbeidList.partition {
+            it !is JournalfoertDokumentUnderArbeidAsVedlegg
+        } as Pair<List<DokumentUnderArbeid>, List<JournalfoertDokumentUnderArbeidAsVedlegg>>
+
+        val journalpostList =
+            if (journalfoerteDokumenterUnderArbeid.isNotEmpty()) {
+                safFacade.getJournalposter(
+                    journalpostIdSet = journalfoerteDokumenterUnderArbeid.map { it.journalpostId }.toSet(),
+                    fnr = behandling.sakenGjelder.partId.value,
+                    saksbehandlerContext = true,
+                )
+            } else emptyList()
+
+        return dokumenterUnderArbeid.sortedByDescending { it.created }
+            .map { dokumentMapper.mapToDokumentView(dokumentUnderArbeid = it, journalpost = null) }
+            .plus(
+                getDokumentViewListForJournalfoertDokumentUnderArbeidAsVedleggList(
+                    dokumentUnderArbeidList = journalfoerteDokumenterUnderArbeid,
+                    behandling = behandling,
+                    journalpostList = journalpostList,
+                )
+            )
+    }
+
     fun getSmartDokumenterUnderArbeid(behandlingId: UUID, ident: String): List<DokumentUnderArbeid> {
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
@@ -1000,7 +1115,7 @@ class DokumentUnderArbeidService(
         if (hovedDokument.dokumentEnhetId == null) {
             logger.debug("hoveddokument.dokumentEnhetId == null, id {}", hovedDokumentId)
             //Vi vet at smartEditor-dokumentene har en oppdatert snapshot i mellomlageret fordi det ble fikset i finnOgMarkerFerdigHovedDokument
-            val behandling = behandlingService.getBehandlingForUpdateBySystembruker(hovedDokument.behandlingId)
+            val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
             val dokumentEnhetId = kabalDocumentGateway.createKomplettDokumentEnhet(
                 behandling = behandling,
                 hovedDokument = hovedDokument,
@@ -1019,7 +1134,8 @@ class DokumentUnderArbeidService(
         val hovedDokument =
             dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
-        val behandling: Behandling = behandlingService.getBehandlingForUpdateBySystembruker(hovedDokument.behandlingId)
+        val behandling: Behandling =
+            behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 
         logger.debug(
             "calling fullfoerDokumentEnhet ({}) for hoveddokument with id {}",
@@ -1035,29 +1151,38 @@ class DokumentUnderArbeidService(
             }
         }.toSet()
 
+        val journalpostSet = safFacade.getJournalposter(
+            journalpostIdSet = journalpostIdSet,
+            fnr = behandling.sakenGjelder.partId.value,
+            saksbehandlerContext = false,
+        )
+
         journalpostIdSet.forEach { documentInfo ->
-            val journalpost = safClient.getJournalpostAsSystembruker(documentInfo)
+            val journalpost = journalpostSet.find { it.journalpostId == documentInfo }
             val saksbehandlerIdent = SYSTEMBRUKER
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 
-            saksdokumenter.forEach { saksdokument ->
-                behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
-                    ?.also { applicationEventPublisher.publishEvent(it) }
+            if (behandling.avsluttetAvSaksbehandler == null) {
+                saksdokumenter.forEach { saksdokument ->
+                    behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
+                        ?.also { applicationEventPublisher.publishEvent(it) }
+                }
             }
         }
 
-        dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.forEach { sourceReferenceWithJoarkReferences ->
-            val currentDokumentUnderArbeid =
-                dokumentUnderArbeidRepository.getReferenceById(sourceReferenceWithJoarkReferences.sourceReference!!)
-            sourceReferenceWithJoarkReferences.joarkReferenceList.forEach { joarkReference ->
-                currentDokumentUnderArbeid.dokarkivReferences.add(
-                    DokumentUnderArbeidDokarkivReference(
-                        journalpostId = joarkReference.journalpostId,
-                        dokumentInfoId = joarkReference.dokumentInfoId,
+        dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.filter { it.sourceReference != null }
+            .forEach { sourceReferenceWithJoarkReferences ->
+                val currentDokumentUnderArbeid =
+                    dokumentUnderArbeidRepository.getReferenceById(sourceReferenceWithJoarkReferences.sourceReference!!)
+                sourceReferenceWithJoarkReferences.joarkReferenceList.forEach { joarkReference ->
+                    currentDokumentUnderArbeid.dokarkivReferences.add(
+                        DokumentUnderArbeidDokarkivReference(
+                            journalpostId = joarkReference.journalpostId,
+                            dokumentInfoId = joarkReference.dokumentInfoId,
+                        )
                     )
-                )
+                }
             }
-        }
 
         val now = LocalDateTime.now()
 
@@ -1094,21 +1219,13 @@ class DokumentUnderArbeidService(
 
     fun getSmartEditorId(dokumentId: UUID, readOnly: Boolean): UUID {
         val dokumentUnderArbeid = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
-        val ident = innloggetSaksbehandlerService.getInnloggetIdent()
 
         if (dokumentUnderArbeid !is DokumentUnderArbeidAsSmartdokument) {
             throw RuntimeException("dokument is not smartdokument")
         }
 
         //Sjekker tilgang på behandlingsnivå:
-        if (readOnly) {
-            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
-        } else {
-            behandlingService.getBehandlingForWriteAllowROLAndMU(
-                behandlingId = dokumentUnderArbeid.behandlingId,
-                utfoerendeSaksbehandlerIdent = ident,
-            )
-        }
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
 
         return dokumentUnderArbeid.smartEditorId
     }
@@ -1170,16 +1287,8 @@ class DokumentUnderArbeidService(
         fraVerdi: String?,
         tilVerdi: String?,
         tidspunkt: LocalDateTime,
-        dokumentId: UUID,
     ) {
         listOfNotNull(
-            this.endringslogg(
-                saksbehandlerident = saksbehandlerident,
-                felt = Felt.DOKUMENT_UNDER_ARBEID_ID,
-                fraVerdi = fraVerdi.let { dokumentId.toString() },
-                tilVerdi = tilVerdi.let { dokumentId.toString() },
-                tidspunkt = tidspunkt,
-            ),
             this.endringslogg(
                 saksbehandlerident = saksbehandlerident,
                 felt = felt,

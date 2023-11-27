@@ -1,6 +1,5 @@
 package no.nav.klage.dokument.clients.kabaljsontopdf
 
-import io.micrometer.tracing.Tracer
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.DocumentValidationResponse
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.domain.PDFDocument
@@ -17,7 +16,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 @Component
 class KabalJsonToPdfClient(
     private val kabalJsonToPdfWebClient: WebClient,
-    private val tracer: Tracer
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -44,7 +42,7 @@ class KabalJsonToPdfClient(
                     bytes = it.body ?: throw RuntimeException("Could not get PDF data")
                 )
             }
-            .block() ?: throw RuntimeException("PDF could not be created")
+            .block() ?: throw RuntimeException("PDF response was null")
     }
 
     fun getInnholdsfortegnelse(innholdsfortegnelseRequest: InnholdsfortegnelseRequest): PDFDocument {
@@ -66,7 +64,7 @@ class KabalJsonToPdfClient(
                     bytes = it.body ?: throw RuntimeException("Could not get PDF data")
                 )
             }
-            .block() ?: throw RuntimeException("PDF could not be created")
+            .block() ?: throw RuntimeException("PDF response was null")
     }
 
     fun validateJsonDocument(json: String): DocumentValidationResponse {

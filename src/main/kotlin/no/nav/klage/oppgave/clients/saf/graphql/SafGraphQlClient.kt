@@ -10,6 +10,9 @@ import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.core.scheduler.Schedulers
 import java.time.LocalDateTime
 
 @Component
@@ -25,7 +28,7 @@ class SafGraphQlClient(
     }
 
     @Retryable
-    fun getDokumentoversiktBruker(
+    fun getDokumentoversiktBrukerAsSaksbehandler(
         fnr: String,
         tema: List<Tema>,
         pageSize: Int,
@@ -42,7 +45,7 @@ class SafGraphQlClient(
                 .bodyValue(hentDokumentoversiktBrukerQuery(fnr, tema, pageSize, previousPageRef))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::getDokumentoversiktBruker.name, secureLogger)
+                    logErrorResponse(response, ::getDokumentoversiktBrukerAsSaksbehandler.name, secureLogger)
                 }
                 .bodyToMono<DokumentoversiktBrukerResponse>()
                 .block()
@@ -59,40 +62,66 @@ class SafGraphQlClient(
         }
     }
 
-    @Retryable
-    fun getJournalpostAsSaksbehandler(journalpostId: String): Journalpost {
-        return runWithTimingAndLogging {
-            val token = tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
-            secureLogger.debug("getJournalpostAsSaksbehandler token: {}", token)
-            getJournalpostWithToken(journalpostId, token)
-        }
-    }
-
-    @Retryable
-    fun getJournalpostAsSystembruker(journalpostId: String): Journalpost {
-        return runWithTimingAndLogging {
-            val token = tokenUtil.getAppAccessTokenWithSafScope()
-            getJournalpostWithToken(journalpostId, token)
-        }
-    }
-
-    private fun getJournalpostWithToken(journalpostId: String, token: String) = safWebClient.post()
-        .uri("graphql")
-        .header(
-            HttpHeaders.AUTHORIZATION,
-            "Bearer $token"
+    fun getJournalpostsAsSaksbehandler(journalpostIdSet: Set<String>): List<Journalpost> {
+        return getJournalposts(
+            journalpostIdSet = journalpostIdSet,
+            token = tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
         )
-        .bodyValue(hentJournalpostQuery(journalpostId))
-        .retrieve()
-        .onStatus(HttpStatusCode::isError) { response ->
-            logErrorResponse(response, "getJournalpostWithToken", secureLogger)
+    }
+
+    fun getJournalpostsAsSystembruker(journalpostIdSet: Set<String>): List<Journalpost> {
+        return getJournalposts(
+            journalpostIdSet = journalpostIdSet,
+            token = tokenUtil.getAppAccessTokenWithSafScope()
+        )
+    }
+
+    fun getJournalposts(
+        journalpostIdSet: Set<String>,
+        token: String,
+    ): List<Journalpost> {
+
+        return Flux.fromIterable(journalpostIdSet)
+            .parallel()
+            .runOn(Schedulers.boundedElastic())
+            .flatMap { journalpostId ->
+                getJournalpostWithTokenAsMono(
+                    journalpostId = journalpostId,
+                    token = token
+                )
+            }
+            .ordered { _: JournalpostResponse, _: JournalpostResponse -> 1 }.toIterable()
+            .mapNotNull {
+                if (it == null) throw RuntimeException("No response from SAF")
+                logErrorsFromSaf(it)
+                failOnErrors(it)
+                it.data!!.journalpost
+            }
+    }
+
+    @Retryable
+    private fun getJournalpostWithTokenAsMono(
+        journalpostId: String,
+        token: String
+    ): Mono<JournalpostResponse> {
+        return try {
+            safWebClient.post()
+                .uri("graphql")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer $token"
+                )
+                .bodyValue(hentJournalpostQuery(journalpostId))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(response, "getJournalpostWithTokenAsMono", secureLogger)
+                }
+                .bodyToMono<JournalpostResponse>()
+        } catch (e: Exception) {
+            logger.warn("Could not get journalpost with id $journalpostId", e)
+            Mono.empty()
         }
-        .bodyToMono<JournalpostResponse>()
-        .block()
-        .let { if (it == null) throw RuntimeException("No response from SAF") ; it }
-        .let { logErrorsFromSaf(it, journalpostId); it }
-        .let { failOnErrors(it); it }
-        .data!!.journalpost!!
+    }
 
     private fun failOnErrors(response: JournalpostResponse) {
         if (response.data?.journalpost == null || (response.errors != null && response.errors.map { it.extensions.classification }
@@ -121,11 +150,10 @@ class SafGraphQlClient(
 
     private fun logErrorsFromSaf(
         response: JournalpostResponse,
-        journalpostId: String
     ) {
         if (response.errors != null) {
             logger.error("Error from SAF, see securelogs")
-            secureLogger.error("Error from SAF when making call with following parameters: journalpostId=$journalpostId. Error is ${response.errors}")
+            secureLogger.error("Error from SAF when making call. Response is $response, error is ${response.errors}")
         }
     }
 

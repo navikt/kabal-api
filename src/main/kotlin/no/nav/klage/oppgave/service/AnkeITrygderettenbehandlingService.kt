@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import jakarta.transaction.Transactional
+import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingInput
+import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -79,16 +81,18 @@ class AnkeITrygderettenbehandlingService(
             )
         }
 
-        input.saksdokumenter.forEach {
-            behandlingService.connectDokumentToBehandling(
-                behandlingId = ankeITrygderettenbehandling.id,
-                journalpostId = it.journalpostId,
-                dokumentInfoId = it.dokumentInfoId,
-                saksbehandlerIdent = SYSTEMBRUKER,
-                systemUserContext = true,
-                ignoreCheckSkrivetilgang = true,
-            )
-        }
+        behandlingService.connectDocumentsToBehandling(
+            behandlingId = ankeITrygderettenbehandling.id,
+            journalfoertDokumentReferenceSet = input.saksdokumenter.map {
+                JournalfoertDokumentReference(
+                    journalpostId = it.journalpostId,
+                    dokumentInfoId = it.dokumentInfoId
+                )
+            }.toSet(),
+            saksbehandlerIdent = SYSTEMBRUKER,
+            systemUserContext = true,
+            ignoreCheckSkrivetilgang = true,
+        )
 
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(

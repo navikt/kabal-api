@@ -49,7 +49,7 @@ internal class SafDokumentoversiktBrukerTest {
             tokenUtilMock,
         )
 
-        return safClient.getDokumentoversiktBruker("fnr", emptyList(), 1, null)
+        return safClient.getDokumentoversiktBrukerAsSaksbehandler("fnr", emptyList(), 1, null)
     }
 
     @Language("json")
