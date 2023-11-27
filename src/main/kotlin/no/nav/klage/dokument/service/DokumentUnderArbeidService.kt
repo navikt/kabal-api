@@ -834,70 +834,72 @@ class DokumentUnderArbeidService(
         )
 
         //first vedlegg
-        dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentId)
+
+        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentId)
             .map {
                 if (it.erMarkertFerdig()) {
                     throw MissingTilgangException("Attempting to delete finalized document ${document.id}")
                 }
                 it
-            }
-            .forEach { dokumentUnderArbeid ->
-                slettEnkeltdokument(
-                    document = dokumentUnderArbeid,
-                    innloggetIdent = innloggetIdent,
-                    behandlingRole = behandling.getRoleInBehandling(innloggetIdent),
-                    behandling = behandling,
-                )
-            }
+            }.toSet()
+
+        deleteDocuments(
+            documentSet = vedlegg,
+            innloggetIdent = innloggetIdent,
+            behandlingRole = behandling.getRoleInBehandling(innloggetIdent),
+            behandling = behandling,
+        )
 
         if (document.erMarkertFerdig()) {
             throw MissingTilgangException("Attempting to delete finalized document ${document.id}")
         }
 
         //then hoveddokument
-        slettEnkeltdokument(
-            document = document,
+        deleteDocuments(
+            documentSet = setOf(document),
             innloggetIdent = innloggetIdent,
             behandlingRole = behandling.getRoleInBehandling(innloggetIdent),
             behandling = behandling,
         )
-
     }
 
-    private fun slettEnkeltdokument(
-        document: DokumentUnderArbeid,
+    private fun deleteDocuments(
+        documentSet: Set<DokumentUnderArbeid>,
         innloggetIdent: String,
         behandlingRole: BehandlingRole,
         behandling: Behandling,
     ) {
-        if (document.creatorRole != behandlingRole) {
-            throw MissingTilgangException("$behandlingRole har ikke anledning til å slette dokumentet eiet av ${document.creatorRole}.")
-        }
+        documentSet.forEach { document ->
+            if (document.creatorRole != behandlingRole) {
+                throw MissingTilgangException("$behandlingRole har ikke anledning til å slette dokumentet eiet av ${document.creatorRole}.")
+            }
 
-        if (document is DokumentUnderArbeidAsMellomlagret) {
-            try {
-                if (document.mellomlagerId != null) {
-                    mellomlagerService.deleteDocument(document.mellomlagerId!!)
+            if (document is DokumentUnderArbeidAsMellomlagret) {
+                try {
+                    if (document.mellomlagerId != null) {
+                        mellomlagerService.deleteDocument(document.mellomlagerId!!)
+                    }
+                } catch (e: Exception) {
+                    logger.warn("Couldn't delete mellomlager document", e)
                 }
-            } catch (e: Exception) {
-                logger.warn("Couldn't delete mellomlager document", e)
             }
+
+            if (document is DokumentUnderArbeidAsSmartdokument) {
+                try {
+                    smartEditorApiGateway.deleteDocument(document.smartEditorId)
+                } catch (e: Exception) {
+                    logger.warn("Couldn't delete smartEditor document", e)
+                }
+            }
+
         }
 
-        if (document is DokumentUnderArbeidAsSmartdokument) {
-            try {
-                smartEditorApiGateway.deleteDocument(document.smartEditorId)
-            } catch (e: Exception) {
-                logger.warn("Couldn't delete smartEditor document", e)
-            }
-        }
-
-        dokumentUnderArbeidRepository.delete(document)
+        dokumentUnderArbeidRepository.deleteAll(documentSet)
 
         behandling.publishEndringsloggEvent(
             saksbehandlerident = innloggetIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_SLETTET,
-            fraVerdi = document.modified.toString(),
+            fraVerdi = documentSet.joinToString { it.id.toString() },
             tilVerdi = null,
             tidspunkt = LocalDateTime.now(),
         )
