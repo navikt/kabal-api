@@ -122,20 +122,13 @@ class BehandlingAvslutningService(
             if (behandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
 
-                val sakInKlanke = fssProxyClient.getSak(sakId = behandling.kildeReferanse)
-                val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
-                    klageTilbakebetalingutfallToInfotrygdutfall[behandling.utfall!!]!!
-                } else {
-                    ankeutfallToInfotrygdutfall[behandling.utfall!!]!!
-                }
-
                 fssProxyClient.setToFinished(
                     sakId = behandling.kildeReferanse,
                     SakFinishedInput(
                         status = SakFinishedInput.Status.RETURNERT_TK,
                         nivaa = SakFinishedInput.Nivaa.KA,
                         typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
-                        utfall = SakFinishedInput.Utfall.valueOf(utfall),
+                        utfall = SakFinishedInput.Utfall.valueOf(ankeutfallToInfotrygdutfall[behandling.utfall!!]!!),
                         mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
                         saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!
                     )
