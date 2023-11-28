@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import com.ninjasquad.springmockk.MockkBean
+import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
@@ -10,6 +11,7 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentMapper
+import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.BehandlingRole.KABAL_SAKSBEHANDLING
@@ -66,8 +68,6 @@ class DokumentUnderArbeidServiceTest {
     @MockkBean
     lateinit var applicationEventPublisher: ApplicationEventPublisher
     @MockkBean
-    lateinit var safClient: SafGraphQlClient
-    @MockkBean
     lateinit var innloggetSaksbehandlerService: InnloggetSaksbehandlerService
     @MockkBean
     lateinit var dokumentService: DokumentService
@@ -77,7 +77,12 @@ class DokumentUnderArbeidServiceTest {
     lateinit var eregClient: EregClient
     @MockkBean
     lateinit var innholdsfortegnelseService: InnholdsfortegnelseService
-    
+    @MockkBean
+    lateinit var safFacade: SafFacade
+    @MockkBean
+    lateinit var dokumentMapper: DokumentMapper
+
+
     lateinit var dokumentUnderArbeidService: DokumentUnderArbeidService
 
 
@@ -98,12 +103,13 @@ class DokumentUnderArbeidServiceTest {
             behandlingService = behandlingService,
             kabalDocumentGateway = kabalDocumentGateway,
             applicationEventPublisher = applicationEventPublisher,
-            safClient = safClient,
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             dokumentService = dokumentService,
             kabalDocumentMapper = kabalDocumentMapper,
             eregClient = eregClient,
-            innholdsfortegnelseService = innholdsfortegnelseService
+            innholdsfortegnelseService = innholdsfortegnelseService,
+            safFacade = safFacade,
+            dokumentMapper = dokumentMapper
         )
 
         val behandlingId = UUID.randomUUID()

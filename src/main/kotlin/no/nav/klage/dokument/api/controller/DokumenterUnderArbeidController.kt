@@ -45,8 +45,7 @@ class DokumentUnderArbeidController(
     fun findDokumenter(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): List<DokumentView> {
-        val allDokumenterUnderArbeid = dokumentUnderArbeidService.findDokumenterNotFinished(behandlingId = behandlingId)
-        return dokumentMapper.getSortedDokumentViewList(allDokumenterUnderArbeid)
+        return dokumentUnderArbeidService.getDokumenterUnderArbeidViewList(behandlingId = behandlingId)
     }
 
     @PostMapping("/fil")
@@ -61,14 +60,15 @@ class DokumentUnderArbeidController(
             dokumentType = DokumentType.of(input.dokumentTypeId),
         )
         return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeidService.createOpplastetDokumentUnderArbeid(
+            dokumentUnderArbeid = dokumentUnderArbeidService.createOpplastetDokumentUnderArbeid(
                 behandlingId = behandlingId,
                 dokumentType = DokumentType.of(input.dokumentTypeId),
                 opplastetFil = opplastetFil,
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
                 tittel = opplastetFil.title,
                 parentId = input.parentId,
-            )
+            ),
+            journalpost = null,
         )
     }
 
@@ -78,16 +78,10 @@ class DokumentUnderArbeidController(
         @RequestBody input: JournalfoerteDokumenterInput
     ): JournalfoerteDokumenterResponse {
         logger.debug("Kall mottatt på addJournalfoerteDokumenterAsVedlegg")
-        val (added, duplicates) = dokumentUnderArbeidService.createJournalfoerteDokumenter(
-            parentId = input.parentId,
-            journalfoerteDokumenter = input.journalfoerteDokumenter,
+        return dokumentUnderArbeidService.handleJournalfoerteDokumenterAsVedlegg(
             behandlingId = behandlingId,
+            journalfoerteDokumenterInput = input,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
-
-        return JournalfoerteDokumenterResponse(
-            addedJournalfoerteDokumenter = added.map { dokumentMapper.mapToDokumentView(it) },
-            duplicateJournalfoerteDokumenter = duplicates
         )
     }
 
@@ -98,12 +92,13 @@ class DokumentUnderArbeidController(
         @RequestBody input: DokumentTypeInput
     ): DokumentView {
         return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeidService.updateDokumentType(
+            dokumentUnderArbeid = dokumentUnderArbeidService.updateDokumentType(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 dokumentType = DokumentType.of(input.dokumentTypeId),
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-            )
+            ),
+            journalpost = null,
         )
     }
 
@@ -147,7 +142,7 @@ class DokumentUnderArbeidController(
         return DokumentUnderArbeidMetadata(
             behandlingId = behandlingId,
             documentId = dokumentId,
-            title = "Innholdsfortegnelse"
+            title = "Vedleggsoversikt"
         )
     }
 
@@ -187,30 +182,11 @@ class DokumentUnderArbeidController(
     ): DokumentViewWithList {
         logger.debug("Kall mottatt på kobleEllerFrikobleVedlegg for {}", persistentDokumentId)
         try {
-            return if (input.dokumentId == null) {
-                dokumentMapper.mapToDokumentListView(
-                    dokumentUnderArbeidList = listOf(
-                        dokumentUnderArbeidService.setAsHoveddokument(
-                            behandlingId = behandlingId,
-                            dokumentId = persistentDokumentId,
-                            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-                        )
-                    ),
-                    duplicateJournalfoerteDokumenter = emptyList()
-                )
-            } else {
-                val (alteredDocuments, duplicateJournalfoerteDokumenter) =
-                    dokumentUnderArbeidService.setAsVedlegg(
-                        parentId = input.dokumentId,
-                        dokumentId = persistentDokumentId,
-                        innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-                    )
-
-                return dokumentMapper.mapToDokumentListView(
-                    dokumentUnderArbeidList = alteredDocuments,
-                    duplicateJournalfoerteDokumenter = duplicateJournalfoerteDokumenter
-                )
-            }
+            return dokumentUnderArbeidService.kobleEllerFrikobleVedlegg(
+                behandlingId = behandlingId,
+                persistentDokumentId = persistentDokumentId,
+                input = input
+            )
         } catch (e: Exception) {
             logger.error("Feilet under kobling av dokument $persistentDokumentId med ${input.dokumentId}", e)
             throw e
@@ -225,12 +201,13 @@ class DokumentUnderArbeidController(
     ): DokumentView {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
+            dokumentUnderArbeid = dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 ident = ident,
                 brevmottakerIdents = input.brevmottakerIds,
-            )
+            ),
+            journalpost = null
         )
     }
 
@@ -298,12 +275,13 @@ class DokumentUnderArbeidController(
     ): DokumentView {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeidService.updateDokumentTitle(
+            dokumentUnderArbeid = dokumentUnderArbeidService.updateDokumentTitle(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 dokumentTitle = input.title,
                 innloggetIdent = ident,
-            )
+            ),
+            journalpost = null
         )
     }
 }

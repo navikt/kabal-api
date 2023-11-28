@@ -275,7 +275,7 @@ class MottakService(
     fun OversendtKlageV2.validate() {
         validateDuplicate(kilde, kildeReferanse, type)
         validateYtelseAndHjemler(ytelse, hjemler)
-        tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
+        validateJournalpostList(tilknyttedeJournalposter.map { it.journalpostId })
         validatePartId(klager.id.toPartId())
         sakenGjelder?.run { validatePartId(sakenGjelder.id.toPartId()) }
         validateType(type)
@@ -290,7 +290,7 @@ class MottakService(
     fun OversendtKlageAnkeV3.validate() {
         validateYtelseAndHjemler(ytelse, hjemler)
         validateDuplicate(kilde, kildeReferanse, type)
-        tilknyttedeJournalposter.forEach { validateJournalpost(it.journalpostId) }
+        validateJournalpostList(tilknyttedeJournalposter.map { it.journalpostId })
         validatePartId(klager.id.toPartId())
         sakenGjelder?.run { validatePartId(sakenGjelder.id.toPartId()) }
         validateDateNotInFuture(brukersHenvendelseMottattNavDato, ::brukersHenvendelseMottattNavDato.name)
@@ -304,7 +304,7 @@ class MottakService(
         validateDocumentNotAlreadyUsed(klageJournalpostId, sakenGjelder.value)
         validateYtelseAndHjemler(Ytelse.of(ytelseId), listOf(Hjemmel.of(hjemmelId)))
         validateDuplicate(Fagsystem.of(fagsystemId), kildereferanse, Type.KLAGE)
-        validateJournalpost(klageJournalpostId)
+        validateJournalpostList(listOf(klageJournalpostId))
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
         fullmektig?.let { validatePartId(it.toPartId()) }
@@ -318,7 +318,7 @@ class MottakService(
         validateDocumentNotAlreadyUsed(ankeJournalpostId, sakenGjelder.value)
         validateYtelseAndHjemler(Ytelse.of(ytelseId), listOf(Hjemmel.of(hjemmelId)))
         validateDuplicate(Fagsystem.of(fagsystemId), kildereferanse, Type.ANKE)
-        validateJournalpost(ankeJournalpostId)
+        validateJournalpostList(listOf(ankeJournalpostId))
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
         fullmektig?.let { validatePartId(it.toPartId()) }
@@ -407,12 +407,12 @@ class MottakService(
             throw OversendtKlageNotValidException("$enhet er ikke en gyldig NAV-enhet")
         }
 
-    private fun validateJournalpost(journalpostId: String) =
+    private fun validateJournalpostList(journalpostIdList: List<String>) =
         try {
-            dokumentService.validateJournalpostExistsAsSystembruker(journalpostId)
+            dokumentService.validateJournalpostsExistsAsSystembruker(journalpostIdList)
         } catch (e: JournalpostNotFoundException) {
-            logger.warn("Unable to validate journalpost from oversendt klage: {}", journalpostId, e)
-            throw OversendtKlageNotValidException("$journalpostId er ikke en gyldig journalpost referanse")
+            logger.warn("Unable to validate journalpost list from oversendt klage: {}", journalpostIdList, e)
+            throw OversendtKlageNotValidException("$journalpostIdList inneholder en ugyldig journalpostreferanse")
         }
 
     private fun validatePartId(partId: PartId) {

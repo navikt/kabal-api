@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.BehandlingEditedView
 import no.nav.klage.oppgave.api.view.DokumenterResponse
@@ -62,10 +63,13 @@ class BehandlingDokumentController(
             behandlingId,
             logger
         )
-        val modified = behandlingService.connectDokumentToBehandling(
+        val modified = behandlingService.connectDocumentsToBehandling(
             behandlingId = behandlingId,
-            journalpostId = input.journalpostId,
-            dokumentInfoId = input.dokumentInfoId,
+            journalfoertDokumentReferenceSet = setOf(
+                JournalfoertDokumentReference(
+                    journalpostId = input.journalpostId, dokumentInfoId = input.dokumentInfoId,
+                )
+            ),
             saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             systemUserContext = false,
             ignoreCheckSkrivetilgang = false,

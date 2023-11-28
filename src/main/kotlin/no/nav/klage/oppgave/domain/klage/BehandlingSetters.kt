@@ -492,6 +492,25 @@ object BehandlingSetters {
         return null
     }
 
+    fun Behandling.addSaksdokumenter(
+        saksdokumentList: List<Saksdokument>,
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val existingSaksdokumenter = saksdokumenter.joinToString()
+        val tidspunkt = LocalDateTime.now()
+        saksdokumenter.addAll(saksdokumentList)
+        modified = tidspunkt
+        val endringslogg = Endringslogginnslag.endringslogg(
+            saksbehandlerident = saksbehandlerident,
+            felt = Felt.SAKSDOKUMENT,
+            fraVerdi = existingSaksdokumenter,
+            tilVerdi = saksdokumenter.joinToString(),
+            behandlingId = id,
+            tidspunkt = tidspunkt
+        )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
     fun Behandling.removeSaksdokument(
         saksdokument: Saksdokument,
         saksbehandlerident: String

@@ -17,7 +17,6 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFu
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
-import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
@@ -94,9 +93,6 @@ internal class BehandlingAvslutningServiceTest {
         lateinit var eregClient: EregClient
 
         @MockkBean(relaxed = true)
-        lateinit var safClient: SafGraphQlClient
-
-        @MockkBean(relaxed = true)
         lateinit var tokenUtil: TokenUtil
 
         @MockkBean(relaxed = true)
@@ -108,10 +104,6 @@ internal class BehandlingAvslutningServiceTest {
         @MockkBean(relaxed = true)
         lateinit var saksbehandlerService: SaksbehandlerService
     }
-
-    //@Autowired
-    //lateinit var entityManager: EntityManager
-    //lateinit var entityManager: TestEntityManager
 
     @Autowired
     lateinit var klagebehandlingRepository: KlagebehandlingRepository

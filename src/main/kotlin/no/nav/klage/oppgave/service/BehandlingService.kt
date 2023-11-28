@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -20,7 +21,7 @@ import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setSendtTilTrygderetten
-import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokumenter
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.removeSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttetAvSaksbehandler
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setExtraUtfallSet
@@ -759,10 +760,32 @@ class BehandlingService(
         return dokumentService.fetchDokumentlisteForBehandling(behandling, temaer, pageSize, previousPageRef)
     }
 
-    fun connectDokumentToBehandling(
+//    fun connectDokumentToBehandling(
+//        behandlingId: UUID,
+//        journalpostId: String,
+//        dokumentInfoId: String,
+//        saksbehandlerIdent: String,
+//        systemUserContext: Boolean = false,
+//        ignoreCheckSkrivetilgang: Boolean,
+//    ): LocalDateTime {
+//        val behandling = getBehandlingForUpdate(
+//            behandlingId = behandlingId,
+//            ignoreCheckSkrivetilgang = ignoreCheckSkrivetilgang,
+//            systemUserContext = systemUserContext,
+//        )
+//
+//        addDokumentList(
+//            behandling,
+//            journalpostId,
+//            dokumentInfoId,
+//            saksbehandlerIdent
+//        )
+//        return behandling.modified
+//    }
+
+    fun connectDocumentsToBehandling(
         behandlingId: UUID,
-        journalpostId: String,
-        dokumentInfoId: String,
+        journalfoertDokumentReferenceSet: Set<JournalfoertDokumentReference>,
         saksbehandlerIdent: String,
         systemUserContext: Boolean = false,
         ignoreCheckSkrivetilgang: Boolean,
@@ -772,17 +795,11 @@ class BehandlingService(
             ignoreCheckSkrivetilgang = ignoreCheckSkrivetilgang,
             systemUserContext = systemUserContext,
         )
-        if (systemUserContext) {
-            dokumentService.validateJournalpostExistsAsSystembruker(journalpostId)
-        } else {
-            dokumentService.validateJournalpostExists(journalpostId)
-        }
 
-        addDokument(
-            behandling,
-            journalpostId,
-            dokumentInfoId,
-            saksbehandlerIdent
+        addDokumentSet(
+            behandling = behandling,
+            journalfoertDokumentReferenceSet = journalfoertDokumentReferenceSet,
+            saksbehandlerIdent = saksbehandlerIdent,
         )
         return behandling.modified
     }
@@ -838,7 +855,7 @@ class BehandlingService(
     }
 
     private fun checkSkrivetilgangForSystembruker(behandling: Behandling) {
-        tilgangService.verifySystembrukersSkrivetilgang(behandling)
+        tilgangService.checkIfBehandlingIsAvsluttet(behandling)
     }
 
     @Transactional(readOnly = true)
@@ -867,36 +884,33 @@ class BehandlingService(
         tilgangService.verifyInnloggetSaksbehandlerIsMedunderskriverOrROLAndNotFinalized(behandling)
     }
 
-    private fun addDokument(
+    private fun addDokumentSet(
         behandling: Behandling,
-        journalpostId: String,
-        dokumentInfoId: String,
+        journalfoertDokumentReferenceSet: Set<JournalfoertDokumentReference>,
         saksbehandlerIdent: String
     ) {
-        try {
-            val foundSaksdokument =
-                behandling.saksdokumenter.find { it.journalpostId == journalpostId && it.dokumentInfoId == dokumentInfoId }
-            if (foundSaksdokument != null) {
-                logger.debug(
-                    "Dokument (journalpost: {} dokumentInfoId: {}) is already connected to behandling {}, doing nothing",
-                    journalpostId,
-                    dokumentInfoId,
-                    behandling.id
-                )
-            } else {
-                val saksdokument = Saksdokument(
-                    journalpostId = journalpostId,
-                    dokumentInfoId = dokumentInfoId
-                )
-                val event = behandling.addSaksdokument(
-                    saksdokument,
-                    saksbehandlerIdent
-                )
-                event?.let { applicationEventPublisher.publishEvent(it) }
+        val (existingSaksdokuments, saksdokumentsToAdd) = journalfoertDokumentReferenceSet.partition { journalfoerDokumentReference ->
+            behandling.saksdokumenter.any {
+                it.journalpostId == journalfoerDokumentReference.journalpostId && it.dokumentInfoId == journalfoerDokumentReference.dokumentInfoId
             }
-        } catch (e: Exception) {
-            logger.error("Error connecting journalpost $journalpostId to behandling ${behandling.id}", e)
-            throw e
+        }
+
+        if (existingSaksdokuments.isNotEmpty()) {
+            logger.debug(
+                "Already added documents in behandling {}: {}",
+                behandling.id,
+                existingSaksdokuments.joinToString()
+            )
+        }
+
+        if (saksdokumentsToAdd.isNotEmpty()) {
+            val event = behandling.addSaksdokumenter(
+                saksdokumentList = saksdokumentsToAdd.map {
+                    Saksdokument(journalpostId = it.journalpostId, dokumentInfoId = it.dokumentInfoId)
+                },
+                saksbehandlerident = saksbehandlerIdent
+            )
+            event.let { applicationEventPublisher.publishEvent(it) }
         }
     }
 
