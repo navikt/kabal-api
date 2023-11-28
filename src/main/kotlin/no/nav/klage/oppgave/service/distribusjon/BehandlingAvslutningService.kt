@@ -82,13 +82,20 @@ class BehandlingAvslutningService(
             //if fagsystem is Infotrygd also do this.
             if (behandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten.")
+                val sakInKlanke = fssProxyClient.getSak(sakId = behandling.kildeReferanse)
+                val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
+                    klageTilbakebetalingutfallToInfotrygdutfall[behandling.utfall!!]!!
+                } else {
+                    ankeutfallToInfotrygdutfall[behandling.utfall!!]!!
+                }
+
                 fssProxyClient.setToFinished(
                     sakId = behandling.kildeReferanse,
                     SakFinishedInput(
                         status = SakFinishedInput.Status.VIDERESENDT_TR,
                         nivaa = SakFinishedInput.Nivaa.KA,
                         typeResultat = SakFinishedInput.TypeResultat.INNSTILLING_2,
-                        utfall = SakFinishedInput.Utfall.valueOf(ankeutfallToInfotrygdutfall[behandling.utfall!!]!!),
+                        utfall = SakFinishedInput.Utfall.valueOf(utfall),
                         mottaker = SakFinishedInput.Mottaker.TRYGDERETTEN,
                         saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!
                     )
@@ -114,13 +121,21 @@ class BehandlingAvslutningService(
             //if fagsystem is Infotrygd also do this.
             if (behandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
+
+                val sakInKlanke = fssProxyClient.getSak(sakId = behandling.kildeReferanse)
+                val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
+                    klageTilbakebetalingutfallToInfotrygdutfall[behandling.utfall!!]!!
+                } else {
+                    ankeutfallToInfotrygdutfall[behandling.utfall!!]!!
+                }
+
                 fssProxyClient.setToFinished(
                     sakId = behandling.kildeReferanse,
                     SakFinishedInput(
                         status = SakFinishedInput.Status.RETURNERT_TK,
                         nivaa = SakFinishedInput.Nivaa.KA,
                         typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
-                        utfall = SakFinishedInput.Utfall.valueOf(klageutfallToInfotrygdutfall[behandling.utfall!!]!!),
+                        utfall = SakFinishedInput.Utfall.valueOf(utfall),
                         mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
                         saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!
                     )
