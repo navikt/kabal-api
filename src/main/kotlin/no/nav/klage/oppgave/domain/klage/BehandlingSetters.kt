@@ -253,7 +253,7 @@ object BehandlingSetters {
 
     fun Behandling.setSattPaaVent(
         nyVerdi: SattPaaVent?,
-        saksbehandlerident: String
+        utfoerendeIdent: String
     ): BehandlingEndretEvent {
         val gammelSattPaaVent = sattPaaVent
         val tidspunkt = LocalDateTime.now()
@@ -261,10 +261,15 @@ object BehandlingSetters {
         sattPaaVent = nyVerdi
         modified = tidspunkt
 
+        recordSattPaaVentHistory(
+            tidspunkt = tidspunkt,
+            utfoerendeIdent = utfoerendeIdent,
+        )
+
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
         endringslogg(
-            saksbehandlerident = saksbehandlerident,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.SATT_PAA_VENT,
             fraVerdi = gammelSattPaaVent.toString(),
             tilVerdi = nyVerdi.toString(),
@@ -272,6 +277,19 @@ object BehandlingSetters {
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
+    }
+
+    private fun Behandling.recordSattPaaVentHistory(
+        tidspunkt: LocalDateTime,
+        utfoerendeIdent: String,
+    ) {
+        sattPaaVentHistorikk.add(
+            SattPaaVentHistorikk(
+                sattPaaVent = sattPaaVent,
+                tidspunkt = tidspunkt,
+                utfoerendeIdent = utfoerendeIdent,
+            )
+        )
     }
 
     fun Behandling.setMottattKlageinstans(

@@ -161,6 +161,11 @@ abstract class Behandling(
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     val fullmektigHistorikk: MutableSet<FullmektigHistorikk> = mutableSetOf(),
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
+    @Fetch(FetchMode.SELECT)
+    @BatchSize(size = 100)
+    val sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     ) {
 
     /**
