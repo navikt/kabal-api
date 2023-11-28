@@ -692,7 +692,7 @@ class BehandlingService(
         val event =
             behandling.setKlager(
                 nyVerdi = getPartIdFromIdentifikator(identifikator),
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
         return behandling.modified

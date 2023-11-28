@@ -333,19 +333,34 @@ object BehandlingSetters {
 
     fun Behandling.setFullmektig(
         nyVerdi: PartId?,
-        saksbehandlerident: String
+        utfoerendeIdent: String
     ): BehandlingEndretEvent {
         val gammelVerdi = klager.prosessfullmektig
         val tidspunkt = LocalDateTime.now()
+
+        //record initial state
+        if (fullmektigHistorikk.isEmpty()) {
+            recordFullmektigHistory(
+                tidspunkt = created,
+                utfoerendeIdent = utfoerendeIdent,
+            )
+        }
+
         if (nyVerdi == null) {
             klager.prosessfullmektig = null
         } else {
             klager.prosessfullmektig = Prosessfullmektig(partId = nyVerdi, skalPartenMottaKopi = false)
         }
         modified = tidspunkt
+
+        recordFullmektigHistory(
+            tidspunkt = created,
+            utfoerendeIdent = utfoerendeIdent,
+        )
+
         val endringslogg =
             endringslogg(
-                saksbehandlerident = saksbehandlerident,
+                saksbehandlerident = utfoerendeIdent,
                 felt = Felt.FULLMEKTIG,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
@@ -354,25 +369,64 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
+    private fun Behandling.recordFullmektigHistory(
+        tidspunkt: LocalDateTime,
+        utfoerendeIdent: String,
+    ) {
+        fullmektigHistorikk.add(
+            FullmektigHistorikk(
+                partId = klager.prosessfullmektig?.partId,
+                tidspunkt = tidspunkt,
+                utfoerendeIdent = utfoerendeIdent,
+            )
+        )
+    }
+
     fun Behandling.setKlager(
         nyVerdi: PartId,
-        saksbehandlerident: String
+        utfoerendeIdent: String
     ): BehandlingEndretEvent {
         val gammelVerdi = klager
         val tidspunkt = LocalDateTime.now()
 
+        //record initial state
+        if (klagerHistorikk.isEmpty()) {
+            recordKlagerHistory(
+                tidspunkt = created,
+                utfoerendeIdent = utfoerendeIdent,
+            )
+        }
+
         klager.partId = nyVerdi
+
+        recordKlagerHistory(
+            tidspunkt = tidspunkt,
+            utfoerendeIdent = utfoerendeIdent,
+        )
 
         modified = tidspunkt
         val endringslogg =
             endringslogg(
-                saksbehandlerident = saksbehandlerident,
+                saksbehandlerident = utfoerendeIdent,
                 felt = Felt.KLAGER,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = klager.toString(),
                 tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
+    private fun Behandling.recordKlagerHistory(
+        tidspunkt: LocalDateTime,
+        utfoerendeIdent: String,
+    ) {
+        klagerHistorikk.add(
+            KlagerHistorikk(
+                partId = klager.partId,
+                tidspunkt = tidspunkt,
+                utfoerendeIdent = utfoerendeIdent,
+            )
+        )
     }
 
     fun Behandling.setRegistreringshjemler(
