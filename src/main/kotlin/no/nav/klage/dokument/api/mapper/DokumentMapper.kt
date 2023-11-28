@@ -72,10 +72,10 @@ class DokumentMapper {
             } +
                 journalfoerteDokumenterUnderArbeid
                     .sortedByDescending { (it).sortKey }
-                    .map { journalfoerteDokumenterUnderArbeid ->
+                    .map { journalfoertDokumentUnderArbeid ->
                         mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
-                            journalfoertDokumentUnderArbeidAsVedlegg = journalfoerteDokumenterUnderArbeid,
-                            journalpost = journalpostList.find { it.journalpostId == journalfoerteDokumenterUnderArbeid.journalpostId }!!
+                            journalfoertDokumentUnderArbeidAsVedlegg = journalfoertDokumentUnderArbeid,
+                            journalpost = journalpostList.find { it.journalpostId == journalfoertDokumentUnderArbeid.journalpostId }!!
                         )
                     }
     }
