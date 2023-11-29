@@ -85,10 +85,12 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        validateCanCreateDocuments(
-            behandlingRole = behandlingRole,
-            parentDocument = if (parentId != null) dokumentUnderArbeidRepository.getReferenceById(parentId) else null
-        )
+        if (behandling.avsluttetAvSaksbehandler == null) {
+            validateCanCreateDocuments(
+                behandlingRole = behandlingRole,
+                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.getReferenceById(parentId) else null
+            )
+        }
 
         if (opplastetFil == null) {
             throw DokumentValidationException("No file uploaded")
@@ -196,10 +198,12 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        validateCanCreateDocuments(
-            behandlingRole = behandlingRole,
-            parentDocument = if (parentId != null) dokumentUnderArbeidRepository.getReferenceById(parentId) else null
-        )
+        if (behandling.avsluttetAvSaksbehandler == null) {
+            validateCanCreateDocuments(
+                behandlingRole = behandlingRole,
+                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.getReferenceById(parentId) else null
+            )
+        }
 
         if (json == null) {
             throw DokumentValidationException("Ingen json angitt")
@@ -319,8 +323,15 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
         }
 
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
+
         if (behandling.avsluttetAvSaksbehandler == null) {
             val isCurrentROL = behandling.rolIdent == innloggetIdent
+
+            validateCanCreateDocuments(
+                behandlingRole = behandlingRole,
+                parentDocument = parentDocument
+            )
 
             behandlingService.connectDocumentsToBehandling(
                 behandlingId = behandling.id,
@@ -342,13 +353,6 @@ class DokumentUnderArbeidService(
         }.toSet()
 
         val (toAdd, duplicates) = journalfoerteDokumenter.partition { it !in alreadAddedDocumentsMapped }
-
-        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
-
-        validateCanCreateDocuments(
-            behandlingRole = behandlingRole,
-            parentDocument = parentDocument
-        )
 
         val now = LocalDateTime.now()
 
@@ -489,8 +493,10 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        if (dokument.creatorRole != behandlingRole) {
-            throw MissingTilgangException("$behandlingRole har ikke anledning til å endre tittel på dette dokumentet eiet av ${dokument.creatorRole}.")
+        if (behandling.avsluttetAvSaksbehandler == null) {
+            if (dokument.creatorRole != behandlingRole) {
+                throw MissingTilgangException("$behandlingRole har ikke anledning til å endre tittel på dette dokumentet eiet av ${dokument.creatorRole}.")
+            }
         }
 
         if (dokument.erMarkertFerdig()) {
@@ -527,25 +533,27 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        when (dokument.creatorRole) {
-            BehandlingRole.KABAL_SAKSBEHANDLING -> {
-                if (behandlingRole !in listOf(
-                        BehandlingRole.KABAL_SAKSBEHANDLING,
-                        BehandlingRole.KABAL_MEDUNDERSKRIVER
-                    )
-                ) {
-                    throw MissingTilgangException("Kun saksbehandler eller medunderskriver kan skrive i dette dokumentet.")
+        if (behandling.avsluttetAvSaksbehandler == null) {
+            when (dokument.creatorRole) {
+                BehandlingRole.KABAL_SAKSBEHANDLING -> {
+                    if (behandlingRole !in listOf(
+                            BehandlingRole.KABAL_SAKSBEHANDLING,
+                            BehandlingRole.KABAL_MEDUNDERSKRIVER
+                        )
+                    ) {
+                        throw MissingTilgangException("Kun saksbehandler eller medunderskriver kan skrive i dette dokumentet.")
+                    }
                 }
-            }
 
-            BehandlingRole.KABAL_ROL -> {
-                if (behandlingRole != BehandlingRole.KABAL_ROL) {
-                    throw MissingTilgangException("Kun ROL kan skrive i dette dokumentet.")
+                BehandlingRole.KABAL_ROL -> {
+                    if (behandlingRole != BehandlingRole.KABAL_ROL) {
+                        throw MissingTilgangException("Kun ROL kan skrive i dette dokumentet.")
+                    }
                 }
-            }
 
-            else -> {
-                throw RuntimeException("A document was created by non valid role: ${dokument.creatorRole}")
+                else -> {
+                    throw RuntimeException("A document was created by non valid role: ${dokument.creatorRole}")
+                }
             }
         }
     }
@@ -666,13 +674,12 @@ class DokumentUnderArbeidService(
 
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = ident) }
 
-// No vedleggsoversikt yet.
-//        if (vedlegg.isNotEmpty()) {
-//            innholdsfortegnelseService.saveInnholdsfortegnelse(
-//                dokumentUnderArbeidId = dokumentId,
-//                fnr = behandling.sakenGjelder.partId.value,
-//            )
-//        }
+        if (vedlegg.isNotEmpty()) {
+            innholdsfortegnelseService.saveInnholdsfortegnelse(
+                dokumentUnderArbeidId = dokumentId,
+                fnr = behandling.sakenGjelder.partId.value,
+            )
+        }
 
 
         behandling.publishEndringsloggEvent(
@@ -872,8 +879,10 @@ class DokumentUnderArbeidService(
         behandling: Behandling,
     ) {
         documentSet.forEach { document ->
-            if (document.creatorRole != behandlingRole) {
-                throw MissingTilgangException("$behandlingRole har ikke anledning til å slette dokumentet eiet av ${document.creatorRole}.")
+            if (behandling.avsluttetAvSaksbehandler == null) {
+                if (document.creatorRole != behandlingRole) {
+                    throw MissingTilgangException("$behandlingRole har ikke anledning til å slette dokumentet eiet av ${document.creatorRole}.")
+                }
             }
 
             if (document is DokumentUnderArbeidAsMellomlagret) {
