@@ -23,7 +23,7 @@ class KlageFssProxyClient(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getSak(sakId: String): SakFromKlanke {
+    fun getSakWithSaksbehandlerAccess(sakId: String): SakFromKlanke {
         return klageFssProxyWebClient.get()
             .uri { it.path("/klanke/saker/{sakId}").build(sakId) }
             .header(
@@ -32,7 +32,7 @@ class KlageFssProxyClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getSak.name, secureLogger)
+                logErrorResponse(response, ::getSakWithSaksbehandlerAccess.name, secureLogger)
             }
             .bodyToMono<SakFromKlanke>()
             .block()
@@ -55,7 +55,7 @@ class KlageFssProxyClient(
             .block()
     }
 
-    fun setToFinished(sakId: String, input: SakFinishedInput) {
+    fun setToFinishedWithAppAccess(sakId: String, input: SakFinishedInput) {
         klageFssProxyWebClient.post()
             .uri { it.path("/klanke/saker/{sakId}/finished").build(sakId) }
             .header(
@@ -65,7 +65,7 @@ class KlageFssProxyClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::setToFinished.name, secureLogger)
+                logErrorResponse(response, ::setToFinishedWithAppAccess.name, secureLogger)
             }
             .bodyToMono<Unit>()
             .block()

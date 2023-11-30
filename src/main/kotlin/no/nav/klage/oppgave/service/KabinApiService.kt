@@ -90,7 +90,7 @@ class KabinApiService(
                 vedtakDate = sourceBehandling.avsluttetAvSaksbehandler!!,
             )
         } else {
-            val klageInInfotrygd = klageFssProxyClient.getSak(sakId = ankebehandling.kildeReferanse)
+            val klageInInfotrygd = klageFssProxyClient.getSakWithSaksbehandlerAccess(sakId = ankebehandling.kildeReferanse)
             getCreatedAnkebehandlingStatusForKabin(
                 ankebehandling = ankebehandling,
                 mottak = mottak,

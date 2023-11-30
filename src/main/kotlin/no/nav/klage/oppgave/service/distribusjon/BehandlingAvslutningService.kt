@@ -82,7 +82,7 @@ class BehandlingAvslutningService(
             //if fagsystem is Infotrygd also do this.
             if (behandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten.")
-                fssProxyClient.setToFinished(
+                fssProxyClient.setToFinishedWithAppAccess(
                     sakId = behandling.kildeReferanse,
                     SakFinishedInput(
                         status = SakFinishedInput.Status.VIDERESENDT_TR,
@@ -115,20 +115,20 @@ class BehandlingAvslutningService(
             if (behandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
 
-                val sakInKlanke = fssProxyClient.getSak(sakId = behandling.kildeReferanse)
-                val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
-                    klageTilbakebetalingutfallToInfotrygdutfall[behandling.utfall!!]!!
-                } else {
-                    klageutfallToInfotrygdutfall[behandling.utfall!!]!!
-                }
+//                val sakInKlanke = fssProxyClient.getSakWithSaksbehandlerAccess(sakId = behandling.kildeReferanse)
+//                val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
+//                    klageTilbakebetalingutfallToInfotrygdutfall[behandling.utfall!!]!!
+//                } else {
+//                    klageutfallToInfotrygdutfall[behandling.utfall!!]!!
+//                }
 
-                fssProxyClient.setToFinished(
+                fssProxyClient.setToFinishedWithAppAccess(
                     sakId = behandling.kildeReferanse,
                     SakFinishedInput(
                         status = SakFinishedInput.Status.RETURNERT_TK,
                         nivaa = SakFinishedInput.Nivaa.KA,
                         typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
-                        utfall = SakFinishedInput.Utfall.valueOf(utfall),
+                        utfall = SakFinishedInput.Utfall.valueOf(klageutfallToInfotrygdutfall[behandling.utfall!!]!!),
                         mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
                         saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!
                     )
