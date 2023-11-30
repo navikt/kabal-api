@@ -27,6 +27,10 @@ data class FeilregistrertInKabalInput(
     val saksbehandlerIdent: String
 )
 
+data class GetSakAppAccessInput(
+    val saksbehandlerIdent: String
+)
+
 data class SakFinishedInput(
     val status: Status,
     val nivaa: Nivaa,
