@@ -29,15 +29,14 @@ object BehandlingSetters {
         val gammelVerdiTidspunkt = tildeling?.tidspunkt
         val tidspunkt = LocalDateTime.now()
 
-        tildelingHistorikk.add(
-            TildelingHistorikk(
-                saksbehandlerident = nyVerdiSaksbehandlerident,
-                enhet = nyVerdiEnhet,
-                tidspunkt = tidspunkt,
-                fradelingReason = fradelingReason,
-                utfoerendeIdent = utfoerendeIdent,
+        //record initial state
+        if (tildelingHistorikk.isEmpty()) {
+            recordTildelingHistory(
+                tidspunkt = created,
+                utfoerendeIdent = "SYSTEM",
+                fradelingReason = null,
             )
-        )
+        }
 
         tildeling = if (nyVerdiSaksbehandlerident == null) {
             null
@@ -45,6 +44,12 @@ object BehandlingSetters {
             Tildeling(nyVerdiSaksbehandlerident, nyVerdiEnhet, tidspunkt)
         }
         modified = tidspunkt
+
+        recordTildelingHistory(
+            tidspunkt = tidspunkt,
+            utfoerendeIdent = utfoerendeIdent,
+            fradelingReason = fradelingReason,
+        )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
@@ -76,12 +81,36 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
     }
 
+    private fun Behandling.recordTildelingHistory(
+        tidspunkt: LocalDateTime,
+        utfoerendeIdent: String,
+        fradelingReason: FradelingReason?,
+    ) {
+        tildelingHistorikk.add(
+            TildelingHistorikk(
+                saksbehandlerident = tildeling?.saksbehandlerident,
+                enhet = tildeling?.enhet,
+                tidspunkt = tidspunkt,
+                utfoerendeIdent = utfoerendeIdent,
+                fradelingReason = fradelingReason,
+            )
+        )
+    }
+
     fun Behandling.setMedunderskriverFlowState(
         nyMedunderskriverFlowState: FlowState,
         utfoerendeIdent: String,
     ): BehandlingEndretEvent {
         val gammelVerdiMedunderskriverFlowState = medunderskriverFlowState
         val tidspunkt = LocalDateTime.now()
+
+        //record initial history
+        if (medunderskriverHistorikk.isEmpty()) {
+            recordMedunderskriverHistory(
+                tidspunkt = created,
+                utfoerendeIdent = "SYSTEM"
+            )
+        }
 
         medunderskriverFlowState = nyMedunderskriverFlowState
         modified = tidspunkt
@@ -110,6 +139,14 @@ object BehandlingSetters {
     ): BehandlingEndretEvent {
         val gammelVerdiMedunderskriverNavIdent = medunderskriver?.saksbehandlerident
         val tidspunkt = LocalDateTime.now()
+
+        //record initial history
+        if (medunderskriverHistorikk.isEmpty()) {
+            recordMedunderskriverHistory(
+                tidspunkt = created,
+                utfoerendeIdent = "SYSTEM"
+            )
+        }
 
         medunderskriver = MedunderskriverTildeling(
             saksbehandlerident = nyMedunderskriverNavIdent,
@@ -161,6 +198,14 @@ object BehandlingSetters {
         val oldValue = rolFlowState
         val now = LocalDateTime.now()
 
+        //record initial state
+        if (rolHistorikk.isEmpty()) {
+            recordRolHistory(
+                tidspunkt = created,
+                utfoerendeIdent = "SYSTEM"
+            )
+        }
+
         rolFlowState = newROLFlowStateState
         modified = now
 
@@ -189,8 +234,21 @@ object BehandlingSetters {
         val oldValue = rolReturnedDate
         val now = LocalDateTime.now()
 
+        //record initial state
+        if (rolHistorikk.isEmpty()) {
+            recordRolHistory(
+                tidspunkt = created,
+                utfoerendeIdent = "SYSTEM"
+            )
+        }
+
         rolReturnedDate = if (setNull) null else now
         modified = now
+
+        recordRolHistory(
+            tidspunkt = created,
+            utfoerendeIdent = "SYSTEM"
+        )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
@@ -211,6 +269,14 @@ object BehandlingSetters {
     ): BehandlingEndretEvent {
         val oldValue = rolIdent
         val now = LocalDateTime.now()
+
+        //record initial state
+        if (rolHistorikk.isEmpty()) {
+            recordRolHistory(
+                tidspunkt = created,
+                utfoerendeIdent = "SYSTEM"
+            )
+        }
 
         rolIdent = newROLIdent
         modified = now
@@ -257,6 +323,14 @@ object BehandlingSetters {
     ): BehandlingEndretEvent {
         val gammelSattPaaVent = sattPaaVent
         val tidspunkt = LocalDateTime.now()
+
+        //record initial state
+        if (sattPaaVentHistorikk.isEmpty()) {
+            recordSattPaaVentHistory(
+                tidspunkt = created,
+                utfoerendeIdent = "SYSTEM",
+            )
+        }
 
         sattPaaVent = nyVerdi
         modified = tidspunkt
@@ -360,7 +434,7 @@ object BehandlingSetters {
         if (fullmektigHistorikk.isEmpty()) {
             recordFullmektigHistory(
                 tidspunkt = created,
-                utfoerendeIdent = utfoerendeIdent,
+                utfoerendeIdent = "SYSTEM",
             )
         }
 
@@ -411,7 +485,7 @@ object BehandlingSetters {
         if (klagerHistorikk.isEmpty()) {
             recordKlagerHistory(
                 tidspunkt = created,
-                utfoerendeIdent = utfoerendeIdent,
+                utfoerendeIdent = "SYSTEM",
             )
         }
 

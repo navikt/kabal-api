@@ -44,8 +44,7 @@ import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtak
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
-import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
+import no.nav.klage.oppgave.util.*
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -1257,4 +1256,28 @@ class BehandlingService(
         tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
         tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdent(tildeling!!.saksbehandlerident!!),
     )
+
+    fun getHistory(behandlingId: UUID): HistoryResponse {
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+
+        return HistoryResponse(
+            tildeling = createTildelingHistory(
+                tildelingHistorikkSet = behandling.tildelingHistorikk,
+            ),
+            medunderskriver = createMedunderskriverHistory(
+                medunderskriverHistorikkSet = behandling.medunderskriverHistorikk,
+            ),
+            rol = createRolHistory(
+                rolHistorikk = behandling.rolHistorikk,
+            ),
+            klager = createKlagerHistory(
+                klagerHistorikk = behandling.klagerHistorikk,
+            ),
+            sattPaaVent = createSattPaaVentHistory(
+                sattPaaVentHistorikk = behandling.sattPaaVentHistorikk,
+            ),
+            ferdigstilt = createFerdigstiltHistory(),
+            feilregistrert = createFeilregistrertHistory(),
+        )
+    }
 }
