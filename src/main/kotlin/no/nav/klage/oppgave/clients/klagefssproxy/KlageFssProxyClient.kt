@@ -39,6 +39,23 @@ class KlageFssProxyClient(
             ?: throw RuntimeException("Empty result")
     }
 
+    fun getSakWithAppAccess(sakId: String, input: GetSakAppAccessInput): SakFromKlanke {
+        return klageFssProxyWebClient.post()
+            .uri { it.path("/klanke/saker/{sakId}/appaccess").build(sakId) }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getAppAccessTokenWithKlageFSSProxyScope()}"
+            )
+            .bodyValue(input)
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getSakWithSaksbehandlerAccess.name, secureLogger)
+            }
+            .bodyToMono<SakFromKlanke>()
+            .block()
+            ?: throw RuntimeException("Empty result")
+    }
+
     fun setToHandledInKabal(sakId: String, input: HandledInKabalInput) {
         klageFssProxyWebClient.post()
             .uri { it.path("/klanke/saker/{sakId}/handledinkabal").build(sakId) }
