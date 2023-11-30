@@ -424,9 +424,10 @@ class BehandlingService(
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
             }
         } else {
-            if (fradelingReason == null) {
-                throw IllegalOperation("Kan ikke fradele behandling uten å oppgi årsak.")
-            }
+            //TODO until FE has implemented this.
+//            if (fradelingReason == null) {
+//                throw IllegalOperation("Kan ikke fradele behandling uten å oppgi årsak.")
+//            }
 
             if (behandling.medunderskriverFlowState == FlowState.SENT) {
                 throw IllegalOperation("Kan ikke fradele behandling sendt til medunderskriver.")
