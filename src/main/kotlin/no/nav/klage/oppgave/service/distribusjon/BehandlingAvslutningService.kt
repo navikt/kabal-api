@@ -7,6 +7,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsH
 import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
 import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.ANKEBEHANDLING_AVSLUTTET
@@ -115,12 +116,15 @@ class BehandlingAvslutningService(
             if (behandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
 
-//                val sakInKlanke = fssProxyClient.getSakWithSaksbehandlerAccess(sakId = behandling.kildeReferanse)
-//                val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
-//                    klageTilbakebetalingutfallToInfotrygdutfall[behandling.utfall!!]!!
-//                } else {
-//                    klageutfallToInfotrygdutfall[behandling.utfall!!]!!
-//                }
+                val sakInKlanke = fssProxyClient.getSakWithAppAccess(
+                    sakId = behandling.kildeReferanse,
+                    input = GetSakAppAccessInput(saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!)
+                )
+                val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
+                    klageTilbakebetalingutfallToInfotrygdutfall[behandling.utfall!!]!!
+                } else {
+                    klageutfallToInfotrygdutfall[behandling.utfall!!]!!
+                }
 
                 fssProxyClient.setToFinishedWithAppAccess(
                     sakId = behandling.kildeReferanse,
@@ -128,7 +132,7 @@ class BehandlingAvslutningService(
                         status = SakFinishedInput.Status.RETURNERT_TK,
                         nivaa = SakFinishedInput.Nivaa.KA,
                         typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
-                        utfall = SakFinishedInput.Utfall.valueOf(klageutfallToInfotrygdutfall[behandling.utfall!!]!!),
+                        utfall = SakFinishedInput.Utfall.valueOf(utfall),
                         mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
                         saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!
                     )
@@ -189,7 +193,8 @@ class BehandlingAvslutningService(
                     klagebehandlingAvsluttet = KlagebehandlingAvsluttetDetaljer(
                         avsluttet = behandling.avsluttetAvSaksbehandler!!,
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
-                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }.map { it.journalpostId }
+                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+                            .map { it.journalpostId }
                     )
                 )
             }
@@ -199,7 +204,8 @@ class BehandlingAvslutningService(
                     ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
                         avsluttet = behandling.avsluttetAvSaksbehandler!!,
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
-                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }.map { it.journalpostId }
+                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+                            .map { it.journalpostId }
                     )
                 )
             }
@@ -210,7 +216,8 @@ class BehandlingAvslutningService(
                         avsluttet = behandling.avsluttetAvSaksbehandler!!,
                         //TODO: Se på utfallsliste når vi har den endelige for ankeITrygderetten
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
-                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }.map { it.journalpostId }
+                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+                            .map { it.journalpostId }
                     )
                 )
             }
