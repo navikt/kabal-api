@@ -104,27 +104,27 @@ fun createMedunderskriverHistory(
 }
 
 fun createFeilregistrertHistory(): List<WithPrevious<FeilregistrertEvent>> {
-    TODO("Not yet implemented")
+    return emptyList()
 }
 
 fun createFerdigstiltHistory(): List<WithPrevious<BaseEvent<*>>> {
-    TODO("Not yet implemented")
+    return emptyList()
 }
 
 fun createSattPaaVentHistory(
     sattPaaVentHistorikk: Set<SattPaaVentHistorikk>,
 ): List<WithPrevious<SattPaaVentEvent>> {
-    TODO("Not yet implemented")
+    return emptyList()
 }
 
 fun createKlagerHistory(
     klagerHistorikk: Set<KlagerHistorikk>,
 ): List<WithPrevious<KlagerEvent>> {
-    TODO("Not yet implemented")
+    return emptyList()
 }
 
 fun createRolHistory(
     rolHistorikk: Set<RolHistorikk>,
 ): List<WithPrevious<RolEvent>> {
-    TODO("Not yet implemented")
+    return emptyList()
 }
