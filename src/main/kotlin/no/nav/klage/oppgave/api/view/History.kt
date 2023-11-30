@@ -10,8 +10,8 @@ data class TildelingEvent(
 )
 
 data class MedunderskriverEvent(
-    val medunderskriver: String,
-    val flow: FlowState
+    val medunderskriver: String?,
+    val flow: FlowState?
 )
 
 data class RolEvent(
@@ -39,28 +39,28 @@ data class KlagerEvent(
 }
 
 interface WithPrevious<T>: BaseEvent<T> {
-    val previous: BaseEvent<T>?
+    val previous: BaseEvent<T>
 }
 
 data class HistoryEventWithPrevious<T>(
     override val type: HistoryEventType,
     override val timestamp: LocalDateTime,
-    override val actor: String,
+    override val actor: String?,
     override val event: T?,
-    override val previous: BaseEvent<T>?
+    override val previous: BaseEvent<T>
 ): WithPrevious<T>
 
 interface BaseEvent<T> {
     val type: HistoryEventType
     val timestamp: LocalDateTime
-    val actor: String
+    val actor: String?
     val event: T?
 }
 
 data class HistoryEvent<T>(
     override val type: HistoryEventType,
     override val timestamp: LocalDateTime,
-    override val actor: String,
+    override val actor: String?,
     override val event: T?
 ): BaseEvent<T>
 
@@ -75,17 +75,11 @@ data class HistoryResponse(
 )
 
 enum class HistoryEventType {
-    TILDELT_INITIAL,
-    TILDELT,
-    FRADELT,
-    SET_MEDUNDERSKRIVER_INITIAL,
-    SET_MEDUNDERSKRIVER,
-    SENT_TO_MEDUNDERSKRIVER,
-    RETURNED_FROM_MEDUNDERSKRIVER,
-    RETRACTED_FROM_MEDUNDERSKRIVER,
-    SET_ROL,
-    SENT_TO_ROL,
-    RETURNED_FROM_ROL,
-    RETRACTED_FROM_ROL,
+    TILDELING,
+    MEDUNDERSKRIVER,
+    ROL,
+    KLAGER,
+    SATT_PAA_VENT,
     FERDIGSTILT,
+    FEILREGISTRERT,
 }

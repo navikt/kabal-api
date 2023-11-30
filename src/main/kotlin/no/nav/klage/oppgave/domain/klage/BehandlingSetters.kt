@@ -33,7 +33,7 @@ object BehandlingSetters {
         if (tildelingHistorikk.isEmpty()) {
             recordTildelingHistory(
                 tidspunkt = created,
-                utfoerendeIdent = "SYSTEM",
+                utfoerendeIdent = null,
                 fradelingReason = null,
             )
         }
@@ -83,7 +83,7 @@ object BehandlingSetters {
 
     private fun Behandling.recordTildelingHistory(
         tidspunkt: LocalDateTime,
-        utfoerendeIdent: String,
+        utfoerendeIdent: String?,
         fradelingReason: FradelingReason?,
     ) {
         tildelingHistorikk.add(
@@ -108,7 +108,7 @@ object BehandlingSetters {
         if (medunderskriverHistorikk.isEmpty()) {
             recordMedunderskriverHistory(
                 tidspunkt = created,
-                utfoerendeIdent = "SYSTEM"
+                utfoerendeIdent = null,
             )
         }
 
@@ -144,7 +144,7 @@ object BehandlingSetters {
         if (medunderskriverHistorikk.isEmpty()) {
             recordMedunderskriverHistory(
                 tidspunkt = created,
-                utfoerendeIdent = "SYSTEM"
+                utfoerendeIdent = null,
             )
         }
 
@@ -179,7 +179,7 @@ object BehandlingSetters {
 
     private fun Behandling.recordMedunderskriverHistory(
         tidspunkt: LocalDateTime,
-        utfoerendeIdent: String,
+        utfoerendeIdent: String?,
     ) {
         medunderskriverHistorikk.add(
             MedunderskriverHistorikk(
@@ -202,7 +202,7 @@ object BehandlingSetters {
         if (rolHistorikk.isEmpty()) {
             recordRolHistory(
                 tidspunkt = created,
-                utfoerendeIdent = "SYSTEM"
+                utfoerendeIdent = null
             )
         }
 
@@ -305,7 +305,7 @@ object BehandlingSetters {
 
     private fun Behandling.recordRolHistory(
         tidspunkt: LocalDateTime,
-        utfoerendeIdent: String,
+        utfoerendeIdent: String?,
     ) {
         rolHistorikk.add(
             RolHistorikk(
@@ -328,7 +328,7 @@ object BehandlingSetters {
         if (sattPaaVentHistorikk.isEmpty()) {
             recordSattPaaVentHistory(
                 tidspunkt = created,
-                utfoerendeIdent = "SYSTEM",
+                utfoerendeIdent = null,
             )
         }
 
@@ -355,7 +355,7 @@ object BehandlingSetters {
 
     private fun Behandling.recordSattPaaVentHistory(
         tidspunkt: LocalDateTime,
-        utfoerendeIdent: String,
+        utfoerendeIdent: String?,
     ) {
         sattPaaVentHistorikk.add(
             SattPaaVentHistorikk(
@@ -434,7 +434,7 @@ object BehandlingSetters {
         if (fullmektigHistorikk.isEmpty()) {
             recordFullmektigHistory(
                 tidspunkt = created,
-                utfoerendeIdent = "SYSTEM",
+                utfoerendeIdent = null,
             )
         }
 
@@ -463,7 +463,7 @@ object BehandlingSetters {
 
     private fun Behandling.recordFullmektigHistory(
         tidspunkt: LocalDateTime,
-        utfoerendeIdent: String,
+        utfoerendeIdent: String?,
     ) {
         fullmektigHistorikk.add(
             FullmektigHistorikk(
@@ -485,7 +485,7 @@ object BehandlingSetters {
         if (klagerHistorikk.isEmpty()) {
             recordKlagerHistory(
                 tidspunkt = created,
-                utfoerendeIdent = "SYSTEM",
+                utfoerendeIdent = null,
             )
         }
 
@@ -510,7 +510,7 @@ object BehandlingSetters {
 
     private fun Behandling.recordKlagerHistory(
         tidspunkt: LocalDateTime,
-        utfoerendeIdent: String,
+        utfoerendeIdent: String?,
     ) {
         klagerHistorikk.add(
             KlagerHistorikk(

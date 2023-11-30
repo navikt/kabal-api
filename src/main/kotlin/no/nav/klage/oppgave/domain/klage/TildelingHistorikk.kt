@@ -17,7 +17,7 @@ class TildelingHistorikk(
     @Column(name = "fradeling_reason_id")
     val fradelingReason: FradelingReason?,
     @Column(name = "utfoerende_ident")
-    val utfoerendeIdent: String,
+    val utfoerendeIdent: String?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

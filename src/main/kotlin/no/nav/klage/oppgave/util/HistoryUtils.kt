@@ -1,105 +1,89 @@
 package no.nav.klage.oppgave.util
 
-import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.*
+import java.time.LocalDateTime
 
 fun createTildelingHistory(
     tildelingHistorikkSet: Set<TildelingHistorikk>,
+    behandlingCreated: LocalDateTime,
 ): List<WithPrevious<TildelingEvent>> {
-    if (tildelingHistorikkSet.isEmpty()) {
-        return emptyList()
-    }
+    val historySorted = if (tildelingHistorikkSet.size == 1) {
+        listOf(
+            TildelingHistorikk(
+                saksbehandlerident = null,
+                enhet = null,
+                tidspunkt = behandlingCreated,
+                fradelingReason = null,
+                utfoerendeIdent = null
 
-    fun getType(tildelingHistorikk: TildelingHistorikk): HistoryEventType =
-        if (tildelingHistorikk.saksbehandlerident == null) {
-            HistoryEventType.FRADELT
-        } else {
-            HistoryEventType.TILDELT
-        }
+            )
+        ) + tildelingHistorikkSet.sortedBy { it.tidspunkt }
+    } else tildelingHistorikkSet.sortedBy { it.tidspunkt }
 
-    var previousEvent: HistoryEvent<TildelingEvent>? = null
-
-    return tildelingHistorikkSet.sortedBy { it.tidspunkt }.mapIndexed { index, tildelingHistorikk ->
-        val currentEvent = HistoryEvent(
-            type = if (index == 0) HistoryEventType.TILDELT_INITIAL else getType(tildelingHistorikk),
-            timestamp = tildelingHistorikk.tidspunkt,
-            actor = tildelingHistorikk.utfoerendeIdent,
+    return historySorted.zipWithNext().map { (previous, current) ->
+        val previousEvent = HistoryEvent(
+            type = HistoryEventType.TILDELING,
+            timestamp = previous.tidspunkt,
+            actor = previous.utfoerendeIdent,
             event = TildelingEvent(
-                saksbehandler = tildelingHistorikk.saksbehandlerident,
-                fradelingReasonId = tildelingHistorikk.fradelingReason?.id,
+                saksbehandler = previous.saksbehandlerident,
+                fradelingReasonId = previous.fradelingReason?.id,
             ),
         )
 
         HistoryEventWithPrevious(
-            type = currentEvent.type,
-            timestamp = currentEvent.timestamp,
-            actor = currentEvent.actor,
-            event = currentEvent.event,
+            type = HistoryEventType.TILDELING,
+            timestamp = current.tidspunkt,
+            actor = current.utfoerendeIdent,
+            event = TildelingEvent(
+                saksbehandler = current.saksbehandlerident,
+                fradelingReasonId = current.fradelingReason?.id,
+            ),
             previous = previousEvent,
-        ).also {
-            previousEvent = currentEvent
-        }
+        )
     }
+
 }
 
 fun createMedunderskriverHistory(
     medunderskriverHistorikkSet: Set<MedunderskriverHistorikk>,
+    behandlingCreated: LocalDateTime,
 ): List<WithPrevious<MedunderskriverEvent>> {
-
-    fun getType(current: MedunderskriverHistorikk, previous: MedunderskriverHistorikk?): HistoryEventType {
-        if (previous == null) {
-            return HistoryEventType.SET_MEDUNDERSKRIVER_INITIAL
-        }
-
-        if (previous.saksbehandlerident == null && current.saksbehandlerident != null) {
-            return HistoryEventType.SET_MEDUNDERSKRIVER
-        }
-
-        if (previous.saksbehandlerident != null && current.saksbehandlerident == null) {
-            return HistoryEventType.SET_MEDUNDERSKRIVER //?
-        }
-
-        if (previous.flowState != current.flowState && current.flowState == FlowState.SENT) {
-            return HistoryEventType.SENT_TO_MEDUNDERSKRIVER
-        }
-
-        if (previous.flowState != current.flowState && current.flowState == FlowState.RETURNED) {
-            return HistoryEventType.RETURNED_FROM_MEDUNDERSKRIVER
-        }
-
-        if (previous.flowState != current.flowState && current.flowState == FlowState.NOT_SENT) {
-            return HistoryEventType.RETRACTED_FROM_MEDUNDERSKRIVER
-        }
-
-        error("what?")
-    }
-
-    var previousEvent: HistoryEvent<MedunderskriverEvent>? = null
-
-    val medunderskriverHistorikkSorted = medunderskriverHistorikkSet.sortedBy { it.tidspunkt }
-
-    return medunderskriverHistorikkSorted.mapIndexed { index, medunderskriverHistorikk ->
-        val currentEvent: HistoryEvent<MedunderskriverEvent> = HistoryEvent(
-            type = getType(current = medunderskriverHistorikk, previous = if (index > 0) medunderskriverHistorikkSorted[index - 1] else null),
-            timestamp = medunderskriverHistorikk.tidspunkt,
-            actor = medunderskriverHistorikk.utfoerendeIdent,
-            event = MedunderskriverEvent(
-                medunderskriver = medunderskriverHistorikk.saksbehandlerident ?: "",
-                flow = medunderskriverHistorikk.flowState
+    val historySorted = if (medunderskriverHistorikkSet.size == 1) {
+        listOf(
+            MedunderskriverHistorikk(
+                saksbehandlerident = null,
+                tidspunkt = behandlingCreated,
+                utfoerendeIdent = null,
+                flowState = null,
             )
-        )
+        ) + medunderskriverHistorikkSet.sortedBy { it.tidspunkt }
+    } else medunderskriverHistorikkSet.sortedBy { it.tidspunkt }
 
-        HistoryEventWithPrevious(
-            type = currentEvent.type,
-            timestamp = currentEvent.timestamp,
-            actor = currentEvent.actor,
-            event = currentEvent.event,
-            previous = previousEvent
-        ).also {
-            previousEvent = currentEvent
+    return historySorted.zipWithNext()
+        .map { (previous, current) ->
+            val previousEvent: HistoryEvent<MedunderskriverEvent> = HistoryEvent(
+                type = HistoryEventType.MEDUNDERSKRIVER,
+                timestamp = previous.tidspunkt,
+                actor = previous.utfoerendeIdent,
+                event = MedunderskriverEvent(
+                    medunderskriver = previous.saksbehandlerident,
+                    flow = previous.flowState
+                )
+            )
+
+            HistoryEventWithPrevious(
+                type = HistoryEventType.MEDUNDERSKRIVER,
+                timestamp = current.tidspunkt,
+                actor = current.utfoerendeIdent,
+                event = MedunderskriverEvent(
+                    medunderskriver = current.saksbehandlerident,
+                    flow = current.flowState
+                ),
+                previous = previousEvent
+            )
         }
-    }
 
 }
 

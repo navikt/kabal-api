@@ -15,10 +15,10 @@ class MedunderskriverHistorikk(
     @Column(name = "tidspunkt")
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
-    val utfoerendeIdent: String,
+    val utfoerendeIdent: String?,
     @Column(name = "flow_state_id")
     @Convert(converter = FlowStateConverter::class)
-    val flowState: FlowState,
+    val flowState: FlowState?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

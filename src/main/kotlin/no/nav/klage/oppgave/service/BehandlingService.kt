@@ -1263,9 +1263,11 @@ class BehandlingService(
         return HistoryResponse(
             tildeling = createTildelingHistory(
                 tildelingHistorikkSet = behandling.tildelingHistorikk,
+                behandlingCreated = behandling.created,
             ),
             medunderskriver = createMedunderskriverHistory(
                 medunderskriverHistorikkSet = behandling.medunderskriverHistorikk,
+                behandlingCreated = behandling.created,
             ),
             rol = createRolHistory(
                 rolHistorikk = behandling.rolHistorikk,

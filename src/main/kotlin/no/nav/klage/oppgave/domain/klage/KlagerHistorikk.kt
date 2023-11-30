@@ -20,7 +20,7 @@ class KlagerHistorikk(
     @Column(name = "tidspunkt")
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
-    val utfoerendeIdent: String,
+    val utfoerendeIdent: String?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
