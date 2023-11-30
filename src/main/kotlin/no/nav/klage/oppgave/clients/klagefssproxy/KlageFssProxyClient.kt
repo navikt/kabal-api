@@ -49,7 +49,7 @@ class KlageFssProxyClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getSakWithSaksbehandlerAccess.name, secureLogger)
+                logErrorResponse(response, ::getSakWithAppAccess.name, secureLogger)
             }
             .bodyToMono<SakFromKlanke>()
             .block()
