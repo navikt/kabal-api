@@ -238,7 +238,7 @@ object BehandlingSetters {
         if (rolHistorikk.isEmpty()) {
             recordRolHistory(
                 tidspunkt = created,
-                utfoerendeIdent = "SYSTEM"
+                utfoerendeIdent = null,
             )
         }
 
@@ -247,7 +247,7 @@ object BehandlingSetters {
 
         recordRolHistory(
             tidspunkt = created,
-            utfoerendeIdent = "SYSTEM"
+            utfoerendeIdent = utfoerendeIdent,
         )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
@@ -274,7 +274,7 @@ object BehandlingSetters {
         if (rolHistorikk.isEmpty()) {
             recordRolHistory(
                 tidspunkt = created,
-                utfoerendeIdent = "SYSTEM"
+                utfoerendeIdent = null,
             )
         }
 
