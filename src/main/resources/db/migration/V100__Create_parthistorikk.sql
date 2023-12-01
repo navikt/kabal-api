@@ -5,7 +5,7 @@ CREATE TABLE klage.klagerhistorikk
     klager_value     TEXT,
     klager_type      TEXT,
     tidspunkt        TIMESTAMP,
-    utfoerende_ident TEXT NOT NULL,
+    utfoerende_ident TEXT,
     CONSTRAINT fk_klagerhistorikk_behandling
         FOREIGN KEY (behandling_id)
             REFERENCES klage.behandling (id)
@@ -20,7 +20,7 @@ CREATE TABLE klage.fullmektighistorikk
     fullmektig_value TEXT,
     fullmektig_type  TEXT,
     tidspunkt        TIMESTAMP,
-    utfoerende_ident TEXT NOT NULL,
+    utfoerende_ident TEXT,
     CONSTRAINT fk_fullmektighistorikk_behandling
         FOREIGN KEY (behandling_id)
             REFERENCES klage.behandling (id)

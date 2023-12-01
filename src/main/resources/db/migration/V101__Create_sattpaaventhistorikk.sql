@@ -6,7 +6,7 @@ CREATE TABLE klage.satt_paa_vent_historikk
     satt_paa_vent_from   DATE,
     satt_paa_vent_to     DATE,
     tidspunkt            TIMESTAMP,
-    utfoerende_ident     TEXT NOT NULL,
+    utfoerende_ident     TEXT,
     CONSTRAINT fk_satt_paa_vent_historikk_behandling
         FOREIGN KEY (behandling_id)
             REFERENCES klage.behandling (id)
