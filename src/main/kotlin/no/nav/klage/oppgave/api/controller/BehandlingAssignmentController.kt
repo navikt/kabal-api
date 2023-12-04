@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.FradelingReason
+import no.nav.klage.oppgave.api.view.FradelSaksbehandlerInput
 import no.nav.klage.oppgave.api.view.SaksbehandlerViewWrapped
 import no.nav.klage.oppgave.api.view.SetSaksbehandlerInput
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
@@ -45,11 +46,34 @@ class BehandlingAssignmentController(
         return behandlingService.setSaksbehandler(
             behandlingId = behandlingId,
             tildeltSaksbehandlerIdent = saksbehandlerInput.navIdent,
-            enhetId = if (saksbehandlerInput.navIdent != null) saksbehandlerService.getEnhetForSaksbehandler(
+            enhetId = saksbehandlerService.getEnhetForSaksbehandler(
                 saksbehandlerInput.navIdent
-            ).enhetId else null,
-            fradelingReason = if (saksbehandlerInput.fradelingReasonId != null) FradelingReason.of(saksbehandlerInput.fradelingReasonId) else null,
+            ).enhetId,
+            fradelingReason = null,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+        )
+    }
+
+    @PostMapping("/behandlinger/{id}/fradel")
+    fun fradelSaksbehandler(
+        @Parameter(description = "Id til en behandling")
+        @PathVariable("id") behandlingId: UUID,
+        @RequestBody saksbehandlerInput: FradelSaksbehandlerInput
+    ): SaksbehandlerViewWrapped {
+        logBehandlingMethodDetails(
+            ::fradelSaksbehandler.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        return behandlingService.fradelSaksbehandlerAndMaybeSetHjemler(
+            behandlingId = behandlingId,
+            tildeltSaksbehandlerIdent = null,
+            enhetId = null,
+            fradelingReason = FradelingReason.of(saksbehandlerInput.reasonId),
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            hjemler = saksbehandlerInput.hjemler,
         )
     }
 

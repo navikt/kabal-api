@@ -398,6 +398,34 @@ class BehandlingService(
         }
     }
 
+    fun fradelSaksbehandlerAndMaybeSetHjemler(
+        behandlingId: UUID,
+        tildeltSaksbehandlerIdent: String?,
+        enhetId: String?,
+        fradelingReason: FradelingReason,
+        utfoerendeSaksbehandlerIdent: String,
+        hjemler: List<String>?,
+    ): SaksbehandlerViewWrapped {
+        if (fradelingReason == FradelingReason.FEIL_HJEMMEL) {
+            if (hjemler.isNullOrEmpty()) {
+                throw IllegalOperation("Hjemmel må velges når årsak til fradeling er \"Feil hjemmel\"")
+            }
+            setInnsendingshjemler(
+                behandlingId = behandlingId,
+                hjemler = hjemler,
+                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+            )
+        }
+
+        return setSaksbehandler(
+            behandlingId =behandlingId,
+            tildeltSaksbehandlerIdent = null,
+            enhetId = null,
+            fradelingReason = fradelingReason,
+            utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+        )
+    }
+
     fun setSaksbehandler(
         behandlingId: UUID,
         tildeltSaksbehandlerIdent: String?,
@@ -424,10 +452,9 @@ class BehandlingService(
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
             }
         } else {
-            //TODO until FE has implemented this.
-//            if (fradelingReason == null) {
-//                throw IllegalOperation("Kan ikke fradele behandling uten å oppgi årsak.")
-//            }
+            if (fradelingReason == null && innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole()) {
+                throw IllegalOperation("Kun leder kan fradele behandling uten å oppgi årsak.")
+            }
 
             if (behandling.medunderskriverFlowState == FlowState.SENT) {
                 throw IllegalOperation("Kan ikke fradele behandling sendt til medunderskriver.")
