@@ -187,6 +187,48 @@ fun createFullmektigHistory(
         }
 }
 
+fun createKlagerHistory(
+    klagerHistorikk: Set<KlagerHistorikk>,
+): List<WithPrevious<KlagerEvent>> {
+    val historySorted = klagerHistorikk.sortedBy { it.tidspunkt }
+
+    return historySorted.zipWithNext()
+        .map { (previous, current) ->
+            val previousEvent: HistoryEvent<KlagerEvent> = HistoryEvent(
+                type = HistoryEventType.KLAGER,
+                timestamp = previous.tidspunkt,
+                actor = previous.utfoerendeIdent,
+                event = KlagerEvent(
+                    part = previous.partId.let {
+                        Part(
+                            id = it.value,
+                            type = if (it.type == PartIdType.PERSON) {
+                                BehandlingDetaljerView.IdType.FNR
+                            } else BehandlingDetaljerView.IdType.ORGNR
+                        )
+                    }
+                )
+            )
+
+            HistoryEventWithPrevious(
+                type = HistoryEventType.KLAGER,
+                timestamp = current.tidspunkt,
+                actor = current.utfoerendeIdent,
+                event = KlagerEvent(
+                    part = current.partId.let {
+                        Part(
+                            id = it.value,
+                            type = if (it.type == PartIdType.PERSON) {
+                                BehandlingDetaljerView.IdType.FNR
+                            } else BehandlingDetaljerView.IdType.ORGNR
+                        )
+                    }
+                ),
+                previous = previousEvent,
+            )
+        }
+}
+
 fun createSattPaaVentHistory(
     sattPaaVentHistorikk: Set<SattPaaVentHistorikk>,
 ): List<WithPrevious<SattPaaVentEvent>> {
@@ -194,12 +236,6 @@ fun createSattPaaVentHistory(
 }
 
 fun createFerdigstiltHistory(): List<WithPrevious<BaseEvent<*>>> {
-    return emptyList()
-}
-
-fun createKlagerHistory(
-    klagerHistorikk: Set<KlagerHistorikk>,
-): List<WithPrevious<KlagerEvent>> {
     return emptyList()
 }
 

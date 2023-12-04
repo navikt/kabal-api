@@ -16,7 +16,7 @@ class KlagerHistorikk(
             AttributeOverride(name = "value", column = Column(name = "klager_value"))
         ]
     )
-    var partId: PartId?,
+    var partId: PartId,
     @Column(name = "tidspunkt")
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
