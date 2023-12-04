@@ -32,12 +32,16 @@ data class FeilregistrertEvent(
 
 data class KlagerEvent(
     val part: Part,
-) {
-    data class Part(
-        val id: String,
-        val type: BehandlingDetaljerView.IdType
-    )
-}
+)
+
+data class FullmektigEvent(
+    val part: Part?,
+)
+
+data class Part(
+    val id: String,
+    val type: BehandlingDetaljerView.IdType
+)
 
 interface WithPrevious<T>: BaseEvent<T> {
     val previous: BaseEvent<T>
@@ -70,6 +74,7 @@ data class HistoryResponse(
     val medunderskriver: List<WithPrevious<MedunderskriverEvent>>,
     val rol: List<WithPrevious<RolEvent>>,
     val klager: List<WithPrevious<KlagerEvent>>,
+    val fullmektig: List<WithPrevious<FullmektigEvent>>,
     val sattPaaVent: List<WithPrevious<SattPaaVentEvent>>,
     val ferdigstilt: List<WithPrevious<BaseEvent<*>>>,
     val feilregistrert: List<WithPrevious<FeilregistrertEvent>>
@@ -80,6 +85,7 @@ enum class HistoryEventType {
     MEDUNDERSKRIVER,
     ROL,
     KLAGER,
+    FULLMEKTIG,
     SATT_PAA_VENT,
     FERDIGSTILT,
     FEILREGISTRERT,

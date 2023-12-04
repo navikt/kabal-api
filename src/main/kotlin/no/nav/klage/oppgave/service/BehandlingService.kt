@@ -1276,6 +1276,9 @@ class BehandlingService(
             klager = createKlagerHistory(
                 klagerHistorikk = behandling.klagerHistorikk,
             ),
+            fullmektig = createFullmektigHistory(
+                fullmektigHistorikk = behandling.fullmektigHistorikk,
+            ),
             sattPaaVent = createSattPaaVentHistory(
                 sattPaaVentHistorikk = behandling.sattPaaVentHistorikk,
             ),

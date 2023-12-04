@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.util
 
+import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.*
 import java.time.LocalDateTime
@@ -144,13 +145,55 @@ fun createFeilregistrertHistory(
     } else emptyList()
 }
 
-fun createFerdigstiltHistory(): List<WithPrevious<BaseEvent<*>>> {
-    return emptyList()
+fun createFullmektigHistory(
+    fullmektigHistorikk: Set<FullmektigHistorikk>,
+): List<WithPrevious<FullmektigEvent>> {
+    val historySorted = fullmektigHistorikk.sortedBy { it.tidspunkt }
+
+    return historySorted.zipWithNext()
+        .map { (previous, current) ->
+            val previousEvent: HistoryEvent<FullmektigEvent> = HistoryEvent(
+                type = HistoryEventType.FULLMEKTIG,
+                timestamp = previous.tidspunkt,
+                actor = previous.utfoerendeIdent,
+                event = FullmektigEvent(
+                    part = previous.partId?.let {
+                        Part(
+                            id = it.value,
+                            type = if (it.type == PartIdType.PERSON) {
+                                BehandlingDetaljerView.IdType.FNR
+                            } else BehandlingDetaljerView.IdType.ORGNR
+                        )
+                    }
+                )
+            )
+
+            HistoryEventWithPrevious(
+                type = HistoryEventType.FULLMEKTIG,
+                timestamp = current.tidspunkt,
+                actor = current.utfoerendeIdent,
+                event = FullmektigEvent(
+                    part = current.partId?.let {
+                        Part(
+                            id = it.value,
+                            type = if (it.type == PartIdType.PERSON) {
+                                BehandlingDetaljerView.IdType.FNR
+                            } else BehandlingDetaljerView.IdType.ORGNR
+                        )
+                    }
+                ),
+                previous = previousEvent,
+            )
+        }
 }
 
 fun createSattPaaVentHistory(
     sattPaaVentHistorikk: Set<SattPaaVentHistorikk>,
 ): List<WithPrevious<SattPaaVentEvent>> {
+    return emptyList()
+}
+
+fun createFerdigstiltHistory(): List<WithPrevious<BaseEvent<*>>> {
     return emptyList()
 }
 
