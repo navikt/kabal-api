@@ -118,8 +118,30 @@ fun createRolHistory(
 
 }
 
-fun createFeilregistrertHistory(): List<WithPrevious<FeilregistrertEvent>> {
-    return emptyList()
+fun createFeilregistrertHistory(
+    feilregistrering: Feilregistrering?,
+    behandlingCreated: LocalDateTime
+): List<WithPrevious<FeilregistrertEvent>> {
+    return if (feilregistrering != null) {
+        return listOf(
+            HistoryEventWithPrevious(
+                type = HistoryEventType.FEILREGISTRERT,
+                timestamp = feilregistrering.registered,
+                actor = feilregistrering.navIdent,
+                event = FeilregistrertEvent(
+                    reason = feilregistrering.reason,
+                ),
+                previous = HistoryEvent(
+                    type = HistoryEventType.FEILREGISTRERT,
+                    timestamp = behandlingCreated,
+                    actor = null,
+                    event = FeilregistrertEvent(
+                        reason = feilregistrering.reason,
+                    )
+                ),
+            )
+        )
+    } else emptyList()
 }
 
 fun createFerdigstiltHistory(): List<WithPrevious<BaseEvent<*>>> {

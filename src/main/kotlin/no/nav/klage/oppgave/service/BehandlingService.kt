@@ -1280,7 +1280,10 @@ class BehandlingService(
                 sattPaaVentHistorikk = behandling.sattPaaVentHistorikk,
             ),
             ferdigstilt = createFerdigstiltHistory(),
-            feilregistrert = createFeilregistrertHistory(),
+            feilregistrert = createFeilregistrertHistory(
+                feilregistrering = behandling.feilregistrering,
+                behandlingCreated = behandling.created
+            ),
         )
     }
 }
