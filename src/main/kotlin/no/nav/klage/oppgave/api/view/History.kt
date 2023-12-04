@@ -11,11 +11,12 @@ data class TildelingEvent(
 
 data class MedunderskriverEvent(
     val medunderskriver: String?,
+    //nullable b/c possible missing history initially
     val flow: FlowState?
 )
 
 data class RolEvent(
-    val rol: String,
+    val rol: String?,
     val flow: FlowState
 )
 

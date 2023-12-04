@@ -81,7 +81,38 @@ fun createMedunderskriverHistory(
                     medunderskriver = current.saksbehandlerident,
                     flow = current.flowState
                 ),
-                previous = previousEvent
+                previous = previousEvent,
+            )
+        }
+
+}
+
+fun createRolHistory(
+    rolHistorikk: Set<RolHistorikk>,
+): List<WithPrevious<RolEvent>> {
+    val historySorted = rolHistorikk.sortedBy { it.tidspunkt }
+
+    return historySorted.zipWithNext()
+        .map { (previous, current) ->
+            val previousEvent: HistoryEvent<RolEvent> = HistoryEvent(
+                type = HistoryEventType.ROL,
+                timestamp = previous.tidspunkt,
+                actor = previous.utfoerendeIdent,
+                event = RolEvent(
+                    rol = previous.rolIdent,
+                    flow = previous.flowState
+                )
+            )
+
+            HistoryEventWithPrevious(
+                type = HistoryEventType.ROL,
+                timestamp = current.tidspunkt,
+                actor = current.utfoerendeIdent,
+                event = RolEvent(
+                    rol = current.rolIdent,
+                    flow = current.flowState
+                ),
+                previous = previousEvent,
             )
         }
 
@@ -107,8 +138,3 @@ fun createKlagerHistory(
     return emptyList()
 }
 
-fun createRolHistory(
-    rolHistorikk: Set<RolHistorikk>,
-): List<WithPrevious<RolEvent>> {
-    return emptyList()
-}
