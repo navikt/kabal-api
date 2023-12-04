@@ -38,6 +38,10 @@ data class FullmektigEvent(
     val part: Part?,
 )
 
+data class FerdigstiltEvent(
+    val avsluttetAvSaksbehandler: LocalDateTime,
+)
+
 data class Part(
     val id: String,
     val type: BehandlingDetaljerView.IdType
@@ -76,7 +80,7 @@ data class HistoryResponse(
     val klager: List<WithPrevious<KlagerEvent>>,
     val fullmektig: List<WithPrevious<FullmektigEvent>>,
     val sattPaaVent: List<WithPrevious<SattPaaVentEvent>>,
-    val ferdigstilt: List<WithPrevious<BaseEvent<*>>>,
+    val ferdigstilt: List<WithPrevious<FerdigstiltEvent>>,
     val feilregistrert: List<WithPrevious<FeilregistrertEvent>>
 )
 

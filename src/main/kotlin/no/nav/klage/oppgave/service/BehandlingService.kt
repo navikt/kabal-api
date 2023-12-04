@@ -1282,10 +1282,10 @@ class BehandlingService(
             sattPaaVent = createSattPaaVentHistory(
                 sattPaaVentHistorikk = behandling.sattPaaVentHistorikk,
             ),
-            ferdigstilt = createFerdigstiltHistory(),
+            ferdigstilt = createFerdigstiltHistory(behandling),
             feilregistrert = createFeilregistrertHistory(
                 feilregistrering = behandling.feilregistrering,
-                behandlingCreated = behandling.created
+                behandlingCreated = behandling.created,
             ),
         )
     }

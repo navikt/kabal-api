@@ -194,7 +194,7 @@ fun createKlagerHistory(
 
     return historySorted.zipWithNext()
         .map { (previous, current) ->
-            val previousEvent: HistoryEvent<KlagerEvent> = HistoryEvent(
+            val previousEvent = HistoryEvent(
                 type = HistoryEventType.KLAGER,
                 timestamp = previous.tidspunkt,
                 actor = previous.utfoerendeIdent,
@@ -235,7 +235,23 @@ fun createSattPaaVentHistory(
     return emptyList()
 }
 
-fun createFerdigstiltHistory(): List<WithPrevious<BaseEvent<*>>> {
-    return emptyList()
+fun createFerdigstiltHistory(behandling: Behandling): List<WithPrevious<FerdigstiltEvent>> {
+    return if (behandling.avsluttetAvSaksbehandler != null) {
+        return listOf(
+            HistoryEventWithPrevious(
+                type = HistoryEventType.FERDIGSTILT,
+                timestamp = behandling.avsluttetAvSaksbehandler!!,
+                actor = behandling.tildeling!!.saksbehandlerident,
+                event = FerdigstiltEvent(
+                    avsluttetAvSaksbehandler = behandling.avsluttetAvSaksbehandler!!,
+                ),
+                previous = HistoryEvent(
+                    type = HistoryEventType.FERDIGSTILT,
+                    timestamp = behandling.created,
+                    actor = null,
+                    event = null,
+                ),
+            )
+        )
+    } else emptyList()
 }
-
