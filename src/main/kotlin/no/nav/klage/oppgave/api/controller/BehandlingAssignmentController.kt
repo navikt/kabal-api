@@ -73,7 +73,7 @@ class BehandlingAssignmentController(
             enhetId = null,
             fradelingReason = FradelingReason.of(saksbehandlerInput.reasonId),
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            hjemler = saksbehandlerInput.hjemler,
+            hjemmelIdList = saksbehandlerInput.hjemmelIdList,
         )
     }
 

@@ -17,7 +17,7 @@ data class SetSaksbehandlerInput(
 
 data class FradelSaksbehandlerInput(
     val reasonId: String,
-    val hjemler: List<String>?,
+    val hjemmelIdList: List<String>?,
 )
 
 data class SaksbehandlerViewWrapped(

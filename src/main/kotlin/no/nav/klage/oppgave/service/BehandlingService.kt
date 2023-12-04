@@ -404,15 +404,15 @@ class BehandlingService(
         enhetId: String?,
         fradelingReason: FradelingReason,
         utfoerendeSaksbehandlerIdent: String,
-        hjemler: List<String>?,
+        hjemmelIdList: List<String>?,
     ): SaksbehandlerViewWrapped {
         if (fradelingReason == FradelingReason.FEIL_HJEMMEL) {
-            if (hjemler.isNullOrEmpty()) {
+            if (hjemmelIdList.isNullOrEmpty()) {
                 throw IllegalOperation("Hjemmel må velges når årsak til fradeling er \"Feil hjemmel\"")
             }
             setInnsendingshjemler(
                 behandlingId = behandlingId,
-                hjemler = hjemler,
+                hjemler = hjemmelIdList,
                 utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
             )
         }
