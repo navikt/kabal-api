@@ -240,7 +240,37 @@ fun createKlagerHistory(
 fun createSattPaaVentHistory(
     sattPaaVentHistorikk: Set<SattPaaVentHistorikk>,
 ): List<WithPrevious<SattPaaVentEvent>> {
-    return emptyList()
+    val historySorted = sattPaaVentHistorikk.sortedBy { it.tidspunkt }
+
+    return historySorted.zipWithNext()
+        .map { (previous, current) ->
+            val previousEvent: HistoryEvent<SattPaaVentEvent> = HistoryEvent(
+                type = HistoryEventType.SATT_PAA_VENT,
+                timestamp = previous.tidspunkt,
+                actor = previous.utfoerendeIdent,
+                event = previous.sattPaaVent?.let {
+                    SattPaaVentEvent(
+                        from = it.from,
+                        to = it.from,
+                        reason = it.reason,
+                    )
+                }
+            )
+
+            HistoryEventWithPrevious(
+                type = HistoryEventType.SATT_PAA_VENT,
+                timestamp = current.tidspunkt,
+                actor = current.utfoerendeIdent,
+                event = current.sattPaaVent?.let {
+                    SattPaaVentEvent(
+                        from = it.from,
+                        to = it.from,
+                        reason = it.reason,
+                    )
+                },
+                previous = previousEvent,
+            )
+        }
 }
 
 fun createFerdigstiltHistory(behandling: Behandling): List<WithPrevious<FerdigstiltEvent>> {
