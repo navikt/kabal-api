@@ -45,6 +45,7 @@ data class FerdigstiltEvent(
 
 data class Part(
     val id: String,
+    val name: String,
     val type: BehandlingDetaljerView.IdType
 )
 

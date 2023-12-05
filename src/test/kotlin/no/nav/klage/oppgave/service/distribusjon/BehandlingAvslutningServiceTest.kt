@@ -103,6 +103,9 @@ internal class BehandlingAvslutningServiceTest {
 
         @MockkBean(relaxed = true)
         lateinit var saksbehandlerService: SaksbehandlerService
+
+        @MockkBean(relaxed = true)
+        lateinit var historyService: HistoryService
     }
 
     @Autowired
