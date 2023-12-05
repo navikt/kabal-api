@@ -8,6 +8,7 @@ import java.time.LocalDateTime
 fun createTildelingHistory(
     tildelingHistorikkSet: Set<TildelingHistorikk>,
     behandlingCreated: LocalDateTime,
+    originalHjemmelIdList: String?,
 ): List<WithPrevious<TildelingEvent>> {
     val historySorted = if (tildelingHistorikkSet.size == 1) {
         listOf(
@@ -16,6 +17,7 @@ fun createTildelingHistory(
                 enhet = null,
                 tidspunkt = behandlingCreated,
                 fradelingReason = null,
+                hjemmelIdList = originalHjemmelIdList,
                 utfoerendeIdent = null
 
             )
@@ -30,6 +32,9 @@ fun createTildelingHistory(
             event = TildelingEvent(
                 saksbehandler = previous.saksbehandlerident,
                 fradelingReasonId = previous.fradelingReason?.id,
+                hjemmelIdList = if (previous.hjemmelIdList != null) {
+                    previous.hjemmelIdList.split(",")
+                } else null,
             ),
         )
 
@@ -40,6 +45,9 @@ fun createTildelingHistory(
             event = TildelingEvent(
                 saksbehandler = current.saksbehandlerident,
                 fradelingReasonId = current.fradelingReason?.id,
+                hjemmelIdList = if (current.hjemmelIdList != null) {
+                    current.hjemmelIdList.split(",")
+                } else null,
             ),
             previous = previousEvent,
         )

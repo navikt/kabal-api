@@ -17,35 +17,40 @@ class TildelingHistoryTest {
                 enhet = null,
                 tidspunkt = LocalDateTime.now().minusDays(4),
                 fradelingReason = null,
-                utfoerendeIdent = null
+                utfoerendeIdent = null,
+                hjemmelIdList = null,
             ),
             TildelingHistorikk(
                 saksbehandlerident = "saksbehandler1",
                 enhet = "enhet1",
                 tidspunkt = LocalDateTime.now().minusDays(3),
                 fradelingReason = null,
-                utfoerendeIdent = "utfoerende1"
+                utfoerendeIdent = "utfoerende1",
+                hjemmelIdList = null,
             ),
             TildelingHistorikk(
                 saksbehandlerident = null,
                 enhet = null,
                 tidspunkt = LocalDateTime.now().minusDays(2),
                 fradelingReason = FradelingReason.ANNET,
-                utfoerendeIdent = "utfoerende1"
+                utfoerendeIdent = "utfoerende1",
+                hjemmelIdList = null,
             ),
             TildelingHistorikk(
                 saksbehandlerident = "saksbehandler1",
                 enhet = "enhet1",
                 tidspunkt = LocalDateTime.now().minusDays(1),
                 fradelingReason = null,
-                utfoerendeIdent = "boss"
+                utfoerendeIdent = "boss",
+                hjemmelIdList = null,
             )
         )
 
         val result =
             createTildelingHistory(
                 tildelingHistorikkSet = tildelingHistorikkSet,
-                behandlingCreated = LocalDateTime.now().minusDays(10)
+                behandlingCreated = LocalDateTime.now().minusDays(10),
+                originalHjemmelIdList = null,
             )
 
         println(result)

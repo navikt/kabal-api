@@ -17,6 +17,7 @@ object BehandlingSetters {
         nyVerdiEnhet: String?,
         fradelingReason: FradelingReason?,
         utfoerendeIdent: String,
+        fradelingWithChangedHjemmelIdList: String?,
     ): BehandlingEndretEvent {
         if (!(nyVerdiSaksbehandlerident == null && nyVerdiEnhet == null) &&
             !(nyVerdiSaksbehandlerident != null && nyVerdiEnhet != null)
@@ -35,6 +36,7 @@ object BehandlingSetters {
                 tidspunkt = created,
                 utfoerendeIdent = null,
                 fradelingReason = null,
+                hjemmelIdList = hjemler.joinToString(",") { it.id },
             )
         }
 
@@ -49,6 +51,9 @@ object BehandlingSetters {
             tidspunkt = tidspunkt,
             utfoerendeIdent = utfoerendeIdent,
             fradelingReason = fradelingReason,
+            hjemmelIdList = if (tildeling == null) {
+                fradelingWithChangedHjemmelIdList
+            } else hjemler.joinToString(",") { it.id },
         )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
@@ -85,6 +90,7 @@ object BehandlingSetters {
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
         fradelingReason: FradelingReason?,
+        hjemmelIdList: String?,
     ) {
         tildelingHistorikk.add(
             TildelingHistorikk(
@@ -93,6 +99,7 @@ object BehandlingSetters {
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
                 fradelingReason = fradelingReason,
+                hjemmelIdList = hjemmelIdList,
             )
         )
     }

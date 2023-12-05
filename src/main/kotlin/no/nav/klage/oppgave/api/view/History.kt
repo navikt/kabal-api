@@ -7,6 +7,7 @@ import java.time.LocalDateTime
 data class TildelingEvent(
     val saksbehandler: String?,
     val fradelingReasonId: String?,
+    val hjemmelIdList: List<String>?,
 )
 
 data class MedunderskriverEvent(

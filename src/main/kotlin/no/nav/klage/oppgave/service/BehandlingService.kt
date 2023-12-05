@@ -418,11 +418,12 @@ class BehandlingService(
         }
 
         setSaksbehandler(
-            behandlingId =behandlingId,
+            behandlingId = behandlingId,
             tildeltSaksbehandlerIdent = null,
             enhetId = null,
             fradelingReason = fradelingReason,
             utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+            fradelingWithChangedHjemmelIdList = if (!hjemmelIdList.isNullOrEmpty()) hjemmelIdList.joinToString(",") else null,
         )
     }
 
@@ -432,6 +433,7 @@ class BehandlingService(
         enhetId: String?,
         fradelingReason: FradelingReason?,
         utfoerendeSaksbehandlerIdent: String,
+        fradelingWithChangedHjemmelIdList: String? = null,
     ): SaksbehandlerViewWrapped {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
         if (tildeltSaksbehandlerIdent != null) {
@@ -488,7 +490,8 @@ class BehandlingService(
                 nyVerdiSaksbehandlerident = tildeltSaksbehandlerIdent,
                 nyVerdiEnhet = enhetId,
                 fradelingReason = fradelingReason,
-                utfoerendeIdent = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent,
+                fradelingWithChangedHjemmelIdList = fradelingWithChangedHjemmelIdList,
             )
         applicationEventPublisher.publishEvent(event)
         return getSaksbehandlerViewWrapped(behandling)
@@ -1292,6 +1295,7 @@ class BehandlingService(
             tildeling = createTildelingHistory(
                 tildelingHistorikkSet = behandling.tildelingHistorikk,
                 behandlingCreated = behandling.created,
+                originalHjemmelIdList = behandling.hjemler.joinToString(",")
             ),
             medunderskriver = createMedunderskriverHistory(
                 medunderskriverHistorikkSet = behandling.medunderskriverHistorikk,

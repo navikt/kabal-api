@@ -12,6 +12,8 @@ class TildelingHistorikk(
     val id: UUID = UUID.randomUUID(),
     val saksbehandlerident: String?,
     val enhet: String?,
+    @Column(name = "hjemmel_id_list")
+    val hjemmelIdList: String?,
     val tidspunkt: LocalDateTime,
     @Convert(converter = FradelingReasonConverter::class)
     @Column(name = "fradeling_reason_id")
@@ -35,7 +37,8 @@ class TildelingHistorikk(
     }
 
     override fun toString(): String {
-        return "TildelingHistorikk(id=$id, saksbehandlerident=$saksbehandlerident, enhet=$enhet, tidspunkt=$tidspunkt, fradelingReason=$fradelingReason, utfoerendeIdent=$utfoerendeIdent)"
+        return "TildelingHistorikk(id=$id, saksbehandlerident=$saksbehandlerident, enhet=$enhet, hjemmelIdList=$hjemmelIdList, tidspunkt=$tidspunkt, fradelingReason=$fradelingReason, utfoerendeIdent=$utfoerendeIdent)"
     }
+
 
 }
