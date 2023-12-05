@@ -34,4 +34,8 @@ class TildelingHistorikk(
         return id.hashCode()
     }
 
+    override fun toString(): String {
+        return "TildelingHistorikk(id=$id, saksbehandlerident=$saksbehandlerident, enhet=$enhet, tidspunkt=$tidspunkt, fradelingReason=$fradelingReason, utfoerendeIdent=$utfoerendeIdent)"
+    }
+
 }
