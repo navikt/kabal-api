@@ -453,7 +453,7 @@ object BehandlingSetters {
         modified = tidspunkt
 
         recordFullmektigHistory(
-            tidspunkt = created,
+            tidspunkt = tidspunkt,
             utfoerendeIdent = utfoerendeIdent,
         )
 
