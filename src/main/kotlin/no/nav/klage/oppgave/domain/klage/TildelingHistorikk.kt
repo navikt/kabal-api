@@ -1,9 +1,8 @@
 package no.nav.klage.oppgave.domain.klage
 
-import jakarta.persistence.Embedded
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import jakarta.persistence.*
+import no.nav.klage.kodeverk.FradelingReason
+import java.time.LocalDateTime
 import java.util.*
 
 @Entity
@@ -11,9 +10,17 @@ import java.util.*
 class TildelingHistorikk(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Embedded
-    val tildeling: Tildeling
-) : Comparable<TildelingHistorikk> {
+    val saksbehandlerident: String?,
+    val enhet: String?,
+    @Column(name = "hjemmel_id_list")
+    val hjemmelIdList: String?,
+    val tidspunkt: LocalDateTime,
+    @Convert(converter = FradelingReasonConverter::class)
+    @Column(name = "fradeling_reason_id")
+    val fradelingReason: FradelingReason?,
+    @Column(name = "utfoerende_ident")
+    val utfoerendeIdent: String?,
+) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -30,10 +37,8 @@ class TildelingHistorikk(
     }
 
     override fun toString(): String {
-        return "TildelingHistorikk(id=$id, tildeling=$tildeling)"
+        return "TildelingHistorikk(id=$id, saksbehandlerident=$saksbehandlerident, enhet=$enhet, hjemmelIdList=$hjemmelIdList, tidspunkt=$tidspunkt, fradelingReason=$fradelingReason, utfoerendeIdent=$utfoerendeIdent)"
     }
 
-    override fun compareTo(other: TildelingHistorikk): Int {
-        return this.tildeling.tidspunkt.compareTo(other.tildeling.tidspunkt)
-    }
+
 }

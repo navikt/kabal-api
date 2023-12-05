@@ -509,4 +509,17 @@ class BehandlingController(
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
     }
+
+    @GetMapping("/{behandlingId}/history")
+    fun getHistory(
+        @PathVariable("behandlingId") behandlingId: UUID,
+    ): HistoryResponse {
+        logMethodDetails(
+            ::getHistory.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        return behandlingService.getHistory(behandlingId = behandlingId)
+    }
 }

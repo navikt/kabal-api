@@ -5,7 +5,7 @@ import java.time.LocalDateTime
 
 @Embeddable
 data class Tildeling(
-    val saksbehandlerident: String? = null,
-    val enhet: String? = null,
+    val saksbehandlerident: String?,
+    val enhet: String?,
     val tidspunkt: LocalDateTime,
 )

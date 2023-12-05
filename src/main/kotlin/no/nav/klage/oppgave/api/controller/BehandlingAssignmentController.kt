@@ -2,7 +2,11 @@ package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.kodeverk.FradelingReason
+import no.nav.klage.oppgave.api.view.FradelSaksbehandlerInput
+import no.nav.klage.oppgave.api.view.FradeltSaksbehandlerViewWrapped
+import no.nav.klage.oppgave.api.view.SaksbehandlerViewWrapped
+import no.nav.klage.oppgave.api.view.SetSaksbehandlerInput
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -31,7 +35,7 @@ class BehandlingAssignmentController(
     fun setSaksbehandler(
         @Parameter(description = "Id til en behandling")
         @PathVariable("id") behandlingId: UUID,
-        @RequestBody saksbehandlerInput: SaksbehandlerInput
+        @RequestBody saksbehandlerInput: SetSaksbehandlerInput
     ): SaksbehandlerViewWrapped {
         logBehandlingMethodDetails(
             ::setSaksbehandler.name,
@@ -43,10 +47,40 @@ class BehandlingAssignmentController(
         return behandlingService.setSaksbehandler(
             behandlingId = behandlingId,
             tildeltSaksbehandlerIdent = saksbehandlerInput.navIdent,
-            enhetId = if (saksbehandlerInput.navIdent != null) saksbehandlerService.getEnhetForSaksbehandler(
+            enhetId = saksbehandlerService.getEnhetForSaksbehandler(
                 saksbehandlerInput.navIdent
-            ).enhetId else null,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            ).enhetId,
+            fradelingReason = null,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+        )
+    }
+
+    @PostMapping("/behandlinger/{id}/fradel")
+    fun fradelSaksbehandler(
+        @Parameter(description = "Id til en behandling")
+        @PathVariable("id") behandlingId: UUID,
+        @RequestBody saksbehandlerInput: FradelSaksbehandlerInput
+    ): FradeltSaksbehandlerViewWrapped {
+        logBehandlingMethodDetails(
+            ::fradelSaksbehandler.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        behandlingService.fradelSaksbehandlerAndMaybeSetHjemler(
+            behandlingId = behandlingId,
+            tildeltSaksbehandlerIdent = null,
+            enhetId = null,
+            fradelingReason = FradelingReason.of(saksbehandlerInput.reasonId),
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            hjemmelIdList = saksbehandlerInput.hjemmelIdList,
+        )
+
+        val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId)
+        return FradeltSaksbehandlerViewWrapped(
+            modified = behandling.modified,
+            hjemmelIdList = behandling.hjemler.map { it.id }
         )
     }
 

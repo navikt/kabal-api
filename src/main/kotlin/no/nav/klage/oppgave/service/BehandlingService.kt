@@ -44,8 +44,7 @@ import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtak
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
-import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
+import no.nav.klage.oppgave.util.*
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -399,11 +398,42 @@ class BehandlingService(
         }
     }
 
+    fun fradelSaksbehandlerAndMaybeSetHjemler(
+        behandlingId: UUID,
+        tildeltSaksbehandlerIdent: String?,
+        enhetId: String?,
+        fradelingReason: FradelingReason,
+        utfoerendeSaksbehandlerIdent: String,
+        hjemmelIdList: List<String>?,
+    ) {
+        if (fradelingReason == FradelingReason.FEIL_HJEMMEL) {
+            if (hjemmelIdList.isNullOrEmpty()) {
+                throw IllegalOperation("Hjemmel må velges når årsak til fradeling er \"Feil hjemmel\"")
+            }
+            setInnsendingshjemler(
+                behandlingId = behandlingId,
+                hjemler = hjemmelIdList,
+                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+            )
+        }
+
+        setSaksbehandler(
+            behandlingId = behandlingId,
+            tildeltSaksbehandlerIdent = null,
+            enhetId = null,
+            fradelingReason = fradelingReason,
+            utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+            fradelingWithChangedHjemmelIdList = if (!hjemmelIdList.isNullOrEmpty()) hjemmelIdList.joinToString(",") else null,
+        )
+    }
+
     fun setSaksbehandler(
         behandlingId: UUID,
         tildeltSaksbehandlerIdent: String?,
         enhetId: String?,
+        fradelingReason: FradelingReason?,
         utfoerendeSaksbehandlerIdent: String,
+        fradelingWithChangedHjemmelIdList: String? = null,
     ): SaksbehandlerViewWrapped {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
         if (tildeltSaksbehandlerIdent != null) {
@@ -424,6 +454,10 @@ class BehandlingService(
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
             }
         } else {
+            if (fradelingReason == null && innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole()) {
+                throw IllegalOperation("Kun leder kan fradele behandling uten å oppgi årsak.")
+            }
+
             if (behandling.medunderskriverFlowState == FlowState.SENT) {
                 throw IllegalOperation("Kan ikke fradele behandling sendt til medunderskriver.")
             }
@@ -455,7 +489,9 @@ class BehandlingService(
             behandling.setTildeling(
                 nyVerdiSaksbehandlerident = tildeltSaksbehandlerIdent,
                 nyVerdiEnhet = enhetId,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                fradelingReason = fradelingReason,
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent,
+                fradelingWithChangedHjemmelIdList = fradelingWithChangedHjemmelIdList,
             )
         applicationEventPublisher.publishEvent(event)
         return getSaksbehandlerViewWrapped(behandling)
@@ -686,7 +722,7 @@ class BehandlingService(
         val event =
             behandling.setKlager(
                 nyVerdi = getPartIdFromIdentifikator(identifikator),
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
         return behandling.modified
@@ -705,7 +741,7 @@ class BehandlingService(
         val event =
             behandling.setMedunderskriverFlowState(
                 nyMedunderskriverFlowState = flowState,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
         return behandlingMapper.mapToMedunderskriverWrapped(behandling)
@@ -738,7 +774,7 @@ class BehandlingService(
         val event =
             behandling.setMedunderskriverNavIdent(
                 nyMedunderskriverNavIdent = navIdent,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
         return behandlingMapper.mapToMedunderskriverWrapped(behandling)
@@ -1166,14 +1202,14 @@ class BehandlingService(
         val event1 =
             behandling.setROLFlowState(
                 newROLFlowStateState = flowState,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event1)
 
         val event2 =
             behandling.setROLReturnedDate(
                 setNull = flowState != FlowState.RETURNED,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event2)
 
@@ -1219,7 +1255,7 @@ class BehandlingService(
         val event =
             behandling.setROLIdent(
                 newROLIdent = rolIdent,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
         return behandling
@@ -1251,4 +1287,37 @@ class BehandlingService(
         tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
         tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdent(tildeling!!.saksbehandlerident!!),
     )
+
+    fun getHistory(behandlingId: UUID): HistoryResponse {
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+
+        return HistoryResponse(
+            tildeling = createTildelingHistory(
+                tildelingHistorikkSet = behandling.tildelingHistorikk,
+                behandlingCreated = behandling.created,
+                originalHjemmelIdList = behandling.hjemler.joinToString(",")
+            ),
+            medunderskriver = createMedunderskriverHistory(
+                medunderskriverHistorikkSet = behandling.medunderskriverHistorikk,
+                behandlingCreated = behandling.created,
+            ),
+            rol = createRolHistory(
+                rolHistorikk = behandling.rolHistorikk,
+            ),
+            klager = createKlagerHistory(
+                klagerHistorikk = behandling.klagerHistorikk,
+            ),
+            fullmektig = createFullmektigHistory(
+                fullmektigHistorikk = behandling.fullmektigHistorikk,
+            ),
+            sattPaaVent = createSattPaaVentHistory(
+                sattPaaVentHistorikk = behandling.sattPaaVentHistorikk,
+            ),
+            ferdigstilt = createFerdigstiltHistory(behandling),
+            feilregistrert = createFeilregistrertHistory(
+                feilregistrering = behandling.feilregistrering,
+                behandlingCreated = behandling.created,
+            ),
+        )
+    }
 }
