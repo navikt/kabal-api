@@ -260,7 +260,7 @@ class HistoryService(
                     event = previous.sattPaaVent?.let {
                         SattPaaVentEvent(
                             from = it.from,
-                            to = it.from,
+                            to = it.to,
                             reason = it.reason,
                         )
                     }
@@ -273,7 +273,7 @@ class HistoryService(
                     event = current.sattPaaVent?.let {
                         SattPaaVentEvent(
                             from = it.from,
-                            to = it.from,
+                            to = it.to,
                             reason = it.reason,
                         )
                     },
