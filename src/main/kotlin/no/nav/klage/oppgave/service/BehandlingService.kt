@@ -476,15 +476,18 @@ class BehandlingService(
                 logger.debug("Fradeling av behandling ble registrert i Infotrygd.")
             }
 
-            //Fjern på vent-status
-            setSattPaaVent(
-                behandlingId = behandlingId,
-                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-                systemUserContext = saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(
-                    utfoerendeSaksbehandlerIdent
-                ),
-                input = null,
-            )
+            if (behandling.sattPaaVent != null) {
+                //Fjern på vent-status
+                setSattPaaVent(
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                    systemUserContext = saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(
+                        utfoerendeSaksbehandlerIdent
+                    ),
+                    input = null,
+                )
+            }
+
         }
 
         val event =
