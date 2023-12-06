@@ -241,21 +241,8 @@ object BehandlingSetters {
         val oldValue = rolReturnedDate
         val now = LocalDateTime.now()
 
-        //record initial state
-        if (rolHistorikk.isEmpty()) {
-            recordRolHistory(
-                tidspunkt = created,
-                utfoerendeIdent = null,
-            )
-        }
-
         rolReturnedDate = if (setNull) null else now
         modified = now
-
-        recordRolHistory(
-            tidspunkt = created,
-            utfoerendeIdent = utfoerendeIdent,
-        )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
