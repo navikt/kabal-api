@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.service
 import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
+import io.mockk.mockk
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.*
@@ -137,6 +138,7 @@ class BehandlingServiceTest {
             eregClient = eregClient,
             saksbehandlerService = saksbehandlerService,
             behandlingMapper = behandlingMapper,
+            historyService = mockk()
         )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT

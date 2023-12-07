@@ -44,7 +44,8 @@ import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtak
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
-import no.nav.klage.oppgave.util.*
+import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -70,6 +71,7 @@ class BehandlingService(
     private val eregClient: EregClient,
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingMapper: BehandlingMapper,
+    private val historyService: HistoryService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -454,8 +456,10 @@ class BehandlingService(
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
             }
         } else {
-            if (fradelingReason == null && innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole()) {
-                throw IllegalOperation("Kun leder kan fradele behandling uten å oppgi årsak.")
+            if (fradelingReason == null &&
+                innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole() ||
+                innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+                throw IllegalOperation("Kun de med rollen 'innsyn egen enhet' eller 'oppgavestyring alle enheter' kan fradele behandling uten å oppgi årsak.")
             }
 
             if (behandling.medunderskriverFlowState == FlowState.SENT) {
@@ -474,15 +478,18 @@ class BehandlingService(
                 logger.debug("Fradeling av behandling ble registrert i Infotrygd.")
             }
 
-            //Fjern på vent-status
-            setSattPaaVent(
-                behandlingId = behandlingId,
-                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-                systemUserContext = saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(
-                    utfoerendeSaksbehandlerIdent
-                ),
-                input = null,
-            )
+            if (behandling.sattPaaVent != null) {
+                //Fjern på vent-status
+                setSattPaaVent(
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                    systemUserContext = saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(
+                        utfoerendeSaksbehandlerIdent
+                    ),
+                    input = null,
+                )
+            }
+
         }
 
         val event =
@@ -1292,29 +1299,29 @@ class BehandlingService(
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
 
         return HistoryResponse(
-            tildeling = createTildelingHistory(
+            tildeling = historyService.createTildelingHistory(
                 tildelingHistorikkSet = behandling.tildelingHistorikk,
                 behandlingCreated = behandling.created,
                 originalHjemmelIdList = behandling.hjemler.joinToString(",")
             ),
-            medunderskriver = createMedunderskriverHistory(
+            medunderskriver = historyService.createMedunderskriverHistory(
                 medunderskriverHistorikkSet = behandling.medunderskriverHistorikk,
                 behandlingCreated = behandling.created,
             ),
-            rol = createRolHistory(
+            rol = historyService.createRolHistory(
                 rolHistorikk = behandling.rolHistorikk,
             ),
-            klager = createKlagerHistory(
+            klager = historyService.createKlagerHistory(
                 klagerHistorikk = behandling.klagerHistorikk,
             ),
-            fullmektig = createFullmektigHistory(
+            fullmektig = historyService.createFullmektigHistory(
                 fullmektigHistorikk = behandling.fullmektigHistorikk,
             ),
-            sattPaaVent = createSattPaaVentHistory(
+            sattPaaVent = historyService.createSattPaaVentHistory(
                 sattPaaVentHistorikk = behandling.sattPaaVentHistorikk,
             ),
-            ferdigstilt = createFerdigstiltHistory(behandling),
-            feilregistrert = createFeilregistrertHistory(
+            ferdigstilt = historyService.createFerdigstiltHistory(behandling),
+            feilregistrert = historyService.createFeilregistrertHistory(
                 feilregistrering = behandling.feilregistrering,
                 behandlingCreated = behandling.created,
             ),
