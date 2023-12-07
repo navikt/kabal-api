@@ -456,8 +456,10 @@ class BehandlingService(
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
             }
         } else {
-            if (fradelingReason == null && innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole()) {
-                throw IllegalOperation("Kun leder kan fradele behandling uten å oppgi årsak.")
+            if (fradelingReason == null &&
+                innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole() ||
+                innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+                throw IllegalOperation("Kun de med rollen 'innsyn egen enhet' eller 'oppgavestyring alle enheter' kan fradele behandling uten å oppgi årsak.")
             }
 
             if (behandling.medunderskriverFlowState == FlowState.SENT) {
