@@ -33,7 +33,7 @@ object BehandlingSetters {
         //record initial state
         if (tildelingHistorikk.isEmpty()) {
             recordTildelingHistory(
-                tidspunkt = created,
+                tidspunkt = gammelVerdiTidspunkt ?: created,
                 utfoerendeIdent = null,
                 fradelingReason = null,
                 hjemmelIdList = hjemler.joinToString(",") { it.id },
@@ -150,7 +150,7 @@ object BehandlingSetters {
         //record initial history
         if (medunderskriverHistorikk.isEmpty()) {
             recordMedunderskriverHistory(
-                tidspunkt = created,
+                tidspunkt = medunderskriver?.tidspunkt ?: created,
                 utfoerendeIdent = null,
             )
         }
@@ -321,7 +321,7 @@ object BehandlingSetters {
         //record initial state
         if (sattPaaVentHistorikk.isEmpty()) {
             recordSattPaaVentHistory(
-                tidspunkt = created,
+                tidspunkt = sattPaaVent?.from?.atStartOfDay() ?: created,
                 utfoerendeIdent = null,
             )
         }
