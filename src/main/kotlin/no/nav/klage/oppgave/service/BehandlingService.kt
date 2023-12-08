@@ -457,8 +457,8 @@ class BehandlingService(
             }
         } else {
             if (fradelingReason == null &&
-                (innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole() ||
-                        innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter())
+                !innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole() &&
+                !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()
             ) {
                 throw IllegalOperation("Kun de med rollen 'innsyn egen enhet' eller 'oppgavestyring alle enheter' kan fradele behandling uten å oppgi årsak.")
             }
