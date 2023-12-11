@@ -11,7 +11,7 @@ class RequestLoggingConfig {
     fun logFilter(): CommonsRequestLoggingFilter {
         val filter = CommonsRequestLoggingFilter()
         filter.setIncludeQueryString(true)
-        filter.setIncludePayload(false)
+        filter.setIncludePayload(true)
         filter.setIncludeHeaders(true)
         filter.setIncludeClientInfo(true)
         return filter
