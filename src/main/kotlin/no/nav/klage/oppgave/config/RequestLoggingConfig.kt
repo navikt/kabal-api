@@ -13,6 +13,7 @@ class RequestLoggingConfig {
         filter.setIncludeQueryString(true)
         filter.setIncludePayload(true)
         filter.setIncludeHeaders(true)
+        filter.setMaxPayloadLength(10000)
         filter.setIncludeClientInfo(true)
         return filter
     }
