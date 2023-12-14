@@ -29,4 +29,6 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID> {
     override fun getOne(id: UUID): Behandling
 
     fun findByIdAndAvsluttetIsNotNull(id: UUID): Behandling?
+
+    fun findBySakenGjelderPartIdValueAndAvsluttetAvSaksbehandlerIsNull(partIdValue: String): List<Behandling>
 }
