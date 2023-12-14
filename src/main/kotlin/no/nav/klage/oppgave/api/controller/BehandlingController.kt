@@ -527,7 +527,7 @@ class BehandlingController(
         summary = "Søk relevante oppgaver som gjelder en gitt person",
         description = "Finner alle relevante oppgaver som omhandler en gitt person."
     )
-    @PostMapping("/{behandlingId}/relevant", produces = ["application/json"])
+    @GetMapping("/{behandlingId}/relevant", produces = ["application/json"])
     fun findRelevantBehandlinger(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): RelevantBehandlingerResponse {
