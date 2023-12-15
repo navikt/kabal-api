@@ -10,5 +10,30 @@ data class JournalfoeringDataInput(
     val behandlingstema: String,
     val tittel: String,
     val brevKode: String,
-    val tilleggsopplysning: TilleggsopplysningInput?
+    val tilleggsopplysning: TilleggsopplysningInput?,
+    val inngaaendeKanal: Kanal?,
 )
+
+enum class Kanal {
+    ALTINN,
+    ALTINN_MELDINGSBOKS,
+    EIA,
+    NAV_NO,
+    NAV_NO_UINNLOGGET,
+    NAV_NO_CHAT,
+    SKAN_NETS,
+    SKAN_PEN,
+    SKAN_IM,
+    INNSENDT_NAV_ANSATT,
+    EESSI,
+    EKST_OPPS,
+    SENTRAL_UTSKRIFT,
+    LOKAL_UTSKRIFT,
+    SDP,
+    TRYGDERETTEN,
+    HELSENETTET,
+    INGEN_DISTRIBUSJON,
+    DPV,
+    DPVS,
+    UKJENT,
+}
