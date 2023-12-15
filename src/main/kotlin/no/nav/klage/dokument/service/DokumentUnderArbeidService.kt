@@ -493,11 +493,6 @@ class DokumentUnderArbeidService(
                 this is JournalfoertDokumentUnderArbeidAsVedlegg
     }
 
-    private fun DokumentUnderArbeid.isHoveddokument(): Boolean {
-        return this is SmartdokumentUnderArbeidAsHoveddokument ||
-                this is OpplastetDokumentUnderArbeidAsHoveddokument
-    }
-
     fun updateDokumentTitle(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
@@ -1054,7 +1049,7 @@ class DokumentUnderArbeidService(
         )
         //TODO: Skal det lages endringslogg på dette??
 
-        if (dokument.isHoveddokument()) {
+        if (dokument is DokumentUnderArbeidAsHoveddokument) {
             throw DokumentValidationException("Dokumentet er allerede hoveddokument.")
         }
 
