@@ -43,6 +43,7 @@ data class DokumentReferanse(
 
     enum class Kanal {
         ALTINN,
+        ALTINN_MELDINGSBOKS,
         EIA,
         NAV_NO,
         NAV_NO_UINNLOGGET,
