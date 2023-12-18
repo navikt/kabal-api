@@ -540,8 +540,10 @@ class BehandlingController(
         val behandlinger: List<Behandling> = behandlingService.findRelevantBehandlinger(behandlingId = behandlingId)
 
         return RelevantBehandlingerResponse(
-            behandlingIdList = behandlinger.filter { it.id != behandlingId }
-                .sortedByDescending { it.mottattKlageinstans }.map { it.id }
+            aapneBehandlinger = behandlinger.filter { it.id != behandlingId && it.sattPaaVent == null }
+                .sortedByDescending { it.mottattKlageinstans }.map { it.id },
+            paaVentBehandlinger = behandlinger.filter { it.id != behandlingId && it.sattPaaVent != null }
+                .sortedByDescending { it.mottattKlageinstans }.map { it.id },
         )
     }
 }
