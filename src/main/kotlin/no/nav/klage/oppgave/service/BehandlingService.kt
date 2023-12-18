@@ -1328,4 +1328,9 @@ class BehandlingService(
             ),
         )
     }
+
+    fun findRelevantBehandlinger(behandlingId: UUID): List<Behandling> {
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        return behandlingRepository.findBySakenGjelderPartIdValueAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(partIdValue = behandling.sakenGjelder.partId.value)
+    }
 }

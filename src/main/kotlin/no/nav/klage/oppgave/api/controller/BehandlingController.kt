@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.api.controller
 
+import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.Fagsystem
@@ -10,9 +11,9 @@ import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
+import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
-import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.klage.oppgave.util.logKlagebehandlingMethodDetails
@@ -30,7 +31,6 @@ class BehandlingController(
     private val behandlingService: BehandlingService,
     private val behandlingMapper: BehandlingMapper,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val saksbehandlerService: SaksbehandlerService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -521,5 +521,29 @@ class BehandlingController(
         )
 
         return behandlingService.getHistory(behandlingId = behandlingId)
+    }
+
+    @Operation(
+        summary = "Søk relevante oppgaver som gjelder en gitt person",
+        description = "Finner alle relevante oppgaver som omhandler en gitt person."
+    )
+    @GetMapping("/{behandlingId}/relevant", produces = ["application/json"])
+    fun findRelevantBehandlinger(
+        @PathVariable("behandlingId") behandlingId: UUID,
+    ): RelevantBehandlingerResponse {
+        logMethodDetails(
+            ::findRelevantBehandlinger.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        val behandlinger: List<Behandling> = behandlingService.findRelevantBehandlinger(behandlingId = behandlingId)
+
+        return RelevantBehandlingerResponse(
+            aapneBehandlinger = behandlinger.filter { it.id != behandlingId && it.sattPaaVent == null }
+                .sortedByDescending { it.mottattKlageinstans }.map { it.id },
+            paaVentBehandlinger = behandlinger.filter { it.id != behandlingId && it.sattPaaVent != null }
+                .sortedByDescending { it.mottattKlageinstans }.map { it.id },
+        )
     }
 }
