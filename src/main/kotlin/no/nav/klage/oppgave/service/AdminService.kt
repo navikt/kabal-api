@@ -245,7 +245,7 @@ class AdminService(
     }
 
     fun logExpiredUsers() {
-        val unfinishedBehandlinger = behandlingRepository.findByAvsluttetAvSaksbehandlerIsNull()
+        val unfinishedBehandlinger = behandlingRepository.findByAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull()
         val saksbehandlerSet = unfinishedBehandlinger.mapNotNull { it.tildeling?.saksbehandlerident }.toSet()
         var saksbehandlerLogOutput = ""
         saksbehandlerSet.forEach {
@@ -255,7 +255,7 @@ class AdminService(
             }
         }
 
-        secureLogger.debug("Expired, assigned saksbandler: \n $saksbehandlerLogOutput" )
+        secureLogger.debug("Expired, assigned saksbehandler: \n $saksbehandlerLogOutput" )
 
         val medunderskriverSet = unfinishedBehandlinger.mapNotNull { it.medunderskriver?.saksbehandlerident }.toSet()
         var medunderskriverLogOutput = ""
