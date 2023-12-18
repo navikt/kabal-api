@@ -100,6 +100,14 @@ class AdminController(
         adminService.logInvalidRegistreringshjemler()
     }
 
+    @GetMapping("/internal/logexpiredusers")
+    fun logExpiredUsers() {
+        logger.debug("logExpiredUsers is called")
+        krevAdminTilgang()
+
+        adminService.logExpiredUsers()
+    }
+
     @PostMapping("/internal/setsortkeytodua")
     fun setSortKeyToDUA() {
         logger.debug("setSortKeyToDUA is called")
