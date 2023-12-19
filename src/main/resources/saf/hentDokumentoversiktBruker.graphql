@@ -2,7 +2,7 @@ query($brukerId: BrukerIdInput!, $tema: [Tema!], $foerste: Int, $etter: String) 
     dokumentoversiktBruker(
         brukerId: $brukerId,
         tema: $tema,
-        journalstatuser: [FERDIGSTILT,JOURNALFOERT,EKSPEDERT, MOTTATT],
+        journalstatuser: [FERDIGSTILT,JOURNALFOERT,EKSPEDERT],
         foerste: $foerste,
         etter: $etter) {
         journalposter {
