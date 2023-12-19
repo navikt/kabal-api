@@ -957,14 +957,14 @@ class DokumentUnderArbeidService(
         val currentDocument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
 
         if (currentDocument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
-            if (parentDocument.dokumentType != DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
-                throw DokumentValidationException("Dette dokumentet kan kun være vedlegg til kjennelse fra Trygderetten.")
+            if (parentDocument !is OpplastetDokumentUnderArbeidAsHoveddokument) {
+                throw DokumentValidationException("Dette dokumentet kan kun være vedlegg til opplastet dokument.")
             }
         }
 
         if (parentDocument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
-            if (currentDocument.dokumentType != DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
-                throw DokumentValidationException("Kjennelse fra Trygderetten kan ikke ha dokumenter av typen ${currentDocument.dokumentType?.navn} som vedlegg.")
+            if (!((currentDocument is OpplastetDokumentUnderArbeidAsVedlegg) || (currentDocument is OpplastetDokumentUnderArbeidAsHoveddokument))) {
+                throw DokumentValidationException("Kjennelse fra Trygderetten kan bare ha opplastet dokument som vedlegg.")
             }
         }
 

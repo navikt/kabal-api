@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.clients.kabaldocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
@@ -86,8 +85,7 @@ class KabalDocumentMapper(
                     key = KLAGEBEHANDLING_ID_KEY,
                     value = behandling.id.toString()
                 ),
-                //TODO: Endre til ALTINN_MELDINGSBOKS når den er på plass.
-                inngaaendeKanal = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) Kanal.ALTINN else null
+                inngaaendeKanal = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) Kanal.ALTINN_INNBOKS else null
             ),
             dokumentreferanser = DokumentEnhetWithDokumentreferanserInput.DokumentInput(
                 hoveddokument = mapDokumentUnderArbeidToDokumentReferanse(hovedDokument),
