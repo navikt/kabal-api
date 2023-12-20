@@ -1282,7 +1282,6 @@ class BehandlingService(
     private fun Behandling.toCompletedBehandling(): CompletedBehandling = CompletedBehandling(
         behandlingId = id,
         ytelseId = ytelse.id,
-        utfallId = utfall!!.id,
         hjemmelId = hjemler.first().id,
         vedtakDate = avsluttetAvSaksbehandler!!,
         sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder),
