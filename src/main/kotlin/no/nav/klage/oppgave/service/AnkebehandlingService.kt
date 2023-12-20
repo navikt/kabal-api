@@ -28,7 +28,7 @@ class AnkebehandlingService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     @Value("#{T(java.time.LocalDate).parse('\${KAKA_VERSION_2_DATE}')}")
     private val kakaVersion2Date: LocalDate,
-    @Value("\${SYSTEMBRUKER_IDENT") private val systembrukerIdent: String,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
     companion object {

@@ -73,7 +73,7 @@ class BehandlingService(
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingMapper: BehandlingMapper,
     private val historyService: HistoryService,
-    @Value("\${SYSTEMBRUKER_IDENT") private val systembrukerIdent: String,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")

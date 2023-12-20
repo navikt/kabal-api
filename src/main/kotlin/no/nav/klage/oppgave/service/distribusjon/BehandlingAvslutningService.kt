@@ -39,7 +39,7 @@ class BehandlingAvslutningService(
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
     private val ankebehandlingService: AnkebehandlingService,
     private val fssProxyClient: KlageFssProxyClient,
-    @Value("\${SYSTEMBRUKER_IDENT") private val systembrukerIdent: String,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
     companion object {
