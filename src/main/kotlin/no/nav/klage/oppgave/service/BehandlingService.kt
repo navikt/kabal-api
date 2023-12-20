@@ -590,12 +590,14 @@ class BehandlingService(
                 )
             applicationEventPublisher.publishEvent(rolFlowStateEvent)
 
-            val rolReturnedDateEvent =
-                behandling.setROLReturnedDate(
-                    setNull = true,
-                    utfoerendeIdent = systembrukerIdent,
-                )
-            applicationEventPublisher.publishEvent(rolReturnedDateEvent)
+            if (behandling.rolReturnedDate != null) {
+                val rolReturnedDateEvent =
+                    behandling.setROLReturnedDate(
+                        setNull = true,
+                        utfoerendeIdent = systembrukerIdent,
+                    )
+                applicationEventPublisher.publishEvent(rolReturnedDateEvent)
+            }
         }
 
 
