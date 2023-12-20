@@ -317,7 +317,7 @@ class AdminService(
         logger.info("Scheduled expired assignee check completed.")
     }
 
-    fun checkIfAssigneeIsExpired(navIdent: String): Boolean {
+    private fun checkIfAssigneeIsExpired(navIdent: String): Boolean {
         val nomInfo = saksbehandlerService.getAnsattInfoFromNom(navIdent = navIdent)
         return nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true
     }
