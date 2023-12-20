@@ -65,8 +65,7 @@ class DokumentUnderArbeidService(
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val safFacade: SafFacade,
     private val dokumentMapper: DokumentMapper,
-    @Value("SYSTEMBRUKER_IDENT")
-    private val systembrukerIdent: String,
+    @Value("\${SYSTEMBRUKER_IDENT") private val systembrukerIdent: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")

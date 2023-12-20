@@ -73,8 +73,7 @@ class BehandlingService(
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingMapper: BehandlingMapper,
     private val historyService: HistoryService,
-    @Value("SYSTEMBRUKER_IDENT")
-    private val systembrukerIdent: String,
+    @Value("\${SYSTEMBRUKER_IDENT") private val systembrukerIdent: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -508,7 +507,7 @@ class BehandlingService(
         return getSaksbehandlerViewWrapped(behandling)
     }
 
-    fun setSaksbehandlerToNullInSystemContext(
+    fun setTildeltSaksbehandlerToNullInSystemContext(
         behandlingId: UUID,
     ) {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId, systemUserContext = true)
@@ -561,12 +560,14 @@ class BehandlingService(
     ) {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId, systemUserContext = true)
 
-        val medunderskriverFlowEvent =
-            behandling.setMedunderskriverFlowState(
-                nyMedunderskriverFlowState = FlowState.NOT_SENT,
-                utfoerendeIdent = systembrukerIdent
-            )
-        applicationEventPublisher.publishEvent(medunderskriverFlowEvent)
+        if (behandling.medunderskriverFlowState != FlowState.RETURNED) {
+            val medunderskriverFlowEvent =
+                behandling.setMedunderskriverFlowState(
+                    nyMedunderskriverFlowState = FlowState.NOT_SENT,
+                    utfoerendeIdent = systembrukerIdent
+                )
+            applicationEventPublisher.publishEvent(medunderskriverFlowEvent)
+        }
 
         val medunderskriverIdentEvent =
             behandling.setMedunderskriverNavIdent(
@@ -581,19 +582,22 @@ class BehandlingService(
     ) {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId, systemUserContext = true)
 
-        val rolFlowStateEvent =
-            behandling.setROLFlowState(
-                newROLFlowStateState = FlowState.NOT_SENT,
-                utfoerendeIdent = systembrukerIdent
-            )
-        applicationEventPublisher.publishEvent(rolFlowStateEvent)
+        if (behandling.rolFlowState != FlowState.RETURNED) {
+            val rolFlowStateEvent =
+                behandling.setROLFlowState(
+                    newROLFlowStateState = FlowState.NOT_SENT,
+                    utfoerendeIdent = systembrukerIdent
+                )
+            applicationEventPublisher.publishEvent(rolFlowStateEvent)
 
-        val rolReturnedDateEvent =
-            behandling.setROLReturnedDate(
-                setNull = true,
-                utfoerendeIdent = systembrukerIdent,
-            )
-        applicationEventPublisher.publishEvent(rolReturnedDateEvent)
+            val rolReturnedDateEvent =
+                behandling.setROLReturnedDate(
+                    setNull = true,
+                    utfoerendeIdent = systembrukerIdent,
+                )
+            applicationEventPublisher.publishEvent(rolReturnedDateEvent)
+        }
+
 
         val rolIdentEvent =
             behandling.setROLIdent(

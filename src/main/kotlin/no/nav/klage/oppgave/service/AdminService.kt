@@ -291,8 +291,7 @@ class AdminService(
         unfinishedBehandlinger.forEach {
             val assignedMedunderskriver = it.medunderskriver?.saksbehandlerident
             if (assignedMedunderskriver != null) {
-                val nomInfo = saksbehandlerService.getAnsattInfoFromNom(assignedMedunderskriver)
-                if (nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true) {
+                if (checkIfAssigneeIsExpired(navIdent = assignedMedunderskriver)) {
                     logger.info("Behandling ${it.id} has expired medunderskriver: $assignedMedunderskriver, setting to null.")
                     behandlingService.setMedunderskriverToNullInSystemContext(it.id)
                 }
@@ -300,8 +299,7 @@ class AdminService(
 
             val assignedRol = it.rolIdent
             if (assignedRol != null) {
-                val nomInfo = saksbehandlerService.getAnsattInfoFromNom(assignedRol)
-                if (nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true) {
+                if (checkIfAssigneeIsExpired(navIdent = assignedRol)) {
                     logger.info("Behandling ${it.id} has expired rol: $assignedRol, setting to null.")
                     behandlingService.setRolToNullInSystemContext(it.id)
                 }
@@ -309,15 +307,19 @@ class AdminService(
 
             val assignedSaksbehandler = it.tildeling?.saksbehandlerident
             if (assignedSaksbehandler != null) {
-                val nomInfo = saksbehandlerService.getAnsattInfoFromNom(assignedSaksbehandler)
-                if (nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true) {
+                if (checkIfAssigneeIsExpired(navIdent = assignedSaksbehandler)) {
                     logger.info("Behandling ${it.id} has expired tildeling: $assignedSaksbehandler, setting to null.")
-                    behandlingService.setSaksbehandlerToNullInSystemContext(it.id)
+                    behandlingService.setTildeltSaksbehandlerToNullInSystemContext(it.id)
                 }
             }
         }
 
         logger.info("Scheduled expired assignee check completed.")
+    }
+
+    fun checkIfAssigneeIsExpired(navIdent: String): Boolean {
+        val nomInfo = saksbehandlerService.getAnsattInfoFromNom(navIdent = navIdent)
+        return nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true
     }
 
     fun logInvalidRegistreringshjemler() {

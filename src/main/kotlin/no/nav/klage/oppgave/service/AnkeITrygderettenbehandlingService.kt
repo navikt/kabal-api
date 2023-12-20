@@ -26,8 +26,7 @@ class AnkeITrygderettenbehandlingService(
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kafkaEventRepository: KafkaEventRepository,
-    @Value("SYSTEMBRUKER_IDENT")
-    private val systembrukerIdent: String,
+    @Value("\${SYSTEMBRUKER_IDENT") private val systembrukerIdent: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
