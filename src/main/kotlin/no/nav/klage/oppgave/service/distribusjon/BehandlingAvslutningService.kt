@@ -23,6 +23,7 @@ import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.hibernate.Hibernate
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -38,6 +39,8 @@ class BehandlingAvslutningService(
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
     private val ankebehandlingService: AnkebehandlingService,
     private val fssProxyClient: KlageFssProxyClient,
+    @Value("SYSTEMBRUKER_IDENT")
+    private val systembrukerIdent: String,
 ) {
 
     companion object {
@@ -47,7 +50,6 @@ class BehandlingAvslutningService(
         private val objectMapperBehandlingEvents = ObjectMapper().registerModule(JavaTimeModule()).configure(
             SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false
         )
-        const val SYSTEMBRUKER = "SYSTEMBRUKER" //TODO ??
     }
 
     @Transactional
@@ -165,7 +167,7 @@ class BehandlingAvslutningService(
 
         }
 
-        val event = behandling.setAvsluttet(SYSTEMBRUKER)
+        val event = behandling.setAvsluttet(systembrukerIdent)
         applicationEventPublisher.publishEvent(event)
 
         return behandling

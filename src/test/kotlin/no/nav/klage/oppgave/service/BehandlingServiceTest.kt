@@ -138,7 +138,8 @@ class BehandlingServiceTest {
             eregClient = eregClient,
             saksbehandlerService = saksbehandlerService,
             behandlingMapper = behandlingMapper,
-            historyService = mockk()
+            historyService = mockk(),
+            systembrukerIdent = "SYSTEMBRUKER",
         )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
