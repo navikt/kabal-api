@@ -1,13 +1,13 @@
 package no.nav.klage.oppgave.clients.klagefssproxy.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class SakFromKlanke(
     val sakId: String,
     val fagsakId: String,
     val tema: String,
-    val utfall: String,
     val enhetsnummer: String,
     val vedtaksdato: LocalDate,
     val fnr: String,
