@@ -34,6 +34,7 @@ import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.getSortKey
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -64,12 +65,12 @@ class DokumentUnderArbeidService(
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val safFacade: SafFacade,
     private val dokumentMapper: DokumentMapper,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val securLogger = getSecureLogger()
-        const val SYSTEMBRUKER = "SYSTEMBRUKER"
     }
 
     fun createOpplastetDokumentUnderArbeid(
@@ -1168,7 +1169,7 @@ class DokumentUnderArbeidService(
 
         journalpostIdSet.forEach { documentInfo ->
             val journalpost = journalpostSet.find { it.journalpostId == documentInfo }
-            val saksbehandlerIdent = SYSTEMBRUKER
+            val saksbehandlerIdent = systembrukerIdent
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 
             if (behandling.avsluttetAvSaksbehandler == null) {

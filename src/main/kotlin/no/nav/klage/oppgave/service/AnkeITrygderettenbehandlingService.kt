@@ -11,10 +11,10 @@ import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingInput
-import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import java.util.*
@@ -26,11 +26,11 @@ class AnkeITrygderettenbehandlingService(
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kafkaEventRepository: KafkaEventRepository,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        const val SYSTEMBRUKER = "SYSTEMBRUKER"
         private val objectMapperBehandlingEvents = ObjectMapper().registerModule(JavaTimeModule()).configure(
             SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false
         )
@@ -76,7 +76,7 @@ class AnkeITrygderettenbehandlingService(
             behandlingService.setRegistreringshjemler(
                 behandlingId = ankeITrygderettenbehandling.id,
                 registreringshjemler = washedRegistreringshjemmelSet,
-                utfoerendeSaksbehandlerIdent = SYSTEMBRUKER,
+                utfoerendeSaksbehandlerIdent = systembrukerIdent,
                 systemUserContext = true,
             )
         }
@@ -89,7 +89,7 @@ class AnkeITrygderettenbehandlingService(
                     dokumentInfoId = it.dokumentInfoId
                 )
             }.toSet(),
-            saksbehandlerIdent = SYSTEMBRUKER,
+            saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true,
         )

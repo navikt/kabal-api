@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
@@ -28,6 +29,7 @@ import org.slf4j.Logger
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -53,6 +55,7 @@ class AdminService(
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val safFacade: SafFacade,
     private val saksbehandlerService: SaksbehandlerService,
+    private val behandlingService: BehandlingService,
 ) {
 
     companion object {
@@ -278,6 +281,45 @@ class AdminService(
         }
 
         secureLogger.debug("Expired, assigned rol: \n $rolLogOutput" )
+    }
+
+    @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo")
+    @SchedulerLock(name = "cleanupExpiredAssignees")
+    fun cleanupExpiredAssignees() {
+        logger.info("Running scheduled expired assignee check.")
+        val unfinishedBehandlinger = behandlingRepository.findByAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull()
+        unfinishedBehandlinger.forEach {
+            val assignedMedunderskriver = it.medunderskriver?.saksbehandlerident
+            if (assignedMedunderskriver != null) {
+                if (checkIfAssigneeIsExpired(navIdent = assignedMedunderskriver)) {
+                    logger.info("Behandling ${it.id} has expired medunderskriver: $assignedMedunderskriver, setting to null.")
+                    behandlingService.setMedunderskriverToNullInSystemContext(it.id)
+                }
+            }
+
+            val assignedRol = it.rolIdent
+            if (assignedRol != null) {
+                if (checkIfAssigneeIsExpired(navIdent = assignedRol)) {
+                    logger.info("Behandling ${it.id} has expired rol: $assignedRol, setting to null.")
+                    behandlingService.setRolToNullInSystemContext(it.id)
+                }
+            }
+
+            val assignedSaksbehandler = it.tildeling?.saksbehandlerident
+            if (assignedSaksbehandler != null) {
+                if (checkIfAssigneeIsExpired(navIdent = assignedSaksbehandler)) {
+                    logger.info("Behandling ${it.id} has expired tildeling: $assignedSaksbehandler, setting to null.")
+                    behandlingService.setTildeltSaksbehandlerToNullInSystemContext(it.id)
+                }
+            }
+        }
+
+        logger.info("Scheduled expired assignee check completed.")
+    }
+
+    private fun checkIfAssigneeIsExpired(navIdent: String): Boolean {
+        val nomInfo = saksbehandlerService.getAnsattInfoFromNom(navIdent = navIdent)
+        return nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true
     }
 
     fun logInvalidRegistreringshjemler() {

@@ -46,6 +46,7 @@ import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -72,6 +73,7 @@ class BehandlingService(
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingMapper: BehandlingMapper,
     private val historyService: HistoryService,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -504,6 +506,109 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
         return getSaksbehandlerViewWrapped(behandling)
     }
+
+    fun setTildeltSaksbehandlerToNullInSystemContext(
+        behandlingId: UUID,
+    ) {
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId, systemUserContext = true)
+
+        if (behandling.medunderskriver != null) {
+            logger.debug("Setter medunderskriver til null fordi saksbehandler settes til null i opprydding")
+            setMedunderskriverToNullInSystemContext(behandlingId)
+        }
+
+        if (behandling.rolIdent != null) {
+            logger.debug("Setter ROL til null fordi saksbehandler settes til null i opprydding")
+            setRolToNullInSystemContext(behandlingId)
+        }
+
+        //if fagsystem is Infotrygd also do this.
+        if (behandling.fagsystem == Fagsystem.IT01 && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
+            logger.debug("Fradeling av behandling skal registreres i Infotrygd.")
+            fssProxyClient.setToHandledInKabal(
+                sakId = behandling.kildeReferanse,
+                input = HandledInKabalInput(
+                    fristAsString = behandling.frist!!.format(DateTimeFormatter.BASIC_ISO_DATE),
+                )
+            )
+            logger.debug("Fradeling av behandling ble registrert i Infotrygd.")
+        }
+
+        if (behandling.sattPaaVent != null) {
+            //Fjern på vent-status
+            setSattPaaVent(
+                behandlingId = behandlingId,
+                utfoerendeSaksbehandlerIdent = systembrukerIdent,
+                systemUserContext = true,
+                input = null,
+            )
+        }
+
+        val event =
+            behandling.setTildeling(
+                nyVerdiSaksbehandlerident = null,
+                nyVerdiEnhet = null,
+                fradelingReason = FradelingReason.UTGAATT,
+                utfoerendeIdent = systembrukerIdent,
+                fradelingWithChangedHjemmelIdList = null,
+            )
+        applicationEventPublisher.publishEvent(event)
+    }
+
+    fun setMedunderskriverToNullInSystemContext(
+        behandlingId: UUID,
+    ) {
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId, systemUserContext = true)
+
+        if (behandling.medunderskriverFlowState != FlowState.RETURNED) {
+            val medunderskriverFlowEvent =
+                behandling.setMedunderskriverFlowState(
+                    nyMedunderskriverFlowState = FlowState.NOT_SENT,
+                    utfoerendeIdent = systembrukerIdent
+                )
+            applicationEventPublisher.publishEvent(medunderskriverFlowEvent)
+        }
+
+        val medunderskriverIdentEvent =
+            behandling.setMedunderskriverNavIdent(
+                nyMedunderskriverNavIdent = null,
+                utfoerendeIdent = systembrukerIdent,
+            )
+        applicationEventPublisher.publishEvent(medunderskriverIdentEvent)
+    }
+
+    fun setRolToNullInSystemContext(
+        behandlingId: UUID,
+    ) {
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId, systemUserContext = true)
+
+        if (behandling.rolFlowState != FlowState.RETURNED) {
+            val rolFlowStateEvent =
+                behandling.setROLFlowState(
+                    newROLFlowStateState = FlowState.NOT_SENT,
+                    utfoerendeIdent = systembrukerIdent
+                )
+            applicationEventPublisher.publishEvent(rolFlowStateEvent)
+
+            if (behandling.rolReturnedDate != null) {
+                val rolReturnedDateEvent =
+                    behandling.setROLReturnedDate(
+                        setNull = true,
+                        utfoerendeIdent = systembrukerIdent,
+                    )
+                applicationEventPublisher.publishEvent(rolReturnedDateEvent)
+            }
+        }
+
+
+        val rolIdentEvent =
+            behandling.setROLIdent(
+                newROLIdent = null,
+                utfoerendeIdent = systembrukerIdent
+            )
+        applicationEventPublisher.publishEvent(rolIdentEvent)
+    }
+
 
     fun getSaksbehandler(behandlingId: UUID): SaksbehandlerViewWrapped {
         return getSaksbehandlerViewWrapped(getBehandlingAndCheckLeseTilgangForPerson((behandlingId)))
@@ -1330,6 +1435,8 @@ class BehandlingService(
 
     fun findRelevantBehandlinger(behandlingId: UUID): List<Behandling> {
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-        return behandlingRepository.findBySakenGjelderPartIdValueAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(partIdValue = behandling.sakenGjelder.partId.value)
+        return behandlingRepository.findBySakenGjelderPartIdValueAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(
+            partIdValue = behandling.sakenGjelder.partId.value
+        )
     }
 }
