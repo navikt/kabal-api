@@ -282,7 +282,7 @@ class DokumentMapper {
                     datotype = DokumentReferanse.RelevantDato.Datotype.valueOf(it.datotype.name)
                 )
             },
-            kanal = DokumentReferanse.Kanal.valueOf(journalpost.kanal.name),
+            kanal = journalpost.kanal,
             kanalnavn = journalpost.kanalnavn,
             utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
             originalJournalpostId = hoveddokument.originalJournalpostId,
