@@ -22,6 +22,7 @@ import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.getSortKey
+import org.hibernate.Hibernate
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -117,44 +118,46 @@ class DokumentMapper {
     }
 
     fun mapToDokumentView(dokumentUnderArbeid: DokumentUnderArbeid, journalpost: Journalpost?): DokumentView {
+        val unproxiedDUA = Hibernate.unproxy(dokumentUnderArbeid) as DokumentUnderArbeid
+
         var journalfoertDokumentReference: DokumentView.JournalfoertDokumentReference? = null
 
-        var tittel = dokumentUnderArbeid.name
+        var tittel = unproxiedDUA.name
 
-        if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
+        if (unproxiedDUA is JournalfoertDokumentUnderArbeidAsVedlegg) {
             if (journalpost == null) {
                 throw RuntimeException("Need journalpost to handle JournalfoertDokumentUnderArbeidAsVedlegg")
             }
             val dokument =
-                journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+                journalpost.dokumenter?.find { it.dokumentInfoId == unproxiedDUA.dokumentInfoId }
                     ?: throw RuntimeException("Document not found in Dokarkiv")
 
             tittel = (dokument.tittel ?: "Tittel ikke funnet i SAF")
 
             journalfoertDokumentReference = DokumentView.JournalfoertDokumentReference(
-                journalpostId = dokumentUnderArbeid.journalpostId,
-                dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
+                journalpostId = unproxiedDUA.journalpostId,
+                dokumentInfoId = unproxiedDUA.dokumentInfoId,
                 harTilgangTilArkivvariant = harTilgangTilArkivvariant(dokument),
-                datoOpprettet = dokumentUnderArbeid.opprettet,
-                sortKey = dokumentUnderArbeid.sortKey!!
+                datoOpprettet = unproxiedDUA.opprettet,
+                sortKey = unproxiedDUA.sortKey!!
             )
         }
 
         return DokumentView(
-            id = dokumentUnderArbeid.id,
+            id = unproxiedDUA.id,
             tittel = tittel,
-            dokumentTypeId = dokumentUnderArbeid.dokumentType?.id,
-            created = dokumentUnderArbeid.created,
-            modified = dokumentUnderArbeid.modified,
-            isSmartDokument = dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument,
-            templateId = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) dokumentUnderArbeid.smartEditorTemplateId else null,
-            isMarkertAvsluttet = dokumentUnderArbeid.markertFerdig != null,
-            parent = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
-            parentId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
-            type = dokumentUnderArbeid.getType(),
+            dokumentTypeId = unproxiedDUA.dokumentType?.id,
+            created = unproxiedDUA.created,
+            modified = unproxiedDUA.modified,
+            isSmartDokument = unproxiedDUA is DokumentUnderArbeidAsSmartdokument,
+            templateId = if (unproxiedDUA is DokumentUnderArbeidAsSmartdokument) unproxiedDUA.smartEditorTemplateId else null,
+            isMarkertAvsluttet = unproxiedDUA.markertFerdig != null,
+            parent = if (unproxiedDUA is DokumentUnderArbeidAsVedlegg) unproxiedDUA.parentId else null,
+            parentId = if (unproxiedDUA is DokumentUnderArbeidAsVedlegg) unproxiedDUA.parentId else null,
+            type = unproxiedDUA.getType(),
             journalfoertDokumentReference = journalfoertDokumentReference,
-            creatorIdent = dokumentUnderArbeid.creatorIdent,
-            creatorRole = dokumentUnderArbeid.creatorRole,
+            creatorIdent = unproxiedDUA.creatorIdent,
+            creatorRole = unproxiedDUA.creatorRole,
         )
     }
 
@@ -163,7 +166,7 @@ class DokumentMapper {
         duplicateJournalfoerteDokumenter: List<DokumentUnderArbeid>,
         journalpostList: List<Journalpost>,
     ): DokumentViewWithList {
-        val firstDokument = dokumentUnderArbeidList.firstOrNull()
+        val firstDokument = Hibernate.unproxy(dokumentUnderArbeidList.firstOrNull())
         val firstDokumentView = if (firstDokument != null) {
             if (firstDokument is JournalfoertDokumentUnderArbeidAsVedlegg) {
                 mapToDokumentView(
@@ -188,19 +191,21 @@ class DokumentMapper {
             parentId = firstDokumentView?.parentId,
             journalfoertDokumentReference = firstDokumentView?.journalfoertDokumentReference,
             alteredDocuments = dokumentUnderArbeidList.map { dokumentUnderArbeid ->
-                if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
+                val duaUnproxied = Hibernate.unproxy(dokumentUnderArbeid)
+                if (duaUnproxied is JournalfoertDokumentUnderArbeidAsVedlegg) {
                     mapToDokumentView(
                         dokumentUnderArbeid = dokumentUnderArbeid,
-                        journalpost = journalpostList.find { it.journalpostId == dokumentUnderArbeid.journalpostId })
+                        journalpost = journalpostList.find { it.journalpostId == duaUnproxied.journalpostId })
                 } else {
                     mapToDokumentView(dokumentUnderArbeid = dokumentUnderArbeid, journalpost = null)
                 }
             },
             duplicateJournalfoerteDokumenter = duplicateJournalfoerteDokumenter.map { duplicateJournalfoertDokument ->
-                if (duplicateJournalfoertDokument is JournalfoertDokumentUnderArbeidAsVedlegg) {
+                val duaUnproxied = Hibernate.unproxy(duplicateJournalfoertDokument)
+                if (duaUnproxied is JournalfoertDokumentUnderArbeidAsVedlegg) {
                     mapToDokumentView(
-                        dokumentUnderArbeid = duplicateJournalfoertDokument,
-                        journalpost = journalpostList.find { it.journalpostId == duplicateJournalfoertDokument.journalpostId })
+                        dokumentUnderArbeid = duaUnproxied,
+                        journalpost = journalpostList.find { it.journalpostId == duaUnproxied.journalpostId })
                 } else {
                     mapToDokumentView(dokumentUnderArbeid = duplicateJournalfoertDokument, journalpost = null)
                 }

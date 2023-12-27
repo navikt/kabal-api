@@ -70,7 +70,7 @@ class InnholdsfortegnelseService(
     fun getInnholdsfortegnelseAsPdf(dokumentUnderArbeidId: UUID, fnr: String): ByteArray {
         logger.debug("Received getInnholdsfortegnelseAsPdf")
 
-        val document = dokumentUnderArbeidRepository.getReferenceById(dokumentUnderArbeidId)
+        val document = dokumentUnderArbeidRepository.findById(dokumentUnderArbeidId).get()
 
         if (document is DokumentUnderArbeidAsVedlegg) {
             throw IllegalArgumentException("must be hoveddokument")

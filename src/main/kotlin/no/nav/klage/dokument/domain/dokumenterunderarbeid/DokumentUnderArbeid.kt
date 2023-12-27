@@ -4,6 +4,7 @@ import jakarta.persistence.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.DokumentTypeConverter
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import org.hibernate.Hibernate
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.annotations.Fetch
@@ -100,7 +101,7 @@ abstract class DokumentUnderArbeid(
     }
 
     fun getType(): DokumentUnderArbeidType {
-        return when (this) {
+        return when (Hibernate.unproxy(this)) {
             is DokumentUnderArbeidAsSmartdokument -> {
                 DokumentUnderArbeidType.SMART
             }

@@ -34,6 +34,7 @@ import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.getSortKey
+import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
@@ -89,7 +90,7 @@ class DokumentUnderArbeidService(
         if (behandling.avsluttetAvSaksbehandler == null) {
             validateCanCreateDocuments(
                 behandlingRole = behandlingRole,
-                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.getReferenceById(parentId) else null
+                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId).get() else null
             )
         }
 
@@ -202,7 +203,7 @@ class DokumentUnderArbeidService(
         if (behandling.avsluttetAvSaksbehandler == null) {
             validateCanCreateDocuments(
                 behandlingRole = behandlingRole,
-                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.getReferenceById(parentId) else null
+                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId).get() else null
             )
         }
 
@@ -318,7 +319,7 @@ class DokumentUnderArbeidService(
         innloggetIdent: String,
         journalpostListForUser: List<Journalpost>,
     ): Pair<List<JournalfoertDokumentUnderArbeidAsVedlegg>, List<JournalfoertDokumentReference>> {
-        val parentDocument = dokumentUnderArbeidRepository.getReferenceById(parentId)
+        val parentDocument = dokumentUnderArbeidRepository.findById(parentId).get()
 
         if (parentDocument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
@@ -476,9 +477,10 @@ class DokumentUnderArbeidService(
     }
 
     private fun DokumentUnderArbeid.isVedlegg(): Boolean {
-        return this is SmartdokumentUnderArbeidAsVedlegg ||
-                this is OpplastetDokumentUnderArbeidAsVedlegg ||
-                this is JournalfoertDokumentUnderArbeidAsVedlegg
+        val duaUnproxied = Hibernate.unproxy(this)
+        return duaUnproxied is SmartdokumentUnderArbeidAsVedlegg ||
+                duaUnproxied is OpplastetDokumentUnderArbeidAsVedlegg ||
+                duaUnproxied is JournalfoertDokumentUnderArbeidAsVedlegg
     }
 
     fun updateDokumentTitle(
@@ -487,8 +489,7 @@ class DokumentUnderArbeidService(
         dokumentTitle: String,
         innloggetIdent: String
     ): DokumentUnderArbeid {
-
-        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
 
@@ -523,7 +524,7 @@ class DokumentUnderArbeidService(
     fun validateDocument(
         dokumentId: UUID,
     ) {
-        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
         if (dokument.erMarkertFerdig()) {
             throw DokumentValidationException("Dokument er allerede ferdigstilt.")
         }
@@ -600,7 +601,7 @@ class DokumentUnderArbeidService(
     ): List<DocumentValidationResponse> {
         val documentValidationResults = mutableListOf<DocumentValidationResponse>()
 
-        val hovedDokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
         val vedlegg = getVedlegg(hovedDokument.id)
 
         (vedlegg + hovedDokument).forEach {
@@ -638,7 +639,7 @@ class DokumentUnderArbeidService(
         ident: String,
         brevmottakerIdents: Set<String>?,
     ): DokumentUnderArbeid {
-        val hovedDokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         if (hovedDokument !is DokumentUnderArbeidAsHoveddokument) {
             throw RuntimeException("document is not hoveddokument")
@@ -1142,7 +1143,7 @@ class DokumentUnderArbeidService(
     fun ferdigstillDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
         logger.debug("ferdigstillDokumentEnhet hoveddokument with id {}", hovedDokumentId)
         val hovedDokument =
-            dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+            dokumentUnderArbeidRepository.findById(hovedDokumentId).get() as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         val behandling: Behandling =
             behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
