@@ -13,7 +13,7 @@ import java.util.*
 @DynamicUpdate
 open class Innholdsfortegnelse(
     @Id
-    val id: UUID = UUID.randomUUID(),
+    open val id: UUID = UUID.randomUUID(),
     @Column(name = "mellomlager_id")
     open var mellomlagerId: String?,
     @Column(name = "hoveddokument_id")

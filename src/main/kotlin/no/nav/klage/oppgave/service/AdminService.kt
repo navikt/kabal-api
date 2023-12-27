@@ -209,7 +209,7 @@ class AdminService(
     }
 
     fun migrateDvhEvents() {
-        val events = kafkaEventRepository.getAllByTypeIsLike(EventType.STATS_DVH)
+        val events = kafkaEventRepository.findByType(EventType.STATS_DVH)
 
         val filteredEvents = events.filter {
             val parsedStatistikkTilDVH = objectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)

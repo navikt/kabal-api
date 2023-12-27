@@ -19,7 +19,7 @@ interface KlagebehandlingRepository : JpaRepository<Klagebehandling, UUID> {
         """
             SELECT k
             FROM Klagebehandling k
-            WHERE k.avsluttet != null            
+            WHERE k.avsluttet IS NOT null            
             AND k.fagsystem != :infotrygdFagsystem
             AND k.sakenGjelder.partId.value = :partIdValue            
         """

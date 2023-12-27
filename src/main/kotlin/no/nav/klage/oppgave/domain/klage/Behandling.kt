@@ -97,7 +97,7 @@ abstract class Behandling(
 
     @Column(name = "utfall_id")
     @Convert(converter = UtfallConverter::class)
-    var utfall: Utfall? = null,
+    open var utfall: Utfall? = null,
 
     @ElementCollection(targetClass = Utfall::class, fetch = FetchType.EAGER)
     @CollectionTable(
@@ -107,7 +107,7 @@ abstract class Behandling(
     )
     @Convert(converter = UtfallConverter::class)
     @Column(name = "id")
-    var extraUtfallSet: Set<Utfall> = setOf(),
+    open var extraUtfallSet: Set<Utfall> = setOf(),
 
     //Overføres til neste behandling.
     @ElementCollection(targetClass = Registreringshjemmel::class, fetch = FetchType.EAGER)
@@ -118,7 +118,7 @@ abstract class Behandling(
     )
     @Convert(converter = RegistreringshjemmelConverter::class)
     @Column(name = "id")
-    var registreringshjemler: MutableSet<Registreringshjemmel> = mutableSetOf(),
+    open var registreringshjemler: MutableSet<Registreringshjemmel> = mutableSetOf(),
     @Embedded
     @AttributeOverrides(
         value = [
@@ -126,46 +126,46 @@ abstract class Behandling(
             AttributeOverride(name = "tidspunkt", column = Column(name = "dato_sendt_medunderskriver"))
         ]
     )
-    var medunderskriver: MedunderskriverTildeling? = null,
+    open var medunderskriver: MedunderskriverTildeling? = null,
     @Column(name = "medunderskriver_flow_state_id")
     @Convert(converter = FlowStateConverter::class)
-    var medunderskriverFlowState: FlowState = FlowState.NOT_SENT,
+    open var medunderskriverFlowState: FlowState = FlowState.NOT_SENT,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
-    val medunderskriverHistorikk: MutableSet<MedunderskriverHistorikk> = mutableSetOf(),
+    open val medunderskriverHistorikk: MutableSet<MedunderskriverHistorikk> = mutableSetOf(),
     @Column(name = "dato_behandling_avsluttet")
-    var avsluttet: LocalDateTime? = null,
+    open var avsluttet: LocalDateTime? = null,
     @Column(name = "dato_behandling_avsluttet_av_saksbehandler")
-    var avsluttetAvSaksbehandler: LocalDateTime? = null,
+    open var avsluttetAvSaksbehandler: LocalDateTime? = null,
     @Column(name = "rol_ident")
-    var rolIdent: String?,
+    open var rolIdent: String?,
     @Column(name = "rol_flow_state_id")
     @Convert(converter = FlowStateConverter::class)
-    var rolFlowState: FlowState = FlowState.NOT_SENT,
+    open var rolFlowState: FlowState = FlowState.NOT_SENT,
     @Column(name = "rol_returned_date")
-    var rolReturnedDate: LocalDateTime?,
+    open var rolReturnedDate: LocalDateTime?,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
-    val rolHistorikk: MutableSet<RolHistorikk> = mutableSetOf(),
+    open val rolHistorikk: MutableSet<RolHistorikk> = mutableSetOf(),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
-    val klagerHistorikk: MutableSet<KlagerHistorikk> = mutableSetOf(),
+    open val klagerHistorikk: MutableSet<KlagerHistorikk> = mutableSetOf(),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
-    val fullmektigHistorikk: MutableSet<FullmektigHistorikk> = mutableSetOf(),
+    open val fullmektigHistorikk: MutableSet<FullmektigHistorikk> = mutableSetOf(),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
-    val sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
+    open val sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     ) {
 
     /**

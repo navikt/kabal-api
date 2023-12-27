@@ -122,21 +122,18 @@ class KlagebehandlingRepositoryTest {
         )
         klageWithNoAnke.avsluttet = LocalDateTime.now()
         klageWithNoAnke.utfall = Utfall.STADFESTELSE
-        klageWithNoAnke.extraUtfallSet = setOf(Utfall.STADFESTELSE)
 
         val klageWithNoAnke2 = getKlagebehandling(
             mottakId = mottak1.id
         )
         klageWithNoAnke2.avsluttet = LocalDateTime.now()
         klageWithNoAnke2.utfall = Utfall.RETUR
-        klageWithNoAnke2.extraUtfallSet = setOf(Utfall.RETUR)
 
         val klageWithAnke = getKlagebehandling(
             mottakId = mottak2.id
         )
         klageWithAnke.avsluttet = LocalDateTime.now()
         klageWithAnke.utfall = Utfall.STADFESTELSE
-        klageWithAnke.extraUtfallSet = setOf(Utfall.STADFESTELSE)
 
         klagebehandlingRepository.saveAll(listOf(klageWithNoAnke, klageWithNoAnke2, klageWithAnke))
 
@@ -166,6 +163,8 @@ class KlagebehandlingRepositoryTest {
 
         testEntityManager.flush()
         testEntityManager.clear()
+
+
 
         assertThat(klagebehandlingRepository.getCompletedKlagebehandlinger("23452354")).containsExactly(klageWithNoAnke, klageWithNoAnke2, klageWithAnke)
     }

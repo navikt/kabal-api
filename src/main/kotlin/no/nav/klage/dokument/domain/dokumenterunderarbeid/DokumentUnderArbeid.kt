@@ -18,10 +18,10 @@ import java.util.*
 @DiscriminatorColumn(name = "dokument_under_arbeid_type")
 abstract class DokumentUnderArbeid(
     @Id
-    val id: UUID = UUID.randomUUID(),
+    open val id: UUID = UUID.randomUUID(),
     @Column(name = "dokument_type_id")
     @Convert(converter = DokumentTypeConverter::class)
-    var dokumentType: DokumentType?,
+    open var dokumentType: DokumentType?,
     @Column(name = "name")
     open var name: String,
     @Column(name = "behandling_id")
@@ -45,7 +45,7 @@ abstract class DokumentUnderArbeid(
     @JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 5)
-    var dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
+    open var dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
 ) : Comparable<DokumentUnderArbeid> {
 
     override fun compareTo(other: DokumentUnderArbeid): Int =
