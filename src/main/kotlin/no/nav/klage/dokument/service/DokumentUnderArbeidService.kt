@@ -441,8 +441,7 @@ class DokumentUnderArbeidService(
         dokumentType: DokumentType,
         innloggetIdent: String
     ): DokumentUnderArbeid {
-
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
@@ -566,7 +565,7 @@ class DokumentUnderArbeidService(
         templateId: String,
         innloggetIdent: String
     ): DokumentUnderArbeid {
-        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         if (dokument !is DokumentUnderArbeidAsSmartdokument) {
             throw RuntimeException("Not a smartdocument")
@@ -792,8 +791,7 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         innloggetIdent: String
     ): FysiskDokument {
-        val dokument =
-            dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
@@ -1118,7 +1116,7 @@ class DokumentUnderArbeidService(
     fun opprettDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
         logger.debug("opprettDokumentEnhet hoveddokument with id {}", hovedDokumentId)
         val hovedDokument =
-            dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+            dokumentUnderArbeidRepository.findById(hovedDokumentId).get() as DokumentUnderArbeidAsHoveddokument
         logger.debug("got hoveddokument with id {}, dokmentEnhetId {}", hovedDokumentId, hovedDokument.dokumentEnhetId)
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         logger.debug("got vedlegg for hoveddokument id {}, size: {}", hovedDokumentId, vedlegg.size)
@@ -1229,7 +1227,7 @@ class DokumentUnderArbeidService(
     }
 
     fun getSmartEditorId(dokumentId: UUID, readOnly: Boolean): UUID {
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         if (dokumentUnderArbeid !is DokumentUnderArbeidAsSmartdokument) {
             throw RuntimeException("dokument is not smartdokument")
