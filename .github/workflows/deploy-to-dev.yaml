@@ -9,9 +9,6 @@ on:
         default: latest
         type: string
     secrets:
-      NAIS_DEPLOY_API_KEY:
-        description: "API key for nais/deploy"
-        required: true
       NAIS_WORKLOAD_IDENTITY_PROVIDER:
         description: "Identity provider for nais/docker-build-push"
         required: true
@@ -96,13 +93,12 @@ jobs:
         name: Checkout code
       
       - name: Deploy to dev
-        uses: nais/deploy/actions/deploy@v1
+        uses: nais/deploy/actions/deploy@v2
         env:
           TEAM: klage
           CLUSTER: dev-gcp
           VARS: deploy/dev.yaml
           RESOURCE: deploy/nais.yaml
-          APIKEY: ${{ secrets.NAIS_DEPLOY_API_KEY }}
           VAR: image=${{ needs.build.outputs.image }}
           IMAGE: ${{ needs.build.outputs.image }}
 
@@ -127,6 +123,5 @@ jobs:
         uses: navikt/kabal-e2e-tests/.github/actions/run@main
         with:
           e2e_tag: ${{ inputs.e2e_tag }}
-          nais_deploy_api_key: ${{ secrets.NAIS_DEPLOY_API_KEY }}
           nais_management_project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           nais_workload_identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}

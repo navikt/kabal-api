@@ -23,6 +23,5 @@ jobs:
         uses: navikt/kabal-e2e-tests/.github/actions/run@main
         with:
           e2e_tag: ${{ inputs.e2e_tag }}
-          nais_deploy_api_key: ${{ secrets.NAIS_DEPLOY_API_KEY }}
           nais_management_project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
           nais_workload_identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
