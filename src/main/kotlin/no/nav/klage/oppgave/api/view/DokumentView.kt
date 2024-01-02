@@ -41,30 +41,6 @@ data class DokumentReferanse(
     val sortKey: String,
 ) {
 
-    enum class Kanal {
-        ALTINN,
-        ALTINN_INNBOKS,
-        EIA,
-        NAV_NO,
-        NAV_NO_UINNLOGGET,
-        NAV_NO_CHAT,
-        SKAN_NETS,
-        SKAN_PEN,
-        SKAN_IM,
-        INNSENDT_NAV_ANSATT,
-        EESSI,
-        EKST_OPPS,
-        SENTRAL_UTSKRIFT,
-        LOKAL_UTSKRIFT,
-        SDP,
-        TRYGDERETTEN,
-        HELSENETTET,
-        INGEN_DISTRIBUSJON,
-        DPV,
-        DPVS,
-        UKJENT,
-    }
-
     enum class Journalstatus {
         //Journalposten er mottatt, men ikke journalført. "Mottatt" er et annet ord for "arkivert" eller "midlertidig journalført"
         //Statusen vil kun forekomme for inngående dokumenter.
