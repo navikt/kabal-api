@@ -85,8 +85,7 @@ class KabalDocumentMapper(
                     key = KLAGEBEHANDLING_ID_KEY,
                     value = behandling.id.toString()
                 ),
-                //Bruk ALTINN_INNBOKS
-                inngaaendeKanal = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) Kanal.ALTINN else null
+                inngaaendeKanal = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) Kanal.ALTINN_INNBOKS else null
             ),
             dokumentreferanser = DokumentEnhetWithDokumentreferanserInput.DokumentInput(
                 hoveddokument = mapDokumentUnderArbeidToDokumentReferanse(hovedDokument),
