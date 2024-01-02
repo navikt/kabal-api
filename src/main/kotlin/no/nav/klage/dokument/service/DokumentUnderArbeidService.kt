@@ -651,7 +651,7 @@ class DokumentUnderArbeidService(
         ident: String,
         brevmottakerIdents: Set<String>?,
     ): DokumentUnderArbeid {
-        val hovedDokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
         val processedBrevmottakerIdents = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
             //Hardkoder Trygderetten
             setOf("974761084")
@@ -856,7 +856,7 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         innloggetIdent: String,
     ) {
-        val document = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val document = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
@@ -945,7 +945,7 @@ class DokumentUnderArbeidService(
         if (parentId == dokumentId) {
             throw DokumentValidationException("Kan ikke gjøre et dokument til vedlegg for seg selv.")
         }
-        val parentDocument = dokumentUnderArbeidRepository.getReferenceById(parentId)
+        val parentDocument = dokumentUnderArbeidRepository.findById(parentId).get()
 
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
             behandlingId = parentDocument.behandlingId,
@@ -954,7 +954,7 @@ class DokumentUnderArbeidService(
         if (parentDocument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
         }
-        val currentDocument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val currentDocument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         if (currentDocument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
             if (parentDocument !is OpplastetDokumentUnderArbeidAsHoveddokument) {
@@ -992,7 +992,7 @@ class DokumentUnderArbeidService(
         parentId: UUID,
     ): Pair<DokumentUnderArbeid?, DokumentUnderArbeid?> {
         var dokumentUnderArbeid: DokumentUnderArbeid =
-            dokumentUnderArbeidRepository.getReferenceById(currentDokumentId)
+            dokumentUnderArbeidRepository.findById(currentDokumentId).get()
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble et dokument som er ferdigstilt")
@@ -1041,7 +1041,7 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         innloggetIdent: String
     ): DokumentUnderArbeid {
-        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
