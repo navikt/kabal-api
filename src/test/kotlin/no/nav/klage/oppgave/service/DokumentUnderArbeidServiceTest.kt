@@ -109,7 +109,8 @@ class DokumentUnderArbeidServiceTest {
             eregClient = eregClient,
             innholdsfortegnelseService = innholdsfortegnelseService,
             safFacade = safFacade,
-            dokumentMapper = dokumentMapper
+            dokumentMapper = dokumentMapper,
+            systembrukerIdent = "SYSTEMBRUKER",
         )
 
         val behandlingId = UUID.randomUUID()

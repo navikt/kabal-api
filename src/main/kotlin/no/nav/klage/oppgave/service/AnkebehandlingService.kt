@@ -28,12 +28,12 @@ class AnkebehandlingService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     @Value("#{T(java.time.LocalDate).parse('\${KAKA_VERSION_2_DATE}')}")
     private val kakaVersion2Date: LocalDate,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        const val SYSTEMBRUKER = "SYSTEMBRUKER"
     }
 
     fun getAnkebehandlingFromMottakId(mottakId: UUID): Ankebehandling? {
@@ -96,7 +96,7 @@ class AnkebehandlingService(
                         dokumentInfoId = it.dokumentInfoId
                     )
                 }.toSet(),
-                saksbehandlerIdent = SYSTEMBRUKER,
+                saksbehandlerIdent = systembrukerIdent,
                 systemUserContext = true,
                 ignoreCheckSkrivetilgang = true
             )
@@ -158,7 +158,7 @@ class AnkebehandlingService(
                     dokumentInfoId = it.dokumentInfoId
                 )
             }.toSet(),
-            saksbehandlerIdent = SYSTEMBRUKER,
+            saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true
         )

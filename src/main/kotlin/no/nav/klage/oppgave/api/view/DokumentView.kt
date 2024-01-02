@@ -34,7 +34,7 @@ data class DokumentReferanse(
     val datoOpprettet: LocalDateTime,
     val datoRegSendt: LocalDateTime?,
     val relevanteDatoer: List<RelevantDato>?,
-    val kanal: Kanal,
+    val kanal: String,
     val kanalnavn: String,
     val utsendingsinfo: Utsendingsinfo?,
     val originalJournalpostId: String?,

@@ -9,7 +9,7 @@ import java.util.*
 @Entity
 abstract class DokumentUnderArbeidAsHoveddokument(
     @Column(name = "dokument_enhet_id")
-    var dokumentEnhetId: UUID? = null,
+    open var dokumentEnhetId: UUID? = null,
     @ElementCollection
     @CollectionTable(
         schema = "klage",
@@ -17,7 +17,7 @@ abstract class DokumentUnderArbeidAsHoveddokument(
         joinColumns = [JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = false)]
     )
     @Column(name = "identifikator")
-    var brevmottakerIdents: Set<String> = setOf(),
+    open var brevmottakerIdents: Set<String> = setOf(),
 
     //Common properties
     id: UUID = UUID.randomUUID(),

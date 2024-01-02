@@ -19,7 +19,7 @@ interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
         """
             SELECT a
             FROM Ankebehandling a
-            WHERE a.avsluttet != null            
+            WHERE a.avsluttet IS NOT null            
             AND a.fagsystem != :infotrygdFagsystem
             AND a.sakenGjelder.partId.value = :partIdValue
             AND a.utfall NOT IN :utfallWithoutAnkemulighet

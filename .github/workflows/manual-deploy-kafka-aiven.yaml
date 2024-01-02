@@ -20,9 +20,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: deploy kafka-topic ${{ matrix.topic }} to ${{ matrix.cluster }}
-        uses: nais/deploy/actions/deploy@master
+        uses: nais/deploy/actions/deploy@v2
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_API_KEY }}
           CLUSTER: ${{ matrix.cluster }}-gcp
           RESOURCE: kafka-aiven/${{ matrix.topic }}/topic.yaml
           VARS: kafka-aiven/${{ matrix.topic }}/${{ matrix.cluster }}-vars.yaml

@@ -10,7 +10,7 @@ import java.util.*
 @Entity
 abstract class DokumentUnderArbeidAsVedlegg(
     @Column(name = "parent_id")
-    var parentId: UUID? = null,
+    open var parentId: UUID? = null,
 
     //Common properties
     id: UUID = UUID.randomUUID(),

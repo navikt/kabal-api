@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.infotrygdKlageutfallToUtfall
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
@@ -88,7 +87,6 @@ class KabinApiService(
             getCreatedAnkebehandlingStatusForKabin(
                 ankebehandling = ankebehandling,
                 mottak = mottak,
-                utfallId = sourceBehandling.utfall!!.id,
                 vedtakDate = sourceBehandling.avsluttetAvSaksbehandler!!,
             )
         } else {
@@ -96,7 +94,6 @@ class KabinApiService(
             getCreatedAnkebehandlingStatusForKabin(
                 ankebehandling = ankebehandling,
                 mottak = mottak,
-                utfallId = infotrygdKlageutfallToUtfall[klageInInfotrygd.utfall]!!.id,
                 vedtakDate = klageInInfotrygd.vedtaksdato.atStartOfDay(),
             )
         }
@@ -138,13 +135,11 @@ class KabinApiService(
     private fun getCreatedAnkebehandlingStatusForKabin(
         ankebehandling: Ankebehandling,
         mottak: Mottak,
-        utfallId: String,
         vedtakDate: LocalDateTime,
     ): CreatedAnkebehandlingStatusForKabin {
         return CreatedAnkebehandlingStatusForKabin(
             typeId = Type.ANKE.id,
             ytelseId = ankebehandling.ytelse.id,
-            utfallId = utfallId,
             vedtakDate = vedtakDate,
             sakenGjelder = behandlingMapper.getSakenGjelderView(ankebehandling.sakenGjelder),
             klager = behandlingMapper.getPartView(ankebehandling.klager),
@@ -201,7 +196,6 @@ class KabinApiService(
         return Ankemulighet(
             behandlingId = id,
             ytelseId = ytelse.id,
-            utfallId = utfall!!.id,
             hjemmelId = hjemler.first().id,
             vedtakDate = avsluttetAvSaksbehandler!!,
             sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder),

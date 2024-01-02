@@ -34,6 +34,8 @@ import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.getSortKey
+import org.hibernate.Hibernate
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -64,12 +66,12 @@ class DokumentUnderArbeidService(
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val safFacade: SafFacade,
     private val dokumentMapper: DokumentMapper,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val securLogger = getSecureLogger()
-        const val SYSTEMBRUKER = "SYSTEMBRUKER"
     }
 
     fun createOpplastetDokumentUnderArbeid(
@@ -88,7 +90,7 @@ class DokumentUnderArbeidService(
         if (behandling.avsluttetAvSaksbehandler == null) {
             validateCanCreateDocuments(
                 behandlingRole = behandlingRole,
-                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.getReferenceById(parentId) else null
+                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId).get() else null
             )
         }
 
@@ -201,7 +203,7 @@ class DokumentUnderArbeidService(
         if (behandling.avsluttetAvSaksbehandler == null) {
             validateCanCreateDocuments(
                 behandlingRole = behandlingRole,
-                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.getReferenceById(parentId) else null
+                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId).get() else null
             )
         }
 
@@ -323,7 +325,7 @@ class DokumentUnderArbeidService(
         innloggetIdent: String,
         journalpostListForUser: List<Journalpost>,
     ): Pair<List<JournalfoertDokumentUnderArbeidAsVedlegg>, List<JournalfoertDokumentReference>> {
-        val parentDocument = dokumentUnderArbeidRepository.getReferenceById(parentId)
+        val parentDocument = dokumentUnderArbeidRepository.findById(parentId).get()
 
         if (parentDocument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
@@ -437,7 +439,7 @@ class DokumentUnderArbeidService(
         }
     }
 
-    fun getDokumentUnderArbeid(dokumentId: UUID) = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+    fun getDokumentUnderArbeid(dokumentId: UUID) = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
     fun updateDokumentType(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
@@ -445,8 +447,7 @@ class DokumentUnderArbeidService(
         dokumentType: DokumentType,
         innloggetIdent: String
     ): DokumentUnderArbeid {
-
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
@@ -488,9 +489,10 @@ class DokumentUnderArbeidService(
     }
 
     private fun DokumentUnderArbeid.isVedlegg(): Boolean {
-        return this is SmartdokumentUnderArbeidAsVedlegg ||
-                this is OpplastetDokumentUnderArbeidAsVedlegg ||
-                this is JournalfoertDokumentUnderArbeidAsVedlegg
+        val duaUnproxied = Hibernate.unproxy(this)
+        return duaUnproxied is SmartdokumentUnderArbeidAsVedlegg ||
+                duaUnproxied is OpplastetDokumentUnderArbeidAsVedlegg ||
+                duaUnproxied is JournalfoertDokumentUnderArbeidAsVedlegg
     }
 
     fun updateDokumentTitle(
@@ -499,8 +501,7 @@ class DokumentUnderArbeidService(
         dokumentTitle: String,
         innloggetIdent: String
     ): DokumentUnderArbeid {
-
-        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
 
@@ -535,7 +536,7 @@ class DokumentUnderArbeidService(
     fun validateDocument(
         dokumentId: UUID,
     ) {
-        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
         if (dokument.erMarkertFerdig()) {
             throw DokumentValidationException("Dokument er allerede ferdigstilt.")
         }
@@ -577,7 +578,7 @@ class DokumentUnderArbeidService(
         templateId: String,
         innloggetIdent: String
     ): DokumentUnderArbeid {
-        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         if (dokument !is DokumentUnderArbeidAsSmartdokument) {
             throw RuntimeException("Not a smartdocument")
@@ -612,7 +613,7 @@ class DokumentUnderArbeidService(
     ): List<DocumentValidationResponse> {
         val documentValidationResults = mutableListOf<DocumentValidationResponse>()
 
-        val hovedDokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
         val vedlegg = getVedlegg(hovedDokument.id)
 
         (vedlegg + hovedDokument).forEach {
@@ -811,8 +812,7 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         innloggetIdent: String
     ): FysiskDokument {
-        val dokument =
-            dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
@@ -1154,7 +1154,7 @@ class DokumentUnderArbeidService(
     fun opprettDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
         logger.debug("opprettDokumentEnhet hoveddokument with id {}", hovedDokumentId)
         val hovedDokument =
-            dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+            dokumentUnderArbeidRepository.findById(hovedDokumentId).get() as DokumentUnderArbeidAsHoveddokument
         logger.debug("got hoveddokument with id {}, dokmentEnhetId {}", hovedDokumentId, hovedDokument.dokumentEnhetId)
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         logger.debug("got vedlegg for hoveddokument id {}, size: {}", hovedDokumentId, vedlegg.size)
@@ -1179,7 +1179,7 @@ class DokumentUnderArbeidService(
     fun ferdigstillDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
         logger.debug("ferdigstillDokumentEnhet hoveddokument with id {}", hovedDokumentId)
         val hovedDokument =
-            dokumentUnderArbeidRepository.getReferenceById(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+            dokumentUnderArbeidRepository.findById(hovedDokumentId).get() as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         val behandling: Behandling =
             behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
@@ -1206,7 +1206,7 @@ class DokumentUnderArbeidService(
 
         journalpostIdSet.forEach { documentInfo ->
             val journalpost = journalpostSet.find { it.journalpostId == documentInfo }
-            val saksbehandlerIdent = SYSTEMBRUKER
+            val saksbehandlerIdent = systembrukerIdent
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 
             if (behandling.avsluttetAvSaksbehandler == null) {
@@ -1265,7 +1265,7 @@ class DokumentUnderArbeidService(
     }
 
     fun getSmartEditorId(dokumentId: UUID, readOnly: Boolean): UUID {
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         if (dokumentUnderArbeid !is DokumentUnderArbeidAsSmartdokument) {
             throw RuntimeException("dokument is not smartdokument")
