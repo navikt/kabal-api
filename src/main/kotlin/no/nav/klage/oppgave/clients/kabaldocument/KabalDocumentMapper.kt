@@ -28,6 +28,8 @@ class KabalDocumentMapper(
         private const val BREVKODE_NOTAT = "NOTAT_FRA_KLAGEINSTANS"
         private const val BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS = "ab0164"
         private const val KLAGEBEHANDLING_ID_KEY = "klagebehandling_id"
+        private const val BREVKODE_KJENNELSE_FRA_TR = "NAV96-01.01"
+        private const val BREVKODE_ANNET = "NAV 00-03.00"
     }
 
     fun mapBehandlingToDokumentEnhetWithDokumentreferanser(
@@ -36,7 +38,6 @@ class KabalDocumentMapper(
         vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
         innholdsfortegnelse: Innholdsfortegnelse?,
     ): DokumentEnhetWithDokumentreferanserInput {
-
         val innholdsfortegnelseDocument = if (innholdsfortegnelse != null && vedlegg.isNotEmpty()) {
             DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument(
                 mellomlagerId = innholdsfortegnelse.mellomlagerId!!,
@@ -79,11 +80,12 @@ class KabalDocumentMapper(
                 behandlingstema = BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS,
                 //Tittel gjelder journalposten, ikke selve dokumentet som lastes opp. Vises i Gosys.
                 tittel = hovedDokument.dokumentType!!.beskrivelse,
-                brevKode = if (hovedDokument.dokumentType == DokumentType.NOTAT) BREVKODE_NOTAT else BREVKODE,
+                brevKode = getBrevkode(hovedDokument),
                 tilleggsopplysning = TilleggsopplysningInput(
                     key = KLAGEBEHANDLING_ID_KEY,
                     value = behandling.id.toString()
-                )
+                ),
+                inngaaendeKanal = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) Kanal.ALTINN_INNBOKS else null
             ),
             dokumentreferanser = DokumentEnhetWithDokumentreferanserInput.DokumentInput(
                 hoveddokument = mapDokumentUnderArbeidToDokumentReferanse(hovedDokument),
@@ -99,6 +101,14 @@ class KabalDocumentMapper(
             dokumentTypeId = hovedDokument.dokumentType!!.id,
             journalfoerendeSaksbehandlerIdent = hovedDokument.markertFerdigBy!!
         )
+    }
+
+    private fun getBrevkode(hovedDokument: DokumentUnderArbeidAsHoveddokument): String {
+        return when(hovedDokument.dokumentType) {
+            DokumentType.NOTAT -> BREVKODE_NOTAT
+            DokumentType.KJENNELSE_FRA_TRYGDERETTEN -> BREVKODE_KJENNELSE_FRA_TR
+            else -> BREVKODE
+        }
     }
 
     private fun mapDokumentUnderArbeidToDokumentReferanse(dokument: DokumentUnderArbeid): DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument {

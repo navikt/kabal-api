@@ -274,6 +274,12 @@ class DokumentUnderArbeidService(
     ): JournalfoerteDokumenterResponse {
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
+        val parentDocument = dokumentUnderArbeidRepository.getReferenceById(journalfoerteDokumenterInput.parentId)
+
+        if (parentDocument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+            throw DokumentValidationException("Kan ikke sette journalførte dokumenter som vedlegg til kjennelse fra Trygderetten.")
+        }
+
         val journalpostListForUser = safFacade.getJournalposter(
             journalpostIdSet = journalfoerteDokumenterInput.journalfoerteDokumenter.map { it.journalpostId }.toSet(),
             fnr = behandling.sakenGjelder.partId.value,
@@ -397,7 +403,7 @@ class DokumentUnderArbeidService(
             saksbehandlerident = innloggetIdent,
             felt = Felt.JOURNALFOERT_DOKUMENT_UNDER_ARBEID_OPPRETTET,
             fraVerdi = alreadyAddedDocuments.joinToString { it.id.toString() },
-            tilVerdi =  resultingIdList.joinToString(),
+            tilVerdi = resultingIdList.joinToString(),
             tidspunkt = now,
         )
 
@@ -457,6 +463,13 @@ class DokumentUnderArbeidService(
 
         if (dokumentUnderArbeid !is DokumentUnderArbeidAsHoveddokument) {
             throw RuntimeException("dokumentType cannot be set for this type of document.")
+        }
+
+        if (dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+            val children = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentId)
+            if (children.any { it !is OpplastetDokumentUnderArbeidAsVedlegg }) {
+                throw DokumentValidationException("Kjennelse fra Trygderetten kan kun ha opplastede vedlegg. Fjern ugyldige vedlegg og prøv på nytt.")
+            }
         }
 
         val previousValue = dokumentUnderArbeid.dokumentType
@@ -633,12 +646,16 @@ class DokumentUnderArbeidService(
     }
 
     fun finnOgMarkerFerdigHovedDokument(
-        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        behandlingId: UUID,
         dokumentId: UUID,
         ident: String,
         brevmottakerIdents: Set<String>?,
     ): DokumentUnderArbeid {
         val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val processedBrevmottakerIdents = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+            //Hardkoder Trygderetten
+            setOf("974761084")
+        } else brevmottakerIdents
 
         if (hovedDokument !is DokumentUnderArbeidAsHoveddokument) {
             throw RuntimeException("document is not hoveddokument")
@@ -647,7 +664,7 @@ class DokumentUnderArbeidService(
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
 
         validateHoveddokumentBeforeFerdig(
-            brevmottakerIdents = brevmottakerIdents,
+            brevmottakerIdents = processedBrevmottakerIdents,
             hovedDokument = hovedDokument,
             behandling = behandling,
         )
@@ -666,7 +683,7 @@ class DokumentUnderArbeidService(
         hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = ident)
         val mapBrevmottakerIdentToBrevmottakerInput = kabalDocumentMapper.mapBrevmottakerIdentToBrevmottakerInput(
             behandling = behandling,
-            brevmottakerIdents = brevmottakerIdents,
+            brevmottakerIdents = processedBrevmottakerIdents,
             dokumentType = hovedDokument.dokumentType!!
         )
         hovedDokument.brevmottakerIdents = mapBrevmottakerIdentToBrevmottakerInput.map {
@@ -675,7 +692,7 @@ class DokumentUnderArbeidService(
 
         vedlegg.forEach { it.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = ident) }
 
-        if (vedlegg.isNotEmpty()) {
+        if (vedlegg.isNotEmpty() && hovedDokument.dokumentType != DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
             innholdsfortegnelseService.saveInnholdsfortegnelse(
                 dokumentUnderArbeidId = dokumentId,
                 fnr = behandling.sakenGjelder.partId.value,
@@ -770,6 +787,10 @@ class DokumentUnderArbeidService(
     ): FysiskDokument {
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val dokument = dokumentUnderArbeidRepository.getReferenceById(hoveddokumentId)
+        if (dokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+            throw DokumentValidationException("Kjennelse fra Trygderetten støtter ikke vedleggsoversikt.")
+        }
 
         val title = "Innholdsfortegnelse"
 
@@ -835,7 +856,7 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         innloggetIdent: String,
     ) {
-        val document = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val document = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
@@ -924,7 +945,7 @@ class DokumentUnderArbeidService(
         if (parentId == dokumentId) {
             throw DokumentValidationException("Kan ikke gjøre et dokument til vedlegg for seg selv.")
         }
-        val parentDocument = dokumentUnderArbeidRepository.getReferenceById(parentId)
+        val parentDocument = dokumentUnderArbeidRepository.findById(parentId).get()
 
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
             behandlingId = parentDocument.behandlingId,
@@ -932,6 +953,19 @@ class DokumentUnderArbeidService(
 
         if (parentDocument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
+        }
+        val currentDocument = dokumentUnderArbeidRepository.findById(dokumentId).get()
+
+        if (currentDocument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+            if (parentDocument !is OpplastetDokumentUnderArbeidAsHoveddokument) {
+                throw DokumentValidationException("Dette dokumentet kan kun være vedlegg til opplastet dokument.")
+            }
+        }
+
+        if (parentDocument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+            if (!((currentDocument is OpplastetDokumentUnderArbeidAsVedlegg) || (currentDocument is OpplastetDokumentUnderArbeidAsHoveddokument))) {
+                throw DokumentValidationException("Kjennelse fra Trygderetten kan bare ha opplastet dokument som vedlegg.")
+            }
         }
 
         val descendants = getVedlegg(hoveddokumentId = dokumentId)
@@ -958,7 +992,7 @@ class DokumentUnderArbeidService(
         parentId: UUID,
     ): Pair<DokumentUnderArbeid?, DokumentUnderArbeid?> {
         var dokumentUnderArbeid: DokumentUnderArbeid =
-            dokumentUnderArbeidRepository.getReferenceById(currentDokumentId)
+            dokumentUnderArbeidRepository.findById(currentDokumentId).get()
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble et dokument som er ferdigstilt")
@@ -1007,34 +1041,38 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         innloggetIdent: String
     ): DokumentUnderArbeid {
-        val vedlegg = dokumentUnderArbeidRepository.getReferenceById(dokumentId)
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
-            behandlingId = vedlegg.behandlingId,
+            behandlingId = dokument.behandlingId,
         )
         //TODO: Skal det lages endringslogg på dette??
 
-        if (vedlegg.erMarkertFerdig()) {
+        if (dokument is DokumentUnderArbeidAsHoveddokument) {
+            throw DokumentValidationException("Dokumentet er allerede hoveddokument.")
+        }
+
+        if (dokument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke frikoble et dokument som er ferdigstilt")
         }
 
-        val savedDocument = when (vedlegg) {
+        val savedDocument = when (dokument) {
             is OpplastetDokumentUnderArbeidAsVedlegg -> {
                 //delete first so we can reuse the id
-                opplastetDokumentUnderArbeidAsVedleggRepository.delete(vedlegg)
+                opplastetDokumentUnderArbeidAsVedleggRepository.delete(dokument)
 
                 opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
-                    vedlegg.asHoveddokument()
+                    dokument.asHoveddokument()
                 )
             }
 
             is SmartdokumentUnderArbeidAsVedlegg -> {
                 //delete first so we can reuse the id
-                smartDokumentUnderArbeidAsVedleggRepository.delete(vedlegg)
+                smartDokumentUnderArbeidAsVedleggRepository.delete(dokument)
 
                 smartDokumentUnderArbeidAsHoveddokumentRepository.save(
-                    vedlegg.asHoveddokument()
+                    dokument.asHoveddokument()
                 )
             }
 

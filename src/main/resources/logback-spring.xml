@@ -86,6 +86,8 @@
             <appender-ref ref="secureJson"/>
         </logger>
 
+        <logger name="org.hibernate.SQL_SLOW" level="debug"/>
+
     </springProfile>
 
     <logger name="no.nav.klage" level="debug"/>
