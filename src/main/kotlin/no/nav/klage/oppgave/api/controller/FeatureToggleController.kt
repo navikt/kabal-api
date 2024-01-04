@@ -1,8 +1,6 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.Hidden
-import no.finn.unleash.Unleash
-import no.finn.unleash.UnleashContext
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
@@ -15,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @Hidden
 class FeatureToggleController(
-    private val unleash: Unleash,
+//    private val unleash: Unleash,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService
 ) {
 
@@ -26,14 +24,18 @@ class FeatureToggleController(
 
     @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
     @GetMapping("/featuretoggle/{toggleName}")
-    fun getToggle(@PathVariable("toggleName") toggleName: String): Boolean =
-        isEnabled(toggleName)
+    fun getToggle(@PathVariable("toggleName") toggleName: String): Boolean {
+        return false
+//        return isEnabled(toggleName)
+    }
 
     @Unprotected
     @GetMapping("/aapenfeaturetoggle/{toggleName}")
-    fun getUnprotectedToggle(@PathVariable("toggleName") toggleName: String): Boolean =
-        unleash.isEnabled(toggleName, UnleashContext.builder().userId("UINNLOGGET").build())
-
+    fun getUnprotectedToggle(@PathVariable("toggleName") toggleName: String): Boolean {
+        return false
+//        return unleash.isEnabled(toggleName, UnleashContext.builder().userId("UINNLOGGET").build())
+    }
+/*
     private fun isEnabled(feature: String): Boolean =
         unleash.isEnabled(feature, contextMedInnloggetBruker())
 
@@ -46,6 +48,5 @@ class FeatureToggleController(
         logger.info("Not able to retrieve token", e)
         "UINNLOGGET"
     }
-
-
+*/
 }

@@ -240,7 +240,6 @@ no.nav.security.jwt:
           client-auth-method: private_key_jwt
 
 MICROSOFT_GRAPH_URL: https://graph.microsoft.com/v1.0
-UNLEASH_URL: https://unleash.nais.io/api/
 
 EGENANSATT_KAFKA_TOPIC: nom.skjermede-personer-v1
 PDL_PERSON_KAFKA_TOPIC: aapen-person-pdl-dokument-v1

@@ -1,11 +1,6 @@
 package no.nav.klage.oppgave.service.unleash
 
-import no.finn.unleash.UnleashContext
-import no.finn.unleash.strategy.Strategy
-import no.nav.klage.oppgave.gateway.AzureGateway
-import no.nav.klage.oppgave.util.getLogger
-import org.springframework.stereotype.Component
-
+/*
 @Component
 class ByEnhetStrategy(private val azureGateway: AzureGateway) : Strategy {
 
@@ -46,3 +41,5 @@ class ByEnhetStrategy(private val azureGateway: AzureGateway) : Strategy {
         parameters?.get(PARAM)?.split(',')
 
 }
+
+ */

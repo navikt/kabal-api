@@ -1,9 +1,6 @@
 package no.nav.klage.oppgave.service.unleash
 
-import no.finn.unleash.strategy.Strategy
-import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
-import org.springframework.stereotype.Component
-
+/*
 @Component
 class ByUserStrategy(private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService) : Strategy {
 
@@ -24,3 +21,5 @@ class ByUserStrategy(private val innloggetSaksbehandlerService: InnloggetSaksbeh
     }
 
 }
+
+ */
