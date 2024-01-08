@@ -64,9 +64,7 @@ class KabalDocumentMapper(
 
         val datoMottatt = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
             hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument
-            //TODO: Bruk denne etter test
-//            hovedDokument.datoMottatt
-            null
+            hovedDokument.datoMottatt
         } else null
 
         return DokumentEnhetWithDokumentreferanserInput(
