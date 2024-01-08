@@ -66,7 +66,7 @@ class KabalDocumentMapper(
             hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument
             //TODO: Bruk denne etter test
 //            hovedDokument.datoMottatt
-            LocalDate.now().minusDays(2)
+            null
         } else null
 
         return DokumentEnhetWithDokumentreferanserInput(
