@@ -127,6 +127,7 @@ class DokumentUnderArbeidServiceTest {
             creatorRole = KABAL_SAKSBEHANDLING,
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
+            datoMottatt = null,
         )
         dokumentUnderArbeidRepository.save(hovedDokument)
     }

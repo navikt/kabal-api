@@ -29,6 +29,7 @@ kanal
 kanalnavn
 skjerming
 datoOpprettet
+datoMottatt
 relevanteDatoer {
     dato
     datotype

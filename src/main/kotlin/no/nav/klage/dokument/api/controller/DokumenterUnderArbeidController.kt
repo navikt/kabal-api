@@ -67,6 +67,7 @@ class DokumentUnderArbeidController(
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
                 tittel = opplastetFil.title,
                 parentId = input.parentId,
+                datoMottatt = input.datoMottatt,
             ),
             journalpost = null,
         )
@@ -96,6 +97,23 @@ class DokumentUnderArbeidController(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 dokumentType = DokumentType.of(input.dokumentTypeId),
+                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            ),
+            journalpost = null,
+        )
+    }
+
+    @PutMapping("/{dokumentId}/datomottatt")
+    fun setDatoMottatt(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") dokumentId: UUID,
+        @RequestBody input: DatoMottattInput
+    ): DokumentView {
+        return dokumentMapper.mapToDokumentView(
+            dokumentUnderArbeid = dokumentUnderArbeidService.updateDatoMottatt(
+                behandlingId = behandlingId,
+                dokumentId = dokumentId,
+                datoMottatt = input.datoMottatt,
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
             ),
             journalpost = null,

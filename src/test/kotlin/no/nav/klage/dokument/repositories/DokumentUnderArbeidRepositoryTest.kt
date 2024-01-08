@@ -53,6 +53,7 @@ class DokumentUnderArbeidRepositoryTest {
             creatorRole = KABAL_SAKSBEHANDLING,
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
+            datoMottatt = null,
         )
         hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(LocalDateTime.now(), "S123456")
         hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(LocalDateTime.now())
@@ -79,6 +80,7 @@ class DokumentUnderArbeidRepositoryTest {
             creatorRole = KABAL_SAKSBEHANDLING,
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
+            datoMottatt = null,
         )
         dokumentUnderArbeidRepository.save(hovedDokument)
 
@@ -124,6 +126,7 @@ class DokumentUnderArbeidRepositoryTest {
             creatorRole = KABAL_SAKSBEHANDLING,
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
+            datoMottatt = null
         )
         dokumentUnderArbeidRepository.save(hovedDokument)
 

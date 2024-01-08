@@ -86,6 +86,7 @@ internal class DokumentUnderArbeidControllerTest {
                 any(),
                 any(),
                 any(),
+                any(),
             )
         } returns OpplastetDokumentUnderArbeidAsHoveddokument(
             mellomlagerId = "mellomlagerId",
@@ -101,6 +102,7 @@ internal class DokumentUnderArbeidControllerTest {
             id = UUID.randomUUID(),
             creatorIdent = "null",
             creatorRole = BehandlingRole.KABAL_SAKSBEHANDLING,
+            datoMottatt = null,
         )
 
         val file =

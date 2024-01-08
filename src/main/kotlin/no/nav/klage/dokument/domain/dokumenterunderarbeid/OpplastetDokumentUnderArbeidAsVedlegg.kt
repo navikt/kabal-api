@@ -62,6 +62,7 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
             creatorIdent = creatorIdent,
             creatorRole = creatorRole,
             dokumentType = dokumentType,
+            datoMottatt = null,
         )
     }
 }

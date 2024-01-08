@@ -12,6 +12,7 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 @Service
 class KabalDocumentMapper(
@@ -61,6 +62,13 @@ class KabalDocumentMapper(
             vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
                 .sortedByDescending { it.sortKey }
 
+        val datoMottatt = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+            hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument
+            //TODO: Bruk denne etter test
+//            hovedDokument.datoMottatt
+            LocalDate.now().minusDays(2)
+        } else null
+
         return DokumentEnhetWithDokumentreferanserInput(
             brevMottakere = mapBrevmottakerIdentToBrevmottakerInput(
                 behandling,
@@ -85,7 +93,8 @@ class KabalDocumentMapper(
                     key = KLAGEBEHANDLING_ID_KEY,
                     value = behandling.id.toString()
                 ),
-                inngaaendeKanal = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) Kanal.ALTINN_INNBOKS else null
+                inngaaendeKanal = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) Kanal.ALTINN_INNBOKS else null,
+                datoMottatt = datoMottatt,
             ),
             dokumentreferanser = DokumentEnhetWithDokumentreferanserInput.DokumentInput(
                 hoveddokument = mapDokumentUnderArbeidToDokumentReferanse(hovedDokument),

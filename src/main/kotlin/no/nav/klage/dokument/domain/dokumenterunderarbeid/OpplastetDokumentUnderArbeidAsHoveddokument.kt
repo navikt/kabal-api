@@ -5,6 +5,7 @@ import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -18,6 +19,8 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     override var mellomlagerId: String?,
     @Column(name = "mellomlagret_date")
     override var mellomlagretDate: LocalDateTime?,
+    @Column(name = "dato_mottatt")
+    var datoMottatt: LocalDate?,
 
     //Common properties
     id: UUID = UUID.randomUUID(),
