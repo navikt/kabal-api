@@ -506,6 +506,10 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke sette dato mottatt på et dokument som er ferdigstilt")
         }
 
+        if (datoMottatt.isAfter(LocalDate.now())) {
+            throw DokumentValidationException("Kan ikke sette dato mottatt i fremtiden")
+        }
+
         if (dokumentUnderArbeid.dokumentType != DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
             throw DokumentValidationException("Kan bare sette dato mottatt på inngående dokument.")
         }

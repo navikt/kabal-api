@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.clients.saf.graphql
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class DokumentoversiktBrukerResponse(val data: DokumentoversiktBrukerDataWrapper?, val errors: List<Error>?)
@@ -32,7 +31,6 @@ data class Journalpost(
     val opprettetAvNavn: String?,
     val skjerming: String?,
     val datoOpprettet: LocalDateTime,
-    val datoMottatt: LocalDate?,
     val dokumenter: List<DokumentInfo>?,
     val relevanteDatoer: List<RelevantDato>?,
     val kanal: String,
