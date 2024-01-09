@@ -3,6 +3,7 @@ package no.nav.klage.dokument.api.view
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -26,6 +27,7 @@ data class DokumentView(
     val journalfoertDokumentReference: JournalfoertDokumentReference?,
     val creatorIdent: String,
     val creatorRole: BehandlingRole,
+    val datoMottatt: LocalDate?,
 ) {
     data class JournalfoertDokumentReference(
         val journalpostId: String,
