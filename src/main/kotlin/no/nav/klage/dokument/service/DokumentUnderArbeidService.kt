@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -81,6 +82,7 @@ class DokumentUnderArbeidService(
         innloggetIdent: String,
         tittel: String,
         parentId: UUID?,
+        datoMottatt: LocalDate?,
     ): DokumentUnderArbeid {
         //Sjekker lesetilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
@@ -116,6 +118,7 @@ class DokumentUnderArbeidService(
                     creatorRole = behandlingRole,
                     created = now,
                     modified = now,
+                    datoMottatt = if (dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) datoMottatt else null,
                 )
             )
         } else {
@@ -482,6 +485,47 @@ class DokumentUnderArbeidService(
             felt = Felt.DOKUMENT_UNDER_ARBEID_TYPE,
             fraVerdi = previousValue?.id,
             tilVerdi = dokumentUnderArbeid.dokumentType.toString(),
+            tidspunkt = dokumentUnderArbeid.modified,
+        )
+
+        return dokumentUnderArbeid
+    }
+
+    fun updateDatoMottatt(
+        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        dokumentId: UUID,
+        datoMottatt: LocalDate,
+        innloggetIdent: String
+    ): DokumentUnderArbeid {
+        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
+
+        //Sjekker tilgang på behandlingsnivå:
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+
+        if (dokumentUnderArbeid.erMarkertFerdig()) {
+            throw DokumentValidationException("Kan ikke sette dato mottatt på et dokument som er ferdigstilt")
+        }
+
+        if (datoMottatt.isAfter(LocalDate.now())) {
+            throw DokumentValidationException("Kan ikke sette dato mottatt i fremtiden")
+        }
+
+        if (dokumentUnderArbeid.dokumentType != DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+            throw DokumentValidationException("Kan bare sette dato mottatt på inngående dokument.")
+        }
+
+        dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
+
+        val previousValue = dokumentUnderArbeid.datoMottatt
+        dokumentUnderArbeid.datoMottatt = datoMottatt
+
+        dokumentUnderArbeid.modified = LocalDateTime.now()
+
+        behandling.publishEndringsloggEvent(
+            saksbehandlerident = innloggetIdent,
+            felt = Felt.DOKUMENT_UNDER_ARBEID_DATO_MOTTATT,
+            fraVerdi = previousValue.toString(),
+            tilVerdi = dokumentUnderArbeid.datoMottatt.toString(),
             tidspunkt = dokumentUnderArbeid.modified,
         )
 

@@ -1,5 +1,7 @@
 package no.nav.klage.oppgave.clients.kabaldocument.model.request
 
+import java.time.LocalDate
+
 data class JournalfoeringDataInput(
     val sakenGjelder: PartIdInput,
     val temaId: String,
@@ -12,6 +14,7 @@ data class JournalfoeringDataInput(
     val brevKode: String,
     val tilleggsopplysning: TilleggsopplysningInput?,
     val inngaaendeKanal: Kanal?,
+    val datoMottatt: LocalDate?,
 )
 
 enum class Kanal {
