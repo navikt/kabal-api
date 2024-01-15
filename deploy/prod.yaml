@@ -11,10 +11,6 @@ externalHosts:
   - host: arbeid-og-inntekt.prod-fss-pub.nais.io
   - host: nom-api.intern.nav.no
   - host: pdl-api.prod-fss-pub.nais.io
-    ports:
-      - name: https
-        port: 26482
-        protocol: TCP
 inboundApplications:
   - application: kabal-frontend
   - application: klage-dittnav-api
