@@ -37,6 +37,7 @@ enum class InternalEventType {
     JOURNALFOERT_DOCUMENT_MODIFIED,
     FEILREGISTRERING,
     FERDIGSTILT,
+    SATT_PAA_VENT,
 }
 
 abstract class BaseEvent(
@@ -176,3 +177,15 @@ data class BehandlingFerdigstiltEvent(
     override val timestamp: LocalDateTime,
     val avsluttetAvSaksbehandlerDate: LocalDateTime,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
+
+data class SattPaaVentEvent(
+    override val actor: Actor,
+    override val timestamp: LocalDateTime,
+    val sattPaaVent: SattPaaVent?,
+) : BaseEvent(actor = actor, timestamp = timestamp) {
+    data class SattPaaVent(
+        val from: LocalDate,
+        val to: LocalDate,
+        val reason: String,
+    )
+}

@@ -25,6 +25,7 @@ import no.nav.klage.oppgave.domain.kafka.KlagerEvent
 import no.nav.klage.oppgave.domain.kafka.MedunderskriverEvent
 import no.nav.klage.oppgave.domain.kafka.Part
 import no.nav.klage.oppgave.domain.kafka.RolEvent
+import no.nav.klage.oppgave.domain.kafka.SattPaaVentEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
@@ -716,7 +717,7 @@ class BehandlingService(
             SattPaaVent(
                 from = LocalDate.now(),
                 to = input.to,
-                reason = input.reason
+                reason = input.reason,
             )
         } else null
 
@@ -727,9 +728,35 @@ class BehandlingService(
         val event =
             behandling.setSattPaaVent(
                 sattPaaVent,
-                utfoerendeSaksbehandlerIdent
+                utfoerendeSaksbehandlerIdent,
             )
         applicationEventPublisher.publishEvent(event)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                SattPaaVentEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        navn = if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
+                            utfoerendeSaksbehandlerIdent
+                        } else saksbehandlerService.getNameForIdent(
+                            utfoerendeSaksbehandlerIdent
+                        ),
+                    ),
+                    timestamp = behandling.modified,
+                    sattPaaVent = behandling.sattPaaVent?.let {
+                        SattPaaVentEvent.SattPaaVent(
+                            from = it.from,
+                            to = it.to,
+                            reason = it.reason,
+                        )
+                    }
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.SATT_PAA_VENT,
+        )
+
         return behandling.modified
     }
 
