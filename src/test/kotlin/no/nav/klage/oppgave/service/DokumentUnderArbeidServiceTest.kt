@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import com.ninjasquad.springmockk.MockkBean
+import io.mockk.mockk
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.DefaultKabalSmartEditorApiGateway
@@ -12,7 +13,6 @@ import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentMapper
 import no.nav.klage.oppgave.clients.saf.SafFacade
-import no.nav.klage.oppgave.clients.saf.graphql.SafGraphQlClient
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.BehandlingRole.KABAL_SAKSBEHANDLING
 import org.junit.jupiter.api.BeforeEach
@@ -111,6 +111,9 @@ class DokumentUnderArbeidServiceTest {
             safFacade = safFacade,
             dokumentMapper = dokumentMapper,
             systembrukerIdent = "SYSTEMBRUKER",
+            kafkaInternalEventService = mockk(),
+            saksbehandlerService = mockk(),
+            kabalSmartEditorApiClient = mockk(),
         )
 
         val behandlingId = UUID.randomUUID()

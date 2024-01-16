@@ -20,9 +20,8 @@ data class DokumentView(
     val type: DokumentUnderArbeid.DokumentUnderArbeidType,
     val isSmartDokument: Boolean,
     val templateId: String?,
+    val content: JsonNode?,
     val isMarkertAvsluttet: Boolean,
-    @Deprecated("use parentId")
-    val parent: UUID?,
     val parentId: UUID?,
     val journalfoertDokumentReference: JournalfoertDokumentReference?,
     val creatorIdent: String,
@@ -38,36 +37,17 @@ data class DokumentView(
 }
 
 data class DokumentViewWithList(
-    val id: UUID?,
-    val tittel: String?,
-    val dokumentTypeId: String?,
-    val created: LocalDateTime?,
     val modified: LocalDateTime?,
-    val type: DokumentUnderArbeid.DokumentUnderArbeidType?,
-    val isSmartDokument: Boolean?,
-    val templateId: String?,
-    val isMarkertAvsluttet: Boolean?,
-    //Deprecated
-    val parent: UUID?,
-    val parentId: UUID?,
-    val journalfoertDokumentReference: DokumentView.JournalfoertDokumentReference?,
-
-    //TODO: Keep these two lists when FE uses new version
-    val alteredDocuments: List<DokumentView>,
-    val duplicateJournalfoerteDokumenter: List<DokumentView>,
+    val alteredDocuments: List<NewParent>,
+    val duplicateJournalfoerteDokumenter: List<UUID>,
 )
 
-data class SmartEditorDocumentView(
-    val id: UUID,
-    val tittel: String,
-    val content: JsonNode,
-    val created: LocalDateTime,
+data class DocumentModified(
     val modified: LocalDateTime,
-    val templateId: String?,
-    val dokumentTypeId: String,
-    //Deprecated
-    val parent: UUID?,
-    val parentId: UUID?,
-    val creatorIdent: String,
-    val creatorRole: BehandlingRole,
+)
+
+data class NewParent(
+    val id: UUID,
+    val parentId: UUID,
+    val modified: LocalDateTime,
 )

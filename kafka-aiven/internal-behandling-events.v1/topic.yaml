@@ -1,7 +1,7 @@
 apiVersion: kafka.nais.io/v1
 kind: Topic
 metadata:
-  name: internal-events.v1
+  name: internal-behandling-events.v1
   annotations:
     kafka.nais.io/removeDataWhenResourceIsDeleted: "true"
   namespace: klage

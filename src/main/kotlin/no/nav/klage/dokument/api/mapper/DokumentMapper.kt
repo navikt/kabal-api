@@ -3,7 +3,7 @@ package no.nav.klage.dokument.api.mapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.dokument.api.view.DokumentViewWithList
-import no.nav.klage.dokument.api.view.SmartEditorDocumentView
+import no.nav.klage.dokument.api.view.NewParent
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest.Document.Type
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.DocumentOutput
@@ -117,7 +117,11 @@ class DokumentMapper {
         )
     }
 
-    fun mapToDokumentView(dokumentUnderArbeid: DokumentUnderArbeid, journalpost: Journalpost?): DokumentView {
+    fun mapToDokumentView(
+        dokumentUnderArbeid: DokumentUnderArbeid,
+        journalpost: Journalpost?,
+        smartEditorDocument: DocumentOutput?
+    ): DokumentView {
         val unproxiedDUA = Hibernate.unproxy(dokumentUnderArbeid) as DokumentUnderArbeid
 
         var journalfoertDokumentReference: DokumentView.JournalfoertDokumentReference? = null
@@ -148,11 +152,15 @@ class DokumentMapper {
             tittel = tittel,
             dokumentTypeId = unproxiedDUA.dokumentType?.id,
             created = unproxiedDUA.created,
-            modified = unproxiedDUA.modified,
+            modified = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
+                smartEditorDocument!!.modified
+            } else unproxiedDUA.modified,
             isSmartDokument = unproxiedDUA is DokumentUnderArbeidAsSmartdokument,
             templateId = if (unproxiedDUA is DokumentUnderArbeidAsSmartdokument) unproxiedDUA.smartEditorTemplateId else null,
+            content = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
+                jacksonObjectMapper().readTree(smartEditorDocument!!.json)
+            } else null,
             isMarkertAvsluttet = unproxiedDUA.markertFerdig != null,
-            parent = if (unproxiedDUA is DokumentUnderArbeidAsVedlegg) unproxiedDUA.parentId else null,
             parentId = if (unproxiedDUA is DokumentUnderArbeidAsVedlegg) unproxiedDUA.parentId else null,
             type = unproxiedDUA.getType(),
             journalfoertDokumentReference = journalfoertDokumentReference,
@@ -166,69 +174,22 @@ class DokumentMapper {
         duplicateJournalfoerteDokumenter: List<DokumentUnderArbeid>,
         journalpostList: List<Journalpost>,
     ): DokumentViewWithList {
-        val firstDokument = Hibernate.unproxy(dokumentUnderArbeidList.firstOrNull())
-        val firstDokumentView = if (firstDokument != null) {
-            if (firstDokument is JournalfoertDokumentUnderArbeidAsVedlegg) {
-                mapToDokumentView(
-                    dokumentUnderArbeid = dokumentUnderArbeidList.first(),
-                    journalpost = journalpostList.find { it.journalpostId == firstDokument.journalpostId })
-            } else {
-                mapToDokumentView(dokumentUnderArbeid = dokumentUnderArbeidList.first(), journalpost = null)
-            }
-        } else null
+        val firstDokument = Hibernate.unproxy(dokumentUnderArbeidList.first()) as DokumentUnderArbeid
 
         return DokumentViewWithList(
-            id = firstDokumentView?.id,
-            tittel = firstDokumentView?.tittel,
-            dokumentTypeId = firstDokumentView?.dokumentTypeId,
-            created = firstDokumentView?.created,
-            modified = firstDokumentView?.modified,
-            type = firstDokumentView?.type,
-            isSmartDokument = firstDokumentView?.isSmartDokument,
-            templateId = firstDokumentView?.templateId,
-            isMarkertAvsluttet = firstDokumentView?.isMarkertAvsluttet,
-            parent = firstDokumentView?.parent,
-            parentId = firstDokumentView?.parentId,
-            journalfoertDokumentReference = firstDokumentView?.journalfoertDokumentReference,
-            alteredDocuments = dokumentUnderArbeidList.map { dokumentUnderArbeid ->
-                val duaUnproxied = Hibernate.unproxy(dokumentUnderArbeid)
-                if (duaUnproxied is JournalfoertDokumentUnderArbeidAsVedlegg) {
-                    mapToDokumentView(
-                        dokumentUnderArbeid = dokumentUnderArbeid,
-                        journalpost = journalpostList.find { it.journalpostId == duaUnproxied.journalpostId })
-                } else {
-                    mapToDokumentView(dokumentUnderArbeid = dokumentUnderArbeid, journalpost = null)
-                }
+            modified = firstDokument.modified,
+            alteredDocuments = dokumentUnderArbeidList.drop(1).map { dokumentUnderArbeid ->
+                val duaUnproxied = Hibernate.unproxy(dokumentUnderArbeid) as DokumentUnderArbeidAsVedlegg
+                NewParent(
+                    id = duaUnproxied.id,
+                    modified = duaUnproxied.modified,
+                    parentId = duaUnproxied.parentId!!,
+                )
             },
             duplicateJournalfoerteDokumenter = duplicateJournalfoerteDokumenter.map { duplicateJournalfoertDokument ->
-                val duaUnproxied = Hibernate.unproxy(duplicateJournalfoertDokument)
-                if (duaUnproxied is JournalfoertDokumentUnderArbeidAsVedlegg) {
-                    mapToDokumentView(
-                        dokumentUnderArbeid = duaUnproxied,
-                        journalpost = journalpostList.find { it.journalpostId == duaUnproxied.journalpostId })
-                } else {
-                    mapToDokumentView(dokumentUnderArbeid = duplicateJournalfoertDokument, journalpost = null)
-                }
+                val duaUnproxied = Hibernate.unproxy(duplicateJournalfoertDokument) as DokumentUnderArbeid
+                duaUnproxied.id
             },
-        )
-    }
-
-    fun mapToSmartEditorDocumentView(
-        dokumentUnderArbeid: DokumentUnderArbeid,
-        smartEditorDocument: DocumentOutput,
-    ): SmartEditorDocumentView {
-        return SmartEditorDocumentView(
-            id = dokumentUnderArbeid.id,
-            tittel = dokumentUnderArbeid.name,
-            dokumentTypeId = dokumentUnderArbeid.dokumentType!!.id,
-            templateId = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) dokumentUnderArbeid.smartEditorTemplateId else null,
-            parent = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
-            parentId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null,
-            content = jacksonObjectMapper().readTree(smartEditorDocument.json),
-            created = smartEditorDocument.created,
-            modified = smartEditorDocument.modified,
-            creatorIdent = dokumentUnderArbeid.creatorIdent,
-            creatorRole = dokumentUnderArbeid.creatorRole,
         )
     }
 

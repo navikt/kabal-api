@@ -3,8 +3,9 @@ package no.nav.klage.dokument.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.mapper.DokumentMapper
+import no.nav.klage.dokument.api.view.DocumentModified
+import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.dokument.api.view.PatchSmartHovedDokumentInput
-import no.nav.klage.dokument.api.view.SmartEditorDocumentView
 import no.nav.klage.dokument.api.view.SmartHovedDokumentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.KabalSmartEditorApiClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentInput
@@ -34,7 +35,7 @@ class SmartEditorController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val behandlingService: BehandlingService
 
-    ) {
+) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -44,7 +45,7 @@ class SmartEditorController(
     @GetMapping
     fun findSmartDokumenter(
         @PathVariable("behandlingId") behandlingId: UUID,
-    ): List<SmartEditorDocumentView> {
+    ): List<DokumentView> {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         return dokumentUnderArbeidService.getSmartDokumenterUnderArbeid(behandlingId = behandlingId, ident = ident)
             .map {
@@ -55,9 +56,10 @@ class SmartEditorController(
                     )
 
                 val smartEditorDocument = kabalSmartEditorApiClient.getDocument(smartEditorId)
-                dokumentMapper.mapToSmartEditorDocumentView(
+                dokumentMapper.mapToDokumentView(
                     dokumentUnderArbeid = it,
-                    smartEditorDocument = smartEditorDocument
+                    journalpost = null,
+                    smartEditorDocument = smartEditorDocument,
                 )
             }
     }
@@ -66,14 +68,14 @@ class SmartEditorController(
     fun createSmartHoveddokument(
         @PathVariable("behandlingId") behandlingId: UUID,
         @RequestBody body: SmartHovedDokumentInput,
-    ): SmartEditorDocumentView {
+    ): DokumentView {
         logger.debug("Kall mottatt på createSmartHoveddokument")
 
         if (body.version != null) {
             throw ValidationException("Du har en gammel versjon av Kabal. Last på nytt. Teknisk: version skal ikke lenger sendes.")
         }
 
-        val dokumentUnderArbeid = dokumentUnderArbeidService.opprettSmartdokument(
+        return dokumentUnderArbeidService.opprettSmartdokument(
             behandlingId = behandlingId,
             dokumentType = if (body.dokumentTypeId != null) DokumentType.of(body.dokumentTypeId) else DokumentType.VEDTAK,
             json = body.content.toString(),
@@ -81,19 +83,6 @@ class SmartEditorController(
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             tittel = body.tittel ?: DokumentType.VEDTAK.defaultFilnavn,
             parentId = body.parentId,
-        )
-
-        val smartEditorId =
-            dokumentUnderArbeidService.getSmartEditorId(
-                dokumentId = dokumentUnderArbeid.id,
-                readOnly = false
-            )
-
-        val smartEditorDocument = kabalSmartEditorApiClient.getDocument(smartEditorId)
-
-        return dokumentMapper.mapToSmartEditorDocumentView(
-            dokumentUnderArbeid = dokumentUnderArbeid,
-            smartEditorDocument = smartEditorDocument,
         )
     }
 
@@ -106,12 +95,7 @@ class SmartEditorController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
         @RequestBody input: PatchSmartHovedDokumentInput,
-    ): SmartEditorDocumentView {
-
-        if (input.version != null) {
-            throw ValidationException("Du har en gammel versjon av Kabal. Last på nytt. Teknisk: version skal ikke lenger sendes.")
-        }
-
+    ): DocumentModified {
         val smartEditorId =
             dokumentUnderArbeidService.getSmartEditorId(
                 dokumentId = dokumentId,
@@ -131,9 +115,8 @@ class SmartEditorController(
 
         val updatedDocument = kabalSmartEditorApiClient.updateDocument(smartEditorId, input.content.toString())
 
-        return dokumentMapper.mapToSmartEditorDocumentView(
-            dokumentUnderArbeid = dokumentUnderArbeidService.getDokumentUnderArbeid(dokumentId),
-            smartEditorDocument = updatedDocument,
+        return DocumentModified(
+            modified = updatedDocument.modified,
         )
     }
 
@@ -142,7 +125,7 @@ class SmartEditorController(
         description = "Get document"
     )
     @GetMapping("/{dokumentId}")
-    fun getDocument(@PathVariable("dokumentId") documentId: UUID): SmartEditorDocumentView {
+    fun getDocument(@PathVariable("dokumentId") documentId: UUID): DokumentView {
         val smartEditorId =
             dokumentUnderArbeidService.getSmartEditorId(
                 dokumentId = documentId,
@@ -150,8 +133,9 @@ class SmartEditorController(
             )
         val document = kabalSmartEditorApiClient.getDocument(smartEditorId)
 
-        return dokumentMapper.mapToSmartEditorDocumentView(
+        return dokumentMapper.mapToDokumentView(
             dokumentUnderArbeid = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId),
+            journalpost = null,
             smartEditorDocument = document,
         )
     }

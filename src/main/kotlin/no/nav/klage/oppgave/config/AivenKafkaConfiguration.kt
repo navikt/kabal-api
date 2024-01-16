@@ -20,11 +20,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.CommonLoggingErrorHandler
 import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-import reactor.kafka.receiver.KafkaReceiver
-import reactor.kafka.receiver.ReceiverOptions
-import reactor.kafka.receiver.internals.DefaultKafkaReceiver
 import java.time.Duration
-import java.util.*
 
 
 @Configuration
@@ -37,8 +33,6 @@ class AivenKafkaConfiguration(
     private val kafkaCredstorePassword: String,
     @Value("\${KAFKA_KEYSTORE_PATH}")
     private val kafkaKeystorePath: String,
-    @Value("\${INTERNAL_EVENT_TOPIC}")
-    private val internalEventTopic: String,
 ) {
 
     companion object {
@@ -61,23 +55,6 @@ class AivenKafkaConfiguration(
     }
 
     //Consumer beans
-    @Bean
-    fun kafkaEventReceiver(): KafkaReceiver<String, String> {
-        val uniqueIdPerInstance = UUID.randomUUID().toString()
-        val config = mapOf(
-            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api-event-consumer-$uniqueIdPerInstance",
-            ConsumerConfig.CLIENT_ID_CONFIG to "kabal-api-event-client-$uniqueIdPerInstance",
-            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to true,
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-        ) + commonConfig()
-
-        return DefaultKafkaReceiver(
-            reactor.kafka.receiver.internals.ConsumerFactory.INSTANCE,
-            ReceiverOptions.create<String, String>(config).subscription(listOf(internalEventTopic))
-        )
-    }
-
     @Bean
     fun egenAnsattKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()

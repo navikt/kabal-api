@@ -1,27 +1,19 @@
 package no.nav.klage.dokument.api.controller
 
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.swagger.v3.oas.annotations.tags.Tag
-import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentInputMapper
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.api.view.DokumentUnderArbeidMetadata
-import no.nav.klage.oppgave.clients.events.KafkaEventClient
 import no.nav.klage.oppgave.config.SecurityConfiguration
-import no.nav.klage.oppgave.domain.kafka.Event
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.http.codec.ServerSentEvent
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Flux
-import java.time.Duration
 import java.util.*
 
 @RestController
@@ -33,7 +25,6 @@ class DokumentUnderArbeidController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val dokumentMapper: DokumentMapper,
     private val dokumentInputMapper: DokumentInputMapper,
-    private val kafkaEventClient: KafkaEventClient,
 ) {
 
     companion object {
@@ -59,17 +50,14 @@ class DokumentUnderArbeidController(
             tittel = input.file.originalFilename,
             dokumentType = DokumentType.of(input.dokumentTypeId),
         )
-        return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = dokumentUnderArbeidService.createOpplastetDokumentUnderArbeid(
-                behandlingId = behandlingId,
-                dokumentType = DokumentType.of(input.dokumentTypeId),
-                opplastetFil = opplastetFil,
-                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-                tittel = opplastetFil.title,
-                parentId = input.parentId,
-                datoMottatt = input.datoMottatt,
-            ),
-            journalpost = null,
+        return dokumentUnderArbeidService.createOpplastetDokumentUnderArbeid(
+            behandlingId = behandlingId,
+            dokumentType = DokumentType.of(input.dokumentTypeId),
+            opplastetFil = opplastetFil,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            tittel = opplastetFil.title,
+            parentId = input.parentId,
+            datoMottatt = input.datoMottatt,
         )
     }
 
@@ -79,10 +67,10 @@ class DokumentUnderArbeidController(
         @RequestBody input: JournalfoerteDokumenterInput
     ): JournalfoerteDokumenterResponse {
         logger.debug("Kall mottatt på addJournalfoerteDokumenterAsVedlegg")
-        return dokumentUnderArbeidService.handleJournalfoerteDokumenterAsVedlegg(
+        return dokumentUnderArbeidService.addJournalfoerteDokumenterAsVedlegg(
             behandlingId = behandlingId,
             journalfoerteDokumenterInput = input,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
     }
 
@@ -91,15 +79,14 @@ class DokumentUnderArbeidController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
         @RequestBody input: DokumentTypeInput
-    ): DokumentView {
-        return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = dokumentUnderArbeidService.updateDokumentType(
+    ): DocumentModified {
+        return DocumentModified(
+            modified = dokumentUnderArbeidService.updateDokumentType(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 dokumentType = DokumentType.of(input.dokumentTypeId),
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-            ),
-            journalpost = null,
+            ).modified
         )
     }
 
@@ -108,15 +95,14 @@ class DokumentUnderArbeidController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
         @RequestBody input: DatoMottattInput
-    ): DokumentView {
-        return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = dokumentUnderArbeidService.updateDatoMottatt(
+    ): DocumentModified {
+        return DocumentModified(
+            modified = dokumentUnderArbeidService.updateDatoMottatt(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 datoMottatt = input.datoMottatt,
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-            ),
-            journalpost = null,
+            ).modified
         )
     }
 
@@ -203,7 +189,7 @@ class DokumentUnderArbeidController(
             return dokumentUnderArbeidService.kobleEllerFrikobleVedlegg(
                 behandlingId = behandlingId,
                 persistentDokumentId = persistentDokumentId,
-                input = input
+                optionalParentInput = input
             )
         } catch (e: Exception) {
             logger.error("Feilet under kobling av dokument $persistentDokumentId med ${input.dokumentId}", e)
@@ -216,16 +202,15 @@ class DokumentUnderArbeidController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentid") dokumentId: UUID,
         @RequestBody(required = true) input: FerdigstillDokumentInput,
-    ): DokumentView {
+    ): DocumentModified {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
-        return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
+        return DocumentModified(
+            modified = dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
-                ident = ident,
+                innloggetIdent = ident,
                 brevmottakerIdents = input.brevmottakerIds,
-            ),
-            journalpost = null
+            ).modified
         )
     }
 
@@ -238,68 +223,20 @@ class DokumentUnderArbeidController(
         return dokumentUnderArbeidService.validateIfSmartDokument(dokumentId)
     }
 
-    //Old event stuff. Clients should read from EventController instead, and this can be deleted.
-    @GetMapping("/events", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-    fun documentEvents(
-        @PathVariable("behandlingId") behandlingId: String,
-        @RequestParam("lastEventIdInput", required = false) lastEventIdInput: UUID?,
-        request: HttpServletRequest,
-    ): Flux<ServerSentEvent<String>> {
-        logger.debug("Kall mottatt på documentEvents for behandlingId $behandlingId")
-
-        //https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-async-disconnects
-        val heartbeatStream: Flux<ServerSentEvent<String>> = Flux.interval(Duration.ofSeconds(10))
-            .takeWhile { true }
-            .map { tick -> toHeartBeatServerSentEvent(tick) }
-
-        return kafkaEventClient.getEventPublisher()
-            .mapNotNull { event -> jsonToEvent(event.data()) }
-            .filter { Objects.nonNull(it) }
-            .filter { it.behandlingId == behandlingId && it.name == "finished" }
-            .mapNotNull { eventToServerSentEvent(it) }
-            .mergeWith(heartbeatStream)
-    }
-
-    private fun toHeartBeatServerSentEvent(tick: Long): ServerSentEvent<String> {
-        return eventToServerSentEvent(
-            Event(
-                behandlingId = "",
-                id = "",
-                name = "heartbeat-event-$tick",
-                data = ""
-            )
-        )
-    }
-
-    private fun eventToServerSentEvent(event: Event): ServerSentEvent<String> {
-        return ServerSentEvent.builder<String>()
-            .id(event.id)
-            .event(event.name)
-            .data(event.data)
-            .build()
-    }
-
-    private fun jsonToEvent(json: String?): Event {
-        val event = jacksonObjectMapper().readValue(json, Event::class.java)
-        logger.debug("Received event from Kafka: {}", event)
-        return event
-    }
-
     @PutMapping("/{dokumentid}/tittel")
     fun changeDocumentTitle(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentid") dokumentId: UUID,
         @RequestBody input: DokumentTitleInput,
-    ): DokumentView {
+    ): DocumentModified {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
-        return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = dokumentUnderArbeidService.updateDokumentTitle(
+        return DocumentModified(
+            modified = dokumentUnderArbeidService.updateDokumentTitle(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 dokumentTitle = input.title,
                 innloggetIdent = ident,
-            ),
-            journalpost = null
+            ).modified
         )
     }
 }

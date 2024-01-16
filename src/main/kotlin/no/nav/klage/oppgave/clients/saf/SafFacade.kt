@@ -65,6 +65,22 @@ class SafFacade(
         }
     }
 
+    fun getJournalpostAsSystembruker(
+        journalpostId: String,
+    ): Journalpost {
+        return runWithTimingAndLogging({
+            safGraphQlClient.getJournalpostAsSystembruker(journalpostId = journalpostId)
+        }, this::getJournalpostAsSystembruker.name)
+    }
+
+    fun getJournalpostAsSaksbehandler(
+        journalpostId: String,
+    ): Journalpost {
+        return runWithTimingAndLogging({
+            safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId = journalpostId)
+        }, this::getJournalpostAsSaksbehandler.name)
+    }
+
     fun <T> runWithTimingAndLogging(block: () -> T, method: String): T {
         val start = System.currentTimeMillis()
         try {

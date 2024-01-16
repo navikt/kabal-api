@@ -1,10 +1,9 @@
 package no.nav.klage.oppgave.domain.kafka
 
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.kjetland.jackson.jsonSchema.JsonSchemaConfig
 import com.kjetland.jackson.jsonSchema.JsonSchemaDraft
 import com.kjetland.jackson.jsonSchema.JsonSchemaGenerator
+import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -15,7 +14,7 @@ internal class BehandlingEventsTilFoersteinstansTest {
     @Test
     @Disabled
     fun createJsonSchema() {
-        val objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
+        val objectMapper = ourJacksonObjectMapper()
 
         val config = JsonSchemaConfig.vanillaJsonSchemaDraft4().withJsonSchemaDraft(JsonSchemaDraft.DRAFT_07)
 

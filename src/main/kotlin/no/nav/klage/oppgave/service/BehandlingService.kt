@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.*
@@ -17,6 +18,13 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.domain.kafka.BaseEvent
+import no.nav.klage.oppgave.domain.kafka.FullmektigEvent
+import no.nav.klage.oppgave.domain.kafka.KlagerEvent
+import no.nav.klage.oppgave.domain.kafka.MedunderskriverEvent
+import no.nav.klage.oppgave.domain.kafka.Part
+import no.nav.klage.oppgave.domain.kafka.RolEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
@@ -46,6 +54,7 @@ import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
+import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -73,11 +82,15 @@ class BehandlingService(
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingMapper: BehandlingMapper,
     private val historyService: HistoryService,
+    private val kafkaInternalEventService: KafkaInternalEventService,
+    private val partSearchService: PartSearchService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+
+        private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
 
@@ -575,6 +588,23 @@ class BehandlingService(
                 utfoerendeIdent = systembrukerIdent,
             )
         applicationEventPublisher.publishEvent(medunderskriverIdentEvent)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                MedunderskriverEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = systembrukerIdent,
+                        name = systembrukerIdent,
+                    ),
+                    timestamp = behandling.modified,
+                    navIdent = null,
+                    name = null,
+                    flowState = FlowState.NOT_SENT,
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.MEDUNDERSKRIVER,
+        )
     }
 
     fun setRolToNullInSystemContext(
@@ -600,13 +630,30 @@ class BehandlingService(
             }
         }
 
-
         val rolIdentEvent =
             behandling.setROLIdent(
                 newROLIdent = null,
                 utfoerendeIdent = systembrukerIdent
             )
         applicationEventPublisher.publishEvent(rolIdentEvent)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                RolEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = systembrukerIdent,
+                        name = systembrukerIdent,
+                    ),
+                    timestamp = behandling.modified,
+                    navIdent = null,
+                    name = null,
+                    flowState = FlowState.NOT_SENT,
+                    returnDate = null,
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.ROL,
+        )
     }
 
 
@@ -721,6 +768,22 @@ class BehandlingService(
             val event =
                 behandling.setMottattVedtaksinstans(date, utfoerendeSaksbehandlerIdent)
             applicationEventPublisher.publishEvent(event)
+
+            publishInternalEvent(
+                data = objectMapper.writeValueAsString(
+                    MottattVedtaksinstansEvent(
+                        actor = BaseEvent.Actor(
+                            navIdent = utfoerendeSaksbehandlerIdent,
+                            name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        ),
+                        timestamp = behandling.modified,
+                        mottattVedtaksinstans = behandling.mottattVedtaksinstans,
+                    )
+                ),
+                behandlingId = behandlingId,
+                type = InternalEventType.MOTTATT_VEDTAKSINSTANS,
+            )
+
             return behandling.modified
         } else throw IllegalOperation("Dette feltet kan bare settes i klagesaker")
     }
@@ -796,6 +859,22 @@ class BehandlingService(
                 utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                InnsendingshjemlerEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    hjemmelIdSet = behandling.hjemler.map { it.id }.toSet(),
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.INNSENDINGSHJEMLER,
+        )
+
         return behandling.modified
     }
 
@@ -820,6 +899,35 @@ class BehandlingService(
                 utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
+
+        val partView = if (behandling.klager.prosessfullmektig == null) {
+            null
+        } else {
+            partSearchService.searchPart(identifikator = behandling.klager.prosessfullmektig?.partId?.value!!, skipAccessControl = true)
+        }
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                FullmektigEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    part = partView?.let {
+                        Part(
+                            id = partView.id,
+                            type = partView.type,
+                            name = partView.name,
+                            statusList = partView.statusList,
+                        )
+                    },
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.FULLMEKTIG,
+        )
+
         return behandling.modified
     }
 
@@ -838,6 +946,30 @@ class BehandlingService(
                 utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
+
+        val partView =
+            partSearchService.searchPart(identifikator = behandling.klager.partId.value, skipAccessControl = true)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                KlagerEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    part = Part(
+                        id = partView.id,
+                        type = partView.type,
+                        name = partView.name,
+                        statusList = partView.statusList,
+                    ),
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.KLAGER,
+        )
+
         return behandling.modified
     }
 
@@ -857,7 +989,29 @@ class BehandlingService(
                 utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
-        return behandlingMapper.mapToMedunderskriverWrapped(behandling)
+
+        val medunderskriverWrapped = behandlingMapper.mapToMedunderskriverWrapped(behandling)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                MedunderskriverEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = medunderskriverWrapped.modified,
+                    navIdent = medunderskriverWrapped.navIdent,
+                    name = if (medunderskriverWrapped.navIdent != null) saksbehandlerService.getNameForIdent(
+                        medunderskriverWrapped.navIdent
+                    ) else null,
+                    flowState = medunderskriverWrapped.flowState,
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.MEDUNDERSKRIVER,
+        )
+
+        return medunderskriverWrapped
     }
 
     fun setMedunderskriverNavIdent(
@@ -890,7 +1044,39 @@ class BehandlingService(
                 utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
-        return behandlingMapper.mapToMedunderskriverWrapped(behandling)
+
+        val medunderskriverWrapped = behandlingMapper.mapToMedunderskriverWrapped(behandling)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                MedunderskriverEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = medunderskriverWrapped.modified,
+                    navIdent = medunderskriverWrapped.navIdent,
+                    name = if (medunderskriverWrapped.navIdent != null) saksbehandlerService.getNameForIdent(
+                        medunderskriverWrapped.navIdent
+                    ) else null,
+                    flowState = medunderskriverWrapped.flowState,
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.MEDUNDERSKRIVER,
+        )
+
+        return medunderskriverWrapped
+    }
+
+    private fun publishInternalEvent(data: String, behandlingId: UUID, type: InternalEventType) {
+        kafkaInternalEventService.publishInternalBehandlingEvent(
+            InternalBehandlingEvent(
+                behandlingId = behandlingId.toString(),
+                type = type,
+                data = data,
+            )
+        )
     }
 
     fun fetchDokumentlisteForBehandling(
@@ -1259,6 +1445,21 @@ class BehandlingService(
         )
         applicationEventPublisher.publishEvent(groupedEvent)
 
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                UtfallEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    utfallId = behandling.utfall?.id,
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.UTFALL,
+        )
+
         return behandling
     }
 
@@ -1281,6 +1482,22 @@ class BehandlingService(
                 saksbehandlerident = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                ExtraUtfallEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    utfallIdList = behandling.extraUtfallSet.map { it.id },
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.EXTRA_UTFALL,
+        )
+
         return behandling
     }
 
@@ -1298,6 +1515,22 @@ class BehandlingService(
         val event =
             behandling.setRegistreringshjemler(registreringshjemler, utfoerendeSaksbehandlerIdent)
         applicationEventPublisher.publishEvent(event)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                RegistreringshjemlerEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    hjemmelIdSet = behandling.registreringshjemler.map { it.id }.toSet(),
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.REGISTRERINGSHJEMLER,
+        )
+
         return behandling
     }
 
@@ -1306,7 +1539,7 @@ class BehandlingService(
         flowState: FlowState,
         utfoerendeSaksbehandlerIdent: String,
         systemUserContext: Boolean = false
-    ): Behandling {
+    ): RolView {
         val behandling = getBehandlingForWriteAllowROLAndMU(
             behandlingId = behandlingId,
             utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
@@ -1326,7 +1559,27 @@ class BehandlingService(
             )
         applicationEventPublisher.publishEvent(event2)
 
-        return behandling
+        val rolView = behandlingMapper.mapToRolView(behandling)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                RolEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = rolView.modified,
+                    navIdent = rolView.navIdent,
+                    name = rolView.navn,
+                    flowState = rolView.flowState,
+                    returnDate = behandling.rolReturnedDate,
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.ROL,
+        )
+
+        return rolView
     }
 
     fun setROLIdent(
@@ -1334,7 +1587,7 @@ class BehandlingService(
         rolIdent: String?,
         utfoerendeSaksbehandlerIdent: String,
         systemUserContext: Boolean = false
-    ): Behandling {
+    ): RolView {
         val behandlingForCheck = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         val behandling =
             if (saksbehandlerRepository.isKROL(utfoerendeSaksbehandlerIdent)) {
@@ -1371,7 +1624,28 @@ class BehandlingService(
                 utfoerendeIdent = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
-        return behandling
+
+        val rolView = behandlingMapper.mapToRolView(behandling)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                RolEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = rolView.modified,
+                    navIdent = rolView.navIdent,
+                    name = rolView.navn,
+                    flowState = rolView.flowState,
+                    returnDate = behandling.rolReturnedDate,
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.ROL,
+        )
+
+        return rolView
     }
 
     fun findCompletedBehandlingById(behandlingId: UUID): CompletedBehandling {

@@ -62,6 +62,7 @@ class SafGraphQlClient(
         }
     }
 
+    @Retryable
     fun getJournalpostsAsSaksbehandler(journalpostIdSet: Set<String>): List<Journalpost> {
         return getJournalposts(
             journalpostIdSet = journalpostIdSet,
@@ -69,6 +70,7 @@ class SafGraphQlClient(
         )
     }
 
+    @Retryable
     fun getJournalpostsAsSystembruker(journalpostIdSet: Set<String>): List<Journalpost> {
         return getJournalposts(
             journalpostIdSet = journalpostIdSet,
@@ -76,7 +78,27 @@ class SafGraphQlClient(
         )
     }
 
-    fun getJournalposts(
+    @Retryable
+    fun getJournalpostAsSaksbehandler(
+        journalpostId: String,
+    ): Journalpost {
+        return getJournalpostWithToken(
+            journalpostId = journalpostId,
+            token = tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
+        )
+    }
+
+    @Retryable
+    fun getJournalpostAsSystembruker(
+        journalpostId: String,
+    ): Journalpost {
+        return getJournalpostWithToken(
+            journalpostId = journalpostId,
+            token = tokenUtil.getAppAccessTokenWithSafScope()
+        )
+    }
+
+    private fun getJournalposts(
         journalpostIdSet: Set<String>,
         token: String,
     ): List<Journalpost> {
@@ -99,7 +121,6 @@ class SafGraphQlClient(
             }
     }
 
-    @Retryable
     private fun getJournalpostWithTokenAsMono(
         journalpostId: String,
         token: String
@@ -121,6 +142,25 @@ class SafGraphQlClient(
             logger.warn("Could not get journalpost with id $journalpostId", e)
             Mono.empty()
         }
+    }
+
+    private fun getJournalpostWithToken(
+        journalpostId: String,
+        token: String,
+    ): Journalpost {
+        return safWebClient.post()
+            .uri("graphql")
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer $token"
+            )
+            .bodyValue(hentJournalpostQuery(journalpostId))
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, "getJournalpost", secureLogger)
+            }
+            .bodyToMono<JournalpostResponse>()
+            .block()?.data?.journalpost ?: throw RuntimeException("Got null from SAF for journalpost with id $journalpostId")
     }
 
     private fun failOnErrors(response: JournalpostResponse) {

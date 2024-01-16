@@ -41,6 +41,10 @@ class PdlFacade(
         return true
     }
 
+    fun getFoedselsnummerFromSomeIdent(ident: String): String {
+        return pdlClient.getFoedselsnummerFromSomeIdent(ident = ident)
+    }
+
     private fun HentPersonResponse.getPersonOrThrowError(fnr: String): PdlPerson =
         if (this.errors.isNullOrEmpty() && this.data != null && this.data.hentPerson != null) {
             this.data.hentPerson

@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.domain.FysiskDokument
@@ -8,9 +9,11 @@ import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.api.view.JournalfoertDokumentMetadata
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.*
 import no.nav.klage.oppgave.clients.saf.rest.SafRestClient
+import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.DocumentToMerge
 import no.nav.klage.oppgave.domain.klage.MergedDocument
@@ -19,6 +22,7 @@ import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.repositories.MergedDocumentRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.io.MemoryUsageSetting
 import org.apache.pdfbox.io.RandomAccessReadBuffer
@@ -48,11 +52,16 @@ class DokumentService(
     private val dokumentMapper: DokumentMapper,
     private val kabalDocumentGateway: KabalDocumentGateway,
     private val safFacade: SafFacade,
+    private val kafkaInternalEventService: KafkaInternalEventService,
+    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
+    private val saksbehandlerService: SaksbehandlerService,
+    private val pdlFacade: PdlFacade,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val secureLogger = getSecureLogger()
+        private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
     fun fetchDokumentlisteForBehandling(
@@ -335,10 +344,45 @@ class DokumentService(
         dokumentInfoId: String,
         title: String
     ) {
-        return kabalDocumentGateway.updateDocumentTitle(
+        kabalDocumentGateway.updateDocumentTitle(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId,
             title = title
+        )
+
+        val journalpost = safFacade.getJournalpostAsSaksbehandler(
+            journalpostId = journalpostId,
+        )
+
+        val foedselsnummer = pdlFacade.getFoedselsnummerFromSomeIdent(journalpost.bruker.id)
+
+        val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                JournalfoertDocumentModified(
+                    actor = BaseEvent.Actor(
+                        navIdent = innloggetIdent,
+                        name = saksbehandlerService.getNameForIdent(innloggetIdent),
+                    ),
+                    timestamp = LocalDateTime.now(),
+                    journalpostId = journalpostId,
+                    dokumentInfoId = dokumentInfoId,
+                    tittel = title,
+                )
+            ),
+            identifikator = foedselsnummer,
+            type = InternalEventType.JOURNALFOERT_DOCUMENT_MODIFIED,
+        )
+    }
+
+    private fun publishInternalEvent(data: String, identifikator: String, type: InternalEventType) {
+        kafkaInternalEventService.publishInternalIdentityEvent(
+            InternalIdentityEvent(
+                identifikator = identifikator,
+                type = type,
+                data = data,
+            )
         )
     }
 }

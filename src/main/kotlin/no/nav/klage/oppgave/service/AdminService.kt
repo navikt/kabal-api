@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ArrayNode
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
@@ -25,6 +24,7 @@ import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.getSortKey
+import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.slf4j.Logger
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -62,7 +62,7 @@ class AdminService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val secureLogger = getSecureLogger()
-        private val objectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
+        private val objectMapper = ourJacksonObjectMapper()
     }
 
     fun syncKafkaWithDb() {

@@ -48,6 +48,11 @@ server:
     whitelabel:
       enabled: false
   shutdown: graceful
+  http2:
+    enabled: true
+  tomcat:
+    threads:
+      max: 600
 
 navCallIdName: Nav-Callid
 
@@ -244,7 +249,10 @@ MICROSOFT_GRAPH_URL: https://graph.microsoft.com/v1.0
 EGENANSATT_KAFKA_TOPIC: nom.skjermede-personer-v1
 PDL_PERSON_KAFKA_TOPIC: aapen-person-pdl-dokument-v1
 
-INTERNAL_EVENT_TOPIC: klage.internal-events.v1
+INTERNAL_BEHANDLING_EVENT_TOPIC: klage.internal-behandling-events.v1
+INTERNAL_IDENTITY_EVENT_TOPIC: klage.internal-identity-events.v1
+
+JOARK_DOCUMENT_TOPIC: teamdokumenthandtering.aapen-dok-journalfoering-q1
 
 SERVICE_USER_PASSWORD: itest
 
