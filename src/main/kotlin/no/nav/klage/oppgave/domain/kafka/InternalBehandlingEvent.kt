@@ -35,6 +35,8 @@ enum class InternalEventType {
     REGISTRERINGSHJEMLER,
     MOTTATT_VEDTAKSINSTANS,
     JOURNALFOERT_DOCUMENT_MODIFIED,
+    FEILREGISTRERING,
+    FERDIGSTILT,
 }
 
 abstract class BaseEvent(
@@ -43,7 +45,7 @@ abstract class BaseEvent(
 ) {
     data class Actor(
         val navIdent: String,
-        val name: String,
+        val navn: String,
     )
 }
 
@@ -159,4 +161,18 @@ data class JournalfoertDocumentModified(
     val journalpostId: String,
     val dokumentInfoId: String,
     val tittel: String,
+) : BaseEvent(actor = actor, timestamp = timestamp)
+
+data class FeilregistreringEvent(
+    override val actor: Actor,
+    override val timestamp: LocalDateTime,
+    val registered: LocalDateTime,
+    val reason: String,
+    val fagsystemId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp)
+
+data class BehandlingFerdigstiltEvent(
+    override val actor: Actor,
+    override val timestamp: LocalDateTime,
+    val avsluttetAvSaksbehandlerDate: LocalDateTime,
 ) : BaseEvent(actor = actor, timestamp = timestamp)

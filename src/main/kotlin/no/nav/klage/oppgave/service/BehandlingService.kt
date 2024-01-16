@@ -122,6 +122,22 @@ class BehandlingService(
     ): Behandling {
         val event = behandling.setAvsluttetAvSaksbehandler(innloggetIdent)
         applicationEventPublisher.publishEvent(event)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                BehandlingFerdigstiltEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = innloggetIdent,
+                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    avsluttetAvSaksbehandlerDate = behandling.avsluttetAvSaksbehandler!!,
+                )
+            ),
+            behandlingId = behandling.id,
+            type = InternalEventType.FERDIGSTILT,
+        )
+
         return behandling
     }
 
@@ -594,7 +610,7 @@ class BehandlingService(
                 MedunderskriverEvent(
                     actor = BaseEvent.Actor(
                         navIdent = systembrukerIdent,
-                        name = systembrukerIdent,
+                        navn = systembrukerIdent,
                     ),
                     timestamp = behandling.modified,
                     navIdent = null,
@@ -642,7 +658,7 @@ class BehandlingService(
                 RolEvent(
                     actor = BaseEvent.Actor(
                         navIdent = systembrukerIdent,
-                        name = systembrukerIdent,
+                        navn = systembrukerIdent,
                     ),
                     timestamp = behandling.modified,
                     navIdent = null,
@@ -774,7 +790,7 @@ class BehandlingService(
                     MottattVedtaksinstansEvent(
                         actor = BaseEvent.Actor(
                             navIdent = utfoerendeSaksbehandlerIdent,
-                            name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                            navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                         ),
                         timestamp = behandling.modified,
                         mottattVedtaksinstans = behandling.mottattVedtaksinstans,
@@ -865,7 +881,7 @@ class BehandlingService(
                 InnsendingshjemlerEvent(
                     actor = BaseEvent.Actor(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     hjemmelIdSet = behandling.hjemler.map { it.id }.toSet(),
@@ -903,7 +919,10 @@ class BehandlingService(
         val partView = if (behandling.klager.prosessfullmektig == null) {
             null
         } else {
-            partSearchService.searchPart(identifikator = behandling.klager.prosessfullmektig?.partId?.value!!, skipAccessControl = true)
+            partSearchService.searchPart(
+                identifikator = behandling.klager.prosessfullmektig?.partId?.value!!,
+                skipAccessControl = true
+            )
         }
 
         publishInternalEvent(
@@ -911,7 +930,7 @@ class BehandlingService(
                 FullmektigEvent(
                     actor = BaseEvent.Actor(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     part = partView?.let {
@@ -955,7 +974,7 @@ class BehandlingService(
                 KlagerEvent(
                     actor = BaseEvent.Actor(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     part = Part(
@@ -997,7 +1016,7 @@ class BehandlingService(
                 MedunderskriverEvent(
                     actor = BaseEvent.Actor(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = medunderskriverWrapped.modified,
                     navIdent = medunderskriverWrapped.navIdent,
@@ -1052,7 +1071,7 @@ class BehandlingService(
                 MedunderskriverEvent(
                     actor = BaseEvent.Actor(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = medunderskriverWrapped.modified,
                     navIdent = medunderskriverWrapped.navIdent,
@@ -1407,6 +1426,24 @@ class BehandlingService(
             saksbehandlerident = navIdent,
         )
         applicationEventPublisher.publishEvent(event)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                FeilregistreringEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = navIdent,
+                        navn = saksbehandlerService.getNameForIdent(navIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    registered = behandling.feilregistrering!!.registered,
+                    reason = behandling.feilregistrering!!.reason,
+                    fagsystemId = behandling.feilregistrering!!.fagsystem.id,
+                ),
+            ),
+            behandlingId = behandling.id,
+            type = InternalEventType.FEILREGISTRERING,
+        )
+
         return behandling
     }
 
@@ -1450,7 +1487,7 @@ class BehandlingService(
                 UtfallEvent(
                     actor = BaseEvent.Actor(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     utfallId = behandling.utfall?.id,
@@ -1488,7 +1525,7 @@ class BehandlingService(
                 ExtraUtfallEvent(
                     actor = BaseEvent.Actor(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     utfallIdList = behandling.extraUtfallSet.map { it.id },
@@ -1521,7 +1558,7 @@ class BehandlingService(
                 RegistreringshjemlerEvent(
                     actor = BaseEvent.Actor(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     hjemmelIdSet = behandling.registreringshjemler.map { it.id }.toSet(),
@@ -1566,7 +1603,7 @@ class BehandlingService(
                 RolEvent(
                     actor = BaseEvent.Actor(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = rolView.modified,
                     navIdent = rolView.navIdent,
@@ -1632,7 +1669,7 @@ class BehandlingService(
                 RolEvent(
                     actor = BaseEvent.Actor(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        name = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = rolView.modified,
                     navIdent = rolView.navIdent,

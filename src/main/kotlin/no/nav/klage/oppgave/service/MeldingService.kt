@@ -139,7 +139,7 @@ class MeldingService(
                 type = InternalEventType.MESSAGE,
                 data = objectMapper.writeValueAsString(
                     MeldingEvent(
-                        actor = BaseEvent.Actor(navIdent = utfoerendeIdent, name = utfoerendeName),
+                        actor = BaseEvent.Actor(navIdent = utfoerendeIdent, navn = utfoerendeName),
                         timestamp = timestamp,
                         id = melding.id.toString(),
                         text = melding.text,

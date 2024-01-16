@@ -83,7 +83,7 @@ class FerdigstillDokumentService(
                     DocumentFinishedEvent(
                         actor = BaseEvent.Actor(
                             navIdent = updatedDokument.markertFerdigBy!!,
-                            name = saksbehandlerService.getNameForIdent(updatedDokument.markertFerdigBy!!),
+                            navn = saksbehandlerService.getNameForIdent(updatedDokument.markertFerdigBy!!),
                         ),
                         timestamp = updatedDokument.ferdigstilt!!,
                         id = updatedDokument.id.toString(),
