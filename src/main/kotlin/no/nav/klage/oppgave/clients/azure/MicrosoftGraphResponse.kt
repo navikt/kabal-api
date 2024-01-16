@@ -8,7 +8,7 @@ data class AzureUser(
     val displayName: String,
     val givenName: String,
     val surname: String,
-    val mail: String,
+    val mail: String?,
     val officeLocation: String?,
     val userPrincipalName: String,
     val id: String,

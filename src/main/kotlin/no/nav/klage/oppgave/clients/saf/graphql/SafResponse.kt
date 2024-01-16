@@ -27,6 +27,7 @@ data class Journalpost(
     val journalstatus: Journalstatus?,
     val tema: Tema?,
     val sak: Sak?,
+    val bruker: Bruker,
     val avsenderMottaker: AvsenderMottaker?,
     val opprettetAvNavn: String?,
     val skjerming: String?,
@@ -36,6 +37,11 @@ data class Journalpost(
     val kanal: String,
     val kanalnavn: String,
     val utsendingsinfo: Utsendingsinfo?,
+)
+
+data class Bruker(
+    val id: String,
+    val type: String,
 )
 
 data class AvsenderMottaker(

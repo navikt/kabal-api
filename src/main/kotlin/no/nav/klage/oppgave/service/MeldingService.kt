@@ -1,17 +1,18 @@
 package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import jakarta.persistence.EntityNotFoundException
-import no.nav.klage.oppgave.api.mapper.MeldingMapper
-import no.nav.klage.oppgave.domain.kafka.Event
+import no.nav.klage.oppgave.domain.kafka.BaseEvent
+import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
+import no.nav.klage.oppgave.domain.kafka.InternalEventType
+import no.nav.klage.oppgave.domain.kafka.MeldingEvent
 import no.nav.klage.oppgave.domain.klage.Melding
 import no.nav.klage.oppgave.exceptions.MeldingNotFoundException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.MeldingRepository
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -23,14 +24,14 @@ class MeldingService(
     private val meldingRepository: MeldingRepository,
     private val behandlingRepository: BehandlingRepository,
     private val kafkaInternalEventService: KafkaInternalEventService,
-    private val meldingMapper: MeldingMapper,
+    private val saksbehandlerService: SaksbehandlerService,
 ) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
 
-        val objectMapper: ObjectMapper = jacksonObjectMapper().registerModule(JavaTimeModule())
+        val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
     fun addMelding(
@@ -39,16 +40,24 @@ class MeldingService(
         text: String
     ): Melding {
         logger.debug("saving new melding by $innloggetIdent")
-        return meldingRepository.save(
+
+        val melding = meldingRepository.save(
             Melding(
                 text = text,
                 behandlingId = behandlingId,
                 saksbehandlerident = innloggetIdent,
-                created = LocalDateTime.now()
+                created = LocalDateTime.now(),
             )
-        ).also {
-            publishInternalEvent(melding = it, type = "message_added")
-        }
+        )
+
+        publishInternalEvent(
+            melding = melding,
+            utfoerendeIdent = innloggetIdent,
+            utfoerendeName = saksbehandlerService.getNameForIdent(innloggetIdent),
+            timestamp = melding.modified ?: melding.created,
+        )
+
+        return melding
     }
 
     fun deleteMelding(
@@ -64,7 +73,7 @@ class MeldingService(
 
             logger.debug("melding ({}) deleted by {}", meldingId, innloggetIdent)
 
-            publishInternalEvent(melding = melding, type = "message_deleted")
+//            publishInternalEvent(melding = melding, type = "message_deleted")
         } catch (enfe: EntityNotFoundException) {
             throw MeldingNotFoundException("couldn't find melding with id $meldingId")
         }
@@ -86,7 +95,7 @@ class MeldingService(
             meldingRepository.save(melding)
             logger.debug("melding ({}) modified by {}", meldingId, innloggetIdent)
 
-            publishInternalEvent(melding = melding, type = "message_modified")
+//            publishInternalEvent(melding = melding, type = "message_modified")
 
             return melding
         } catch (enfe: EntityNotFoundException) {
@@ -117,13 +126,25 @@ class MeldingService(
         }
     }
 
-    private fun publishInternalEvent(melding: Melding, type: String) {
-        kafkaInternalEventService.publishEvent(
-            Event(
+    //TODO other types
+    private fun publishInternalEvent(
+        melding: Melding,
+        utfoerendeIdent: String,
+        utfoerendeName: String,
+        timestamp: LocalDateTime,
+    ) {
+        kafkaInternalEventService.publishInternalBehandlingEvent(
+            InternalBehandlingEvent(
                 behandlingId = melding.behandlingId.toString(),
-                name = type,
-                id = melding.id.toString(),
-                data = objectMapper.writeValueAsString(meldingMapper.toMeldingView(melding)),
+                type = InternalEventType.MESSAGE,
+                data = objectMapper.writeValueAsString(
+                    MeldingEvent(
+                        actor = BaseEvent.Actor(navIdent = utfoerendeIdent, navn = utfoerendeName),
+                        timestamp = timestamp,
+                        id = melding.id.toString(),
+                        text = melding.text,
+                    )
+                )
             )
         )
     }

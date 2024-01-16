@@ -106,6 +106,12 @@ internal class BehandlingAvslutningServiceTest {
 
         @MockkBean(relaxed = true)
         lateinit var historyService: HistoryService
+
+        @MockkBean(relaxed = true)
+        lateinit var kafkaInternalEventService: KafkaInternalEventService
+
+        @MockkBean(relaxed = true)
+        lateinit var partSearchService: PartSearchService
     }
 
     @Autowired

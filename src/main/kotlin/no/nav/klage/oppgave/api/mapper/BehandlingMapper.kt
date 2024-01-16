@@ -368,6 +368,13 @@ class BehandlingMapper(
         )
     }
 
+    fun mapToRolView(behandling: Behandling) = RolView(
+        navIdent = behandling.rolIdent,
+        navn = if (behandling.rolIdent != null) saksbehandlerRepository.getNameForSaksbehandler(behandling.rolIdent!!) else null,
+        flowState = behandling.rolFlowState,
+        modified = behandling.modified,
+    )
+
     private fun Feilregistrering?.toView(): BehandlingDetaljerView.FeilregistreringView? {
         return this?.let {
             BehandlingDetaljerView.FeilregistreringView(

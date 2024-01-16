@@ -49,4 +49,20 @@ class PdlClient(
                 .block() ?: throw RuntimeException("Person not found")
         }
     }
+
+    @Retryable
+    fun getFoedselsnummerFromSomeIdent(ident: String): String {
+        return runWithTiming {
+            val stsSystembrukerToken = tokenUtil.getAppAccessTokenWithPdlScope()
+            pdlWebClient.post()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $stsSystembrukerToken")
+                .bodyValue(hentFolkeregisterIdentQuery(ident))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(response, ::getFoedselsnummerFromSomeIdent.name, secureLogger)
+                }
+                .bodyToMono<HentFolkeregisterIdentResponse>()
+                .block()?.data?.hentIdenter?.identer?.firstOrNull()?.ident ?: throw RuntimeException("Person not found")
+        }
+    }
 }

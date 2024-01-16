@@ -52,13 +52,13 @@ class DefaultAzureGateway(private val microsoftGraphClient: MicrosoftGraphClient
             throw e
         }
         return SaksbehandlerPersonligInfo(
-            data.onPremisesSamAccountName,
-            data.id,
-            data.givenName,
-            data.surname,
-            data.displayName,
-            data.mail,
-            mapToEnhet(data.streetAddress),
+            navIdent = data.onPremisesSamAccountName,
+            azureId = data.id,
+            fornavn = data.givenName,
+            etternavn = data.surname,
+            sammensattNavn = data.displayName,
+            epost = data.mail,
+            enhet = mapToEnhet(data.streetAddress),
         )
     }
 

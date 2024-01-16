@@ -6,6 +6,6 @@ data class SaksbehandlerPersonligInfo(
     val fornavn: String,
     val etternavn: String,
     val sammensattNavn: String,
-    val epost: String,
+    val epost: String?,
     val enhet: Enhet,
 )

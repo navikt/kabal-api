@@ -1,7 +1,8 @@
 package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import no.nav.klage.oppgave.domain.kafka.Event
+import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
+import no.nav.klage.oppgave.domain.kafka.InternalIdentityEvent
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.beans.factory.annotation.Value
@@ -11,8 +12,10 @@ import org.springframework.stereotype.Service
 @Service
 class KafkaInternalEventService(
     private val aivenKafkaTemplate: KafkaTemplate<String, String>,
-    @Value("\${INTERNAL_EVENT_TOPIC}")
-    private val internalEventTopic: String,
+    @Value("\${INTERNAL_BEHANDLING_EVENT_TOPIC}")
+    private val internalBehandlingEventTopic: String,
+    @Value("\${INTERNAL_IDENTITY_EVENT_TOPIC}")
+    private val internalIdentityEventTopic: String,
 ) {
 
     companion object {
@@ -21,17 +24,31 @@ class KafkaInternalEventService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun publishEvent(event: Event) {
+    fun publishInternalBehandlingEvent(internalBehandlingEvent: InternalBehandlingEvent) {
         runCatching {
-            logger.debug("Publishing internal event to Kafka for subscribers: {}", event)
+            logger.debug("Publishing internalBehandlingEvent to Kafka for subscribers: {}", internalBehandlingEvent)
 
             val result = aivenKafkaTemplate.send(
-                internalEventTopic,
-                jacksonObjectMapper().writeValueAsString(event)
+                internalBehandlingEventTopic,
+                jacksonObjectMapper().writeValueAsString(internalBehandlingEvent)
             ).get()
-            logger.debug("Published internal event to Kafka for subscribers: {}", result)
+            logger.debug("Published internalBehandlingEvent to Kafka for subscribers: {}", result)
         }.onFailure {
-            logger.error("Could not publish internal event to subscribers", it)
+            logger.error("Could not publish internalBehandlingEvent to subscribers", it)
+        }
+    }
+
+    fun publishInternalIdentityEvent(internalIdentityEvent: InternalIdentityEvent) {
+        runCatching {
+            logger.debug("Publishing internalIdentityEvent to Kafka for subscribers: {}", internalIdentityEvent)
+
+            val result = aivenKafkaTemplate.send(
+                internalIdentityEventTopic,
+                jacksonObjectMapper().writeValueAsString(internalIdentityEvent)
+            ).get()
+            logger.debug("Published internalIdentityEvent to Kafka for subscribers: {}", result)
+        }.onFailure {
+            logger.error("Could not publish internalIdentityEvent to subscribers", it)
         }
     }
 }

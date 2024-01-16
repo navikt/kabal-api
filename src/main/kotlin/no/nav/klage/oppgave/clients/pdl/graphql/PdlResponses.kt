@@ -3,11 +3,23 @@ package no.nav.klage.oppgave.clients.pdl.graphql
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class HentFolkeregisterIdentResponse(val data: HentFolkeregisterIdentDataWrapper?, val errors: List<PdlError>? = null)
+
+data class HentFolkeregisterIdentDataWrapper(val hentIdenter: FolkeregisterIdenter)
+
+data class FolkeregisterIdenter(
+    val identer: List<FolkeregisterIdent>,
+)
+
+data class FolkeregisterIdent(
+    val ident: String,
+)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class HentPersonResponse(val data: DataWrapper?, val errors: List<PdlError>? = null)
+data class HentPersonResponse(val data: PdlPersonDataWrapper?, val errors: List<PdlError>? = null)
 
-data class DataWrapper(val hentPerson: PdlPerson?)
+data class PdlPersonDataWrapper(val hentPerson: PdlPerson?)
 
 data class PdlPerson(
     val adressebeskyttelse: List<Adressebeskyttelse>,

@@ -1,15 +1,14 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.FlowStateInput
 import no.nav.klage.oppgave.api.view.FlowStateView
 import no.nav.klage.oppgave.api.view.RolView
 import no.nav.klage.oppgave.api.view.SaksbehandlerInput
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
-import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
-import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -23,7 +22,7 @@ import java.util.*
 class BehandlingROLController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val behandlingService: BehandlingService,
-    private val saksbehandlerService: SaksbehandlerService,
+    private val behandlingMapper: BehandlingMapper,
 ) {
 
     companion object {
@@ -43,7 +42,7 @@ class BehandlingROLController(
         )
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
-        return behandling.toRolView()
+        return behandlingMapper.mapToRolView(behandling)
     }
 
     @GetMapping("/{id}/rolflowstate")
@@ -68,16 +67,14 @@ class BehandlingROLController(
             ::setROLIdent.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             behandlingId,
-            logger
+            logger,
         )
 
-        val behandling = behandlingService.setROLIdent(
+        return behandlingService.setROLIdent(
             behandlingId = behandlingId,
             rolIdent = input.navIdent,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
-
-        return behandling.toRolView()
     }
 
     @PutMapping("/{behandlingId}/rolflowstate")
@@ -89,21 +86,13 @@ class BehandlingROLController(
             ::setROLFlowState.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             behandlingId,
-            logger
+            logger,
         )
 
-        val behandling = behandlingService.setROLFlowState(
+        return behandlingService.setROLFlowState(
             behandlingId = behandlingId,
             flowState = input.flowState,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent())
-
-        return behandling.toRolView()
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+        )
     }
-
-    private fun Behandling.toRolView() = RolView(
-        navIdent = rolIdent,
-        navn = if (rolIdent != null) saksbehandlerService.getNameForIdent(rolIdent!!) else null,
-        flowState = rolFlowState,
-        modified = modified,
-    )
 }

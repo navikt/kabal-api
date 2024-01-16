@@ -140,6 +140,8 @@ class BehandlingServiceTest {
             behandlingMapper = behandlingMapper,
             historyService = mockk(),
             systembrukerIdent = "SYSTEMBRUKER",
+            kafkaInternalEventService = mockk(),
+            partSearchService = mockk(),
         )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
