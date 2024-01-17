@@ -9,32 +9,21 @@ class DokumentUnderArbeidTitleComparator : Comparator<DokumentUnderArbeid> {
 }
 
 fun compareStringsIncludingNumbers(a: String, b: String): Int {
-    val regex = "\\d+".toRegex()
+    val regex = "\\d+|\\D+".toRegex()
 
-    //remove all numbers
-    val aWithoutNumbers = a.replace(regex, "")
-    val bWithoutNumbers = b.replace(regex, "")
+    val splitA = regex.findAll(a).map { it.value }.toList()
+    val splitB = regex.findAll(b).map { it.value }.toList()
 
-    //if the if-check is true, then the strings are equal except the numbers
-    return if (aWithoutNumbers == bWithoutNumbers &&
-        a.length > aWithoutNumbers.length && //these are just making sure that the string did contain a number
-        b.length > bWithoutNumbers.length
-    ) {
-        //get first number for a and b
-        val aFirstNumber = regex.find(a)!!.value
-        val bFirstNumber = regex.find(b)!!.value
-
-        val indexOfANumber = a.indexOf(aFirstNumber)
-        val indexOfBNumber = b.indexOf(bFirstNumber)
-
-        //do the numbers start at the same place in the string?
-        if (indexOfANumber == indexOfBNumber) {
-            aFirstNumber.toInt().compareTo(bFirstNumber.toInt())
+    for ((i, j) in splitA zip splitB) {
+        val diff = if (i.first().isDigit() && j.first().isDigit()) {
+            i.toInt().compareTo(j.toInt())
         } else {
-            //if the numbers are on different locations in the strings, just run a normal compareTo()
-            a.compareTo(b)
+            i.compareTo(j)
         }
-    } else {
-        a.compareTo(b)
+        if (diff != 0) {
+            return diff
+        }
     }
+
+    return 0
 }

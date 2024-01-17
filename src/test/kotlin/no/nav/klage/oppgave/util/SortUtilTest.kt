@@ -4,8 +4,8 @@ package no.nav.klage.oppgave.util
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-
 class SortUtilTest {
+
     @Test
     fun `a comes before b`() {
         assertThat(
@@ -103,6 +103,80 @@ class SortUtilTest {
         ).containsExactly(
             "abc123",
             "abcdef",
+        )
+    }
+
+    @Test
+    fun `vedlegg 2 is before vedlegg 10`() {
+        assertThat(
+            listOf("vedlegg 10", "vedlegg 2").sortedWith { o1, o2 -> compareStringsIncludingNumbers(o1, o2) }
+        ).containsExactly(
+            "vedlegg 2",
+            "vedlegg 10",
+        )
+    }
+
+    @Test
+    fun `vedlegg 3 del 2 is before vedlegg 3 del 10`() {
+        assertThat(
+            listOf("vedlegg 3 del 10", "vedlegg 3 del 2").sortedWith { o1, o2 -> compareStringsIncludingNumbers(o1, o2) }
+        ).containsExactly(
+            "vedlegg 3 del 2",
+            "vedlegg 3 del 10",
+        )
+    }
+
+    @Test
+    fun `vedlegg 2 avsnitt 1 is before vedlegg 10 avsnitt 1`() {
+        assertThat(
+            listOf("vedlegg 10 avsnitt 1", "vedlegg 2 avsnitt 1").sortedWith { o1, o2 -> compareStringsIncludingNumbers(o1, o2) }
+        ).containsExactly(
+            "vedlegg 2 avsnitt 1",
+            "vedlegg 10 avsnitt 1",
+        )
+    }
+
+    @Test
+    fun `01-05-2014-vedlegg 2 is before 01-05-2014-vedlegg 2`() {
+        assertThat(
+            listOf("01-05-2014-vedlegg 2", "01-05-2014-vedlegg 1").sortedWith { o1, o2 -> compareStringsIncludingNumbers(o1, o2) }
+        ).containsExactly(
+            "01-05-2014-vedlegg 1",
+            "01-05-2014-vedlegg 2",
+        )
+    }
+
+    @Test
+    fun `01-05-2014-vedlegg 1 avsnitt 18 is before 01-05-2014-vedlegg 2 avsnitt 16`() {
+        assertThat(
+            listOf("01-05-2014-vedlegg 2 avsnitt 16", "01-05-2014-vedlegg 1 avsnitt 18").sortedWith { o1, o2 -> compareStringsIncludingNumbers(o1, o2) }
+        ).containsExactly(
+            "01-05-2014-vedlegg 1 avsnitt 18",
+            "01-05-2014-vedlegg 2 avsnitt 16",
+        )
+    }
+
+    @Test
+    fun `only first number matters`() {
+        assertThat(
+            listOf("Vedlegg 2 skutt", "Vedlegg 10 arst", "Vedlegg 3 skatt", "Vedlegg 0 regnskap").sortedWith { o1, o2 -> compareStringsIncludingNumbers(o1, o2) }
+        ).containsExactly(
+            "Vedlegg 0 regnskap",
+            "Vedlegg 2 skutt",
+            "Vedlegg 3 skatt",
+            "Vedlegg 10 arst",
+        )
+    }
+
+    @Test
+    fun `only first number matters 2`() {
+        assertThat(
+            listOf("Vedlegg2skutt", "Vedlegg10arst", "Vedlegg3skatt", "Vedlegg0regnskap").sortedWith { o1, o2 -> compareStringsIncludingNumbers(o1, o2) }
+        ).containsExactly(
+            "Vedlegg0regnskap",
+            "Vedlegg2skutt",
+            "Vedlegg3skatt",
+            "Vedlegg10arst",
         )
     }
 }
