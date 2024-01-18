@@ -67,7 +67,7 @@ class EventController(
         var traceId = "unknown"
         try {
             //[00-b37d69e0b7574e7c8ea89df62c9bab4c-ce0c8200a58042dd-00]
-            traceId = request.getHeader("traceparent").first().toString().split("-")[1]
+            traceId = request.getHeader("traceparent").split("-")[1]
         } catch (e: Exception) {
             logger.warn("could not extract traceId")
         }
