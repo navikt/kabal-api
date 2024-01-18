@@ -8,10 +8,7 @@ import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRe
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest.Document.Type
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.DocumentOutput
 import no.nav.klage.dokument.domain.FysiskDokument
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.JournalfoertDokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
@@ -166,6 +163,7 @@ class DokumentMapper {
             journalfoertDokumentReference = journalfoertDokumentReference,
             creatorIdent = unproxiedDUA.creatorIdent,
             creatorRole = unproxiedDUA.creatorRole,
+            datoMottatt = if (unproxiedDUA is OpplastetDokumentUnderArbeidAsHoveddokument ) unproxiedDUA.datoMottatt else null,
         )
     }
 

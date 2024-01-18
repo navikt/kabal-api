@@ -8,9 +8,7 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.PartId
-import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.*
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -47,13 +45,23 @@ class KabalDocumentMapper(
             )
         } else null
 
-        val vedleggMapped = vedlegg.filter { it !is JournalfoertDokumentUnderArbeidAsVedlegg }
-            .sortedByDescending { it.created }
-            .map { currentVedlegg ->
-                mapDokumentUnderArbeidToDokumentReferanse(
-                    dokument = currentVedlegg,
-                )
-            }.toMutableList()
+        val vedleggMapped = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+            vedlegg.filter { it !is JournalfoertDokumentUnderArbeidAsVedlegg }
+                .sortedWith(DokumentUnderArbeidTitleComparator())
+                .map { currentVedlegg ->
+                    mapDokumentUnderArbeidToDokumentReferanse(
+                        dokument = currentVedlegg,
+                    )
+                }.toMutableList()
+        } else {
+            vedlegg.filter { it !is JournalfoertDokumentUnderArbeidAsVedlegg }
+                .sortedByDescending { it.created }
+                .map { currentVedlegg ->
+                    mapDokumentUnderArbeidToDokumentReferanse(
+                        dokument = currentVedlegg,
+                    )
+                }.toMutableList()
+        }
         if (innholdsfortegnelseDocument != null) {
             vedleggMapped.add(0, innholdsfortegnelseDocument)
         }
