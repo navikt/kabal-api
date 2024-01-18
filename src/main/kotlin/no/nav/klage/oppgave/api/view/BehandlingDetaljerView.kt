@@ -71,6 +71,7 @@ data class BehandlingDetaljerView(
         val id: String
         val name: String?
         val available: Boolean
+        val language: String?
         val statusList: List<PartStatus>
     }
 
@@ -86,6 +87,7 @@ data class BehandlingDetaljerView(
             EGEN_ANSATT,
             VERGEMAAL,
             FULLMAKT,
+            RESERVERT_I_KRR,
         }
     }
 
@@ -106,6 +108,7 @@ data class BehandlingDetaljerView(
         override val name: String?,
         override val type: IdType,
         override val available: Boolean,
+        override val language: String?,
         override val statusList: List<PartStatus>,
     ): PartBase, IdPart
 
@@ -114,6 +117,7 @@ data class BehandlingDetaljerView(
         override val name: String?,
         override val type: IdType,
         override val available: Boolean,
+        override val language: String?,
         override val statusList: List<PartStatus>,
         val sex: Sex,
     ): PartBase, IdPart

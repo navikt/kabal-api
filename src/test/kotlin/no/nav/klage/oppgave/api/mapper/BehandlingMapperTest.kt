@@ -6,6 +6,7 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.*
@@ -39,6 +40,9 @@ class BehandlingMapperTest {
 
     @MockkBean
     lateinit var kabalDocumentGateway: KabalDocumentGateway
+
+    @MockkBean
+    lateinit var krrProxyClient: KrrProxyClient
 
     @Autowired
     lateinit var behandlingMapper: BehandlingMapper

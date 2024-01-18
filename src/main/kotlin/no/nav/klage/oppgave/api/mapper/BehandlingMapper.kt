@@ -6,6 +6,8 @@ import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.ereg.Organisasjon
+import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
+import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
@@ -22,6 +24,7 @@ class BehandlingMapper(
     private val norg2Client: Norg2Client,
     private val eregClient: EregClient,
     private val saksbehandlerRepository: SaksbehandlerRepository,
+    private val krrProxyClient: KrrProxyClient,
 ) {
 
     companion object {
@@ -229,6 +232,7 @@ class BehandlingMapper(
     fun getSakenGjelderView(sakenGjelder: SakenGjelder): BehandlingDetaljerView.SakenGjelderView {
         if (sakenGjelder.erPerson()) {
             val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(sakenGjelder.partId.value)
             return BehandlingDetaljerView.SakenGjelderView(
                 id = person.foedselsnr,
                 name = person.settSammenNavn(),
@@ -236,7 +240,8 @@ class BehandlingMapper(
                     ?: BehandlingDetaljerView.Sex.UKJENT,
                 type = BehandlingDetaljerView.IdType.FNR,
                 available = person.doed == null,
-                statusList = getStatusList(person),
+                language = krrInfo?.spraak,
+                statusList = getStatusList(person, krrInfo),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -260,12 +265,14 @@ class BehandlingMapper(
     private fun getPartView(identificator: String, isPerson: Boolean): BehandlingDetaljerView.PartView {
         return if (isPerson) {
             val person = pdlFacade.getPersonInfo(identificator)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identificator)
             BehandlingDetaljerView.PartView(
                 id = person.foedselsnr,
                 name = person.settSammenNavn(),
                 type = BehandlingDetaljerView.IdType.FNR,
                 available = person.doed == null,
-                statusList = getStatusList(person),
+                language = krrInfo?.spraak,
+                statusList = getStatusList(person, krrInfo),
             )
         } else {
             val organisasjon = eregClient.hentOrganisasjon(identificator)
@@ -274,6 +281,7 @@ class BehandlingMapper(
                 name = organisasjon.navn.sammensattnavn,
                 type = BehandlingDetaljerView.IdType.ORGNR,
                 available = organisasjon.isActive(),
+                language = null,
                 statusList = getStatusList(organisasjon),
             )
         }
@@ -389,38 +397,43 @@ class BehandlingMapper(
         }
     }
 
-    fun getStatusList(person: Person): List<BehandlingDetaljerView.PartStatus> {
+    fun getStatusList(pdlPerson: Person, krrInfo: DigitalKontaktinformasjon?): List<BehandlingDetaljerView.PartStatus> {
         val statusList = mutableListOf<BehandlingDetaljerView.PartStatus>()
 
-        if (person.doed != null) {
+        if (pdlPerson.doed != null) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.DEAD,
-                date = person.doed,
+                date = pdlPerson.doed,
             )
         }
-        if (person.fullmakt) {
+        if (pdlPerson.fullmakt) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.FULLMAKT,
             )
         }
-        if (person.vergemaalEllerFremtidsfullmakt) {
+        if (pdlPerson.vergemaalEllerFremtidsfullmakt) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.VERGEMAAL,
             )
         }
-        if (person.harBeskyttelsesbehovFortrolig()) {
+        if (pdlPerson.harBeskyttelsesbehovFortrolig()) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.FORTROLIG,
             )
         }
-        if (person.harBeskyttelsesbehovStrengtFortrolig()) {
+        if (pdlPerson.harBeskyttelsesbehovStrengtFortrolig()) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.STRENGT_FORTROLIG,
             )
         }
-        if (egenAnsattService.erEgenAnsatt(person.foedselsnr)) {
+        if (egenAnsattService.erEgenAnsatt(pdlPerson.foedselsnr)) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.EGEN_ANSATT,
+            )
+        }
+        if (krrInfo?.reservert == true) {
+            statusList += BehandlingDetaljerView.PartStatus(
+                status = BehandlingDetaljerView.PartStatus.Status.RESERVERT_I_KRR,
             )
         }
 
