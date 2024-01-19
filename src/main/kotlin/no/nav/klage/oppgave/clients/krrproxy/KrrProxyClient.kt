@@ -1,10 +1,12 @@
 package no.nav.klage.oppgave.clients.krrproxy
 
 import brave.Tracer
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
@@ -25,7 +27,9 @@ class KrrProxyClient(
         private val secureLogger = getSecureLogger()
     }
 
+    @Cacheable(CacheWithJCacheConfiguration.KRR_INFO_CACHE)
     fun getDigitalKontaktinformasjonForFnr(fnr: String): DigitalKontaktinformasjon? {
+        logger.debug("Getting info from KRR")
         return krrProxyWebClient.get()
             .uri("/rest/v1/person")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
