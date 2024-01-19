@@ -11,6 +11,7 @@ externalHosts:
   - host: arbeid-og-inntekt.prod-fss-pub.nais.io
   - host: nom-api.intern.nav.no
   - host: pdl-api.prod-fss-pub.nais.io
+  - host: digdir-krr-proxy.intern.nav.no
 inboundApplications:
   - application: kabal-frontend
   - application: klage-dittnav-api

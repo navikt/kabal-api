@@ -13,6 +13,9 @@ DVH_STATISTIKK_TOPIC: klage.kabal-statistikk.v1
 BEHANDLING_ENDRET_TOPIC_V2: klage.behandling-endret.v2
 BEHANDLING_EVENTS_TOPIC: klage.behandling-events.v1
 
+KRR_PROXY_REST_URL: https://digdir-krr-proxy.intern.nav.no/
+KRR_PROXY_SCOPE: prod-gcp.team-rocket.digdir-krr-proxy
+
 AIVEN_ES_HOST: elastic-klage-oppgave-es-nav-prod.aivencloud.com
 AIVEN_ES_PORT: 26482
 AIVEN_ES_SCHEME: https
