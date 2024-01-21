@@ -136,6 +136,32 @@ class SmartEditorController(
         )
     }
 
+    @Operation(
+        summary = "Get document with specific version",
+        description = "Get document with version"
+    )
+    @GetMapping("/{dokumentId}/versions/{version}")
+    fun getDocumentVersion(
+        @PathVariable("dokumentId") documentId: UUID,
+        @PathVariable("version") version: Int,
+    ): DokumentView {
+        val smartEditorId =
+            dokumentUnderArbeidService.getSmartEditorId(
+                dokumentId = documentId,
+                readOnly = true
+            )
+        val document = kabalSmartEditorApiGateway.getSmartDocumentResponseForVersion(
+            smartEditorId = smartEditorId,
+            version = version,
+        )
+
+        return dokumentMapper.mapToDokumentView(
+            dokumentUnderArbeid = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId),
+            journalpost = null,
+            smartEditorDocument = document,
+        )
+    }
+
     @GetMapping("/{dokumentId}/versions")
     fun findSmartDocumentVersions(
         @PathVariable("behandlingId") behandlingId: UUID,

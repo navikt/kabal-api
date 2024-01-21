@@ -44,6 +44,11 @@ class DefaultKabalSmartEditorApiGateway(
         return kabalSmartEditorApiClient.getDocument(smartEditorId)
     }
 
+    @Retryable
+    fun getSmartDocumentResponseForVersion(smartEditorId: UUID, version: Int): SmartDocumentResponse {
+        return kabalSmartEditorApiClient.getDocumentVersion(documentId = smartEditorId, version = version)
+    }
+
     fun createDocument(
         json: String,
         dokumentType: DokumentType,
