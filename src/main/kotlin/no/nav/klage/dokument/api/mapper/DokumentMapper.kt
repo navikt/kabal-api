@@ -6,7 +6,7 @@ import no.nav.klage.dokument.api.view.DokumentViewWithList
 import no.nav.klage.dokument.api.view.NewParent
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest.Document.Type
-import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.DocumentOutput
+import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.kodeverk.DokumentType
@@ -117,7 +117,7 @@ class DokumentMapper {
     fun mapToDokumentView(
         dokumentUnderArbeid: DokumentUnderArbeid,
         journalpost: Journalpost?,
-        smartEditorDocument: DocumentOutput?
+        smartEditorDocument: SmartDocumentResponse?
     ): DokumentView {
         val unproxiedDUA = Hibernate.unproxy(dokumentUnderArbeid) as DokumentUnderArbeid
 
