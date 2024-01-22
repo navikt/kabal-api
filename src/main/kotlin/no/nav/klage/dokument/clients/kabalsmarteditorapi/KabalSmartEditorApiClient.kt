@@ -2,6 +2,7 @@ package no.nav.klage.dokument.clients.kabalsmarteditorapi
 
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.DeleteCommentInput
+import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.DocumentUpdateInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.ModifyCommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.CommentOutput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
@@ -50,7 +51,8 @@ class KabalSmartEditorApiClient(
 
     fun updateDocument(
         documentId: UUID,
-        jsonInput: String
+        jsonInput: String,
+        currentVersion: Int?,
     ): SmartDocumentResponse {
         return kabalSmartEditorApiWebClient.put()
             .uri { it.path("/documents/$documentId").build() }
@@ -59,7 +61,12 @@ class KabalSmartEditorApiClient(
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalSmartEditorApiScope()}"
             )
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(jsonInput)
+            .bodyValue(
+                DocumentUpdateInput(
+                    json = jsonInput,
+                    currentVersion = currentVersion,
+                )
+            )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(response, ::updateDocument.name, secureLogger)

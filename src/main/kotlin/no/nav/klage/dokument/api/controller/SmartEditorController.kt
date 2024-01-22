@@ -109,7 +109,11 @@ class SmartEditorController(
             )
         }
 
-        val updatedDocument = kabalSmartEditorApiGateway.updateDocument(smartDocumentId, input.content.toString())
+        val updatedDocument = kabalSmartEditorApiGateway.updateDocument(
+            smartDocumentId = smartDocumentId,
+            json = input.content.toString(),
+            currentVersion = input.version,
+        )
 
         return DocumentModified(
             modified = updatedDocument.modified,
