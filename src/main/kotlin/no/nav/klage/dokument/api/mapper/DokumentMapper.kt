@@ -157,6 +157,9 @@ class DokumentMapper {
             content = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
                 jacksonObjectMapper().readTree(smartEditorDocument!!.json)
             } else null,
+            version = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
+                smartEditorDocument?.version
+            } else null,
             isMarkertAvsluttet = unproxiedDUA.markertFerdig != null,
             parentId = if (unproxiedDUA is DokumentUnderArbeidAsVedlegg) unproxiedDUA.parentId else null,
             type = unproxiedDUA.getType(),
