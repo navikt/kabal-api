@@ -47,7 +47,7 @@ class BehandlingMapper(
             id = klagebehandling.id,
             fraNAVEnhet = klagebehandling.avsenderEnhetFoersteinstans,
             fraNAVEnhetNavn = enhetNavn,
-            fraSaksbehandlerident = klagebehandling.avsenderSaksbehandleridentFoersteinstans,
+            previousSaksbehandlerident = klagebehandling.previousSaksbehandlerident,
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
             sakenGjelder = getSakenGjelderView(klagebehandling.sakenGjelder),
             klager = getPartView(klagebehandling.klager),
@@ -137,7 +137,7 @@ class BehandlingMapper(
             hjemmelIdList = ankebehandling.hjemler.map { it.id },
             modified = ankebehandling.modified,
             created = ankebehandling.created,
-            fraSaksbehandlerident = null,
+            previousSaksbehandlerident = ankebehandling.previousSaksbehandlerident,
             resultat = ankebehandling.mapToVedtakView(),
             kommentarFraVedtaksinstans = null,
             tilknyttedeDokumenter = ankebehandling.saksdokumenter.map {
@@ -193,7 +193,7 @@ class BehandlingMapper(
             hjemmelIdList = ankeITrygderettenbehandling.hjemler.map { it.id },
             modified = ankeITrygderettenbehandling.modified,
             created = ankeITrygderettenbehandling.created,
-            fraSaksbehandlerident = null,
+            previousSaksbehandlerident = ankeITrygderettenbehandling.previousSaksbehandlerident,
             resultat = ankeITrygderettenbehandling.mapToVedtakView(),
             kommentarFraVedtaksinstans = null,
             tilknyttedeDokumenter = ankeITrygderettenbehandling.saksdokumenter.map {

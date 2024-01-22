@@ -444,6 +444,7 @@ class BehandlingServiceTest {
                 Registreringshjemmel.ANDRE_TRYGDEAVTALER
             ) else mutableSetOf(),
             avsluttetAvSaksbehandler = if (fullfoert) LocalDateTime.now() else null,
+            previousSaksbehandlerident = "C78901",
         )
 
         behandlingRepository.save(behandling)

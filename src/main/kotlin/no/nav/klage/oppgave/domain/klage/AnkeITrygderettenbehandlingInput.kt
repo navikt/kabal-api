@@ -23,6 +23,7 @@ data class AnkeITrygderettenbehandlingInput(
     val sendtTilTrygderetten: LocalDateTime,
     val registreringsHjemmelSet: Set<Registreringshjemmel>? = null,
     val ankebehandlingUtfall: ExternalUtfall,
+    val previousSaksbehandlerident: String?,
 )
 
 fun Behandling.createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehandlingInput {
@@ -41,5 +42,6 @@ fun Behandling.createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehand
         sendtTilTrygderetten = avsluttetAvSaksbehandler!!,
         registreringsHjemmelSet = registreringshjemler,
         ankebehandlingUtfall = ExternalUtfall.valueOf(utfall!!.name),
+        previousSaksbehandlerident = tildeling!!.saksbehandlerident
     )
 }

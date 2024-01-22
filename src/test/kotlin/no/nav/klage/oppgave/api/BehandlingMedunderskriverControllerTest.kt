@@ -75,6 +75,7 @@ class BehandlingMedunderskriverControllerTest {
         avsenderEnhetFoersteinstans = "0101",
         kakaKvalitetsvurderingId = UUID.randomUUID(),
         kakaKvalitetsvurderingVersion = 2,
+        previousSaksbehandlerident = "C78901",
     )
 
     @BeforeEach

@@ -28,7 +28,7 @@ data class BehandlingDetaljerView(
     val hjemmelIdList: List<String>,
     val modified: LocalDateTime,
     val created: LocalDateTime,
-    val fraSaksbehandlerident: String? = null,
+    val previousSaksbehandlerident: String?,
     val resultat: VedtakView?,
     val kommentarFraVedtaksinstans: String?,
     val tilknyttedeDokumenter: Set<TilknyttetDokument>,

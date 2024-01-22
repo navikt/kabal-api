@@ -62,6 +62,7 @@ class AnkeITrygderettenbehandlingService(
                 },
                 sendtTilTrygderetten = input.sendtTilTrygderetten,
                 kjennelseMottatt = null,
+                previousSaksbehandlerident = input.previousSaksbehandlerident
             )
         )
         logger.debug("Created ankeITrygderettenbehandling {}", ankeITrygderettenbehandling.id)
