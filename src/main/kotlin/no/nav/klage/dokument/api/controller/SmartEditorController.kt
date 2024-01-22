@@ -154,7 +154,7 @@ class SmartEditorController(
                 dokumentId = documentId,
                 readOnly = true
             )
-        return kabalSmartEditorApiGateway.getDocumentVersions(smartEditorId)
+        return kabalSmartEditorApiGateway.getDocumentVersions(smartEditorId).reversed()
     }
 
     @Operation(
