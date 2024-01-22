@@ -38,28 +38,6 @@ class SmartEditorController(
         private val secureLogger = getSecureLogger()
     }
 
-    @GetMapping
-    fun findSmartDokumenter(
-        @PathVariable("behandlingId") behandlingId: UUID,
-    ): List<DokumentView> {
-        val ident = innloggetSaksbehandlerService.getInnloggetIdent()
-        return dokumentUnderArbeidService.getSmartDokumenterUnderArbeid(behandlingId = behandlingId, ident = ident)
-            .map {
-                val smartEditorId =
-                    dokumentUnderArbeidService.getSmartEditorId(
-                        dokumentId = it.id,
-                        readOnly = true
-                    )
-
-                val smartDocumentResponse = kabalSmartEditorApiGateway.getSmartDocumentResponse(smartEditorId)
-                dokumentMapper.mapToDokumentView(
-                    dokumentUnderArbeid = it,
-                    journalpost = null,
-                    smartEditorDocument = smartDocumentResponse,
-                )
-            }
-    }
-
     @PostMapping
     fun createSmartHoveddokument(
         @PathVariable("behandlingId") behandlingId: UUID,
@@ -176,7 +154,7 @@ class SmartEditorController(
                 dokumentId = documentId,
                 readOnly = true
             )
-        return kabalSmartEditorApiGateway.getDocumentVersions(smartEditorId)
+        return kabalSmartEditorApiGateway.getDocumentVersions(smartEditorId).reversed()
     }
 
     @Operation(

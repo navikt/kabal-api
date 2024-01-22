@@ -77,7 +77,6 @@ class DefaultKabalSmartEditorApiGateway(
     fun getDocumentVersions(documentId: UUID): List<SmartDocumentVersionView> {
         return kabalSmartEditorApiClient.getDocumentVersions(documentId = documentId).map {
             SmartDocumentVersionView(
-                id = it.documentId,
                 version = it.version,
                 author = it.authorNavIdent?.let { navIdent ->
                     SmartDocumentVersionView.Author(
