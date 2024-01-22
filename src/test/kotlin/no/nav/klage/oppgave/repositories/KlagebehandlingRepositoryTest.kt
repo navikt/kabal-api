@@ -157,6 +157,7 @@ class KlagebehandlingRepositoryTest {
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
             frist = LocalDate.now().plusWeeks(12),
+            previousSaksbehandlerident = "C78901",
         )
 
         ankebehandlingRepository.save(ankebehandling)
@@ -210,5 +211,6 @@ class KlagebehandlingRepositoryTest {
         saksdokumenter = saksdokumenter ?: mutableSetOf(),
         kakaKvalitetsvurderingId = UUID.randomUUID(),
         kakaKvalitetsvurderingVersion = 2,
+        previousSaksbehandlerident = "C78901",
     )
 }

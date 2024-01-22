@@ -104,7 +104,7 @@ fun Klagebehandling.mapToSkjemaV2(): BehandlingSkjemaV2 {
         sakFagsystem = fagsystem.mapToSkjemaV2(),
         sakFagsakId = fagsakId,
         innsendtDato = innsendt,
-        forrigeSaksbehandler = avsenderSaksbehandleridentFoersteinstans?.let {
+        forrigeSaksbehandler = previousSaksbehandlerident?.let {
             BehandlingSkjemaV2.Saksbehandler(it)
         },
         forrigeBehandlendeEnhet = avsenderEnhetFoersteinstans.let { BehandlingSkjemaV2.Enhet(it) },
