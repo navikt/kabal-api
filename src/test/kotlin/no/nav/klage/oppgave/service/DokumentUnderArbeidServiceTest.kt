@@ -4,8 +4,8 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.mockk
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
-import no.nav.klage.dokument.clients.kabalsmarteditorapi.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
+import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.dokument.service.*
 import no.nav.klage.kodeverk.DokumentType

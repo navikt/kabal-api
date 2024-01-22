@@ -1,11 +1,12 @@
 package no.nav.klage.dokument.clients.kabalsmarteditorapi
 
-import io.micrometer.tracing.Tracer
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.DeleteCommentInput
+import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.DocumentUpdateInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.ModifyCommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.CommentOutput
-import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.DocumentOutput
+import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
+import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentVersionResponse
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -22,7 +23,6 @@ import java.util.*
 class KabalSmartEditorApiClient(
     private val kabalSmartEditorApiWebClient: WebClient,
     private val tokenUtil: TokenUtil,
-    private val tracer: Tracer
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -32,7 +32,7 @@ class KabalSmartEditorApiClient(
 
     fun createDocument(
         jsonInput: String
-    ): DocumentOutput {
+    ): SmartDocumentResponse {
         return kabalSmartEditorApiWebClient.post()
             .uri { it.path("/documents").build() }
             .header(
@@ -45,14 +45,15 @@ class KabalSmartEditorApiClient(
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(response, ::createDocument.name, secureLogger)
             }
-            .bodyToMono<DocumentOutput>()
+            .bodyToMono<SmartDocumentResponse>()
             .block() ?: throw RuntimeException("Document could not be created")
     }
 
     fun updateDocument(
         documentId: UUID,
-        jsonInput: String
-    ): DocumentOutput {
+        jsonInput: String,
+        currentVersion: Int?,
+    ): SmartDocumentResponse {
         return kabalSmartEditorApiWebClient.put()
             .uri { it.path("/documents/$documentId").build() }
             .header(
@@ -60,18 +61,23 @@ class KabalSmartEditorApiClient(
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalSmartEditorApiScope()}"
             )
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(jsonInput)
+            .bodyValue(
+                DocumentUpdateInput(
+                    json = jsonInput,
+                    currentVersion = currentVersion,
+                )
+            )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(response, ::updateDocument.name, secureLogger)
             }
-            .bodyToMono<DocumentOutput>()
+            .bodyToMono<SmartDocumentResponse>()
             .block() ?: throw RuntimeException("Document could not be updated")
     }
 
     fun getDocument(
         documentId: UUID
-    ): DocumentOutput {
+    ): SmartDocumentResponse {
         return kabalSmartEditorApiWebClient.get()
             .uri { it.path("/documents/$documentId").build() }
             .header(
@@ -82,7 +88,25 @@ class KabalSmartEditorApiClient(
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(response, ::getDocument.name, secureLogger)
             }
-            .bodyToMono<DocumentOutput>()
+            .bodyToMono<SmartDocumentResponse>()
+            .block() ?: throw RuntimeException("Document could not be retrieved")
+    }
+
+    fun getDocumentVersion(
+        documentId: UUID,
+        version: Int,
+    ): SmartDocumentResponse {
+        return kabalSmartEditorApiWebClient.get()
+            .uri { it.path("/documents/$documentId/versions/$version").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalSmartEditorApiScope()}"
+            )
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getDocument.name, secureLogger)
+            }
+            .bodyToMono<SmartDocumentResponse>()
             .block() ?: throw RuntimeException("Document could not be retrieved")
     }
 
@@ -118,6 +142,23 @@ class KabalSmartEditorApiClient(
             }
             .bodyToMono<Unit>()
             .block()
+    }
+
+    fun getDocumentVersions(
+        documentId: UUID
+    ): List<SmartDocumentVersionResponse> {
+        return kabalSmartEditorApiWebClient.get()
+            .uri { it.path("/documents/$documentId/versions").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalSmartEditorApiScope()}"
+            )
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getDocument.name, secureLogger)
+            }
+            .bodyToMono<List<SmartDocumentVersionResponse>>()
+            .block() ?: throw RuntimeException("Document versions could not be retrieved")
     }
 
     fun createComment(

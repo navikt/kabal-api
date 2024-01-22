@@ -6,13 +6,13 @@ import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
-import no.nav.klage.dokument.clients.kabalsmarteditorapi.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.KabalSmartEditorApiClient
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.exceptions.JsonToPdfValidationException
+import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.PartIdType

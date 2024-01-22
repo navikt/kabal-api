@@ -55,7 +55,7 @@ class KlagebehandlingService(
                 innsendt = mottak.innsendtDato,
                 mottattVedtaksinstans = mottak.brukersHenvendelseMottattNavDato,
                 avsenderEnhetFoersteinstans = mottak.forrigeBehandlendeEnhet,
-                avsenderSaksbehandleridentFoersteinstans = mottak.forrigeSaksbehandlerident,
+                previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                 mottattKlageinstans = mottak.sakMottattKaDato,
                 tildeling = null,
                 frist = mottak.generateFrist(),

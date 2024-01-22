@@ -190,6 +190,7 @@ internal class BehandlingAvslutningServiceTest {
         kakaKvalitetsvurderingVersion = 2,
         utfall = Utfall.MEDHOLD,
         extraUtfallSet = setOf(Utfall.MEDHOLD),
+        previousSaksbehandlerident = "C78901",
     )
 
     @Test

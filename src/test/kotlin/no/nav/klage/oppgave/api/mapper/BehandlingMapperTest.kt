@@ -89,6 +89,7 @@ class BehandlingMapperTest {
             kakaKvalitetsvurderingId = UUID.randomUUID(),
             kakaKvalitetsvurderingVersion = 2,
             frist = LocalDate.now().plusWeeks(12),
+            previousSaksbehandlerident = "C78901",
         )
     }
 

@@ -221,6 +221,7 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     mottattVedtaksinstans = LocalDate.now(),
     kakaKvalitetsvurderingId = UUID.randomUUID(),
     kakaKvalitetsvurderingVersion = 2,
+    previousSaksbehandlerident = "C78901",
 )
 
 fun getPerson(): Person = Person(

@@ -86,6 +86,7 @@ class MeldingRepositoryTest {
             mottattVedtaksinstans = LocalDate.now(),
             kakaKvalitetsvurderingId = UUID.randomUUID(),
             kakaKvalitetsvurderingVersion = 2,
+            previousSaksbehandlerident = "C78901",
         )
 
         klagebehandlingRepository.save(klage)
