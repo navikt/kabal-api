@@ -74,6 +74,7 @@ class AnkebehandlingService(
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
                 sourceBehandlingId = mottak.forrigeBehandlingId,
+                previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
             )
         )
         logger.debug("Created ankebehandling {} for mottak {}", ankebehandling.id, mottak.id)
@@ -142,6 +143,7 @@ class AnkebehandlingService(
                 hjemler = ankeITrygderettenbehandling.hjemler,
                 klageBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
                 sourceBehandlingId = ankeITrygderettenbehandling.id,
+                previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
             )
         )
         logger.debug(

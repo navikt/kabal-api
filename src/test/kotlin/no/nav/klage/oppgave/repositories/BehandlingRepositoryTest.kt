@@ -156,7 +156,8 @@ class BehandlingRepositoryTest {
         avsenderEnhetFoersteinstans = "0101",
         mottattVedtaksinstans = LocalDate.now(),
         kakaKvalitetsvurderingVersion = 2,
-        kakaKvalitetsvurderingId = UUID.randomUUID()
+        kakaKvalitetsvurderingId = UUID.randomUUID(),
+        previousSaksbehandlerident = "C78901",
     )
 
 }

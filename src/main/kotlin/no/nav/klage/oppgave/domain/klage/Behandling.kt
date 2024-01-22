@@ -166,6 +166,8 @@ abstract class Behandling(
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     open val sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
+    @Column(name = "previous_saksbehandlerident")
+    val previousSaksbehandlerident: String?,
     ) {
 
     /**

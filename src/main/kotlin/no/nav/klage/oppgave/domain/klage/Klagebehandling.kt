@@ -18,9 +18,6 @@ class Klagebehandling(
     //Brukes ikke i anke
     @Column(name = "dato_mottatt_foersteinstans")
     var mottattVedtaksinstans: LocalDate,
-    //Mulig at identen ikke brukes. Sjekk om dette kan droppes.
-    @Column(name = "avsender_saksbehandlerident_foersteinstans")
-    val avsenderSaksbehandleridentFoersteinstans: String? = null,
     //Vises i GUI.
     @Column(name = "avsender_enhet_foersteinstans")
     val avsenderEnhetFoersteinstans: String,
@@ -71,6 +68,7 @@ class Klagebehandling(
     klagerHistorikk: MutableSet<KlagerHistorikk> = mutableSetOf(),
     fullmektigHistorikk: MutableSet<FullmektigHistorikk> = mutableSetOf(),
     sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
+    previousSaksbehandlerident: String?,
 ) : Behandling(
     id = id,
     klager = klager,
@@ -106,6 +104,7 @@ class Klagebehandling(
     klagerHistorikk = klagerHistorikk,
     fullmektigHistorikk = fullmektigHistorikk,
     sattPaaVentHistorikk = sattPaaVentHistorikk,
+    previousSaksbehandlerident = previousSaksbehandlerident,
 ) {
 
     override fun toString(): String {
