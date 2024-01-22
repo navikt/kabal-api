@@ -38,6 +38,7 @@ enum class InternalEventType {
     FEILREGISTRERING,
     FERDIGSTILT,
     SATT_PAA_VENT,
+    TILDELING,
 }
 
 abstract class BaseEvent(
@@ -189,3 +190,11 @@ data class SattPaaVentEvent(
         val reason: String,
     )
 }
+
+data class TildelingEvent(
+    override val actor: Actor,
+    override val timestamp: LocalDateTime,
+    val navIdent: String?,
+    val name: String?,
+    val fradelingReasonId: String?,
+) : BaseEvent(actor = actor, timestamp = timestamp)

@@ -26,6 +26,7 @@ import no.nav.klage.oppgave.domain.kafka.MedunderskriverEvent
 import no.nav.klage.oppgave.domain.kafka.Part
 import no.nav.klage.oppgave.domain.kafka.RolEvent
 import no.nav.klage.oppgave.domain.kafka.SattPaaVentEvent
+import no.nav.klage.oppgave.domain.kafka.TildelingEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
@@ -534,10 +535,28 @@ class BehandlingService(
                 fradelingWithChangedHjemmelIdList = fradelingWithChangedHjemmelIdList,
             )
         applicationEventPublisher.publishEvent(event)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                TildelingEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    navIdent = tildeltSaksbehandlerIdent,
+                    name = tildeltSaksbehandlerIdent?.let { saksbehandlerService.getNameForIdent(it) },
+                    fradelingReasonId = fradelingReason?.id,
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.TILDELING,
+        )
+
         return getSaksbehandlerViewWrapped(behandling)
     }
 
-    fun setTildeltSaksbehandlerToNullInSystemContext(
+    fun setExpiredTildeltSaksbehandlerToNullInSystemContext(
         behandlingId: UUID,
     ) {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId, systemUserContext = true)
@@ -583,6 +602,23 @@ class BehandlingService(
                 fradelingWithChangedHjemmelIdList = null,
             )
         applicationEventPublisher.publishEvent(event)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                TildelingEvent(
+                    actor = BaseEvent.Actor(
+                        navIdent = systembrukerIdent,
+                        navn = systembrukerIdent,
+                    ),
+                    timestamp = behandling.modified,
+                    navIdent = null,
+                    name = null,
+                    fradelingReasonId = FradelingReason.UTGAATT.id,
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.TILDELING,
+        )
     }
 
     fun setMedunderskriverToNullInSystemContext(
