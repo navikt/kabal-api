@@ -123,7 +123,7 @@ class StatistikkTilDVHServiceTest {
 
     private val klagebehandlingOMP = Klagebehandling(
         mottattVedtaksinstans = LocalDate.now(),
-        avsenderSaksbehandleridentFoersteinstans = null,
+        previousSaksbehandlerident = null,
         avsenderEnhetFoersteinstans = "",
         kommentarFraFoersteinstans = null,
         mottakId = UUID.randomUUID(),
@@ -161,7 +161,7 @@ class StatistikkTilDVHServiceTest {
 
     private val klagebehandlingHJE = Klagebehandling(
         mottattVedtaksinstans = LocalDate.now(),
-        avsenderSaksbehandleridentFoersteinstans = null,
+        previousSaksbehandlerident = null,
         avsenderEnhetFoersteinstans = "",
         kommentarFraFoersteinstans = null,
         mottakId = UUID.randomUUID(),
@@ -232,6 +232,7 @@ class StatistikkTilDVHServiceTest {
         klageVedtaksDato = null,
         klageBehandlendeEnhet = "",
         sourceBehandlingId = null,
+        previousSaksbehandlerident = "C78901",
     )
 
     private val ankeITrygderettenbehandlingOMP = AnkeITrygderettenbehandling(
@@ -264,5 +265,6 @@ class StatistikkTilDVHServiceTest {
         sattPaaVent = null,
         sendtTilTrygderetten = LocalDateTime.now(),
         kjennelseMottatt = null,
+        previousSaksbehandlerident = "C78901",
     )
 }

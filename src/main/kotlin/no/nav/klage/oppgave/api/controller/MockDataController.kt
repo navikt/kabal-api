@@ -318,6 +318,7 @@ class MockDataController(
                     sendtTilTrygderetten = LocalDateTime.now(),
                     registreringsHjemmelSet = registreringsHjemmelSet,
                     ankebehandlingUtfall = ExternalUtfall.valueOf(utfallToTrygderetten.random().name),
+                    previousSaksbehandlerident = null,
                 )
 
                 ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
