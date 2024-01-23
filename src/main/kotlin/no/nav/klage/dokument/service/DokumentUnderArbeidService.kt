@@ -1,6 +1,7 @@
 package no.nav.klage.dokument.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.micrometer.core.instrument.MeterRegistry
 import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
@@ -22,6 +23,7 @@ import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentMapper
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
+import no.nav.klage.oppgave.config.getHistogram
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
@@ -44,6 +46,7 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+
 
 @Service
 @Transactional
@@ -72,6 +75,7 @@ class DokumentUnderArbeidService(
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val saksbehandlerService: SaksbehandlerService,
     private val kabalSmartEditorApiClient: KabalSmartEditorApiClient,
+    private val meterRegistry: MeterRegistry,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
@@ -80,6 +84,11 @@ class DokumentUnderArbeidService(
         private val secureLogger = getSecureLogger()
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
+
+    private val metricForSmartDocumentVersions = meterRegistry.getHistogram(
+        name = "smartDocument.versions",
+        baseUnit = "versions",
+    )
 
     fun createOpplastetDokumentUnderArbeid(
         behandlingId: UUID,
@@ -887,7 +896,18 @@ class DokumentUnderArbeidService(
         val vedlegg = getVedlegg(hovedDokument.id)
 
         if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument && hovedDokument.isStaleSmartEditorDokument()) {
-            mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(hovedDokument)
+            mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(
+                dokument = hovedDokument,
+            )
+            try {
+                metricForSmartDocumentVersions.record(
+                    smartEditorApiGateway.getDocumentVersions(
+                        documentId = hovedDokument.smartEditorId
+                    ).size.toDouble()
+                )
+            } catch (e: Exception) {
+                logger.warn("could not record metrics for smart document versions", e)
+            }
         }
         vedlegg.forEach {
             if (it is SmartdokumentUnderArbeidAsVedlegg && it.isStaleSmartEditorDokument()) {

@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.config
 
+import io.micrometer.core.instrument.DistributionSummary
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.Tag
 import no.nav.klage.oppgave.util.getLogger
@@ -36,4 +37,11 @@ fun MeterRegistry.getGauge(eventType: String, currentCount: AtomicInteger): Atom
         /* tags = */ listOf(Tag.of("event-type", eventType)),
         /* number = */ currentCount
     )!!
+}
+
+fun MeterRegistry.getHistogram(name: String, baseUnit: String): DistributionSummary {
+    return DistributionSummary
+        .builder(name)
+        .baseUnit(baseUnit)
+        .register(this)
 }
