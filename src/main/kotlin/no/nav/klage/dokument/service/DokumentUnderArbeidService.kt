@@ -95,11 +95,14 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        if (behandling.avsluttetAvSaksbehandler == null) {
-            validateCanCreateDocuments(
-                behandlingRole = behandlingRole,
-                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId).get() else null
-            )
+        if (dokumentType != DokumentType.KJENNELSE_FRA_TRYGDERETTEN || !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+            if (behandling.avsluttetAvSaksbehandler == null) {
+                validateCanCreateDocuments(
+                    behandlingRole = behandlingRole,
+                    parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId)
+                        .get() else null
+                )
+            }
         }
 
         if (opplastetFil == null) {
