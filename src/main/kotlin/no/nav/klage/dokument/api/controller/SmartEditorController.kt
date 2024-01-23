@@ -69,7 +69,7 @@ class SmartEditorController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
         @RequestBody input: PatchSmartHovedDokumentInput,
-    ): DocumentModified {
+    ): SmartDocumentModified {
         val smartDocumentId =
             dokumentUnderArbeidService.getSmartEditorId(
                 dokumentId = dokumentId,
@@ -93,8 +93,9 @@ class SmartEditorController(
             currentVersion = input.version,
         )
 
-        return DocumentModified(
+        return SmartDocumentModified(
             modified = updatedDocument.modified,
+            version = updatedDocument.version,
         )
     }
 
