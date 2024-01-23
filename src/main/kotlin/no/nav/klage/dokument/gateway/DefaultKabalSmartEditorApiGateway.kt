@@ -36,7 +36,7 @@ class DefaultKabalSmartEditorApiGateway(
 
     @Retryable
     fun getDocumentAsJson(smartEditorId: UUID): String {
-        return kabalSmartEditorApiClient.getDocument(smartEditorId).json
+        return getSmartDocumentResponse(smartEditorId = smartEditorId).json
     }
 
     @Retryable
