@@ -49,6 +49,11 @@ data class DocumentModified(
     val modified: LocalDateTime,
 )
 
+data class SmartDocumentModified(
+    val modified: LocalDateTime,
+    val version: Int,
+)
+
 data class NewParent(
     val id: UUID,
     val parentId: UUID,
