@@ -309,7 +309,7 @@ class AdminService(
             if (assignedSaksbehandler != null) {
                 if (checkIfAssigneeIsExpired(navIdent = assignedSaksbehandler)) {
                     logger.info("Behandling ${it.id} has expired tildeling: $assignedSaksbehandler, setting to null.")
-                    behandlingService.setTildeltSaksbehandlerToNullInSystemContext(it.id)
+                    behandlingService.setExpiredTildeltSaksbehandlerToNullInSystemContext(it.id)
                 }
             }
         }
