@@ -1,5 +1,6 @@
 package no.nav.klage.dokument.api.controller
 
+import com.fasterxml.jackson.databind.JsonNode
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.mapper.DokumentMapper
@@ -16,6 +17,7 @@ import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -127,7 +129,7 @@ class SmartEditorController(
     fun getDocumentVersion(
         @PathVariable("dokumentId") documentId: UUID,
         @PathVariable("version") version: Int,
-    ): DokumentView {
+    ): JsonNode {
         val smartEditorId =
             dokumentUnderArbeidService.getSmartEditorId(
                 dokumentId = documentId,
@@ -138,11 +140,7 @@ class SmartEditorController(
             version = version,
         )
 
-        return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId),
-            journalpost = null,
-            smartEditorDocument = document,
-        )
+        return ourJacksonObjectMapper().readTree(document.json)
     }
 
     @GetMapping("/{dokumentId}/versions")
