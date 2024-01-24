@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
+import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -17,6 +18,7 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
+import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.kafka.BaseEvent
@@ -65,6 +67,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 
 @Service
 @Transactional
@@ -86,6 +89,7 @@ class BehandlingService(
     private val historyService: HistoryService,
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val partSearchService: PartSearchService,
+    private val safFacade: SafFacade,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
@@ -1206,6 +1210,16 @@ class BehandlingService(
             ignoreCheckSkrivetilgang = ignoreCheckSkrivetilgang,
             systemUserContext = systemUserContext,
         )
+
+        val journalpostListForUser = safFacade.getJournalposter(
+            journalpostIdSet = journalfoertDokumentReferenceSet.map { it.journalpostId }.toSet(),
+            fnr = behandling.sakenGjelder.partId.value,
+            saksbehandlerContext = true,
+        )
+
+        if (journalpostListForUser.any { it.journalstatus == Journalstatus.MOTTATT }) {
+            throw DokumentValidationException("Kan ikke legge til journalførte dokumenter med status 'Mottatt' som relevant for saken. Fullfør journalføring i Gosys for å gjøre dette." )
+        }
 
         addDokumentSet(
             behandling = behandling,

@@ -23,6 +23,7 @@ import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentMapper
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
+import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.getHistogram
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
@@ -379,6 +380,10 @@ class DokumentUnderArbeidService(
             fnr = behandling.sakenGjelder.partId.value,
             saksbehandlerContext = true,
         )
+
+        if (journalpostListForUser.any { it.journalstatus == Journalstatus.MOTTATT }) {
+            throw DokumentValidationException("Kan ikke legge til journalførte dokumenter med status 'Mottatt' som vedlegg. Fullfør journalføring i Gosys for å gjøre dette." )
+        }
 
         val (added, duplicates) = createJournalfoerteDokumenter(
             parentId = journalfoerteDokumenterInput.parentId,

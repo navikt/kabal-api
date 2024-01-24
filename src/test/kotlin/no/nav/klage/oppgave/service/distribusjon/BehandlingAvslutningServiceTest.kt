@@ -17,6 +17,7 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFu
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
+import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
@@ -112,6 +113,9 @@ internal class BehandlingAvslutningServiceTest {
 
         @MockkBean(relaxed = true)
         lateinit var partSearchService: PartSearchService
+
+        @MockkBean(relaxed = true)
+        lateinit var safFacade: SafFacade
     }
 
     @Autowired
