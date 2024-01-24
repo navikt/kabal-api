@@ -89,7 +89,7 @@ class BehandlingService(
     private val historyService: HistoryService,
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val partSearchService: PartSearchService,
-    privat val safFacade: SafFacade,
+    private val safFacade: SafFacade,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
