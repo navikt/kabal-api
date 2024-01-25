@@ -1214,7 +1214,7 @@ class BehandlingService(
         val journalpostListForUser = safFacade.getJournalposter(
             journalpostIdSet = journalfoertDokumentReferenceSet.map { it.journalpostId }.toSet(),
             fnr = behandling.sakenGjelder.partId.value,
-            saksbehandlerContext = true,
+            saksbehandlerContext = !systemUserContext,
         )
 
         if (journalpostListForUser.any { it.journalstatus == Journalstatus.MOTTATT }) {
