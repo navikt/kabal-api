@@ -353,11 +353,9 @@ class MottakService(
             type = type,
         )
 
-        return if (potentialDuplicate.isNotEmpty()) {
-            !potentialDuplicate.all {
-                it.utfall in listOf(Utfall.RETUR, Utfall.OPPHEVET)
-            }
-        } else false
+        return (potentialDuplicate.any {
+            it.utfall !in listOf(Utfall.RETUR, Utfall.OPPHEVET)
+        })
     }
 
     private fun validateOptionalDateTimeNotInFuture(inputDateTime: LocalDateTime?, parameterName: String) {
