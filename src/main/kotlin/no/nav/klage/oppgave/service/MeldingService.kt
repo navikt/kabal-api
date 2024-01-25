@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.EntityNotFoundException
-import no.nav.klage.oppgave.domain.kafka.BaseEvent
+import no.nav.klage.oppgave.domain.kafka.Employee
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.domain.kafka.MeldingEvent
@@ -139,7 +139,7 @@ class MeldingService(
                 type = InternalEventType.MESSAGE,
                 data = objectMapper.writeValueAsString(
                     MeldingEvent(
-                        actor = BaseEvent.Actor(navIdent = utfoerendeIdent, navn = utfoerendeName),
+                        actor = Employee(navIdent = utfoerendeIdent, navn = utfoerendeName),
                         timestamp = timestamp,
                         id = melding.id.toString(),
                         text = melding.text,

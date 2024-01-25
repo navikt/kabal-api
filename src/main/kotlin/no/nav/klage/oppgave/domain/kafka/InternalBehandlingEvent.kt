@@ -41,27 +41,29 @@ enum class InternalEventType {
     TILDELING,
 }
 
+data class Employee(
+    val navIdent: String,
+    val navn: String,
+)
+
 abstract class BaseEvent(
-    open val actor: Actor,
+    open val actor: Employee,
     open val timestamp: LocalDateTime,
-) {
-    data class Actor(
-        val navIdent: String,
-        val navn: String,
-    )
-}
+)
 
 data class MedunderskriverEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
+    val medunderskriver: Employee?,
     val navIdent: String?,
     val name: String?,
     val flowState: FlowState,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class RolEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
+    val rol: Employee?,
     val navIdent: String?,
     val name: String?,
     val flowState: FlowState,
@@ -69,13 +71,13 @@ data class RolEvent(
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class KlagerEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val part: Part,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class FullmektigEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val part: Part?,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
@@ -88,44 +90,44 @@ data class Part(
 )
 
 data class MeldingEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val id: String,
     val text: String,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class UtfallEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val utfallId: String?,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class ExtraUtfallEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val utfallIdList: List<String>,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class InnsendingshjemlerEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val hjemmelIdSet: Set<String>,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class RegistreringshjemlerEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val hjemmelIdSet: Set<String>,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class MottattVedtaksinstansEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val mottattVedtaksinstans: LocalDate,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class DocumentsChangedEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val documents: List<DocumentChanged>,
 ) : BaseEvent(actor = actor, timestamp = timestamp) {
@@ -139,26 +141,26 @@ data class DocumentsChangedEvent(
 }
 
 data class DocumentFinishedEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val id: String,
     val journalpostList: List<DokumentReferanse>,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class DocumentsRemovedEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val idList: List<String>,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class DocumentsAddedEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val documents: List<DokumentView>,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class JournalfoertDocumentModified(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val journalpostId: String,
     val dokumentInfoId: String,
@@ -166,7 +168,7 @@ data class JournalfoertDocumentModified(
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class FeilregistreringEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val registered: LocalDateTime,
     val reason: String,
@@ -174,13 +176,13 @@ data class FeilregistreringEvent(
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class BehandlingFerdigstiltEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val avsluttetAvSaksbehandlerDate: LocalDateTime,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class SattPaaVentEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
     val sattPaaVent: SattPaaVent?,
 ) : BaseEvent(actor = actor, timestamp = timestamp) {
@@ -192,9 +194,9 @@ data class SattPaaVentEvent(
 }
 
 data class TildelingEvent(
-    override val actor: Actor,
+    override val actor: Employee,
     override val timestamp: LocalDateTime,
-    val navIdent: String?,
-    val name: String?,
+    val saksbehandler: Employee?,
     val fradelingReasonId: String?,
+    val hjemmelIdList: List<String>,
 ) : BaseEvent(actor = actor, timestamp = timestamp)

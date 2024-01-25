@@ -6,8 +6,8 @@ import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
-import no.nav.klage.oppgave.domain.kafka.BaseEvent
 import no.nav.klage.oppgave.domain.kafka.DocumentFinishedEvent
+import no.nav.klage.oppgave.domain.kafka.Employee
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.service.BehandlingService
@@ -81,7 +81,7 @@ class FerdigstillDokumentService(
             publishInternalEvent(
                 data = objectMapper.writeValueAsString(
                     DocumentFinishedEvent(
-                        actor = BaseEvent.Actor(
+                        actor = Employee(
                             navIdent = updatedDokument.markertFerdigBy!!,
                             navn = saksbehandlerService.getNameForIdent(updatedDokument.markertFerdigBy!!),
                         ),

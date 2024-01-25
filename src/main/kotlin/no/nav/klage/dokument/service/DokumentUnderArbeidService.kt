@@ -174,7 +174,7 @@ class DokumentUnderArbeidService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 DocumentsAddedEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = innloggetIdent,
                         navn = saksbehandlerService.getNameForIdent(innloggetIdent),
                     ),
@@ -229,7 +229,7 @@ class DokumentUnderArbeidService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 DocumentsChangedEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = innloggetIdent,
                         navn = saksbehandlerService.getNameForIdent(innloggetIdent),
                     ),
@@ -345,7 +345,7 @@ class DokumentUnderArbeidService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 DocumentsAddedEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = innloggetIdent,
                         navn = saksbehandlerService.getNameForIdent(innloggetIdent),
                     ),
@@ -403,7 +403,7 @@ class DokumentUnderArbeidService(
             publishInternalEvent(
                 data = objectMapper.writeValueAsString(
                     DocumentsAddedEvent(
-                        actor = BaseEvent.Actor(
+                        actor = Employee(
                             navIdent = innloggetIdent,
                             navn = saksbehandlerService.getNameForIdent(innloggetIdent),
                         ),
@@ -607,7 +607,7 @@ class DokumentUnderArbeidService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 DocumentsChangedEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = innloggetIdent,
                         navn = saksbehandlerService.getNameForIdent(innloggetIdent),
                     ),
@@ -671,7 +671,7 @@ class DokumentUnderArbeidService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 DocumentsChangedEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = innloggetIdent,
                         navn = saksbehandlerService.getNameForIdent(innloggetIdent),
                     ),
@@ -740,7 +740,7 @@ class DokumentUnderArbeidService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 DocumentsChangedEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = innloggetIdent,
                         navn = saksbehandlerService.getNameForIdent(innloggetIdent),
                     ),
@@ -966,7 +966,7 @@ class DokumentUnderArbeidService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 DocumentsChangedEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = innloggetIdent,
                         navn = saksbehandlerService.getNameForIdent(innloggetIdent),
                     ),
@@ -1169,7 +1169,7 @@ class DokumentUnderArbeidService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 DocumentsRemovedEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = innloggetIdent,
                         navn = saksbehandlerService.getNameForIdent(innloggetIdent),
                     ),

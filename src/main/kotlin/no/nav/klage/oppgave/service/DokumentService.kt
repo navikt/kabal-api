@@ -361,7 +361,7 @@ class DokumentService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 JournalfoertDocumentModified(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = innloggetIdent,
                         navn = saksbehandlerService.getNameForIdent(innloggetIdent),
                     ),

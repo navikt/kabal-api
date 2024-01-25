@@ -19,9 +19,9 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
 import no.nav.klage.oppgave.clients.saf.SafFacade
+import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.domain.kafka.BaseEvent
 import no.nav.klage.oppgave.domain.kafka.FullmektigEvent
 import no.nav.klage.oppgave.domain.kafka.KlagerEvent
 import no.nav.klage.oppgave.domain.kafka.MedunderskriverEvent
@@ -67,7 +67,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
-import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 
 @Service
 @Transactional
@@ -132,7 +131,7 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 BehandlingFerdigstiltEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = innloggetIdent,
                         navn = saksbehandlerService.getNameForIdent(innloggetIdent),
                     ),
@@ -543,13 +542,18 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 TildelingEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
-                    navIdent = tildeltSaksbehandlerIdent,
-                    name = tildeltSaksbehandlerIdent?.let { saksbehandlerService.getNameForIdent(it) },
+                    saksbehandler = if (tildeltSaksbehandlerIdent != null) {
+                        Employee(
+                            navIdent = tildeltSaksbehandlerIdent,
+                            navn = saksbehandlerService.getNameForIdent(tildeltSaksbehandlerIdent),
+                        )
+                    } else null,
+                    hjemmelIdList = fradelingWithChangedHjemmelIdList?.split(",") ?: emptyList(),
                     fradelingReasonId = fradelingReason?.id,
                 )
             ),
@@ -610,13 +614,13 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 TildelingEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = systembrukerIdent,
                         navn = systembrukerIdent,
                     ),
                     timestamp = behandling.modified,
-                    navIdent = null,
-                    name = null,
+                    saksbehandler = null,
+                    hjemmelIdList = emptyList(),
                     fradelingReasonId = FradelingReason.UTGAATT.id,
                 )
             ),
@@ -649,11 +653,12 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 MedunderskriverEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = systembrukerIdent,
                         navn = systembrukerIdent,
                     ),
                     timestamp = behandling.modified,
+                    medunderskriver = null,
                     navIdent = null,
                     name = null,
                     flowState = FlowState.NOT_SENT,
@@ -697,11 +702,12 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 RolEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = systembrukerIdent,
                         navn = systembrukerIdent,
                     ),
                     timestamp = behandling.modified,
+                    rol = null,
                     navIdent = null,
                     name = null,
                     flowState = FlowState.NOT_SENT,
@@ -775,7 +781,7 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 SattPaaVentEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
                             utfoerendeSaksbehandlerIdent
@@ -855,7 +861,7 @@ class BehandlingService(
             publishInternalEvent(
                 data = objectMapper.writeValueAsString(
                     MottattVedtaksinstansEvent(
-                        actor = BaseEvent.Actor(
+                        actor = Employee(
                             navIdent = utfoerendeSaksbehandlerIdent,
                             navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                         ),
@@ -946,7 +952,7 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 InnsendingshjemlerEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
@@ -995,7 +1001,7 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 FullmektigEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
@@ -1039,7 +1045,7 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 KlagerEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
@@ -1081,10 +1087,16 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 MedunderskriverEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
+                    medunderskriver = if (medunderskriverWrapped.navIdent != null) {
+                        Employee(
+                            navIdent = medunderskriverWrapped.navIdent,
+                            navn = saksbehandlerService.getNameForIdent(medunderskriverWrapped.navIdent),
+                        )
+                    } else null,
                     timestamp = medunderskriverWrapped.modified,
                     navIdent = medunderskriverWrapped.navIdent,
                     name = if (medunderskriverWrapped.navIdent != null) saksbehandlerService.getNameForIdent(
@@ -1136,11 +1148,17 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 MedunderskriverEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = medunderskriverWrapped.modified,
+                    medunderskriver = if (medunderskriverWrapped.navIdent != null) {
+                        Employee(
+                            navIdent = medunderskriverWrapped.navIdent,
+                            navn = saksbehandlerService.getNameForIdent(medunderskriverWrapped.navIdent),
+                        )
+                    } else null,
                     navIdent = medunderskriverWrapped.navIdent,
                     name = if (medunderskriverWrapped.navIdent != null) saksbehandlerService.getNameForIdent(
                         medunderskriverWrapped.navIdent
@@ -1218,7 +1236,7 @@ class BehandlingService(
         )
 
         if (journalpostListForUser.any { it.journalstatus == Journalstatus.MOTTATT }) {
-            throw DokumentValidationException("Kan ikke legge til journalførte dokumenter med status 'Mottatt' som relevant for saken. Fullfør journalføring i Gosys for å gjøre dette." )
+            throw DokumentValidationException("Kan ikke legge til journalførte dokumenter med status 'Mottatt' som relevant for saken. Fullfør journalføring i Gosys for å gjøre dette.")
         }
 
         addDokumentSet(
@@ -1507,7 +1525,7 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 FeilregistreringEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = navIdent,
                         navn = saksbehandlerService.getNameForIdent(navIdent),
                     ),
@@ -1562,7 +1580,7 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 UtfallEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
@@ -1600,7 +1618,7 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 ExtraUtfallEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
@@ -1633,7 +1651,7 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 RegistreringshjemlerEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
@@ -1678,11 +1696,17 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 RolEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = rolView.modified,
+                    rol = if (rolView.navIdent != null) {
+                        Employee(
+                            navIdent = rolView.navIdent,
+                            navn = rolView.navn!!,
+                        )
+                    } else null,
                     navIdent = rolView.navIdent,
                     name = rolView.navn,
                     flowState = rolView.flowState,
@@ -1744,11 +1768,17 @@ class BehandlingService(
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
                 RolEvent(
-                    actor = BaseEvent.Actor(
+                    actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = rolView.modified,
+                    rol = if (rolView.navIdent != null) {
+                        Employee(
+                            navIdent = rolView.navIdent,
+                            navn = rolView.navn!!,
+                        )
+                    } else null,
                     navIdent = rolView.navIdent,
                     name = rolView.navn,
                     flowState = rolView.flowState,
