@@ -113,8 +113,9 @@ class BehandlingAvslutningService(
                     )
                 }
 
+
             //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01) {
+            if (behandling.fagsystem == Fagsystem.IT01 && behandling.id != UUID.fromString("ccb15b45-45a7-4626-b6e2-f7e48088a10f")) {
                 logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
 
                 val sakInKlanke = fssProxyClient.getSakWithAppAccess(
