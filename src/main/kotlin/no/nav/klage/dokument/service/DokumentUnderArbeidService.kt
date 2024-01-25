@@ -35,10 +35,7 @@ import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.oppgave.exceptions.ValidationSection
 import no.nav.klage.oppgave.service.*
-import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
-import no.nav.klage.oppgave.util.getSortKey
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.*
 import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
@@ -68,7 +65,6 @@ class DokumentUnderArbeidService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val dokumentService: DokumentService,
-    private val kabalDocumentMapper: KabalDocumentMapper,
     private val eregClient: EregClient,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val safFacade: SafFacade,
@@ -382,7 +378,7 @@ class DokumentUnderArbeidService(
         )
 
         if (journalpostListForUser.any { it.journalstatus == Journalstatus.MOTTATT }) {
-            throw DokumentValidationException("Kan ikke legge til journalførte dokumenter med status 'Mottatt' som vedlegg. Fullfør journalføring i Gosys for å gjøre dette." )
+            throw DokumentValidationException("Kan ikke legge til journalførte dokumenter med status 'Mottatt' som vedlegg. Fullfør journalføring i Gosys for å gjøre dette.")
         }
 
         val (added, duplicates) = createJournalfoerteDokumenter(
@@ -879,13 +875,17 @@ class DokumentUnderArbeidService(
         behandlingId: UUID,
         dokumentId: UUID,
         innloggetIdent: String,
-        brevmottakerIdents: Set<String>?,
+        brevmottakerInfoSet: Set<BrevmottakerInfo>?,
     ): DokumentUnderArbeid {
         val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
-        val processedBrevmottakerIdents = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+        val processedBrevmottakerInfoSet = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
             //Hardkoder Trygderetten
-            setOf("974761084")
-        } else brevmottakerIdents
+            setOf(
+                BrevmottakerInfo(
+                    id = "974761084", localPrint = false
+                )
+            )
+        } else brevmottakerInfoSet
 
         if (hovedDokument !is DokumentUnderArbeidAsHoveddokument) {
             throw RuntimeException("document is not hoveddokument")
@@ -894,9 +894,8 @@ class DokumentUnderArbeidService(
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
 
         validateHoveddokumentBeforeFerdig(
-            brevmottakerIdents = processedBrevmottakerIdents,
+            brevmottakerInfoSet = processedBrevmottakerInfoSet,
             hovedDokument = hovedDokument,
-            behandling = behandling,
         )
         val vedlegg = getVedlegg(hovedDokument.id)
 
@@ -922,14 +921,13 @@ class DokumentUnderArbeidService(
 
         val now = LocalDateTime.now()
         hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = innloggetIdent)
-        val mapBrevmottakerIdentToBrevmottakerInput = kabalDocumentMapper.mapBrevmottakerIdentToBrevmottakerInput(
-            behandling = behandling,
-            brevmottakerIdents = processedBrevmottakerIdents,
-            dokumentType = hovedDokument.dokumentType!!
-        )
-        hovedDokument.brevmottakerIdents = mapBrevmottakerIdentToBrevmottakerInput.map {
-            it.partId.value
-        }.toSet()
+
+        hovedDokument.brevmottakerInfoSet = processedBrevmottakerInfoSet?.map {
+            it.toDokumentUnderArbeidBrevmottakerInfo(
+                dokumentType = hovedDokument.dokumentType!!,
+                behandling = behandling
+            )
+        }?.toSet()
 
         vedlegg.forEach {
             it.markerFerdigHvisIkkeAlleredeMarkertFerdig(
@@ -957,7 +955,7 @@ class DokumentUnderArbeidService(
             saksbehandlerident = innloggetIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_BREVMOTTAKER_IDENTS,
             fraVerdi = null,
-            tilVerdi = hovedDokument.brevmottakerIdents.joinToString { it },
+            tilVerdi = hovedDokument.brevmottakerInfoSet?.joinToString { it.identifikator },
             tidspunkt = LocalDateTime.now(),
         )
 
@@ -995,10 +993,26 @@ class DokumentUnderArbeidService(
         return hovedDokument
     }
 
-    private fun validateHoveddokumentBeforeFerdig(
-        brevmottakerIdents: Set<String>?,
-        hovedDokument: DokumentUnderArbeid,
+    private fun BrevmottakerInfo.toDokumentUnderArbeidBrevmottakerInfo(
+        dokumentType: DokumentType,
         behandling: Behandling,
+    ): DokumentUnderArbeidBrevmottakerInfo {
+        return if (dokumentType == DokumentType.NOTAT) {
+            DokumentUnderArbeidBrevmottakerInfo(
+                identifikator = behandling.sakenGjelder.partId.value,
+                localPrint = false,
+            )
+        } else {
+            DokumentUnderArbeidBrevmottakerInfo(
+                identifikator = id,
+                localPrint = localPrint,
+            )
+        }
+    }
+
+    private fun validateHoveddokumentBeforeFerdig(
+        brevmottakerInfoSet: Set<BrevmottakerInfo>?,
+        hovedDokument: DokumentUnderArbeid,
     ) {
         if (hovedDokument !is DokumentUnderArbeidAsHoveddokument) {
             throw DokumentValidationException("Kan ikke markere et vedlegg som ferdig")
@@ -1018,23 +1032,17 @@ class DokumentUnderArbeidService(
 
         val invalidProperties = mutableListOf<InvalidProperty>()
 
-        if (hovedDokument.dokumentType != DokumentType.NOTAT && brevmottakerIdents.isNullOrEmpty()) {
+        if (hovedDokument.dokumentType != DokumentType.NOTAT && brevmottakerInfoSet.isNullOrEmpty()) {
             throw DokumentValidationException("Brevmottakere må være satt")
         }
 
-        val mottakere = kabalDocumentMapper.mapBrevmottakerIdentToBrevmottakerInput(
-            behandling = behandling,
-            brevmottakerIdents = brevmottakerIdents,
-            dokumentType = hovedDokument.dokumentType!!
-        )
-
-        //Could ignore NOTAT here. We'll see.
-        mottakere.forEach { mottaker ->
-            if (mottaker.partId.partIdTypeId == PartIdType.VIRKSOMHET.id) {
-                val organisasjon = eregClient.hentOrganisasjon(mottaker.partId.value)
+        brevmottakerInfoSet?.forEach {
+            val partId = getPartIdFromIdentifikator(it.id)
+            if (partId.type.id == PartIdType.VIRKSOMHET.id) {
+                val organisasjon = eregClient.hentOrganisasjon(partId.value)
                 if (!organisasjon.isActive()) {
                     invalidProperties += InvalidProperty(
-                        field = mottaker.partId.value,
+                        field = partId.value,
                         reason = "Organisasjon er avviklet.",
                     )
                 }

@@ -8,9 +8,11 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.PartId
-import no.nav.klage.oppgave.util.*
+import no.nav.klage.oppgave.util.DokumentUnderArbeidTitleComparator
+import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
+import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 
 @Service
 class KabalDocumentMapper(
@@ -76,10 +78,10 @@ class KabalDocumentMapper(
         } else null
 
         return DokumentEnhetWithDokumentreferanserInput(
-            brevMottakere = mapBrevmottakerIdentToBrevmottakerInput(
-                behandling,
-                hovedDokument.brevmottakerIdents,
-                hovedDokument.dokumentType!!
+            brevMottakere = mapBrevmottakerInfoSetToBrevmottakerInput(
+                behandling = behandling,
+                brevmottakerInfoSet = hovedDokument.brevmottakerInfoSet,
+                dokumentType = hovedDokument.dokumentType!!
             ),
             journalfoeringData = JournalfoeringDataInput(
                 sakenGjelder = PartIdInput(
@@ -137,21 +139,21 @@ class KabalDocumentMapper(
         )
     }
 
-    fun mapBrevmottakerIdentToBrevmottakerInput(
+    private fun mapBrevmottakerInfoSetToBrevmottakerInput(
         behandling: Behandling,
-        brevmottakerIdents: Set<String>?,
+        brevmottakerInfoSet: Set<DokumentUnderArbeidBrevmottakerInfo>?,
         dokumentType: DokumentType
     ): List<BrevmottakerInput> {
         return if (dokumentType == DokumentType.NOTAT) {
             listOf(mapPartIdToBrevmottakerInput(
                 partId = behandling.sakenGjelder.partId,
-                localPrint = false //TODO
+                localPrint = false
             ))
         } else {
-            brevmottakerIdents!!.map {
+            brevmottakerInfoSet!!.map {
                 mapPartIdToBrevmottakerInput(
-                    partId = getPartIdFromIdentifikator(it),
-                    localPrint = false //TODO
+                    partId = getPartIdFromIdentifikator(it.identifikator),
+                    localPrint = it.localPrint,
                 )
             }
         }
