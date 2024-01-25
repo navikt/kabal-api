@@ -2,10 +2,7 @@ package no.nav.klage.oppgave.service
 
 
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
@@ -350,11 +347,15 @@ class MottakService(
     }
 
     private fun isBehandlingDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): Boolean {
-        return behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
+        val potentialDuplicate = behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
             fagsystem = fagsystem,
             kildeReferanse = kildeReferanse,
             type = type,
-        ).isNotEmpty()
+        )
+
+        return (potentialDuplicate.any {
+            it.utfall !in listOf(Utfall.RETUR, Utfall.OPPHEVET)
+        })
     }
 
     private fun validateOptionalDateTimeNotInFuture(inputDateTime: LocalDateTime?, parameterName: String) {
