@@ -143,18 +143,28 @@ class KabalDocumentMapper(
         dokumentType: DokumentType
     ): List<BrevmottakerInput> {
         return if (dokumentType == DokumentType.NOTAT) {
-            listOf(mapPartIdToBrevmottakerInput(behandling.sakenGjelder.partId))
+            listOf(mapPartIdToBrevmottakerInput(
+                partId = behandling.sakenGjelder.partId,
+                localPrint = false //TODO
+            ))
         } else {
             brevmottakerIdents!!.map {
-                mapPartIdToBrevmottakerInput(getPartIdFromIdentifikator(it))
+                mapPartIdToBrevmottakerInput(
+                    partId = getPartIdFromIdentifikator(it),
+                    localPrint = false //TODO
+                )
             }
         }
     }
 
-    private fun mapPartIdToBrevmottakerInput(partId: PartId) =
+    private fun mapPartIdToBrevmottakerInput(
+        partId: PartId,
+        localPrint: Boolean,
+    ) =
         BrevmottakerInput(
             partId = mapPartId(partId),
             navn = getNavn(partId),
+            localPrint = localPrint
         )
 
 
