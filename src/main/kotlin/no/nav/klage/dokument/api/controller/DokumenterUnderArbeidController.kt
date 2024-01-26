@@ -204,12 +204,19 @@ class DokumentUnderArbeidController(
         @RequestBody(required = true) input: FerdigstillDokumentInput,
     ): DocumentModified {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
+
+        val processedBrevmottakerInfoSet = input.brevmottakerInfoSet ?: input.brevmottakerIds?.map {
+            BrevmottakerInfo(
+                id = it, localPrint = false
+            )
+        }?.toSet()
+
         return DocumentModified(
             modified = dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 innloggetIdent = ident,
-                brevmottakerIdents = input.brevmottakerIds,
+                brevmottakerInfoSet = processedBrevmottakerInfoSet,
             ).modified
         )
     }

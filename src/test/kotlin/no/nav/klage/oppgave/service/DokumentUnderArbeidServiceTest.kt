@@ -72,8 +72,6 @@ class DokumentUnderArbeidServiceTest {
     @MockkBean
     lateinit var dokumentService: DokumentService
     @MockkBean
-    lateinit var kabalDocumentMapper: KabalDocumentMapper
-    @MockkBean
     lateinit var eregClient: EregClient
     @MockkBean
     lateinit var innholdsfortegnelseService: InnholdsfortegnelseService
@@ -105,7 +103,6 @@ class DokumentUnderArbeidServiceTest {
             applicationEventPublisher = applicationEventPublisher,
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             dokumentService = dokumentService,
-            kabalDocumentMapper = kabalDocumentMapper,
             eregClient = eregClient,
             innholdsfortegnelseService = innholdsfortegnelseService,
             safFacade = safFacade,
