@@ -167,7 +167,7 @@ abstract class Behandling(
     @BatchSize(size = 100)
     open val sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     @Column(name = "previous_saksbehandlerident")
-    val previousSaksbehandlerident: String?,
+    open val previousSaksbehandlerident: String?,
     ) {
 
     /**
