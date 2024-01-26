@@ -3,14 +3,13 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
 @Service
 class HistoryService(
     private val partSearchService: PartSearchService,
-    private val saksbehandlerRepository: SaksbehandlerRepository,
+    private val saksbehandlerService: SaksbehandlerService,
 ) {
     fun createTildelingHistory(
         tildelingHistorikkSet: Set<TildelingHistorikk>,
@@ -309,11 +308,7 @@ class HistoryService(
         return if (this != null) {
             SaksbehandlerView(
                 navIdent = this,
-                navn = try {
-                    saksbehandlerRepository.getNameForSaksbehandler(this)
-                } catch (e: Exception) {
-                    "mangler navn"
-                },
+                navn = saksbehandlerService.getNameForIdentDefaultIfNull(this),
             )
         } else null
     }

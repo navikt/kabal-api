@@ -18,8 +18,8 @@ class MeldingMapper(
             author = MeldingView.Author(
                 navIdent = melding.saksbehandlerident,
                 saksbehandlerIdent = melding.saksbehandlerident,
-                navn = saksbehandlerService.getNameForIdent(melding.saksbehandlerident),
-                name = saksbehandlerService.getNameForIdent(melding.saksbehandlerident),
+                navn = saksbehandlerService.getNameForIdentDefaultIfNull(melding.saksbehandlerident),
+                name = saksbehandlerService.getNameForIdentDefaultIfNull(melding.saksbehandlerident),
             ),
             created = melding.created,
             modified = melding.modified
@@ -40,8 +40,8 @@ class MeldingMapper(
                 author = MeldingView.Author(
                     saksbehandlerIdent = melding.saksbehandlerident,
                     navIdent = melding.saksbehandlerident,
-                    name = saksbehandlerService.getNameForIdent(melding.saksbehandlerident),
-                    navn = saksbehandlerService.getNameForIdent(melding.saksbehandlerident),
+                    name = saksbehandlerService.getNameForIdentDefaultIfNull(melding.saksbehandlerident),
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(melding.saksbehandlerident),
                 ),
                 created = melding.created,
                 modified = melding.modified

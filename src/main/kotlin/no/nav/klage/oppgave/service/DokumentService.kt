@@ -363,7 +363,7 @@ class DokumentService(
                 JournalfoertDocumentModified(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     journalpostId = journalpostId,

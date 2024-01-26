@@ -20,7 +20,6 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
-import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentMapper
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
@@ -172,7 +171,7 @@ class DokumentUnderArbeidService(
                 DocumentsAddedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -227,7 +226,7 @@ class DokumentUnderArbeidService(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = dokumentUnderArbeidList.map {
@@ -343,7 +342,7 @@ class DokumentUnderArbeidService(
                 DocumentsAddedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -401,7 +400,7 @@ class DokumentUnderArbeidService(
                     DocumentsAddedEvent(
                         actor = Employee(
                             navIdent = innloggetIdent,
-                            navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                         ),
                         timestamp = LocalDateTime.now(),
                         documents = addedJournalfoerteDokumenter,
@@ -605,7 +604,7 @@ class DokumentUnderArbeidService(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -669,7 +668,7 @@ class DokumentUnderArbeidService(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -738,7 +737,7 @@ class DokumentUnderArbeidService(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -968,7 +967,7 @@ class DokumentUnderArbeidService(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = vedlegg.map {
@@ -1181,7 +1180,7 @@ class DokumentUnderArbeidService(
                 DocumentsRemovedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     idList = vedlegg.map { it.id.toString() } + document.id.toString(),

@@ -26,7 +26,6 @@ import no.nav.klage.oppgave.exceptions.BehandlingFinalizedException
 import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
-import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -82,9 +81,6 @@ class BehandlingServiceTest {
     lateinit var egenAnsattService: EgenAnsattService
 
     @MockkBean
-    lateinit var saksbehandlerRepository: SaksbehandlerRepository
-
-    @MockkBean
     lateinit var dokumentUnderArbeidRepository: DokumentUnderArbeidRepository
 
     @MockkBean
@@ -134,7 +130,6 @@ class BehandlingServiceTest {
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             arbeidOgInntektClient = arbeidOgInntektClient,
             fssProxyClient = fssProxyClient,
-            saksbehandlerRepository = saksbehandlerRepository,
             eregClient = eregClient,
             saksbehandlerService = saksbehandlerService,
             behandlingMapper = behandlingMapper,
@@ -148,7 +143,7 @@ class BehandlingServiceTest {
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
         every { tilgangService.verifyInnloggetSaksbehandlersTilgangTil(any()) } returns Unit
         every { tilgangService.harInnloggetSaksbehandlerTilgangTil(any()) } returns true
-        every { saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(any()) } returns false
+        every { saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(any()) } returns false
         every { behandlingMapper.mapToMedunderskriverWrapped(any()) } returns MedunderskriverWrapped(
             employee = null,
             navIdent = "null",

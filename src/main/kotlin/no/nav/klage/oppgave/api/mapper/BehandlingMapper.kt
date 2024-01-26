@@ -12,7 +12,7 @@ import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
+import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -23,7 +23,7 @@ class BehandlingMapper(
     private val egenAnsattService: EgenAnsattService,
     private val norg2Client: Norg2Client,
     private val eregClient: EregClient,
-    private val saksbehandlerRepository: SaksbehandlerRepository,
+    private val saksbehandlerService: SaksbehandlerService,
     private val krrProxyClient: KrrProxyClient,
 ) {
 
@@ -103,11 +103,7 @@ class BehandlingMapper(
         return previousSaksbehandlerident?.let {
             SaksbehandlerView(
                 navIdent = it,
-                navn = try {
-                    saksbehandlerRepository.getNameForSaksbehandler(it)
-                } catch (e: Exception) {
-                    "mangler navn"
-                },
+                navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
             )
         }
     }
@@ -116,7 +112,7 @@ class BehandlingMapper(
         return tildeling?.saksbehandlerident?.let {
             SaksbehandlerView(
                 navIdent = it,
-                navn = saksbehandlerRepository.getNameForSaksbehandler(it),
+                navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
             )
         }
     }
@@ -126,7 +122,7 @@ class BehandlingMapper(
             employee = if (rolIdent != null) {
                 SaksbehandlerView(
                     navIdent = rolIdent!!,
-                    navn = saksbehandlerRepository.getNameForSaksbehandler(rolIdent!!),
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(rolIdent!!),
                 )
             } else null,
             navIdent = rolIdent,
@@ -139,7 +135,7 @@ class BehandlingMapper(
             employee = if (medunderskriver?.saksbehandlerident != null) {
                 SaksbehandlerView(
                     navIdent = medunderskriver?.saksbehandlerident!!,
-                    navn = saksbehandlerRepository.getNameForSaksbehandler(medunderskriver?.saksbehandlerident!!),
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(medunderskriver?.saksbehandlerident!!),
                 )
             } else null,
             navIdent = medunderskriver?.saksbehandlerident,
@@ -387,10 +383,10 @@ class BehandlingMapper(
             employee = if (behandling.medunderskriver?.saksbehandlerident != null) {
                 SaksbehandlerView(
                     navIdent = behandling.medunderskriver?.saksbehandlerident!!,
-                    navn = saksbehandlerRepository.getNameForSaksbehandler(behandling.medunderskriver?.saksbehandlerident!!),
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(behandling.medunderskriver?.saksbehandlerident!!),
                 )
             } else null,
-            navn = if (behandling.medunderskriver?.saksbehandlerident != null) saksbehandlerRepository.getNameForSaksbehandler(
+            navn = if (behandling.medunderskriver?.saksbehandlerident != null) saksbehandlerService.getNameForIdentDefaultIfNull(
                 behandling.medunderskriver?.saksbehandlerident!!
             ) else null,
             navIdent = behandling.medunderskriver?.saksbehandlerident,
@@ -404,7 +400,7 @@ class BehandlingMapper(
             employee = if (behandling.medunderskriver?.saksbehandlerident != null) {
                 SaksbehandlerView(
                     navIdent = behandling.medunderskriver?.saksbehandlerident!!,
-                    navn = saksbehandlerRepository.getNameForSaksbehandler(behandling.medunderskriver?.saksbehandlerident!!),
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(behandling.medunderskriver?.saksbehandlerident!!),
                 )
             } else null,
             navIdent = behandling.medunderskriver?.saksbehandlerident,
@@ -423,11 +419,11 @@ class BehandlingMapper(
         employee = if (behandling.rolIdent != null) {
             SaksbehandlerView(
                 navIdent = behandling.rolIdent!!,
-                navn = saksbehandlerRepository.getNameForSaksbehandler(behandling.rolIdent!!),
+                navn = saksbehandlerService.getNameForIdentDefaultIfNull(behandling.rolIdent!!),
             )
         } else null,
         navIdent = behandling.rolIdent,
-        navn = if (behandling.rolIdent != null) saksbehandlerRepository.getNameForSaksbehandler(behandling.rolIdent!!) else null,
+        navn = if (behandling.rolIdent != null) saksbehandlerService.getNameForIdentDefaultIfNull(behandling.rolIdent!!) else null,
         flowState = behandling.rolFlowState,
         modified = behandling.modified,
     )
@@ -437,7 +433,7 @@ class BehandlingMapper(
             BehandlingDetaljerView.FeilregistreringView(
                 feilregistrertAv = SaksbehandlerView(
                     navIdent = it.navIdent,
-                    navn = saksbehandlerRepository.getNameForSaksbehandler(it.navIdent)
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(it.navIdent)
                 ),
                 registered = it.registered,
                 reason = it.reason,

@@ -17,7 +17,7 @@ import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.clients.saf.graphql.*
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Saksdokument
-import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
+import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.getSortKey
@@ -30,7 +30,7 @@ import java.time.LocalDateTime
 
 @Component
 class DokumentMapper(
-    private val saksbehandlerRepository: SaksbehandlerRepository,
+    private val saksbehandlerService: SaksbehandlerService,
 ) {
 
     companion object {
@@ -179,7 +179,7 @@ class DokumentMapper(
         return DokumentView.Creator(
             employee = SaksbehandlerView(
                 navIdent = creatorIdent,
-                navn = saksbehandlerRepository.getNameForSaksbehandler(creatorIdent),
+                navn = saksbehandlerService.getNameForIdentDefaultIfNull(creatorIdent),
             ),
             creatorRole = creatorRole,
         )

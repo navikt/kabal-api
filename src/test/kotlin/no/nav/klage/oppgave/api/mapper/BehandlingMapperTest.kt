@@ -10,7 +10,7 @@ import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
+import no.nav.klage.oppgave.service.SaksbehandlerService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +36,7 @@ class BehandlingMapperTest {
     lateinit var eregClient: EregClient
 
     @MockkBean
-    lateinit var saksbehandlerRepository: SaksbehandlerRepository
+    lateinit var saksbehandlerService: SaksbehandlerService
 
     @MockkBean
     lateinit var kabalDocumentGateway: KabalDocumentGateway
@@ -64,7 +64,7 @@ class BehandlingMapperTest {
     @Test
     fun `mapToMedunderskriverWrapped og mapToMedunderskriverFlowStateView gir forventet resultat når medunderskriver og medunderskriverFlowState er satt`() {
         val klagebehandling = getKlagebehandlingWithMedunderskriver()
-        every { saksbehandlerRepository.getNameForSaksbehandler(any()) } returns MEDUNDERSKRIVER_NAVN
+        every { saksbehandlerService.getNameForIdentDefaultIfNull(any()) } returns MEDUNDERSKRIVER_NAVN
 
         val viewResult = behandlingMapper.mapToMedunderskriverWrapped(klagebehandling)
         val flytViewResult = behandlingMapper.mapToMedunderskriverFlowStateView(klagebehandling)
