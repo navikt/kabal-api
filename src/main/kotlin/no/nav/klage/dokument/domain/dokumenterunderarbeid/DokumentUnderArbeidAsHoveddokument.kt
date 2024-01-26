@@ -14,10 +14,10 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     @Column(name = "dokument_enhet_id")
     open var dokumentEnhetId: UUID? = null,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
-    @JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = true)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 5)
-    open var brevmottakerInfoSet: MutableSet<DokumentUnderArbeidBrevmottakerInfo>?,
+    open var brevmottakerInfoSet: MutableSet<DokumentUnderArbeidBrevmottakerInfo>? = mutableSetOf(),
 
 
     //Common properties
