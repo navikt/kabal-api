@@ -27,8 +27,6 @@ data class MeldingView(
     }
 
     data class Author(
-        val saksbehandlerIdent: String,
-        val name: String,
         val navIdent: String,
         val navn: String,
     )
