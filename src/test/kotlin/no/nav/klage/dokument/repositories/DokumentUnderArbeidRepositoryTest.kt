@@ -1,5 +1,6 @@
 package no.nav.klage.dokument.repositories
 
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidBrevmottakerInfo
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsVedlegg
 import no.nav.klage.kodeverk.DokumentType
@@ -34,6 +35,9 @@ class DokumentUnderArbeidRepositoryTest {
 
     @Autowired
     lateinit var dokumentUnderArbeidRepository: DokumentUnderArbeidRepository
+
+    @Autowired
+    lateinit var opplastetDokumentUnderArbeidAsHoveddokumentRepository: OpplastetDokumentUnderArbeidAsHoveddokumentRepository
 
     @Autowired
     lateinit var opplastetDokumentUnderArbeidAsVedleggRepository: OpplastetDokumentUnderArbeidAsVedleggRepository
@@ -108,6 +112,55 @@ class DokumentUnderArbeidRepositoryTest {
 
         val vedlegg = opplastetDokumentUnderArbeidAsVedleggRepository.findByParentId(hovedDokument.id)
         assertThat(vedlegg).hasSize(1)
+    }
+
+    @Test
+    fun `hoveddokument can have brevmottakerinfo`() {
+        val behandlingId = UUID.randomUUID()
+        val hovedDokument = OpplastetDokumentUnderArbeidAsHoveddokument(
+            mellomlagerId = UUID.randomUUID().toString(),
+            mellomlagretDate = LocalDateTime.now(),
+            size = 1001,
+            name = "Vedtak.pdf",
+            behandlingId = behandlingId,
+            dokumentType = DokumentType.BREV,
+            creatorIdent = "null",
+            creatorRole = KABAL_SAKSBEHANDLING,
+            created = LocalDateTime.now(),
+            modified = LocalDateTime.now(),
+            datoMottatt = null,
+            brevmottakerInfoSet = mutableSetOf(
+                DokumentUnderArbeidBrevmottakerInfo(
+                    identifikator = "123",
+                    localPrint = false
+                )
+            )
+        )
+        dokumentUnderArbeidRepository.save(hovedDokument)
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        dokumentUnderArbeidRepository.save(
+            OpplastetDokumentUnderArbeidAsVedlegg(
+                mellomlagerId = UUID.randomUUID().toString(),
+                mellomlagretDate = LocalDateTime.now(),
+                size = 1001,
+                name = "Vedtak.pdf",
+                behandlingId = behandlingId,
+                dokumentType = DokumentType.BREV,
+                parentId = hovedDokument.id,
+                creatorIdent = "null",
+                creatorRole = KABAL_SAKSBEHANDLING,
+                created = LocalDateTime.now(),
+                modified = LocalDateTime.now(),
+            )
+        )
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+        val hoveddokument = opplastetDokumentUnderArbeidAsHoveddokumentRepository.getReferenceById(hovedDokument.id)
+        assertThat(hoveddokument.brevmottakerInfoSet?.first()?.identifikator == "123")
     }
 
     @Test

@@ -26,3 +26,9 @@ data class DokumentEnhetWithDokumentreferanserInput(
         )
     }
 }
+
+data class BrevmottakerInput(
+    val partId: PartIdInput,
+    val navn: String,
+    val localPrint: Boolean,
+)

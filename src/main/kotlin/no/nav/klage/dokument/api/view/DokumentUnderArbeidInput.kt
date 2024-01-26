@@ -47,5 +47,11 @@ data class DokumentTypeInput(val dokumentTypeId: String)
 data class DatoMottattInput(val datoMottatt: LocalDate)
 
 data class FerdigstillDokumentInput(
-    val brevmottakerIds: Set<String>?
+    val brevmottakerIds: Set<String>?,
+    val brevmottakerInfoSet: Set<BrevmottakerInfo>?,
+)
+
+data class BrevmottakerInfo(
+    val id: String,
+    val localPrint: Boolean,
 )
