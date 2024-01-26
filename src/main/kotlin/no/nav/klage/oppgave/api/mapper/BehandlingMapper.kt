@@ -123,18 +123,26 @@ class BehandlingMapper(
 
     private fun Behandling.toROLView(): BehandlingDetaljerView.CombinedMedunderskriverAndROLView {
         return BehandlingDetaljerView.CombinedMedunderskriverAndROLView(
+            employee = if (rolIdent != null) {
+                SaksbehandlerView(
+                    navIdent = rolIdent!!,
+                    navn = saksbehandlerRepository.getNameForSaksbehandler(rolIdent!!),
+                )
+            } else null,
             navIdent = rolIdent,
-            navn = if (rolIdent != null) saksbehandlerRepository.getNameForSaksbehandler(rolIdent!!) else null,
             flowState = rolFlowState,
         )
     }
 
     private fun Behandling.toMedunderskriverView(): BehandlingDetaljerView.CombinedMedunderskriverAndROLView {
         return BehandlingDetaljerView.CombinedMedunderskriverAndROLView(
-            navIdent = medunderskriver?.saksbehandlerident,
-            navn = if (medunderskriver?.saksbehandlerident != null) {
-                saksbehandlerRepository.getNameForSaksbehandler(medunderskriver?.saksbehandlerident!!)
+            employee = if (medunderskriver?.saksbehandlerident != null) {
+                SaksbehandlerView(
+                    navIdent = medunderskriver?.saksbehandlerident!!,
+                    navn = saksbehandlerRepository.getNameForSaksbehandler(medunderskriver?.saksbehandlerident!!),
+                )
             } else null,
+            navIdent = medunderskriver?.saksbehandlerident,
             flowState = medunderskriverFlowState,
         )
     }
@@ -376,6 +384,12 @@ class BehandlingMapper(
 
     fun mapToMedunderskriverFlowStateResponse(behandling: Behandling): MedunderskriverFlowStateResponse {
         return MedunderskriverFlowStateResponse(
+            employee = if (behandling.medunderskriver?.saksbehandlerident != null) {
+                SaksbehandlerView(
+                    navIdent = behandling.medunderskriver?.saksbehandlerident!!,
+                    navn = saksbehandlerRepository.getNameForSaksbehandler(behandling.medunderskriver?.saksbehandlerident!!),
+                )
+            } else null,
             navn = if (behandling.medunderskriver?.saksbehandlerident != null) saksbehandlerRepository.getNameForSaksbehandler(
                 behandling.medunderskriver?.saksbehandlerident!!
             ) else null,
@@ -387,6 +401,12 @@ class BehandlingMapper(
 
     fun mapToMedunderskriverWrapped(behandling: Behandling): MedunderskriverWrapped {
         return MedunderskriverWrapped(
+            employee = if (behandling.medunderskriver?.saksbehandlerident != null) {
+                SaksbehandlerView(
+                    navIdent = behandling.medunderskriver?.saksbehandlerident!!,
+                    navn = saksbehandlerRepository.getNameForSaksbehandler(behandling.medunderskriver?.saksbehandlerident!!),
+                )
+            } else null,
             navIdent = behandling.medunderskriver?.saksbehandlerident,
             modified = behandling.modified,
             flowState = behandling.medunderskriverFlowState,
@@ -400,6 +420,12 @@ class BehandlingMapper(
     }
 
     fun mapToRolView(behandling: Behandling) = RolView(
+        employee = if (behandling.rolIdent != null) {
+            SaksbehandlerView(
+                navIdent = behandling.rolIdent!!,
+                navn = saksbehandlerRepository.getNameForSaksbehandler(behandling.rolIdent!!),
+            )
+        } else null,
         navIdent = behandling.rolIdent,
         navn = if (behandling.rolIdent != null) saksbehandlerRepository.getNameForSaksbehandler(behandling.rolIdent!!) else null,
         flowState = behandling.rolFlowState,

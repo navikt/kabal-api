@@ -54,8 +54,9 @@ data class BehandlingDetaljerView(
 ) {
 
     data class CombinedMedunderskriverAndROLView(
+        val employee: SaksbehandlerView?,
+        @Deprecated("use employee instead")
         val navIdent: String?,
-        val navn: String?,
         val flowState: FlowState,
     )
 

@@ -150,11 +150,13 @@ class BehandlingServiceTest {
         every { tilgangService.harInnloggetSaksbehandlerTilgangTil(any()) } returns true
         every { saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(any()) } returns false
         every { behandlingMapper.mapToMedunderskriverWrapped(any()) } returns MedunderskriverWrapped(
+            employee = null,
             navIdent = "null",
             modified = LocalDateTime.now(),
             flowState = FlowState.SENT,
         )
         every { behandlingMapper.mapToMedunderskriverFlowStateResponse(any()) } returns MedunderskriverFlowStateResponse(
+            employee = null,
             navn = null,
             navIdent = null,
             modified = LocalDateTime.now(),
