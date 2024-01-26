@@ -922,12 +922,14 @@ class DokumentUnderArbeidService(
         val now = LocalDateTime.now()
         hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = innloggetIdent)
 
-        hovedDokument.brevmottakerInfoSet = processedBrevmottakerInfoSet?.map {
-            it.toDokumentUnderArbeidBrevmottakerInfo(
-                dokumentType = hovedDokument.dokumentType!!,
-                behandling = behandling
+        processedBrevmottakerInfoSet?.forEach {
+            hovedDokument.brevmottakerInfoSet.add(
+                it.toDokumentUnderArbeidBrevmottakerInfo(
+                    dokumentType = hovedDokument.dokumentType!!,
+                    behandling = behandling
+                )
             )
-        }?.toMutableSet()
+        }
 
         vedlegg.forEach {
             it.markerFerdigHvisIkkeAlleredeMarkertFerdig(
