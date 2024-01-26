@@ -16,7 +16,9 @@ class MeldingMapper(
             id = melding.id,
             text = melding.text,
             author = MeldingView.Author(
+                navIdent = melding.saksbehandlerident,
                 saksbehandlerIdent = melding.saksbehandlerident,
+                navn = saksbehandlerService.getNameForIdent(melding.saksbehandlerident),
                 name = saksbehandlerService.getNameForIdent(melding.saksbehandlerident),
             ),
             created = melding.created,
@@ -37,7 +39,9 @@ class MeldingMapper(
                 text = melding.text,
                 author = MeldingView.Author(
                     saksbehandlerIdent = melding.saksbehandlerident,
+                    navIdent = melding.saksbehandlerident,
                     name = saksbehandlerService.getNameForIdent(melding.saksbehandlerident),
+                    navn = saksbehandlerService.getNameForIdent(melding.saksbehandlerident),
                 ),
                 created = melding.created,
                 modified = melding.modified
