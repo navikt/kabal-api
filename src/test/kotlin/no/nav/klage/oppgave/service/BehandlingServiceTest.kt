@@ -146,14 +146,11 @@ class BehandlingServiceTest {
         every { saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(any()) } returns false
         every { behandlingMapper.mapToMedunderskriverWrapped(any()) } returns MedunderskriverWrapped(
             employee = null,
-            navIdent = "null",
             modified = LocalDateTime.now(),
             flowState = FlowState.SENT,
         )
         every { behandlingMapper.mapToMedunderskriverFlowStateResponse(any()) } returns MedunderskriverFlowStateResponse(
             employee = null,
-            navn = null,
-            navIdent = null,
             modified = LocalDateTime.now(),
             flowState = FlowState.SENT
         )

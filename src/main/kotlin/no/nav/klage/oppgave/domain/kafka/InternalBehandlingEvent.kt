@@ -55,8 +55,6 @@ data class MedunderskriverEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val medunderskriver: Employee?,
-    val navIdent: String?,
-    val name: String?,
     val flowState: FlowState,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
@@ -64,8 +62,6 @@ data class RolEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val rol: Employee?,
-    val navIdent: String?,
-    val name: String?,
     val flowState: FlowState,
     val returnDate: LocalDateTime?,
 ) : BaseEvent(actor = actor, timestamp = timestamp)

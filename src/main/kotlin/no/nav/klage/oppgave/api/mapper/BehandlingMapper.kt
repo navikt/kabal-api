@@ -47,7 +47,6 @@ class BehandlingMapper(
             id = klagebehandling.id,
             fraNAVEnhet = klagebehandling.avsenderEnhetFoersteinstans,
             fraNAVEnhetNavn = enhetNavn,
-            previousSaksbehandlerident = klagebehandling.previousSaksbehandlerident,
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
             sakenGjelder = getSakenGjelderView(klagebehandling.sakenGjelder),
             klager = getPartView(klagebehandling.klager),
@@ -60,7 +59,6 @@ class BehandlingMapper(
             avsluttetAvSaksbehandlerDate = klagebehandling.avsluttetAvSaksbehandler?.toLocalDate(),
             isAvsluttetAvSaksbehandler = klagebehandling.avsluttetAvSaksbehandler != null,
             frist = klagebehandling.frist,
-            tildeltSaksbehandlerident = klagebehandling.tildeling?.saksbehandlerident,
             datoSendtMedunderskriver = klagebehandling.medunderskriver?.tidspunkt?.toLocalDate(),
             hjemmelIdList = klagebehandling.hjemler.map { it.id },
             modified = klagebehandling.modified,
@@ -125,7 +123,6 @@ class BehandlingMapper(
                     navn = saksbehandlerService.getNameForIdentDefaultIfNull(rolIdent!!),
                 )
             } else null,
-            navIdent = rolIdent,
             flowState = rolFlowState,
         )
     }
@@ -138,7 +135,6 @@ class BehandlingMapper(
                     navn = saksbehandlerService.getNameForIdentDefaultIfNull(medunderskriver?.saksbehandlerident!!),
                 )
             } else null,
-            navIdent = medunderskriver?.saksbehandlerident,
             flowState = medunderskriverFlowState,
         )
     }
@@ -162,12 +158,10 @@ class BehandlingMapper(
             avsluttetAvSaksbehandlerDate = ankebehandling.avsluttetAvSaksbehandler?.toLocalDate(),
             isAvsluttetAvSaksbehandler = ankebehandling.avsluttetAvSaksbehandler != null,
             frist = ankebehandling.frist,
-            tildeltSaksbehandlerident = ankebehandling.tildeling?.saksbehandlerident,
             datoSendtMedunderskriver = ankebehandling.medunderskriver?.tidspunkt?.toLocalDate(),
             hjemmelIdList = ankebehandling.hjemler.map { it.id },
             modified = ankebehandling.modified,
             created = ankebehandling.created,
-            previousSaksbehandlerident = ankebehandling.previousSaksbehandlerident,
             resultat = ankebehandling.mapToVedtakView(),
             kommentarFraVedtaksinstans = null,
             tilknyttedeDokumenter = ankebehandling.saksdokumenter.map {
@@ -219,12 +213,10 @@ class BehandlingMapper(
             avsluttetAvSaksbehandlerDate = ankeITrygderettenbehandling.avsluttetAvSaksbehandler?.toLocalDate(),
             isAvsluttetAvSaksbehandler = ankeITrygderettenbehandling.avsluttetAvSaksbehandler != null,
             frist = ankeITrygderettenbehandling.frist,
-            tildeltSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
             datoSendtMedunderskriver = ankeITrygderettenbehandling.medunderskriver?.tidspunkt?.toLocalDate(),
             hjemmelIdList = ankeITrygderettenbehandling.hjemler.map { it.id },
             modified = ankeITrygderettenbehandling.modified,
             created = ankeITrygderettenbehandling.created,
-            previousSaksbehandlerident = ankeITrygderettenbehandling.previousSaksbehandlerident,
             resultat = ankeITrygderettenbehandling.mapToVedtakView(),
             kommentarFraVedtaksinstans = null,
             tilknyttedeDokumenter = ankeITrygderettenbehandling.saksdokumenter.map {
@@ -386,10 +378,6 @@ class BehandlingMapper(
                     navn = saksbehandlerService.getNameForIdentDefaultIfNull(behandling.medunderskriver?.saksbehandlerident!!),
                 )
             } else null,
-            navn = if (behandling.medunderskriver?.saksbehandlerident != null) saksbehandlerService.getNameForIdentDefaultIfNull(
-                behandling.medunderskriver?.saksbehandlerident!!
-            ) else null,
-            navIdent = behandling.medunderskriver?.saksbehandlerident,
             modified = behandling.modified,
             flowState = behandling.medunderskriverFlowState,
         )
@@ -403,7 +391,6 @@ class BehandlingMapper(
                     navn = saksbehandlerService.getNameForIdentDefaultIfNull(behandling.medunderskriver?.saksbehandlerident!!),
                 )
             } else null,
-            navIdent = behandling.medunderskriver?.saksbehandlerident,
             modified = behandling.modified,
             flowState = behandling.medunderskriverFlowState,
         )
@@ -422,8 +409,6 @@ class BehandlingMapper(
                 navn = saksbehandlerService.getNameForIdentDefaultIfNull(behandling.rolIdent!!),
             )
         } else null,
-        navIdent = behandling.rolIdent,
-        navn = if (behandling.rolIdent != null) saksbehandlerService.getNameForIdentDefaultIfNull(behandling.rolIdent!!) else null,
         flowState = behandling.rolFlowState,
         modified = behandling.modified,
     )

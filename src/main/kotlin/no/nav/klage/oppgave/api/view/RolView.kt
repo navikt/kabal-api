@@ -5,8 +5,6 @@ import java.time.LocalDateTime
 
 data class RolView(
     val employee: SaksbehandlerView?,
-    val navIdent: String?,
-    val navn: String?,
     val flowState: FlowState,
     val modified: LocalDateTime,
 )

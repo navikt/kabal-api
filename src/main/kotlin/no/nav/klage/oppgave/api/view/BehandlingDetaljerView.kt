@@ -22,14 +22,10 @@ data class BehandlingDetaljerView(
     val avsluttetAvSaksbehandlerDate: LocalDate?,
     val isAvsluttetAvSaksbehandler: Boolean,
     val frist: LocalDate? = null,
-    @Deprecated("replaced by saksbehandler")
-    val tildeltSaksbehandlerident: String? = null,
     val datoSendtMedunderskriver: LocalDate?,
     val hjemmelIdList: List<String>,
     val modified: LocalDateTime,
     val created: LocalDateTime,
-    @Deprecated("replaced by previousSaksbehandler")
-    val previousSaksbehandlerident: String?,
     val resultat: VedtakView?,
     val kommentarFraVedtaksinstans: String?,
     val tilknyttedeDokumenter: Set<TilknyttetDokument>,
@@ -55,8 +51,6 @@ data class BehandlingDetaljerView(
 
     data class CombinedMedunderskriverAndROLView(
         val employee: SaksbehandlerView?,
-        @Deprecated("use employee instead")
-        val navIdent: String?,
         val flowState: FlowState,
     )
 

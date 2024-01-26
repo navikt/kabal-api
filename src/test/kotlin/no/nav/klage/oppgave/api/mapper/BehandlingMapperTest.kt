@@ -57,7 +57,7 @@ class BehandlingMapperTest {
         val viewResult = behandlingMapper.mapToMedunderskriverWrapped(klagebehandling)
         val flytViewResult = behandlingMapper.mapToMedunderskriverFlowStateView(klagebehandling)
 
-        assertThat(viewResult.navIdent).isNull()
+        assertThat(viewResult.employee).isNull()
         assertThat(flytViewResult.flowState).isEqualTo(FlowState.NOT_SENT)
     }
 
@@ -69,7 +69,7 @@ class BehandlingMapperTest {
         val viewResult = behandlingMapper.mapToMedunderskriverWrapped(klagebehandling)
         val flytViewResult = behandlingMapper.mapToMedunderskriverFlowStateView(klagebehandling)
 
-        assertThat(viewResult.navIdent).isEqualTo(MEDUNDERSKRIVER_IDENT)
+        assertThat(viewResult.employee?.navIdent).isEqualTo(MEDUNDERSKRIVER_IDENT)
         assertThat(flytViewResult.flowState).isEqualTo(FlowState.SENT)
     }
 

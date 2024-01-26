@@ -657,8 +657,6 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     medunderskriver = null,
-                    navIdent = null,
-                    name = null,
                     flowState = FlowState.NOT_SENT,
                 )
             ),
@@ -706,8 +704,6 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     rol = null,
-                    navIdent = null,
-                    name = null,
                     flowState = FlowState.NOT_SENT,
                     returnDate = null,
                 )
@@ -1089,17 +1085,13 @@ class BehandlingService(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
-                    medunderskriver = if (medunderskriverWrapped.navIdent != null) {
+                    medunderskriver = if (medunderskriverWrapped.employee != null) {
                         Employee(
-                            navIdent = medunderskriverWrapped.navIdent,
-                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(medunderskriverWrapped.navIdent),
+                            navIdent = medunderskriverWrapped.employee.navIdent,
+                            navn = medunderskriverWrapped.employee.navn,
                         )
                     } else null,
                     timestamp = medunderskriverWrapped.modified,
-                    navIdent = medunderskriverWrapped.navIdent,
-                    name = if (medunderskriverWrapped.navIdent != null) saksbehandlerService.getNameForIdentDefaultIfNull(
-                        medunderskriverWrapped.navIdent
-                    ) else null,
                     flowState = medunderskriverWrapped.flowState,
                 )
             ),
@@ -1151,16 +1143,12 @@ class BehandlingService(
                         navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = medunderskriverWrapped.modified,
-                    medunderskriver = if (medunderskriverWrapped.navIdent != null) {
+                    medunderskriver = if (medunderskriverWrapped.employee != null) {
                         Employee(
-                            navIdent = medunderskriverWrapped.navIdent,
-                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(medunderskriverWrapped.navIdent),
+                            navIdent = medunderskriverWrapped.employee.navIdent,
+                            navn = medunderskriverWrapped.employee.navn,
                         )
                     } else null,
-                    navIdent = medunderskriverWrapped.navIdent,
-                    name = if (medunderskriverWrapped.navIdent != null) saksbehandlerService.getNameForIdentDefaultIfNull(
-                        medunderskriverWrapped.navIdent
-                    ) else null,
                     flowState = medunderskriverWrapped.flowState,
                 )
             ),
@@ -1699,14 +1687,12 @@ class BehandlingService(
                         navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = rolView.modified,
-                    rol = if (rolView.navIdent != null) {
+                    rol = if (rolView.employee != null) {
                         Employee(
-                            navIdent = rolView.navIdent,
-                            navn = rolView.navn!!,
+                            navIdent = rolView.employee.navIdent,
+                            navn = rolView.employee.navn,
                         )
                     } else null,
-                    navIdent = rolView.navIdent,
-                    name = rolView.navn,
                     flowState = rolView.flowState,
                     returnDate = behandling.rolReturnedDate,
                 )
@@ -1771,14 +1757,12 @@ class BehandlingService(
                         navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = rolView.modified,
-                    rol = if (rolView.navIdent != null) {
+                    rol = if (rolView.employee != null) {
                         Employee(
-                            navIdent = rolView.navIdent,
-                            navn = rolView.navn!!,
+                            navIdent = rolView.employee.navIdent,
+                            navn = rolView.employee.navn,
                         )
                     } else null,
-                    navIdent = rolView.navIdent,
-                    name = rolView.navn,
                     flowState = rolView.flowState,
                     returnDate = behandling.rolReturnedDate,
                 )
