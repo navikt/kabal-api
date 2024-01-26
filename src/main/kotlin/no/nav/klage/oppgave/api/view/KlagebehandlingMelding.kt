@@ -15,7 +15,7 @@ data class MeldingModified(
 data class MeldingView(
     val id: UUID,
     val text: String,
-    val author: Author,
+    val author: SaksbehandlerView,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
     val created: LocalDateTime,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
@@ -25,9 +25,4 @@ data class MeldingView(
     companion object {
         const val DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
     }
-
-    data class Author(
-        val navIdent: String,
-        val navn: String,
-    )
 }
