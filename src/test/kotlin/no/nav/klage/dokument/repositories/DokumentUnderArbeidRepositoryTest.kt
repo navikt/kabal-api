@@ -129,7 +129,7 @@ class DokumentUnderArbeidRepositoryTest {
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
             datoMottatt = null,
-            brevmottakerInfoSet = setOf(
+            brevmottakerInfoSet = mutableSetOf(
                 DokumentUnderArbeidBrevmottakerInfo(
                     identifikator = "123",
                     localPrint = false

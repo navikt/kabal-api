@@ -35,7 +35,7 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     creatorRole: BehandlingRole,
     dokumentType: DokumentType?,
     dokumentEnhetId: UUID? = null,
-    brevmottakerInfoSet: Set<DokumentUnderArbeidBrevmottakerInfo> = emptySet(),
+    brevmottakerInfoSet: MutableSet<DokumentUnderArbeidBrevmottakerInfo> = mutableSetOf(),
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsHoveddokument(
     id = id,

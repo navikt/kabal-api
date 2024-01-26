@@ -927,7 +927,7 @@ class DokumentUnderArbeidService(
                 dokumentType = hovedDokument.dokumentType!!,
                 behandling = behandling
             )
-        }?.toSet()
+        }?.toMutableSet()
 
         vedlegg.forEach {
             it.markerFerdigHvisIkkeAlleredeMarkertFerdig(
