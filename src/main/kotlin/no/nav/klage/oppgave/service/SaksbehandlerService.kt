@@ -29,7 +29,7 @@ class SaksbehandlerService(
         return azureGateway.getPersonligDataOmSaksbehandlerMedIdent(navIdent = navIdent).enhet
     }
 
-    fun getNameForIdent(it: String) =
+    fun getNameForIdent(it: String): String =
         saksbehandlerRepository.getNamesForSaksbehandlere(setOf(it)).getOrDefault(it, "Ukjent navn")
 
     private fun getTildelteYtelserForSaksbehandler(navIdent: String): List<Ytelse> {

@@ -1,8 +1,10 @@
 package no.nav.klage.oppgave.repositories
 
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import kotlin.system.measureTimeMillis
 
@@ -69,6 +71,7 @@ class SaksbehandlerRepository(
         emptyList()
     }
 
+    @Cacheable(CacheWithJCacheConfiguration.SAKSBEHANDLER_NAME_CACHE)
     fun getNameForSaksbehandler(navIdent: String): String {
         return azureGateway.getPersonligDataOmSaksbehandlerMedIdent(navIdent).sammensattNavn
     }

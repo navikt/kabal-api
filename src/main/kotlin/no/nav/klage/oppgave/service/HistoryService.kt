@@ -3,12 +3,14 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
 @Service
 class HistoryService(
     private val partSearchService: PartSearchService,
+    private val saksbehandlerRepository: SaksbehandlerRepository,
 ) {
     fun createTildelingHistory(
         tildelingHistorikkSet: Set<TildelingHistorikk>,
@@ -33,9 +35,9 @@ class HistoryService(
             val previousEvent = HistoryEvent(
                 type = HistoryEventType.TILDELING,
                 timestamp = previous.tidspunkt,
-                actor = previous.utfoerendeIdent,
+                actor = previous.utfoerendeIdent.toSaksbehandlerView(),
                 event = TildelingEvent(
-                    saksbehandler = previous.saksbehandlerident,
+                    saksbehandler = previous.saksbehandlerident.toSaksbehandlerView(),
                     fradelingReasonId = previous.fradelingReason?.id,
                     hjemmelIdList = if (previous.hjemmelIdList != null) {
                         previous.hjemmelIdList.split(",")
@@ -46,9 +48,9 @@ class HistoryService(
             HistoryEventWithPrevious(
                 type = HistoryEventType.TILDELING,
                 timestamp = current.tidspunkt,
-                actor = current.utfoerendeIdent,
+                actor = current.utfoerendeIdent.toSaksbehandlerView(),
                 event = TildelingEvent(
-                    saksbehandler = current.saksbehandlerident,
+                    saksbehandler = current.saksbehandlerident.toSaksbehandlerView(),
                     fradelingReasonId = current.fradelingReason?.id,
                     hjemmelIdList = if (current.hjemmelIdList != null) {
                         current.hjemmelIdList.split(",")
@@ -80,9 +82,9 @@ class HistoryService(
                 val previousEvent: HistoryEvent<MedunderskriverEvent> = HistoryEvent(
                     type = HistoryEventType.MEDUNDERSKRIVER,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent,
+                    actor = previous.utfoerendeIdent.toSaksbehandlerView(),
                     event = MedunderskriverEvent(
-                        medunderskriver = previous.saksbehandlerident,
+                        medunderskriver = previous.saksbehandlerident.toSaksbehandlerView(),
                         flow = previous.flowState
                     )
                 )
@@ -90,9 +92,9 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.MEDUNDERSKRIVER,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent,
+                    actor = current.utfoerendeIdent.toSaksbehandlerView(),
                     event = MedunderskriverEvent(
-                        medunderskriver = current.saksbehandlerident,
+                        medunderskriver = current.saksbehandlerident.toSaksbehandlerView(),
                         flow = current.flowState
                     ),
                     previous = previousEvent,
@@ -111,9 +113,9 @@ class HistoryService(
                 val previousEvent: HistoryEvent<RolEvent> = HistoryEvent(
                     type = HistoryEventType.ROL,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent,
+                    actor = previous.utfoerendeIdent.toSaksbehandlerView(),
                     event = RolEvent(
-                        rol = previous.rolIdent,
+                        rol = previous.rolIdent.toSaksbehandlerView(),
                         flow = previous.flowState
                     )
                 )
@@ -121,9 +123,9 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.ROL,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent,
+                    actor = current.utfoerendeIdent.toSaksbehandlerView(),
                     event = RolEvent(
-                        rol = current.rolIdent,
+                        rol = current.rolIdent.toSaksbehandlerView(),
                         flow = current.flowState
                     ),
                     previous = previousEvent,
@@ -141,7 +143,7 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.FEILREGISTRERT,
                     timestamp = feilregistrering.registered,
-                    actor = feilregistrering.navIdent,
+                    actor = feilregistrering.navIdent.toSaksbehandlerView(),
                     event = FeilregistrertEvent(
                         reason = feilregistrering.reason,
                     ),
@@ -168,7 +170,7 @@ class HistoryService(
                 val previousEvent: HistoryEvent<FullmektigEvent> = HistoryEvent(
                     type = HistoryEventType.FULLMEKTIG,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent,
+                    actor = previous.utfoerendeIdent.toSaksbehandlerView(),
                     event = FullmektigEvent(
                         part = previous.partId?.let {
                             Part(
@@ -185,7 +187,7 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.FULLMEKTIG,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent,
+                    actor = current.utfoerendeIdent.toSaksbehandlerView(),
                     event = FullmektigEvent(
                         part = current.partId?.let {
                             Part(
@@ -212,7 +214,7 @@ class HistoryService(
                 val previousEvent = HistoryEvent(
                     type = HistoryEventType.KLAGER,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent,
+                    actor = previous.utfoerendeIdent.toSaksbehandlerView(),
                     event = KlagerEvent(
                         part = previous.partId.let {
                             Part(
@@ -229,7 +231,7 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.KLAGER,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent,
+                    actor = current.utfoerendeIdent.toSaksbehandlerView(),
                     event = KlagerEvent(
                         part = current.partId.let {
                             Part(
@@ -256,7 +258,7 @@ class HistoryService(
                 val previousEvent: HistoryEvent<SattPaaVentEvent> = HistoryEvent(
                     type = HistoryEventType.SATT_PAA_VENT,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent,
+                    actor = previous.utfoerendeIdent.toSaksbehandlerView(),
                     event = previous.sattPaaVent?.let {
                         SattPaaVentEvent(
                             from = it.from,
@@ -269,7 +271,7 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.SATT_PAA_VENT,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent,
+                    actor = current.utfoerendeIdent.toSaksbehandlerView(),
                     event = current.sattPaaVent?.let {
                         SattPaaVentEvent(
                             from = it.from,
@@ -288,7 +290,7 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.FERDIGSTILT,
                     timestamp = behandling.avsluttetAvSaksbehandler!!,
-                    actor = behandling.tildeling!!.saksbehandlerident,
+                    actor = behandling.tildeling!!.saksbehandlerident.toSaksbehandlerView(),
                     event = FerdigstiltEvent(
                         avsluttetAvSaksbehandler = behandling.avsluttetAvSaksbehandler!!,
                     ),
@@ -301,5 +303,18 @@ class HistoryService(
                 )
             )
         } else emptyList()
+    }
+
+    private fun String?.toSaksbehandlerView(): SaksbehandlerView? {
+        return if (this != null) {
+            SaksbehandlerView(
+                navIdent = this,
+                navn = try {
+                    saksbehandlerRepository.getNameForSaksbehandler(this)
+                } catch (e: Exception) {
+                    "mangler navn"
+                },
+            )
+        } else null
     }
 }

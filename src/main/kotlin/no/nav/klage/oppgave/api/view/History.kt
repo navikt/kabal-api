@@ -5,19 +5,19 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class TildelingEvent(
-    val saksbehandler: String?,
+    val saksbehandler: SaksbehandlerView?,
     val fradelingReasonId: String?,
     val hjemmelIdList: List<String>?,
 )
 
 data class MedunderskriverEvent(
-    val medunderskriver: String?,
+    val medunderskriver: SaksbehandlerView?,
     //nullable b/c possible missing history initially
     val flow: FlowState?
 )
 
 data class RolEvent(
-    val rol: String?,
+    val rol: SaksbehandlerView?,
     val flow: FlowState
 )
 
@@ -56,7 +56,7 @@ interface WithPrevious<T>: BaseEvent<T> {
 data class HistoryEventWithPrevious<T>(
     override val type: HistoryEventType,
     override val timestamp: LocalDateTime,
-    override val actor: String?,
+    override val actor: SaksbehandlerView?,
     override val event: T?,
     override val previous: BaseEvent<T>
 ): WithPrevious<T>
@@ -64,14 +64,14 @@ data class HistoryEventWithPrevious<T>(
 interface BaseEvent<T> {
     val type: HistoryEventType
     val timestamp: LocalDateTime
-    val actor: String?
+    val actor: SaksbehandlerView?
     val event: T?
 }
 
 data class HistoryEvent<T>(
     override val type: HistoryEventType,
     override val timestamp: LocalDateTime,
-    override val actor: String?,
+    override val actor: SaksbehandlerView?,
     override val event: T?
 ): BaseEvent<T>
 
