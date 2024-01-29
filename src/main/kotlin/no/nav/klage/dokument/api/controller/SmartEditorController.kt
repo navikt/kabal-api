@@ -80,15 +80,6 @@ class SmartEditorController(
 
         dokumentUnderArbeidService.validateDocument(dokumentId = dokumentId)
 
-        if (input.templateId != null) {
-            dokumentUnderArbeidService.updateSmartEditorTemplateId(
-                behandlingId = behandlingId,
-                dokumentId = dokumentId,
-                templateId = input.templateId,
-                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-            )
-        }
-
         val updatedDocument = kabalSmartEditorApiGateway.updateDocument(
             smartDocumentId = smartDocumentId,
             json = input.content.toString(),

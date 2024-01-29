@@ -797,42 +797,6 @@ class DokumentUnderArbeidService(
         }
     }
 
-    fun updateSmartEditorTemplateId(
-        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
-        dokumentId: UUID,
-        templateId: String,
-        innloggetIdent: String
-    ): DokumentUnderArbeid {
-        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
-
-        if (dokument !is DokumentUnderArbeidAsSmartdokument) {
-            throw RuntimeException("Not a smartdocument")
-        }
-
-        if (dokument.smartEditorTemplateId == templateId) {
-            return dokument
-        }
-
-        //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-
-        if (dokument.erMarkertFerdig()) {
-            throw DokumentValidationException("Kan ikke endre smartEditorTemplateId på et dokument som er ferdigstilt")
-        }
-
-        val oldValue = dokument.smartEditorTemplateId
-        dokument.smartEditorTemplateId = templateId
-        dokument.modified = LocalDateTime.now()
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.SMARTDOKUMENT_TEMPLATE_ID,
-            fraVerdi = oldValue,
-            tilVerdi = dokument.smartEditorTemplateId,
-            tidspunkt = LocalDateTime.now(),
-        )
-        return dokument
-    }
-
     fun validateIfSmartDokument(
         dokumentId: UUID
     ): List<DocumentValidationResponse> {
