@@ -904,9 +904,9 @@ class DokumentUnderArbeidService(
             )
             try {
                 metricForSmartDocumentVersions.record(
-                    smartEditorApiGateway.getDocumentVersions(
-                        documentId = hovedDokument.smartEditorId
-                    ).size.toDouble()
+                    smartEditorApiGateway.getSmartDocumentResponse(
+                        smartEditorId = hovedDokument.smartEditorId
+                    ).version.toDouble()
                 )
             } catch (e: Exception) {
                 logger.warn("could not record metrics for smart document versions", e)
