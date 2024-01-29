@@ -24,7 +24,6 @@ data class SmartHovedDokumentInput(
 
 data class PatchSmartHovedDokumentInput(
     val content: JsonNode?,
-    val templateId: String?,
     val version: Int?,
 )
 

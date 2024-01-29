@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.api.mapper
 
 import no.nav.klage.oppgave.api.view.MeldingModified
 import no.nav.klage.oppgave.api.view.MeldingView
+import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.domain.klage.Melding
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import org.springframework.stereotype.Service
@@ -15,9 +16,9 @@ class MeldingMapper(
         return MeldingView(
             id = melding.id,
             text = melding.text,
-            author = MeldingView.Author(
-                saksbehandlerIdent = melding.saksbehandlerident,
-                name = saksbehandlerService.getNameForIdent(melding.saksbehandlerident),
+            author = SaksbehandlerView(
+                navIdent = melding.saksbehandlerident,
+                navn = saksbehandlerService.getNameForIdentDefaultIfNull(melding.saksbehandlerident),
             ),
             created = melding.created,
             modified = melding.modified
@@ -35,9 +36,9 @@ class MeldingMapper(
             MeldingView(
                 id = melding.id,
                 text = melding.text,
-                author = MeldingView.Author(
-                    saksbehandlerIdent = melding.saksbehandlerident,
-                    name = saksbehandlerService.getNameForIdent(melding.saksbehandlerident),
+                author = SaksbehandlerView(
+                    navIdent = melding.saksbehandlerident,
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(melding.saksbehandlerident),
                 ),
                 created = melding.created,
                 modified = melding.modified

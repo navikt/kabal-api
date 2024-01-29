@@ -14,7 +14,6 @@ import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
-import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -29,8 +28,6 @@ class TilgangServiceTest {
     private val egenAnsattService: EgenAnsattService = mockk()
 
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService = mockk()
-
-    private val saksbehandlerRepository: SaksbehandlerRepository = mockk()
 
     private val saksbehandlerService: SaksbehandlerService = mockk()
 

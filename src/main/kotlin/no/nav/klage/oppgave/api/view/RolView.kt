@@ -4,8 +4,7 @@ import no.nav.klage.kodeverk.FlowState
 import java.time.LocalDateTime
 
 data class RolView(
-    val navIdent: String?,
-    val navn: String?,
+    val employee: SaksbehandlerView?,
     val flowState: FlowState,
     val modified: LocalDateTime,
 )

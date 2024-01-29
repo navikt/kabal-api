@@ -22,13 +22,10 @@ data class BehandlingDetaljerView(
     val avsluttetAvSaksbehandlerDate: LocalDate?,
     val isAvsluttetAvSaksbehandler: Boolean,
     val frist: LocalDate? = null,
-    val tildeltSaksbehandlerident: String? = null,
-    val tildeltSaksbehandlerEnhet: String? = null,
     val datoSendtMedunderskriver: LocalDate?,
     val hjemmelIdList: List<String>,
     val modified: LocalDateTime,
     val created: LocalDateTime,
-    val previousSaksbehandlerident: String?,
     val resultat: VedtakView?,
     val kommentarFraVedtaksinstans: String?,
     val tilknyttedeDokumenter: Set<TilknyttetDokument>,
@@ -48,10 +45,12 @@ data class BehandlingDetaljerView(
     val medunderskriver: CombinedMedunderskriverAndROLView,
     val relevantDocumentIdList: Set<String>,
     val saksnummer: String,
+    val saksbehandler: SaksbehandlerView?,
+    val previousSaksbehandler: SaksbehandlerView?,
 ) {
 
     data class CombinedMedunderskriverAndROLView(
-        val navIdent: String?,
+        val employee: SaksbehandlerView?,
         val flowState: FlowState,
     )
 

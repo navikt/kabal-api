@@ -53,7 +53,7 @@ class MeldingService(
         publishInternalEvent(
             melding = melding,
             utfoerendeIdent = innloggetIdent,
-            utfoerendeName = saksbehandlerService.getNameForIdent(innloggetIdent),
+            utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
             timestamp = melding.modified ?: melding.created,
         )
 

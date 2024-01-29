@@ -171,7 +171,7 @@ class DokumentUnderArbeidService(
                 DocumentsAddedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -226,7 +226,7 @@ class DokumentUnderArbeidService(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = dokumentUnderArbeidList.map {
@@ -342,7 +342,7 @@ class DokumentUnderArbeidService(
                 DocumentsAddedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -400,7 +400,7 @@ class DokumentUnderArbeidService(
                     DocumentsAddedEvent(
                         actor = Employee(
                             navIdent = innloggetIdent,
-                            navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                         ),
                         timestamp = LocalDateTime.now(),
                         documents = addedJournalfoerteDokumenter,
@@ -604,7 +604,7 @@ class DokumentUnderArbeidService(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -668,7 +668,7 @@ class DokumentUnderArbeidService(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -737,7 +737,7 @@ class DokumentUnderArbeidService(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -795,42 +795,6 @@ class DokumentUnderArbeidService(
                 }
             }
         }
-    }
-
-    fun updateSmartEditorTemplateId(
-        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
-        dokumentId: UUID,
-        templateId: String,
-        innloggetIdent: String
-    ): DokumentUnderArbeid {
-        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
-
-        if (dokument !is DokumentUnderArbeidAsSmartdokument) {
-            throw RuntimeException("Not a smartdocument")
-        }
-
-        if (dokument.smartEditorTemplateId == templateId) {
-            return dokument
-        }
-
-        //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-
-        if (dokument.erMarkertFerdig()) {
-            throw DokumentValidationException("Kan ikke endre smartEditorTemplateId på et dokument som er ferdigstilt")
-        }
-
-        val oldValue = dokument.smartEditorTemplateId
-        dokument.smartEditorTemplateId = templateId
-        dokument.modified = LocalDateTime.now()
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.SMARTDOKUMENT_TEMPLATE_ID,
-            fraVerdi = oldValue,
-            tilVerdi = dokument.smartEditorTemplateId,
-            tidspunkt = LocalDateTime.now(),
-        )
-        return dokument
     }
 
     fun validateIfSmartDokument(
@@ -967,7 +931,7 @@ class DokumentUnderArbeidService(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = vedlegg.map {
@@ -1180,7 +1144,7 @@ class DokumentUnderArbeidService(
                 DocumentsRemovedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     idList = vedlegg.map { it.id.toString() } + document.id.toString(),

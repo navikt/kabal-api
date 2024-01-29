@@ -55,7 +55,6 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.repositories.SaksbehandlerRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
@@ -81,7 +80,6 @@ class BehandlingService(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val arbeidOgInntektClient: ArbeidOgInntektClient,
     private val fssProxyClient: KlageFssProxyClient,
-    private val saksbehandlerRepository: SaksbehandlerRepository,
     private val eregClient: EregClient,
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingMapper: BehandlingMapper,
@@ -133,7 +131,7 @@ class BehandlingService(
                 BehandlingFerdigstiltEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdent(innloggetIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = behandling.modified,
                     avsluttetAvSaksbehandlerDate = behandling.avsluttetAvSaksbehandler!!,
@@ -520,7 +518,7 @@ class BehandlingService(
                 setSattPaaVent(
                     behandlingId = behandlingId,
                     utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-                    systemUserContext = saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(
+                    systemUserContext = saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(
                         utfoerendeSaksbehandlerIdent
                     ),
                     input = null,
@@ -544,13 +542,13 @@ class BehandlingService(
                 TildelingEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     saksbehandler = if (tildeltSaksbehandlerIdent != null) {
                         Employee(
                             navIdent = tildeltSaksbehandlerIdent,
-                            navn = saksbehandlerService.getNameForIdent(tildeltSaksbehandlerIdent),
+                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(tildeltSaksbehandlerIdent),
                         )
                     } else null,
                     hjemmelIdList = fradelingWithChangedHjemmelIdList?.split(",") ?: emptyList(),
@@ -659,8 +657,6 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     medunderskriver = null,
-                    navIdent = null,
-                    name = null,
                     flowState = FlowState.NOT_SENT,
                 )
             ),
@@ -708,8 +704,6 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     rol = null,
-                    navIdent = null,
-                    name = null,
                     flowState = FlowState.NOT_SENT,
                     returnDate = null,
                 )
@@ -737,7 +731,7 @@ class BehandlingService(
         } else {
             SaksbehandlerView(
                 navIdent = behandling.tildeling?.saksbehandlerident!!,
-                navn = saksbehandlerService.getNameForIdent(behandling.tildeling?.saksbehandlerident!!),
+                navn = saksbehandlerService.getNameForIdentDefaultIfNull(behandling.tildeling?.saksbehandlerident!!),
             )
         }
         return saksbehandlerView
@@ -785,7 +779,7 @@ class BehandlingService(
                         navIdent = utfoerendeSaksbehandlerIdent,
                         navn = if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
                             utfoerendeSaksbehandlerIdent
-                        } else saksbehandlerService.getNameForIdent(
+                        } else saksbehandlerService.getNameForIdentDefaultIfNull(
                             utfoerendeSaksbehandlerIdent
                         ),
                     ),
@@ -863,7 +857,7 @@ class BehandlingService(
                     MottattVedtaksinstansEvent(
                         actor = Employee(
                             navIdent = utfoerendeSaksbehandlerIdent,
-                            navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                         ),
                         timestamp = behandling.modified,
                         mottattVedtaksinstans = behandling.mottattVedtaksinstans,
@@ -954,7 +948,7 @@ class BehandlingService(
                 InnsendingshjemlerEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     hjemmelIdSet = behandling.hjemler.map { it.id }.toSet(),
@@ -1003,7 +997,7 @@ class BehandlingService(
                 FullmektigEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     part = partView?.let {
@@ -1047,7 +1041,7 @@ class BehandlingService(
                 KlagerEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     part = Part(
@@ -1089,19 +1083,15 @@ class BehandlingService(
                 MedunderskriverEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
-                    medunderskriver = if (medunderskriverWrapped.navIdent != null) {
+                    medunderskriver = if (medunderskriverWrapped.employee != null) {
                         Employee(
-                            navIdent = medunderskriverWrapped.navIdent,
-                            navn = saksbehandlerService.getNameForIdent(medunderskriverWrapped.navIdent),
+                            navIdent = medunderskriverWrapped.employee.navIdent,
+                            navn = medunderskriverWrapped.employee.navn,
                         )
                     } else null,
                     timestamp = medunderskriverWrapped.modified,
-                    navIdent = medunderskriverWrapped.navIdent,
-                    name = if (medunderskriverWrapped.navIdent != null) saksbehandlerService.getNameForIdent(
-                        medunderskriverWrapped.navIdent
-                    ) else null,
                     flowState = medunderskriverWrapped.flowState,
                 )
             ),
@@ -1118,7 +1108,7 @@ class BehandlingService(
         navIdent: String?,
     ): MedunderskriverWrapped {
         val behandling =
-            if (saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
+            if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
                 val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
                 if (behandling.medunderskriverFlowState != FlowState.SENT && behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent) {
                     throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre medunderskriver når den ikke er sent.")
@@ -1150,19 +1140,15 @@ class BehandlingService(
                 MedunderskriverEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = medunderskriverWrapped.modified,
-                    medunderskriver = if (medunderskriverWrapped.navIdent != null) {
+                    medunderskriver = if (medunderskriverWrapped.employee != null) {
                         Employee(
-                            navIdent = medunderskriverWrapped.navIdent,
-                            navn = saksbehandlerService.getNameForIdent(medunderskriverWrapped.navIdent),
+                            navIdent = medunderskriverWrapped.employee.navIdent,
+                            navn = medunderskriverWrapped.employee.navn,
                         )
                     } else null,
-                    navIdent = medunderskriverWrapped.navIdent,
-                    name = if (medunderskriverWrapped.navIdent != null) saksbehandlerService.getNameForIdent(
-                        medunderskriverWrapped.navIdent
-                    ) else null,
                     flowState = medunderskriverWrapped.flowState,
                 )
             ),
@@ -1442,7 +1428,7 @@ class BehandlingService(
         val behandlingForCheck = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val behandling =
-            if (saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(navIdent) || behandlingForCheck.tildeling == null) {
+            if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(navIdent) || behandlingForCheck.tildeling == null) {
                 getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
             } else {
                 getBehandlingForUpdate(behandlingId = behandlingId)
@@ -1455,7 +1441,7 @@ class BehandlingService(
             feilregistrering = BehandlingDetaljerView.FeilregistreringView(
                 feilregistrertAv = SaksbehandlerView(
                     navIdent = modifiedBehandling.feilregistrering!!.navIdent,
-                    navn = saksbehandlerService.getNameForIdent(modifiedBehandling.feilregistrering!!.navIdent)
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(modifiedBehandling.feilregistrering!!.navIdent)
                 ),
                 registered = modifiedBehandling.feilregistrering!!.registered,
                 reason = modifiedBehandling.feilregistrering!!.reason,
@@ -1527,7 +1513,7 @@ class BehandlingService(
                 FeilregistreringEvent(
                     actor = Employee(
                         navIdent = navIdent,
-                        navn = saksbehandlerService.getNameForIdent(navIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(navIdent),
                     ),
                     timestamp = behandling.modified,
                     registered = behandling.feilregistrering!!.registered,
@@ -1582,7 +1568,7 @@ class BehandlingService(
                 UtfallEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     utfallId = behandling.utfall?.id,
@@ -1620,7 +1606,7 @@ class BehandlingService(
                 ExtraUtfallEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     utfallIdList = behandling.extraUtfallSet.map { it.id },
@@ -1653,7 +1639,7 @@ class BehandlingService(
                 RegistreringshjemlerEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
                     hjemmelIdSet = behandling.registreringshjemler.map { it.id }.toSet(),
@@ -1698,17 +1684,15 @@ class BehandlingService(
                 RolEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = rolView.modified,
-                    rol = if (rolView.navIdent != null) {
+                    rol = if (rolView.employee != null) {
                         Employee(
-                            navIdent = rolView.navIdent,
-                            navn = rolView.navn!!,
+                            navIdent = rolView.employee.navIdent,
+                            navn = rolView.employee.navn,
                         )
                     } else null,
-                    navIdent = rolView.navIdent,
-                    name = rolView.navn,
                     flowState = rolView.flowState,
                     returnDate = behandling.rolReturnedDate,
                 )
@@ -1728,12 +1712,12 @@ class BehandlingService(
     ): RolView {
         val behandlingForCheck = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         val behandling =
-            if (saksbehandlerRepository.isKROL(utfoerendeSaksbehandlerIdent)) {
+            if (saksbehandlerService.isKROL(utfoerendeSaksbehandlerIdent)) {
                 if (behandlingForCheck.rolFlowState == FlowState.RETURNED) {
                     throw MissingTilgangException("KROL har ikke lov til å endre ROL når den er returnert.")
                 }
                 getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
-            } else if (saksbehandlerRepository.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
+            } else if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
                 if (behandlingForCheck.rolFlowState != FlowState.SENT && behandlingForCheck.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent) {
                     throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre ROL når den ikke er sendt.")
                 }
@@ -1770,17 +1754,15 @@ class BehandlingService(
                 RolEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdent(utfoerendeSaksbehandlerIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = rolView.modified,
-                    rol = if (rolView.navIdent != null) {
+                    rol = if (rolView.employee != null) {
                         Employee(
-                            navIdent = rolView.navIdent,
-                            navn = rolView.navn!!,
+                            navIdent = rolView.employee.navIdent,
+                            navn = rolView.employee.navn,
                         )
                     } else null,
-                    navIdent = rolView.navIdent,
-                    name = rolView.navn,
                     flowState = rolView.flowState,
                     returnDate = behandling.rolReturnedDate,
                 )
@@ -1805,7 +1787,7 @@ class BehandlingService(
     private fun Behandling.toCompletedBehandling(): CompletedBehandling = CompletedBehandling(
         behandlingId = id,
         ytelseId = ytelse.id,
-        hjemmelId = hjemler.first().id,
+        hjemmelIdList = hjemler.map { it.id },
         vedtakDate = avsluttetAvSaksbehandler!!,
         sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder),
         klager = behandlingMapper.getPartView(klager),
@@ -1815,7 +1797,7 @@ class BehandlingService(
         fagsystemId = fagsystem.id,
         klageBehandlendeEnhet = tildeling!!.enhet!!,
         tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
-        tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdent(tildeling!!.saksbehandlerident!!),
+        tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdentDefaultIfNull(tildeling!!.saksbehandlerident!!),
     )
 
     fun getHistory(behandlingId: UUID): HistoryResponse {

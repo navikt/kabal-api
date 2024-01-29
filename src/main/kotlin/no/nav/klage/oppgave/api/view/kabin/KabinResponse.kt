@@ -10,7 +10,7 @@ import java.util.*
 data class CompletedBehandling(
     val behandlingId: UUID,
     val ytelseId: String,
-    val hjemmelId: String,
+    val hjemmelIdList: List<String>,
     val vedtakDate: LocalDateTime,
     val sakenGjelder: BehandlingDetaljerView.SakenGjelderView,
     val klager: BehandlingDetaljerView.PartView,
@@ -28,7 +28,7 @@ data class Ankemulighet(
     val typeId: String,
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val ytelseId: String,
-    val hjemmelId: String,
+    val hjemmelIdList: List<String>,
     val vedtakDate: LocalDateTime,
     val sakenGjelder: BehandlingDetaljerView.SakenGjelderView,
     val klager: BehandlingDetaljerView.PartView,

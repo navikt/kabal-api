@@ -81,7 +81,7 @@ class DefaultKabalSmartEditorApiGateway(
                 author = it.authorNavIdent?.let { navIdent ->
                     SmartDocumentVersionView.Author(
                         navIdent = navIdent,
-                        navn = saksbehandlerService.getNameForIdent(navIdent),
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(navIdent),
                     )
                 },
                 timestamp = it.modified,

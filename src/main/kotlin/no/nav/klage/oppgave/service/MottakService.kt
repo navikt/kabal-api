@@ -299,7 +299,10 @@ class MottakService(
 
     fun CreateKlageBasedOnKabinInput.validate() {
         validateDocumentNotAlreadyUsed(klageJournalpostId, sakenGjelder.value)
-        validateYtelseAndHjemler(Ytelse.of(ytelseId), listOf(Hjemmel.of(hjemmelId)))
+        validateYtelseAndHjemler(
+            ytelse = Ytelse.of(ytelseId),
+            hjemler = hjemmelIdList.map { Hjemmel.of(it) }
+        )
         validateDuplicate(Fagsystem.of(fagsystemId), kildereferanse, Type.KLAGE)
         validateJournalpostList(listOf(klageJournalpostId))
         klager?.toPartId()?.let { validatePartId(it) }
@@ -313,7 +316,10 @@ class MottakService(
 
     fun CreateAnkeBasedOnCompleteKabinInput.validate() {
         validateDocumentNotAlreadyUsed(ankeJournalpostId, sakenGjelder.value)
-        validateYtelseAndHjemler(Ytelse.of(ytelseId), listOf(Hjemmel.of(hjemmelId)))
+        validateYtelseAndHjemler(
+            ytelse = Ytelse.of(ytelseId),
+            hjemler = hjemmelIdList.map { Hjemmel.of(it) }
+        )
         validateDuplicate(Fagsystem.of(fagsystemId), kildereferanse, Type.ANKE)
         validateJournalpostList(listOf(ankeJournalpostId))
         klager?.toPartId()?.let { validatePartId(it) }
@@ -540,7 +546,7 @@ class MottakService(
             fagsakId = fagsakId,
             kildeReferanse = kildereferanse,
             dvhReferanse = null,
-            hjemler = setOf(MottakHjemmel(hjemmelId = hjemmelId)),
+            hjemler = hjemmelIdList.map { MottakHjemmel(hjemmelId = it) }.toSet(),
             forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
             mottakDokument = mutableSetOf(
                 MottakDokument(
@@ -594,7 +600,7 @@ class MottakService(
             fagsakId = fagsakId,
             kildeReferanse = kildereferanse,
             dvhReferanse = null,
-            hjemler = setOf(MottakHjemmel(hjemmelId = hjemmelId)),
+            hjemler = hjemmelIdList.map { MottakHjemmel(hjemmelId = it) }.toSet(),
             forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
             mottakDokument = mutableSetOf(
                 MottakDokument(

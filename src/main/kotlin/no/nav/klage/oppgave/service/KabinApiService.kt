@@ -155,7 +155,7 @@ class KabinApiService(
             tildeltSaksbehandler = ankebehandling.tildeling?.saksbehandlerident?.let {
                 TildeltSaksbehandler(
                     navIdent = it,
-                    navn = saksbehandlerService.getNameForIdent(it),
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
                 )
             },
         )
@@ -184,7 +184,7 @@ class KabinApiService(
             tildeltSaksbehandler = klagebehandling.tildeling?.saksbehandlerident?.let {
                 TildeltSaksbehandler(
                     navIdent = it,
-                    navn = saksbehandlerService.getNameForIdent(it),
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
                 )
             },
         )
@@ -196,7 +196,7 @@ class KabinApiService(
         return Ankemulighet(
             behandlingId = id,
             ytelseId = ytelse.id,
-            hjemmelId = hjemler.first().id,
+            hjemmelIdList = hjemler.map { it.id },
             vedtakDate = avsluttetAvSaksbehandler!!,
             sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder),
             klager = behandlingMapper.getPartView(klager),
@@ -206,7 +206,7 @@ class KabinApiService(
             fagsystemId = fagsystem.id,
             klageBehandlendeEnhet = tildeling!!.enhet!!,
             tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
-            tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdent(tildeling!!.saksbehandlerident!!),
+            tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdentDefaultIfNull(tildeling!!.saksbehandlerident!!),
             typeId = type.id,
             sourceOfExistingAnkebehandling = ankebehandlingerBasedOnThisBehandling.map {
                 ExistingAnkebehandling(
