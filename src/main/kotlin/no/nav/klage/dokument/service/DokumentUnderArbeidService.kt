@@ -20,7 +20,6 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
-import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentMapper
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
@@ -905,9 +904,9 @@ class DokumentUnderArbeidService(
             )
             try {
                 metricForSmartDocumentVersions.record(
-                    smartEditorApiGateway.getDocumentVersions(
-                        documentId = hovedDokument.smartEditorId
-                    ).size.toDouble()
+                    smartEditorApiGateway.getSmartDocumentResponse(
+                        smartEditorId = hovedDokument.smartEditorId
+                    ).version.toDouble()
                 )
             } catch (e: Exception) {
                 logger.warn("could not record metrics for smart document versions", e)
