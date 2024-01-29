@@ -44,7 +44,8 @@ class FerdigstillDokumentService(
     @Scheduled(fixedDelayString = "\${FERDIGSTILLE_DOKUMENTER_DELAY_MILLIS}", initialDelay = 45000)
     @SchedulerLock(name = "ferdigstillDokumenter")
     fun ferdigstillHovedDokumenter() {
-        val hovedDokumenterIkkeFerdigstilte = dokumentUnderArbeidCommonService.findHoveddokumenterByMarkertFerdigNotNullAndFerdigstiltNull()
+        val hovedDokumenterIkkeFerdigstilte =
+            dokumentUnderArbeidCommonService.findHoveddokumenterByMarkertFerdigNotNullAndFerdigstiltNull()
         for (it in hovedDokumenterIkkeFerdigstilte) {
             ferdigstill(it)
         }
@@ -55,7 +56,8 @@ class FerdigstillDokumentService(
     @SchedulerLock(name = "ferdigstillDokumenter")
     fun listenToFerdigstilteDokumenterAvSaksbehandler(dokumentFerdigstiltAvSaksbehandler: DokumentFerdigstiltAvSaksbehandler) {
         logger.debug("listenToFerdigstilteDokumenterAvSaksbehandler called")
-        val dua = Hibernate.unproxy(dokumentFerdigstiltAvSaksbehandler.dokumentUnderArbeid) as DokumentUnderArbeidAsHoveddokument
+        val dua =
+            Hibernate.unproxy(dokumentFerdigstiltAvSaksbehandler.dokumentUnderArbeid) as DokumentUnderArbeidAsHoveddokument
         ferdigstill(dua)
     }
 
@@ -68,9 +70,13 @@ class FerdigstillDokumentService(
             }
             updatedDokument = dokumentUnderArbeidService.ferdigstillDokumentEnhet(updatedDokument.id)
 
-            logger.debug("dokumentUnderArbeidService.ferdigstillDokumentEnhet(updatedDokument.id) for document with id {} done", updatedDokument.id)
+            logger.debug(
+                "dokumentUnderArbeidService.ferdigstillDokumentEnhet(updatedDokument.id) for document with id {} done",
+                updatedDokument.id
+            )
 
-            val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = updatedDokument.behandlingId)
+            val behandling =
+                behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = updatedDokument.behandlingId)
 
             val dokumentReferanseList = updatedDokument.dokarkivReferences.map {
                 val journalpost = safFacade.getJournalpostAsSystembruker(journalpostId = it.journalpostId)
@@ -89,7 +95,12 @@ class FerdigstillDokumentService(
                         id = updatedDokument.id.toString(),
                         journalpostList = dokumentReferanseList.map {
                             //small hack for now, until we fetch data from SAF on consumer side of event.
-                            it.copy(harTilgangTilArkivvariant = true)
+                            it.copy(
+                                harTilgangTilArkivvariant = true,
+                                vedlegg = it.vedlegg.map { vedlegg ->
+                                    vedlegg.copy(harTilgangTilArkivvariant = true)
+                                }.toMutableList()
+                            )
                         },
                     )
                 ),
