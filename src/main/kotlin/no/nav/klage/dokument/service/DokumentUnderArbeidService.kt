@@ -709,7 +709,7 @@ class DokumentUnderArbeidService(
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
         if (behandling.avsluttetAvSaksbehandler == null) {
-            if (dokumentUnderArbeid.creatorRole != behandlingRole) {
+            if (dokumentUnderArbeid.creatorRole != behandlingRole && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
                 throw MissingTilgangException("$behandlingRole har ikke anledning til å endre tittel på dette dokumentet eiet av ${dokumentUnderArbeid.creatorRole}.")
             }
         }
@@ -1199,7 +1199,7 @@ class DokumentUnderArbeidService(
     ) {
         documentSet.forEach { document ->
             if (behandling.avsluttetAvSaksbehandler == null) {
-                if (document.creatorRole != behandlingRole) {
+                if (document.creatorRole != behandlingRole && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
                     throw MissingTilgangException("$behandlingRole har ikke anledning til å slette dokumentet eiet av ${document.creatorRole}.")
                 }
             }
