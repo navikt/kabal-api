@@ -1510,13 +1510,6 @@ class DokumentUnderArbeidService(
             hovedDokumentId
         )
         hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
-        if (hovedDokument is DokumentUnderArbeidAsSmartdokument) {
-            try {
-                smartEditorApiGateway.deleteDocumentAsSystemUser(hovedDokument.smartEditorId)
-            } catch (e: Exception) {
-                logger.warn("Couldn't delete hoveddokument from smartEditorApi", e)
-            }
-        }
 
         logger.debug(
             "about to call ferdigstillHvisIkkeAlleredeFerdigstilt(now) for vedlegg of dokument with id {}",
@@ -1524,13 +1517,6 @@ class DokumentUnderArbeidService(
         )
         vedlegg.forEach {
             it.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
-            if (it is DokumentUnderArbeidAsSmartdokument) {
-                try {
-                    smartEditorApiGateway.deleteDocumentAsSystemUser(it.smartEditorId)
-                } catch (e: Exception) {
-                    logger.warn("Couldn't delete vedlegg from smartEditorApi", e)
-                }
-            }
         }
         logger.debug("about to return hoveddokument for hoveddokumentId {}", hovedDokumentId)
         return hovedDokument
