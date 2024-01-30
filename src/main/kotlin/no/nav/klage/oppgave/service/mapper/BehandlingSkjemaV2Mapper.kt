@@ -8,7 +8,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 private fun Klager.mapToSkjemaV2(): BehandlingSkjemaV2.PersonEllerOrganisasjon {
-    return if (this.isPerson()) {
+    return if (this.partId.isPerson()) {
         BehandlingSkjemaV2.PersonEllerOrganisasjon(
             BehandlingSkjemaV2.Person(fnr = this.partId.value)
         )
@@ -20,7 +20,7 @@ private fun Klager.mapToSkjemaV2(): BehandlingSkjemaV2.PersonEllerOrganisasjon {
 }
 
 private fun Prosessfullmektig.mapToSkjemaV2(): BehandlingSkjemaV2.PersonEllerOrganisasjon {
-    return if (this.isPerson()) {
+    return if (this.partId.isPerson()) {
         BehandlingSkjemaV2.PersonEllerOrganisasjon(
             BehandlingSkjemaV2.Person(fnr = this.partId.value)
         )

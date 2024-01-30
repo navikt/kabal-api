@@ -920,7 +920,7 @@ class DokumentUnderArbeidService(
             saksbehandlerident = innloggetIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_BREVMOTTAKER_IDENTS,
             fraVerdi = null,
-            tilVerdi = hovedDokument.brevmottakerInfoSet?.joinToString { it.identifikator },
+            tilVerdi = hovedDokument.brevmottakerInfoSet.joinToString { it.identifikator },
             tidspunkt = LocalDateTime.now(),
         )
 
@@ -937,7 +937,7 @@ class DokumentUnderArbeidService(
                     documents = vedlegg.map {
                         DocumentsChangedEvent.DocumentChanged(
                             id = it.id.toString(),
-                            parentId = if (it is DokumentUnderArbeidAsVedlegg) it.parentId.toString() else null,
+                            parentId = it.parentId.toString(),
                             dokumentTypeId = it.dokumentType?.id,
                             tittel = it.name,
                             isMarkertAvsluttet = it.erMarkertFerdig(),

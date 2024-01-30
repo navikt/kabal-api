@@ -266,7 +266,7 @@ class BehandlingService(
             }
         }
 
-        if (behandling.klager.prosessfullmektig?.isPerson() == false &&
+        if (behandling.klager.prosessfullmektig?.partId?.isPerson() == false &&
             !eregClient.hentOrganisasjon(behandling.klager.prosessfullmektig!!.partId.value).isActive()
         ) {
             behandlingValidationErrors.add(
@@ -1790,8 +1790,8 @@ class BehandlingService(
         hjemmelIdList = hjemler.map { it.id },
         vedtakDate = avsluttetAvSaksbehandler!!,
         sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder),
-        klager = behandlingMapper.getPartView(klager),
-        fullmektig = klager.prosessfullmektig?.let { behandlingMapper.getPartView(it) },
+        klager = behandlingMapper.getPartView(klager.partId),
+        fullmektig = klager.prosessfullmektig?.let { behandlingMapper.getPartView(it.partId) },
         fagsakId = fagsakId,
         fagsystem = fagsystem,
         fagsystemId = fagsystem.id,

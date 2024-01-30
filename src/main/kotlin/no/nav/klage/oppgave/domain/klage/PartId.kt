@@ -12,4 +12,7 @@ data class PartId(
     val type: PartIdType,
     @Column(name = "value")
     val value: String,
-)
+) {
+    fun isPerson() = type == PartIdType.PERSON
+}
+

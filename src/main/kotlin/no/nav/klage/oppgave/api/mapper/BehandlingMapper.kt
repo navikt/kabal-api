@@ -49,8 +49,8 @@ class BehandlingMapper(
             fraNAVEnhetNavn = enhetNavn,
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
             sakenGjelder = getSakenGjelderView(klagebehandling.sakenGjelder),
-            klager = getPartView(klagebehandling.klager),
-            prosessfullmektig = klagebehandling.klager.prosessfullmektig?.let { getPartView(it) },
+            klager = getPartView(klagebehandling.klager.partId),
+            prosessfullmektig = klagebehandling.klager.prosessfullmektig?.let { getPartView(it.partId) },
             temaId = klagebehandling.ytelse.toTema().id,
             ytelseId = klagebehandling.ytelse.id,
             typeId = klagebehandling.type.id,
@@ -148,8 +148,8 @@ class BehandlingMapper(
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
             sakenGjelder = getSakenGjelderView(ankebehandling.sakenGjelder),
-            klager = getPartView(ankebehandling.klager),
-            prosessfullmektig = ankebehandling.klager.prosessfullmektig?.let { getPartView(it) },
+            klager = getPartView(ankebehandling.klager.partId),
+            prosessfullmektig = ankebehandling.klager.prosessfullmektig?.let { getPartView(it.partId) },
             temaId = ankebehandling.ytelse.toTema().id,
             ytelseId = ankebehandling.ytelse.id,
             typeId = ankebehandling.type.id,
@@ -203,8 +203,8 @@ class BehandlingMapper(
             fraNAVEnhetNavn = null,
             mottattVedtaksinstans = null,
             sakenGjelder = getSakenGjelderView(ankeITrygderettenbehandling.sakenGjelder),
-            klager = getPartView(ankeITrygderettenbehandling.klager),
-            prosessfullmektig = ankeITrygderettenbehandling.klager.prosessfullmektig?.let { getPartView(it) },
+            klager = getPartView(ankeITrygderettenbehandling.klager.partId),
+            prosessfullmektig = ankeITrygderettenbehandling.klager.prosessfullmektig?.let { getPartView(it.partId) },
             temaId = ankeITrygderettenbehandling.ytelse.toTema().id,
             ytelseId = ankeITrygderettenbehandling.ytelse.id,
             typeId = ankeITrygderettenbehandling.type.id,
@@ -267,17 +267,10 @@ class BehandlingMapper(
         }
     }
 
-    fun getPartView(klager: Klager): BehandlingDetaljerView.PartView {
+    fun getPartView(partId: PartId): BehandlingDetaljerView.PartView {
         return getPartView(
-            identificator = klager.partId.value,
-            isPerson = klager.isPerson()
-        )
-    }
-
-    fun getPartView(prosessfullmektig: Prosessfullmektig): BehandlingDetaljerView.PartView {
-        return getPartView(
-            identificator = prosessfullmektig.partId.value,
-            isPerson = prosessfullmektig.isPerson()
+            identificator = partId.value,
+            isPerson = partId.isPerson()
         )
     }
 
