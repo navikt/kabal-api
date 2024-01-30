@@ -272,7 +272,7 @@ class BehandlingController(
 
         val modified = behandlingService.setInnsendingshjemler(
             behandlingId = behandlingId,
-            hjemler = input.hjemmelIdList ?: input.hjemler ?: emptyList(),
+            hjemler = input.hjemmelIdList,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
 
@@ -431,11 +431,9 @@ class BehandlingController(
             logger
         )
 
-        val utfallId = input.utfallId ?: input.utfall
-
         val behandling = behandlingService.setUtfall(
             behandlingId = behandlingId,
-            utfall = if (utfallId != null) Utfall.of(utfallId) else null,
+            utfall = if (input.utfallId != null) Utfall.of(input.utfallId) else null,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
 
@@ -484,8 +482,7 @@ class BehandlingController(
 
         val modified = behandlingService.setRegistreringshjemler(
             behandlingId = behandlingId,
-            registreringshjemler = input.hjemmelIdSet?.map { Registreringshjemmel.of(it) }?.toSet()
-                ?: input.hjemler?.map { Registreringshjemmel.of(it) }?.toSet() ?: emptySet(),
+            registreringshjemler = input.hjemmelIdSet.map { Registreringshjemmel.of(it) }.toSet(),
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         ).modified
 
