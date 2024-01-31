@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @RequestMapping("/behandlinger/{behandlingId}")
 class EventController(
     private val aivenKafkaClientCreator: AivenKafkaClientCreator,
-    private val meterRegistry: MeterRegistry,
+    meterRegistry: MeterRegistry,
     private val behandlingService: BehandlingService,
 ) {
 

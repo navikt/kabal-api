@@ -257,6 +257,7 @@ class MottakService(
 
     fun getUsedJournalpostIdList(sakenGjelder: String): List<String> {
         return mottakRepository.findBySakenGjelderOrKlager(sakenGjelder)
+            .asSequence()
             .filter {
                 when (it.type) {
                     Type.KLAGE -> klagebehandlingRepository.findByMottakId(it.id)?.feilregistrering == null

@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
-import no.nav.klage.kodeverk.PartIdType
 
 @Embeddable
 data class Prosessfullmektig(

@@ -1,6 +1,5 @@
 package no.nav.klage.dokument.clients.klagefileapi
 
-import io.micrometer.tracing.Tracer
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -17,7 +16,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 class FileApiClient(
     private val fileWebClient: WebClient,
     private val tokenUtil: TokenUtil,
-    private val tracer: Tracer
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")

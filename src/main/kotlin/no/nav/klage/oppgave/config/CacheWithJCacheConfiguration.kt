@@ -19,9 +19,9 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
     companion object {
 
         const val ENHET_CACHE = "enhet"
-        const val TILGANGER_CACHE = "tilganger"
-        const val ROLLER_CACHE = "roller"
-        const val SAKSBEHANDLERE_I_ENHET_CACHE = "saksbehandlereienhet"
+        private const val TILGANGER_CACHE = "tilganger"
+        private const val ROLLER_CACHE = "roller"
+        private const val SAKSBEHANDLERE_I_ENHET_CACHE = "saksbehandlereienhet"
         const val ANSATTE_I_ENHET_CACHE = "ansatteienhet"
         const val GROUPMEMBERS_CACHE = "groupmembers"
         const val KRR_INFO_CACHE = "krrinfo"

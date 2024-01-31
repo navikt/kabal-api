@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.clients.krrproxy
 
-import java.time.LocalDate
 import java.time.ZonedDateTime
 
 

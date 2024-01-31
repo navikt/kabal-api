@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.clients.saf.rest
 
-import io.micrometer.tracing.Tracer
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -23,7 +22,6 @@ import java.nio.file.Path
 class SafRestClient(
     private val safWebClient: WebClient,
     private val tokenUtil: TokenUtil,
-    private val tracer: Tracer,
 ) {
 
     companion object {

@@ -43,7 +43,7 @@ internal class SafDokumentoversiktBrukerTest {
         assertThrows<RuntimeException> { getDokumentoversiktBruker(dokumentoversiktErrorResponse()) }
     }
 
-    fun getDokumentoversiktBruker(jsonResponse: String): DokumentoversiktBruker {
+    private fun getDokumentoversiktBruker(jsonResponse: String): DokumentoversiktBruker {
         val safClient = SafGraphQlClient(
             createShortCircuitWebClient(jsonResponse),
             tokenUtilMock,

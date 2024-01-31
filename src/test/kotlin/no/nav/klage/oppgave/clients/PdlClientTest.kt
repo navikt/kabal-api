@@ -31,7 +31,7 @@ internal class PdlClientTest {
         assertThat(hentPersonResponse.data!!.hentPerson!!.navn.first().fornavn).isEqualTo("AREMARK")
     }
 
-    fun getHentPersonResponse(jsonResponse: String): HentPersonResponse {
+    private fun getHentPersonResponse(jsonResponse: String): HentPersonResponse {
         val pdlClient = PdlClient(
             createShortCircuitWebClient(jsonResponse),
             tokenUtilMock

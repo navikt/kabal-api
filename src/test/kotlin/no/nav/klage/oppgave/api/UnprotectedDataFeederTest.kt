@@ -2,10 +2,7 @@ package no.nav.klage.oppgave.api
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import no.finn.unleash.Unleash
-import no.finn.unleash.UnleashContext
 import no.nav.klage.oppgave.api.controller.UnprotectedDataFeeder
-import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.MottakService
 import org.intellij.lang.annotations.Language
@@ -27,21 +24,14 @@ class UnprotectedDataFeederTest {
     lateinit var mockMvc: MockMvc
 
     @MockkBean
-    lateinit var unleash: Unleash
-
-    @MockkBean
     lateinit var innloggetSaksbehandlerService: InnloggetSaksbehandlerService
 
     @MockkBean
     lateinit var mottakService: MottakService
 
-    @MockkBean
-    lateinit var ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService
-
     @BeforeEach
     fun setup() {
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns "H149390"
-        every { unleash.isEnabled(any(), any<UnleashContext>()) } returns true
         every { mottakService.createMottakForKlageAnkeV3(any()) } returns Unit
     }
 

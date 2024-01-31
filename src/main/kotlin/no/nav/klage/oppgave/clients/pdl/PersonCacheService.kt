@@ -11,7 +11,7 @@ class PersonCacheService {
 
     fun isCached(foedselsnr: String): Boolean = personMap.containsKey(foedselsnr)
 
-    fun getPerson(foedselsnr: String) = personMap.getValue(foedselsnr)
+    fun getPerson(foedselsnr: String): Person = personMap.getValue(foedselsnr)
 
     fun updatePersonCache(person: Person) {
         personMap[person.foedselsnr] = person

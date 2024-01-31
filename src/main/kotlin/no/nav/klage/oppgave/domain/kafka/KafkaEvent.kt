@@ -35,9 +35,7 @@ class KafkaEvent(
 
         other as KafkaEvent
 
-        if (id != other.id) return false
-
-        return true
+        return id == other.id
     }
 
     override fun hashCode(): Int = id.hashCode()

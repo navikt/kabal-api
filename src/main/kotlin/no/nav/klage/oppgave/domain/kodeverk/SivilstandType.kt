@@ -16,12 +16,12 @@ enum class SivilstandType(override val id: String, override val navn: String, ov
 
     companion object {
         fun of(id: String): SivilstandType {
-            return values().firstOrNull { it.id == id }
+            return entries.firstOrNull { it.id == id }
                 ?: throw IllegalArgumentException("No SivilstandType with $id exists")
         }
 
         fun fromNavn(navn: String): SivilstandType {
-            return values().firstOrNull { it.navn == navn }
+            return entries.firstOrNull { it.navn == navn }
                 ?: throw IllegalArgumentException("No SivilstandType with $navn exists")
         }
     }

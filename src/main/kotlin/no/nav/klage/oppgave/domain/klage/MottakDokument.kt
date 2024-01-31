@@ -20,9 +20,7 @@ class MottakDokument(
 
         other as MottakDokument
 
-        if (id != other.id) return false
-
-        return true
+        return id == other.id
     }
 
     override fun hashCode(): Int {
