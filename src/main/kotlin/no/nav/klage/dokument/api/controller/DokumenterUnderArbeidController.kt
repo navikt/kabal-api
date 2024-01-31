@@ -105,8 +105,8 @@ class DokumentUnderArbeidController(
         )
     }
 
-    @PutMapping("/{dokumentId}/kanal")
-    fun setKanal(
+    @PutMapping("/{dokumentId}/inngaaendekanal")
+    fun setInngaaendeKanal(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
         @RequestBody input: InngaaendeKanalInput

@@ -1,8 +1,7 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import jakarta.persistence.Column
-import jakarta.persistence.DiscriminatorValue
-import jakarta.persistence.Entity
+import jakarta.persistence.*
+import no.nav.klage.dokument.api.view.InngaaendeKanal
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
 import java.time.LocalDate
@@ -21,8 +20,9 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     override var mellomlagretDate: LocalDateTime?,
     @Column(name = "dato_mottatt")
     var datoMottatt: LocalDate?,
+    @Enumerated(EnumType.STRING)
     @Column(name = "inngaaende_kanal")
-    var inngaaendeKanal: String?,
+    var inngaaendeKanal: InngaaendeKanal?,
 
     //Common properties
     id: UUID = UUID.randomUUID(),

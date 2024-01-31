@@ -735,7 +735,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
 
         val previousValue = dokumentUnderArbeid.inngaaendeKanal
-        dokumentUnderArbeid.inngaaendeKanal = inngaaendeKanal.toString()
+        dokumentUnderArbeid.inngaaendeKanal = inngaaendeKanal
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
