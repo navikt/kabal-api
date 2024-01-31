@@ -62,6 +62,10 @@ class DefaultKabalSmartEditorApiGateway(
         kabalSmartEditorApiClient.deleteDocument(smartEditorId)
     }
 
+    fun deleteDocumentAsSystemUser(smartEditorId: UUID) {
+        kabalSmartEditorApiClient.deleteDocumentAsSystemUser(smartEditorId)
+    }
+
     fun updateDocument(smartDocumentId: UUID, json: String, currentVersion: Int?): SmartDocumentResponse {
         return kabalSmartEditorApiClient.updateDocument(
             documentId = smartDocumentId,
