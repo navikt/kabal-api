@@ -122,8 +122,8 @@ class DokumentUnderArbeidController(
         )
     }
 
-    @GetMapping("/{dokumentId}", "/{dokumentId}/title")
-    fun getMetadata(
+    @GetMapping("/{dokumentId}/title")
+    fun getTitle(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
     ): DokumentUnderArbeidMetadata {
@@ -134,6 +134,19 @@ class DokumentUnderArbeidController(
             documentId = dokumentId,
             title = dokumentUnderArbeidService.getDokumentUnderArbeid(dokumentId).name
         )
+    }
+
+    @GetMapping("/{dokumentId}")
+    fun getDokument(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") dokumentId: UUID,
+    ): DokumentView {
+        logger.debug("Kall mottatt på getDokument for {}", dokumentId)
+
+       return dokumentUnderArbeidService.getDokumentUnderArbeidView(
+           dokumentUnderArbeidId = dokumentId,
+           behandlingId = behandlingId
+       )
     }
 
     @GetMapping("/{dokumentId}/vedleggsoversikt")

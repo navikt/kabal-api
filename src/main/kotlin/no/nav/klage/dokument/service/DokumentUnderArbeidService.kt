@@ -1365,6 +1365,15 @@ class DokumentUnderArbeidService(
         )
     }
 
+    fun getDokumentUnderArbeidView(dokumentUnderArbeidId: UUID, behandlingId: UUID): DokumentView {
+        //Sjekker tilgang på behandlingsnivå:
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        return getDokumentViewList(
+            dokumentUnderArbeidList = listOf(dokumentUnderArbeidRepository.findById(dokumentUnderArbeidId).get()),
+            behandling = behandling,
+        ).first()
+    }
+
     @Suppress("UNCHECKED_CAST")
     fun getDokumentViewList(
         dokumentUnderArbeidList: List<DokumentUnderArbeid>,
