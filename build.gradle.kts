@@ -1,12 +1,12 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val mockkVersion = "1.13.8"
-val tokenValidationVersion = "3.2.0"
+val mockkVersion = "1.13.9"
+val tokenValidationVersion = "4.1.0"
 val logstashVersion = "7.4"
 val springRetryVersion = "2.0.5"
 val springMockkVersion = "4.0.2"
 val springDocVersion = "2.3.0"
-val testContainersVersion = "1.19.3"
+val testContainersVersion = "1.19.4"
 val shedlockVersion = "5.10.2"
 val archunitVersion = "1.2.1"
 val kotlinXmlBuilderVersion = "1.9.1"
@@ -15,14 +15,14 @@ val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.1"
 val tikaVersion = "2.9.1"
 val verapdfVersion = "1.24.1"
-val klageKodeverkVersion = "1.7.25"
+val klageKodeverkVersion = "1.7.27"
 
 plugins {
     val kotlinVersion = "1.9.22"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
-    id("org.springframework.boot") version "3.2.1"
+    id("org.springframework.boot") version "3.2.2"
     id("io.spring.dependency-management") version "1.1.4"
     idea
 }
