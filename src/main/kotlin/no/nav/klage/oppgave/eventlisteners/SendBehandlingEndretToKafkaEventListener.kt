@@ -8,7 +8,6 @@ import no.nav.klage.oppgave.domain.klage.Ankebehandling
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.service.BehandlingEndretKafkaProducer
-import no.nav.klage.oppgave.service.KafkaInternalEventService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.hibernate.Hibernate
@@ -20,7 +19,6 @@ import org.springframework.transaction.event.TransactionalEventListener
 @Service
 class SendBehandlingEndretToKafkaEventListener(
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
-    private val kafkaInternalEventService: KafkaInternalEventService,
 ) {
 
     companion object {

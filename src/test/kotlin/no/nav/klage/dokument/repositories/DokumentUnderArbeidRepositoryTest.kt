@@ -160,7 +160,7 @@ class DokumentUnderArbeidRepositoryTest {
         testEntityManager.flush()
         testEntityManager.clear()
         val hoveddokument = opplastetDokumentUnderArbeidAsHoveddokumentRepository.getReferenceById(hovedDokument.id)
-        assertThat(hoveddokument.brevmottakerInfoSet?.first()?.identifikator == "123")
+        assertThat(hoveddokument.brevmottakerInfoSet.first().identifikator == "123")
     }
 
     @Test

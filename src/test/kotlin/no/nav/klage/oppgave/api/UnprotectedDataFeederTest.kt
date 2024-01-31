@@ -35,9 +35,6 @@ class UnprotectedDataFeederTest {
     @MockkBean
     lateinit var mottakService: MottakService
 
-    @MockkBean
-    lateinit var ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService
-
     @BeforeEach
     fun setup() {
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns "H149390"

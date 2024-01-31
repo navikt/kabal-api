@@ -27,9 +27,7 @@ class TildelingHistorikk(
 
         other as TildelingHistorikk
 
-        if (id != other.id) return false
-
-        return true
+        return id == other.id
     }
 
     override fun hashCode(): Int {

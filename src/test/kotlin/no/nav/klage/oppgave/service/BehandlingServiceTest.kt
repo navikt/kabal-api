@@ -343,7 +343,10 @@ class BehandlingServiceTest {
                     )
 
             assertThrows<SectionedValidationErrorWithDetailsException> {
-                behandlingService.validateBehandlingBeforeFinalize(behandling.id, nyBehandling = false,)
+                behandlingService.validateBehandlingBeforeFinalize(
+                    behandlingId = behandling.id,
+                    nyBehandling = false,
+                )
             }
         }
 
@@ -352,7 +355,10 @@ class BehandlingServiceTest {
             val behandling = simpleInsert(fullfoert = false, utfall = false)
 
             assertThrows<SectionedValidationErrorWithDetailsException> {
-                behandlingService.validateBehandlingBeforeFinalize(behandling.id, nyBehandling = false,)
+                behandlingService.validateBehandlingBeforeFinalize(
+                    behandlingId = behandling.id,
+                    nyBehandling = false,
+                )
             }
         }
 
@@ -362,7 +368,10 @@ class BehandlingServiceTest {
                 simpleInsert(fullfoert = false, utfall = true, hjemler = false)
 
             assertThrows<SectionedValidationErrorWithDetailsException> {
-                behandlingService.validateBehandlingBeforeFinalize(behandling.id, nyBehandling = false,)
+                behandlingService.validateBehandlingBeforeFinalize(
+                    behandlingId = behandling.id,
+                    nyBehandling = false,
+                )
             }
         }
 
@@ -375,7 +384,10 @@ class BehandlingServiceTest {
                 trukket = true
             )
 
-            behandlingService.validateBehandlingBeforeFinalize(behandling.id, nyBehandling = false,)
+            behandlingService.validateBehandlingBeforeFinalize(
+                behandlingId = behandling.id,
+                nyBehandling = false,
+            )
         }
     }
 

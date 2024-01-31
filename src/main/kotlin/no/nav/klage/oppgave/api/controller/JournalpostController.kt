@@ -8,7 +8,6 @@ import no.nav.klage.oppgave.api.view.JournalfoertDokumentMetadata
 import no.nav.klage.oppgave.api.view.MergedDocumentsMetadata
 import no.nav.klage.oppgave.api.view.ReferenceToMergedDocumentsResponse
 import no.nav.klage.oppgave.api.view.UpdateDocumentTitleView
-import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -32,7 +31,6 @@ import java.util.*
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/journalposter")
 class JournalpostController(
-    private val kabalDocumentClient: KabalDocumentGateway,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val dokumentService: DokumentService
 ) {

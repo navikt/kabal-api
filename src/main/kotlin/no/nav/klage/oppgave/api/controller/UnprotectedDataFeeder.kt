@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.api.controller
 
 import jakarta.validation.Valid
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
-import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.MottakService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class UnprotectedDataFeeder(
     private val mottakService: MottakService,
-    private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
 ) {
 
     companion object {

@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.Hidden
 import no.nav.klage.oppgave.config.SecurityConfiguration
-import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.Unprotected
@@ -12,10 +11,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @Hidden
-class FeatureToggleController(
-//    private val unleash: Unleash,
-    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService
-) {
+class FeatureToggleController {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -35,18 +31,18 @@ class FeatureToggleController(
         return false
 //        return unleash.isEnabled(toggleName, UnleashContext.builder().userId("UINNLOGGET").build())
     }
-/*
-    private fun isEnabled(feature: String): Boolean =
-        unleash.isEnabled(feature, contextMedInnloggetBruker())
+    /*
+        private fun isEnabled(feature: String): Boolean =
+            unleash.isEnabled(feature, contextMedInnloggetBruker())
 
-    private fun contextMedInnloggetBruker(): UnleashContext =
-        UnleashContext.builder().userId(getIdent()).build()
+        private fun contextMedInnloggetBruker(): UnleashContext =
+            UnleashContext.builder().userId(getIdent()).build()
 
-    private fun getIdent() = try {
-        innloggetSaksbehandlerService.getInnloggetIdent()
-    } catch (e: Exception) {
-        logger.info("Not able to retrieve token", e)
-        "UINNLOGGET"
-    }
-*/
+        private fun getIdent() = try {
+            innloggetSaksbehandlerService.getInnloggetIdent()
+        } catch (e: Exception) {
+            logger.info("Not able to retrieve token", e)
+            "UINNLOGGET"
+        }
+    */
 }

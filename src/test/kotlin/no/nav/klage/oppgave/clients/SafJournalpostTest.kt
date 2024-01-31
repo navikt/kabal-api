@@ -44,7 +44,7 @@ internal class SafJournalpostTest {
         assertThrows<RuntimeException> { getJournalpost(journalpostValidationErrorResponse()) }
     }
 
-    fun getJournalpost(jsonResponse: String): Journalpost {
+    private fun getJournalpost(jsonResponse: String): Journalpost {
         val safClient = SafGraphQlClient(
             createShortCircuitWebClient(jsonResponse),
             tokenUtilMock,

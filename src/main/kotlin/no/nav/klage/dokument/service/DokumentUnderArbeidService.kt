@@ -71,7 +71,7 @@ class DokumentUnderArbeidService(
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val saksbehandlerService: SaksbehandlerService,
     private val kabalSmartEditorApiClient: KabalSmartEditorApiClient,
-    private val meterRegistry: MeterRegistry,
+    meterRegistry: MeterRegistry,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
@@ -610,7 +610,7 @@ class DokumentUnderArbeidService(
                     documents = listOf(
                         DocumentsChangedEvent.DocumentChanged(
                             id = dokumentUnderArbeid.id.toString(),
-                            parentId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId.toString() else null,
+                            parentId = null,
                             dokumentTypeId = dokumentUnderArbeid.dokumentType?.id,
                             tittel = dokumentUnderArbeid.name,
                             isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
@@ -674,7 +674,7 @@ class DokumentUnderArbeidService(
                     documents = listOf(
                         DocumentsChangedEvent.DocumentChanged(
                             id = dokumentUnderArbeid.id.toString(),
-                            parentId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId.toString() else null,
+                            parentId = null,
                             dokumentTypeId = dokumentUnderArbeid.dokumentType?.id,
                             tittel = dokumentUnderArbeid.name,
                             isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
@@ -1401,26 +1401,6 @@ class DokumentUnderArbeidService(
                     journalpostList = journalpostList,
                 )
             )
-    }
-
-    fun getSmartDokumenterUnderArbeid(behandlingId: UUID, ident: String): List<DokumentUnderArbeid> {
-        //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-
-        val hoveddokumenter =
-            smartDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndMarkertFerdigIsNull(
-                behandlingId
-            )
-
-        val vedlegg = smartDokumentUnderArbeidAsVedleggRepository.findByBehandlingIdAndMarkertFerdigIsNull(
-            behandlingId
-        )
-
-        val duaList = mutableListOf<DokumentUnderArbeid>()
-        duaList += hoveddokumenter
-        duaList += vedlegg
-
-        return duaList.sortedBy { it.created }
     }
 
     fun opprettDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {

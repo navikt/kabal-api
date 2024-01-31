@@ -417,6 +417,7 @@ class BehandlingService(
             )
         }
 
+        //TODO: Denne er alltid tom nå. Burde vi sjekke noe annet her?
         if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
                 ValidationSection(

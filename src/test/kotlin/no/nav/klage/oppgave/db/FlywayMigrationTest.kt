@@ -28,8 +28,6 @@ class FlywayMigrationTest {
     @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
 
-    data class Utfall(val id: Long, val navn: String)
-
     @Test
     fun flyway_should_run() {
         val saksdokumenter: List<Saksdokument> = jdbcTemplate.query(

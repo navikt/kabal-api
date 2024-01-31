@@ -81,14 +81,14 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
         val (vedtaksinstansEnhet, kvalitetsvurderingId) =
             when (this) {
                 is Klagebehandling -> {
-                    if (Enhet.values().none { it.navn == avsenderEnhetFoersteinstans }) {
+                    if (Enhet.entries.toTypedArray().none { it.navn == avsenderEnhetFoersteinstans }) {
                         logger.error("avsenderEnhetFoersteinstans $avsenderEnhetFoersteinstans not found in internal kodeverk")
                     }
                     avsenderEnhetFoersteinstans to kakaKvalitetsvurderingId
                 }
 
                 is Ankebehandling -> {
-                    if (Enhet.values().none { it.navn == klageBehandlendeEnhet }) {
+                    if (Enhet.entries.toTypedArray().none { it.navn == klageBehandlendeEnhet }) {
                         logger.error("klageBehandlendeEnhet $klageBehandlendeEnhet not found in internal kodeverk")
                     }
                     klageBehandlendeEnhet to kakaKvalitetsvurderingId
@@ -99,7 +99,7 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
                 }
             }
 
-        val tilknyttetEnhet = Enhet.values().find { it.navn == tildeling?.enhet!! }
+        val tilknyttetEnhet = Enhet.entries.find { it.navn == tildeling?.enhet!! }
 
         return SaksdataInput(
             sakenGjelder = sakenGjelder.partId.value,
