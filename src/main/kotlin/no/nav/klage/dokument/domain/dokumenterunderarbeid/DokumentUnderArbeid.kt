@@ -4,6 +4,8 @@ import jakarta.persistence.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.DokumentTypeConverter
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import no.nav.klage.oppgave.util.isInngaaende
+import no.nav.klage.oppgave.util.isUtgaaende
 import org.hibernate.Hibernate
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.DynamicUpdate
@@ -22,7 +24,7 @@ abstract class DokumentUnderArbeid(
     open val id: UUID = UUID.randomUUID(),
     @Column(name = "dokument_type_id")
     @Convert(converter = DokumentTypeConverter::class)
-    open var dokumentType: DokumentType?,
+    open var dokumentType: DokumentType,
     @Column(name = "name")
     open var name: String,
     @Column(name = "behandling_id")
@@ -96,6 +98,14 @@ abstract class DokumentUnderArbeid(
         UPLOADED,
         SMART,
         JOURNALFOERT,
+    }
+
+    fun isInngaaende(): Boolean {
+        return dokumentType.isInngaaende()
+    }
+
+    fun isUtgaaende(): Boolean {
+        return dokumentType.isUtgaaende()
     }
 
     fun getType(): DokumentUnderArbeidType {

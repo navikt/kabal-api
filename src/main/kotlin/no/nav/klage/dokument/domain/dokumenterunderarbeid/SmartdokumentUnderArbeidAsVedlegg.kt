@@ -35,7 +35,7 @@ class SmartdokumentUnderArbeidAsVedlegg(
     parentId: UUID,
     creatorIdent: String,
     creatorRole: BehandlingRole,
-    dokumentType: DokumentType?,
+    dokumentType: DokumentType,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsSmartdokument, DokumentUnderArbeidAsVedlegg(
     id = id,
     name = name,

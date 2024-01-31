@@ -32,7 +32,7 @@ class JournalfoertDokumentUnderArbeidAsVedlegg (
     parentId: UUID?,
     creatorIdent: String,
     creatorRole: BehandlingRole,
-    dokumentType: DokumentType?,
+    dokumentType: DokumentType,
 ) : DokumentUnderArbeidAsVedlegg(
     id = id,
     name = name,

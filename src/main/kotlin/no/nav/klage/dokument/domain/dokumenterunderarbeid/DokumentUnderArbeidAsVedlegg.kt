@@ -23,7 +23,7 @@ abstract class DokumentUnderArbeidAsVedlegg(
     ferdigstilt: LocalDateTime?,
     creatorIdent: String,
     creatorRole: BehandlingRole,
-    dokumentType: DokumentType?,
+    dokumentType: DokumentType,
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
 ) : DokumentUnderArbeid(
     id = id,

@@ -57,7 +57,6 @@ class DokumentUnderArbeidController(
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             tittel = opplastetFil.title,
             parentId = input.parentId,
-            datoMottatt = input.datoMottatt,
         )
     }
 
@@ -84,7 +83,7 @@ class DokumentUnderArbeidController(
             modified = dokumentUnderArbeidService.updateDokumentType(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
-                dokumentType = DokumentType.of(input.dokumentTypeId),
+                newDokumentType = DokumentType.of(input.dokumentTypeId),
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
             ).modified
         )
@@ -101,6 +100,54 @@ class DokumentUnderArbeidController(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 datoMottatt = input.datoMottatt,
+                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            ).modified
+        )
+    }
+
+    @PutMapping("/{dokumentId}/kanal")
+    fun setKanal(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") dokumentId: UUID,
+        @RequestBody input: InngaaendeKanalInput
+    ): DocumentModified {
+        return DocumentModified(
+            modified = dokumentUnderArbeidService.updateInngaaendeKanal(
+                behandlingId = behandlingId,
+                dokumentId = dokumentId,
+                inngaaendeKanal = input.kanal,
+                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            ).modified
+        )
+    }
+
+    @PutMapping("/{dokumentId}/avsender")
+    fun setAvsender(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") dokumentId: UUID,
+        @RequestBody input: AvsenderInput
+    ): DocumentModified {
+        return DocumentModified(
+            modified = dokumentUnderArbeidService.updateAvsender(
+                behandlingId = behandlingId,
+                dokumentId = dokumentId,
+                avsenderInput = input,
+                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            ).modified
+        )
+    }
+
+    @PutMapping("/{dokumentId}/mottakere")
+    fun setMottakere(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") dokumentId: UUID,
+        @RequestBody input: MottakerInput
+    ): DocumentModified {
+        return DocumentModified(
+            modified = dokumentUnderArbeidService.updateMottakere(
+                behandlingId = behandlingId,
+                dokumentId = dokumentId,
+                mottakerInput = input,
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
             ).modified
         )
@@ -218,18 +265,12 @@ class DokumentUnderArbeidController(
     ): DocumentModified {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
 
-        val processedBrevmottakerInfoSet = input.brevmottakerInfoSet ?: input.brevmottakerIds?.map {
-            BrevmottakerInfo(
-                id = it, localPrint = false
-            )
-        }?.toSet()
-
         return DocumentModified(
             modified = dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 innloggetIdent = ident,
-                brevmottakerInfoSet = processedBrevmottakerInfoSet,
+                ferdigstillDokumentInput = input,
             ).modified
         )
     }

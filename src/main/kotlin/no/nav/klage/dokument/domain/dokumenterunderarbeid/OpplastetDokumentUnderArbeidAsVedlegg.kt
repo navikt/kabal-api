@@ -31,7 +31,7 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
     parentId: UUID,
     creatorIdent: String,
     creatorRole: BehandlingRole,
-    dokumentType: DokumentType?,
+    dokumentType: DokumentType,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsVedlegg(
     id = id,
     name = name,
@@ -64,6 +64,7 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
             dokumentType = dokumentType,
             datoMottatt = null,
             journalfoerendeEnhetId = null,
+            inngaaendeKanal = null,
         )
     }
 }

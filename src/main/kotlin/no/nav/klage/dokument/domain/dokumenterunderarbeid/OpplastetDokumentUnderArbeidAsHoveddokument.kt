@@ -21,6 +21,8 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     override var mellomlagretDate: LocalDateTime?,
     @Column(name = "dato_mottatt")
     var datoMottatt: LocalDate?,
+    @Column(name = "inngaaende_kanal")
+    var inngaaendeKanal: String?,
 
     //Common properties
     id: UUID = UUID.randomUUID(),
@@ -33,9 +35,9 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     ferdigstilt: LocalDateTime? = null,
     creatorIdent: String,
     creatorRole: BehandlingRole,
-    dokumentType: DokumentType?,
+    dokumentType: DokumentType,
     dokumentEnhetId: UUID? = null,
-    brevmottakerInfoSet: MutableSet<DokumentUnderArbeidBrevmottakerInfo> = mutableSetOf(),
+    avsenderMottakerInfoSet: MutableSet<DokumentUnderArbeidAvsenderMottakerInfo> = mutableSetOf(),
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
     journalfoerendeEnhetId: String?,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsHoveddokument(
@@ -51,7 +53,7 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     creatorRole = creatorRole,
     dokumentType = dokumentType,
     dokumentEnhetId = dokumentEnhetId,
-    brevmottakerInfoSet = brevmottakerInfoSet,
+    avsenderMottakerInfoSet = avsenderMottakerInfoSet,
     dokarkivReferences = dokarkivReferences,
     journalfoerendeEnhetId = journalfoerendeEnhetId,
 ){
