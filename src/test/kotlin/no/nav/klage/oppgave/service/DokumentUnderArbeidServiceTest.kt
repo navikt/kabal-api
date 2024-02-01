@@ -111,6 +111,7 @@ class DokumentUnderArbeidServiceTest {
             saksbehandlerService = mockk(),
             kabalSmartEditorApiClient = mockk(),
             meterRegistry = mockk(),
+            partSearchService = mockk(),
         )
 
         val behandlingId = UUID.randomUUID()

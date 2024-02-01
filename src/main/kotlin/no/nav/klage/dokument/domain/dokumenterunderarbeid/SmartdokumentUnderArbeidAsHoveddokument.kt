@@ -52,11 +52,9 @@ class SmartdokumentUnderArbeidAsHoveddokument(
     creatorRole = creatorRole,
     dokumentType = dokumentType,
     dokumentEnhetId = dokumentEnhetId,
-    brevmottakerInfoSet = brevmottakerInfoSet,
     dokarkivReferences = dokarkivReferences,
     journalfoerendeEnhetId = journalfoerendeEnhetId,
     avsenderMottakerInfoSet = avsenderMottakerInfoSet,
-    dokarkivReferences = dokarkivReferences,
 ) {
     fun asVedlegg(parentId: UUID): SmartdokumentUnderArbeidAsVedlegg {
         return SmartdokumentUnderArbeidAsVedlegg(

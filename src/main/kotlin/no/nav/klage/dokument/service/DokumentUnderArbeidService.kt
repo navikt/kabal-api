@@ -132,7 +132,7 @@ class DokumentUnderArbeidService(
                     creatorRole = behandlingRole,
                     created = now,
                     modified = now,
-                    datoMottatt = if (dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) datoMottatt else null,
+                    datoMottatt = null,
                     journalfoerendeEnhetId = null,
                     inngaaendeKanal = null,
                 )
