@@ -798,7 +798,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
 
         val previousValue = dokumentUnderArbeid.avsenderMottakerInfoSet.firstOrNull()
-        dokumentUnderArbeid.avsenderMottakerInfoSet = mutableSetOf()
+        dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
         dokumentUnderArbeid.avsenderMottakerInfoSet.add(
             DokumentUnderArbeidAvsenderMottakerInfo(
                 identifikator = avsenderInput.id,
@@ -868,7 +868,7 @@ class DokumentUnderArbeidService(
 
         val previousValue = dokumentUnderArbeid.avsenderMottakerInfoSet
 
-        dokumentUnderArbeid.avsenderMottakerInfoSet = mutableSetOf()
+        dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
 
         mottakerInput.mottakerList.forEach {
             dokumentUnderArbeid.avsenderMottakerInfoSet.add(
@@ -1079,7 +1079,7 @@ class DokumentUnderArbeidService(
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
 
         if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
-            hovedDokument.avsenderMottakerInfoSet = mutableSetOf()
+            hovedDokument.avsenderMottakerInfoSet.clear()
             hovedDokument.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
                     //Hardkoder Trygderetten
@@ -1088,7 +1088,7 @@ class DokumentUnderArbeidService(
                 )
             )
         } else if (!ferdigstillDokumentInput.brevmottakerIds.isNullOrEmpty()) {
-            hovedDokument.avsenderMottakerInfoSet = mutableSetOf()
+            hovedDokument.avsenderMottakerInfoSet.clear()
             ferdigstillDokumentInput.brevmottakerIds.forEach {
                 hovedDokument.avsenderMottakerInfoSet.add(
                     toDokumentUnderArbeidBrevmottakerInfo(
