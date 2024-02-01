@@ -63,6 +63,7 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
             creatorRole = creatorRole,
             dokumentType = dokumentType,
             datoMottatt = null,
+            journalfoerendeEnhetId = null,
         )
     }
 }

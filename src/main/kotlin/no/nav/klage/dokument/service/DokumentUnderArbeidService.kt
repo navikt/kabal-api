@@ -133,6 +133,7 @@ class DokumentUnderArbeidService(
                     created = now,
                     modified = now,
                     datoMottatt = if (dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) datoMottatt else null,
+                    journalfoerendeEnhetId = null,
                 )
             )
         } else {
@@ -300,6 +301,7 @@ class DokumentUnderArbeidService(
                     creatorRole = behandlingRole,
                     created = now,
                     modified = now,
+                    journalfoerendeEnhetId = null,
                 )
             )
         } else {
@@ -853,6 +855,10 @@ class DokumentUnderArbeidService(
         if (hovedDokument !is DokumentUnderArbeidAsHoveddokument) {
             throw RuntimeException("document is not hoveddokument")
         }
+
+        hovedDokument.journalfoerendeEnhetId = saksbehandlerService.getEnhetForSaksbehandler(
+            innloggetIdent
+        ).enhetId
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
 

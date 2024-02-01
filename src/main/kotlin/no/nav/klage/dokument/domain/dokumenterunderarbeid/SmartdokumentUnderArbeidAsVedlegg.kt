@@ -69,6 +69,7 @@ class SmartdokumentUnderArbeidAsVedlegg(
             creatorRole = creatorRole,
             dokumentType = dokumentType,
             dokumentEnhetId = null,
+            journalfoerendeEnhetId = null,
         )
     }
 }
