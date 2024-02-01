@@ -205,7 +205,7 @@ class DokumentUnderArbeidService(
             ) to emptyList()
         } else {
             setAsVedlegg(
-                parentId = optionalParentInput.dokumentId,
+                newParentId = optionalParentInput.dokumentId,
                 dokumentId = persistentDokumentId,
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
             )
@@ -1459,14 +1459,14 @@ class DokumentUnderArbeidService(
     }
 
     fun setAsVedlegg(
-        parentId: UUID,
+        newParentId: UUID,
         dokumentId: UUID,
         innloggetIdent: String
     ): Pair<List<DokumentUnderArbeid>, List<JournalfoertDokumentUnderArbeidAsVedlegg>> {
-        if (parentId == dokumentId) {
+        if (newParentId == dokumentId) {
             throw DokumentValidationException("Kan ikke gjøre et dokument til vedlegg for seg selv.")
         }
-        val parentDocument = dokumentUnderArbeidRepository.findById(parentId).get()
+        val parentDocument = dokumentUnderArbeidRepository.findById(newParentId).get()
 
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
             behandlingId = parentDocument.behandlingId,
@@ -1491,11 +1491,12 @@ class DokumentUnderArbeidService(
 
         val descendants = getVedlegg(hoveddokumentId = dokumentId)
 
-        val dokumentIdSet = mutableSetOf(dokumentId)
+        val dokumentIdSet = mutableListOf<UUID>()
         dokumentIdSet += descendants.map { it.id }
+        dokumentIdSet += dokumentId
 
         val processedDokumentUnderArbeidOutput = dokumentIdSet.map { currentDokumentId ->
-            setParentInDokumentUnderArbeidAndFindDuplicates(currentDokumentId, parentId)
+            setParentInDokumentUnderArbeidAndFindDuplicates(currentDokumentId, newParentId)
         }
 
         val alteredDocuments = processedDokumentUnderArbeidOutput.mapNotNull { it.first }
