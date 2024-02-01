@@ -7,7 +7,7 @@ import jakarta.persistence.Table
 import java.util.*
 
 @Entity
-@Table(name = "dokument_under_arbeid_brevmottaker_info", schema = "klage")
+@Table(name = "dokument_under_arbeid_avsender_mottaker_info", schema = "klage")
 class DokumentUnderArbeidBrevmottakerInfo(
     @Id
     val id: UUID = UUID.randomUUID(),

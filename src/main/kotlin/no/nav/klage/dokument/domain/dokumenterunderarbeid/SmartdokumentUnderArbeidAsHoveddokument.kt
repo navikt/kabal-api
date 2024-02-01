@@ -38,6 +38,7 @@ class SmartdokumentUnderArbeidAsHoveddokument(
     dokumentEnhetId: UUID? = null,
     brevmottakerInfoSet: MutableSet<DokumentUnderArbeidBrevmottakerInfo> = mutableSetOf(),
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
+    journalfoerendeEnhetId: String?,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsSmartdokument, DokumentUnderArbeidAsHoveddokument(
     id = id,
     name = name,
@@ -52,7 +53,8 @@ class SmartdokumentUnderArbeidAsHoveddokument(
     dokumentType = dokumentType,
     dokumentEnhetId = dokumentEnhetId,
     brevmottakerInfoSet = brevmottakerInfoSet,
-    dokarkivReferences = dokarkivReferences
+    dokarkivReferences = dokarkivReferences,
+    journalfoerendeEnhetId = journalfoerendeEnhetId,
 ) {
     fun asVedlegg(parentId: UUID): SmartdokumentUnderArbeidAsVedlegg {
         return SmartdokumentUnderArbeidAsVedlegg(

@@ -128,6 +128,7 @@ class DokumentUnderArbeidServiceTest {
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
             datoMottatt = null,
+            journalfoerendeEnhetId = null,
         )
         dokumentUnderArbeidRepository.save(hovedDokument)
     }

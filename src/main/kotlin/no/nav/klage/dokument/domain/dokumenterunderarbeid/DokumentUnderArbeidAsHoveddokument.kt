@@ -18,6 +18,8 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 5)
     open var brevmottakerInfoSet: MutableSet<DokumentUnderArbeidBrevmottakerInfo> = mutableSetOf(),
+    @Column(name = "journalfoerende_enhet_id")
+    open var journalfoerendeEnhetId: String?,
 
 
     //Common properties

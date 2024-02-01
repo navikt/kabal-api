@@ -58,6 +58,7 @@ class DokumentUnderArbeidRepositoryTest {
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
             datoMottatt = null,
+            journalfoerendeEnhetId = null,
         )
         hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(LocalDateTime.now(), "S123456")
         hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(LocalDateTime.now())
@@ -85,6 +86,7 @@ class DokumentUnderArbeidRepositoryTest {
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
             datoMottatt = null,
+            journalfoerendeEnhetId = null,
         )
         dokumentUnderArbeidRepository.save(hovedDokument)
 
@@ -134,7 +136,8 @@ class DokumentUnderArbeidRepositoryTest {
                     identifikator = "123",
                     localPrint = false
                 )
-            )
+            ),
+            journalfoerendeEnhetId = null,
         )
         dokumentUnderArbeidRepository.save(hovedDokument)
 
@@ -179,7 +182,8 @@ class DokumentUnderArbeidRepositoryTest {
             creatorRole = KABAL_SAKSBEHANDLING,
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
-            datoMottatt = null
+            datoMottatt = null,
+            journalfoerendeEnhetId = null,
         )
         dokumentUnderArbeidRepository.save(hovedDokument)
 

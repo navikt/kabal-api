@@ -92,7 +92,8 @@ class KabalDocumentMapper(
                 sakFagsakId = behandling.fagsakId,
                 sakFagsystemId = behandling.fagsystem.id,
                 kildeReferanse = behandling.id.toString(),
-                enhet = behandling.tildeling!!.enhet!!,
+                //TODO: Fjerne behandling.tildeling når på plass.
+                enhet = hovedDokument.journalfoerendeEnhetId ?: behandling.tildeling!!.enhet!!,
                 behandlingstema = BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS,
                 //Tittel gjelder journalposten, ikke selve dokumentet som lastes opp. Vises i Gosys.
                 tittel = hovedDokument.dokumentType!!.beskrivelse,

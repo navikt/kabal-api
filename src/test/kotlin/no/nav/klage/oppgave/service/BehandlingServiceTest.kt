@@ -339,6 +339,7 @@ class BehandlingServiceTest {
                             dokumentEnhetId = null,
                             creatorIdent = "null",
                             creatorRole = KABAL_SAKSBEHANDLING,
+                            journalfoerendeEnhetId = null,
                         )
                     )
 

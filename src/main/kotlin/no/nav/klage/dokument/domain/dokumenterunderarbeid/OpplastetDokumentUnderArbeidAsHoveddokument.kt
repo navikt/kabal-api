@@ -37,6 +37,7 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     dokumentEnhetId: UUID? = null,
     brevmottakerInfoSet: MutableSet<DokumentUnderArbeidBrevmottakerInfo> = mutableSetOf(),
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
+    journalfoerendeEnhetId: String?,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsHoveddokument(
     id = id,
     name = name,
@@ -52,6 +53,7 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     dokumentEnhetId = dokumentEnhetId,
     brevmottakerInfoSet = brevmottakerInfoSet,
     dokarkivReferences = dokarkivReferences,
+    journalfoerendeEnhetId = journalfoerendeEnhetId,
 ){
     fun asVedlegg(parentId: UUID): OpplastetDokumentUnderArbeidAsVedlegg {
         return OpplastetDokumentUnderArbeidAsVedlegg(
