@@ -261,7 +261,7 @@ class DokumentUnderArbeidController(
     fun idempotentOpprettOgFerdigstillDokumentEnhetFraHovedDokument(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentid") dokumentId: UUID,
-        @RequestBody(required = true) input: FerdigstillDokumentInput,
+        @RequestBody(required = false) input: FerdigstillDokumentInput?,
     ): DocumentModified {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
 

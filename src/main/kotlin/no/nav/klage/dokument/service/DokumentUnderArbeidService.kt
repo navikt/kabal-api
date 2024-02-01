@@ -71,6 +71,7 @@ class DokumentUnderArbeidService(
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val saksbehandlerService: SaksbehandlerService,
     private val kabalSmartEditorApiClient: KabalSmartEditorApiClient,
+    private val partSearchService: PartSearchService,
     meterRegistry: MeterRegistry,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
@@ -779,6 +780,13 @@ class DokumentUnderArbeidService(
         avsenderInput: AvsenderInput,
         innloggetIdent: String
     ): DokumentUnderArbeid {
+
+        //Validate part
+        partSearchService.searchPart(
+            identifikator = avsenderInput.id,
+            skipAccessControl = true
+        )
+
         val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
@@ -848,6 +856,15 @@ class DokumentUnderArbeidService(
         mottakerInput: MottakerInput,
         innloggetIdent: String
     ): DokumentUnderArbeid {
+
+        //Validate parts
+        mottakerInput.mottakerList.forEach{
+            partSearchService.searchPart(
+                identifikator = it.id,
+                skipAccessControl = true
+            )
+        }
+
         val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
@@ -1064,7 +1081,7 @@ class DokumentUnderArbeidService(
         behandlingId: UUID,
         dokumentId: UUID,
         innloggetIdent: String,
-        ferdigstillDokumentInput: FerdigstillDokumentInput,
+        ferdigstillDokumentInput: FerdigstillDokumentInput?,
     ): DokumentUnderArbeid {
         val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
@@ -1087,9 +1104,9 @@ class DokumentUnderArbeidService(
                     localPrint = false,
                 )
             )
-        } else if (!ferdigstillDokumentInput.brevmottakerIds.isNullOrEmpty()) {
+        } else if (!ferdigstillDokumentInput?.brevmottakerIds.isNullOrEmpty()) {
             hovedDokument.avsenderMottakerInfoSet.clear()
-            ferdigstillDokumentInput.brevmottakerIds.forEach {
+            ferdigstillDokumentInput!!.brevmottakerIds!!.forEach {
                 hovedDokument.avsenderMottakerInfoSet.add(
                     toDokumentUnderArbeidBrevmottakerInfo(
                         id = it,
