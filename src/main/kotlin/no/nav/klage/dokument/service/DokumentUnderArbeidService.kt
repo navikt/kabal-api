@@ -257,7 +257,7 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid.dokumentType.id
         } else {
             dokumentUnderArbeid as DokumentUnderArbeidAsVedlegg
-            val parentDocument = dokumentUnderArbeidRepository.getReferenceById(dokumentUnderArbeid.parentId)
+            val parentDocument = dokumentUnderArbeidRepository.findById(dokumentUnderArbeid.parentId).get()
             parentDocument as DokumentUnderArbeidAsHoveddokument
             parentDocument.dokumentType.id
         }
@@ -378,7 +378,7 @@ class DokumentUnderArbeidService(
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val parentDocument =
-            dokumentUnderArbeidRepository.getReferenceById(journalfoerteDokumenterInput.parentId) as DokumentUnderArbeidAsHoveddokument
+            dokumentUnderArbeidRepository.findById(journalfoerteDokumenterInput.parentId).get() as DokumentUnderArbeidAsHoveddokument
 
         if (parentDocument.isInngaaende()) {
             throw DokumentValidationException("Kan ikke sette journalførte dokumenter som vedlegg til ${parentDocument.dokumentType.navn}.")
@@ -1289,7 +1289,7 @@ class DokumentUnderArbeidService(
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         val dokument =
-            dokumentUnderArbeidRepository.getReferenceById(hoveddokumentId) as DokumentUnderArbeidAsHoveddokument
+            dokumentUnderArbeidRepository.findById(hoveddokumentId).get() as DokumentUnderArbeidAsHoveddokument
         if (dokument.dokumentType.isInngaaende()) {
             throw DokumentValidationException("${dokument.dokumentType.navn} støtter ikke vedleggsoversikt.")
         }
@@ -1581,7 +1581,7 @@ class DokumentUnderArbeidService(
         dokument as DokumentUnderArbeidAsVedlegg
 
         val parentDocument =
-            dokumentUnderArbeidRepository.getReferenceById(dokument.parentId) as DokumentUnderArbeidAsHoveddokument
+            dokumentUnderArbeidRepository.findById(dokument.parentId).get() as DokumentUnderArbeidAsHoveddokument
 
         val savedDocument = when (dokument) {
             is OpplastetDokumentUnderArbeidAsVedlegg -> {
