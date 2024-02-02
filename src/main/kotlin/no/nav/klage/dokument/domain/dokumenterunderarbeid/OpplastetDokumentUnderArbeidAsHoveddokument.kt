@@ -73,7 +73,6 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
             creatorIdent = creatorIdent,
             creatorRole = creatorRole,
             parentId = parentId,
-            dokumentType = dokumentType,
         )
     }
 }

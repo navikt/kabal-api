@@ -10,6 +10,7 @@ import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRe
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
+import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
@@ -36,6 +37,7 @@ import java.time.LocalDateTime
 class DokumentMapper(
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingMapper: BehandlingMapper,
+    private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
 ) {
 
     companion object {
@@ -62,7 +64,7 @@ class DokumentMapper(
     fun getSortedDokumentViewListForInnholdsfortegnelse(
         allDokumenterUnderArbeid: Set<DokumentUnderArbeidAsVedlegg>,
         behandling: Behandling,
-        hoveddokument: DokumentUnderArbeid,
+        hoveddokument: DokumentUnderArbeidAsHoveddokument,
         journalpostList: List<Journalpost>,
     ): List<InnholdsfortegnelseRequest.Document> {
         val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
@@ -90,7 +92,7 @@ class DokumentMapper(
     fun mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
         dokumentUnderArbeid: DokumentUnderArbeid,
         behandling: Behandling,
-        hoveddokument: DokumentUnderArbeid,
+        hoveddokument: DokumentUnderArbeidAsHoveddokument,
     ): InnholdsfortegnelseRequest.Document {
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentUnderArbeid.name,
@@ -156,8 +158,11 @@ class DokumentMapper(
         var inngaaendeKanal: InngaaendeKanal? = null
         var avsender: BehandlingDetaljerView.PartView? = null
         var mottakerList: List<BehandlingDetaljerView.PartView>? = null
+        val dokumentTypeId: String
 
         if (unproxiedDUA is DokumentUnderArbeidAsHoveddokument) {
+            dokumentTypeId = unproxiedDUA.dokumentType.id
+
             if (unproxiedDUA.isInngaaende()) {
                 unproxiedDUA as OpplastetDokumentUnderArbeidAsHoveddokument
                 inngaaendeKanal =
@@ -174,13 +179,18 @@ class DokumentMapper(
                     }
                 }
             }
+        } else {
+            dokumentUnderArbeid as DokumentUnderArbeidAsVedlegg
+            val parentDocument = dokumentUnderArbeidRepository.getReferenceById(dokumentUnderArbeid.parentId)
+            parentDocument as DokumentUnderArbeidAsHoveddokument
+            dokumentTypeId = parentDocument.dokumentType.id
         }
 
 
         return DokumentView(
             id = unproxiedDUA.id,
             tittel = tittel,
-            dokumentTypeId = unproxiedDUA.dokumentType.id,
+            dokumentTypeId = dokumentTypeId,
             created = unproxiedDUA.created,
             modified = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
                 smartEditorDocument!!.modified
@@ -231,7 +241,7 @@ class DokumentMapper(
                 NewParent(
                     id = duaUnproxied.id,
                     modified = duaUnproxied.modified,
-                    parentId = duaUnproxied.parentId!!,
+                    parentId = duaUnproxied.parentId,
                 )
             },
             duplicateJournalfoerteDokumenter = duplicateJournalfoerteDokumenter.map { duplicateJournalfoertDokument ->

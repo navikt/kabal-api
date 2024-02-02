@@ -74,7 +74,6 @@ class SmartdokumentUnderArbeidAsHoveddokument(
             creatorIdent = creatorIdent,
             creatorRole = creatorRole,
             parentId = parentId,
-            dokumentType = dokumentType,
         )
     }
 }

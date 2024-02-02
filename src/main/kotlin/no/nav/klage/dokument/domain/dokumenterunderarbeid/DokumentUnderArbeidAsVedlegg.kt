@@ -10,7 +10,7 @@ import java.util.*
 @Entity
 abstract class DokumentUnderArbeidAsVedlegg(
     @Column(name = "parent_id")
-    open var parentId: UUID? = null, //why nullable?
+    open var parentId: UUID,
 
     //Common properties
     id: UUID = UUID.randomUUID(),
@@ -23,7 +23,6 @@ abstract class DokumentUnderArbeidAsVedlegg(
     ferdigstilt: LocalDateTime?,
     creatorIdent: String,
     creatorRole: BehandlingRole,
-    dokumentType: DokumentType,
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
 ) : DokumentUnderArbeid(
     id = id,
@@ -36,6 +35,5 @@ abstract class DokumentUnderArbeidAsVedlegg(
     ferdigstilt = ferdigstilt,
     creatorIdent = creatorIdent,
     creatorRole = creatorRole,
-    dokumentType = dokumentType,
     dokarkivReferences = dokarkivReferences,
 )

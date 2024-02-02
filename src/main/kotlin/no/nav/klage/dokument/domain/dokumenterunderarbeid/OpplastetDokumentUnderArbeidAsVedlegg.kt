@@ -31,7 +31,6 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
     parentId: UUID,
     creatorIdent: String,
     creatorRole: BehandlingRole,
-    dokumentType: DokumentType,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsVedlegg(
     id = id,
     name = name,
@@ -44,9 +43,8 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
     parentId = parentId,
     creatorIdent = creatorIdent,
     creatorRole = creatorRole,
-    dokumentType = dokumentType,
 ){
-    fun asHoveddokument(): OpplastetDokumentUnderArbeidAsHoveddokument {
+    fun asHoveddokument(dokumentType: DokumentType): OpplastetDokumentUnderArbeidAsHoveddokument {
         return OpplastetDokumentUnderArbeidAsHoveddokument(
             size = size,
             mellomlagerId = mellomlagerId,
