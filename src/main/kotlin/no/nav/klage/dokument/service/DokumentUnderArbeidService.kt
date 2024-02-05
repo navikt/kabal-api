@@ -778,7 +778,7 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         avsenderInput: AvsenderInput,
         innloggetIdent: String
-    ): DokumentUnderArbeidAsHoveddokument {
+    ): OpplastetDokumentUnderArbeidAsHoveddokument {
 
         //Validate part
         partSearchService.searchPart(
@@ -870,7 +870,7 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke sette mottakere på vedlegg")
         }
 
-        dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
+        dokumentUnderArbeid as DokumentUnderArbeidAsHoveddokument
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
