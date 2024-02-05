@@ -1474,13 +1474,6 @@ class DokumentUnderArbeidService(
         }
         val currentDocument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
-        //Gå gjennom denne
-        if (currentDocument is DokumentUnderArbeidAsHoveddokument && currentDocument.isInngaaende()) {
-            if (parentDocument !is OpplastetDokumentUnderArbeidAsHoveddokument) {
-                throw DokumentValidationException("Dette dokumentet kan kun være vedlegg til inngående dokument.")
-            }
-        }
-
         if (parentDocument.isInngaaende()) {
             if (!((currentDocument is OpplastetDokumentUnderArbeidAsVedlegg) || (currentDocument is OpplastetDokumentUnderArbeidAsHoveddokument))) {
                 throw DokumentValidationException("${parentDocument.dokumentType.navn} kan bare ha opplastet dokument som vedlegg.")
