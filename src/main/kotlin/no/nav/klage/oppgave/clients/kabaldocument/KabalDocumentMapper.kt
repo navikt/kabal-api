@@ -81,7 +81,8 @@ class KabalDocumentMapper(
             DokumentType.KJENNELSE_FRA_TRYGDERETTEN -> Kanal.ALTINN_INNBOKS
             DokumentType.ANNEN_INNGAAENDE_POST -> {
                 hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument
-                Kanal.valueOf(hovedDokument.inngaaendeKanal.toString())
+                if (hovedDokument.inngaaendeKanal == null) error("DokumentType requires inngaaendeKanal")
+                Kanal.valueOf(hovedDokument.inngaaendeKanal!!.name)
             }
             DokumentType.BREV, DokumentType.NOTAT, DokumentType.VEDTAK, DokumentType.BESLUTNING -> null
         }
