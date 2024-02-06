@@ -731,7 +731,7 @@ class DokumentUnderArbeidService(
         }
 
         if (dokumentUnderArbeid.dokumentType != DokumentType.ANNEN_INNGAAENDE_POST) {
-            throw DokumentValidationException("Kan bare sette inngående kanal på inngående dokument.")
+            throw DokumentValidationException("Kan bare sette inngående kanal på ${DokumentType.ANNEN_INNGAAENDE_POST.navn}.")
         }
 
         val previousValue = dokumentUnderArbeid.inngaaendeKanal
