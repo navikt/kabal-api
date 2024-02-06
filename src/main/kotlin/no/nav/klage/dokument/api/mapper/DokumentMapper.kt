@@ -180,9 +180,8 @@ class DokumentMapper(
                 }
             }
         } else {
-            dokumentUnderArbeid as DokumentUnderArbeidAsVedlegg
-            val parentDocument = dokumentUnderArbeidRepository.getReferenceById(dokumentUnderArbeid.parentId)
-            parentDocument as DokumentUnderArbeidAsHoveddokument
+            unproxiedDUA as DokumentUnderArbeidAsVedlegg
+            val parentDocument = dokumentUnderArbeidRepository.findById(unproxiedDUA.parentId).get() as DokumentUnderArbeidAsHoveddokument
             dokumentTypeId = parentDocument.dokumentType.id
         }
 
