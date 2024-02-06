@@ -20,6 +20,7 @@ data class JournalfoeringDataInput(
 enum class Kanal {
     ALTINN,
     ALTINN_INNBOKS,
+    E_POST,
     EIA,
     NAV_NO,
     NAV_NO_UINNLOGGET,

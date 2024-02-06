@@ -29,10 +29,9 @@ class JournalfoertDokumentUnderArbeidAsVedlegg (
     markertFerdig: LocalDateTime?,
     markertFerdigBy: String?,
     ferdigstilt: LocalDateTime?,
-    parentId: UUID?,
+    parentId: UUID,
     creatorIdent: String,
     creatorRole: BehandlingRole,
-    dokumentType: DokumentType?,
 ) : DokumentUnderArbeidAsVedlegg(
     id = id,
     name = name,
@@ -45,5 +44,4 @@ class JournalfoertDokumentUnderArbeidAsVedlegg (
     parentId = parentId,
     creatorIdent = creatorIdent,
     creatorRole = creatorRole,
-    dokumentType = dokumentType,
 )

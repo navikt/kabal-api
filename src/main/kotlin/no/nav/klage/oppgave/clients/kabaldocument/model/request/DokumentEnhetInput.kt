@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.clients.kabaldocument.model.request
 import java.util.*
 
 data class DokumentEnhetWithDokumentreferanserInput(
-    val brevMottakere: List<BrevmottakerInput>,
+    val brevMottakere: List<AvsenderMottakerInput>,
     val journalfoeringData: JournalfoeringDataInput,
     val dokumentreferanser: DokumentInput,
     val dokumentTypeId: String,
@@ -27,7 +27,7 @@ data class DokumentEnhetWithDokumentreferanserInput(
     }
 }
 
-data class BrevmottakerInput(
+data class AvsenderMottakerInput(
     val partId: PartIdInput,
     val navn: String,
     val localPrint: Boolean,

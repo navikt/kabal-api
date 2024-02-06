@@ -3,15 +3,19 @@ package no.nav.klage.dokument.api.mapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.dokument.api.view.DokumentViewWithList
+import no.nav.klage.dokument.api.view.InngaaendeKanal
 import no.nav.klage.dokument.api.view.NewParent
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest.Document.Type
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
+import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.oppgave.api.mapper.BehandlingMapper
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.clients.saf.graphql.*
@@ -19,6 +23,7 @@ import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.getSortKey
 import org.hibernate.Hibernate
@@ -31,6 +36,8 @@ import java.time.LocalDateTime
 @Component
 class DokumentMapper(
     private val saksbehandlerService: SaksbehandlerService,
+    private val behandlingMapper: BehandlingMapper,
+    private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
 ) {
 
     companion object {
@@ -57,7 +64,7 @@ class DokumentMapper(
     fun getSortedDokumentViewListForInnholdsfortegnelse(
         allDokumenterUnderArbeid: Set<DokumentUnderArbeidAsVedlegg>,
         behandling: Behandling,
-        hoveddokument: DokumentUnderArbeid,
+        hoveddokument: DokumentUnderArbeidAsHoveddokument,
         journalpostList: List<Journalpost>,
     ): List<InnholdsfortegnelseRequest.Document> {
         val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
@@ -85,7 +92,7 @@ class DokumentMapper(
     fun mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
         dokumentUnderArbeid: DokumentUnderArbeid,
         behandling: Behandling,
-        hoveddokument: DokumentUnderArbeid,
+        hoveddokument: DokumentUnderArbeidAsHoveddokument,
     ): InnholdsfortegnelseRequest.Document {
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentUnderArbeid.name,
@@ -148,10 +155,42 @@ class DokumentMapper(
             )
         }
 
+        var inngaaendeKanal: InngaaendeKanal? = null
+        var avsender: BehandlingDetaljerView.PartView? = null
+        var mottakerList: List<BehandlingDetaljerView.PartView>? = null
+        val dokumentTypeId: String
+
+        if (unproxiedDUA is DokumentUnderArbeidAsHoveddokument) {
+            dokumentTypeId = unproxiedDUA.dokumentType.id
+
+            if (unproxiedDUA.isInngaaende()) {
+                unproxiedDUA as OpplastetDokumentUnderArbeidAsHoveddokument
+                inngaaendeKanal =
+                    if (unproxiedDUA.inngaaendeKanal != null) unproxiedDUA.inngaaendeKanal!! else null
+                val avsenderIdentifikator = unproxiedDUA.avsenderMottakerInfoSet.firstOrNull()?.identifikator
+                if (avsenderIdentifikator != null) {
+                    avsender = behandlingMapper.getPartView(getPartIdFromIdentifikator(avsenderIdentifikator))
+                }
+            } else if (unproxiedDUA.isUtgaaende()) {
+                val mottakerIdentifikatorSet = unproxiedDUA.avsenderMottakerInfoSet.map { it.identifikator }
+                if (mottakerIdentifikatorSet.isNotEmpty()) {
+                    mottakerList = mottakerIdentifikatorSet.map {
+                        behandlingMapper.getPartView(getPartIdFromIdentifikator(it))
+                    }
+                }
+            }
+        } else {
+            dokumentUnderArbeid as DokumentUnderArbeidAsVedlegg
+            val parentDocument = dokumentUnderArbeidRepository.getReferenceById(dokumentUnderArbeid.parentId)
+            parentDocument as DokumentUnderArbeidAsHoveddokument
+            dokumentTypeId = parentDocument.dokumentType.id
+        }
+
+
         return DokumentView(
             id = unproxiedDUA.id,
             tittel = tittel,
-            dokumentTypeId = unproxiedDUA.dokumentType?.id,
+            dokumentTypeId = dokumentTypeId,
             created = unproxiedDUA.created,
             modified = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
                 smartEditorDocument!!.modified
@@ -172,6 +211,9 @@ class DokumentMapper(
             creatorIdent = unproxiedDUA.creatorIdent,
             creatorRole = unproxiedDUA.creatorRole,
             datoMottatt = if (unproxiedDUA is OpplastetDokumentUnderArbeidAsHoveddokument) unproxiedDUA.datoMottatt else null,
+            avsender = avsender,
+            mottakerList = mottakerList,
+            inngaaendeKanal = inngaaendeKanal,
         )
     }
 
@@ -199,7 +241,7 @@ class DokumentMapper(
                 NewParent(
                     id = duaUnproxied.id,
                     modified = duaUnproxied.modified,
-                    parentId = duaUnproxied.parentId!!,
+                    parentId = duaUnproxied.parentId,
                 )
             },
             duplicateJournalfoerteDokumenter = duplicateJournalfoerteDokumenter.map { duplicateJournalfoertDokument ->

@@ -111,6 +111,7 @@ class DokumentUnderArbeidServiceTest {
             saksbehandlerService = mockk(),
             kabalSmartEditorApiClient = mockk(),
             meterRegistry = mockk(),
+            partSearchService = mockk(),
         )
 
         val behandlingId = UUID.randomUUID()
@@ -129,6 +130,7 @@ class DokumentUnderArbeidServiceTest {
             modified = LocalDateTime.now(),
             datoMottatt = null,
             journalfoerendeEnhetId = null,
+            inngaaendeKanal = null,
         )
         dokumentUnderArbeidRepository.save(hovedDokument)
     }

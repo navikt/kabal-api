@@ -25,7 +25,7 @@ class KabalDocumentMapper(
         private val logger = getLogger(javaClass.enclosingClass)
         private val secureLogger = getSecureLogger()
 
-        private const val BREVKODE = "BREV_FRA_KLAGEINSTANS"
+        private const val BREVKODE_BREV = "BREV_FRA_KLAGEINSTANS"
         private const val BREVKODE_NOTAT = "NOTAT_FRA_KLAGEINSTANS"
         private const val BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS = "ab0164"
         private const val KLAGEBEHANDLING_ID_KEY = "klagebehandling_id"
@@ -47,7 +47,7 @@ class KabalDocumentMapper(
             )
         } else null
 
-        val vedleggMapped = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+        val vedleggMapped = if (hovedDokument.isInngaaende()) {
             vedlegg.filter { it !is JournalfoertDokumentUnderArbeidAsVedlegg }
                 .sortedWith(DokumentUnderArbeidTitleComparator())
                 .map { currentVedlegg ->
@@ -72,16 +72,26 @@ class KabalDocumentMapper(
             vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
                 .sortedByDescending { it.sortKey }
 
-        val datoMottatt = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+        val datoMottatt = if (hovedDokument.isInngaaende()) {
             hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument
             hovedDokument.datoMottatt
         } else null
 
+        val inngaaendeKanal = when (hovedDokument.dokumentType) {
+            DokumentType.KJENNELSE_FRA_TRYGDERETTEN -> Kanal.ALTINN_INNBOKS
+            DokumentType.ANNEN_INNGAAENDE_POST -> {
+                hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument
+                if (hovedDokument.inngaaendeKanal == null) error("DokumentType requires inngaaendeKanal")
+                Kanal.valueOf(hovedDokument.inngaaendeKanal.toString())
+            }
+            DokumentType.BREV, DokumentType.NOTAT, DokumentType.VEDTAK, DokumentType.BESLUTNING -> null
+        }
+
         return DokumentEnhetWithDokumentreferanserInput(
-            brevMottakere = mapBrevmottakerInfoSetToBrevmottakerInput(
+            brevMottakere = mapAvsenderMottakerInfoSetToAvsenderMottakerInput(
                 behandling = behandling,
-                brevmottakerInfoSet = hovedDokument.brevmottakerInfoSet,
-                dokumentType = hovedDokument.dokumentType!!
+                avsenderMottakerInfoSet = hovedDokument.avsenderMottakerInfoSet,
+                dokumentType = hovedDokument.dokumentType
             ),
             journalfoeringData = JournalfoeringDataInput(
                 sakenGjelder = PartIdInput(
@@ -96,13 +106,13 @@ class KabalDocumentMapper(
                 enhet = hovedDokument.journalfoerendeEnhetId ?: behandling.tildeling!!.enhet!!,
                 behandlingstema = BEHANDLINGSTEMA_KLAGE_KLAGEINSTANS,
                 //Tittel gjelder journalposten, ikke selve dokumentet som lastes opp. Vises i Gosys.
-                tittel = hovedDokument.dokumentType!!.beskrivelse,
+                tittel = hovedDokument.dokumentType.beskrivelse,
                 brevKode = getBrevkode(hovedDokument),
                 tilleggsopplysning = TilleggsopplysningInput(
                     key = KLAGEBEHANDLING_ID_KEY,
                     value = behandling.id.toString()
                 ),
-                inngaaendeKanal = if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) Kanal.ALTINN_INNBOKS else null,
+                inngaaendeKanal = inngaaendeKanal,
                 datoMottatt = datoMottatt,
             ),
             dokumentreferanser = DokumentEnhetWithDokumentreferanserInput.DokumentInput(
@@ -116,7 +126,7 @@ class KabalDocumentMapper(
                         )
                     },
             ),
-            dokumentTypeId = hovedDokument.dokumentType!!.id,
+            dokumentTypeId = hovedDokument.dokumentType.id,
             journalfoerendeSaksbehandlerIdent = hovedDokument.markertFerdigBy!!
         )
     }
@@ -125,7 +135,8 @@ class KabalDocumentMapper(
         return when(hovedDokument.dokumentType) {
             DokumentType.NOTAT -> BREVKODE_NOTAT
             DokumentType.KJENNELSE_FRA_TRYGDERETTEN -> BREVKODE_KJENNELSE_FRA_TR
-            else -> BREVKODE
+            DokumentType.BESLUTNING, DokumentType.VEDTAK, DokumentType.BREV -> BREVKODE_BREV
+            DokumentType.ANNEN_INNGAAENDE_POST -> BREVKODE_ANNET
         }
     }
 
@@ -140,18 +151,18 @@ class KabalDocumentMapper(
         )
     }
 
-    private fun mapBrevmottakerInfoSetToBrevmottakerInput(
+    private fun mapAvsenderMottakerInfoSetToAvsenderMottakerInput(
         behandling: Behandling,
-        brevmottakerInfoSet: Set<DokumentUnderArbeidBrevmottakerInfo>?,
+        avsenderMottakerInfoSet: Set<DokumentUnderArbeidAvsenderMottakerInfo>?,
         dokumentType: DokumentType
-    ): List<BrevmottakerInput> {
+    ): List<AvsenderMottakerInput> {
         return if (dokumentType == DokumentType.NOTAT) {
             listOf(mapPartIdToBrevmottakerInput(
                 partId = behandling.sakenGjelder.partId,
                 localPrint = false
             ))
         } else {
-            brevmottakerInfoSet!!.map {
+            avsenderMottakerInfoSet!!.map {
                 mapPartIdToBrevmottakerInput(
                     partId = getPartIdFromIdentifikator(it.identifikator),
                     localPrint = it.localPrint,
@@ -164,7 +175,7 @@ class KabalDocumentMapper(
         partId: PartId,
         localPrint: Boolean,
     ) =
-        BrevmottakerInput(
+        AvsenderMottakerInput(
             partId = mapPartId(partId),
             navn = getNavn(partId),
             localPrint = localPrint

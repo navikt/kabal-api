@@ -1,8 +1,7 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import jakarta.persistence.Column
-import jakarta.persistence.DiscriminatorValue
-import jakarta.persistence.Entity
+import jakarta.persistence.*
+import no.nav.klage.dokument.api.view.InngaaendeKanal
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
 import java.time.LocalDate
@@ -21,6 +20,9 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     override var mellomlagretDate: LocalDateTime?,
     @Column(name = "dato_mottatt")
     var datoMottatt: LocalDate?,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "inngaaende_kanal")
+    var inngaaendeKanal: InngaaendeKanal?,
 
     //Common properties
     id: UUID = UUID.randomUUID(),
@@ -33,9 +35,9 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     ferdigstilt: LocalDateTime? = null,
     creatorIdent: String,
     creatorRole: BehandlingRole,
-    dokumentType: DokumentType?,
+    dokumentType: DokumentType,
     dokumentEnhetId: UUID? = null,
-    brevmottakerInfoSet: MutableSet<DokumentUnderArbeidBrevmottakerInfo> = mutableSetOf(),
+    avsenderMottakerInfoSet: MutableSet<DokumentUnderArbeidAvsenderMottakerInfo> = mutableSetOf(),
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
     journalfoerendeEnhetId: String?,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsHoveddokument(
@@ -51,7 +53,7 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     creatorRole = creatorRole,
     dokumentType = dokumentType,
     dokumentEnhetId = dokumentEnhetId,
-    brevmottakerInfoSet = brevmottakerInfoSet,
+    avsenderMottakerInfoSet = avsenderMottakerInfoSet,
     dokarkivReferences = dokarkivReferences,
     journalfoerendeEnhetId = journalfoerendeEnhetId,
 ){
@@ -71,7 +73,6 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
             creatorIdent = creatorIdent,
             creatorRole = creatorRole,
             parentId = parentId,
-            dokumentType = dokumentType,
         )
     }
 }

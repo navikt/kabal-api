@@ -2,7 +2,10 @@ package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
 import jakarta.persistence.*
 import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.kodeverk.DokumentTypeConverter
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import no.nav.klage.oppgave.util.isInngaaende
+import no.nav.klage.oppgave.util.isUtgaaende
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
@@ -17,9 +20,12 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     @JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 5)
-    open var brevmottakerInfoSet: MutableSet<DokumentUnderArbeidBrevmottakerInfo> = mutableSetOf(),
+    open var avsenderMottakerInfoSet: MutableSet<DokumentUnderArbeidAvsenderMottakerInfo> = mutableSetOf(),
     @Column(name = "journalfoerende_enhet_id")
     open var journalfoerendeEnhetId: String?,
+    @Column(name = "dokument_type_id")
+    @Convert(converter = DokumentTypeConverter::class)
+    open var dokumentType: DokumentType,
 
 
     //Common properties
@@ -33,9 +39,8 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     ferdigstilt: LocalDateTime?,
     creatorIdent: String,
     creatorRole: BehandlingRole,
-    dokumentType: DokumentType?,
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
-    ) : DokumentUnderArbeid(
+) : DokumentUnderArbeid(
     id = id,
     name = name,
     behandlingId = behandlingId,
@@ -46,6 +51,13 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     ferdigstilt = ferdigstilt,
     creatorIdent = creatorIdent,
     creatorRole = creatorRole,
-    dokumentType = dokumentType,
     dokarkivReferences = dokarkivReferences,
-)
+) {
+    fun isInngaaende(): Boolean {
+        return dokumentType.isInngaaende()
+    }
+
+    fun isUtgaaende(): Boolean {
+        return dokumentType.isUtgaaende()
+    }
+}

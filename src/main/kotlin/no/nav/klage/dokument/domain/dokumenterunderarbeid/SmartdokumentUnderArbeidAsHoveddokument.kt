@@ -34,9 +34,9 @@ class SmartdokumentUnderArbeidAsHoveddokument(
     ferdigstilt: LocalDateTime? = null,
     creatorIdent: String,
     creatorRole: BehandlingRole,
-    dokumentType: DokumentType?,
+    dokumentType: DokumentType,
     dokumentEnhetId: UUID? = null,
-    brevmottakerInfoSet: MutableSet<DokumentUnderArbeidBrevmottakerInfo> = mutableSetOf(),
+    avsenderMottakerInfoSet: MutableSet<DokumentUnderArbeidAvsenderMottakerInfo> = mutableSetOf(),
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
     journalfoerendeEnhetId: String?,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsSmartdokument, DokumentUnderArbeidAsHoveddokument(
@@ -52,9 +52,9 @@ class SmartdokumentUnderArbeidAsHoveddokument(
     creatorRole = creatorRole,
     dokumentType = dokumentType,
     dokumentEnhetId = dokumentEnhetId,
-    brevmottakerInfoSet = brevmottakerInfoSet,
     dokarkivReferences = dokarkivReferences,
     journalfoerendeEnhetId = journalfoerendeEnhetId,
+    avsenderMottakerInfoSet = avsenderMottakerInfoSet,
 ) {
     fun asVedlegg(parentId: UUID): SmartdokumentUnderArbeidAsVedlegg {
         return SmartdokumentUnderArbeidAsVedlegg(
@@ -74,7 +74,6 @@ class SmartdokumentUnderArbeidAsHoveddokument(
             creatorIdent = creatorIdent,
             creatorRole = creatorRole,
             parentId = parentId,
-            dokumentType = dokumentType,
         )
     }
 }

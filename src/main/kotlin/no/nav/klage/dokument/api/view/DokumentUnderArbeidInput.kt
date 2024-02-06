@@ -10,7 +10,6 @@ data class FilInput(
     val file: MultipartFile,
     val dokumentTypeId: String = DokumentType.NOTAT.id,
     val parentId: UUID?,
-    val datoMottatt: LocalDate?,
 )
 
 data class SmartHovedDokumentInput(
@@ -32,7 +31,7 @@ data class JournalfoerteDokumenterInput(
     val journalfoerteDokumenter: Set<JournalfoertDokumentReference>,
 )
 
-data class JournalfoertDokumentReference (
+data class JournalfoertDokumentReference(
     val journalpostId: String,
     val dokumentInfoId: String
 )
@@ -47,10 +46,26 @@ data class DatoMottattInput(val datoMottatt: LocalDate)
 
 data class FerdigstillDokumentInput(
     val brevmottakerIds: Set<String>?,
-    val brevmottakerInfoSet: Set<BrevmottakerInfo>?,
 )
 
-data class BrevmottakerInfo(
+data class InngaaendeKanalInput(
+    val kanal: InngaaendeKanal
+)
+
+enum class InngaaendeKanal {
+    ALTINN_INNBOKS,
+    E_POST,
+}
+
+data class AvsenderInput(
+    val id: String
+)
+
+data class MottakerInput(
+    val mottakerList: List<Mottaker>,
+)
+
+data class Mottaker(
     val id: String,
     val localPrint: Boolean,
 )

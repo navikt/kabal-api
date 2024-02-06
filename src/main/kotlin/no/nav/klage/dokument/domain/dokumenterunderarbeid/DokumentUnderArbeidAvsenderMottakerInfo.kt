@@ -8,7 +8,7 @@ import java.util.*
 
 @Entity
 @Table(name = "dokument_under_arbeid_avsender_mottaker_info", schema = "klage")
-class DokumentUnderArbeidBrevmottakerInfo(
+class DokumentUnderArbeidAvsenderMottakerInfo(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Column(name = "identifikator")
@@ -20,7 +20,7 @@ class DokumentUnderArbeidBrevmottakerInfo(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as DokumentUnderArbeidBrevmottakerInfo
+        other as DokumentUnderArbeidAvsenderMottakerInfo
 
         if (id != other.id) return false
         if (identifikator != other.identifikator) return false
@@ -37,6 +37,6 @@ class DokumentUnderArbeidBrevmottakerInfo(
     }
 
     override fun toString(): String {
-        return "DokumentUnderArbeidBrevmottakerInfo(id=$id, identifikator='$identifikator', localPrint=$localPrint)"
+        return "DokumentUnderArbeidAvsenderMottakerInfo(id=$id, identifikator='$identifikator', localPrint=$localPrint)"
     }
 }

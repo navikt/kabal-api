@@ -1,6 +1,6 @@
 package no.nav.klage.dokument.repositories
 
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidBrevmottakerInfo
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAvsenderMottakerInfo
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsVedlegg
 import no.nav.klage.kodeverk.DokumentType
@@ -59,6 +59,7 @@ class DokumentUnderArbeidRepositoryTest {
             modified = LocalDateTime.now(),
             datoMottatt = null,
             journalfoerendeEnhetId = null,
+            inngaaendeKanal = null,
         )
         hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(LocalDateTime.now(), "S123456")
         hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(LocalDateTime.now())
@@ -87,7 +88,9 @@ class DokumentUnderArbeidRepositoryTest {
             modified = LocalDateTime.now(),
             datoMottatt = null,
             journalfoerendeEnhetId = null,
+            inngaaendeKanal = null,
         )
+
         dokumentUnderArbeidRepository.save(hovedDokument)
 
         testEntityManager.flush()
@@ -100,7 +103,6 @@ class DokumentUnderArbeidRepositoryTest {
                 size = 1001,
                 name = "Vedtak.pdf",
                 behandlingId = behandlingId,
-                dokumentType = DokumentType.BREV,
                 parentId = hovedDokument.id,
                 creatorIdent = "null",
                 creatorRole = KABAL_SAKSBEHANDLING,
@@ -131,13 +133,14 @@ class DokumentUnderArbeidRepositoryTest {
             created = LocalDateTime.now(),
             modified = LocalDateTime.now(),
             datoMottatt = null,
-            brevmottakerInfoSet = mutableSetOf(
-                DokumentUnderArbeidBrevmottakerInfo(
+            avsenderMottakerInfoSet = mutableSetOf(
+                DokumentUnderArbeidAvsenderMottakerInfo(
                     identifikator = "123",
                     localPrint = false
                 )
             ),
             journalfoerendeEnhetId = null,
+            inngaaendeKanal = null,
         )
         dokumentUnderArbeidRepository.save(hovedDokument)
 
@@ -151,7 +154,6 @@ class DokumentUnderArbeidRepositoryTest {
                 size = 1001,
                 name = "Vedtak.pdf",
                 behandlingId = behandlingId,
-                dokumentType = DokumentType.BREV,
                 parentId = hovedDokument.id,
                 creatorIdent = "null",
                 creatorRole = KABAL_SAKSBEHANDLING,
@@ -163,7 +165,7 @@ class DokumentUnderArbeidRepositoryTest {
         testEntityManager.flush()
         testEntityManager.clear()
         val hoveddokument = opplastetDokumentUnderArbeidAsHoveddokumentRepository.getReferenceById(hovedDokument.id)
-        assertThat(hoveddokument.brevmottakerInfoSet.first().identifikator == "123")
+        assertThat(hoveddokument.avsenderMottakerInfoSet.first().identifikator == "123")
     }
 
     @Test
@@ -184,6 +186,7 @@ class DokumentUnderArbeidRepositoryTest {
             modified = LocalDateTime.now(),
             datoMottatt = null,
             journalfoerendeEnhetId = null,
+            inngaaendeKanal = null,
         )
         dokumentUnderArbeidRepository.save(hovedDokument)
 
