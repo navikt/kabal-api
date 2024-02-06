@@ -4,6 +4,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.exceptions.BehandlingNotFoundException
 import org.springframework.stereotype.Service
@@ -90,7 +91,10 @@ class KabinApiService(
                 vedtakDate = sourceBehandling.avsluttetAvSaksbehandler!!,
             )
         } else {
-            val klageInInfotrygd = klageFssProxyClient.getSakWithSaksbehandlerAccess(sakId = ankebehandling.kildeReferanse)
+            val klageInInfotrygd = klageFssProxyClient.getSakWithAppAccess(
+                sakId = ankebehandling.kildeReferanse,
+                input = GetSakAppAccessInput(saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent())
+            )
             getCreatedAnkebehandlingStatusForKabin(
                 ankebehandling = ankebehandling,
                 mottak = mottak,

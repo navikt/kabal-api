@@ -23,22 +23,6 @@ class KlageFssProxyClient(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getSakWithSaksbehandlerAccess(sakId: String): SakFromKlanke {
-        return klageFssProxyWebClient.get()
-            .uri { it.path("/klanke/saker/{sakId}").build(sakId) }
-            .header(
-                HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
-            )
-            .retrieve()
-            .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getSakWithSaksbehandlerAccess.name, secureLogger)
-            }
-            .bodyToMono<SakFromKlanke>()
-            .block()
-            ?: throw RuntimeException("Empty result")
-    }
-
     fun getSakWithAppAccess(sakId: String, input: GetSakAppAccessInput): SakFromKlanke {
         return klageFssProxyWebClient.post()
             .uri { it.path("/klanke/saker/{sakId}").build(sakId) }
