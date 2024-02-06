@@ -40,11 +40,11 @@ class DokumentUnderArbeidController(
     }
 
     @PostMapping("/fil")
-    fun createAndUploadHoveddokument(
+    fun createAndUploadDokument(
         @PathVariable("behandlingId") behandlingId: UUID,
         @ModelAttribute input: FilInput
     ): DokumentView {
-        logger.debug("Kall mottatt på createAndUploadHoveddokument")
+        logger.debug("Kall mottatt på createAndUploadDokument")
         val opplastetFil = dokumentInputMapper.mapToMellomlagretDokument(
             multipartFile = input.file,
             tittel = input.file.originalFilename,
