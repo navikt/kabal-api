@@ -33,7 +33,8 @@ class KafkaInternalEventService(
                 internalBehandlingEventTopic,
                 jacksonObjectMapper().writeValueAsString(internalBehandlingEvent)
             ).get()
-            logger.debug("Published internalBehandlingEvent to Kafka for subscribers: {}", result)
+            logger.debug("Published internalBehandlingEvent to Kafka for subscribers")
+            secureLogger.debug("Published internalBehandlingEvent to Kafka for subscribers: {}", result)
         }.onFailure {
             logger.error("Could not publish internalBehandlingEvent to subscribers", it)
         }
@@ -48,7 +49,8 @@ class KafkaInternalEventService(
                 internalIdentityEventTopic,
                 jacksonObjectMapper().writeValueAsString(internalIdentityEvent)
             ).get()
-            logger.debug("Published internalIdentityEvent to Kafka for subscribers: {}", result)
+            logger.debug("Published internalIdentityEvent to Kafka for subscribers")
+            secureLogger.debug("Published internalIdentityEvent to Kafka for subscribers: {}", result)
         }.onFailure {
             logger.error("Could not publish internalIdentityEvent to subscribers", it)
         }
