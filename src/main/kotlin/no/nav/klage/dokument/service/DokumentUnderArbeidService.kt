@@ -1259,10 +1259,10 @@ class DokumentUnderArbeidService(
             val partId = getPartIdFromIdentifikator(it.identifikator)
             if (partId.type.id == PartIdType.VIRKSOMHET.id) {
                 val organisasjon = eregClient.hentOrganisasjon(partId.value)
-                if (!organisasjon.isActive()) {
+                if (!organisasjon.isActive() && hovedDokument.isUtgaaende()) {
                     invalidProperties += InvalidProperty(
                         field = partId.value,
-                        reason = "Organisasjon er avviklet.",
+                        reason = "Organisasjon er avviklet, og kan ikke være mottaker.",
                     )
                 }
             }
