@@ -26,7 +26,8 @@ class KafkaInternalEventService(
 
     fun publishInternalBehandlingEvent(internalBehandlingEvent: InternalBehandlingEvent) {
         runCatching {
-            logger.debug("Publishing internalBehandlingEvent to Kafka for subscribers: {}", internalBehandlingEvent)
+            logger.debug("Publishing internalBehandlingEvent to Kafka for subscribers")
+            secureLogger.debug("Publishing internalBehandlingEvent to Kafka for subscribers: {}", internalBehandlingEvent)
 
             val result = aivenKafkaTemplate.send(
                 internalBehandlingEventTopic,
@@ -40,7 +41,8 @@ class KafkaInternalEventService(
 
     fun publishInternalIdentityEvent(internalIdentityEvent: InternalIdentityEvent) {
         runCatching {
-            logger.debug("Publishing internalIdentityEvent to Kafka for subscribers: {}", internalIdentityEvent)
+            logger.debug("Publishing internalIdentityEvent to Kafka for subscribers")
+            secureLogger.debug("Publishing internalIdentityEvent to Kafka for subscribers: {}", internalIdentityEvent)
 
             val result = aivenKafkaTemplate.send(
                 internalIdentityEventTopic,
