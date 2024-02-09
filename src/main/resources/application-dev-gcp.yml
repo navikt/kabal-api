@@ -8,6 +8,9 @@ PROXY_APP_CLIENT_ID: c6050231-3b9f-4173-8d1e-39b7e6e3392e
 
 EREG_URL: https://ereg-services-q1.dev-fss-pub.nais.io/api/v2
 
+KODEVERK_API_URL: https://kodeverk-api.nav.no/api/v1/kodeverk
+KODEVERK_SCOPE: dev-gcp.team-rocket.kodeverk-api
+
 VEDTAK_FATTET_TOPIC: klage.vedtak-fattet.v1
 DVH_STATISTIKK_TOPIC: klage.kabal-statistikk.v1
 BEHANDLING_ENDRET_TOPIC_V2: klage.behandling-endret.v2

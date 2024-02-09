@@ -267,7 +267,7 @@ class BehandlingService(
         }
 
         if (behandling.klager.prosessfullmektig?.partId?.isPerson() == false &&
-            !eregClient.hentOrganisasjon(behandling.klager.prosessfullmektig!!.partId.value).isActive()
+            !eregClient.hentNoekkelInformasjonOmOrganisasjon(behandling.klager.prosessfullmektig!!.partId.value).isActive()
         ) {
             behandlingValidationErrors.add(
                 InvalidProperty(

@@ -1,9 +1,6 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import java.util.*
 
 @Entity
@@ -15,6 +12,21 @@ class DokumentUnderArbeidAvsenderMottakerInfo(
     val identifikator: String,
     @Column(name = "local_print")
     val localPrint: Boolean,
+    @Column(name = "force_central_print")
+    val forceCentralPrint: Boolean,
+    @Embedded
+    @AttributeOverrides(
+        value = [
+            AttributeOverride(name = "adressetype", column = Column(name = "adress_adressetype")),
+            AttributeOverride(name = "adresselinje1", column = Column(name = "adress_adresselinje_1")),
+            AttributeOverride(name = "adresselinje2", column = Column(name = "adress_adresselinje_2")),
+            AttributeOverride(name = "adresselinje3", column = Column(name = "adress_adresselinje_3")),
+            AttributeOverride(name = "postnummer", column = Column(name = "adress_postnummer")),
+            AttributeOverride(name = "poststed", column = Column(name = "adress_poststed")),
+            AttributeOverride(name = "landkode", column = Column(name = "adress_landkode")),
+        ]
+    )
+    val address: DokumentUnderArbeidAdresse?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

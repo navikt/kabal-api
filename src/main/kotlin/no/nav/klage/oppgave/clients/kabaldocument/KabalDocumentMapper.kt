@@ -159,13 +159,17 @@ class KabalDocumentMapper(
         return if (dokumentType == DokumentType.NOTAT) {
             listOf(mapPartIdToBrevmottakerInput(
                 partId = behandling.sakenGjelder.partId,
-                localPrint = false
+                localPrint = false,
+                forceCentralPrint = false,
+                address = null,
             ))
         } else {
             avsenderMottakerInfoSet!!.map {
                 mapPartIdToBrevmottakerInput(
                     partId = getPartIdFromIdentifikator(it.identifikator),
                     localPrint = it.localPrint,
+                    forceCentralPrint = it.forceCentralPrint,
+                    address = it.address,
                 )
             }
         }
@@ -174,12 +178,32 @@ class KabalDocumentMapper(
     private fun mapPartIdToBrevmottakerInput(
         partId: PartId,
         localPrint: Boolean,
+        forceCentralPrint: Boolean,
+        address: DokumentUnderArbeidAdresse?,
     ) =
         AvsenderMottakerInput(
             partId = mapPartId(partId),
             navn = getNavn(partId),
-            localPrint = localPrint
+            localPrint = localPrint,
+            tvingSentralPrint = forceCentralPrint,
+            adresse = getAdresse(address)
         )
+
+    private fun getAdresse(address: DokumentUnderArbeidAdresse?): AvsenderMottakerInput.Address? {
+        return if (address != null) {
+            val adressetype = if (address.landkode == "NO") AvsenderMottakerInput.Adressetype.NORSK_POSTADRESSE else AvsenderMottakerInput.Adressetype.UTENLANDSK_POSTADRESSE
+            AvsenderMottakerInput.Address(
+                adressetype = adressetype,
+                adresselinje1 = address.adresselinje1,
+                adresselinje2 = address.adresselinje2,
+                adresselinje3 = address.adresselinje3,
+                postnummer = address.postnummer,
+                poststed = address.poststed,
+                land = address.landkode,
+            )
+        } else null
+
+    }
 
 
     private fun mapPartId(partId: PartId): PartIdInput =
@@ -192,7 +216,7 @@ class KabalDocumentMapper(
         if (partId.type == PartIdType.PERSON) {
             pdlFacade.getPersonInfo(partId.value).settSammenNavn()
         } else {
-            eregClient.hentOrganisasjon(partId.value).navn.sammensattnavn
+            eregClient.hentNoekkelInformasjonOmOrganisasjon(partId.value).navn.sammensattnavn
         }
 
 }

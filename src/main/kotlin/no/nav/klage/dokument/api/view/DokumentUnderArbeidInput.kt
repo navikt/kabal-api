@@ -2,6 +2,7 @@ package no.nav.klage.dokument.api.view
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
 import java.util.*
@@ -67,5 +68,20 @@ data class MottakerInput(
 
 data class Mottaker(
     val id: String,
-    val localPrint: Boolean,
+    val handling: HandlingEnum,
+    val overrideAddress: AddressInput?,
 )
+
+data class AddressInput(
+    val adresselinje1: String,
+    val adresselinje2: String?,
+    val adresselinje3: String?,
+    val landkode: String,
+    val postnummer: String,
+)
+
+enum class HandlingEnum {
+    AUTO,
+    LOCAL_PRINT,
+    CENTRAL_PRINT
+}

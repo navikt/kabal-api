@@ -190,10 +190,10 @@ class DokumentUnderArbeidController(
     ): DokumentView {
         logger.debug("Kall mottatt på getDokument for {}", dokumentId)
 
-       return dokumentUnderArbeidService.getDokumentUnderArbeidView(
-           dokumentUnderArbeidId = dokumentId,
-           behandlingId = behandlingId
-       )
+        return dokumentUnderArbeidService.getDokumentUnderArbeidView(
+            dokumentUnderArbeidId = dokumentId,
+            behandlingId = behandlingId
+        )
     }
 
     @GetMapping("/{dokumentId}/vedleggsoversikt")

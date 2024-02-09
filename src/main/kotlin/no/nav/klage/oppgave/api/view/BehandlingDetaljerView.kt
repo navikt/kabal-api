@@ -87,6 +87,7 @@ data class BehandlingDetaljerView(
             VERGEMAAL,
             FULLMAKT,
             RESERVERT_I_KRR,
+            DELT_ANSVAR,
         }
     }
 
@@ -109,7 +110,17 @@ data class BehandlingDetaljerView(
         override val available: Boolean,
         override val language: String?,
         override val statusList: List<PartStatus>,
+        val address: Address?,
     ): PartBase, IdPart
+
+    data class Address(
+        val adresselinje1: String,
+        val adresselinje2: String?,
+        val adresselinje3: String?,
+        val landkode: String,
+        val postnummer: String,
+        val poststed: String,
+    )
 
     data class SakenGjelderView(
         override val id: String,

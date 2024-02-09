@@ -32,10 +32,16 @@ data class DokumentView(
     val creatorIdent: String,
     val creatorRole: BehandlingRole,
     val avsender: BehandlingDetaljerView.PartView?,
-    val mottakerList: List<BehandlingDetaljerView.PartView>?,
+    val mottakerList: List<Mottaker>,
     val inngaaendeKanal: InngaaendeKanal?,
     val datoMottatt: LocalDate?,
 ) {
+
+    data class Mottaker(
+        val part: BehandlingDetaljerView.PartView,
+        val overriddenAddress: BehandlingDetaljerView.Address?,
+        val handling: HandlingEnum,
+    )
 
     data class Creator(
         val employee: SaksbehandlerView,

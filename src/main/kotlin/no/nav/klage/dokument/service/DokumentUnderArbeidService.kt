@@ -74,6 +74,7 @@ class DokumentUnderArbeidService(
     private val partSearchService: PartSearchService,
     meterRegistry: MeterRegistry,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val kodeverkService: KodeverkService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -810,6 +811,8 @@ class DokumentUnderArbeidService(
             DokumentUnderArbeidAvsenderMottakerInfo(
                 identifikator = avsenderInput.id,
                 localPrint = false,
+                forceCentralPrint = false,
+                address = null,
             )
         )
 
@@ -887,10 +890,17 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
 
         mottakerInput.mottakerList.forEach {
+            val (markLocalPrint, forceCentralPrint) = when(it.handling) {
+                HandlingEnum.AUTO -> false to false
+                HandlingEnum.LOCAL_PRINT -> true to false
+                HandlingEnum.CENTRAL_PRINT -> false to true
+            }
             dokumentUnderArbeid.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
                     identifikator = it.id,
-                    localPrint = it.localPrint,
+                    localPrint = markLocalPrint,
+                    forceCentralPrint = forceCentralPrint,
+                    address = getDokumentUnderArbeidAdresse(it.overrideAddress),
                 )
             )
         }
@@ -929,6 +939,20 @@ class DokumentUnderArbeidService(
         )
 
         return dokumentUnderArbeid
+    }
+
+    private fun getDokumentUnderArbeidAdresse(overrideAddress: AddressInput?): DokumentUnderArbeidAdresse? {
+        return if (overrideAddress != null) {
+            DokumentUnderArbeidAdresse(
+                adresselinje1 = overrideAddress.adresselinje1,
+                adresselinje2 = overrideAddress.adresselinje2,
+                adresselinje3 = overrideAddress.adresselinje3,
+                postnummer = overrideAddress.postnummer,
+                poststed = kodeverkService.getPoststed(overrideAddress.postnummer),
+                landkode = overrideAddress.landkode
+            )
+        } else null
+
     }
 
     private fun DokumentUnderArbeid.isVedlegg(): Boolean {
@@ -1101,6 +1125,8 @@ class DokumentUnderArbeidService(
                     //Hardkoder Trygderetten
                     identifikator = "974761084",
                     localPrint = false,
+                    forceCentralPrint = false,
+                    address = null,
                 )
             )
         } else if (!ferdigstillDokumentInput?.brevmottakerIds.isNullOrEmpty()) {
@@ -1219,11 +1245,15 @@ class DokumentUnderArbeidService(
             DokumentUnderArbeidAvsenderMottakerInfo(
                 identifikator = behandling.sakenGjelder.partId.value,
                 localPrint = false,
+                forceCentralPrint = false,
+                address = null,
             )
         } else {
             DokumentUnderArbeidAvsenderMottakerInfo(
                 identifikator = id,
                 localPrint = false,
+                forceCentralPrint = false,
+                address = null,
             )
         }
     }
@@ -1258,7 +1288,7 @@ class DokumentUnderArbeidService(
         avsenderMottakerInfoSet.forEach {
             val partId = getPartIdFromIdentifikator(it.identifikator)
             if (partId.type.id == PartIdType.VIRKSOMHET.id) {
-                val organisasjon = eregClient.hentOrganisasjon(partId.value)
+                val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(partId.value)
                 if (!organisasjon.isActive() && hovedDokument.isUtgaaende()) {
                     invalidProperties += InvalidProperty(
                         field = partId.value,

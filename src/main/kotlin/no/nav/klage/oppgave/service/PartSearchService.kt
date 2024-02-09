@@ -39,7 +39,8 @@ class PartSearchService(
                         type = BehandlingDetaljerView.IdType.FNR,
                         available = person.doed == null,
                         language = krrInfo?.spraak,
-                        statusList = behandlingMapper.getStatusList(person, krrInfo)
+                        statusList = behandlingMapper.getStatusList(person, krrInfo),
+                        address = null,
                     )
                 } else {
                     secureLogger.warn("Saksbehandler does not have access to view person")
@@ -48,7 +49,7 @@ class PartSearchService(
             }
 
             PartIdType.VIRKSOMHET -> {
-                val organisasjon = eregClient.hentOrganisasjon(identifikator)
+                val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifikator)
                 BehandlingDetaljerView.PartView(
                     id = organisasjon.organisasjonsnummer,
                     name = organisasjon.navn.sammensattnavn,
@@ -56,6 +57,7 @@ class PartSearchService(
                     available = organisasjon.isActive(),
                     language = null,
                     statusList = behandlingMapper.getStatusList(organisasjon),
+                    address = behandlingMapper.getAddress(organisasjon),
                 )
             }
         }

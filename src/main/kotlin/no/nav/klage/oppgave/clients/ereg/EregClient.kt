@@ -27,12 +27,12 @@ class EregClient(
         private val secureLogger = getSecureLogger()
     }
 
-    fun hentOrganisasjon(orgnummer: String): Organisasjon {
+    fun hentNoekkelInformasjonOmOrganisasjon(orgnummer: String): NoekkelInfoOmOrganisasjon {
         return kotlin.runCatching {
             eregWebClient.get()
                 .uri { uriBuilder ->
                     uriBuilder
-                        .path("/organisasjon/{orgnummer}")
+                        .path("/organisasjon/{orgnummer}/noekkelinfo")
                         .queryParam("inkluderHierarki", false)
                         .build(orgnummer)
                 }
@@ -40,16 +40,16 @@ class EregClient(
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::hentOrganisasjon.name, secureLogger)
+                    logErrorResponse(response, ::hentNoekkelInformasjonOmOrganisasjon.name, secureLogger)
                 }
-                .bodyToMono<Organisasjon>()
-                .block() ?: throw EREGOrganizationNotFoundException("Search for organization $orgnummer in Ereg returned null.")
+                .bodyToMono<NoekkelInfoOmOrganisasjon>()
+                .block() ?: throw EREGOrganizationNotFoundException("Search for key information about organization $orgnummer in Ereg returned null.")
         }.fold(
             onSuccess = { it },
             onFailure = { error ->
                 when (error) {
                     is WebClientResponseException.NotFound -> {
-                        throw EREGOrganizationNotFoundException("Couldn't find organization $orgnummer in Ereg.")
+                        throw EREGOrganizationNotFoundException("Couldn't find key info avbout organization $orgnummer in Ereg.")
                     }
                     else -> throw error
                 }
@@ -58,5 +58,5 @@ class EregClient(
         )
     }
 
-    fun isOrganisasjonActive(orgnummer: String) = hentOrganisasjon(orgnummer).isActive()
+    fun isOrganisasjonActive(orgnummer: String) = hentNoekkelInformasjonOmOrganisasjon(orgnummer).isActive()
 }
