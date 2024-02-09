@@ -19,4 +19,19 @@ class KodeverkService(
         val postnummerKodeverk = kodeverkClient.getPoststeder()
         return postnummerKodeverk.betydninger[postnummer]?.firstOrNull()?.beskrivelser?.get("NO")?.term ?: "Ukjent"
     }
+
+    fun getLandkoder(): List<Landkode> {
+        val landkoderKodeverk = kodeverkClient.getLandkoder()
+        return landkoderKodeverk.betydninger.map {
+            Landkode(
+                land = it.value.firstOrNull()?.beskrivelser?.get("NO")?.term ?: "Ukjent",
+                landkode = it.key,
+            )
+        }
+    }
+
+    data class Landkode(
+        val land: String,
+        val landkode: String,
+    )
 }

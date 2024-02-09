@@ -860,11 +860,18 @@ class DokumentUnderArbeidService(
     ): DokumentUnderArbeidAsHoveddokument {
 
         //Validate parts
-        mottakerInput.mottakerList.forEach {
+        mottakerInput.mottakerList.forEach {mottaker ->
             partSearchService.searchPart(
-                identifikator = it.id,
+                identifikator = mottaker.id,
                 skipAccessControl = true
             )
+
+            if (mottaker.overrideAddress != null) {
+                val landkoder = kodeverkService.getLandkoder()
+                if (landkoder.find{ it.landkode == mottaker.overrideAddress.landkode } == null) {
+                    throw DokumentValidationException("Ugyldig landkode: ${mottaker.overrideAddress.landkode}")
+                }
+            }
         }
 
         val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()

@@ -23,6 +23,7 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
         private const val ROLLER_CACHE = "roller"
         private const val SAKSBEHANDLERE_I_ENHET_CACHE = "saksbehandlereienhet"
         const val POSTSTEDER_CACHE = "poststeder"
+        const val LANDKODER_CACHE = "landkoder"
         const val ANSATTE_I_ENHET_CACHE = "ansatteienhet"
         const val GROUPMEMBERS_CACHE = "groupmembers"
         const val KRR_INFO_CACHE = "krrinfo"
@@ -38,7 +39,8 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
                 GROUPMEMBERS_CACHE,
                 KRR_INFO_CACHE,
                 SAKSBEHANDLER_NAME_CACHE,
-                POSTSTEDER_CACHE
+                POSTSTEDER_CACHE,
+                LANDKODER_CACHE,
             )
 
         @Suppress("JAVA_CLASS_ON_COMPANION")

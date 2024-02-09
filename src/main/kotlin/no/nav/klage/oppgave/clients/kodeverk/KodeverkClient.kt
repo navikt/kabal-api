@@ -66,4 +66,42 @@ class KodeverkClient(
             }
         )
     }
+
+    @Cacheable(CacheWithJCacheConfiguration.LANDKODER_CACHE)
+    fun getLandkoder(): KodeverkResponse {
+        return kotlin.runCatching {
+            kodeverkWebClient.get()
+                .uri { uriBuilder ->
+                    uriBuilder
+                        .path("/LandkoderISO2/koder/betydninger")
+                        .queryParam("ekskluderUgyldige", true)
+                        .queryParam("spraak", "NO")
+                        .build()
+                }
+                .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope()}"
+                )
+
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(response, ::getPoststeder.name, secureLogger)
+                }
+                .bodyToMono<KodeverkResponse>()
+                .block() ?: throw KodeverkNotFoundException("Search for Landkoder kodeverk returned null.")
+        }.fold(
+            onSuccess = { it },
+            onFailure = { error ->
+                when (error) {
+                    is WebClientResponseException.NotFound -> {
+                        throw KodeverkNotFoundException("Search for Landkoder kodeverk returned null.")
+                    }
+
+                    else -> throw error
+                }
+            }
+        )
+    }
 }
