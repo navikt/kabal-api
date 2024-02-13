@@ -6,6 +6,9 @@ SKJERMEDE_BASE_URL: https://skjermede-personer-pip.dev.intern.nav.no
 NORG2_API_V1_URL: https://norg2.dev-fss-pub.nais.io/norg2/api/v1
 PROXY_APP_CLIENT_ID: c6050231-3b9f-4173-8d1e-39b7e6e3392e
 
+REGOPPSLAG_URL: https://regoppslag.dev-fss-pub.nais.io
+REGOPPSLAG_SCOPE: dev-fss.teamdokumenthandtering.regoppslag
+
 EREG_URL: https://ereg-services-q1.dev-fss-pub.nais.io/api/v2
 
 KODEVERK_API_URL: https://kodeverk-api.nav.no/api/v1/kodeverk

@@ -121,6 +121,12 @@ class TokenUtil(
         return response.accessToken
     }
 
+    fun getOnBehalfOfTokenWithRegoppslagScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["regoppslag-onbehalfof"]
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken
+    }
+
     fun getOnBehalfOfTokenWithKrrProxyScope(): String {
         val clientProperties = clientConfigurationProperties.registration["krr-proxy-onbehalfof"]
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)

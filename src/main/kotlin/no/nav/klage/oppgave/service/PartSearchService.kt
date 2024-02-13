@@ -19,6 +19,7 @@ class PartSearchService(
     private val tilgangService: TilgangService,
     private val behandlingMapper: BehandlingMapper,
     private val krrProxyClient: KrrProxyClient,
+    private val regoppslagService: RegoppslagService
 ) {
 
     companion object {
@@ -40,7 +41,7 @@ class PartSearchService(
                         available = person.doed == null,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = null,
+                        address = regoppslagService.getAddressForPerson(fnr = identifikator),
                     )
                 } else {
                     secureLogger.warn("Saksbehandler does not have access to view person")
@@ -80,6 +81,7 @@ class PartSearchService(
                             ?: BehandlingDetaljerView.Sex.UKJENT,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
+                        address = regoppslagService.getAddressForPerson(fnr = identifikator),
                     )
                 } else {
                     secureLogger.warn("Saksbehandler does not have access to view person")

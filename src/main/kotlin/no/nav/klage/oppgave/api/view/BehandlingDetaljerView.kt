@@ -110,7 +110,7 @@ data class BehandlingDetaljerView(
         override val available: Boolean,
         override val language: String?,
         override val statusList: List<PartStatus>,
-        val address: Address?,
+        val address: Address,
     ): PartBase, IdPart
 
     data class Address(
@@ -130,5 +130,6 @@ data class BehandlingDetaljerView(
         override val language: String?,
         override val statusList: List<PartStatus>,
         val sex: Sex,
+        val address: Address,
     ): PartBase, IdPart
 }

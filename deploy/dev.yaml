@@ -13,6 +13,7 @@ externalHosts:
   - host: pdl-api.dev-fss-pub.nais.io
   - host: digdir-krr-proxy.intern.dev.nav.no
   - host: kodeverk-api.nav.no
+  - host: regoppslag.dev-fss-pub.nais.io
 inboundApplications:
   - application: kabal-frontend
   - application: klage-dittnav-api

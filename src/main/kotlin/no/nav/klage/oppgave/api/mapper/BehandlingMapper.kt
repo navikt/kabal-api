@@ -6,7 +6,6 @@ import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.ereg.NoekkelInfoOmOrganisasjon
-import no.nav.klage.oppgave.clients.ereg.Organisasjon
 import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
@@ -14,6 +13,7 @@ import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.service.KodeverkService
+import no.nav.klage.oppgave.service.RegoppslagService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
@@ -28,6 +28,7 @@ class BehandlingMapper(
     private val saksbehandlerService: SaksbehandlerService,
     private val krrProxyClient: KrrProxyClient,
     private val kodeverkService: KodeverkService,
+    private val regoppslagService: RegoppslagService,
 ) {
 
     companion object {
@@ -264,6 +265,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
+                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -288,7 +290,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = null,
+                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
             )
         } else {
             val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identificator)

@@ -28,6 +28,7 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
         const val GROUPMEMBERS_CACHE = "groupmembers"
         const val KRR_INFO_CACHE = "krrinfo"
         const val SAKSBEHANDLER_NAME_CACHE = "saksbehandler-name"
+        const val PERSON_ADDRESS = "person-address"
 
 
         val cacheKeys =
@@ -41,6 +42,7 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
                 SAKSBEHANDLER_NAME_CACHE,
                 POSTSTEDER_CACHE,
                 LANDKODER_CACHE,
+                PERSON_ADDRESS,
             )
 
         @Suppress("JAVA_CLASS_ON_COMPANION")

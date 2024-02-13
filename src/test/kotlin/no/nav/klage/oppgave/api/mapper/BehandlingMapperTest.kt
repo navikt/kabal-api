@@ -11,6 +11,7 @@ import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.service.KodeverkService
+import no.nav.klage.oppgave.service.RegoppslagService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -47,6 +48,9 @@ class BehandlingMapperTest {
 
     @MockkBean
     lateinit var kodeverkService: KodeverkService
+
+    @MockkBean
+    lateinit var regoppslagService: RegoppslagService
 
     @Autowired
     lateinit var behandlingMapper: BehandlingMapper
