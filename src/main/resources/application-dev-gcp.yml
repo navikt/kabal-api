@@ -11,6 +11,9 @@ REGOPPSLAG_SCOPE: dev-fss.teamdokumenthandtering.regoppslag
 
 EREG_URL: https://ereg-services-q1.dev-fss-pub.nais.io/api/v2
 
+DOK_DIST_KANAL_URL: https://dokdistkanal-q1.dev-fss-pub.nais.io
+DOK_DIST_KANAL_SCOPE: dev-fss.teamdokumenthandtering.dokdistkanal-q1
+
 KODEVERK_API_URL: https://kodeverk-api.nav.no/api/v1/kodeverk
 KODEVERK_SCOPE: dev-gcp.team-rocket.kodeverk-api
 

@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
+import no.nav.klage.oppgave.clients.dokdistkanal.DokDistKanalClient
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.AuditLogEvent
 import no.nav.klage.oppgave.service.BehandlingService
@@ -25,7 +26,8 @@ class BehandlingDetaljerController(
     private val behandlingService: BehandlingService,
     private val behandlingMapper: BehandlingMapper,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val auditLogger: AuditLogger
+    private val auditLogger: AuditLogger,
+    private val dokDistKanalClient: DokDistKanalClient
 ) {
 
     companion object {
@@ -55,5 +57,23 @@ class BehandlingDetaljerController(
                 )
             )
         }
+    }
+
+    @GetMapping("/{behandlingId}/distribusjonskanal/{mottakerId}")
+    fun getDistribusjonskanal(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("mottakerId") mottakerId: String,
+    ): DokDistKanalClient.BestemDistribusjonskanalResponse {
+        logBehandlingMethodDetails(
+            ::getDistribusjonskanal.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        return behandlingService.getDistribusjonskanal(
+            behandlingId = behandlingId,
+            mottakerId = mottakerId
+        )
     }
 }

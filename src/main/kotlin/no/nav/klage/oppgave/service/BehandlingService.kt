@@ -11,6 +11,7 @@ import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.api.view.kabin.CompletedBehandling
 import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
+import no.nav.klage.oppgave.clients.dokdistkanal.DokDistKanalClient
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
@@ -88,6 +89,7 @@ class BehandlingService(
     private val partSearchService: PartSearchService,
     private val safFacade: SafFacade,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val dokDistKanalClient: DokDistKanalClient,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -1373,6 +1375,20 @@ class BehandlingService(
             checkSkrivetilgang(behandling)
         }
         return behandling
+    }
+
+    fun getDistribusjonskanal(
+        behandlingId: UUID,
+        mottakerId: String
+    ): DokDistKanalClient.BestemDistribusjonskanalResponse {
+        val behandling = behandlingRepository.findById(behandlingId).get()
+        return dokDistKanalClient.getDistribussjonskanal(
+            input = DokDistKanalClient.Request(
+                mottakerId = mottakerId,
+                brukerId = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema().navn
+            )
+        )
     }
 
     @Transactional(readOnly = true)

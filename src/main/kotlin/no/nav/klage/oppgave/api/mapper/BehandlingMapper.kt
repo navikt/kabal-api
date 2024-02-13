@@ -18,6 +18,7 @@ import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.util.*
 
 @Service
 class BehandlingMapper(
@@ -308,12 +309,12 @@ class BehandlingMapper(
 
     fun getAddress(organisasjon: NoekkelInfoOmOrganisasjon): BehandlingDetaljerView.Address {
         return BehandlingDetaljerView.Address(
-                    adresselinje1 = organisasjon.adresse.adresselinje1,
-                    adresselinje2 = organisasjon.adresse.adresselinje2,
-                    adresselinje3 = organisasjon.adresse.adresselinje3,
-                    landkode = organisasjon.adresse.landkode,
-                    postnummer = organisasjon.adresse.postnummer,
-                    poststed = organisasjon.adresse.poststed ?: kodeverkService.getPoststed(organisasjon.adresse.postnummer),
+            adresselinje1 = organisasjon.adresse.adresselinje1,
+            adresselinje2 = organisasjon.adresse.adresselinje2,
+            adresselinje3 = organisasjon.adresse.adresselinje3,
+            landkode = organisasjon.adresse.landkode,
+            postnummer = organisasjon.adresse.postnummer,
+            poststed = organisasjon.adresse.poststed ?: kodeverkService.getPoststed(organisasjon.adresse.postnummer),
         )
     }
 
