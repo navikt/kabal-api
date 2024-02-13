@@ -893,7 +893,7 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
                     identifikator = it.id,
-                    localPrint = false,
+                    localPrint = it.localPrint,
                     forceCentralPrint = false,
                     address = null,
                 )
