@@ -68,7 +68,7 @@ class SearchController(
         return kodeverkService.getPoststed(postnummer)
     }
 
-    @GetMapping("/landkoder/")
+    @GetMapping("/landkoder")
     fun getLandkoder(): List<KodeverkService.Landkode> {
         logMethodDetails(
             ::getLandkoder.name,
