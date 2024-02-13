@@ -11,6 +11,7 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
+import no.nav.klage.oppgave.clients.dokdistkanal.DokDistKanalClient
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFullfoerOutput
@@ -141,6 +142,9 @@ internal class BehandlingAvslutningServiceTest {
 
     @SpykBean
     lateinit var behandlingAvslutningService: BehandlingAvslutningService
+
+    @MockkBean
+    lateinit var dokDistKanalClient: DokDistKanalClient
 
     @MockkBean(relaxed = true)
     lateinit var kabalDocumentGateway: KabalDocumentGateway

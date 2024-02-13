@@ -192,7 +192,7 @@ class KabalDocumentMapper(
         if (partId.type == PartIdType.PERSON) {
             pdlFacade.getPersonInfo(partId.value).settSammenNavn()
         } else {
-            eregClient.hentOrganisasjon(partId.value).navn.sammensattnavn
+            eregClient.hentNoekkelInformasjonOmOrganisasjon(partId.value).navn.sammensattnavn
         }
 
 }

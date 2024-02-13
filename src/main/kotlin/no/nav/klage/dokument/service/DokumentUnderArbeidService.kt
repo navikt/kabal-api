@@ -74,6 +74,7 @@ class DokumentUnderArbeidService(
     private val partSearchService: PartSearchService,
     meterRegistry: MeterRegistry,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val kodeverkService: KodeverkService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -810,6 +811,8 @@ class DokumentUnderArbeidService(
             DokumentUnderArbeidAvsenderMottakerInfo(
                 identifikator = avsenderInput.id,
                 localPrint = false,
+                forceCentralPrint = false,
+                address = null,
             )
         )
 
@@ -890,7 +893,9 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
                     identifikator = it.id,
-                    localPrint = it.localPrint,
+                    localPrint = false,
+                    forceCentralPrint = false,
+                    address = null,
                 )
             )
         }
@@ -1101,6 +1106,8 @@ class DokumentUnderArbeidService(
                     //Hardkoder Trygderetten
                     identifikator = "974761084",
                     localPrint = false,
+                    forceCentralPrint = false,
+                    address = null,
                 )
             )
         } else if (!ferdigstillDokumentInput?.brevmottakerIds.isNullOrEmpty()) {
@@ -1219,11 +1226,15 @@ class DokumentUnderArbeidService(
             DokumentUnderArbeidAvsenderMottakerInfo(
                 identifikator = behandling.sakenGjelder.partId.value,
                 localPrint = false,
+                forceCentralPrint = false,
+                address = null,
             )
         } else {
             DokumentUnderArbeidAvsenderMottakerInfo(
                 identifikator = id,
                 localPrint = false,
+                forceCentralPrint = false,
+                address = null,
             )
         }
     }
@@ -1258,7 +1269,7 @@ class DokumentUnderArbeidService(
         avsenderMottakerInfoSet.forEach {
             val partId = getPartIdFromIdentifikator(it.identifikator)
             if (partId.type.id == PartIdType.VIRKSOMHET.id) {
-                val organisasjon = eregClient.hentOrganisasjon(partId.value)
+                val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(partId.value)
                 if (!organisasjon.isActive() && hovedDokument.isUtgaaende()) {
                     invalidProperties += InvalidProperty(
                         field = partId.value,

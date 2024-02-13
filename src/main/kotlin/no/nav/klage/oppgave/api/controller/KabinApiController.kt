@@ -50,7 +50,7 @@ class KabinApiController(
     @PostMapping("/searchpart")
     fun searchPart(
         @RequestBody input: IdentifikatorInput
-    ): BehandlingDetaljerView.PartView {
+    ): KabinPartView {
         logMethodDetails(
             methodName = ::searchPart.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -58,7 +58,7 @@ class KabinApiController(
         )
         return partSearchService.searchPart(
             identifikator = input.identifikator
-        )
+        ).toKabinPartView()
     }
 
     @PostMapping("/ankemuligheter")

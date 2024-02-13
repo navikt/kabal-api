@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Organisasjon(
+data class NoekkelInfoOmOrganisasjon(
     val navn: Navn,
     val organisasjonsnummer: String,
-    val organisasjonDetaljer: OrganisasjonDetaljer,
+    val enhetstype: String,
+    val opphoersdato: LocalDate?,
+    val adresse: Adresse,
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Navn(
@@ -15,10 +17,15 @@ data class Organisasjon(
     )
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    data class OrganisasjonDetaljer(
-        val opphoersdato: LocalDate?
+    data class Adresse(
+        val adresselinje1: String,
+        val adresselinje2: String?,
+        val adresselinje3: String?,
+        val landkode: String,
+        val postnummer: String,
+        val poststed: String?,
     )
 
     //is "ifAfter" necessary?
-    fun isActive() = organisasjonDetaljer.opphoersdato == null || organisasjonDetaljer.opphoersdato.isAfter(LocalDate.now())
+    fun isActive() = opphoersdato == null || opphoersdato.isAfter(LocalDate.now())
 }

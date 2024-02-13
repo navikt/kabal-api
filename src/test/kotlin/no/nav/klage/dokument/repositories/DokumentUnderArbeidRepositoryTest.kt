@@ -136,7 +136,9 @@ class DokumentUnderArbeidRepositoryTest {
             avsenderMottakerInfoSet = mutableSetOf(
                 DokumentUnderArbeidAvsenderMottakerInfo(
                     identifikator = "123",
-                    localPrint = false
+                    localPrint = false,
+                    forceCentralPrint = false,
+                    address = null,
                 )
             ),
             journalfoerendeEnhetId = null,

@@ -3,15 +3,18 @@ package no.nav.klage.oppgave.api.mapper
 
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.api.view.kabin.KabinPartView
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
-import no.nav.klage.oppgave.clients.ereg.Organisasjon
+import no.nav.klage.oppgave.clients.ereg.NoekkelInfoOmOrganisasjon
 import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.service.KodeverkService
+import no.nav.klage.oppgave.service.RegoppslagService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
@@ -25,6 +28,8 @@ class BehandlingMapper(
     private val eregClient: EregClient,
     private val saksbehandlerService: SaksbehandlerService,
     private val krrProxyClient: KrrProxyClient,
+    private val kodeverkService: KodeverkService,
+    private val regoppslagService: RegoppslagService,
 ) {
 
     companion object {
@@ -261,6 +266,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
+                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -285,9 +291,10 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
+                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
             )
         } else {
-            val organisasjon = eregClient.hentOrganisasjon(identificator)
+            val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identificator)
             BehandlingDetaljerView.PartView(
                 id = identificator,
                 name = organisasjon.navn.sammensattnavn,
@@ -295,8 +302,20 @@ class BehandlingMapper(
                 available = organisasjon.isActive(),
                 language = null,
                 statusList = getStatusList(organisasjon),
+                address = getAddress(organisasjon),
             )
         }
+    }
+
+    fun getAddress(organisasjon: NoekkelInfoOmOrganisasjon): BehandlingDetaljerView.Address {
+        return BehandlingDetaljerView.Address(
+            adresselinje1 = organisasjon.adresse.adresselinje1,
+            adresselinje2 = organisasjon.adresse.adresselinje2,
+            adresselinje3 = organisasjon.adresse.adresselinje3,
+            landkode = organisasjon.adresse.landkode,
+            postnummer = organisasjon.adresse.postnummer,
+            poststed = organisasjon.adresse.poststed ?: kodeverkService.getPoststed(organisasjon.adresse.postnummer),
+        )
     }
 
     private fun SakenGjelder.harBeskyttelsesbehovFortrolig(): Boolean {
@@ -463,16 +482,26 @@ class BehandlingMapper(
         return statusList
     }
 
-    fun getStatusList(organisasjon: Organisasjon): List<BehandlingDetaljerView.PartStatus> {
-        return if (!organisasjon.isActive()) {
-            return listOf(
+    fun getStatusList(organisasjon: NoekkelInfoOmOrganisasjon): List<BehandlingDetaljerView.PartStatus> {
+        val statusList = mutableListOf<BehandlingDetaljerView.PartStatus>()
+
+        if (!organisasjon.isActive()) {
+            statusList.add(
                 BehandlingDetaljerView.PartStatus(
                     status = BehandlingDetaljerView.PartStatus.Status.DELETED,
-                    date = organisasjon.organisasjonDetaljer.opphoersdato,
+                    date = organisasjon.opphoersdato,
                 )
             )
-        } else {
-            emptyList()
         }
+
+        if (organisasjon.enhetstype == "DA") {
+            statusList.add(
+                BehandlingDetaljerView.PartStatus(
+                    status = BehandlingDetaljerView.PartStatus.Status.DELT_ANSVAR,
+                    date = null,
+                )
+            )
+        }
+        return statusList
     }
 }

@@ -112,6 +112,7 @@ class DokumentUnderArbeidServiceTest {
             kabalSmartEditorApiClient = mockk(),
             meterRegistry = mockk(),
             partSearchService = mockk(),
+            kodeverkService = mockk(),
         )
 
         val behandlingId = UUID.randomUUID()
