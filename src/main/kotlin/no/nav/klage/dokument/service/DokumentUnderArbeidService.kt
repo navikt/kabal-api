@@ -961,12 +961,18 @@ class DokumentUnderArbeidService(
 
     private fun getDokumentUnderArbeidAdresse(overrideAddress: AddressInput?): DokumentUnderArbeidAdresse? {
         return if (overrideAddress != null) {
+            val poststed = if (overrideAddress.landkode == "NO") {
+                if (overrideAddress.postnummer != null) {
+                    kodeverkService.getPoststed(overrideAddress.postnummer).poststed
+                } else null
+            } else null
+
             DokumentUnderArbeidAdresse(
                 adresselinje1 = overrideAddress.adresselinje1,
                 adresselinje2 = overrideAddress.adresselinje2,
                 adresselinje3 = overrideAddress.adresselinje3,
                 postnummer = overrideAddress.postnummer,
-                poststed = overrideAddress.postnummer?.let { kodeverkService.getPoststed(it).poststed },
+                poststed = poststed,
                 landkode = overrideAddress.landkode
             )
         } else null
