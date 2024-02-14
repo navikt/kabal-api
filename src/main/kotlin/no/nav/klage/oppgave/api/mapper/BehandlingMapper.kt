@@ -313,7 +313,7 @@ class BehandlingMapper(
             adresselinje3 = organisasjon.adresse.adresselinje3,
             landkode = organisasjon.adresse.landkode,
             postnummer = organisasjon.adresse.postnummer,
-            poststed = organisasjon.adresse.poststed ?: kodeverkService.getPoststed(organisasjon.adresse.postnummer),
+            poststed = organisasjon.adresse.poststed ?: kodeverkService.getPoststed(organisasjon.adresse.postnummer).poststed,
         )
     }
 
