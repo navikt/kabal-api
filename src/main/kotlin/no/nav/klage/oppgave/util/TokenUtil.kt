@@ -31,6 +31,12 @@ class TokenUtil(
         return response.accessToken
     }
 
+    fun getSaksbehandlerAccessTokenWithKodeverkScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["kodeverk-onbehalfof"]
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken
+    }
+
     fun getAppAccessTokenWithPdlScope(): String {
         val clientProperties = clientConfigurationProperties.registration["pdl-maskintilmaskin"]
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
@@ -111,6 +117,18 @@ class TokenUtil(
 
     fun getSkjermedeAccessToken(): String {
         val clientProperties = clientConfigurationProperties.registration["skjermede-maskintilmaskin"]
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken
+    }
+
+    fun getOnBehalfOfTokenWithRegoppslagScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["regoppslag-onbehalfof"]
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken
+    }
+
+    fun getOnBehalfOfTokenWithDokDistKanalScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["dok-dist-kanal-onbehalfof"]
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.accessToken
     }

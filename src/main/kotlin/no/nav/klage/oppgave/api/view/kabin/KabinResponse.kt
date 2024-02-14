@@ -12,9 +12,9 @@ data class CompletedBehandling(
     val ytelseId: String,
     val hjemmelIdList: List<String>,
     val vedtakDate: LocalDateTime,
-    val sakenGjelder: BehandlingDetaljerView.SakenGjelderView,
-    val klager: BehandlingDetaljerView.PartView,
-    val fullmektig: BehandlingDetaljerView.PartView?,
+    val sakenGjelder: KabinPartView,
+    val klager: KabinPartView,
+    val fullmektig: KabinPartView?,
     val fagsakId: String,
     val fagsystem: Fagsystem,
     val fagsystemId: String,
@@ -30,9 +30,9 @@ data class Ankemulighet(
     val ytelseId: String,
     val hjemmelIdList: List<String>,
     val vedtakDate: LocalDateTime,
-    val sakenGjelder: BehandlingDetaljerView.SakenGjelderView,
-    val klager: BehandlingDetaljerView.PartView,
-    val fullmektig: BehandlingDetaljerView.PartView?,
+    val sakenGjelder: KabinPartView,
+    val klager: KabinPartView,
+    val fullmektig: KabinPartView?,
     val fagsakId: String,
     val fagsystem: Fagsystem,
     val fagsystemId: String,
@@ -59,9 +59,9 @@ data class CreatedAnkebehandlingStatusForKabin(
     val typeId: String,
     val ytelseId: String,
     val vedtakDate: LocalDateTime,
-    val sakenGjelder: BehandlingDetaljerView.SakenGjelderView,
-    val klager: BehandlingDetaljerView.PartView,
-    val fullmektig: BehandlingDetaljerView.PartView?,
+    val sakenGjelder: KabinPartView,
+    val klager: KabinPartView,
+    val fullmektig: KabinPartView?,
     val mottattNav: LocalDate,
     val frist: LocalDate,
     val fagsakId: String,
@@ -73,9 +73,9 @@ data class CreatedAnkebehandlingStatusForKabin(
 data class CreatedKlagebehandlingStatusForKabin(
     val typeId: String,
     val ytelseId: String,
-    val sakenGjelder: BehandlingDetaljerView.SakenGjelderView,
-    val klager: BehandlingDetaljerView.PartView,
-    val fullmektig: BehandlingDetaljerView.PartView?,
+    val sakenGjelder: KabinPartView,
+    val klager: KabinPartView,
+    val fullmektig: KabinPartView?,
     val mottattVedtaksinstans: LocalDate,
     val mottattKlageinstans: LocalDate,
     val frist: LocalDate,
@@ -90,3 +90,31 @@ data class TildeltSaksbehandler(
     val navIdent: String,
     val navn: String,
 )
+
+data class KabinPartView(
+    val id: String,
+    val type: BehandlingDetaljerView.IdType,
+    val name: String,
+    val available: Boolean,
+    val statusList: List<BehandlingDetaljerView.PartStatus>,
+)
+
+fun BehandlingDetaljerView.SakenGjelderView.toKabinPartView(): KabinPartView {
+    return KabinPartView(
+        id = id,
+        type = type,
+        name = name,
+        available = available,
+        statusList = statusList,
+    )
+}
+
+fun BehandlingDetaljerView.PartView.toKabinPartView(): KabinPartView {
+    return KabinPartView(
+        id = id,
+        type = type,
+        name = name,
+        available = available,
+        statusList = statusList,
+    )
+}

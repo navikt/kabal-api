@@ -10,6 +10,7 @@ import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.api.view.kabin.CompletedBehandling
+import no.nav.klage.oppgave.api.view.kabin.toKabinPartView
 import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
@@ -267,7 +268,7 @@ class BehandlingService(
         }
 
         if (behandling.klager.prosessfullmektig?.partId?.isPerson() == false &&
-            !eregClient.hentOrganisasjon(behandling.klager.prosessfullmektig!!.partId.value).isActive()
+            !eregClient.hentNoekkelInformasjonOmOrganisasjon(behandling.klager.prosessfullmektig!!.partId.value).isActive()
         ) {
             behandlingValidationErrors.add(
                 InvalidProperty(
@@ -1790,9 +1791,9 @@ class BehandlingService(
         ytelseId = ytelse.id,
         hjemmelIdList = hjemler.map { it.id },
         vedtakDate = avsluttetAvSaksbehandler!!,
-        sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder),
-        klager = behandlingMapper.getPartView(klager.partId),
-        fullmektig = klager.prosessfullmektig?.let { behandlingMapper.getPartView(it.partId) },
+        sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder).toKabinPartView(),
+        klager = behandlingMapper.getPartView(klager.partId).toKabinPartView(),
+        fullmektig = klager.prosessfullmektig?.let { behandlingMapper.getPartView(it.partId).toKabinPartView() },
         fagsakId = fagsakId,
         fagsystem = fagsystem,
         fagsystemId = fagsystem.id,

@@ -11,7 +11,6 @@ import java.time.LocalDate
 
 @Component
 class HentPersonMapper {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -19,14 +18,13 @@ class HentPersonMapper {
     }
 
     fun mapToPerson(fnr: String, pdlPerson: PdlPerson): Person {
-
         secureLogger.debug("pdl returned {}", pdlPerson)
         return Person(
             foedselsnr = fnr,
-            fornavn = pdlPerson.navn.firstOrNull()?.fornavn,
-            mellomnavn = pdlPerson.navn.firstOrNull()?.mellomnavn,
-            etternavn = pdlPerson.navn.firstOrNull()?.etternavn,
-            sammensattNavn = sammensattNavn(pdlPerson.navn.firstOrNull()),
+            fornavn = pdlPerson.navn.first().fornavn,
+            mellomnavn = pdlPerson.navn.first().mellomnavn,
+            etternavn = pdlPerson.navn.first().etternavn,
+            sammensattNavn = sammensattNavn(pdlPerson.navn.first()),
             beskyttelsesbehov = pdlPerson.adressebeskyttelse.firstOrNull()?.gradering?.mapToBeskyttelsesbehov(),
             kjoenn = pdlPerson.kjoenn.firstOrNull()?.kjoenn?.name,
             sivilstand = pdlPerson.sivilstand

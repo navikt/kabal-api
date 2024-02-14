@@ -1,17 +1,19 @@
 package no.nav.klage.oppgave.api.mapper
 
-
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
-import no.nav.klage.oppgave.clients.ereg.Organisasjon
+import no.nav.klage.oppgave.clients.ereg.NoekkelInfoOmOrganisasjon
 import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.service.DokDistKanalService
+import no.nav.klage.oppgave.service.KodeverkService
+import no.nav.klage.oppgave.service.RegoppslagService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
@@ -25,6 +27,9 @@ class BehandlingMapper(
     private val eregClient: EregClient,
     private val saksbehandlerService: SaksbehandlerService,
     private val krrProxyClient: KrrProxyClient,
+    private val kodeverkService: KodeverkService,
+    private val regoppslagService: RegoppslagService,
+    private val dokDistKanalService: DokDistKanalService,
 ) {
 
     companion object {
@@ -48,9 +53,9 @@ class BehandlingMapper(
             fraNAVEnhet = klagebehandling.avsenderEnhetFoersteinstans,
             fraNAVEnhetNavn = enhetNavn,
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
-            sakenGjelder = getSakenGjelderView(klagebehandling.sakenGjelder),
-            klager = getPartView(klagebehandling.klager.partId),
-            prosessfullmektig = klagebehandling.klager.prosessfullmektig?.let { getPartView(it.partId) },
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(klagebehandling),
+            klager = getPartViewWithUtsendingskanal(klagebehandling.klager.partId, klagebehandling),
+            prosessfullmektig = klagebehandling.klager.prosessfullmektig?.let { getPartViewWithUtsendingskanal(it.partId, klagebehandling) },
             temaId = klagebehandling.ytelse.toTema().id,
             ytelseId = klagebehandling.ytelse.id,
             typeId = klagebehandling.type.id,
@@ -147,9 +152,9 @@ class BehandlingMapper(
             fraNAVEnhet = ankebehandling.klageBehandlendeEnhet,
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderView(ankebehandling.sakenGjelder),
-            klager = getPartView(ankebehandling.klager.partId),
-            prosessfullmektig = ankebehandling.klager.prosessfullmektig?.let { getPartView(it.partId) },
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(ankebehandling),
+            klager = getPartViewWithUtsendingskanal(ankebehandling.klager.partId, ankebehandling),
+            prosessfullmektig = ankebehandling.klager.prosessfullmektig?.let { getPartViewWithUtsendingskanal(it.partId, ankebehandling) },
             temaId = ankebehandling.ytelse.toTema().id,
             ytelseId = ankebehandling.ytelse.id,
             typeId = ankebehandling.type.id,
@@ -202,9 +207,9 @@ class BehandlingMapper(
             fraNAVEnhet = null,
             fraNAVEnhetNavn = null,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderView(ankeITrygderettenbehandling.sakenGjelder),
-            klager = getPartView(ankeITrygderettenbehandling.klager.partId),
-            prosessfullmektig = ankeITrygderettenbehandling.klager.prosessfullmektig?.let { getPartView(it.partId) },
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(ankeITrygderettenbehandling),
+            klager = getPartViewWithUtsendingskanal(ankeITrygderettenbehandling.klager.partId, ankeITrygderettenbehandling),
+            prosessfullmektig = ankeITrygderettenbehandling.klager.prosessfullmektig?.let { getPartViewWithUtsendingskanal(it.partId, ankeITrygderettenbehandling) },
             temaId = ankeITrygderettenbehandling.ytelse.toTema().id,
             ytelseId = ankeITrygderettenbehandling.ytelse.id,
             typeId = ankeITrygderettenbehandling.type.id,
@@ -261,6 +266,34 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
+                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
+            )
+        } else {
+            throw RuntimeException("We don't support where sakenGjelder is virksomhet")
+        }
+    }
+
+    fun getSakenGjelderViewWithUtsendingskanal(behandling: Behandling): BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal {
+        val sakenGjelder = behandling.sakenGjelder
+        if (sakenGjelder.erPerson()) {
+            val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(sakenGjelder.partId.value)
+            val utsendingskanal = dokDistKanalService.getDistribusjonskanal(
+                mottakerId = sakenGjelder.partId.value,
+                brukerId = sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema()
+            )
+            return BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal(
+                id = person.foedselsnr,
+                name = person.settSammenNavn(),
+                sex = person.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }
+                    ?: BehandlingDetaljerView.Sex.UKJENT,
+                type = BehandlingDetaljerView.IdType.FNR,
+                available = person.doed == null,
+                language = krrInfo?.spraak,
+                statusList = getStatusList(person, krrInfo),
+                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
+                utsendingskanal = utsendingskanal
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -269,15 +302,23 @@ class BehandlingMapper(
 
     fun getPartView(partId: PartId): BehandlingDetaljerView.PartView {
         return getPartView(
-            identificator = partId.value,
+            identifier = partId.value,
             isPerson = partId.isPerson()
         )
     }
 
-    private fun getPartView(identificator: String, isPerson: Boolean): BehandlingDetaljerView.PartView {
+    fun getPartViewWithUtsendingskanal(partId: PartId, behandling: Behandling): BehandlingDetaljerView.PartViewWithUtsendingskanal {
+        return getPartViewWithUtsendingskanal(
+            identifier = partId.value,
+            isPerson = partId.isPerson(),
+            behandling = behandling,
+        )
+    }
+
+    private fun getPartView(identifier: String, isPerson: Boolean): BehandlingDetaljerView.PartView {
         return if (isPerson) {
-            val person = pdlFacade.getPersonInfo(identificator)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identificator)
+            val person = pdlFacade.getPersonInfo(identifier)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identifier)
             BehandlingDetaljerView.PartView(
                 id = person.foedselsnr,
                 name = person.settSammenNavn(),
@@ -285,18 +326,66 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
+                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
             )
         } else {
-            val organisasjon = eregClient.hentOrganisasjon(identificator)
+            val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
             BehandlingDetaljerView.PartView(
-                id = identificator,
+                id = identifier,
                 name = organisasjon.navn.sammensattnavn,
                 type = BehandlingDetaljerView.IdType.ORGNR,
                 available = organisasjon.isActive(),
                 language = null,
                 statusList = getStatusList(organisasjon),
+                address = getAddress(organisasjon),
             )
         }
+    }
+
+    private fun getPartViewWithUtsendingskanal(identifier: String, isPerson: Boolean, behandling: Behandling): BehandlingDetaljerView.PartViewWithUtsendingskanal {
+        val utsendingskanal = dokDistKanalService.getDistribusjonskanal(
+            mottakerId = identifier,
+            brukerId = behandling.sakenGjelder.partId.value,
+            tema = behandling.ytelse.toTema()
+        )
+
+        return if (isPerson) {
+            val person = pdlFacade.getPersonInfo(identifier)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identifier)
+            BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                id = person.foedselsnr,
+                name = person.settSammenNavn(),
+                type = BehandlingDetaljerView.IdType.FNR,
+                available = person.doed == null,
+                language = krrInfo?.spraak,
+                statusList = getStatusList(person, krrInfo),
+                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
+                utsendingskanal = utsendingskanal
+            )
+        } else {
+            val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
+            BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                id = identifier,
+                name = organisasjon.navn.sammensattnavn,
+                type = BehandlingDetaljerView.IdType.ORGNR,
+                available = organisasjon.isActive(),
+                language = null,
+                statusList = getStatusList(organisasjon),
+                address = getAddress(organisasjon),
+                utsendingskanal = utsendingskanal,
+            )
+        }
+    }
+
+    fun getAddress(organisasjon: NoekkelInfoOmOrganisasjon): BehandlingDetaljerView.Address {
+        return BehandlingDetaljerView.Address(
+            adresselinje1 = organisasjon.adresse.adresselinje1,
+            adresselinje2 = organisasjon.adresse.adresselinje2,
+            adresselinje3 = organisasjon.adresse.adresselinje3,
+            landkode = organisasjon.adresse.landkode,
+            postnummer = organisasjon.adresse.postnummer,
+            poststed = organisasjon.adresse.poststed ?: kodeverkService.getPoststed(organisasjon.adresse.postnummer).poststed,
+        )
     }
 
     private fun SakenGjelder.harBeskyttelsesbehovFortrolig(): Boolean {
@@ -463,16 +552,26 @@ class BehandlingMapper(
         return statusList
     }
 
-    fun getStatusList(organisasjon: Organisasjon): List<BehandlingDetaljerView.PartStatus> {
-        return if (!organisasjon.isActive()) {
-            return listOf(
+    fun getStatusList(organisasjon: NoekkelInfoOmOrganisasjon): List<BehandlingDetaljerView.PartStatus> {
+        val statusList = mutableListOf<BehandlingDetaljerView.PartStatus>()
+
+        if (!organisasjon.isActive()) {
+            statusList.add(
                 BehandlingDetaljerView.PartStatus(
                     status = BehandlingDetaljerView.PartStatus.Status.DELETED,
-                    date = organisasjon.organisasjonDetaljer.opphoersdato,
+                    date = organisasjon.opphoersdato,
                 )
             )
-        } else {
-            emptyList()
         }
+
+        if (organisasjon.enhetstype == "DA") {
+            statusList.add(
+                BehandlingDetaljerView.PartStatus(
+                    status = BehandlingDetaljerView.PartStatus.Status.DELT_ANSVAR,
+                    date = null,
+                )
+            )
+        }
+        return statusList
     }
 }

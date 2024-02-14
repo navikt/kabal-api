@@ -11,9 +11,9 @@ data class BehandlingDetaljerView(
     val fraNAVEnhet: String?,
     val fraNAVEnhetNavn: String?,
     val mottattVedtaksinstans: LocalDate? = null,
-    val sakenGjelder: SakenGjelderView,
-    val klager: PartView,
-    val prosessfullmektig: PartView?,
+    val sakenGjelder: SakenGjelderViewWithUtsendingskanal,
+    val klager: PartViewWithUtsendingskanal,
+    val prosessfullmektig: PartViewWithUtsendingskanal?,
     val temaId: String,
     val ytelseId: String,
     val typeId: String,
@@ -87,6 +87,7 @@ data class BehandlingDetaljerView(
             VERGEMAAL,
             FULLMAKT,
             RESERVERT_I_KRR,
+            DELT_ANSVAR,
         }
     }
 
@@ -104,20 +105,64 @@ data class BehandlingDetaljerView(
 
     data class PartView(
         override val id: String,
-        override val name: String?,
+        override val name: String,
         override val type: IdType,
         override val available: Boolean,
         override val language: String?,
         override val statusList: List<PartStatus>,
+        val address: Address,
     ): PartBase, IdPart
+
+    data class PartViewWithUtsendingskanal(
+        override val id: String,
+        override val name: String,
+        override val type: IdType,
+        override val available: Boolean,
+        override val language: String?,
+        override val statusList: List<PartStatus>,
+        val address: Address,
+        val utsendingskanal: Utsendingskanal,
+    ): PartBase, IdPart
+
+    data class Address(
+        val adresselinje1: String,
+        val adresselinje2: String?,
+        val adresselinje3: String?,
+        val landkode: String,
+        val postnummer: String,
+        val poststed: String,
+    )
 
     data class SakenGjelderView(
         override val id: String,
-        override val name: String?,
+        override val name: String,
         override val type: IdType,
         override val available: Boolean,
         override val language: String?,
         override val statusList: List<PartStatus>,
         val sex: Sex,
+        val address: Address,
     ): PartBase, IdPart
+
+    data class SakenGjelderViewWithUtsendingskanal(
+        override val id: String,
+        override val name: String,
+        override val type: IdType,
+        override val available: Boolean,
+        override val language: String?,
+        override val statusList: List<PartStatus>,
+        val sex: Sex,
+        val address: Address,
+        val utsendingskanal: Utsendingskanal,
+    ): PartBase, IdPart
+
+    enum class Utsendingskanal(val navn: String) {
+        SENTRAL_PRINT("Sentral print"),
+        DPI("Digital Postkasse Innbygger"),
+        NAV_NO("Nav.no"),
+        LOKAL_PRINT("Lokal print"),
+        INGEN_DISTRIBUSJON("Ingen distribusjon"),
+        TRYGDERETTEN("Trygderetten"),
+        TPAM("Taushetsbelagt post i Altinn Meldingsboks")
+    }
 }
