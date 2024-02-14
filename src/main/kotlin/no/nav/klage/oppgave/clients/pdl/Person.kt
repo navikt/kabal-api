@@ -5,9 +5,9 @@ import java.time.LocalDate
 
 data class Person(
     val foedselsnr: String,
-    val fornavn: String?,
+    val fornavn: String,
     val mellomnavn: String?,
-    val etternavn: String?,
+    val etternavn: String,
     val sammensattNavn: String?,
     val beskyttelsesbehov: Beskyttelsesbehov?,
     val kjoenn: String?,

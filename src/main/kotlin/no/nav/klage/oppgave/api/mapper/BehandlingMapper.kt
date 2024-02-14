@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.api.mapper
 
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.*
-import no.nav.klage.oppgave.api.view.kabin.KabinPartView
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.ereg.NoekkelInfoOmOrganisasjon
@@ -275,15 +274,15 @@ class BehandlingMapper(
 
     fun getPartView(partId: PartId): BehandlingDetaljerView.PartView {
         return getPartView(
-            identificator = partId.value,
+            identifier = partId.value,
             isPerson = partId.isPerson()
         )
     }
 
-    private fun getPartView(identificator: String, isPerson: Boolean): BehandlingDetaljerView.PartView {
+    private fun getPartView(identifier: String, isPerson: Boolean): BehandlingDetaljerView.PartView {
         return if (isPerson) {
-            val person = pdlFacade.getPersonInfo(identificator)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identificator)
+            val person = pdlFacade.getPersonInfo(identifier)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identifier)
             BehandlingDetaljerView.PartView(
                 id = person.foedselsnr,
                 name = person.settSammenNavn(),
@@ -294,9 +293,9 @@ class BehandlingMapper(
                 address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
             )
         } else {
-            val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identificator)
+            val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
             BehandlingDetaljerView.PartView(
-                id = identificator,
+                id = identifier,
                 name = organisasjon.navn.sammensattnavn,
                 type = BehandlingDetaljerView.IdType.ORGNR,
                 available = organisasjon.isActive(),

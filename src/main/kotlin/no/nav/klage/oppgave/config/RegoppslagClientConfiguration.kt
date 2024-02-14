@@ -10,7 +10,7 @@ import reactor.netty.http.client.HttpClient
 @Configuration
 class RegoppslagClientConfiguration(private val webClientBuilder: WebClient.Builder) {
 
-    @Value("\${DOK_DIST_KANAL_URL}")
+    @Value("\${REGOPPSLAG_URL}")
     private lateinit var url: String
 
     @Value("\${spring.application.name}")

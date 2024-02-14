@@ -17,13 +17,13 @@ class DokumentUnderArbeidAvsenderMottakerInfo(
     @Embedded
     @AttributeOverrides(
         value = [
-            AttributeOverride(name = "adressetype", column = Column(name = "adress_adressetype")),
-            AttributeOverride(name = "adresselinje1", column = Column(name = "adress_adresselinje_1")),
-            AttributeOverride(name = "adresselinje2", column = Column(name = "adress_adresselinje_2")),
-            AttributeOverride(name = "adresselinje3", column = Column(name = "adress_adresselinje_3")),
-            AttributeOverride(name = "postnummer", column = Column(name = "adress_postnummer")),
-            AttributeOverride(name = "poststed", column = Column(name = "adress_poststed")),
-            AttributeOverride(name = "landkode", column = Column(name = "adress_landkode")),
+            AttributeOverride(name = "adressetype", column = Column(name = "address_adressetype")),
+            AttributeOverride(name = "adresselinje1", column = Column(name = "address_adresselinje_1")),
+            AttributeOverride(name = "adresselinje2", column = Column(name = "address_adresselinje_2")),
+            AttributeOverride(name = "adresselinje3", column = Column(name = "address_adresselinje_3")),
+            AttributeOverride(name = "postnummer", column = Column(name = "address_postnummer")),
+            AttributeOverride(name = "poststed", column = Column(name = "address_poststed")),
+            AttributeOverride(name = "landkode", column = Column(name = "address_landkode")),
         ]
     )
     val address: DokumentUnderArbeidAdresse?,

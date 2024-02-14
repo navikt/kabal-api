@@ -21,8 +21,8 @@ class DokDistKanalClient(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getDistribussjonskanal(input: Request): BestemDistribusjonskanalResponse {
-        logger.debug("Calling getMottakerOgAdresse")
+    fun getDistribusjonskanal(input: Request): BestemDistribusjonskanalResponse {
+        logger.debug("Calling getDistribusjonskanal")
         return dokDistKanalWebClient.post()
             .uri { it.path("/rest/bestemDistribusjonskanal").build() }
             .header(
@@ -32,18 +32,19 @@ class DokDistKanalClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getDistribussjonskanal.name, secureLogger)
+                logErrorResponse(response, ::getDistribusjonskanal.name, secureLogger)
             }
             .bodyToMono<BestemDistribusjonskanalResponse>()
-            .block() ?: throw RuntimeException("Null response from regoppslag")
+            .block() ?: throw RuntimeException("Null response from getDistribussjonskanal")
     }
+
     data class Request(
         val mottakerId: String,
         val brukerId: String,
         val tema: String,
     )
 
-    data class BestemDistribusjonskanalResponse (
+    data class BestemDistribusjonskanalResponse(
         val distribusjonskanal: DistribusjonKanalCode,
         val regel: String,
         val regelBegrunnelse: String

@@ -11,7 +11,7 @@ import reactor.netty.http.client.HttpClient
 @Configuration
 class DokDistKanalClientConfiguration(private val webClientBuilder: WebClient.Builder) {
 
-    @Value("\${REGOPPSLAG_URL}")
+    @Value("\${DOK_DIST_KANAL_URL}")
     private lateinit var url: String
 
     @Value("\${spring.application.name}")

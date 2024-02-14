@@ -105,7 +105,7 @@ data class BehandlingDetaljerView(
 
     data class PartView(
         override val id: String,
-        override val name: String?,
+        override val name: String,
         override val type: IdType,
         override val available: Boolean,
         override val language: String?,
@@ -124,7 +124,7 @@ data class BehandlingDetaljerView(
 
     data class SakenGjelderView(
         override val id: String,
-        override val name: String?,
+        override val name: String,
         override val type: IdType,
         override val available: Boolean,
         override val language: String?,

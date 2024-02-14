@@ -15,9 +15,12 @@ class KodeverkService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getPoststed(postnummer: String): String {
+    fun getPoststed(postnummer: String): Poststed {
         val postnummerKodeverk = kodeverkClient.getPoststeder()
-        return postnummerKodeverk.betydninger[postnummer]?.firstOrNull()?.beskrivelser?.get("NO")?.term ?: "Ukjent"
+        return Poststed(
+            poststed = postnummerKodeverk.betydninger[postnummer]?.firstOrNull()?.beskrivelser?.get("NO")?.term
+                ?: "Ukjent"
+        )
     }
 
     fun getLandkoder(): List<Landkode> {
@@ -33,5 +36,9 @@ class KodeverkService(
     data class Landkode(
         val land: String,
         val landkode: String,
+    )
+
+    data class Poststed(
+        val poststed: String,
     )
 }

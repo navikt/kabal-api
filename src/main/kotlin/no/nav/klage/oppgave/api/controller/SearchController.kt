@@ -57,7 +57,7 @@ class SearchController(
     @GetMapping("/searchpoststed/{postnummer}")
     fun searchPoststed(
         @PathVariable postnummer: String,
-    ): String {
+    ): KodeverkService.Poststed {
         logMethodDetails(
             ::searchPoststed.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),

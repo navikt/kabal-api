@@ -21,10 +21,10 @@ class HentPersonMapper {
         secureLogger.debug("pdl returned {}", pdlPerson)
         return Person(
             foedselsnr = fnr,
-            fornavn = pdlPerson.navn.firstOrNull()?.fornavn,
-            mellomnavn = pdlPerson.navn.firstOrNull()?.mellomnavn,
-            etternavn = pdlPerson.navn.firstOrNull()?.etternavn,
-            sammensattNavn = sammensattNavn(pdlPerson.navn.firstOrNull()),
+            fornavn = pdlPerson.navn.first().fornavn,
+            mellomnavn = pdlPerson.navn.first().mellomnavn,
+            etternavn = pdlPerson.navn.first().etternavn,
+            sammensattNavn = sammensattNavn(pdlPerson.navn.first()),
             beskyttelsesbehov = pdlPerson.adressebeskyttelse.firstOrNull()?.gradering?.mapToBeskyttelsesbehov(),
             kjoenn = pdlPerson.kjoenn.firstOrNull()?.kjoenn?.name,
             sivilstand = pdlPerson.sivilstand
