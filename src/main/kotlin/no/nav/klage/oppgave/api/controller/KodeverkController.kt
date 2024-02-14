@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
-@RequestMapping("kodeverk")
 class KodeverkController(
     private val kodeverkService: KodeverkService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService
