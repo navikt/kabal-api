@@ -1,13 +1,11 @@
 package no.nav.klage.oppgave.api.controller
 
-
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
-import no.nav.klage.oppgave.api.view.IdentifikatorInput
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
+import no.nav.klage.oppgave.domain.kodeverk.LandInfo
+import no.nav.klage.oppgave.domain.kodeverk.PostInfo
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.KodeverkService
-import no.nav.klage.oppgave.service.PartSearchService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -17,40 +15,34 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @Tag(name = "kabal-api")
 @ProtectedWithClaims(issuer = ISSUER_AAD)
-class SearchController(
-    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val partSearchService: PartSearchService,
+@RequestMapping("kodeverk")
+class KodeverkController(
     private val kodeverkService: KodeverkService,
+    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @PostMapping("/searchpart")
-    fun searchPart(
-        @RequestBody input: IdentifikatorInput,
-    ): BehandlingDetaljerView.PartView {
+    @GetMapping("/postinfo")
+    fun getPostInfo(): List<PostInfo> {
         logMethodDetails(
-            ::searchPart.name,
+            ::getPostInfo.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             logger
         )
-
-        return partSearchService.searchPart(input.identifikator)
+        return kodeverkService.getPostInfo()
     }
 
-    @PostMapping("/searchperson")
-    fun searchPerson(
-        @RequestBody input: IdentifikatorInput,
-    ): BehandlingDetaljerView.SakenGjelderView {
+    @GetMapping("/landinfo")
+    fun getLandInfo(): List<LandInfo> {
         logMethodDetails(
-            ::searchPerson.name,
+            ::getLandInfo.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             logger
         )
 
-        return partSearchService.searchPerson(input.identifikator)
+        return kodeverkService.getLandkoder()
     }
 }

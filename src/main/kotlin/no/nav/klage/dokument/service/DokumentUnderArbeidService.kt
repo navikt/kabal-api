@@ -867,18 +867,18 @@ class DokumentUnderArbeidService(
                 skipAccessControl = true
             )
 
-            if (mottaker.overrideAddress != null) {
+            if (mottaker.overriddenAddress != null) {
                 val landkoder = kodeverkService.getLandkoder()
-                if (landkoder.find { it.landkode == mottaker.overrideAddress.landkode } == null) {
-                    throw DokumentValidationException("Ugyldig landkode: ${mottaker.overrideAddress.landkode}")
+                if (landkoder.find { it.landkode == mottaker.overriddenAddress.landkode } == null) {
+                    throw DokumentValidationException("Ugyldig landkode: ${mottaker.overriddenAddress.landkode}")
                 }
 
-                if (mottaker.overrideAddress.landkode == "NO") {
-                    if (mottaker.overrideAddress.postnummer == null) {
+                if (mottaker.overriddenAddress.landkode == "NO") {
+                    if (mottaker.overriddenAddress.postnummer == null) {
                         throw DokumentValidationException("Postnummer required for Norwegian address.")
                     }
                 } else {
-                    if (mottaker.overrideAddress.adresselinje1 == null) {
+                    if (mottaker.overriddenAddress.adresselinje1 == null) {
                         throw DokumentValidationException("Adresselinje1 required for foreign address.")
                     }
                 }
@@ -918,7 +918,7 @@ class DokumentUnderArbeidService(
                     identifikator = it.id,
                     localPrint = markLocalPrint,
                     forceCentralPrint = forceCentralPrint,
-                    address = getDokumentUnderArbeidAdresse(it.overrideAddress),
+                    address = getDokumentUnderArbeidAdresse(it.overriddenAddress),
                 )
             )
         }
@@ -963,7 +963,7 @@ class DokumentUnderArbeidService(
         return if (overrideAddress != null) {
             val poststed = if (overrideAddress.landkode == "NO") {
                 if (overrideAddress.postnummer != null) {
-                    kodeverkService.getPoststed(overrideAddress.postnummer).poststed
+                    kodeverkService.getPoststed(overrideAddress.postnummer)
                 } else null
             } else null
 

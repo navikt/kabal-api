@@ -379,7 +379,7 @@ class BehandlingMapper(
 
     fun getAddress(organisasjon: NoekkelInfoOmOrganisasjon): BehandlingDetaljerView.Address {
         val poststed = if (organisasjon.adresse.landkode == "NO") {
-            kodeverkService.getPoststed(organisasjon.adresse.postnummer).poststed
+            kodeverkService.getPoststed(organisasjon.adresse.postnummer)
         } else null
 
         return BehandlingDetaljerView.Address(

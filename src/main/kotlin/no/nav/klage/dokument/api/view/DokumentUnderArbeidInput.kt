@@ -68,7 +68,7 @@ data class MottakerInput(
 data class Mottaker(
     val id: String,
     val handling: HandlingEnum,
-    val overrideAddress: AddressInput?,
+    val overriddenAddress: AddressInput?,
 )
 
 data class AddressInput(

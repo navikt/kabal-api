@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.clients.kodeverk.KodeverkClient
+import no.nav.klage.oppgave.domain.kodeverk.LandInfo
+import no.nav.klage.oppgave.domain.kodeverk.PostInfo
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -15,28 +17,33 @@ class KodeverkService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getPoststed(postnummer: String): Poststed {
+    fun getPoststed(postnummer: String): String {
         val postnummerKodeverk = kodeverkClient.getPoststeder()
-        return Poststed(
-            poststed = postnummerKodeverk.betydninger[postnummer]?.firstOrNull()?.beskrivelser?.get("NO")?.term
-                ?: "Ukjent"
-        )
+        return postnummerKodeverk.betydninger[postnummer]?.firstOrNull()?.beskrivelser?.get("NO")?.term
+            ?: "Ukjent"
+
     }
 
-    fun getLandkoder(): List<Landkode> {
+    fun getPostInfo(): List<PostInfo> {
+        val postnummerKodeverk = kodeverkClient.getPoststeder()
+        return postnummerKodeverk.betydninger.map {
+            PostInfo(
+                poststed = it.value.firstOrNull()?.beskrivelser?.get("NO")?.term ?: "Ukjent",
+                postnummer = it.key,
+            )
+        }
+    }
+
+    fun getLandkoder(): List<LandInfo> {
         val landkoderKodeverk = kodeverkClient.getLandkoder()
         return landkoderKodeverk.betydninger.map {
-            Landkode(
+            LandInfo(
                 land = it.value.firstOrNull()?.beskrivelser?.get("NO")?.term ?: "Ukjent",
                 landkode = it.key,
             )
         }
     }
 
-    data class Landkode(
-        val land: String,
-        val landkode: String,
-    )
 
     data class Poststed(
         val poststed: String,
