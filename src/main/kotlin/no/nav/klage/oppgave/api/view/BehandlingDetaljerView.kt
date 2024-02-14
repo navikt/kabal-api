@@ -129,7 +129,7 @@ data class BehandlingDetaljerView(
         val adresselinje2: String?,
         val adresselinje3: String?,
         val landkode: String,
-        val postnummer: String,
+        val postnummer: String?,
         val poststed: String,
     )
 
