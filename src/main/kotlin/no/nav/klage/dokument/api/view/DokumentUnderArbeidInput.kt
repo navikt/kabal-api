@@ -67,5 +67,14 @@ data class MottakerInput(
 
 data class Mottaker(
     val id: String,
-    val localPrint: Boolean,
+    val handling: HandlingEnum,
+    val overrideAddress: AddressInput?,
+)
+
+data class AddressInput(
+    val adresselinje1: String,
+    val adresselinje2: String?,
+    val adresselinje3: String?,
+    val landkode: String,
+    val postnummer: String,
 )

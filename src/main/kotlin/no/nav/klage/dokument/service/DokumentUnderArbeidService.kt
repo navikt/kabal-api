@@ -379,7 +379,8 @@ class DokumentUnderArbeidService(
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val parentDocument =
-            dokumentUnderArbeidRepository.findById(journalfoerteDokumenterInput.parentId).get() as DokumentUnderArbeidAsHoveddokument
+            dokumentUnderArbeidRepository.findById(journalfoerteDokumenterInput.parentId)
+                .get() as DokumentUnderArbeidAsHoveddokument
 
         if (parentDocument.isInngaaende()) {
             throw DokumentValidationException("Kan ikke sette journalførte dokumenter som vedlegg til ${parentDocument.dokumentType.navn}.")
@@ -860,11 +861,18 @@ class DokumentUnderArbeidService(
     ): DokumentUnderArbeidAsHoveddokument {
 
         //Validate parts
-        mottakerInput.mottakerList.forEach {
+        mottakerInput.mottakerList.forEach { mottaker ->
             partSearchService.searchPart(
-                identifikator = it.id,
+                identifikator = mottaker.id,
                 skipAccessControl = true
             )
+
+            if (mottaker.overrideAddress != null) {
+                val landkoder = kodeverkService.getLandkoder()
+                if (landkoder.find { it.landkode == mottaker.overrideAddress.landkode } == null) {
+                    throw DokumentValidationException("Ugyldig landkode: ${mottaker.overrideAddress.landkode}")
+                }
+            }
         }
 
         val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
@@ -890,12 +898,17 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
 
         mottakerInput.mottakerList.forEach {
+            val (markLocalPrint, forceCentralPrint) = when(it.handling) {
+                HandlingEnum.AUTO -> false to false
+                HandlingEnum.LOCAL_PRINT -> true to false
+                HandlingEnum.CENTRAL_PRINT -> false to true
+            }
             dokumentUnderArbeid.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
                     identifikator = it.id,
-                    localPrint = it.localPrint,
-                    forceCentralPrint = false,
-                    address = null,
+                    localPrint = markLocalPrint,
+                    forceCentralPrint = forceCentralPrint,
+                    address = getDokumentUnderArbeidAdresse(it.overrideAddress),
                 )
             )
         }
@@ -934,6 +947,20 @@ class DokumentUnderArbeidService(
         )
 
         return dokumentUnderArbeid
+    }
+
+    private fun getDokumentUnderArbeidAdresse(overrideAddress: AddressInput?): DokumentUnderArbeidAdresse? {
+        return if (overrideAddress != null) {
+            DokumentUnderArbeidAdresse(
+                adresselinje1 = overrideAddress.adresselinje1,
+                adresselinje2 = overrideAddress.adresselinje2,
+                adresselinje3 = overrideAddress.adresselinje3,
+                postnummer = overrideAddress.postnummer,
+                poststed = kodeverkService.getPoststed(overrideAddress.postnummer).poststed,
+                landkode = overrideAddress.landkode
+            )
+        } else null
+
     }
 
     private fun DokumentUnderArbeid.isVedlegg(): Boolean {

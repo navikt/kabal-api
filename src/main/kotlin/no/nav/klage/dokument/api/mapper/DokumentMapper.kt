@@ -177,6 +177,8 @@ class DokumentMapper(
                             part = behandlingMapper.getPartView(getPartIdFromIdentifikator(it.identifikator)),
                             overriddenAddress = getBehandlingDetaljerViewAddress(it.address),
                             handling = getHandlingEnum(markLocalPrint = it.localPrint, forceCentralPrint = it.forceCentralPrint),
+
+                            //For compability
                             id = partView.id,
                             name = partView.name,
                             type = partView.type,
