@@ -17,7 +17,7 @@ class RegoppslagClientConfiguration(private val webClientBuilder: WebClient.Buil
     private lateinit var applicationName: String
 
     @Bean
-    fun dokDistKanalWebClient(): WebClient =
+    fun regoppslagWebClient(): WebClient =
         webClientBuilder
             .baseUrl(url)
             .defaultHeader("Nav-Consumer-Id", applicationName)

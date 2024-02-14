@@ -18,7 +18,7 @@ class DokDistKanalClientConfiguration(private val webClientBuilder: WebClient.Bu
     private lateinit var applicationName: String
 
     @Bean
-    fun regoppslagWebClient(): WebClient =
+    fun dokDistKanalWebClient(): WebClient =
         webClientBuilder
             .baseUrl(url)
             .defaultHeader("Nav-Consumer-Id", applicationName)
