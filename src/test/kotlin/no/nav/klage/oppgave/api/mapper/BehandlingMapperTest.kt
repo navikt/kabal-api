@@ -10,6 +10,7 @@ import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.service.DokDistKanalService
 import no.nav.klage.oppgave.service.KodeverkService
 import no.nav.klage.oppgave.service.RegoppslagService
 import no.nav.klage.oppgave.service.SaksbehandlerService
@@ -51,6 +52,9 @@ class BehandlingMapperTest {
 
     @MockkBean
     lateinit var regoppslagService: RegoppslagService
+
+    @MockkBean
+    lateinit var dokDistKanalService: DokDistKanalService
 
     @Autowired
     lateinit var behandlingMapper: BehandlingMapper
