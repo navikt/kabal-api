@@ -72,9 +72,9 @@ data class Mottaker(
 )
 
 data class AddressInput(
-    val adresselinje1: String,
+    val adresselinje1: String?,
     val adresselinje2: String?,
     val adresselinje3: String?,
     val landkode: String,
-    val postnummer: String,
+    val postnummer: String?,
 )

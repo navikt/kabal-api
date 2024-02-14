@@ -36,7 +36,7 @@ data class AvsenderMottakerInput(
 ) {
     data class Address(
         val adressetype: Adressetype,
-        val adresselinje1: String,
+        val adresselinje1: String?,
         val adresselinje2: String?,
         val adresselinje3: String?,
         val postnummer: String?,

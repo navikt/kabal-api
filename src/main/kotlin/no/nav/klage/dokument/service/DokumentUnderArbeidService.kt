@@ -872,6 +872,16 @@ class DokumentUnderArbeidService(
                 if (landkoder.find { it.landkode == mottaker.overrideAddress.landkode } == null) {
                     throw DokumentValidationException("Ugyldig landkode: ${mottaker.overrideAddress.landkode}")
                 }
+
+                if (mottaker.overrideAddress.landkode == "NO") {
+                    if (mottaker.overrideAddress.postnummer == null) {
+                        throw DokumentValidationException("Postnummer required for Norwegian address.")
+                    }
+                } else {
+                    if (mottaker.overrideAddress.adresselinje1 == null) {
+                        throw DokumentValidationException("Adresselinje1 required for foreign address.")
+                    }
+                }
             }
         }
 
@@ -956,7 +966,7 @@ class DokumentUnderArbeidService(
                 adresselinje2 = overrideAddress.adresselinje2,
                 adresselinje3 = overrideAddress.adresselinje3,
                 postnummer = overrideAddress.postnummer,
-                poststed = kodeverkService.getPoststed(overrideAddress.postnummer).poststed,
+                poststed = overrideAddress.postnummer?.let { kodeverkService.getPoststed(it).poststed },
                 landkode = overrideAddress.landkode
             )
         } else null
