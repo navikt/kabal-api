@@ -1641,7 +1641,11 @@ class BehandlingService(
                 RegistreringshjemlerEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                        navn = if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
+                            utfoerendeSaksbehandlerIdent
+                        } else saksbehandlerService.getNameForIdentDefaultIfNull(
+                            utfoerendeSaksbehandlerIdent
+                        ),
                     ),
                     timestamp = behandling.modified,
                     hjemmelIdSet = behandling.registreringshjemler.map { it.id }.toSet(),
