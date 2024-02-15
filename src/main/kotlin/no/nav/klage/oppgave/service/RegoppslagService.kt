@@ -21,12 +21,12 @@ class RegoppslagService(
         )
 
         return BehandlingDetaljerView.Address(
-            adresselinje1 = response.adresse.adresselinje1,
+            adresselinje1 = response.adresse.adresselinje1 ?: "Mangler",
             adresselinje2 = response.adresse.adresselinje2,
             adresselinje3 = response.adresse.adresselinje3,
-            landkode = response.adresse.landkode,
+            landkode = response.adresse.landkode ?: "Mangler",
             postnummer = response.adresse.postnummer,
-            poststed = response.adresse.poststed,
+            poststed = response.adresse.poststed ?: "Mangler",
         )
     }
 }
