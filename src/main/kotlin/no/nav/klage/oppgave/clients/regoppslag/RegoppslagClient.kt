@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
 
 @Component
 class RegoppslagClient(
@@ -36,6 +37,7 @@ class RegoppslagClient(
                 logErrorResponse(response, ::getMottakerOgAdresse.name, secureLogger)
             }
             .bodyToMono<HentMottakerOgAdresseResponse>()
+            .onErrorResume { Mono.empty() }
             .block()
     }
     data class Request(
