@@ -106,13 +106,12 @@ class SmartEditorController(
                 dokumentId = documentId,
                 readOnly = true
             )
-        val document = kabalSmartEditorApiGateway.getSmartDocumentResponse(smartEditorId)
+        val smartEditorDocument = kabalSmartEditorApiGateway.getSmartDocumentResponse(smartEditorId)
 
-        return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId),
-            journalpost = null,
-            smartEditorDocument = document,
-            behandlingId = behandlingId,
+        return dokumentUnderArbeidService.getMappedDokumentUnderArbeid(
+            dokumentId = documentId,
+            smartEditorDocument = smartEditorDocument,
+            behandlingId = behandlingId
         )
     }
 

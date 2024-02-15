@@ -18,7 +18,6 @@ import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.clients.saf.graphql.*
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Saksdokument
-import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
@@ -30,14 +29,12 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
-import java.util.*
 
 @Component
 class DokumentMapper(
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingMapper: BehandlingMapper,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
-    private val behandlingService: BehandlingService,
 ) {
 
     companion object {
@@ -129,7 +126,7 @@ class DokumentMapper(
         dokumentUnderArbeid: DokumentUnderArbeid,
         journalpost: Journalpost?,
         smartEditorDocument: SmartDocumentResponse?,
-        behandlingId: UUID,
+        behandling: Behandling,
     ): DokumentView {
         val unproxiedDUA = Hibernate.unproxy(dokumentUnderArbeid) as DokumentUnderArbeid
 
@@ -175,8 +172,6 @@ class DokumentMapper(
             } else if (unproxiedDUA.isUtgaaende()) {
                 val mottakerInfoSet = unproxiedDUA.avsenderMottakerInfoSet
                 if (mottakerInfoSet.isNotEmpty()) {
-                    val behandling =
-                        behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = behandlingId)
 
                     mottakerList = mottakerInfoSet.map {
                         val partView = behandlingMapper.getPartView(getPartIdFromIdentifikator(it.identifikator))

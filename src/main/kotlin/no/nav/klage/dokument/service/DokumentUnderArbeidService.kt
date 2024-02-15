@@ -8,6 +8,7 @@ import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.KabalSmartEditorApiClient
+import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
@@ -166,7 +167,7 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid = document,
             journalpost = null,
             smartEditorDocument = null,
-            behandlingId = behandlingId,
+            behandling = behandling,
         )
 
         publishInternalEvent(
@@ -350,7 +351,7 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid = document,
             journalpost = null,
             smartEditorDocument = smartEditorDocument,
-            behandlingId = behandlingId,
+            behandling = behandling,
         )
 
         publishInternalEvent(
@@ -446,7 +447,7 @@ class DokumentUnderArbeidService(
                     dokumentUnderArbeid = journalfoertVedlegg,
                     journalpost = journalpostList.find { it.journalpostId == journalfoertVedlegg.journalpostId }!!,
                     smartEditorDocument = null,
-                    behandlingId = behandling.id,
+                    behandling = behandling,
                 )
             }
     }
@@ -576,6 +577,22 @@ class DokumentUnderArbeidService(
     }
 
     fun getDokumentUnderArbeid(dokumentId: UUID) = dokumentUnderArbeidRepository.findById(dokumentId).get()
+
+    fun getMappedDokumentUnderArbeid(
+        dokumentId: UUID,
+        smartEditorDocument: SmartDocumentResponse?,
+        behandlingId: UUID
+    ): DokumentView {
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
+            behandlingId = behandlingId
+        )
+        return dokumentMapper.mapToDokumentView(
+            dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId),
+            journalpost = null,
+            smartEditorDocument = smartEditorDocument,
+            behandling = behandling,
+        )
+    }
 
     fun updateDokumentType(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
@@ -1713,7 +1730,7 @@ class DokumentUnderArbeidService(
                     dokumentUnderArbeid = it,
                     journalpost = null,
                     smartEditorDocument = smartEditorDocument,
-                    behandlingId = behandling.id
+                    behandling = behandling
                 )
             }
             .plus(
