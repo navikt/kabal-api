@@ -49,7 +49,7 @@ data class DokumentView(
         val available: Boolean,
         val language: String?,
         val statusList: List<BehandlingDetaljerView.PartStatus>,
-        val address: BehandlingDetaljerView.Address,
+        val address: BehandlingDetaljerView.Address?,
     )
 
     data class Creator(
