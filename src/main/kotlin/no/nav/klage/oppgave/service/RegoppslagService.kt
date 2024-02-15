@@ -12,7 +12,7 @@ class RegoppslagService(
 ) {
 
     @Cacheable(CacheWithJCacheConfiguration.PERSON_ADDRESS)
-    fun getAddressForPerson(fnr: String): BehandlingDetaljerView.Address {
+    fun getAddressForPerson(fnr: String): BehandlingDetaljerView.Address? {
         val response = regoppslagClient.getMottakerOgAdresse(
             input = RegoppslagClient.Request(
                 identifikator = fnr,
@@ -20,13 +20,15 @@ class RegoppslagService(
             )
         )
 
-        return BehandlingDetaljerView.Address(
-            adresselinje1 = response.adresse.adresselinje1 ?: "Mangler",
-            adresselinje2 = response.adresse.adresselinje2,
-            adresselinje3 = response.adresse.adresselinje3,
-            landkode = response.adresse.landkode ?: "Mangler",
-            postnummer = response.adresse.postnummer,
-            poststed = response.adresse.poststed ?: "Mangler",
-        )
+        return if (response != null) {
+            BehandlingDetaljerView.Address(
+                adresselinje1 = response.adresse.adresselinje1 ?: "Mangler",
+                adresselinje2 = response.adresse.adresselinje2,
+                adresselinje3 = response.adresse.adresselinje3,
+                landkode = response.adresse.landkode ?: "Mangler",
+                postnummer = response.adresse.postnummer,
+                poststed = response.adresse.poststed ?: "Mangler",
+            )
+        } else null
     }
 }

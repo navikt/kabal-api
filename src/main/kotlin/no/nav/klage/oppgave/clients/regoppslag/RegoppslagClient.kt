@@ -22,7 +22,7 @@ class RegoppslagClient(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getMottakerOgAdresse(input: Request): HentMottakerOgAdresseResponse {
+    fun getMottakerOgAdresse(input: Request): HentMottakerOgAdresseResponse? {
         logger.debug("Calling getMottakerOgAdresse")
         return regoppslagWebClient.post()
             .uri { it.path("/rest/hentMottakerOgAdresse").build() }
@@ -36,7 +36,7 @@ class RegoppslagClient(
                 logErrorResponse(response, ::getMottakerOgAdresse.name, secureLogger)
             }
             .bodyToMono<HentMottakerOgAdresseResponse>()
-            .block() ?: throw RuntimeException("Null response from regoppslag")
+            .block()
     }
     data class Request(
         val identifikator: String,

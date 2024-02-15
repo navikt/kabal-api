@@ -110,7 +110,7 @@ data class BehandlingDetaljerView(
         override val available: Boolean,
         override val language: String?,
         override val statusList: List<PartStatus>,
-        val address: Address,
+        val address: Address?,
     ): PartBase, IdPart
 
     data class PartViewWithUtsendingskanal(
@@ -120,7 +120,7 @@ data class BehandlingDetaljerView(
         override val available: Boolean,
         override val language: String?,
         override val statusList: List<PartStatus>,
-        val address: Address,
+        val address: Address?,
         val utsendingskanal: Utsendingskanal,
     ): PartBase, IdPart
 
@@ -141,7 +141,7 @@ data class BehandlingDetaljerView(
         override val language: String?,
         override val statusList: List<PartStatus>,
         val sex: Sex,
-        val address: Address,
+        val address: Address?,
     ): PartBase, IdPart
 
     data class SakenGjelderViewWithUtsendingskanal(
@@ -152,7 +152,7 @@ data class BehandlingDetaljerView(
         override val language: String?,
         override val statusList: List<PartStatus>,
         val sex: Sex,
-        val address: Address,
+        val address: Address?,
         val utsendingskanal: Utsendingskanal,
     ): PartBase, IdPart
 
