@@ -3,13 +3,17 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.clients.dokdistkanal.DokDistKanalClient
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 @Service
 class DokDistKanalService(
     private val dokDistKanalClient: DokDistKanalClient,
 ) {
-    fun getDistribusjonskanal(
+
+    @Cacheable(CacheWithJCacheConfiguration.DOK_DIST_KANAL)
+    fun getUtsendingskanal(
         mottakerId: String,
         brukerId: String,
         tema: Tema
@@ -26,7 +30,7 @@ class DokDistKanalService(
     }
 
     private fun DokDistKanalClient.BestemDistribusjonskanalResponse.DistribusjonKanalCode.toUtsendingskanal(): BehandlingDetaljerView.Utsendingskanal {
-        return when(this) {
+        return when (this) {
             DokDistKanalClient.BestemDistribusjonskanalResponse.DistribusjonKanalCode.PRINT -> BehandlingDetaljerView.Utsendingskanal.SENTRAL_PRINT
             DokDistKanalClient.BestemDistribusjonskanalResponse.DistribusjonKanalCode.SDP -> BehandlingDetaljerView.Utsendingskanal.DPI
             DokDistKanalClient.BestemDistribusjonskanalResponse.DistribusjonKanalCode.DITT_NAV -> BehandlingDetaljerView.Utsendingskanal.NAV_NO

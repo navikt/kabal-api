@@ -2,8 +2,10 @@ package no.nav.klage.oppgave.api.controller
 
 
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.IdentifikatorInput
+import no.nav.klage.oppgave.api.view.SearchPartWithUtsendingskanalInput
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.KodeverkService
@@ -11,7 +13,9 @@ import no.nav.klage.oppgave.service.PartSearchService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
@@ -41,6 +45,24 @@ class SearchController(
         return partSearchService.searchPart(input.identifikator)
     }
 
+    @PostMapping("/searchpartwithutsendingskanal")
+    fun searchPartWithUtsendingskanal(
+        @RequestBody input: SearchPartWithUtsendingskanalInput,
+    ): BehandlingDetaljerView.PartViewWithUtsendingskanal {
+        logMethodDetails(
+            ::searchPartWithUtsendingskanal.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        return partSearchService.searchPartWithUtsendingskanal(
+            identifikator = input.identifikator,
+            skipAccessControl = false,
+            sakenGjelderId = input.sakenGjelderId,
+            tema = Ytelse.of(input.ytelseId).toTema()
+        )
+    }
+
     @PostMapping("/searchperson")
     fun searchPerson(
         @RequestBody input: IdentifikatorInput,
@@ -52,29 +74,5 @@ class SearchController(
         )
 
         return partSearchService.searchPerson(input.identifikator)
-    }
-
-    @GetMapping("/searchpoststed/{postnummer}")
-    fun searchPoststed(
-        @PathVariable postnummer: String,
-    ): KodeverkService.Poststed {
-        logMethodDetails(
-            ::searchPoststed.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
-        )
-
-        return kodeverkService.getPoststed(postnummer)
-    }
-
-    @GetMapping("/landkoder")
-    fun getLandkoder(): List<KodeverkService.Landkode> {
-        logMethodDetails(
-            ::getLandkoder.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
-        )
-
-        return kodeverkService.getLandkoder()
     }
 }

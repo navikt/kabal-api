@@ -166,6 +166,7 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid = document,
             journalpost = null,
             smartEditorDocument = null,
+            behandlingId = behandlingId,
         )
 
         publishInternalEvent(
@@ -349,6 +350,7 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid = document,
             journalpost = null,
             smartEditorDocument = smartEditorDocument,
+            behandlingId = behandlingId,
         )
 
         publishInternalEvent(
@@ -379,7 +381,8 @@ class DokumentUnderArbeidService(
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val parentDocument =
-            dokumentUnderArbeidRepository.findById(journalfoerteDokumenterInput.parentId).get() as DokumentUnderArbeidAsHoveddokument
+            dokumentUnderArbeidRepository.findById(journalfoerteDokumenterInput.parentId)
+                .get() as DokumentUnderArbeidAsHoveddokument
 
         if (parentDocument.isInngaaende()) {
             throw DokumentValidationException("Kan ikke sette journalførte dokumenter som vedlegg til ${parentDocument.dokumentType.navn}.")
@@ -443,6 +446,7 @@ class DokumentUnderArbeidService(
                     dokumentUnderArbeid = journalfoertVedlegg,
                     journalpost = journalpostList.find { it.journalpostId == journalfoertVedlegg.journalpostId }!!,
                     smartEditorDocument = null,
+                    behandlingId = behandling.id,
                 )
             }
     }
@@ -860,11 +864,28 @@ class DokumentUnderArbeidService(
     ): DokumentUnderArbeidAsHoveddokument {
 
         //Validate parts
-        mottakerInput.mottakerList.forEach {
+        mottakerInput.mottakerList.forEach { mottaker ->
             partSearchService.searchPart(
-                identifikator = it.id,
+                identifikator = mottaker.id,
                 skipAccessControl = true
             )
+
+            if (mottaker.overriddenAddress != null) {
+                val landkoder = kodeverkService.getLandkoder()
+                if (landkoder.find { it.landkode == mottaker.overriddenAddress.landkode } == null) {
+                    throw DokumentValidationException("Ugyldig landkode: ${mottaker.overriddenAddress.landkode}")
+                }
+
+                if (mottaker.overriddenAddress.landkode == "NO") {
+                    if (mottaker.overriddenAddress.postnummer == null) {
+                        throw DokumentValidationException("Postnummer required for Norwegian address.")
+                    }
+                } else {
+                    if (mottaker.overriddenAddress.adresselinje1 == null) {
+                        throw DokumentValidationException("Adresselinje1 required for foreign address.")
+                    }
+                }
+            }
         }
 
         val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
@@ -890,12 +911,17 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
 
         mottakerInput.mottakerList.forEach {
+            val (markLocalPrint, forceCentralPrint) = when(it.handling) {
+                HandlingEnum.AUTO -> false to false
+                HandlingEnum.LOCAL_PRINT -> true to false
+                HandlingEnum.CENTRAL_PRINT -> false to true
+            }
             dokumentUnderArbeid.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
                     identifikator = it.id,
-                    localPrint = it.localPrint,
-                    forceCentralPrint = false,
-                    address = null,
+                    localPrint = markLocalPrint,
+                    forceCentralPrint = forceCentralPrint,
+                    address = getDokumentUnderArbeidAdresse(it.overriddenAddress),
                 )
             )
         }
@@ -934,6 +960,25 @@ class DokumentUnderArbeidService(
         )
 
         return dokumentUnderArbeid
+    }
+
+    private fun getDokumentUnderArbeidAdresse(overrideAddress: AddressInput?): DokumentUnderArbeidAdresse? {
+        return if (overrideAddress != null) {
+            val poststed = if (overrideAddress.landkode == "NO") {
+                if (overrideAddress.postnummer != null) {
+                    kodeverkService.getPoststed(overrideAddress.postnummer)
+                } else null
+            } else null
+
+            DokumentUnderArbeidAdresse(
+                adresselinje1 = overrideAddress.adresselinje1,
+                adresselinje2 = overrideAddress.adresselinje2,
+                adresselinje3 = overrideAddress.adresselinje3,
+                postnummer = overrideAddress.postnummer,
+                poststed = poststed,
+                landkode = overrideAddress.landkode
+            )
+        } else null
     }
 
     private fun DokumentUnderArbeid.isVedlegg(): Boolean {
@@ -1667,7 +1712,8 @@ class DokumentUnderArbeidService(
                 dokumentMapper.mapToDokumentView(
                     dokumentUnderArbeid = it,
                     journalpost = null,
-                    smartEditorDocument = smartEditorDocument
+                    smartEditorDocument = smartEditorDocument,
+                    behandlingId = behandling.id
                 )
             }
             .plus(

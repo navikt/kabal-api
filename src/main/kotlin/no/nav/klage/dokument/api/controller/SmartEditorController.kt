@@ -97,7 +97,10 @@ class SmartEditorController(
         description = "Get document"
     )
     @GetMapping("/{dokumentId}")
-    fun getDocument(@PathVariable("dokumentId") documentId: UUID): DokumentView {
+    fun getDocument(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") documentId: UUID
+    ): DokumentView {
         val smartEditorId =
             dokumentUnderArbeidService.getSmartEditorId(
                 dokumentId = documentId,
@@ -109,6 +112,7 @@ class SmartEditorController(
             dokumentUnderArbeid = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId),
             journalpost = null,
             smartEditorDocument = document,
+            behandlingId = behandlingId,
         )
     }
 
