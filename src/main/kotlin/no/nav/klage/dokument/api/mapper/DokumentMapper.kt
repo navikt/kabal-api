@@ -235,7 +235,7 @@ class DokumentMapper(
                 adresselinje3 = address.adresselinje3,
                 landkode = address.landkode,
                 postnummer = address.postnummer,
-                poststed = address.poststed,
+                poststed = address.poststed ?: "Mangler",
             )
         } else null
 

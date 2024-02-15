@@ -388,7 +388,7 @@ class BehandlingMapper(
             adresselinje3 = organisasjon.adresse.adresselinje3,
             landkode = organisasjon.adresse.landkode,
             postnummer = organisasjon.adresse.postnummer,
-            poststed = poststed,
+            poststed = poststed ?: "Mangler",
         )
     }
 
