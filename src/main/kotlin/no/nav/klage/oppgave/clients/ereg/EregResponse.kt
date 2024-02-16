@@ -9,7 +9,7 @@ data class NoekkelInfoOmOrganisasjon(
     val organisasjonsnummer: String,
     val enhetstype: String,
     val opphoersdato: LocalDate?,
-    val adresse: Adresse,
+    val adresse: Adresse?,
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Navn(
@@ -18,11 +18,11 @@ data class NoekkelInfoOmOrganisasjon(
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     data class Adresse(
-        val adresselinje1: String,
+        val adresselinje1: String?,
         val adresselinje2: String?,
         val adresselinje3: String?,
         val landkode: String,
-        val postnummer: String,
+        val postnummer: String?,
         val poststed: String?,
     )
 

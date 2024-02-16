@@ -377,14 +377,21 @@ class BehandlingMapper(
         }
     }
 
-    fun getAddress(organisasjon: NoekkelInfoOmOrganisasjon): BehandlingDetaljerView.Address {
+    fun getAddress(organisasjon: NoekkelInfoOmOrganisasjon): BehandlingDetaljerView.Address? {
+        if (organisasjon.adresse == null) return null
+
+        val poststed = organisasjon.adresse.poststed
+            ?: if (organisasjon.adresse.postnummer != null) {
+                kodeverkService.getPoststed(organisasjon.adresse.postnummer).poststed
+            } else null
+
         return BehandlingDetaljerView.Address(
             adresselinje1 = organisasjon.adresse.adresselinje1,
             adresselinje2 = organisasjon.adresse.adresselinje2,
             adresselinje3 = organisasjon.adresse.adresselinje3,
             landkode = organisasjon.adresse.landkode,
             postnummer = organisasjon.adresse.postnummer,
-            poststed = organisasjon.adresse.poststed ?: kodeverkService.getPoststed(organisasjon.adresse.postnummer).poststed,
+            poststed = poststed,
         )
     }
 
