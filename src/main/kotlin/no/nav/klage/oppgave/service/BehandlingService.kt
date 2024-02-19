@@ -988,9 +988,11 @@ class BehandlingService(
         val partView = if (behandling.klager.prosessfullmektig == null) {
             null
         } else {
-            partSearchService.searchPart(
+            partSearchService.searchPartWithUtsendingskanal(
                 identifikator = behandling.klager.prosessfullmektig?.partId?.value!!,
-                skipAccessControl = true
+                skipAccessControl = true,
+                sakenGjelderId = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema(),
             )
         }
 
@@ -1008,6 +1010,10 @@ class BehandlingService(
                             type = partView.type,
                             name = partView.name,
                             statusList = partView.statusList,
+                            available = partView.available,
+                            address = partView.address,
+                            language = partView.language,
+                            utsendingskanal = partView.utsendingskanal
                         )
                     },
                 )
@@ -1036,7 +1042,12 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         val partView =
-            partSearchService.searchPart(identifikator = behandling.klager.partId.value, skipAccessControl = true)
+            partSearchService.searchPartWithUtsendingskanal(
+                identifikator = behandling.klager.partId.value,
+                skipAccessControl = true,
+                sakenGjelderId = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema(),
+            )
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -1051,6 +1062,10 @@ class BehandlingService(
                         type = partView.type,
                         name = partView.name,
                         statusList = partView.statusList,
+                        available = partView.available,
+                        language = partView.language,
+                        address = partView.address,
+                        utsendingskanal = partView.utsendingskanal,
                     ),
                 )
             ),
