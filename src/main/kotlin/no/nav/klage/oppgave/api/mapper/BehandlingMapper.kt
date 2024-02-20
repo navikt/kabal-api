@@ -281,7 +281,8 @@ class BehandlingMapper(
             val utsendingskanal = dokDistKanalService.getUtsendingskanal(
                 mottakerId = sakenGjelder.partId.value,
                 brukerId = sakenGjelder.partId.value,
-                tema = behandling.ytelse.toTema()
+                tema = behandling.ytelse.toTema(),
+                isOrganisasjon = false,
             )
             return BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal(
                 id = person.foedselsnr,
@@ -346,7 +347,8 @@ class BehandlingMapper(
         val utsendingskanal = dokDistKanalService.getUtsendingskanal(
             mottakerId = identifier,
             brukerId = behandling.sakenGjelder.partId.value,
-            tema = behandling.ytelse.toTema()
+            tema = behandling.ytelse.toTema(),
+            isOrganisasjon = !isPerson
         )
 
         return if (isPerson) {
@@ -570,7 +572,7 @@ class BehandlingMapper(
             )
         }
 
-        if (organisasjon.enhetstype == "DA") {
+        if (organisasjon.isDeltAnsvar()) {
             statusList.add(
                 BehandlingDetaljerView.PartStatus(
                     status = BehandlingDetaljerView.PartStatus.Status.DELT_ANSVAR,

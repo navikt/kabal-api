@@ -189,7 +189,8 @@ class DokumentMapper(
                                 utsendingskanal = dokDistKanalService.getUtsendingskanal(
                                     mottakerId = it.identifikator,
                                     brukerId = behandling.sakenGjelder.partId.value,
-                                    tema = behandling.ytelse.toTema()
+                                    tema = behandling.ytelse.toTema(),
+                                    isOrganisasjon = partView.type == BehandlingDetaljerView.IdType.ORGNR
                                 )
                             ),
 

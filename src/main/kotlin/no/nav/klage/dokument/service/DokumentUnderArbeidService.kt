@@ -930,15 +930,25 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
 
         mottakerInput.mottakerList.forEach {
-            val dokDistKanal = dokDistKanalService.getUtsendingskanal(
-                mottakerId = it.id,
-                brukerId = behandling.sakenGjelder.partId.value,
-                tema = behandling.ytelse.toTema(),
-            )
+
 
             val (markLocalPrint, forceCentralPrint) = when (it.handling) {
                 HandlingEnum.AUTO -> {
-                    if (dokDistKanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_PRINT && it.overriddenAddress != null) {
+                    val partIdType = getPartIdFromIdentifikator(it.id).type
+                    val isDeltAnsvar = partIdType == PartIdType.VIRKSOMHET && eregClient.hentNoekkelInformasjonOmOrganisasjon(it.id).isDeltAnsvar()
+
+                    if (isDeltAnsvar) {
+                        false to true
+                    }
+
+                    val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
+                        mottakerId = it.id,
+                        brukerId = behandling.sakenGjelder.partId.value,
+                        tema = behandling.ytelse.toTema(),
+                        isOrganisasjon = getPartIdFromIdentifikator(it.id).type == PartIdType.VIRKSOMHET,
+                    )
+
+                    if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_PRINT && it.overriddenAddress != null) {
                         false to true
                     } else {
                         false to false
@@ -1346,12 +1356,13 @@ class DokumentUnderArbeidService(
             val partId = getPartIdFromIdentifikator(it.identifikator)
             if (partId.type.id == PartIdType.VIRKSOMHET.id) {
                 val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(partId.value)
-                if (!organisasjon.isActive() && hovedDokument.isUtgaaende()) {
-                    invalidProperties += InvalidProperty(
-                        field = partId.value,
-                        reason = "Organisasjon er avviklet, og kan ikke være mottaker.",
-                    )
-                }
+                //TODO: Reintroduce after testing.
+//                if (!organisasjon.isActive() && hovedDokument.isUtgaaende()) {
+//                    invalidProperties += InvalidProperty(
+//                        field = partId.value,
+//                        reason = "Organisasjon er avviklet, og kan ikke være mottaker.",
+//                    )
+//                }
             }
         }
 
