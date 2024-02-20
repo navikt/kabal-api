@@ -18,6 +18,7 @@ import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.clients.saf.graphql.*
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Saksdokument
+import no.nav.klage.oppgave.service.DokDistKanalService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
@@ -35,6 +36,7 @@ class DokumentMapper(
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingMapper: BehandlingMapper,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
+    private val dokDistKanalService: DokDistKanalService,
 ) {
 
     companion object {
@@ -183,7 +185,12 @@ class DokumentMapper(
                             overriddenAddress = getBehandlingDetaljerViewAddress(it.address),
                             handling = getHandlingEnum(
                                 markLocalPrint = it.localPrint,
-                                forceCentralPrint = it.forceCentralPrint
+                                forceCentralPrint = it.forceCentralPrint,
+                                utsendingskanal = dokDistKanalService.getUtsendingskanal(
+                                    mottakerId = it.identifikator,
+                                    brukerId = behandling.sakenGjelder.partId.value,
+                                    tema = behandling.ytelse.toTema()
+                                )
                             ),
 
                             //For compability
@@ -454,11 +461,19 @@ class DokumentMapper(
         return this.relevanteDatoer?.find { it.datotype == datotype }?.dato
     }
 
-    private fun getHandlingEnum(markLocalPrint: Boolean, forceCentralPrint: Boolean): HandlingEnum {
+    private fun getHandlingEnum(
+        markLocalPrint: Boolean,
+        forceCentralPrint: Boolean,
+        utsendingskanal: BehandlingDetaljerView.Utsendingskanal
+    ): HandlingEnum {
         return if (markLocalPrint && !forceCentralPrint) {
             HandlingEnum.LOCAL_PRINT
         } else if (!markLocalPrint && forceCentralPrint) {
-            HandlingEnum.CENTRAL_PRINT
+            if (utsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_PRINT) {
+                 HandlingEnum.AUTO
+            } else {
+                HandlingEnum.CENTRAL_PRINT
+            }
         } else if (!markLocalPrint && !forceCentralPrint) {
             HandlingEnum.AUTO
         } else {

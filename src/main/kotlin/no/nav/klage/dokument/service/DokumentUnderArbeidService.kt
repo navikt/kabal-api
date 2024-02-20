@@ -19,6 +19,7 @@ import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -76,6 +77,7 @@ class DokumentUnderArbeidService(
     meterRegistry: MeterRegistry,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kodeverkService: KodeverkService,
+    private val dokDistKanalService: DokDistKanalService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -928,8 +930,20 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
 
         mottakerInput.mottakerList.forEach {
-            val (markLocalPrint, forceCentralPrint) = when(it.handling) {
-                HandlingEnum.AUTO -> false to false
+            val dokDistKanal = dokDistKanalService.getUtsendingskanal(
+                mottakerId = it.id,
+                brukerId = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema(),
+            )
+
+            val (markLocalPrint, forceCentralPrint) = when (it.handling) {
+                HandlingEnum.AUTO -> {
+                    if (dokDistKanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_PRINT && it.overriddenAddress != null) {
+                        false to true
+                    } else {
+                        false to false
+                    }
+                }
                 HandlingEnum.LOCAL_PRINT -> true to false
                 HandlingEnum.CENTRAL_PRINT -> false to true
             }
