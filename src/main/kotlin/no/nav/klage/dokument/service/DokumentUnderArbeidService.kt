@@ -1342,40 +1342,12 @@ class DokumentUnderArbeidService(
 
         val avsenderMottakerInfoSet = hovedDokument.avsenderMottakerInfoSet
 
-        val invalidProperties = mutableListOf<InvalidProperty>()
-
         if (hovedDokument.dokumentType != DokumentType.NOTAT && avsenderMottakerInfoSet.isEmpty()) {
             throw DokumentValidationException("Avsender/mottakere må være satt")
         }
 
         if (hovedDokument.dokumentType == DokumentType.ANNEN_INNGAAENDE_POST && (hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument).inngaaendeKanal == null) {
             throw DokumentValidationException("Trenger spesifisert inngående kanal for ${hovedDokument.dokumentType.navn}.")
-        }
-
-        avsenderMottakerInfoSet.forEach {
-            val partId = getPartIdFromIdentifikator(it.identifikator)
-            if (partId.type.id == PartIdType.VIRKSOMHET.id) {
-                val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(partId.value)
-                //TODO: Reintroduce after testing.
-//                if (!organisasjon.isActive() && hovedDokument.isUtgaaende()) {
-//                    invalidProperties += InvalidProperty(
-//                        field = partId.value,
-//                        reason = "Organisasjon er avviklet, og kan ikke være mottaker.",
-//                    )
-//                }
-            }
-        }
-
-        if (invalidProperties.isNotEmpty()) {
-            throw SectionedValidationErrorWithDetailsException(
-                title = "Ferdigstilling av dokument",
-                sections = listOf(
-                    ValidationSection(
-                        section = "mottakere",
-                        properties = invalidProperties,
-                    )
-                )
-            )
         }
     }
 
