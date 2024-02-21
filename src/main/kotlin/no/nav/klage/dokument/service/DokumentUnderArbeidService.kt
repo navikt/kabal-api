@@ -937,8 +937,8 @@ class DokumentUnderArbeidService(
                     if (isDeltAnsvar) {
                         false to true
                         logger.debug("isDeltAnsvar slo til")
-                    }
-                    logger.debug("isDeltAnsvar slo ikke til")
+                    } else
+                        logger.debug("isDeltAnsvar slo til")
 
                     val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
                         mottakerId = it.id,
