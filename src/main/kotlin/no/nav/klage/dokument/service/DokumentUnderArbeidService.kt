@@ -894,11 +894,11 @@ class DokumentUnderArbeidService(
 
                 if (mottaker.overriddenAddress.landkode == "NO") {
                     if (mottaker.overriddenAddress.postnummer == null) {
-                        throw DokumentValidationException("Postnummer required for Norwegian address.")
+                        throw DokumentValidationException("Trenger postnummer for norske adresser.")
                     }
                 } else {
                     if (mottaker.overriddenAddress.adresselinje1 == null) {
-                        throw DokumentValidationException("Adresselinje1 required for foreign address.")
+                        throw DokumentValidationException("Trenger adresselinje1 for utenlandske adresser.")
                     }
                 }
             }
@@ -927,16 +927,18 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
 
         mottakerInput.mottakerList.forEach {
-
-
             val (markLocalPrint, forceCentralPrint) = when (it.handling) {
                 HandlingEnum.AUTO -> {
                     val partIdType = getPartIdFromIdentifikator(it.id).type
-                    val isDeltAnsvar = partIdType == PartIdType.VIRKSOMHET && eregClient.hentNoekkelInformasjonOmOrganisasjon(it.id).isDeltAnsvar()
+                    val isDeltAnsvar =
+                        partIdType == PartIdType.VIRKSOMHET && eregClient.hentNoekkelInformasjonOmOrganisasjon(it.id)
+                            .isDeltAnsvar()
 
                     if (isDeltAnsvar) {
                         false to true
+                        logger.debug("isDeltAnsvar slo til")
                     }
+                    logger.debug("isDeltAnsvar slo ikke til")
 
                     val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
                         mottakerId = it.id,
@@ -951,6 +953,7 @@ class DokumentUnderArbeidService(
                         false to false
                     }
                 }
+
                 HandlingEnum.LOCAL_PRINT -> true to false
                 HandlingEnum.CENTRAL_PRINT -> false to true
             }

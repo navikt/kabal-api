@@ -471,7 +471,7 @@ class DokumentMapper(
             HandlingEnum.LOCAL_PRINT
         } else if (!markLocalPrint && forceCentralPrint) {
             if (utsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT) {
-                 HandlingEnum.AUTO
+                HandlingEnum.AUTO
             } else {
                 HandlingEnum.CENTRAL_PRINT
             }
