@@ -934,12 +934,6 @@ class DokumentUnderArbeidService(
                         partIdType == PartIdType.VIRKSOMHET && eregClient.hentNoekkelInformasjonOmOrganisasjon(it.id)
                             .isDeltAnsvar()
 
-                    if (isDeltAnsvar) {
-                        false to true
-                        logger.debug("isDeltAnsvar slo til")
-                    } else
-                        logger.debug("isDeltAnsvar slo til")
-
                     val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
                         mottakerId = it.id,
                         brukerId = behandling.sakenGjelder.partId.value,
@@ -947,7 +941,9 @@ class DokumentUnderArbeidService(
                         isOrganisasjon = getPartIdFromIdentifikator(it.id).type == PartIdType.VIRKSOMHET,
                     )
 
-                    if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && it.overriddenAddress != null) {
+                    if (isDeltAnsvar) {
+                        false to true
+                    } else if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && it.overriddenAddress != null) {
                         false to true
                     } else {
                         false to false
