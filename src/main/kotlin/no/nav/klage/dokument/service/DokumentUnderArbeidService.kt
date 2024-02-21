@@ -31,10 +31,7 @@ import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
-import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
-import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
-import no.nav.klage.oppgave.exceptions.ValidationSection
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
 import org.hibernate.Hibernate
@@ -948,7 +945,7 @@ class DokumentUnderArbeidService(
                         isOrganisasjon = getPartIdFromIdentifikator(it.id).type == PartIdType.VIRKSOMHET,
                     )
 
-                    if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_PRINT && it.overriddenAddress != null) {
+                    if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && it.overriddenAddress != null) {
                         false to true
                     } else {
                         false to false
