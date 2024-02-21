@@ -32,10 +32,25 @@ data class DokumentView(
     val creatorIdent: String,
     val creatorRole: BehandlingRole,
     val avsender: BehandlingDetaljerView.PartView?,
-    val mottakerList: List<BehandlingDetaljerView.PartView>?,
+    val mottakerList: List<Mottaker>,
     val inngaaendeKanal: InngaaendeKanal?,
     val datoMottatt: LocalDate?,
 ) {
+
+    data class Mottaker(
+        val part: BehandlingDetaljerView.PartViewWithUtsendingskanal,
+        val overriddenAddress: BehandlingDetaljerView.Address?,
+        val handling: HandlingEnum,
+
+        //Old stuff, for compability
+        val id: String,
+        val name: String?,
+        val type: BehandlingDetaljerView.IdType,
+        val available: Boolean,
+        val language: String?,
+        val statusList: List<BehandlingDetaljerView.PartStatus>,
+        val address: BehandlingDetaljerView.Address?,
+    )
 
     data class Creator(
         val employee: SaksbehandlerView,
@@ -71,3 +86,9 @@ data class NewParent(
     val parentId: UUID,
     val modified: LocalDateTime,
 )
+
+enum class HandlingEnum {
+    AUTO,
+    LOCAL_PRINT,
+    CENTRAL_PRINT
+}

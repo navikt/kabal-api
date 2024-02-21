@@ -83,6 +83,10 @@ data class Part(
     val type: BehandlingDetaljerView.IdType,
     val name: String?,
     val statusList: List<BehandlingDetaljerView.PartStatus>,
+    val available: Boolean,
+    val language: String?,
+    val address: BehandlingDetaljerView.Address?,
+    val utsendingskanal: BehandlingDetaljerView.Utsendingskanal
 )
 
 data class MeldingEvent(

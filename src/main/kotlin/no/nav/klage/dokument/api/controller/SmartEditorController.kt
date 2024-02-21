@@ -97,18 +97,21 @@ class SmartEditorController(
         description = "Get document"
     )
     @GetMapping("/{dokumentId}")
-    fun getDocument(@PathVariable("dokumentId") documentId: UUID): DokumentView {
+    fun getDocument(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") documentId: UUID
+    ): DokumentView {
         val smartEditorId =
             dokumentUnderArbeidService.getSmartEditorId(
                 dokumentId = documentId,
                 readOnly = true
             )
-        val document = kabalSmartEditorApiGateway.getSmartDocumentResponse(smartEditorId)
+        val smartEditorDocument = kabalSmartEditorApiGateway.getSmartDocumentResponse(smartEditorId)
 
-        return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId),
-            journalpost = null,
-            smartEditorDocument = document,
+        return dokumentUnderArbeidService.getMappedDokumentUnderArbeid(
+            dokumentId = documentId,
+            smartEditorDocument = smartEditorDocument,
+            behandlingId = behandlingId
         )
     }
 

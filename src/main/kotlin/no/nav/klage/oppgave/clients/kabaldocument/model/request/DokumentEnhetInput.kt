@@ -31,4 +31,21 @@ data class AvsenderMottakerInput(
     val partId: PartIdInput,
     val navn: String,
     val localPrint: Boolean,
-)
+    val tvingSentralPrint: Boolean,
+    val adresse: Address?
+) {
+    data class Address(
+        val adressetype: Adressetype,
+        val adresselinje1: String?,
+        val adresselinje2: String?,
+        val adresselinje3: String?,
+        val postnummer: String?,
+        val poststed: String?,
+        val land: String,
+    )
+
+    enum class Adressetype {
+        NORSK_POSTADRESSE,
+        UTENLANDSK_POSTADRESSE,
+    }
+}

@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.clients.ereg.EregClient
@@ -19,7 +20,8 @@ class PartSearchService(
     private val tilgangService: TilgangService,
     private val behandlingMapper: BehandlingMapper,
     private val krrProxyClient: KrrProxyClient,
-    private val regoppslagService: RegoppslagService
+    private val regoppslagService: RegoppslagService,
+    private val dokDistKanalService: DokDistKanalService,
 ) {
 
     companion object {
@@ -59,6 +61,58 @@ class PartSearchService(
                     language = null,
                     statusList = behandlingMapper.getStatusList(organisasjon),
                     address = behandlingMapper.getAddress(organisasjon),
+                )
+            }
+        }
+
+    fun searchPartWithUtsendingskanal(
+        identifikator: String,
+        skipAccessControl: Boolean = false,
+        sakenGjelderId: String,
+        tema: Tema,
+    ): BehandlingDetaljerView.PartViewWithUtsendingskanal =
+        when (getPartIdFromIdentifikator(identifikator).type) {
+            PartIdType.PERSON -> {
+                if (skipAccessControl || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator)) {
+                    val person = pdlFacade.getPersonInfo(identifikator)
+                    val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identifikator)
+                    BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                        id = person.foedselsnr,
+                        name = person.settSammenNavn(),
+                        type = BehandlingDetaljerView.IdType.FNR,
+                        available = person.doed == null,
+                        language = krrInfo?.spraak,
+                        statusList = behandlingMapper.getStatusList(person, krrInfo),
+                        address = regoppslagService.getAddressForPerson(fnr = identifikator),
+                        utsendingskanal = dokDistKanalService.getUtsendingskanal(
+                            mottakerId = identifikator,
+                            brukerId = sakenGjelderId,
+                            tema = tema,
+                            isOrganisasjon = false,
+                        )
+                    )
+                } else {
+                    secureLogger.warn("Saksbehandler does not have access to view person")
+                    throw MissingTilgangException("Saksbehandler does not have access to view person")
+                }
+            }
+
+            PartIdType.VIRKSOMHET -> {
+                val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifikator)
+                BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                    id = organisasjon.organisasjonsnummer,
+                    name = organisasjon.navn.sammensattnavn,
+                    type = BehandlingDetaljerView.IdType.ORGNR,
+                    available = organisasjon.isActive(),
+                    language = null,
+                    statusList = behandlingMapper.getStatusList(organisasjon),
+                    address = behandlingMapper.getAddress(organisasjon),
+                    utsendingskanal = dokDistKanalService.getUtsendingskanal(
+                        mottakerId = identifikator,
+                        brukerId = sakenGjelderId,
+                        tema = tema,
+                        isOrganisasjon = true,
+                    )
                 )
             }
         }

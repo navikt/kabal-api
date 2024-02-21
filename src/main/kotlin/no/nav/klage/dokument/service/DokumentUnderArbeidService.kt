@@ -8,6 +8,7 @@ import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.KabalSmartEditorApiClient
+import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
@@ -18,6 +19,7 @@ import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -29,10 +31,7 @@ import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
-import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
-import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
-import no.nav.klage.oppgave.exceptions.ValidationSection
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
 import org.hibernate.Hibernate
@@ -75,6 +74,7 @@ class DokumentUnderArbeidService(
     meterRegistry: MeterRegistry,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kodeverkService: KodeverkService,
+    private val dokDistKanalService: DokDistKanalService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -166,6 +166,7 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid = document,
             journalpost = null,
             smartEditorDocument = null,
+            behandling = behandling,
         )
 
         publishInternalEvent(
@@ -349,6 +350,7 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid = document,
             journalpost = null,
             smartEditorDocument = smartEditorDocument,
+            behandling = behandling,
         )
 
         publishInternalEvent(
@@ -379,7 +381,8 @@ class DokumentUnderArbeidService(
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val parentDocument =
-            dokumentUnderArbeidRepository.findById(journalfoerteDokumenterInput.parentId).get() as DokumentUnderArbeidAsHoveddokument
+            dokumentUnderArbeidRepository.findById(journalfoerteDokumenterInput.parentId)
+                .get() as DokumentUnderArbeidAsHoveddokument
 
         if (parentDocument.isInngaaende()) {
             throw DokumentValidationException("Kan ikke sette journalførte dokumenter som vedlegg til ${parentDocument.dokumentType.navn}.")
@@ -443,6 +446,7 @@ class DokumentUnderArbeidService(
                     dokumentUnderArbeid = journalfoertVedlegg,
                     journalpost = journalpostList.find { it.journalpostId == journalfoertVedlegg.journalpostId }!!,
                     smartEditorDocument = null,
+                    behandling = behandling,
                 )
             }
     }
@@ -572,6 +576,22 @@ class DokumentUnderArbeidService(
     }
 
     fun getDokumentUnderArbeid(dokumentId: UUID) = dokumentUnderArbeidRepository.findById(dokumentId).get()
+
+    fun getMappedDokumentUnderArbeid(
+        dokumentId: UUID,
+        smartEditorDocument: SmartDocumentResponse?,
+        behandlingId: UUID
+    ): DokumentView {
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
+            behandlingId = behandlingId
+        )
+        return dokumentMapper.mapToDokumentView(
+            dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId),
+            journalpost = null,
+            smartEditorDocument = smartEditorDocument,
+            behandling = behandling,
+        )
+    }
 
     fun updateDokumentType(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
@@ -860,11 +880,28 @@ class DokumentUnderArbeidService(
     ): DokumentUnderArbeidAsHoveddokument {
 
         //Validate parts
-        mottakerInput.mottakerList.forEach {
+        mottakerInput.mottakerList.forEach { mottaker ->
             partSearchService.searchPart(
-                identifikator = it.id,
+                identifikator = mottaker.id,
                 skipAccessControl = true
             )
+
+            if (mottaker.overriddenAddress != null) {
+                val landkoder = kodeverkService.getLandkoder()
+                if (landkoder.find { it.landkode == mottaker.overriddenAddress.landkode } == null) {
+                    throw DokumentValidationException("Ugyldig landkode: ${mottaker.overriddenAddress.landkode}")
+                }
+
+                if (mottaker.overriddenAddress.landkode == "NO") {
+                    if (mottaker.overriddenAddress.postnummer == null) {
+                        throw DokumentValidationException("Trenger postnummer for norske adresser.")
+                    }
+                } else {
+                    if (mottaker.overriddenAddress.adresselinje1 == null) {
+                        throw DokumentValidationException("Trenger adresselinje1 for utenlandske adresser.")
+                    }
+                }
+            }
         }
 
         val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
@@ -890,12 +927,38 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
 
         mottakerInput.mottakerList.forEach {
+            val (markLocalPrint, forceCentralPrint) = when (it.handling) {
+                HandlingEnum.AUTO -> {
+                    val partIdType = getPartIdFromIdentifikator(it.id).type
+                    val isDeltAnsvar =
+                        partIdType == PartIdType.VIRKSOMHET && eregClient.hentNoekkelInformasjonOmOrganisasjon(it.id)
+                            .isDeltAnsvar()
+
+                    val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
+                        mottakerId = it.id,
+                        brukerId = behandling.sakenGjelder.partId.value,
+                        tema = behandling.ytelse.toTema(),
+                        isOrganisasjon = getPartIdFromIdentifikator(it.id).type == PartIdType.VIRKSOMHET,
+                    )
+
+                    if (isDeltAnsvar) {
+                        false to true
+                    } else if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && it.overriddenAddress != null) {
+                        false to true
+                    } else {
+                        false to false
+                    }
+                }
+
+                HandlingEnum.LOCAL_PRINT -> true to false
+                HandlingEnum.CENTRAL_PRINT -> false to true
+            }
             dokumentUnderArbeid.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
                     identifikator = it.id,
-                    localPrint = it.localPrint,
-                    forceCentralPrint = false,
-                    address = null,
+                    localPrint = markLocalPrint,
+                    forceCentralPrint = forceCentralPrint,
+                    address = getDokumentUnderArbeidAdresse(it.overriddenAddress),
                 )
             )
         }
@@ -934,6 +997,25 @@ class DokumentUnderArbeidService(
         )
 
         return dokumentUnderArbeid
+    }
+
+    private fun getDokumentUnderArbeidAdresse(overrideAddress: AddressInput?): DokumentUnderArbeidAdresse? {
+        return if (overrideAddress != null) {
+            val poststed = if (overrideAddress.landkode == "NO") {
+                if (overrideAddress.postnummer != null) {
+                    kodeverkService.getPoststed(overrideAddress.postnummer)
+                } else null
+            } else null
+
+            DokumentUnderArbeidAdresse(
+                adresselinje1 = overrideAddress.adresselinje1,
+                adresselinje2 = overrideAddress.adresselinje2,
+                adresselinje3 = overrideAddress.adresselinje3,
+                postnummer = overrideAddress.postnummer,
+                poststed = poststed,
+                landkode = overrideAddress.landkode
+            )
+        } else null
     }
 
     private fun DokumentUnderArbeid.isVedlegg(): Boolean {
@@ -1256,39 +1338,12 @@ class DokumentUnderArbeidService(
 
         val avsenderMottakerInfoSet = hovedDokument.avsenderMottakerInfoSet
 
-        val invalidProperties = mutableListOf<InvalidProperty>()
-
         if (hovedDokument.dokumentType != DokumentType.NOTAT && avsenderMottakerInfoSet.isEmpty()) {
             throw DokumentValidationException("Avsender/mottakere må være satt")
         }
 
         if (hovedDokument.dokumentType == DokumentType.ANNEN_INNGAAENDE_POST && (hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument).inngaaendeKanal == null) {
             throw DokumentValidationException("Trenger spesifisert inngående kanal for ${hovedDokument.dokumentType.navn}.")
-        }
-
-        avsenderMottakerInfoSet.forEach {
-            val partId = getPartIdFromIdentifikator(it.identifikator)
-            if (partId.type.id == PartIdType.VIRKSOMHET.id) {
-                val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(partId.value)
-                if (!organisasjon.isActive() && hovedDokument.isUtgaaende()) {
-                    invalidProperties += InvalidProperty(
-                        field = partId.value,
-                        reason = "Organisasjon er avviklet, og kan ikke være mottaker.",
-                    )
-                }
-            }
-        }
-
-        if (invalidProperties.isNotEmpty()) {
-            throw SectionedValidationErrorWithDetailsException(
-                title = "Ferdigstilling av dokument",
-                sections = listOf(
-                    ValidationSection(
-                        section = "mottakere",
-                        properties = invalidProperties,
-                    )
-                )
-            )
         }
     }
 
@@ -1667,7 +1722,8 @@ class DokumentUnderArbeidService(
                 dokumentMapper.mapToDokumentView(
                     dokumentUnderArbeid = it,
                     journalpost = null,
-                    smartEditorDocument = smartEditorDocument
+                    smartEditorDocument = smartEditorDocument,
+                    behandling = behandling
                 )
             }
             .plus(

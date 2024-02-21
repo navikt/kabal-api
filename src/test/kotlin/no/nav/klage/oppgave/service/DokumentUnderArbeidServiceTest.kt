@@ -113,6 +113,7 @@ class DokumentUnderArbeidServiceTest {
             meterRegistry = mockk(),
             partSearchService = mockk(),
             kodeverkService = mockk(),
+            dokDistKanalService = mockk(),
         )
 
         val behandlingId = UUID.randomUUID()

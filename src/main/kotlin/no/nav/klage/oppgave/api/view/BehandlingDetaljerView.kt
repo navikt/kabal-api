@@ -157,12 +157,12 @@ data class BehandlingDetaljerView(
     ): PartBase, IdPart
 
     enum class Utsendingskanal(val navn: String) {
-        SENTRAL_PRINT("Sentral print"),
-        DPI("Digital Postkasse Innbygger"),
+        SENTRAL_UTSKRIFT("Sentral utskrift"),
+        SDP("Digital Postkasse Innbygger"),
         NAV_NO("Nav.no"),
-        LOKAL_PRINT("Lokal print"),
+        LOKAL_UTSKRIFT("Lokal utskrift"),
         INGEN_DISTRIBUSJON("Ingen distribusjon"),
         TRYGDERETTEN("Trygderetten"),
-        TPAM("Taushetsbelagt post i Altinn Meldingsboks")
+        DPVT("Taushetsbelagt digital post til virksomhet")
     }
 }

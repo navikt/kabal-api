@@ -1,10 +1,7 @@
 package no.nav.klage.dokument.api.mapper
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import no.nav.klage.dokument.api.view.DokumentView
-import no.nav.klage.dokument.api.view.DokumentViewWithList
-import no.nav.klage.dokument.api.view.InngaaendeKanal
-import no.nav.klage.dokument.api.view.NewParent
+import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest.Document.Type
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
@@ -21,6 +18,7 @@ import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.clients.saf.graphql.*
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Saksdokument
+import no.nav.klage.oppgave.service.DokDistKanalService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
@@ -38,6 +36,7 @@ class DokumentMapper(
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingMapper: BehandlingMapper,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
+    private val dokDistKanalService: DokDistKanalService,
 ) {
 
     companion object {
@@ -128,7 +127,8 @@ class DokumentMapper(
     fun mapToDokumentView(
         dokumentUnderArbeid: DokumentUnderArbeid,
         journalpost: Journalpost?,
-        smartEditorDocument: SmartDocumentResponse?
+        smartEditorDocument: SmartDocumentResponse?,
+        behandling: Behandling,
     ): DokumentView {
         val unproxiedDUA = Hibernate.unproxy(dokumentUnderArbeid) as DokumentUnderArbeid
 
@@ -157,7 +157,7 @@ class DokumentMapper(
 
         var inngaaendeKanal: InngaaendeKanal? = null
         var avsender: BehandlingDetaljerView.PartView? = null
-        var mottakerList: List<BehandlingDetaljerView.PartView>? = null
+        var mottakerList: List<DokumentView.Mottaker> = mutableListOf()
         val dokumentTypeId: String
 
         if (unproxiedDUA is DokumentUnderArbeidAsHoveddokument) {
@@ -172,16 +172,44 @@ class DokumentMapper(
                     avsender = behandlingMapper.getPartView(getPartIdFromIdentifikator(avsenderIdentifikator))
                 }
             } else if (unproxiedDUA.isUtgaaende()) {
-                val mottakerIdentifikatorSet = unproxiedDUA.avsenderMottakerInfoSet.map { it.identifikator }
-                if (mottakerIdentifikatorSet.isNotEmpty()) {
-                    mottakerList = mottakerIdentifikatorSet.map {
-                        behandlingMapper.getPartView(getPartIdFromIdentifikator(it))
+                val mottakerInfoSet = unproxiedDUA.avsenderMottakerInfoSet
+                if (mottakerInfoSet.isNotEmpty()) {
+
+                    mottakerList = mottakerInfoSet.map {
+                        val partView = behandlingMapper.getPartView(getPartIdFromIdentifikator(it.identifikator))
+                        DokumentView.Mottaker(
+                            part = behandlingMapper.getPartViewWithUtsendingskanal(
+                                partId = getPartIdFromIdentifikator(it.identifikator),
+                                behandling = behandling
+                            ),
+                            overriddenAddress = getBehandlingDetaljerViewAddress(it.address),
+                            handling = getHandlingEnum(
+                                markLocalPrint = it.localPrint,
+                                forceCentralPrint = it.forceCentralPrint,
+                                utsendingskanal = dokDistKanalService.getUtsendingskanal(
+                                    mottakerId = it.identifikator,
+                                    brukerId = behandling.sakenGjelder.partId.value,
+                                    tema = behandling.ytelse.toTema(),
+                                    isOrganisasjon = partView.type == BehandlingDetaljerView.IdType.ORGNR
+                                )
+                            ),
+
+                            //For compability
+                            id = partView.id,
+                            name = partView.name,
+                            type = partView.type,
+                            available = partView.available,
+                            language = partView.language,
+                            statusList = partView.statusList,
+                            address = partView.address,
+                        )
                     }
                 }
             }
         } else {
             unproxiedDUA as DokumentUnderArbeidAsVedlegg
-            val parentDocument = dokumentUnderArbeidRepository.findById(unproxiedDUA.parentId).get() as DokumentUnderArbeidAsHoveddokument
+            val parentDocument = dokumentUnderArbeidRepository.findById(unproxiedDUA.parentId)
+                .get() as DokumentUnderArbeidAsHoveddokument
             dokumentTypeId = parentDocument.dokumentType.id
         }
 
@@ -214,6 +242,20 @@ class DokumentMapper(
             mottakerList = mottakerList,
             inngaaendeKanal = inngaaendeKanal,
         )
+    }
+
+    private fun getBehandlingDetaljerViewAddress(address: DokumentUnderArbeidAdresse?): BehandlingDetaljerView.Address? {
+        return if (address != null) {
+            BehandlingDetaljerView.Address(
+                adresselinje1 = address.adresselinje1,
+                adresselinje2 = address.adresselinje2,
+                adresselinje3 = address.adresselinje3,
+                landkode = address.landkode,
+                postnummer = address.postnummer,
+                poststed = address.poststed,
+            )
+        } else null
+
     }
 
     private fun DokumentUnderArbeid.toCreatorView(): DokumentView.Creator {
@@ -418,5 +460,25 @@ class DokumentMapper(
 
     fun Journalpost.getRelevantDato(datotype: Datotype): LocalDateTime? {
         return this.relevanteDatoer?.find { it.datotype == datotype }?.dato
+    }
+
+    private fun getHandlingEnum(
+        markLocalPrint: Boolean,
+        forceCentralPrint: Boolean,
+        utsendingskanal: BehandlingDetaljerView.Utsendingskanal
+    ): HandlingEnum {
+        return if (markLocalPrint && !forceCentralPrint) {
+            HandlingEnum.LOCAL_PRINT
+        } else if (!markLocalPrint && forceCentralPrint) {
+            if (utsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT) {
+                HandlingEnum.AUTO
+            } else {
+                HandlingEnum.CENTRAL_PRINT
+            }
+        } else if (!markLocalPrint && !forceCentralPrint) {
+            HandlingEnum.AUTO
+        } else {
+            error("Invalid combination markLocalPrint $markLocalPrint and forceCentralPrint $forceCentralPrint")
+        }
     }
 }

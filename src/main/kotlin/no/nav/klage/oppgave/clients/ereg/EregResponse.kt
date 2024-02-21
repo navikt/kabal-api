@@ -26,6 +26,7 @@ data class NoekkelInfoOmOrganisasjon(
         val poststed: String?,
     )
 
-    //is "ifAfter" necessary?
+
     fun isActive() = opphoersdato == null || opphoersdato.isAfter(LocalDate.now())
+    fun isDeltAnsvar() = enhetstype == "DA"
 }

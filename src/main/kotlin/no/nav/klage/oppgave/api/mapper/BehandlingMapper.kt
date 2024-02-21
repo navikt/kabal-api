@@ -278,10 +278,11 @@ class BehandlingMapper(
         if (sakenGjelder.erPerson()) {
             val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
             val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(sakenGjelder.partId.value)
-            val utsendingskanal = dokDistKanalService.getDistribusjonskanal(
+            val utsendingskanal = dokDistKanalService.getUtsendingskanal(
                 mottakerId = sakenGjelder.partId.value,
                 brukerId = sakenGjelder.partId.value,
-                tema = behandling.ytelse.toTema()
+                tema = behandling.ytelse.toTema(),
+                isOrganisasjon = false,
             )
             return BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal(
                 id = person.foedselsnr,
@@ -343,10 +344,11 @@ class BehandlingMapper(
     }
 
     private fun getPartViewWithUtsendingskanal(identifier: String, isPerson: Boolean, behandling: Behandling): BehandlingDetaljerView.PartViewWithUtsendingskanal {
-        val utsendingskanal = dokDistKanalService.getDistribusjonskanal(
+        val utsendingskanal = dokDistKanalService.getUtsendingskanal(
             mottakerId = identifier,
             brukerId = behandling.sakenGjelder.partId.value,
-            tema = behandling.ytelse.toTema()
+            tema = behandling.ytelse.toTema(),
+            isOrganisasjon = !isPerson
         )
 
         return if (isPerson) {
@@ -380,10 +382,9 @@ class BehandlingMapper(
     fun getAddress(organisasjon: NoekkelInfoOmOrganisasjon): BehandlingDetaljerView.Address? {
         if (organisasjon.adresse == null) return null
 
-        val poststed = organisasjon.adresse.poststed
-            ?: if (organisasjon.adresse.postnummer != null) {
-                kodeverkService.getPoststed(organisasjon.adresse.postnummer).poststed
-            } else null
+        val poststed = if (organisasjon.adresse.landkode == "NO") {
+            organisasjon.adresse.postnummer?.let { kodeverkService.getPoststed(it) }
+        } else null
 
         return BehandlingDetaljerView.Address(
             adresselinje1 = organisasjon.adresse.adresselinje1,
@@ -571,7 +572,7 @@ class BehandlingMapper(
             )
         }
 
-        if (organisasjon.enhetstype == "DA") {
+        if (organisasjon.isDeltAnsvar()) {
             statusList.add(
                 BehandlingDetaljerView.PartStatus(
                     status = BehandlingDetaljerView.PartStatus.Status.DELT_ANSVAR,
