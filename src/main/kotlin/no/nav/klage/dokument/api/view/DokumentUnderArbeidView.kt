@@ -41,15 +41,6 @@ data class DokumentView(
         val part: BehandlingDetaljerView.PartViewWithUtsendingskanal,
         val overriddenAddress: BehandlingDetaljerView.Address?,
         val handling: HandlingEnum,
-
-        //Old stuff, for compability
-        val id: String,
-        val name: String?,
-        val type: BehandlingDetaljerView.IdType,
-        val available: Boolean,
-        val language: String?,
-        val statusList: List<BehandlingDetaljerView.PartStatus>,
-        val address: BehandlingDetaljerView.Address?,
     )
 
     data class Creator(

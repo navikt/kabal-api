@@ -193,15 +193,6 @@ class DokumentMapper(
                                     isOrganisasjon = partView.type == BehandlingDetaljerView.IdType.ORGNR
                                 )
                             ),
-
-                            //For compability
-                            id = partView.id,
-                            name = partView.name,
-                            type = partView.type,
-                            available = partView.available,
-                            language = partView.language,
-                            statusList = partView.statusList,
-                            address = partView.address,
                         )
                     }
                 }
