@@ -1167,7 +1167,6 @@ class DokumentUnderArbeidService(
         behandlingId: UUID,
         dokumentId: UUID,
         innloggetIdent: String,
-        ferdigstillDokumentInput: FerdigstillDokumentInput?,
     ): DokumentUnderArbeidAsHoveddokument {
         val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
@@ -1192,17 +1191,6 @@ class DokumentUnderArbeidService(
                     address = null,
                 )
             )
-        } else if (!ferdigstillDokumentInput?.brevmottakerIds.isNullOrEmpty()) {
-            hovedDokument.avsenderMottakerInfoSet.clear()
-            ferdigstillDokumentInput!!.brevmottakerIds!!.forEach {
-                hovedDokument.avsenderMottakerInfoSet.add(
-                    toDokumentUnderArbeidBrevmottakerInfo(
-                        id = it,
-                        dokumentType = hovedDokument.dokumentType,
-                        behandling = behandling
-                    )
-                )
-            }
         }
 
         validateHoveddokumentBeforeFerdig(

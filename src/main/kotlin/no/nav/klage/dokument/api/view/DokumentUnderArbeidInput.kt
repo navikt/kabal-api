@@ -44,10 +44,6 @@ data class DokumentTypeInput(val dokumentTypeId: String)
 
 data class DatoMottattInput(val datoMottatt: LocalDate)
 
-data class FerdigstillDokumentInput(
-    val brevmottakerIds: Set<String>?,
-)
-
 data class InngaaendeKanalInput(
     val kanal: InngaaendeKanal
 )
