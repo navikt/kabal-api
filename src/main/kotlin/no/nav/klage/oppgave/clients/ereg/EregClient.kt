@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
 
 @Component
 class EregClient(
@@ -43,7 +44,9 @@ class EregClient(
                     logErrorResponse(response, ::hentNoekkelInformasjonOmOrganisasjon.name, secureLogger)
                 }
                 .bodyToMono<NoekkelInfoOmOrganisasjon>()
-                .block() ?: throw EREGOrganizationNotFoundException("Search for key information about organization $orgnummer in Ereg returned null.")
+                .onErrorResume { Mono.error(EREGOrganizationNotFoundException("Fant ikke organisasjonen")) }
+                .block()
+                ?: throw EREGOrganizationNotFoundException("Search for key information about organization $orgnummer in Ereg returned null.")
         }.fold(
             onSuccess = { it },
             onFailure = { error ->
