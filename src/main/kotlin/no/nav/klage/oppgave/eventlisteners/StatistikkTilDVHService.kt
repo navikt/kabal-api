@@ -217,6 +217,8 @@ class StatistikkTilDVHService(
 
             BehandlingState.SENDT_TIL_TR -> behandling.avsluttetAvSaksbehandler
                 ?: throw RuntimeException("avsluttetAvSaksbehandler mangler")
+
+            else -> throw RuntimeException("cannot happen!!")
         }
     }
 
