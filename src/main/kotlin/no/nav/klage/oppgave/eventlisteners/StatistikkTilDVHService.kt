@@ -97,7 +97,7 @@ class StatistikkTilDVHService(
             endringslogginnslag.any {
                 it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type == Type.ANKE_I_TRYGDERETTEN
-            } -> BehandlingState.MOTTATT_FRA_TR
+            } -> BehandlingState.AVSLUTTET
 
             endringslogginnslag.any { it.felt === Felt.TILDELT_SAKSBEHANDLERIDENT } -> BehandlingState.TILDELT_SAKSBEHANDLER
 
@@ -200,14 +200,14 @@ class StatistikkTilDVHService(
             BehandlingState.TILDELT_SAKSBEHANDLER -> behandling.modified //tildelt eller fradelt
 
             BehandlingState.AVSLUTTET, BehandlingState.NY_ANKEBEHANDLING_I_KA -> {
-
                 if (behandling.feilregistrering != null) {
                     behandling.feilregistrering!!.registered
+                } else if (behandling is AnkeITrygderettenbehandling) {
+                    behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
                 } else {
                     behandling.avsluttetAvSaksbehandler
                         ?: throw RuntimeException("avsluttetAvSaksbehandler mangler")
                 }
-
             }
 
             BehandlingState.UKJENT -> {
@@ -217,11 +217,6 @@ class StatistikkTilDVHService(
 
             BehandlingState.SENDT_TIL_TR -> behandling.avsluttetAvSaksbehandler
                 ?: throw RuntimeException("avsluttetAvSaksbehandler mangler")
-
-            BehandlingState.MOTTATT_FRA_TR -> {
-                behandling as AnkeITrygderettenbehandling
-                behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
-            }
         }
     }
 
