@@ -88,7 +88,6 @@ class PartSearchService(
                             mottakerId = identifikator,
                             brukerId = sakenGjelderId,
                             tema = tema,
-                            isOrganisasjon = false,
                         )
                     )
                 } else {
@@ -111,7 +110,6 @@ class PartSearchService(
                         mottakerId = identifikator,
                         brukerId = sakenGjelderId,
                         tema = tema,
-                        isOrganisasjon = true,
                     )
                 )
             }

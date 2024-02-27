@@ -35,7 +35,24 @@ class DokDistKanalClient(
                 logErrorResponse(response, ::getDistribusjonskanal.name, secureLogger)
             }
             .bodyToMono<BestemDistribusjonskanalResponse>()
-            .block() ?: throw RuntimeException("Null response from getDistribussjonskanal")
+            .block() ?: throw RuntimeException("Null response from getDistribusjonskanal")
+    }
+
+    fun getDistribusjonskanalWithAppAccess(input: Request): BestemDistribusjonskanalResponse {
+        logger.debug("Calling getDistribusjonskanalWithAppAccess")
+        return dokDistKanalWebClient.post()
+            .uri { it.path("/rest/bestemDistribusjonskanal").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getAppAccessTokenWithDokDistKanalScope()}"
+            )
+            .bodyValue(input)
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getDistribusjonskanal.name, secureLogger)
+            }
+            .bodyToMono<BestemDistribusjonskanalResponse>()
+            .block() ?: throw RuntimeException("Null response from getDistribusjonskanal")
     }
 
     data class Request(
@@ -49,7 +66,7 @@ class DokDistKanalClient(
         val regel: String,
         val regelBegrunnelse: String
     ) {
-        enum class DistribusjonKanalCode(utsendingkanalCode: UtsendingkanalCode) {
+        enum class DistribusjonKanalCode(val utsendingkanalCode: UtsendingkanalCode) {
             PRINT(UtsendingkanalCode.S),
             SDP(UtsendingkanalCode.SDP),
             DITT_NAV(UtsendingkanalCode.NAV_NO),

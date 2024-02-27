@@ -176,7 +176,6 @@ class DokumentMapper(
                 if (mottakerInfoSet.isNotEmpty()) {
 
                     mottakerList = mottakerInfoSet.map {
-                        val partView = behandlingMapper.getPartView(getPartIdFromIdentifikator(it.identifikator))
                         DokumentView.Mottaker(
                             part = behandlingMapper.getPartViewWithUtsendingskanal(
                                 partId = getPartIdFromIdentifikator(it.identifikator),
@@ -190,7 +189,6 @@ class DokumentMapper(
                                     mottakerId = it.identifikator,
                                     brukerId = behandling.sakenGjelder.partId.value,
                                     tema = behandling.ytelse.toTema(),
-                                    isOrganisasjon = partView.type == BehandlingDetaljerView.IdType.ORGNR
                                 )
                             ),
                         )
