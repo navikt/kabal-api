@@ -24,7 +24,8 @@ class DokDistKanalService(
         return getDistribusjonKanalCode(
             mottakerId = mottakerId,
             brukerId = brukerId,
-            tema = tema
+            tema = tema,
+            saksbehandlerContext = true
         ).toBehandlingDetaljerViewUtsendingskanal()
     }
 
@@ -32,6 +33,7 @@ class DokDistKanalService(
         mottakerId: String,
         brukerId: String,
         tema: Tema,
+        saksbehandlerContext: Boolean,
     ): DokDistKanalClient.BestemDistribusjonskanalResponse.DistribusjonKanalCode {
         val isOrganisasjon = getPartIdFromIdentifikator(mottakerId).type == PartIdType.VIRKSOMHET
 
@@ -43,13 +45,24 @@ class DokDistKanalService(
             }
         }
 
-        val dokDistKanalResponse = dokDistKanalClient.getDistribusjonskanal(
-            input = DokDistKanalClient.Request(
-                mottakerId = mottakerId,
-                brukerId = brukerId,
-                tema = tema.navn
-            )
-        )
+        val dokDistKanalResponse =
+            if (saksbehandlerContext) {
+                dokDistKanalClient.getDistribusjonskanal(
+                    input = DokDistKanalClient.Request(
+                        mottakerId = mottakerId,
+                        brukerId = brukerId,
+                        tema = tema.navn
+                    )
+                )
+            } else {
+                dokDistKanalClient.getDistribusjonskanalWithAppAccess(
+                    input = DokDistKanalClient.Request(
+                        mottakerId = mottakerId,
+                        brukerId = brukerId,
+                        tema = tema.navn
+                    )
+                )
+            }
 
         return dokDistKanalResponse.distribusjonskanal
     }

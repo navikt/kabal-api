@@ -198,6 +198,7 @@ class KabalDocumentMapper(
                 mottakerId = avsenderMottakerInfo.identifikator,
                 brukerId = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
+                saksbehandlerContext = false,
             )
 
             Kanal.valueOf(distribusjonKanalCode.utsendingkanalCode.name)

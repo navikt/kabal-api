@@ -133,6 +133,12 @@ class TokenUtil(
         return response.accessToken
     }
 
+    fun getAppAccessTokenWithDokDistKanalScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["dok-dist-kanal-maskintilmaskin"]
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken
+    }
+
     fun getOnBehalfOfTokenWithKrrProxyScope(): String {
         val clientProperties = clientConfigurationProperties.registration["krr-proxy-onbehalfof"]
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)

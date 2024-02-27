@@ -38,6 +38,23 @@ class DokDistKanalClient(
             .block() ?: throw RuntimeException("Null response from getDistribussjonskanal")
     }
 
+    fun getDistribusjonskanalWithAppAccess(input: Request): BestemDistribusjonskanalResponse {
+        logger.debug("Calling getDistribusjonskanalWithAppAccess")
+        return dokDistKanalWebClient.post()
+            .uri { it.path("/rest/bestemDistribusjonskanal").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getAppAccessTokenWithDokDistKanalScope()}"
+            )
+            .bodyValue(input)
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getDistribusjonskanal.name, secureLogger)
+            }
+            .bodyToMono<BestemDistribusjonskanalResponse>()
+            .block() ?: throw RuntimeException("Null response from getDistribussjonskanal")
+    }
+
     data class Request(
         val mottakerId: String,
         val brukerId: String,
