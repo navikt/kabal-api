@@ -35,7 +35,7 @@ class DokDistKanalClient(
                 logErrorResponse(response, ::getDistribusjonskanal.name, secureLogger)
             }
             .bodyToMono<BestemDistribusjonskanalResponse>()
-            .block() ?: throw RuntimeException("Null response from getDistribussjonskanal")
+            .block() ?: throw RuntimeException("Null response from getDistribusjonskanal")
     }
 
     fun getDistribusjonskanalWithAppAccess(input: Request): BestemDistribusjonskanalResponse {
@@ -52,7 +52,7 @@ class DokDistKanalClient(
                 logErrorResponse(response, ::getDistribusjonskanal.name, secureLogger)
             }
             .bodyToMono<BestemDistribusjonskanalResponse>()
-            .block() ?: throw RuntimeException("Null response from getDistribussjonskanal")
+            .block() ?: throw RuntimeException("Null response from getDistribusjonskanal")
     }
 
     data class Request(
