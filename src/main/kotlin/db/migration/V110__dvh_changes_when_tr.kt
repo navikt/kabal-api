@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
+import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import java.util.*
@@ -41,7 +42,7 @@ class V110__dvh_changes_when_tr: BaseJavaMigration() {
                         continue
                     }
 
-                    val statistikkTilDVH = jacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
+                    val statistikkTilDVH = ourJacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
                     val modifiedVersion = statistikkTilDVH.copy(
                         resultat = Utfall.of(utfallId).navn,
