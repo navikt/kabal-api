@@ -9,7 +9,7 @@ import org.flywaydb.core.api.migration.Context
 import java.util.*
 
 
-class V1_110__dvh_changes_when_tr: BaseJavaMigration() {
+class V110__dvh_changes_when_tr: BaseJavaMigration() {
     override fun migrate(context: Context) {
         val preparedStatement = context.connection.prepareStatement(
             """
