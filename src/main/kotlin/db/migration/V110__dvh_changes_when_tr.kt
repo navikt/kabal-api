@@ -1,6 +1,5 @@
 package db.migration
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
@@ -50,7 +49,7 @@ class V110__dvh_changes_when_tr: BaseJavaMigration() {
                         behandlingStatus = BehandlingState.AVSLUTTET,
                     )
 
-                    preparedStatement.setString(1, jacksonObjectMapper().writeValueAsString(modifiedVersion))
+                    preparedStatement.setString(1, ourJacksonObjectMapper().writeValueAsString(modifiedVersion))
                     preparedStatement.setObject(2, kafkaEventId)
 
                     preparedStatement.executeUpdate()
