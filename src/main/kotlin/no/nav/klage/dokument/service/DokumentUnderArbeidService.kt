@@ -938,7 +938,6 @@ class DokumentUnderArbeidService(
                         mottakerId = it.id,
                         brukerId = behandling.sakenGjelder.partId.value,
                         tema = behandling.ytelse.toTema(),
-                        isOrganisasjon = getPartIdFromIdentifikator(it.id).type == PartIdType.VIRKSOMHET,
                     )
 
                     if (isDeltAnsvar) {

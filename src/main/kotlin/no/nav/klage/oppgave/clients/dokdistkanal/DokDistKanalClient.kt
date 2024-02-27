@@ -49,7 +49,7 @@ class DokDistKanalClient(
         val regel: String,
         val regelBegrunnelse: String
     ) {
-        enum class DistribusjonKanalCode(utsendingkanalCode: UtsendingkanalCode) {
+        enum class DistribusjonKanalCode(val utsendingkanalCode: UtsendingkanalCode) {
             PRINT(UtsendingkanalCode.S),
             SDP(UtsendingkanalCode.SDP),
             DITT_NAV(UtsendingkanalCode.NAV_NO),

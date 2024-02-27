@@ -1,10 +1,12 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.clients.dokdistkanal.DokDistKanalClient
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
+import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
@@ -18,13 +20,26 @@ class DokDistKanalService(
         mottakerId: String,
         brukerId: String,
         tema: Tema,
-        isOrganisasjon: Boolean
     ): BehandlingDetaljerView.Utsendingskanal {
+        return getDistribusjonKanalCode(
+            mottakerId = mottakerId,
+            brukerId = brukerId,
+            tema = tema
+        ).toBehandlingDetaljerViewUtsendingskanal()
+    }
+
+    fun getDistribusjonKanalCode(
+        mottakerId: String,
+        brukerId: String,
+        tema: Tema,
+    ): DokDistKanalClient.BestemDistribusjonskanalResponse.DistribusjonKanalCode {
+        val isOrganisasjon = getPartIdFromIdentifikator(mottakerId).type == PartIdType.VIRKSOMHET
+
         if (isOrganisasjon) {
             val noekkelInfoOmOrganisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(mottakerId)
             //Override value for DELT_ANSVAR
             if (noekkelInfoOmOrganisasjon.isDeltAnsvar()) {
-                return BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT
+                return DokDistKanalClient.BestemDistribusjonskanalResponse.DistribusjonKanalCode.PRINT
             }
         }
 
@@ -36,10 +51,10 @@ class DokDistKanalService(
             )
         )
 
-        return dokDistKanalResponse.distribusjonskanal.toUtsendingskanal()
+        return dokDistKanalResponse.distribusjonskanal
     }
 
-    private fun DokDistKanalClient.BestemDistribusjonskanalResponse.DistribusjonKanalCode.toUtsendingskanal(): BehandlingDetaljerView.Utsendingskanal {
+    private fun DokDistKanalClient.BestemDistribusjonskanalResponse.DistribusjonKanalCode.toBehandlingDetaljerViewUtsendingskanal(): BehandlingDetaljerView.Utsendingskanal {
         return when (this) {
             DokDistKanalClient.BestemDistribusjonskanalResponse.DistribusjonKanalCode.PRINT -> BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT
             DokDistKanalClient.BestemDistribusjonskanalResponse.DistribusjonKanalCode.SDP -> BehandlingDetaljerView.Utsendingskanal.SDP

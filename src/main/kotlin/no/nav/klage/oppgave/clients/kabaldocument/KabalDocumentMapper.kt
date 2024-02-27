@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.PartId
+import no.nav.klage.oppgave.service.DokDistKanalService
 import no.nav.klage.oppgave.util.DokumentUnderArbeidTitleComparator
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service
 class KabalDocumentMapper(
     private val pdlFacade: PdlFacade,
     private val eregClient: EregClient,
+    private val dokDistKanalService: DokDistKanalService,
 ) {
 
     companion object {
@@ -84,11 +86,12 @@ class KabalDocumentMapper(
                 if (hovedDokument.inngaaendeKanal == null) error("DokumentType requires inngaaendeKanal")
                 Kanal.valueOf(hovedDokument.inngaaendeKanal.toString())
             }
+
             DokumentType.BREV, DokumentType.NOTAT, DokumentType.VEDTAK, DokumentType.BESLUTNING -> null
         }
 
         return DokumentEnhetWithDokumentreferanserInput(
-            brevMottakere = mapAvsenderMottakerInfoSetToAvsenderMottakerInput(
+            avsenderMottakerList = mapAvsenderMottakerInfoSetToAvsenderMottakerInput(
                 behandling = behandling,
                 avsenderMottakerInfoSet = hovedDokument.avsenderMottakerInfoSet,
                 dokumentType = hovedDokument.dokumentType
@@ -132,7 +135,7 @@ class KabalDocumentMapper(
     }
 
     private fun getBrevkode(hovedDokument: DokumentUnderArbeidAsHoveddokument): String {
-        return when(hovedDokument.dokumentType) {
+        return when (hovedDokument.dokumentType) {
             DokumentType.NOTAT -> BREVKODE_NOTAT
             DokumentType.KJENNELSE_FRA_TRYGDERETTEN -> BREVKODE_KJENNELSE_FRA_TR
             DokumentType.BESLUTNING, DokumentType.VEDTAK, DokumentType.BREV -> BREVKODE_BREV
@@ -157,12 +160,15 @@ class KabalDocumentMapper(
         dokumentType: DokumentType
     ): List<AvsenderMottakerInput> {
         return if (dokumentType == DokumentType.NOTAT) {
-            listOf(mapPartIdToBrevmottakerInput(
-                partId = behandling.sakenGjelder.partId,
-                localPrint = false,
-                forceCentralPrint = false,
-                address = null,
-            ))
+            listOf(
+                mapPartIdToBrevmottakerInput(
+                    partId = behandling.sakenGjelder.partId,
+                    localPrint = false,
+                    forceCentralPrint = false,
+                    address = null,
+                    kanal = null
+                )
+            )
         } else {
             avsenderMottakerInfoSet!!.map {
                 mapPartIdToBrevmottakerInput(
@@ -170,8 +176,31 @@ class KabalDocumentMapper(
                     localPrint = it.localPrint,
                     forceCentralPrint = it.forceCentralPrint,
                     address = it.address,
+                    kanal = getKanal(
+                        avsenderMottakerInfo = it,
+                        behandling = behandling,
+                    ),
                 )
             }
+        }
+    }
+
+    private fun getKanal(
+        avsenderMottakerInfo: DokumentUnderArbeidAvsenderMottakerInfo,
+        behandling: Behandling,
+    ): Kanal {
+        return if (avsenderMottakerInfo.localPrint) {
+            Kanal.L
+        } else if (avsenderMottakerInfo.address != null || avsenderMottakerInfo.forceCentralPrint) {
+            Kanal.S
+        } else {
+            val distribusjonKanalCode = dokDistKanalService.getDistribusjonKanalCode(
+                mottakerId = avsenderMottakerInfo.identifikator,
+                brukerId = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema(),
+            )
+
+            Kanal.valueOf(distribusjonKanalCode.utsendingkanalCode.name)
         }
     }
 
@@ -180,18 +209,21 @@ class KabalDocumentMapper(
         localPrint: Boolean,
         forceCentralPrint: Boolean,
         address: DokumentUnderArbeidAdresse?,
+        kanal: Kanal?,
     ) =
         AvsenderMottakerInput(
             partId = mapPartId(partId),
             navn = getNavn(partId),
             localPrint = localPrint,
             tvingSentralPrint = forceCentralPrint,
-            adresse = getAdresse(address)
+            adresse = getAdresse(address),
+            kanal = kanal,
         )
 
     private fun getAdresse(address: DokumentUnderArbeidAdresse?): AvsenderMottakerInput.Address? {
         return if (address != null) {
-            val adressetype = if (address.landkode == "NO") AvsenderMottakerInput.Adressetype.NORSK_POSTADRESSE else AvsenderMottakerInput.Adressetype.UTENLANDSK_POSTADRESSE
+            val adressetype =
+                if (address.landkode == "NO") AvsenderMottakerInput.Adressetype.NORSK_POSTADRESSE else AvsenderMottakerInput.Adressetype.UTENLANDSK_POSTADRESSE
             AvsenderMottakerInput.Address(
                 adressetype = adressetype,
                 adresselinje1 = address.adresselinje1,
