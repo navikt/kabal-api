@@ -39,5 +39,6 @@ enum class Kanal {
     INGEN_DISTRIBUSJON,
     DPV,
     DPVS,
+    DPVT,
     UKJENT,
 }
