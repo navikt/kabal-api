@@ -282,7 +282,6 @@ class BehandlingMapper(
                 mottakerId = sakenGjelder.partId.value,
                 brukerId = sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
-                isOrganisasjon = false,
             )
             return BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal(
                 id = person.foedselsnr,
@@ -348,7 +347,6 @@ class BehandlingMapper(
             mottakerId = identifier,
             brukerId = behandling.sakenGjelder.partId.value,
             tema = behandling.ytelse.toTema(),
-            isOrganisasjon = !isPerson
         )
 
         return if (isPerson) {
