@@ -377,6 +377,20 @@ class MockDataController(
     )
 
     val ytelseTilHjemlerForMock = mapOf(
+        Ytelse.YRK_YRK to listOf(
+            FTRL_13_3_1,
+            FTRL_13_3_2,
+            FTRL_13_3_FS,
+            FTRL_13_4,
+            FTRL_13_6,
+            FTRL_13_8,
+            FTRL_13_10,
+            FTRL_13_17,
+            FTRL_21_12,
+
+            TRRL_9,
+        ),
+
         Ytelse.ENF_ENF to listOf(
             FTRL_15_2,
             FTRL_15_3,
