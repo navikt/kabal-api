@@ -109,7 +109,6 @@ class DokumentUnderArbeidServiceTest {
             systembrukerIdent = "SYSTEMBRUKER",
             kafkaInternalEventService = mockk(),
             saksbehandlerService = mockk(),
-            kabalSmartEditorApiClient = mockk(),
             meterRegistry = mockk(),
             partSearchService = mockk(),
             kodeverkService = mockk(),

@@ -7,7 +7,6 @@ import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
-import no.nav.klage.dokument.clients.kabalsmarteditorapi.KabalSmartEditorApiClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.PDFDocument
@@ -69,7 +68,6 @@ class DokumentUnderArbeidService(
     private val dokumentMapper: DokumentMapper,
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val saksbehandlerService: SaksbehandlerService,
-    private val kabalSmartEditorApiClient: KabalSmartEditorApiClient,
     private val partSearchService: PartSearchService,
     meterRegistry: MeterRegistry,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
@@ -344,7 +342,7 @@ class DokumentUnderArbeidService(
             tidspunkt = document.created,
         )
 
-        val smartEditorDocument = kabalSmartEditorApiClient.getDocument(documentId = document.smartEditorId)
+        val smartEditorDocument = smartEditorApiGateway.getSmartDocumentResponse(smartEditorId = document.smartEditorId)
 
         val dokumentView = dokumentMapper.mapToDokumentView(
             dokumentUnderArbeid = document,
@@ -1198,7 +1196,8 @@ class DokumentUnderArbeidService(
 
         val vedlegg = getVedlegg(hovedDokument.id)
 
-        if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument && hovedDokument.isStaleSmartEditorDokument()) {
+        if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument && hovedDokument.isPDFGenerationNeeded()) {
+            //TODO throw validation exception
             mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(
                 dokument = hovedDokument,
             )
@@ -1214,7 +1213,8 @@ class DokumentUnderArbeidService(
         }
 
         vedlegg.forEach {
-            if (it is SmartdokumentUnderArbeidAsVedlegg && it.isStaleSmartEditorDokument()) {
+            if (it is SmartdokumentUnderArbeidAsVedlegg && it.isPDFGenerationNeeded()) {
+                //TODO throw validation exception
                 mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(it)
             }
         }
@@ -1382,7 +1382,7 @@ class DokumentUnderArbeidService(
             }
 
             is DokumentUnderArbeidAsSmartdokument -> {
-                if (dokument.isStaleSmartEditorDokument()) {
+                if (dokument.isPDFGenerationNeeded()) {
                     mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes to dokument.name
                 } else mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
             }
@@ -1704,7 +1704,7 @@ class DokumentUnderArbeidService(
         return dokumenterUnderArbeid.sortedByDescending { it.created }
             .map {
                 val smartEditorDocument = if (it is DokumentUnderArbeidAsSmartdokument) {
-                    kabalSmartEditorApiClient.getDocument(documentId = it.smartEditorId)
+                    smartEditorApiGateway.getSmartDocumentResponse(smartEditorId = it.smartEditorId)
                 } else null
                 dokumentMapper.mapToDokumentView(
                     dokumentUnderArbeid = it,
@@ -1862,11 +1862,21 @@ class DokumentUnderArbeidService(
         return pdfDocument
     }
 
-    private fun DokumentUnderArbeidAsSmartdokument.isStaleSmartEditorDokument() =
-        smartEditorApiGateway.isMellomlagretDokumentStale(
-            mellomlagretDate = this.mellomlagretDate,
-            smartEditorId = this.smartEditorId,
-        )
+    private fun DokumentUnderArbeidAsSmartdokument.isPDFGenerationNeeded(): Boolean {
+        return when {
+            mellomlagretDate == null -> {
+                true
+            }
+            mellomlagretDate!!.toLocalDate() != LocalDate.now() -> {
+                true
+            }
+            smartEditorApiGateway.getSmartDocumentResponse(smartEditorId)
+                .modified.isAfter(mellomlagretDate) -> {
+                true
+            }
+            else -> false
+        }
+    }
 
     private fun Behandling.endringslogg(
         saksbehandlerident: String,

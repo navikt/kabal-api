@@ -11,7 +11,6 @@ import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
 import java.util.*
 
 @Service
@@ -23,15 +22,6 @@ class DefaultKabalSmartEditorApiGateway(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-    }
-
-    fun isMellomlagretDokumentStale(
-        smartEditorId: UUID,
-        mellomlagretDate: LocalDateTime?
-    ): Boolean {
-        return mellomlagretDate == null || kabalSmartEditorApiClient.getDocument(smartEditorId).modified.isAfter(
-            mellomlagretDate
-        )
     }
 
     @Retryable
