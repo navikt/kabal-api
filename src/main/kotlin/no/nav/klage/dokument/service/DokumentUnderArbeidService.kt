@@ -1723,7 +1723,7 @@ class DokumentUnderArbeidService(
 
         return dokumenterUnderArbeid.sortedByDescending { it.created }
             .map {
-                val smartEditorDocument = if (it is SmartdokumentUnderArbeidAsHoveddokument) {
+                val smartEditorDocument = if (it is DokumentUnderArbeidAsSmartdokument) {
                     smartEditorApiGateway.getSmartDocumentResponse(smartEditorId = it.smartEditorId)
                 } else null
                 dokumentMapper.mapToDokumentView(
