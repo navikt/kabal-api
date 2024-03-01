@@ -1401,7 +1401,7 @@ class DokumentUnderArbeidService(
                 mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
             }
 
-            is SmartdokumentUnderArbeidAsHoveddokument -> {
+            is DokumentUnderArbeidAsSmartdokument -> {
                 if (dokument.isPDFGenerationNeeded()) {
                     mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes to dokument.name
                 } else mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
@@ -1506,7 +1506,7 @@ class DokumentUnderArbeidService(
                 }
             }
 
-            if (document is SmartdokumentUnderArbeidAsHoveddokument) {
+            if (document is DokumentUnderArbeidAsSmartdokument) {
                 try {
                     smartEditorApiGateway.deleteDocument(document.smartEditorId)
                 } catch (e: Exception) {
@@ -1844,7 +1844,7 @@ class DokumentUnderArbeidService(
     fun getSmartEditorId(dokumentId: UUID, readOnly: Boolean): UUID {
         val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
-        if (dokumentUnderArbeid !is SmartdokumentUnderArbeidAsHoveddokument) {
+        if (dokumentUnderArbeid !is DokumentUnderArbeidAsSmartdokument) {
             throw RuntimeException("dokument is not smartdokument")
         }
 
@@ -1882,7 +1882,7 @@ class DokumentUnderArbeidService(
         return pdfDocument
     }
 
-    private fun SmartdokumentUnderArbeidAsHoveddokument.isPDFGenerationNeeded(): Boolean {
+    private fun DokumentUnderArbeidAsSmartdokument.isPDFGenerationNeeded(): Boolean {
         return mellomlagretDate == null ||
                 mellomlagretDate!!.toLocalDate() != LocalDate.now() ||
                 smartEditorApiGateway.getSmartDocumentResponse(smartEditorId).modified.isAfter(mellomlagretDate)
