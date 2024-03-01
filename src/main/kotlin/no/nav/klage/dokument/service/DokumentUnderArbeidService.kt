@@ -1281,9 +1281,10 @@ class DokumentUnderArbeidService(
 
         (vedlegg + smartdokumentUnderArbeid).forEach { document ->
             if (document is DokumentUnderArbeidAsSmartdokument) {
-                if (smartEditorApiGateway.getSmartDocumentResponse(document.smartEditorId).modified.isAfter(
+                if (smartdokumentUnderArbeid.mellomlagretDate == null ||
+                    smartEditorApiGateway.getSmartDocumentResponse(document.smartEditorId).modified.isAfter(
                         smartdokumentUnderArbeid.mellomlagretDate
-                    ) || smartdokumentUnderArbeid.mellomlagretDate == null
+                    )
                 ) {
                     errors += DocumentValidationResponse(
                         dokumentId = smartdokumentUnderArbeid.id,
