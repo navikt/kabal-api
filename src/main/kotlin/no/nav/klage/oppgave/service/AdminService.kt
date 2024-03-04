@@ -25,6 +25,7 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.getSortKey
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import org.hibernate.Hibernate
 import org.slf4j.Logger
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -90,6 +91,20 @@ class AdminService(
 
             pageable = behandlingPage.nextPageable()
         } while (pageable.isPaged)
+    }
+
+    fun reindexBehandlingInSearch(behandlingId: UUID) {
+        val behandling = behandlingRepository.getReferenceById(behandlingId)
+        when (behandling.type) {
+            Type.KLAGE ->
+                behandlingEndretKafkaProducer.sendKlageEndretV2(Hibernate.unproxy(behandling) as Klagebehandling)
+
+            Type.ANKE ->
+                behandlingEndretKafkaProducer.sendAnkeEndretV2(Hibernate.unproxy(behandling) as Ankebehandling)
+
+            Type.ANKE_I_TRYGDERETTEN ->
+                behandlingEndretKafkaProducer.sendAnkeITrygderettenEndretV2(Hibernate.unproxy(behandling) as AnkeITrygderettenbehandling)
+        }
     }
 
     /** only for use in dev */
