@@ -1,4 +1,4 @@
-UPDATE klage.behandling d
+UPDATE klage.behandling
 SET feilregistrering_registered   = '2023-03-04 14:56:13.000000',
     feilregistrering_nav_ident    = 'SYSTEM',
     feilregistrering_reason       = 'Ble ferdigbehandlet utenfor Kabal',
