@@ -9,6 +9,7 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
@@ -117,6 +118,20 @@ class AdminController(
             adminService.setSortKeyToDUA()
         } catch (e: Exception) {
             logger.warn("Failed to setSortKeyToDUA", e)
+            throw e
+        }
+    }
+
+    @GetMapping("/internal/behandlinger/{id}/reindex", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun reindexBehandling(@PathVariable("id") behandlingId: UUID) {
+        logger.debug("reindexBehandling is called")
+        krevAdminTilgang()
+        try {
+            logger.info("Reindexing behandling")
+            adminService.reindexBehandlingInSearch(behandlingId)
+        } catch (e: Exception) {
+            logger.warn("Failed to reindex behandling", e)
             throw e
         }
     }

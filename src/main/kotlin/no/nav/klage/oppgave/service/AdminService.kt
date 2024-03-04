@@ -92,6 +92,20 @@ class AdminService(
         } while (pageable.isPaged)
     }
 
+    fun reindexBehandlingInSearch(behandlingId: UUID) {
+        val behandling = behandlingRepository.getReferenceById(behandlingId)
+        when (behandling.type) {
+            Type.KLAGE ->
+                behandlingEndretKafkaProducer.sendKlageEndretV2(behandling as Klagebehandling)
+
+            Type.ANKE ->
+                behandlingEndretKafkaProducer.sendAnkeEndretV2(behandling as Ankebehandling)
+
+            Type.ANKE_I_TRYGDERETTEN ->
+                behandlingEndretKafkaProducer.sendAnkeITrygderettenEndretV2(behandling as AnkeITrygderettenbehandling)
+        }
+    }
+
     /** only for use in dev */
     fun deleteBehandlingInDev(behandlingId: UUID) {
         logger.debug("Delete test data in dev: attempt to delete behandling with id {}", behandlingId)

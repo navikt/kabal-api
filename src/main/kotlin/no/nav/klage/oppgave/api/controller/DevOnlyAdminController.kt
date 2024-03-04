@@ -45,10 +45,23 @@ class DevOnlyAdminController(
     @ResponseStatus(HttpStatus.OK)
     fun deleteBehandling(@PathVariable("id") behandlingId: UUID) {
         try {
-            logger.info("Delete behandling i dev")
+            logger.info("Delete behandling in dev")
             adminService.deleteBehandlingInDev(behandlingId)
         } catch (e: Exception) {
-            logger.warn("Failed to delete behandling i dev", e)
+            logger.warn("Failed to delete behandling in dev", e)
+            throw e
+        }
+    }
+
+    @Unprotected
+    @GetMapping("/internal/behandlinger/{id}/reindexdev", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun reindexBehandling(@PathVariable("id") behandlingId: UUID) {
+        try {
+            logger.info("Reindexing behandling in dev")
+            adminService.reindexBehandlingInSearch(behandlingId)
+        } catch (e: Exception) {
+            logger.warn("Failed to reindex behandling i dev", e)
             throw e
         }
     }
