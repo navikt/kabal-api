@@ -376,20 +376,24 @@ class MockDataController(
         FTRL_22_13,
     )
 
-    val ytelseTilHjemlerForMock = mapOf(
-        Ytelse.YRK_YRK to listOf(
-            FTRL_13_3_1,
-            FTRL_13_3_2,
-            FTRL_13_3_FS,
-            FTRL_13_4,
-            FTRL_13_6,
-            FTRL_13_8,
-            FTRL_13_10,
-            FTRL_13_17,
-            FTRL_21_12,
+    val hjemlerYRK_YRK = listOf(
+        FTRL_13_3_1,
+        FTRL_13_3_2,
+        FTRL_13_3_FS,
+        FTRL_13_4,
+        FTRL_13_6,
+        FTRL_13_8,
+        FTRL_13_10,
+        FTRL_13_17,
+        FTRL_21_12,
 
-            TRRL_9,
-        ),
+        TRRL_9,
+    )
+
+    val ytelseTilHjemlerForMock = mapOf(
+        Ytelse.YRK_YRK to hjemlerYRK_YRK,
+        Ytelse.YRK_YSY to hjemlerYRK_YRK,
+        Ytelse.YRK_MEN to hjemlerYRK_YRK,
 
         Ytelse.ENF_ENF to listOf(
             FTRL_15_2,
