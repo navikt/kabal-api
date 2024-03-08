@@ -7,13 +7,12 @@ import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
-import no.nav.klage.dokument.clients.kabalsmarteditorapi.KabalSmartEditorApiClient
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.DokumentValidationException
-import no.nav.klage.dokument.exceptions.JsonToPdfValidationException
+import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.DokumentType
@@ -71,7 +70,6 @@ class DokumentUnderArbeidService(
     private val dokumentMapper: DokumentMapper,
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val saksbehandlerService: SaksbehandlerService,
-    private val kabalSmartEditorApiClient: KabalSmartEditorApiClient,
     private val partSearchService: PartSearchService,
     meterRegistry: MeterRegistry,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
@@ -346,7 +344,7 @@ class DokumentUnderArbeidService(
             tidspunkt = document.created,
         )
 
-        val smartEditorDocument = kabalSmartEditorApiClient.getDocument(documentId = document.smartEditorId)
+        val smartEditorDocument = smartEditorApiGateway.getSmartDocumentResponse(smartEditorId = document.smartEditorId)
 
         val dokumentView = dokumentMapper.mapToDokumentView(
             dokumentUnderArbeid = document,
@@ -1127,7 +1125,7 @@ class DokumentUnderArbeidService(
         }
     }
 
-    fun validateIfSmartDokument(
+    fun validatePlaceholdersInSmartDocumentAndVedlegg(
         dokumentId: UUID
     ): List<DocumentValidationResponse> {
         val documentValidationResults = mutableListOf<DocumentValidationResponse>()
@@ -1136,8 +1134,8 @@ class DokumentUnderArbeidService(
         val vedlegg = getVedlegg(hovedDokument.id)
 
         (vedlegg + hovedDokument).forEach {
-            if (it is DokumentUnderArbeidAsSmartdokument) {
-                documentValidationResults += validateSingleSmartdocument(it)
+            if (it is SmartdokumentUnderArbeidAsHoveddokument) {
+                documentValidationResults += validatePlaceholdersInSingleSmartDocument(it)
             }
         }
 
@@ -1148,17 +1146,16 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeidCommonService.findVedleggByParentId(hoveddokumentId)
     }
 
-    private fun validateSingleSmartdocument(dokument: DokumentUnderArbeidAsSmartdokument): DocumentValidationResponse {
+    private fun validatePlaceholdersInSingleSmartDocument(dokument: SmartdokumentUnderArbeidAsHoveddokument): DocumentValidationResponse {
         logger.debug("Getting json document, dokumentId: {}", dokument.id)
         val documentJson = smartEditorApiGateway.getDocumentAsJson(dokument.smartEditorId)
-        logger.debug("Validating json document in kabalJsontoPdf, dokumentId: {}", dokument.id)
+        logger.debug("Validating json document in kabalJsonToPdf, dokumentId: {}", dokument.id)
         val response = kabalJsonToPdfClient.validateJsonDocument(documentJson)
         return DocumentValidationResponse(
-            dokumentId = dokument.id.toString(),
+            dokumentId = dokument.id,
             errors = response.errors.map {
                 DocumentValidationResponse.DocumentValidationError(
-                    type = it.type,
-                    paths = it.paths,
+                    type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.EMPTY_PLACEHOLDER,
                 )
             }
         )
@@ -1194,16 +1191,13 @@ class DokumentUnderArbeidService(
             )
         }
 
-        validateHoveddokumentBeforeFerdig(
+        validateDocumentBeforeFerdig(
             hovedDokument = hovedDokument,
         )
 
         val vedlegg = getVedlegg(hovedDokument.id)
 
-        if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument && hovedDokument.isStaleSmartEditorDokument()) {
-            mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(
-                dokument = hovedDokument,
-            )
+        if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument) {
             try {
                 metricForSmartDocumentVersions.record(
                     smartEditorApiGateway.getSmartDocumentResponse(
@@ -1212,12 +1206,6 @@ class DokumentUnderArbeidService(
                 )
             } catch (e: Exception) {
                 logger.warn("could not record metrics for smart document versions", e)
-            }
-        }
-
-        vedlegg.forEach {
-            if (it is SmartdokumentUnderArbeidAsVedlegg && it.isStaleSmartEditorDokument()) {
-                mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(it)
             }
         }
 
@@ -1288,42 +1276,74 @@ class DokumentUnderArbeidService(
         return hovedDokument
     }
 
-    private fun toDokumentUnderArbeidBrevmottakerInfo(
-        id: String,
-        dokumentType: DokumentType,
-        behandling: Behandling,
-    ): DokumentUnderArbeidAvsenderMottakerInfo {
-        return if (dokumentType == DokumentType.NOTAT) {
-            DokumentUnderArbeidAvsenderMottakerInfo(
-                identifikator = behandling.sakenGjelder.partId.value,
-                localPrint = false,
-                forceCentralPrint = false,
-                address = null,
-            )
-        } else {
-            DokumentUnderArbeidAvsenderMottakerInfo(
-                identifikator = id,
-                localPrint = false,
-                forceCentralPrint = false,
-                address = null,
-            )
+    private fun validateSmartDocumentAndVedleggNotStale(smartdokumentUnderArbeid: SmartdokumentUnderArbeidAsHoveddokument): List<DocumentValidationResponse> {
+        val errors = mutableListOf<DocumentValidationResponse>()
+
+        val vedlegg = getVedlegg(smartdokumentUnderArbeid.id)
+
+        (vedlegg + smartdokumentUnderArbeid).forEach { document ->
+            if (document is DokumentUnderArbeidAsSmartdokument) {
+                if (smartdokumentUnderArbeid.mellomlagretDate == null ||
+                    smartEditorApiGateway.getSmartDocumentResponse(document.smartEditorId).modified.isAfter(
+                        smartdokumentUnderArbeid.mellomlagretDate
+                    )
+                ) {
+                    errors += DocumentValidationResponse(
+                        dokumentId = smartdokumentUnderArbeid.id,
+                        errors = listOf(
+                            DocumentValidationResponse.DocumentValidationError(
+                                type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.DOCUMENT_MODIFIED,
+                            )
+                        )
+                    )
+                }
+
+                if (smartdokumentUnderArbeid.mellomlagretDate != null && smartdokumentUnderArbeid.mellomlagretDate!!.toLocalDate() != LocalDate.now()) {
+                    errors += DocumentValidationResponse(
+                        dokumentId = smartdokumentUnderArbeid.id,
+                        errors = listOf(
+                            DocumentValidationResponse.DocumentValidationError(
+                                type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.WRONG_DATE,
+                            )
+                        )
+                    )
+                }
+            }
         }
+
+        return errors
     }
 
-    private fun validateHoveddokumentBeforeFerdig(
+    private fun validateDocumentBeforeFerdig(
         hovedDokument: DokumentUnderArbeidAsHoveddokument,
     ) {
         if (hovedDokument.erMarkertFerdig() || hovedDokument.erFerdigstilt()) {
             throw DokumentValidationException("Kan ikke markere et dokument som allerede er ferdigstilt som ferdigstilt")
         }
 
-        val documentValidationErrors = validateIfSmartDokument(hovedDokument.id)
-        if (documentValidationErrors.any { it.errors.isNotEmpty() }) {
-            throw JsonToPdfValidationException(
-                msg = "Validation error from json to pdf",
-                errors = documentValidationErrors
+        if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument) {
+            val placeholderErrors = validatePlaceholdersInSmartDocumentAndVedlegg(hovedDokument.id)
+
+            val otherErrors = validateSmartDocumentAndVedleggNotStale(
+                hovedDokument
             )
+
+            val allErrors = (placeholderErrors + otherErrors).groupBy { it.dokumentId }.map { (key, value) ->
+                val errors = value.flatMap { it.errors }
+                DocumentValidationResponse(
+                    dokumentId = key,
+                    errors = errors,
+                )
+            }
+
+            if (allErrors.any { it.errors.isNotEmpty() }) {
+                throw SmartDocumentValidationException(
+                    msg = "Smartdokument(er) med valideringsfeil.",
+                    errors = allErrors,
+                )
+            }
         }
+
 
         val avsenderMottakerInfoSet = hovedDokument.avsenderMottakerInfoSet
 
@@ -1384,7 +1404,7 @@ class DokumentUnderArbeidService(
             }
 
             is DokumentUnderArbeidAsSmartdokument -> {
-                if (dokument.isStaleSmartEditorDokument()) {
+                if (dokument.isPDFGenerationNeeded()) {
                     mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes to dokument.name
                 } else mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
             }
@@ -1706,7 +1726,7 @@ class DokumentUnderArbeidService(
         return dokumenterUnderArbeid.sortedByDescending { it.created }
             .map {
                 val smartEditorDocument = if (it is DokumentUnderArbeidAsSmartdokument) {
-                    kabalSmartEditorApiClient.getDocument(documentId = it.smartEditorId)
+                    smartEditorApiGateway.getSmartDocumentResponse(smartEditorId = it.smartEditorId)
                 } else null
                 dokumentMapper.mapToDokumentView(
                     dokumentUnderArbeid = it,
@@ -1919,7 +1939,7 @@ class DokumentUnderArbeidService(
 
     private fun mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument: DokumentUnderArbeid): PDFDocument {
 
-        if (dokument !is DokumentUnderArbeidAsSmartdokument) {
+        if (dokument !is SmartdokumentUnderArbeidAsHoveddokument) {
             throw RuntimeException("dokument is not smartdokument")
         }
 
@@ -1945,11 +1965,11 @@ class DokumentUnderArbeidService(
         return pdfDocument
     }
 
-    private fun DokumentUnderArbeidAsSmartdokument.isStaleSmartEditorDokument() =
-        smartEditorApiGateway.isMellomlagretDokumentStale(
-            mellomlagretDate = this.mellomlagretDate,
-            smartEditorId = this.smartEditorId,
-        )
+    private fun DokumentUnderArbeidAsSmartdokument.isPDFGenerationNeeded(): Boolean {
+        return mellomlagretDate == null ||
+                mellomlagretDate!!.toLocalDate() != LocalDate.now() ||
+                smartEditorApiGateway.getSmartDocumentResponse(smartEditorId).modified.isAfter(mellomlagretDate)
+    }
 
     private fun Behandling.endringslogg(
         saksbehandlerident: String,
@@ -1959,12 +1979,12 @@ class DokumentUnderArbeidService(
         tidspunkt: LocalDateTime
     ): Endringslogginnslag? {
         return Endringslogginnslag.endringslogg(
-            saksbehandlerident,
-            felt,
-            fraVerdi,
-            tilVerdi,
-            this.id,
-            tidspunkt
+            saksbehandlerident = saksbehandlerident,
+            felt = felt,
+            fraVerdi = fraVerdi,
+            tilVerdi = tilVerdi,
+            behandlingId = this.id,
+            tidspunkt = tidspunkt
         )
     }
 
