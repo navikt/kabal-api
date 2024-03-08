@@ -1936,7 +1936,7 @@ class DokumentUnderArbeidService(
 
     private fun mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument: DokumentUnderArbeid): PDFDocument {
 
-        if (dokument !is SmartdokumentUnderArbeidAsHoveddokument) {
+        if (dokument !is DokumentUnderArbeidAsSmartdokument) {
             throw RuntimeException("dokument is not smartdokument")
         }
 
