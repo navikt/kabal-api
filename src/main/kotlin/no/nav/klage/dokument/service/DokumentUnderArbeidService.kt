@@ -1869,72 +1869,69 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
             mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
         }
-        val tmpFileHoveddokumentPath = Files.createTempFile("", "")
-        Files.write(tmpFileHoveddokumentPath, hoveddokumentPDFBytes)
+        val hoveddokumentPath = Files.write(Files.createTempFile("", ""), hoveddokumentPDFBytes)
 
-        val vedlegg = getVedlegg(dokumentUnderArbeidId)
+        val vedleggList = getVedlegg(dokumentUnderArbeidId)
 
-        val vedleggAsByteList = vedlegg.sortedByDescending { it.created }.mapNotNull {
-            when (it) {
+        val vedleggAsByteList = vedleggList.sortedByDescending { it.created }.mapNotNull { vedlegg ->
+            when (vedlegg) {
                 is SmartdokumentUnderArbeidAsVedlegg -> {
-                    if (it.isPDFGenerationNeeded()) {
-                        mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(it).bytes
+                    if (vedlegg.isPDFGenerationNeeded()) {
+                        mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(vedlegg).bytes
                     } else {
-                        mellomlagerService.getUploadedDocument(it.mellomlagerId!!)
+                        mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
                     }
                 }
 
                 is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                    mellomlagerService.getUploadedDocument(it.mellomlagerId!!)
+                    mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
                 }
-
                 else -> null
             }
         }
 
-        val tmpFileInnholdsfortegnelsePath = if (vedlegg.isNotEmpty()) {
+        val inholdsfortegnelsePath = if (vedleggList.isNotEmpty()) {
             val innholdsfortegnelsePDFBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
                 dokumentUnderArbeidId = dokumentUnderArbeidId,
                 fnr = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId).sakenGjelder.partId.value
             )
-            val tmpFileInnholdsfortegnelse = Files.createTempFile("", "")
-            Files.write(tmpFileInnholdsfortegnelse, innholdsfortegnelsePDFBytes)
-            tmpFileInnholdsfortegnelse
+            Files.write(Files.createTempFile("", ""), innholdsfortegnelsePDFBytes)
         } else {
             null
         }
 
-        val vedleggPaths = vedleggAsByteList.map {
-            val tmpFileVedlegg = Files.createTempFile("", "")
-            Files.write(tmpFileVedlegg, it)
-            tmpFileVedlegg
+        val vedleggSmartAndUploadedPaths = vedleggAsByteList.map {
+            Files.write(Files.createTempFile("", ""), it)
         }
 
-        val journalfoerteVedlegg = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+        val journalfoerteVedlegg = vedleggList.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
         val journalfoertePath = if (journalfoerteVedlegg.isNotEmpty()) {
-            val (journalfoertePath, _) = dokumentService.mergeJournalfoerteDocuments(
+            dokumentService.mergeJournalfoerteDocuments(
                 documentsToMerge = journalfoerteVedlegg
                     .sortedByDescending { it.sortKey }
                     .map {
                         it.journalpostId to it.dokumentInfoId
-                    })
-
-            journalfoertePath
+                    }).first
         } else {
             null
         }
 
-        val toMerge = mutableListOf<Path>()
-        toMerge.add(tmpFileHoveddokumentPath)
-        if (tmpFileInnholdsfortegnelsePath != null) {
-            toMerge.add(tmpFileInnholdsfortegnelsePath)
-        }
-        toMerge.addAll(vedleggPaths)
-        if (journalfoertePath != null) {
-            toMerge.add(journalfoertePath)
+        val filesToMerge = mutableListOf<Path>()
+
+        //Add files in correct order
+        filesToMerge.add(hoveddokumentPath)
+
+        if (inholdsfortegnelsePath != null) {
+            filesToMerge.add(inholdsfortegnelsePath)
         }
 
-        return dokumentService.mergePDFFiles(pdfFilesToMerge = toMerge, title = "Samlet dokument")
+        filesToMerge.addAll(vedleggSmartAndUploadedPaths)
+
+        if (journalfoertePath != null) {
+            filesToMerge.add(journalfoertePath)
+        }
+
+        return dokumentService.mergePDFFiles(pdfFilesToMerge = filesToMerge, title = "Samlet dokument")
     }
 
     private fun mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument: DokumentUnderArbeid): PDFDocument {
