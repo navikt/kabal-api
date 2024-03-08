@@ -290,14 +290,24 @@ class DokumentService(
             }
     }
 
-    fun mergeDocuments(id: UUID): Pair<Path, String> {
+    fun mergeJournalfoerteDocuments(id: UUID): Pair<Path, String> {
         val mergedDocument = mergedDocumentRepository.getReferenceById(id)
         val documentsToMerge = mergedDocument.documentsToMerge.sortedBy { it.index }
 
+        return mergeJournalfoerteDocuments(
+            documentsToMerge.map { it.journalpostId to it.dokumentInfoId },
+            mergedDocument.title
+        )
+    }
+
+    fun mergeJournalfoerteDocuments(
+        documentsToMerge: List<Pair<String, String>>,
+        title: String = "merged document"
+    ): Pair<Path, String> {
         val merger = PDFMergerUtility()
 
         val pdDocumentInformation = PDDocumentInformation()
-        pdDocumentInformation.title = mergedDocument.title
+        pdDocumentInformation.title = title
         merger.destinationDocumentInformation = pdDocumentInformation
 
         val pathToMergedDocument = Files.createTempFile(null, null)
@@ -312,8 +322,8 @@ class DokumentService(
 
         Flux.fromIterable(documentsWithPaths).flatMapSequential { (document, path) ->
             safRestClient.downloadDocumentAsMono(
-                journalpostId = document.journalpostId,
-                dokumentInfoId = document.dokumentInfoId,
+                journalpostId = document.first,
+                dokumentInfoId = document.second,
                 pathToFile = path,
             )
         }.collectList().block()
@@ -331,10 +341,41 @@ class DokumentService(
                 pathToTmpFile.toFile().delete()
             }
         } catch (e: Exception) {
-            logger.warn("couldn't delete tmp file", e)
+            logger.warn("couldn't delete tmp files", e)
         }
 
-        return pathToMergedDocument to mergedDocument.title
+        return pathToMergedDocument to title
+    }
+
+    fun mergePDFFiles(pdfFilesToMerge: List<Path>, title: String = "merged document"): Pair<Path, String> {
+        val merger = PDFMergerUtility()
+
+        val pdDocumentInformation = PDDocumentInformation()
+        pdDocumentInformation.title = title
+        merger.destinationDocumentInformation = pdDocumentInformation
+
+        val pathToMergedDocument = Files.createTempFile(null, null)
+        pathToMergedDocument.toFile().deleteOnExit()
+
+        merger.destinationFileName = pathToMergedDocument.toString()
+
+        pdfFilesToMerge.forEach { path ->
+            merger.addSource(path.toFile())
+        }
+
+        //just under 256 MB before using file system
+        merger.mergeDocuments(getMixedMemorySettingsForPDFBox(250_000_000))
+
+        //clean tmp files
+        try {
+            pdfFilesToMerge.forEach { pathToTmpFile ->
+                pathToTmpFile.toFile().delete()
+            }
+        } catch (e: Exception) {
+            logger.warn("couldn't delete tmp files", e)
+        }
+
+        return pathToMergedDocument to title
     }
 
     fun getMergedDocument(id: UUID) = mergedDocumentRepository.getReferenceById(id)
@@ -385,4 +426,5 @@ class DokumentService(
             )
         )
     }
+
 }

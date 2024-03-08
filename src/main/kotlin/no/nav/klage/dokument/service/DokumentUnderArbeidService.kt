@@ -39,6 +39,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import java.nio.file.Files
+import java.nio.file.Path
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -1832,6 +1834,69 @@ class DokumentUnderArbeidService(
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
 
         return dokumentUnderArbeid.smartEditorId
+    }
+
+    fun mergeDUA(dokumentUnderArbeidId: UUID): Pair<Path, String> {
+        val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId) as DokumentUnderArbeidAsHoveddokument
+
+        val hoveddokumentPDFBytes = if (dokumentUnderArbeid is SmartdokumentUnderArbeidAsHoveddokument) {
+            if (dokumentUnderArbeid.isStaleSmartEditorDokument()) {
+                mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid).bytes
+            } else {
+                mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
+            }
+        } else {
+            dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
+            mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
+        }
+        val tmpFileHoveddokument = Files.createTempFile("", "")
+        Files.write(tmpFileHoveddokument, hoveddokumentPDFBytes)
+
+        val innholdsfortegnelsePDFBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
+            dokumentUnderArbeidId = dokumentUnderArbeidId,
+            fnr = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId).sakenGjelder.partId.value
+        )
+        val tmpFileInnholdsfortegnelse = Files.createTempFile("", "")
+        Files.write(tmpFileInnholdsfortegnelse, innholdsfortegnelsePDFBytes)
+
+        val vedleggAsByteList = getVedlegg(dokumentUnderArbeidId).sortedByDescending { it.created }.mapNotNull {
+            when (it) {
+                is SmartdokumentUnderArbeidAsVedlegg -> {
+                    if (it.isStaleSmartEditorDokument()) {
+                        mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(it).bytes
+                    } else {
+                        mellomlagerService.getUploadedDocument(it.mellomlagerId!!)
+                    }
+                }
+
+                is OpplastetDokumentUnderArbeidAsVedlegg -> {
+                    mellomlagerService.getUploadedDocument(it.mellomlagerId!!)
+                }
+
+                else -> null
+            }
+        }
+
+        val vedleggPaths = vedleggAsByteList.map {
+            val tmpFileVedlegg = Files.createTempFile("", "")
+            Files.write(tmpFileVedlegg, it)
+            tmpFileVedlegg
+        }
+
+        val (journalfoertePath, _) = dokumentService.mergeJournalfoerteDocuments(
+            documentsToMerge = getVedlegg(dokumentUnderArbeidId).filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+                .sortedByDescending { it.sortKey }
+                .map {
+                    it.journalpostId to it.dokumentInfoId
+                })
+
+        val toMerge = mutableListOf<Path>()
+        toMerge.add(tmpFileHoveddokument)
+        toMerge.add(tmpFileInnholdsfortegnelse)
+        toMerge.addAll(vedleggPaths)
+        toMerge.add(journalfoertePath)
+
+        return dokumentService.mergePDFFiles(pdfFilesToMerge = toMerge, title = "Samlet dokument")
     }
 
     private fun mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument: DokumentUnderArbeid): PDFDocument {
