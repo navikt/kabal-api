@@ -1890,12 +1890,19 @@ class DokumentUnderArbeidService(
             tmpFileVedlegg
         }
 
-        val (journalfoertePath, _) = dokumentService.mergeJournalfoerteDocuments(
-            documentsToMerge = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-                .sortedByDescending { it.sortKey }
-                .map {
-                    it.journalpostId to it.dokumentInfoId
-                })
+        val journalfoerteVedlegg = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+        val journalfoertePath = if (journalfoerteVedlegg.isNotEmpty()) {
+            val (journalfoertePath, _) = dokumentService.mergeJournalfoerteDocuments(
+                documentsToMerge = journalfoerteVedlegg
+                    .sortedByDescending { it.sortKey }
+                    .map {
+                        it.journalpostId to it.dokumentInfoId
+                    })
+
+            journalfoertePath
+        } else {
+            null
+        }
 
         val toMerge = mutableListOf<Path>()
         toMerge.add(tmpFileHoveddokumentPath)
@@ -1903,7 +1910,9 @@ class DokumentUnderArbeidService(
             toMerge.add(tmpFileInnholdsfortegnelsePath)
         }
         toMerge.addAll(vedleggPaths)
-        toMerge.add(journalfoertePath)
+        if (journalfoertePath != null) {
+            toMerge.add(journalfoertePath)
+        }
 
         return dokumentService.mergePDFFiles(pdfFilesToMerge = toMerge, title = "Samlet dokument")
     }

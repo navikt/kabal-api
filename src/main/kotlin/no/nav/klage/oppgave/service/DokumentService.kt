@@ -304,6 +304,10 @@ class DokumentService(
         documentsToMerge: List<Pair<String, String>>,
         title: String = "merged document"
     ): Pair<Path, String> {
+        if (documentsToMerge.isEmpty()) {
+            throw RuntimeException("No documents to merge")
+        }
+
         val merger = PDFMergerUtility()
 
         val pdDocumentInformation = PDDocumentInformation()
