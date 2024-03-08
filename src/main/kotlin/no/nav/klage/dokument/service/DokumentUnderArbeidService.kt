@@ -1860,7 +1860,7 @@ class DokumentUnderArbeidService(
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId) as DokumentUnderArbeidAsHoveddokument
 
         val hoveddokumentPDFBytes = if (dokumentUnderArbeid is SmartdokumentUnderArbeidAsHoveddokument) {
-            if (dokumentUnderArbeid.isStaleSmartEditorDokument()) {
+            if (dokumentUnderArbeid.isPDFGenerationNeeded()) {
                 mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid).bytes
             } else {
                 mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
@@ -1877,7 +1877,7 @@ class DokumentUnderArbeidService(
         val vedleggAsByteList = vedlegg.sortedByDescending { it.created }.mapNotNull {
             when (it) {
                 is SmartdokumentUnderArbeidAsVedlegg -> {
-                    if (it.isStaleSmartEditorDokument()) {
+                    if (it.isPDFGenerationNeeded()) {
                         mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(it).bytes
                     } else {
                         mellomlagerService.getUploadedDocument(it.mellomlagerId!!)
