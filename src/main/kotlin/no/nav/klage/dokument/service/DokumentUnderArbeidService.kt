@@ -1836,7 +1836,7 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeid.smartEditorId
     }
 
-    fun mergeDUA(dokumentUnderArbeidId: UUID): Pair<Path, String> {
+    fun mergeDUAAndCreatePDF(dokumentUnderArbeidId: UUID): Pair<Path, String> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId) as DokumentUnderArbeidAsHoveddokument
 
         val hoveddokumentPDFBytes = if (dokumentUnderArbeid is SmartdokumentUnderArbeidAsHoveddokument) {
@@ -1849,17 +1849,12 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
             mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
         }
-        val tmpFileHoveddokument = Files.createTempFile("", "")
-        Files.write(tmpFileHoveddokument, hoveddokumentPDFBytes)
+        val tmpFileHoveddokumentPath = Files.createTempFile("", "")
+        Files.write(tmpFileHoveddokumentPath, hoveddokumentPDFBytes)
 
-        val innholdsfortegnelsePDFBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
-            dokumentUnderArbeidId = dokumentUnderArbeidId,
-            fnr = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId).sakenGjelder.partId.value
-        )
-        val tmpFileInnholdsfortegnelse = Files.createTempFile("", "")
-        Files.write(tmpFileInnholdsfortegnelse, innholdsfortegnelsePDFBytes)
+        val vedlegg = getVedlegg(dokumentUnderArbeidId)
 
-        val vedleggAsByteList = getVedlegg(dokumentUnderArbeidId).sortedByDescending { it.created }.mapNotNull {
+        val vedleggAsByteList = vedlegg.sortedByDescending { it.created }.mapNotNull {
             when (it) {
                 is SmartdokumentUnderArbeidAsVedlegg -> {
                     if (it.isStaleSmartEditorDokument()) {
@@ -1877,6 +1872,18 @@ class DokumentUnderArbeidService(
             }
         }
 
+        val tmpFileInnholdsfortegnelsePath = if (vedlegg.isNotEmpty()) {
+            val innholdsfortegnelsePDFBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
+                dokumentUnderArbeidId = dokumentUnderArbeidId,
+                fnr = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId).sakenGjelder.partId.value
+            )
+            val tmpFileInnholdsfortegnelse = Files.createTempFile("", "")
+            Files.write(tmpFileInnholdsfortegnelse, innholdsfortegnelsePDFBytes)
+            tmpFileInnholdsfortegnelse
+        } else {
+            null
+        }
+
         val vedleggPaths = vedleggAsByteList.map {
             val tmpFileVedlegg = Files.createTempFile("", "")
             Files.write(tmpFileVedlegg, it)
@@ -1884,15 +1891,17 @@ class DokumentUnderArbeidService(
         }
 
         val (journalfoertePath, _) = dokumentService.mergeJournalfoerteDocuments(
-            documentsToMerge = getVedlegg(dokumentUnderArbeidId).filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+            documentsToMerge = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
                 .sortedByDescending { it.sortKey }
                 .map {
                     it.journalpostId to it.dokumentInfoId
                 })
 
         val toMerge = mutableListOf<Path>()
-        toMerge.add(tmpFileHoveddokument)
-        toMerge.add(tmpFileInnholdsfortegnelse)
+        toMerge.add(tmpFileHoveddokumentPath)
+        if (tmpFileInnholdsfortegnelsePath != null) {
+            toMerge.add(tmpFileInnholdsfortegnelsePath)
+        }
         toMerge.addAll(vedleggPaths)
         toMerge.add(journalfoertePath)
 

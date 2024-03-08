@@ -317,7 +317,7 @@ class DokumentUnderArbeidController(
             logger = logger,
         )
 
-        val (pathToMergedDocument, title) = dokumentUnderArbeidService.mergeDUA(dokumentUnderArbeidId)
+        val (pathToMergedDocument, title) = dokumentUnderArbeidService.mergeDUAAndCreatePDF(dokumentUnderArbeidId)
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = MediaType.APPLICATION_PDF
         responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$title.pdf\"")
