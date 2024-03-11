@@ -16,15 +16,19 @@ import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
+import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.http.ContentDisposition
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.file.Files
 import java.util.*
+
 
 @RestController
 @Tag(name = "kabal-api")
@@ -80,29 +84,33 @@ class JournalpostController(
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String
 
-    ): ResponseEntity<ByteArray> {
+    ): Mono<ResponseEntity<Flux<DataBuffer>>> {
         logMethodDetails(
             methodName = ::getArkivertDokumentPDF.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger,
         )
 
-        val fysiskDokument = dokumentService.getFysiskDokument(
+        val flux = dokumentService.getFysiskDokumentAsFlux(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId
         )
 
         val responseHeaders = HttpHeaders()
-        responseHeaders.contentType = fysiskDokument.contentType
-        responseHeaders.add(
-            "Content-Disposition",
-            "inline; filename=\"${fysiskDokument.title.removeSuffix(".pdf")}.pdf\""
+
+        val contentDisposition = ContentDisposition.inline()
+            .filename("todo.pdf")
+            .build()
+
+        responseHeaders.contentType = MediaType.APPLICATION_PDF
+        responseHeaders.contentDisposition = contentDisposition
+
+        return Mono.just(
+            ResponseEntity.ok()
+                .headers(responseHeaders)
+                .body(flux)
         )
-        return ResponseEntity(
-            dokumentService.changeTitleInPDF(fysiskDokument.content, fysiskDokument.title),
-            responseHeaders,
-            HttpStatus.OK
-        )
+
     }
 
     @Operation(

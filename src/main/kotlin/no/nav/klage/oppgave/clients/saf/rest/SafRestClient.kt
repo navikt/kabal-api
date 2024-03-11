@@ -121,6 +121,45 @@ class SafRestClient(
         }
     }
 
+    fun getDocumentAsFlux(
+        dokumentInfoId: String,
+        journalpostId: String,
+        variantFormat: String = "ARKIV",
+    ): Flux<DataBuffer> {
+        return try {
+            runWithTimingAndLogging {
+                safWebClient.get()
+                    .uri(
+                        "/rest/hentdokument/{journalpostId}/{dokumentInfoId}/{variantFormat}",
+                        journalpostId,
+                        dokumentInfoId,
+                        variantFormat
+                    )
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithSafScope()}"
+                    )
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError) { response ->
+                        logErrorResponse(response, ::getDocumentAsFlux.name, secureLogger)
+                    }
+                    .bodyToFlux(DataBuffer::class.java)
+            }
+        } catch (badRequest: WebClientResponseException.BadRequest) {
+            logger.warn("Got a 400 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
+            throw badRequest
+        } catch (unautorized: WebClientResponseException.Unauthorized) {
+            logger.warn("Got a 401 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
+            throw unautorized
+        } catch (forbidden: WebClientResponseException.Forbidden) {
+            logger.warn("Got a 403 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
+            throw forbidden
+        } catch (notFound: WebClientResponseException.NotFound) {
+            logger.warn("Got a 404 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
+            throw notFound
+        }
+    }
+
     fun <T> runWithTimingAndLogging(block: () -> T): T {
         val start = System.currentTimeMillis()
         try {

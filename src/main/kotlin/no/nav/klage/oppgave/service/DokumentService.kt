@@ -30,6 +30,7 @@ import org.apache.pdfbox.io.RandomAccessStreamCache.StreamCacheCreateFunction
 import org.apache.pdfbox.multipdf.PDFMergerUtility
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDDocumentInformation
+import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
@@ -157,6 +158,10 @@ class DokumentService(
             content = arkivertDokument.bytes,
             contentType = arkivertDokument.contentType,
         )
+    }
+
+    fun getFysiskDokumentAsFlux(journalpostId: String, dokumentInfoId: String): Flux<DataBuffer> {
+        return safRestClient.getDocumentAsFlux(dokumentInfoId, journalpostId)
     }
 
     fun getDocumentTitle(journalpostId: String, dokumentInfoId: String): String {
