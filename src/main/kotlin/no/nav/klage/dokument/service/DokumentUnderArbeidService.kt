@@ -1273,7 +1273,7 @@ class DokumentUnderArbeidService(
 
     fun validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeidId: UUID): List<DocumentValidationResponse> {
         val smartdokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentUnderArbeidId)
-            .get() as SmartdokumentUnderArbeidAsHoveddokument
+            .get() as DokumentUnderArbeidAsHoveddokument
         return validateDokumentUnderArbeidAndVedlegg(smartdokumentUnderArbeid)
     }
 
