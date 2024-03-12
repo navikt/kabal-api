@@ -1310,7 +1310,7 @@ class DokumentUnderArbeidService(
                     )
                 }
 
-                if (smartdokumentUnderArbeid.mellomlagretDate != null && smartdokumentUnderArbeid.mellomlagretDate!!.toLocalDate() != LocalDate.now().minusDays(1)) {
+                if (smartdokumentUnderArbeid.mellomlagretDate != null && smartdokumentUnderArbeid.mellomlagretDate!!.toLocalDate() != LocalDate.now()) {
                     errors += DocumentValidationResponse(
                         dokumentId = smartdokumentUnderArbeid.id,
                         errors = listOf(
