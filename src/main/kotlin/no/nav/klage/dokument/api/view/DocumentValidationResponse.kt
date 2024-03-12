@@ -1,11 +1,19 @@
 package no.nav.klage.dokument.api.view
 
+import java.util.*
+
 data class DocumentValidationResponse(
-    val dokumentId: String,
+    val dokumentId: UUID,
     val errors: List<DocumentValidationError> = emptyList()
 ) {
     data class DocumentValidationError(
-        val type: String,
-        val paths: List<List<Int>> = emptyList()
-    )
+        val type: SmartDocumentErrorType,
+    ) {
+        enum class SmartDocumentErrorType {
+            EMPTY_PLACEHOLDER,
+            WRONG_DATE,
+            DOCUMENT_MODIFIED,
+            EMPTY_REGELVERK,
+        }
+    }
 }

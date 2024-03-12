@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.config.problem
 
 import no.nav.klage.dokument.exceptions.DokumentValidationException
-import no.nav.klage.dokument.exceptions.JsonToPdfValidationException
+import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.http.HttpStatus
@@ -189,21 +189,23 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
-    fun handleJsonToPdfValidationException(
-        ex: JsonToPdfValidationException,
+    fun handleSmartDocumentValidationException(
+        ex: SmartDocumentValidationException,
         request: NativeWebRequest
     ): ProblemDetail =
-        createJsonDocumentValidationProblem(ex)
+        createSmartDocumentValidationProblem(ex)
 
-    private fun createJsonDocumentValidationProblem(ex: JsonToPdfValidationException): ProblemDetail {
+    private fun createSmartDocumentValidationProblem(ex: SmartDocumentValidationException): ProblemDetail {
         logError(
             httpStatus = HttpStatus.BAD_REQUEST,
-            errorMessage = ex.message ?: "json validation error without description",
+            errorMessage = ex.message ?: "smartDocument validation error without description",
             exception = ex
         )
 
         return ProblemDetail.forStatus(HttpStatus.BAD_REQUEST).apply {
             this.title = ex.message
+            this.setProperty("documents", ex.errors)
+            //TODO remove when FE changed
             this.setProperty("dokumenter", ex.errors)
         }
     }

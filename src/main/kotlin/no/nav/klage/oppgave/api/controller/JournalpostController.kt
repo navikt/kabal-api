@@ -154,7 +154,7 @@ class JournalpostController(
             logger = logger,
         )
 
-        val (pathToMergedDocument, title) = dokumentService.mergeDocuments(referenceId)
+        val (pathToMergedDocument, title) = dokumentService.mergeJournalfoerteDocuments(referenceId)
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = MediaType.APPLICATION_PDF
         responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$title.pdf\"")

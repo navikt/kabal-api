@@ -11,9 +11,17 @@ import no.nav.klage.oppgave.api.view.DokumentUnderArbeidMetadata
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.io.FileInputStream
+import java.io.InputStream
+import java.nio.file.Files
 import java.util.*
 
 @RestController
@@ -278,8 +286,8 @@ class DokumentUnderArbeidController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentid") dokumentId: UUID,
     ): List<DocumentValidationResponse> {
-        //TODO only called for hoveddokumenter?
-        return dokumentUnderArbeidService.validateIfSmartDokument(dokumentId)
+        //Only called for hoveddokumenter
+        return dokumentUnderArbeidService.validateDokumentUnderArbeidAndVedlegg(dokumentId)
     }
 
     @PutMapping("/{dokumentid}/tittel")
@@ -297,5 +305,37 @@ class DokumentUnderArbeidController(
                 innloggetIdent = ident,
             ).modified
         )
+    }
+
+    @GetMapping("/mergedocuments/{dokumentUnderArbeidId}/pdf")
+    fun getMergedDocuments(
+        @PathVariable dokumentUnderArbeidId: UUID
+    ): ResponseEntity<Resource> {
+        logMethodDetails(
+            methodName = ::getMergedDocuments.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
+        )
+
+        val (pathToMergedDocument, title) = dokumentUnderArbeidService.mergeDUAAndCreatePDF(dokumentUnderArbeidId)
+        val responseHeaders = HttpHeaders()
+        responseHeaders.contentType = MediaType.APPLICATION_PDF
+        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$title.pdf\"")
+
+        return ResponseEntity.ok()
+            .headers(responseHeaders)
+            .contentLength(pathToMergedDocument.toFile().length())
+            .body(
+                object : FileSystemResource(pathToMergedDocument) {
+                    override fun getInputStream(): InputStream {
+                        return object : FileInputStream(pathToMergedDocument.toFile()) {
+                            override fun close() {
+                                super.close()
+                                //Override to do this after client has downloaded file
+                                Files.delete(file.toPath())
+                            }
+                        }
+                    }
+                })
     }
 }
