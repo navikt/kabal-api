@@ -1154,9 +1154,21 @@ class DokumentUnderArbeidService(
         return DocumentValidationResponse(
             dokumentId = dokument.id,
             errors = response.errors.map {
-                DocumentValidationResponse.DocumentValidationError(
-                    type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.EMPTY_PLACEHOLDER,
-                )
+                when (it.type) {
+                    "EMPTY_PLACEHOLDERS" -> {
+                        DocumentValidationResponse.DocumentValidationError(
+                            type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.EMPTY_PLACEHOLDER,
+                        )
+                    }
+
+                    "EMPTY_REGELVERK" -> {
+                        DocumentValidationResponse.DocumentValidationError(
+                            type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.EMPTY_REGELVERK,
+                        )
+                    }
+
+                    else -> error("Unknown error type: ${it.type}")
+                }
             }
         )
     }
@@ -1886,6 +1898,7 @@ class DokumentUnderArbeidService(
                 is OpplastetDokumentUnderArbeidAsVedlegg -> {
                     mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
                 }
+
                 else -> null
             }
         }
