@@ -13,6 +13,7 @@ data class DocumentValidationResponse(
             EMPTY_PLACEHOLDER,
             WRONG_DATE,
             DOCUMENT_MODIFIED,
+            EMPTY_REGELVERK,
         }
     }
 }
