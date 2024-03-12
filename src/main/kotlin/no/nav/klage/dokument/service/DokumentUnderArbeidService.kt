@@ -1125,28 +1125,11 @@ class DokumentUnderArbeidService(
         }
     }
 
-    fun validatePlaceholdersInSmartDocumentAndVedlegg(
-        dokumentId: UUID
-    ): List<DocumentValidationResponse> {
-        val documentValidationResults = mutableListOf<DocumentValidationResponse>()
-
-        val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
-        val vedlegg = getVedlegg(hovedDokument.id)
-
-        (vedlegg + hovedDokument).forEach {
-            if (it is SmartdokumentUnderArbeidAsHoveddokument) {
-                documentValidationResults += validatePlaceholdersInSingleSmartDocument(it)
-            }
-        }
-
-        return documentValidationResults
-    }
-
     private fun getVedlegg(hoveddokumentId: UUID): Set<DokumentUnderArbeidAsVedlegg> {
         return dokumentUnderArbeidCommonService.findVedleggByParentId(hoveddokumentId)
     }
 
-    private fun validatePlaceholdersInSingleSmartDocument(dokument: SmartdokumentUnderArbeidAsHoveddokument): DocumentValidationResponse {
+    private fun validatePlaceholdersInSingleSmartDocument(dokument: DokumentUnderArbeidAsSmartdokument): DocumentValidationResponse {
         logger.debug("Getting json document, dokumentId: {}", dokument.id)
         val documentJson = smartEditorApiGateway.getDocumentAsJson(dokument.smartEditorId)
         logger.debug("Validating json document in kabalJsonToPdf, dokumentId: {}", dokument.id)
@@ -1288,20 +1271,29 @@ class DokumentUnderArbeidService(
         return hovedDokument
     }
 
-    private fun validateSmartDocumentAndVedleggNotStale(smartdokumentUnderArbeid: SmartdokumentUnderArbeidAsHoveddokument): List<DocumentValidationResponse> {
+    fun validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeidId: UUID): List<DocumentValidationResponse> {
+        val smartdokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentUnderArbeidId)
+            .get() as SmartdokumentUnderArbeidAsHoveddokument
+        return validateDokumentUnderArbeidAndVedlegg(smartdokumentUnderArbeid)
+    }
+
+    /**
+     * As of now, this method only validates smart documents.
+     */
+    private fun validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeid: DokumentUnderArbeidAsHoveddokument): List<DocumentValidationResponse> {
         val errors = mutableListOf<DocumentValidationResponse>()
 
-        val vedlegg = getVedlegg(smartdokumentUnderArbeid.id)
+        val vedlegg = getVedlegg(dokumentUnderArbeid.id)
 
-        (vedlegg + smartdokumentUnderArbeid).forEach { document ->
+        (vedlegg + dokumentUnderArbeid).forEach { document ->
             if (document is DokumentUnderArbeidAsSmartdokument) {
-                if (smartdokumentUnderArbeid.mellomlagretDate == null ||
+                if (document.mellomlagretDate == null ||
                     smartEditorApiGateway.getSmartDocumentResponse(document.smartEditorId).modified.isAfter(
-                        smartdokumentUnderArbeid.mellomlagretDate
+                        document.mellomlagretDate
                     )
                 ) {
                     errors += DocumentValidationResponse(
-                        dokumentId = smartdokumentUnderArbeid.id,
+                        dokumentId = document.id,
                         errors = listOf(
                             DocumentValidationResponse.DocumentValidationError(
                                 type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.DOCUMENT_MODIFIED,
@@ -1310,9 +1302,9 @@ class DokumentUnderArbeidService(
                     )
                 }
 
-                if (smartdokumentUnderArbeid.mellomlagretDate != null && smartdokumentUnderArbeid.mellomlagretDate!!.toLocalDate() != LocalDate.now()) {
+                if (document.mellomlagretDate != null && document.mellomlagretDate!!.toLocalDate() != LocalDate.now()) {
                     errors += DocumentValidationResponse(
-                        dokumentId = smartdokumentUnderArbeid.id,
+                        dokumentId = document.id,
                         errors = listOf(
                             DocumentValidationResponse.DocumentValidationError(
                                 type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.WRONG_DATE,
@@ -1320,10 +1312,19 @@ class DokumentUnderArbeidService(
                         )
                     )
                 }
+
+                errors += validatePlaceholdersInSingleSmartDocument(document)
             }
         }
 
-        return errors
+        return errors.groupBy { it.dokumentId }.map { (key, value) ->
+            val errorsPerDocument = value.flatMap { it.errors }
+            DocumentValidationResponse(
+                dokumentId = key,
+                errors = errorsPerDocument,
+            )
+        }
+
     }
 
     private fun validateDocumentBeforeFerdig(
@@ -1333,29 +1334,15 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke markere et dokument som allerede er ferdigstilt som ferdigstilt")
         }
 
-        if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument) {
-            val placeholderErrors = validatePlaceholdersInSmartDocumentAndVedlegg(hovedDokument.id)
-
-            val otherErrors = validateSmartDocumentAndVedleggNotStale(
-                hovedDokument
+        val errors = validateDokumentUnderArbeidAndVedlegg(
+            hovedDokument
+        )
+        if (errors.any { it.errors.isNotEmpty() }) {
+            throw SmartDocumentValidationException(
+                msg = "Smartdokument(er) med valideringsfeil.",
+                errors = errors,
             )
-
-            val allErrors = (placeholderErrors + otherErrors).groupBy { it.dokumentId }.map { (key, value) ->
-                val errors = value.flatMap { it.errors }
-                DocumentValidationResponse(
-                    dokumentId = key,
-                    errors = errors,
-                )
-            }
-
-            if (allErrors.any { it.errors.isNotEmpty() }) {
-                throw SmartDocumentValidationException(
-                    msg = "Smartdokument(er) med valideringsfeil.",
-                    errors = allErrors,
-                )
-            }
         }
-
 
         val avsenderMottakerInfoSet = hovedDokument.avsenderMottakerInfoSet
 

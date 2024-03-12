@@ -286,8 +286,8 @@ class DokumentUnderArbeidController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentid") dokumentId: UUID,
     ): List<DocumentValidationResponse> {
-        //TODO only called for hoveddokumenter?
-        return dokumentUnderArbeidService.validatePlaceholdersInSmartDocumentAndVedlegg(dokumentId)
+        //Only called for hoveddokumenter
+        return dokumentUnderArbeidService.validateDokumentUnderArbeidAndVedlegg(dokumentId)
     }
 
     @PutMapping("/{dokumentid}/tittel")
