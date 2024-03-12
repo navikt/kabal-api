@@ -32,15 +32,15 @@ spring:
   servlet:
     multipart:
       #       Size limitations are also handled by app itself to get nice fault messages, but this setting seems to fail faster?
-      max-request-size: 8MB
-      max-file-size: 8MB
+      max-request-size: 100MB
+      max-file-size: 100MB
   codec:
     max-in-memory-size: 256MB
   sql:
     init:
       platform: postgresql
 
-maxAttachmentSize: 8MB
+maxAttachmentSize: 100MB
 
 server:
   port: 7081
