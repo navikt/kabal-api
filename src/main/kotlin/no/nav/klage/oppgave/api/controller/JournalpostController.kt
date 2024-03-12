@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletResponse
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.oppgave.api.view.JournalfoertDokumentMetadata
 import no.nav.klage.oppgave.api.view.MergedDocumentsMetadata
@@ -16,14 +17,12 @@ import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
-import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.ContentDisposition
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.file.Files
@@ -76,15 +75,14 @@ class JournalpostController(
         summary = "Henter fil fra dokumentarkivet",
         description = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang"
     )
-    @ResponseBody
-    @GetMapping("/{journalpostId}/dokumenter/{dokumentInfoId}/pdf")
+    @GetMapping("/{journalpostId}/dokumenter/{dokumentInfoId}/pdf", produces = [MediaType.APPLICATION_PDF_VALUE])
     fun getArkivertDokumentPDF(
         @Parameter(description = "Id til journalpost")
         @PathVariable journalpostId: String,
         @Parameter(description = "Id til dokumentInfo")
-        @PathVariable dokumentInfoId: String
-
-    ): Mono<ResponseEntity<Flux<DataBuffer>>> {
+        @PathVariable dokumentInfoId: String,
+        response: HttpServletResponse
+    ) {
         logMethodDetails(
             methodName = ::getArkivertDokumentPDF.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -105,11 +103,10 @@ class JournalpostController(
         responseHeaders.contentType = MediaType.APPLICATION_PDF
         responseHeaders.contentDisposition = contentDisposition
 
-        return Mono.just(
-            ResponseEntity.ok()
-                .headers(responseHeaders)
-                .body(flux)
-        )
+        responseHeaders.forEach { (key, value) -> response.setHeader(key, value.joinToString(",")) }
+
+        DataBufferUtils.write(flux, response.outputStream)
+            .doOnNext(DataBufferUtils::release).blockLast()
 
     }
 
