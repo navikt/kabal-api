@@ -57,7 +57,7 @@ class BehandlingOppgaveController(
 
             if (fradelingerBySaksbehandler.isNotEmpty()) {
                 //return most recent fradeling if there are multiple
-                fradelingerBySaksbehandler.first()
+                fradelingerBySaksbehandler.last()
             } else {
                 null
             }
