@@ -52,7 +52,7 @@ class BehandlingOppgaveController(
 
         return if (behandling.tildeling == null) {
             val fradelingerBySaksbehandler = tildelingHistory.filter {
-                it.event?.fradelingReasonId != null && it.event?.saksbehandler?.navIdent == innloggetSaksbehandlerService.getInnloggetIdent()
+                it.event?.fradelingReasonId != null && it.previous.event?.saksbehandler?.navIdent == innloggetSaksbehandlerService.getInnloggetIdent()
             }
 
             if (fradelingerBySaksbehandler.isNotEmpty()) {
