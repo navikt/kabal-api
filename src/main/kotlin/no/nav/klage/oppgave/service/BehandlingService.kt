@@ -455,6 +455,13 @@ class BehandlingService(
             )
         }
 
+        if (fradelingReason == FradelingReason.ANGRET) {
+            val behandling = getBehandlingForReadWithoutCheckForAccess(behandlingId)
+            if (behandling.tildeling!!.tidspunkt.isBefore(LocalDateTime.now().minusSeconds(30))) {
+                throw MissingTilgangException("Det er for sent å angre tildelingen. Du må velge en grunn.")
+            }
+        }
+
         setSaksbehandler(
             behandlingId = behandlingId,
             tildeltSaksbehandlerIdent = null,
