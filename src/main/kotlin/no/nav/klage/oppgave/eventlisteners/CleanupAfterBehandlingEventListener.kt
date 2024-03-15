@@ -19,6 +19,7 @@ import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -36,6 +37,7 @@ class CleanupAfterBehandlingEventListener(
     private val fssProxyClient: KlageFssProxyClient,
     private val behandlingService: BehandlingService,
     private val mergedDocumentRepository: MergedDocumentRepository,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
     companion object {
@@ -63,7 +65,7 @@ class CleanupAfterBehandlingEventListener(
                 try {
                     behandlingService.setSattPaaVent(
                         behandlingId = behandling.id,
-                        utfoerendeSaksbehandlerIdent = "SYSTEM",
+                        utfoerendeSaksbehandlerIdent = systembrukerIdent,
                         systemUserContext = true,
                         input = null,
                     )
