@@ -33,7 +33,8 @@ data class DokumentReferanse(
     val opprettetAvNavn: String?,
     val datoOpprettet: LocalDateTime,
     val datoRegSendt: LocalDateTime?,
-    val relevanteDatoer: List<RelevantDato>?,
+    val relevanteDatoer: List<RelevantDatoOld>,
+    val timeline: List<TimelineItem>,
     val kanal: String,
     val kanalnavn: String,
     val utsendingsinfo: Utsendingsinfo?,
@@ -128,11 +129,26 @@ data class DokumentReferanse(
         val fagsystemId: String?,
     )
 
-    data class RelevantDato(
-        val dato: LocalDateTime,
-        val datotype: Datotype,
+    data class TimelineItem(
+        val timestamp: LocalDateTime,
+        val type: TimelineType,
     ) {
-        enum class Datotype {
+        enum class TimelineType {
+            OPPRETTET,
+            SENDT_PRINT,
+            EKSPEDERT,
+            JOURNALFOERT,
+            REGISTRERT,
+            AVSENDER_RETUR,
+            LEST,
+        }
+    }
+
+    data class RelevantDatoOld(
+        val dato: LocalDateTime,
+        val datotype: DatotypeOld,
+    ) {
+        enum class DatotypeOld {
             DATO_SENDT_PRINT,
             DATO_EKSPEDERT,
             DATO_JOURNALFOERT,
@@ -142,7 +158,7 @@ data class DokumentReferanse(
             DATO_LEST,
         }
     }
-    
+
     data class Utsendingsinfo(
         val epostVarselSendt: EpostVarselSendt?,
         val smsVarselSendt: SmsVarselSendt?,
