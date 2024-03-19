@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.*
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -10,6 +11,7 @@ import java.time.LocalDateTime
 class HistoryService(
     private val partSearchService: PartSearchService,
     private val saksbehandlerService: SaksbehandlerService,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     fun createTildelingHistory(
         tildelingHistorikkSet: Set<TildelingHistorikk>,
@@ -308,7 +310,11 @@ class HistoryService(
         return if (this != null) {
             SaksbehandlerView(
                 navIdent = this,
-                navn = saksbehandlerService.getNameForIdentDefaultIfNull(this),
+                navn = if (this == systembrukerIdent) {
+                    this
+                } else saksbehandlerService.getNameForIdentDefaultIfNull(
+                    navIdent = this
+                ),
             )
         } else null
     }
