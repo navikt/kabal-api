@@ -359,12 +359,12 @@ class DokumentMapper(
                     type = it.datotype.name.toTimelineType()
                 )
             }
-        } ?: emptyList()) + DokumentReferanse.TimelineItem(
+        } ?: emptyList())
+
+        return listOf(DokumentReferanse.TimelineItem(
             timestamp = this.datoOpprettet,
             type = DokumentReferanse.TimelineItem.TimelineType.OPPRETTET
-        )
-
-        return relevantDates.sortedBy { it.timestamp }
+        )) + relevantDates.sortedBy { it.timestamp }
     }
 
     private fun String.toTimelineType(): DokumentReferanse.TimelineItem.TimelineType {
