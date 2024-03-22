@@ -115,7 +115,7 @@ class DokumentMapper(
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentInDokarkiv.tittel ?: "Tittel ikke funnet i SAF",
             tema = Tema.fromNavn(journalpost.tema?.name).beskrivelse,
-            dato = journalfoertDokumentUnderArbeidAsVedlegg.opprettet.toLocalDate(),
+            dato = journalpost.getDatoRegSendt()?.toLocalDate() ?: journalpost.datoOpprettet.toLocalDate(),
             avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
             saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
             type = Type.valueOf(
@@ -331,11 +331,12 @@ class DokumentMapper(
             datoOpprettet = journalpost.datoOpprettet,
             datoRegSendt = journalpost.getDatoRegSendt(),
             relevanteDatoer = journalpost.relevanteDatoer?.map {
-                DokumentReferanse.RelevantDato(
+                DokumentReferanse.RelevantDatoOld(
                     dato = it.dato,
-                    datotype = DokumentReferanse.RelevantDato.Datotype.valueOf(it.datotype.name)
+                    datotype = DokumentReferanse.RelevantDatoOld.DatotypeOld.valueOf(it.datotype.name)
                 )
-            },
+            } ?: emptyList(),
+            timeline = journalpost.toTimeline(),
             kanal = journalpost.kanal,
             kanalnavn = journalpost.kanalnavn,
             utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
@@ -346,6 +347,36 @@ class DokumentMapper(
         dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost, behandling))
 
         return dokumentReferanse
+    }
+
+    private fun Journalpost.toTimeline(): List<DokumentReferanse.TimelineItem> {
+        val relevantDates = (this.relevanteDatoer?.mapNotNull {
+            if (it.datotype.name == "DATO_DOKUMENT") {
+                null
+            } else {
+                DokumentReferanse.TimelineItem(
+                    timestamp = it.dato,
+                    type = it.datotype.name.toTimelineType()
+                )
+            }
+        } ?: emptyList())
+
+        return listOf(DokumentReferanse.TimelineItem(
+            timestamp = this.datoOpprettet,
+            type = DokumentReferanse.TimelineItem.TimelineType.OPPRETTET
+        )) + relevantDates.sortedBy { it.timestamp }
+    }
+
+    private fun String.toTimelineType(): DokumentReferanse.TimelineItem.TimelineType {
+        return when (this) {
+            "DATO_JOURNALFOERT" -> DokumentReferanse.TimelineItem.TimelineType.JOURNALFOERT
+            "DATO_EKSPEDERT" -> DokumentReferanse.TimelineItem.TimelineType.EKSPEDERT
+            "DATO_SENDT_PRINT" -> DokumentReferanse.TimelineItem.TimelineType.SENDT_PRINT
+            "DATO_REGISTRERT" -> DokumentReferanse.TimelineItem.TimelineType.REGISTRERT
+            "DATO_AVS_RETUR" -> DokumentReferanse.TimelineItem.TimelineType.AVSENDER_RETUR
+            "DATO_LEST" -> DokumentReferanse.TimelineItem.TimelineType.LEST
+            else -> throw RuntimeException("Unknown datotype: $this")
+        }
     }
 
     private fun getUtsendingsinfo(utsendingsinfo: Utsendingsinfo?): DokumentReferanse.Utsendingsinfo? {
