@@ -97,20 +97,44 @@ data class KabinPartView(
     val name: String,
     val available: Boolean,
     val statusList: List<BehandlingDetaljerView.PartStatus>,
+    val address: BehandlingDetaljerView.Address?,
+    val utsendingskanal: BehandlingDetaljerView.Utsendingskanal,
 )
 
-fun BehandlingDetaljerView.SakenGjelderView.toKabinPartView(): KabinPartView {
+data class OldKabinPartView(
+    val id: String,
+    val type: BehandlingDetaljerView.IdType,
+    val name: String,
+    val available: Boolean,
+    val statusList: List<BehandlingDetaljerView.PartStatus>,
+)
+
+fun BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
     return KabinPartView(
         id = id,
         type = type,
         name = name,
         available = available,
         statusList = statusList,
+        address = address,
+        utsendingskanal = utsendingskanal,
     )
 }
 
-fun BehandlingDetaljerView.PartView.toKabinPartView(): KabinPartView {
+fun BehandlingDetaljerView.PartViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
     return KabinPartView(
+        id = id,
+        type = type,
+        name = name,
+        available = available,
+        statusList = statusList,
+        address = address,
+        utsendingskanal = utsendingskanal,
+    )
+}
+
+fun BehandlingDetaljerView.PartView.toOldKabinPartView(): OldKabinPartView {
+    return OldKabinPartView(
         id = id,
         type = type,
         name = name,
