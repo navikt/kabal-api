@@ -99,6 +99,7 @@ data class KabinPartView(
     val statusList: List<BehandlingDetaljerView.PartStatus>,
     val address: BehandlingDetaljerView.Address?,
     val utsendingskanal: BehandlingDetaljerView.Utsendingskanal,
+    val language: String?,
 )
 
 data class OldKabinPartView(
@@ -118,6 +119,7 @@ fun BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal.toKabinPartView()
         statusList = statusList,
         address = address,
         utsendingskanal = utsendingskanal,
+        language = language,
     )
 }
 
@@ -130,6 +132,7 @@ fun BehandlingDetaljerView.PartViewWithUtsendingskanal.toKabinPartView(): KabinP
         statusList = statusList,
         address = address,
         utsendingskanal = utsendingskanal,
+        language = language,
     )
 }
 
