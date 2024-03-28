@@ -87,7 +87,7 @@ class KabalDocumentMapper(
                 Kanal.valueOf(hovedDokument.inngaaendeKanal.toString())
             }
 
-            DokumentType.BREV, DokumentType.NOTAT, DokumentType.VEDTAK, DokumentType.BESLUTNING -> null
+            DokumentType.BREV, DokumentType.NOTAT, DokumentType.VEDTAK, DokumentType.BESLUTNING, DokumentType.SVARBREV -> null
         }
 
         return DokumentEnhetWithDokumentreferanserInput(
@@ -138,7 +138,7 @@ class KabalDocumentMapper(
         return when (hovedDokument.dokumentType) {
             DokumentType.NOTAT -> BREVKODE_NOTAT
             DokumentType.KJENNELSE_FRA_TRYGDERETTEN -> BREVKODE_KJENNELSE_FRA_TR
-            DokumentType.BESLUTNING, DokumentType.VEDTAK, DokumentType.BREV -> BREVKODE_BREV
+            DokumentType.BESLUTNING, DokumentType.VEDTAK, DokumentType.BREV, DokumentType.SVARBREV -> BREVKODE_BREV
             DokumentType.ANNEN_INNGAAENDE_POST -> BREVKODE_ANNET
         }
     }

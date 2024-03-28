@@ -68,7 +68,22 @@ data class CreatedAnkebehandlingStatusForKabin(
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
-)
+    val svarbrev: Svarbrev?,
+) {
+    data class Svarbrev(
+        val dokumentUnderArbeidId: UUID,
+        val title: String,
+        val receivers: List<Receiver>,
+    ) {
+        data class Receiver(
+            val id: String,
+            val name: String,
+            val address: BehandlingDetaljerView.Address?,
+            val localPrint: Boolean,
+            val forceCentralPrint: Boolean,
+        )
+    }
+}
 
 data class CreatedKlagebehandlingStatusForKabin(
     val typeId: String,

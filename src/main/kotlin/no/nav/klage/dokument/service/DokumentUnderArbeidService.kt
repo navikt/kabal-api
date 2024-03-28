@@ -7,6 +7,7 @@ import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
+import no.nav.klage.dokument.clients.kabaljsontopdf.domain.SvarbrevRequest
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.PDFDocument
@@ -16,9 +17,11 @@ import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
+import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -42,6 +45,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 
@@ -1695,6 +1699,14 @@ class DokumentUnderArbeidService(
         )
     }
 
+    fun getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId: UUID): OpplastetDokumentUnderArbeidAsHoveddokument? {
+        //Sjekker tilgang på behandlingsnivå:
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndMarkertFerdigNotNullAndFerdigstiltNull(
+            behandlingId
+        ).find { it.dokumentType == DokumentType.SVARBREV }
+    }
+
     fun getDokumentUnderArbeidView(dokumentUnderArbeidId: UUID, behandlingId: UUID): DokumentView {
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
@@ -2026,6 +2038,68 @@ class DokumentUnderArbeidService(
                 type = type,
                 data = data,
             )
+        )
+    }
+
+    fun createDokumentUnderArbeidFromSvarbrevInput(
+        svarbrevInput: SvarbrevInput,
+        behandling: Behandling
+    ): DokumentUnderArbeidAsHoveddokument {
+        val bytes = kabalJsonToPdfClient.getSvarbrevPDF(
+            svarbrevRequest = SvarbrevRequest(
+                sakenGjelder = SvarbrevRequest.SakenGjelder(
+                    name = partSearchService.searchPart(identifikator = behandling.sakenGjelder.partId.value).name,
+                    fnr = behandling.sakenGjelder.partId.value
+                ),
+                enhetsnavn = Enhet.entries.first { it.navn == svarbrevInput.enhetId }.beskrivelse,
+                fullmektigFritekst = svarbrevInput.fullmektigFritekst,
+                ankeReceivedDate = behandling.mottattKlageinstans.toLocalDate(),
+                behandlingstidInWeeks = ChronoUnit.WEEKS.between(
+                    behandling.mottattKlageinstans.toLocalDate(),
+                    behandling.frist
+                ).toInt(),
+            )
+        )
+        val documentView = createOpplastetDokumentUnderArbeid(
+            behandlingId = behandling.id,
+            dokumentType = DokumentType.SVARBREV,
+            opplastetFil = FysiskDokument(
+                title = svarbrevInput.title,
+                content = bytes,
+                contentType = MediaType.APPLICATION_PDF
+            ),
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            tittel = svarbrevInput.title,
+            parentId = null
+        )
+
+        updateMottakere(
+            behandlingId = behandling.id,
+            dokumentId = documentView.id,
+            mottakerInput = MottakerInput(
+                svarbrevInput.receivers.map {
+                    Mottaker(
+                        id = it.id,
+                        handling = HandlingEnum.valueOf(it.handling.name),
+                        overriddenAddress = it.overriddenAddress?.let { address ->
+                            AddressInput(
+                                adresselinje1 = address.adresselinje1,
+                                adresselinje2 = address.adresselinje2,
+                                adresselinje3 = address.adresselinje3,
+                                landkode = address.landkode,
+                                postnummer = address.postnummer,
+                            )
+                        }
+                    )
+                }
+            ),
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+
+        return finnOgMarkerFerdigHovedDokument(
+            behandlingId = behandling.id,
+            dokumentId = documentView.id,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
     }
 }
