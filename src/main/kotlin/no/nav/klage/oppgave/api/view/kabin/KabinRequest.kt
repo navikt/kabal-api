@@ -29,6 +29,7 @@ data class CreateAnkeBasedOnKabinInput(
     val fullmektig: OversendtPartId?,
     val ankeDocumentJournalpostId: String,
     val saksbehandlerIdent: String?,
+    val svarbrevInput: SvarbrevInput?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,
@@ -53,6 +54,7 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
+    val svarbrevInput: SvarbrevInput?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,
@@ -99,4 +101,31 @@ data class CreateKlageBasedOnKabinInput(
     }
 
     enum class OversendtPartIdType { PERSON, VIRKSOMHET }
+}
+
+data class SvarbrevInput(
+    val title: String = "Anke - orientering om saksbehandlingstid",
+    val receivers: List<Receiver>,
+    val enhetId: String,
+    val fullmektigFritekst: String?,
+) {
+    data class Receiver(
+        val id: String,
+        val handling: HandlingEnum,
+        val overriddenAddress: AddressInput?,
+    ) {
+        data class AddressInput(
+            val adresselinje1: String?,
+            val adresselinje2: String?,
+            val adresselinje3: String?,
+            val landkode: String,
+            val postnummer: String?,
+        )
+
+        enum class HandlingEnum {
+            AUTO,
+            LOCAL_PRINT,
+            CENTRAL_PRINT
+        }
+    }
 }

@@ -1,7 +1,9 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
@@ -22,7 +24,9 @@ class KabinApiService(
     private val behandlingService: BehandlingService,
     private val klagebehandlingService: KlagebehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val klageFssProxyClient: KlageFssProxyClient
+    private val klageFssProxyClient: KlageFssProxyClient,
+    private val dokumentUnderArbeidService: DokumentUnderArbeidService,
+    private val searchService: PartSearchService,
 ) {
 
     fun getCombinedAnkemuligheter(partIdValue: String): List<Ankemulighet> {
@@ -41,36 +45,47 @@ class KabinApiService(
     }
 
     fun createAnke(input: CreateAnkeBasedOnKabinInput): CreatedAnkeResponse {
-        val mottakId = mottakService.createAnkeMottakFromKabinInput(input = input)
-        if (input.saksbehandlerIdent != null) {
-            val ankebehandling = ankebehandlingService.getAnkebehandlingFromMottakId(mottakId)
-            behandlingService.setSaksbehandler(
-                behandlingId = ankebehandling!!.id,
-                tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
-                enhetId = saksbehandlerService.getEnhetForSaksbehandler(
-                    input.saksbehandlerIdent
-                ).enhetId,
-                fradelingReason = null,
-                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            )
-        }
-        return CreatedAnkeResponse(mottakId = mottakId)
+        return createdAnkeResponse(
+            mottakId = mottakService.createAnkeMottakFromKabinInput(input = input),
+            saksbehandlerIdent = input.saksbehandlerIdent,
+            svarbrevInput = input.svarbrevInput,
+        )
     }
 
     fun createAnkeFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): CreatedAnkeResponse {
-        val mottakId = mottakService.createAnkeMottakFromCompleteKabinInput(input = input)
-        if (input.saksbehandlerIdent != null) {
-            val ankebehandling = ankebehandlingService.getAnkebehandlingFromMottakId(mottakId)
+        return createdAnkeResponse(
+            mottakId = mottakService.createAnkeMottakFromCompleteKabinInput(input = input),
+            saksbehandlerIdent = input.saksbehandlerIdent,
+            svarbrevInput = input.svarbrevInput,
+        )
+    }
+
+    private fun createdAnkeResponse(
+        mottakId: UUID,
+        saksbehandlerIdent: String?,
+        svarbrevInput: SvarbrevInput?,
+    ): CreatedAnkeResponse {
+        val ankebehandling = ankebehandlingService.getAnkebehandlingFromMottakId(mottakId)
+        if (saksbehandlerIdent != null) {
             behandlingService.setSaksbehandler(
                 behandlingId = ankebehandling!!.id,
-                tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
                 enhetId = saksbehandlerService.getEnhetForSaksbehandler(
-                    input.saksbehandlerIdent
+                    saksbehandlerIdent
                 ).enhetId,
                 fradelingReason = null,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
+
+        //Create DokumentUnderArbeid from input based on svarbrevInput.
+        if (svarbrevInput != null) {
+            dokumentUnderArbeidService.createDokumentUnderArbeidFromSvarbrevInput(
+                svarbrevInput = svarbrevInput,
+                behandling = ankebehandling!!,
+            )
+        }
+
         return CreatedAnkeResponse(mottakId = mottakId)
     }
 
@@ -84,7 +99,8 @@ class KabinApiService(
             ?: throw BehandlingNotFoundException("anke not found")
 
         return if (ankebehandling.sourceBehandlingId != null) {
-            val sourceBehandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(ankebehandling.sourceBehandlingId!!)
+            val sourceBehandling =
+                behandlingService.getBehandlingAndCheckLeseTilgangForPerson(ankebehandling.sourceBehandlingId!!)
             getCreatedAnkebehandlingStatusForKabin(
                 ankebehandling = ankebehandling,
                 mottak = mottak,
@@ -145,9 +161,16 @@ class KabinApiService(
             typeId = Type.ANKE.id,
             ytelseId = ankebehandling.ytelse.id,
             vedtakDate = vedtakDate,
-            sakenGjelder = behandlingMapper.getSakenGjelderView(ankebehandling.sakenGjelder).toKabinPartView(),
-            klager = behandlingMapper.getPartView(ankebehandling.klager.partId).toKabinPartView(),
-            fullmektig = ankebehandling.klager.prosessfullmektig?.let { behandlingMapper.getPartView(it.partId).toKabinPartView() },
+            sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = ankebehandling)
+                .toKabinPartView(),
+            klager = behandlingMapper.getPartViewWithUtsendingskanal(
+                partId = ankebehandling.klager.partId,
+                behandling = ankebehandling
+            ).toKabinPartView(),
+            fullmektig = ankebehandling.klager.prosessfullmektig?.let {
+                behandlingMapper.getPartViewWithUtsendingskanal(partId = it.partId, behandling = ankebehandling)
+                    .toKabinPartView()
+            },
             mottattNav = ankebehandling.mottattKlageinstans.toLocalDate(),
             frist = ankebehandling.frist!!,
             fagsakId = ankebehandling.fagsakId,
@@ -162,7 +185,33 @@ class KabinApiService(
                     navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
                 )
             },
+            svarbrev = dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = ankebehandling.id)
+                ?.let { document ->
+                    CreatedAnkebehandlingStatusForKabin.Svarbrev(
+                        dokumentUnderArbeidId = document.id,
+                        title = document.name,
+                        receivers = document.avsenderMottakerInfoSet.map { mottakerInfo ->
+                            CreatedAnkebehandlingStatusForKabin.Svarbrev.Receiver(
+                                id = mottakerInfo.identifikator,
+                                name = searchService.searchPart(identifikator = mottakerInfo.identifikator).name,
+                                address = mottakerInfo.address?.let { address ->
+                                    BehandlingDetaljerView.Address(
+                                        adresselinje1 = address.adresselinje1,
+                                        adresselinje2 = address.adresselinje2,
+                                        adresselinje3 = address.adresselinje3,
+                                        landkode = address.landkode,
+                                        postnummer = address.postnummer,
+                                        poststed = address.poststed,
+                                    )
+                                },
+                                localPrint = mottakerInfo.localPrint,
+                                forceCentralPrint = mottakerInfo.forceCentralPrint,
+                            )
+                        }
+                    )
+                }
         )
+
     }
 
     private fun getCreatedKlagebehandlingStatusForKabin(
@@ -172,9 +221,16 @@ class KabinApiService(
         return CreatedKlagebehandlingStatusForKabin(
             typeId = Type.KLAGE.id,
             ytelseId = klagebehandling.ytelse.id,
-            sakenGjelder = behandlingMapper.getSakenGjelderView(klagebehandling.sakenGjelder).toKabinPartView(),
-            klager = behandlingMapper.getPartView(klagebehandling.klager.partId).toKabinPartView(),
-            fullmektig = klagebehandling.klager.prosessfullmektig?.let { behandlingMapper.getPartView(it.partId).toKabinPartView() },
+            sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = klagebehandling)
+                .toKabinPartView(),
+            klager = behandlingMapper.getPartViewWithUtsendingskanal(
+                partId = klagebehandling.klager.partId,
+                behandling = klagebehandling
+            ).toKabinPartView(),
+            fullmektig = klagebehandling.klager.prosessfullmektig?.let {
+                behandlingMapper.getPartViewWithUtsendingskanal(partId = it.partId, behandling = klagebehandling)
+                    .toKabinPartView()
+            },
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
             mottattKlageinstans = klagebehandling.mottattKlageinstans.toLocalDate(),
             frist = klagebehandling.frist!!,
@@ -195,16 +251,23 @@ class KabinApiService(
     }
 
     private fun Behandling.toAnkemulighet(): Ankemulighet {
-        val ankebehandlingerBasedOnThisBehandling = ankebehandlingService.getAnkebehandlingerBasedOnSourceBehandlingId(sourceBehandlingId = id)
+        val ankebehandlingerBasedOnThisBehandling =
+            ankebehandlingService.getAnkebehandlingerBasedOnSourceBehandlingId(sourceBehandlingId = id)
 
         return Ankemulighet(
             behandlingId = id,
             ytelseId = ytelse.id,
             hjemmelIdList = hjemler.map { it.id },
             vedtakDate = avsluttetAvSaksbehandler!!,
-            sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder).toKabinPartView(),
-            klager = behandlingMapper.getPartView(klager.partId).toKabinPartView(),
-            fullmektig = klager.prosessfullmektig?.let { behandlingMapper.getPartView(it.partId).toKabinPartView() },
+            sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
+            klager = behandlingMapper.getPartViewWithUtsendingskanal(partId = klager.partId, behandling = this)
+                .toKabinPartView(),
+            fullmektig = klager.prosessfullmektig?.let {
+                behandlingMapper.getPartViewWithUtsendingskanal(
+                    partId = it.partId,
+                    behandling = this
+                ).toKabinPartView()
+            },
             fagsakId = fagsakId,
             fagsystem = fagsystem,
             fagsystemId = fagsystem.id,

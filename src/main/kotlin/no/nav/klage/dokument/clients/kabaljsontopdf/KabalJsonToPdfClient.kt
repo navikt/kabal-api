@@ -2,6 +2,7 @@ package no.nav.klage.dokument.clients.kabaljsontopdf
 
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.DocumentValidationResponse
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
+import no.nav.klage.dokument.clients.kabaljsontopdf.domain.SvarbrevRequest
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -78,5 +79,16 @@ class KabalJsonToPdfClient(
             }
             .bodyToMono<DocumentValidationResponse>()
             .block() ?: throw RuntimeException("Response null")
+    }
+
+    fun getSvarbrevPDF(svarbrevRequest: SvarbrevRequest): ByteArray {
+        logger.debug("Getting pdf document from kabalJsontoPdf.")
+        return kabalJsonToPdfWebClient.post()
+            .uri { it.path("/svarbrev").build() }
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(svarbrevRequest)
+            .retrieve()
+            .bodyToMono<ByteArray>()
+            .block() ?: throw RuntimeException("PDF response was null")
     }
 }

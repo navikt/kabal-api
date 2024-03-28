@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.IdentifikatorInput
 import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
@@ -47,10 +46,13 @@ class KabinApiController(
         )
     }
 
+    /**
+     * Should not be used anymore. Kabin should use kabal-api directly instead.
+     */
     @PostMapping("/searchpart")
     fun searchPart(
         @RequestBody input: IdentifikatorInput
-    ): KabinPartView {
+    ): OldKabinPartView {
         logMethodDetails(
             methodName = ::searchPart.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -58,7 +60,7 @@ class KabinApiController(
         )
         return partSearchService.searchPart(
             identifikator = input.identifikator
-        ).toKabinPartView()
+        ).toOldKabinPartView()
     }
 
     @PostMapping("/ankemuligheter")
@@ -179,3 +181,4 @@ class KabinApiController(
         )
     }
 }
+
