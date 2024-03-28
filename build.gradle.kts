@@ -15,7 +15,7 @@ val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.2"
 val tikaVersion = "2.9.1"
 val verapdfVersion = "1.24.1"
-val klageKodeverkVersion = "1.8.6"
+val klageKodeverkVersion = "1.8.7"
 
 plugins {
     val kotlinVersion = "1.9.23"
@@ -27,7 +27,7 @@ plugins {
     idea
 }
 
-java.sourceCompatibility = JavaVersion.VERSION_17
+java.sourceCompatibility = JavaVersion.VERSION_21
 
 repositories {
     mavenCentral()
@@ -111,7 +111,7 @@ idea {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "17"
+        jvmTarget = "21"
     }
 }
 
