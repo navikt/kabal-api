@@ -14,5 +14,6 @@ fun DokumentType.isUtgaaende(): Boolean {
         DokumentType.BESLUTNING,
         DokumentType.BREV,
         DokumentType.VEDTAK,
+        DokumentType.SVARBREV,
     )
 }

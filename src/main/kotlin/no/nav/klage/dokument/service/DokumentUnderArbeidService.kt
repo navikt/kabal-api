@@ -105,7 +105,7 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        if (!dokumentType.isInngaaende() || !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+        if (dokumentType.isUtgaaende() && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
             if (behandling.avsluttetAvSaksbehandler == null) {
                 validateCanCreateDocuments(
                     behandlingRole = behandlingRole,
