@@ -1,23 +1,20 @@
-package no.nav.klage.oppgave.eventlisteners
+package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.oppgave.domain.events.MottakLagretEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.Ankebehandling
 import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.klage.Mottak
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
-import no.nav.klage.oppgave.service.AnkebehandlingService
-import no.nav.klage.oppgave.service.KlagebehandlingService
 import no.nav.klage.oppgave.util.getLogger
-import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
-class CreateBehandlingFromMottakEventListener(
+class CreateBehandlingFromMottak(
     private val klagebehandlingService: KlagebehandlingService,
     private val ankebehandlingService: AnkebehandlingService,
     private val kafkaEventRepository: KafkaEventRepository,
@@ -31,17 +28,16 @@ class CreateBehandlingFromMottakEventListener(
         )
     }
 
-    @EventListener
-    fun createBehandling(mottakLagretEvent: MottakLagretEvent): Behandling {
+    fun createBehandling(mottak: Mottak): Behandling {
         logger.debug(
-            "Received MottakLagretEvent for mottak {} in CreateKlagebehandlingFromMottakEventListener",
-            mottakLagretEvent.mottak.id
+            "Received mottak {} in CreateBehandlingFromMottak",
+            mottak.id
         )
 
-        return when (mottakLagretEvent.mottak.type) {
-            Type.KLAGE -> klagebehandlingService.createKlagebehandlingFromMottak(mottakLagretEvent.mottak)
+        return when (mottak.type) {
+            Type.KLAGE -> klagebehandlingService.createKlagebehandlingFromMottak(mottak)
             Type.ANKE -> {
-                val ankebehandling = ankebehandlingService.createAnkebehandlingFromMottak(mottakLagretEvent.mottak)
+                val ankebehandling = ankebehandlingService.createAnkebehandlingFromMottak(mottak)
                 publishKafkaEvent(ankebehandling)
                 ankebehandling
             }

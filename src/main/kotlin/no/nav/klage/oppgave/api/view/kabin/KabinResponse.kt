@@ -48,11 +48,11 @@ data class ExistingAnkebehandling(
 )
 
 data class CreatedAnkeResponse(
-    val mottakId: UUID,
+    val behandlingId: UUID,
 )
 
 data class CreatedKlageResponse(
-    val mottakId: UUID,
+    val behandlingId: UUID,
 )
 
 data class CreatedAnkebehandlingStatusForKabin(

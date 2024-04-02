@@ -86,7 +86,7 @@ class KabinApiService(
             )
         }
 
-        return CreatedAnkeResponse(mottakId = mottakId)
+        return CreatedAnkeResponse(behandlingId = mottakId)
     }
 
     fun getCreatedAnkebehandlingStatus(
@@ -135,7 +135,7 @@ class KabinApiService(
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
-        return CreatedKlageResponse(mottakId = mottakId)
+        return CreatedKlageResponse(behandlingId = mottakId)
     }
 
     fun getCreatedKlagebehandlingStatus(
