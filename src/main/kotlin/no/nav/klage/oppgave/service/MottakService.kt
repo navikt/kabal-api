@@ -161,7 +161,7 @@ class MottakService(
     }
 
     @Transactional
-    fun createAnkeMottakFromKabinInput(input: CreateAnkeBasedOnKabinInput): UUID {
+    fun createAnkeMottakAndBehandlingFromKabinInput(input: CreateAnkeBasedOnKabinInput): Behandling {
         val sourceBehandlingId = input.sourceBehandlingId
         logger.debug("Prøver å lagre anke basert på Kabin-input med sourceBehandlingId {}", sourceBehandlingId)
         val sourceBehandling = behandlingRepository.getReferenceById(sourceBehandlingId)
@@ -187,11 +187,11 @@ class MottakService(
             sourceBehandlingId
         )
 
-        return behandling.id
+        return behandling
     }
 
     @Transactional
-    fun createAnkeMottakFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): UUID {
+    fun createAnkeMottakFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): Behandling {
         secureLogger.debug("Prøver å lage mottak fra anke fra Kabin: {}", input)
 
         input.validate()
@@ -209,7 +209,7 @@ class MottakService(
             type = mottak.type.navn,
         )
 
-        return behandling.id
+        return behandling
     }
 
     @Transactional
@@ -618,5 +618,5 @@ class MottakService(
         )
     }
 
-    fun getMottak(mottakId: UUID): Mottak? = mottakRepository.getReferenceById(mottakId)
+    fun getMottak(mottakId: UUID): Mottak = mottakRepository.getReferenceById(mottakId)
 }

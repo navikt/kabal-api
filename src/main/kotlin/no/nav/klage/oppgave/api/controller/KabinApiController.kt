@@ -132,7 +132,7 @@ class KabinApiController(
         )
 
         return kabinApiService.getCreatedAnkebehandlingStatus(
-            mottakId = mottakId
+            behandlingId = mottakId
         )
     }
 
@@ -166,9 +166,9 @@ class KabinApiController(
         )
     }
 
-    @GetMapping("/klager/{mottakId}/status")
+    @GetMapping("/klager/{behandlingId}/status")
     fun getCreatedKlagebehandlingStatus(
-        @PathVariable mottakId: UUID
+        @PathVariable behandlingId: UUID
     ): CreatedKlagebehandlingStatusForKabin {
         logMethodDetails(
             methodName = ::getCreatedKlagebehandlingStatus.name,
@@ -177,7 +177,7 @@ class KabinApiController(
         )
 
         return kabinApiService.getCreatedKlagebehandlingStatus(
-            mottakId = mottakId
+            behandlingId = behandlingId
         )
     }
 }

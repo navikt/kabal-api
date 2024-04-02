@@ -8,7 +8,6 @@ import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.exceptions.BehandlingNotFoundException
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 import java.util.*
@@ -46,7 +45,7 @@ class KabinApiService(
 
     fun createAnke(input: CreateAnkeBasedOnKabinInput): CreatedAnkeResponse {
         return createdAnkeResponse(
-            mottakId = mottakService.createAnkeMottakFromKabinInput(input = input),
+            behandling = mottakService.createAnkeMottakAndBehandlingFromKabinInput(input = input),
             saksbehandlerIdent = input.saksbehandlerIdent,
             svarbrevInput = input.svarbrevInput,
         )
@@ -54,21 +53,20 @@ class KabinApiService(
 
     fun createAnkeFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): CreatedAnkeResponse {
         return createdAnkeResponse(
-            mottakId = mottakService.createAnkeMottakFromCompleteKabinInput(input = input),
+            behandling = mottakService.createAnkeMottakFromCompleteKabinInput(input = input),
             saksbehandlerIdent = input.saksbehandlerIdent,
             svarbrevInput = input.svarbrevInput,
         )
     }
 
     private fun createdAnkeResponse(
-        mottakId: UUID,
+        behandling: Behandling,
         saksbehandlerIdent: String?,
         svarbrevInput: SvarbrevInput?,
     ): CreatedAnkeResponse {
-        val ankebehandling = ankebehandlingService.getAnkebehandlingFromMottakId(mottakId)
         if (saksbehandlerIdent != null) {
             behandlingService.setSaksbehandler(
-                behandlingId = ankebehandling!!.id,
+                behandlingId = behandling.id,
                 tildeltSaksbehandlerIdent = saksbehandlerIdent,
                 enhetId = saksbehandlerService.getEnhetForSaksbehandler(
                     saksbehandlerIdent
@@ -82,21 +80,18 @@ class KabinApiService(
         if (svarbrevInput != null) {
             dokumentUnderArbeidService.createDokumentUnderArbeidFromSvarbrevInput(
                 svarbrevInput = svarbrevInput,
-                behandling = ankebehandling!!,
+                behandling = behandling,
             )
         }
 
-        return CreatedAnkeResponse(behandlingId = mottakId)
+        return CreatedAnkeResponse(behandlingId = behandling.id)
     }
 
     fun getCreatedAnkebehandlingStatus(
-        mottakId: UUID
+        behandlingId: UUID
     ): CreatedAnkebehandlingStatusForKabin {
-        val mottak =
-            mottakService.getMottak(mottakId = mottakId) ?: throw RuntimeException("mottak not found for id $mottakId")
-
-        val ankebehandling = ankebehandlingService.getAnkebehandlingFromMottakId(mottakId)
-            ?: throw BehandlingNotFoundException("anke not found")
+        val ankebehandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = behandlingId) as Ankebehandling
+        val mottak = mottakService.getMottak(mottakId = ankebehandling.mottakId!!)
 
         return if (ankebehandling.sourceBehandlingId != null) {
             val sourceBehandling =
@@ -139,12 +134,10 @@ class KabinApiService(
     }
 
     fun getCreatedKlagebehandlingStatus(
-        mottakId: UUID
+        behandlingId: UUID
     ): CreatedKlagebehandlingStatusForKabin {
-        val mottak =
-            mottakService.getMottak(mottakId = mottakId) ?: throw RuntimeException("mottak not found for id $mottakId")
-        val klagebehandling = klagebehandlingService.getKlagebehandlingFromMottakId(mottakId)
-            ?: throw BehandlingNotFoundException("klage not found")
+        val klagebehandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = behandlingId) as Klagebehandling
+        val mottak = mottakService.getMottak(mottakId = klagebehandling.mottakId)
 
         return getCreatedKlagebehandlingStatusForKabin(
             klagebehandling = klagebehandling,
