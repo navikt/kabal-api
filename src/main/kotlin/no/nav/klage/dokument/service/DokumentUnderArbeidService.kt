@@ -2047,6 +2047,7 @@ class DokumentUnderArbeidService(
     ): DokumentUnderArbeidAsHoveddokument {
         val bytes = kabalJsonToPdfClient.getSvarbrevPDF(
             svarbrevRequest = SvarbrevRequest(
+                title = svarbrevInput.title,
                 sakenGjelder = SvarbrevRequest.SakenGjelder(
                     name = partSearchService.searchPart(identifikator = behandling.sakenGjelder.partId.value).name,
                     fnr = behandling.sakenGjelder.partId.value

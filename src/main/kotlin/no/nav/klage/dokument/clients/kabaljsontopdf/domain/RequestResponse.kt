@@ -31,6 +31,7 @@ data class InnholdsfortegnelseRequest(
 }
 
 data class SvarbrevRequest(
+    val title: String,
     val sakenGjelder: SakenGjelder,
     val enhetsnavn: String,
     val ytelsenavn: String,
