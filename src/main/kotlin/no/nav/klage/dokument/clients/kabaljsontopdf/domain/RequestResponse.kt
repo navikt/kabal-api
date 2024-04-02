@@ -33,6 +33,7 @@ data class InnholdsfortegnelseRequest(
 data class SvarbrevRequest(
     val sakenGjelder: SakenGjelder,
     val enhetsnavn: String,
+    val ytelsenavn: String,
     val fullmektigFritekst: String?,
     val ankeReceivedDate: LocalDate,
     val behandlingstidInWeeks: Int,

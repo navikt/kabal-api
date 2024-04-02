@@ -2052,6 +2052,7 @@ class DokumentUnderArbeidService(
                     fnr = behandling.sakenGjelder.partId.value
                 ),
                 enhetsnavn = Enhet.entries.first { it.navn == svarbrevInput.enhetId }.beskrivelse,
+                ytelsenavn = behandling.ytelse.navn,
                 fullmektigFritekst = svarbrevInput.fullmektigFritekst,
                 ankeReceivedDate = behandling.mottattKlageinstans.toLocalDate(),
                 behandlingstidInWeeks = ChronoUnit.WEEKS.between(
