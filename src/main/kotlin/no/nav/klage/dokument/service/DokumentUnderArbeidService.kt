@@ -1397,31 +1397,45 @@ class DokumentUnderArbeidService(
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
 
-        val (content, title) = when (dokument) {
-            is OpplastetDokumentUnderArbeidAsHoveddokument -> {
-                mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+        val (content, title) = if (dokument.erFerdigstilt()) {
+            if (dokument.dokarkivReferences.isEmpty()) {
+                throw RuntimeException("Dokument is finalized but has no dokarkiv references")
             }
 
-            is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
-            }
+            val dokarkivReference = dokument.dokarkivReferences.first()
+            val fysiskDokument = dokumentService.getFysiskDokument(
+                journalpostId = dokarkivReference.journalpostId,
+                dokumentInfoId = dokarkivReference.dokumentInfoId!!,
+            )
+            fysiskDokument.content to fysiskDokument.title
+        }
+        else {
+            when (dokument) {
+                is OpplastetDokumentUnderArbeidAsHoveddokument -> {
+                    mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                }
 
-            is DokumentUnderArbeidAsSmartdokument -> {
-                if (dokument.isPDFGenerationNeeded()) {
-                    mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes to dokument.name
-                } else mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
-            }
+                is OpplastetDokumentUnderArbeidAsVedlegg -> {
+                    mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                }
 
-            is JournalfoertDokumentUnderArbeidAsVedlegg -> {
-                val fysiskDokument = dokumentService.getFysiskDokument(
-                    journalpostId = dokument.journalpostId,
-                    dokumentInfoId = dokument.dokumentInfoId,
-                )
-                fysiskDokument.content to fysiskDokument.title
-            }
+                is DokumentUnderArbeidAsSmartdokument -> {
+                    if (dokument.isPDFGenerationNeeded()) {
+                        mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes to dokument.name
+                    } else mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                }
 
-            else -> {
-                error("can't come here")
+                is JournalfoertDokumentUnderArbeidAsVedlegg -> {
+                    val fysiskDokument = dokumentService.getFysiskDokument(
+                        journalpostId = dokument.journalpostId,
+                        dokumentInfoId = dokument.dokumentInfoId,
+                    )
+                    fysiskDokument.content to fysiskDokument.title
+                }
+
+                else -> {
+                    error("can't come here")
+                }
             }
         }
 
