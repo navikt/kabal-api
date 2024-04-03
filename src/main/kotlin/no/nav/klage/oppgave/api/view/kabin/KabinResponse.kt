@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.api.view.kabin
 
+import no.nav.klage.dokument.api.view.HandlingEnum
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
@@ -76,11 +77,9 @@ data class CreatedAnkebehandlingStatusForKabin(
         val receivers: List<Receiver>,
     ) {
         data class Receiver(
-            val id: String,
-            val name: String,
-            val address: BehandlingDetaljerView.Address?,
-            val localPrint: Boolean,
-            val forceCentralPrint: Boolean,
+            val part: BehandlingDetaljerView.PartViewWithUtsendingskanal,
+            val overriddenAddress: BehandlingDetaljerView.Address?,
+            val handling: HandlingEnum,
         )
     }
 }

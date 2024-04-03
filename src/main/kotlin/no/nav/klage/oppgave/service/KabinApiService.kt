@@ -1,9 +1,10 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.dokument.api.mapper.DokumentMapper
+import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
-import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
@@ -26,6 +27,7 @@ class KabinApiService(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val searchService: PartSearchService,
+    private val dokumentMapper: DokumentMapper,
 ) {
 
     fun getCombinedAnkemuligheter(partIdValue: String): List<Ankemulighet> {
@@ -90,7 +92,8 @@ class KabinApiService(
     fun getCreatedAnkebehandlingStatus(
         behandlingId: UUID
     ): CreatedAnkebehandlingStatusForKabin {
-        val ankebehandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = behandlingId) as Ankebehandling
+        val ankebehandling =
+            behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = behandlingId) as Ankebehandling
         val mottak = mottakService.getMottak(mottakId = ankebehandling.mottakId!!)
 
         return if (ankebehandling.sourceBehandlingId != null) {
@@ -136,7 +139,8 @@ class KabinApiService(
     fun getCreatedKlagebehandlingStatus(
         behandlingId: UUID
     ): CreatedKlagebehandlingStatusForKabin {
-        val klagebehandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = behandlingId) as Klagebehandling
+        val klagebehandling =
+            behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = behandlingId) as Klagebehandling
         val mottak = mottakService.getMottak(mottakId = klagebehandling.mottakId)
 
         return getCreatedKlagebehandlingStatusForKabin(
@@ -150,6 +154,18 @@ class KabinApiService(
         mottak: Mottak,
         vedtakDate: LocalDateTime,
     ): CreatedAnkebehandlingStatusForKabin {
+        val dokumentUnderArbeid =
+            dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = ankebehandling.id)
+
+        val dokumentView: DokumentView? = if (dokumentUnderArbeid != null) {
+            dokumentMapper.mapToDokumentView(
+                dokumentUnderArbeid = dokumentUnderArbeid,
+                behandling = ankebehandling,
+                journalpost = null,
+                smartEditorDocument = null,
+            )
+        } else null
+
         return CreatedAnkebehandlingStatusForKabin(
             typeId = Type.ANKE.id,
             ytelseId = ankebehandling.ytelse.id,
@@ -178,33 +194,20 @@ class KabinApiService(
                     navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
                 )
             },
-            svarbrev = dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = ankebehandling.id)
-                ?.let { document ->
-                    CreatedAnkebehandlingStatusForKabin.Svarbrev(
-                        dokumentUnderArbeidId = document.id,
-                        title = document.name,
-                        receivers = document.avsenderMottakerInfoSet.map { mottakerInfo ->
-                            CreatedAnkebehandlingStatusForKabin.Svarbrev.Receiver(
-                                id = mottakerInfo.identifikator,
-                                name = searchService.searchPart(identifikator = mottakerInfo.identifikator).name,
-                                address = mottakerInfo.address?.let { address ->
-                                    BehandlingDetaljerView.Address(
-                                        adresselinje1 = address.adresselinje1,
-                                        adresselinje2 = address.adresselinje2,
-                                        adresselinje3 = address.adresselinje3,
-                                        landkode = address.landkode,
-                                        postnummer = address.postnummer,
-                                        poststed = address.poststed,
-                                    )
-                                },
-                                localPrint = mottakerInfo.localPrint,
-                                forceCentralPrint = mottakerInfo.forceCentralPrint,
-                            )
-                        }
-                    )
-                }
+            svarbrev = dokumentView?.let { document ->
+                CreatedAnkebehandlingStatusForKabin.Svarbrev(
+                    dokumentUnderArbeidId = document.id,
+                    title = document.tittel,
+                    receivers = document.mottakerList.map { mottaker ->
+                        CreatedAnkebehandlingStatusForKabin.Svarbrev.Receiver(
+                            part = mottaker.part,
+                            overriddenAddress = mottaker.overriddenAddress,
+                            handling = mottaker.handling,
+                        )
+                    }
+                )
+            }
         )
-
     }
 
     private fun getCreatedKlagebehandlingStatusForKabin(

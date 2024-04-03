@@ -1702,7 +1702,7 @@ class DokumentUnderArbeidService(
     fun getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId: UUID): OpplastetDokumentUnderArbeidAsHoveddokument? {
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-        return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndMarkertFerdigNotNullAndFerdigstiltNull(
+        return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndMarkertFerdigNotNull(
             behandlingId
         ).find { it.dokumentType == DokumentType.SVARBREV }
     }
