@@ -22,6 +22,7 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
+import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -79,6 +80,7 @@ class DokumentUnderArbeidService(
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kodeverkService: KodeverkService,
     private val dokDistKanalService: DokDistKanalService,
+    private val azureGateway: DefaultAzureGateway,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -2080,6 +2082,7 @@ class DokumentUnderArbeidService(
                     behandling.mottattKlageinstans.toLocalDate(),
                     behandling.frist
                 ).toInt(),
+                avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
             )
         )
         val documentView = createOpplastetDokumentUnderArbeid(
