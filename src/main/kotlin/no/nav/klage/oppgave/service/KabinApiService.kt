@@ -120,11 +120,10 @@ class KabinApiService(
     fun createKlage(
         input: CreateKlageBasedOnKabinInput
     ): CreatedKlageResponse {
-        val mottakId = mottakService.createKlageMottakFromKabinInput(klageInput = input)
+        val behandlingId = mottakService.createKlageMottakFromKabinInput(klageInput = input)
         if (input.saksbehandlerIdent != null) {
-            val ankebehandling = klagebehandlingService.getKlagebehandlingFromMottakId(mottakId)
             behandlingService.setSaksbehandler(
-                behandlingId = ankebehandling!!.id,
+                behandlingId = behandlingId,
                 tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
                 enhetId = saksbehandlerService.getEnhetForSaksbehandler(
                     input.saksbehandlerIdent
@@ -133,7 +132,7 @@ class KabinApiService(
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
-        return CreatedKlageResponse(behandlingId = mottakId)
+        return CreatedKlageResponse(behandlingId = behandlingId)
     }
 
     fun getCreatedKlagebehandlingStatus(
