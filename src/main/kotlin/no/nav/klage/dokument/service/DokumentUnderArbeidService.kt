@@ -2062,10 +2062,16 @@ class DokumentUnderArbeidService(
         val bytes = kabalJsonToPdfClient.getSvarbrevPDF(
             svarbrevRequest = SvarbrevRequest(
                 title = svarbrevInput.title,
-                sakenGjelder = SvarbrevRequest.SakenGjelder(
+                sakenGjelder = SvarbrevRequest.Part(
                     name = partSearchService.searchPart(identifikator = behandling.sakenGjelder.partId.value).name,
-                    fnr = behandling.sakenGjelder.partId.value
+                    fnr = behandling.sakenGjelder.partId.value,
                 ),
+                klager = if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
+                    SvarbrevRequest.Part(
+                        name = partSearchService.searchPart(identifikator = behandling.klager.partId.value).name,
+                        fnr = behandling.klager.partId.value,
+                    )
+                } else null,
                 enhetsnavn = Enhet.entries.first { it.navn == svarbrevInput.enhetId }.beskrivelse,
                 ytelsenavn = behandling.ytelse.navn,
                 fullmektigFritekst = svarbrevInput.fullmektigFritekst,
