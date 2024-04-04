@@ -11,4 +11,6 @@ interface OpplastetDokumentUnderArbeidAsHoveddokumentRepository : JpaRepository<
     fun findByBehandlingIdAndDokarkivReferencesIsNotEmpty(behandlingId: UUID): Set<OpplastetDokumentUnderArbeidAsHoveddokument>
 
     fun findByMarkertFerdigNotNullAndFerdigstiltNull(): Set<OpplastetDokumentUnderArbeidAsHoveddokument>
+
+    fun findByBehandlingIdAndMarkertFerdigNotNull(behandlingId: UUID): Set<OpplastetDokumentUnderArbeidAsHoveddokument>
 }

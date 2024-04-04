@@ -7,6 +7,7 @@ import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
+import no.nav.klage.dokument.clients.kabaljsontopdf.domain.SvarbrevRequest
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.PDFDocument
@@ -16,9 +17,12 @@ import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
+import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
+import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -42,6 +46,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 
@@ -75,6 +80,7 @@ class DokumentUnderArbeidService(
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kodeverkService: KodeverkService,
     private val dokDistKanalService: DokDistKanalService,
+    private val azureGateway: DefaultAzureGateway,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -101,7 +107,7 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        if (!dokumentType.isInngaaende() || !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+        if (dokumentType.isUtgaaende() && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
             if (behandling.avsluttetAvSaksbehandler == null) {
                 validateCanCreateDocuments(
                     behandlingRole = behandlingRole,
@@ -1393,31 +1399,45 @@ class DokumentUnderArbeidService(
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
 
-        val (content, title) = when (dokument) {
-            is OpplastetDokumentUnderArbeidAsHoveddokument -> {
-                mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+        val (content, title) = if (dokument.erFerdigstilt()) {
+            if (dokument.dokarkivReferences.isEmpty()) {
+                throw RuntimeException("Dokument is finalized but has no dokarkiv references")
             }
 
-            is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
-            }
+            val dokarkivReference = dokument.dokarkivReferences.first()
+            val fysiskDokument = dokumentService.getFysiskDokument(
+                journalpostId = dokarkivReference.journalpostId,
+                dokumentInfoId = dokarkivReference.dokumentInfoId!!,
+            )
+            fysiskDokument.content to fysiskDokument.title
+        }
+        else {
+            when (dokument) {
+                is OpplastetDokumentUnderArbeidAsHoveddokument -> {
+                    mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                }
 
-            is DokumentUnderArbeidAsSmartdokument -> {
-                if (dokument.isPDFGenerationNeeded()) {
-                    mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes to dokument.name
-                } else mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
-            }
+                is OpplastetDokumentUnderArbeidAsVedlegg -> {
+                    mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                }
 
-            is JournalfoertDokumentUnderArbeidAsVedlegg -> {
-                val fysiskDokument = dokumentService.getFysiskDokument(
-                    journalpostId = dokument.journalpostId,
-                    dokumentInfoId = dokument.dokumentInfoId,
-                )
-                fysiskDokument.content to fysiskDokument.title
-            }
+                is DokumentUnderArbeidAsSmartdokument -> {
+                    if (dokument.isPDFGenerationNeeded()) {
+                        mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes to dokument.name
+                    } else mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                }
 
-            else -> {
-                error("can't come here")
+                is JournalfoertDokumentUnderArbeidAsVedlegg -> {
+                    val fysiskDokument = dokumentService.getFysiskDokument(
+                        journalpostId = dokument.journalpostId,
+                        dokumentInfoId = dokument.dokumentInfoId,
+                    )
+                    fysiskDokument.content to fysiskDokument.title
+                }
+
+                else -> {
+                    error("can't come here")
+                }
             }
         }
 
@@ -1693,6 +1713,14 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeidList = dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId),
             behandling = behandling,
         )
+    }
+
+    fun getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId: UUID): OpplastetDokumentUnderArbeidAsHoveddokument? {
+        //Sjekker tilgang på behandlingsnivå:
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndMarkertFerdigNotNull(
+            behandlingId
+        ).find { it.dokumentType == DokumentType.SVARBREV }
     }
 
     fun getDokumentUnderArbeidView(dokumentUnderArbeidId: UUID, behandlingId: UUID): DokumentView {
@@ -2026,6 +2054,77 @@ class DokumentUnderArbeidService(
                 type = type,
                 data = data,
             )
+        )
+    }
+
+    fun createDokumentUnderArbeidFromSvarbrevInput(
+        svarbrevInput: SvarbrevInput,
+        behandling: Behandling
+    ): DokumentUnderArbeidAsHoveddokument {
+        val bytes = kabalJsonToPdfClient.getSvarbrevPDF(
+            svarbrevRequest = SvarbrevRequest(
+                title = svarbrevInput.title,
+                sakenGjelder = SvarbrevRequest.Part(
+                    name = partSearchService.searchPart(identifikator = behandling.sakenGjelder.partId.value).name,
+                    fnr = behandling.sakenGjelder.partId.value,
+                ),
+                klager = if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
+                    SvarbrevRequest.Part(
+                        name = partSearchService.searchPart(identifikator = behandling.klager.partId.value).name,
+                        fnr = behandling.klager.partId.value,
+                    )
+                } else null,
+                enhetsnavn = Enhet.entries.first { it.navn == svarbrevInput.enhetId }.beskrivelse,
+                ytelsenavn = behandling.ytelse.navn,
+                fullmektigFritekst = svarbrevInput.fullmektigFritekst,
+                ankeReceivedDate = behandling.mottattKlageinstans.toLocalDate(),
+                behandlingstidInWeeks = ChronoUnit.WEEKS.between(
+                    behandling.mottattKlageinstans.toLocalDate(),
+                    behandling.frist
+                ).toInt(),
+                avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
+            )
+        )
+        val documentView = createOpplastetDokumentUnderArbeid(
+            behandlingId = behandling.id,
+            dokumentType = DokumentType.SVARBREV,
+            opplastetFil = FysiskDokument(
+                title = svarbrevInput.title,
+                content = bytes,
+                contentType = MediaType.APPLICATION_PDF
+            ),
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            tittel = svarbrevInput.title,
+            parentId = null
+        )
+
+        updateMottakere(
+            behandlingId = behandling.id,
+            dokumentId = documentView.id,
+            mottakerInput = MottakerInput(
+                svarbrevInput.receivers.map {
+                    Mottaker(
+                        id = it.id,
+                        handling = HandlingEnum.valueOf(it.handling.name),
+                        overriddenAddress = it.overriddenAddress?.let { address ->
+                            AddressInput(
+                                adresselinje1 = address.adresselinje1,
+                                adresselinje2 = address.adresselinje2,
+                                adresselinje3 = address.adresselinje3,
+                                landkode = address.landkode,
+                                postnummer = address.postnummer,
+                            )
+                        }
+                    )
+                }
+            ),
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+
+        return finnOgMarkerFerdigHovedDokument(
+            behandlingId = behandling.id,
+            dokumentId = documentView.id,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
     }
 }

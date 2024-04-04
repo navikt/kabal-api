@@ -113,6 +113,7 @@ class DokumentUnderArbeidServiceTest {
             partSearchService = mockk(),
             kodeverkService = mockk(),
             dokDistKanalService = mockk(),
+            azureGateway = mockk(),
         )
 
         val behandlingId = UUID.randomUUID()

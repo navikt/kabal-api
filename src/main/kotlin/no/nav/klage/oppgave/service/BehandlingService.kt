@@ -268,7 +268,8 @@ class BehandlingService(
         }
 
         if (behandling.klager.prosessfullmektig?.partId?.isPerson() == false &&
-            !eregClient.hentNoekkelInformasjonOmOrganisasjon(behandling.klager.prosessfullmektig!!.partId.value).isActive()
+            !eregClient.hentNoekkelInformasjonOmOrganisasjon(behandling.klager.prosessfullmektig!!.partId.value)
+                .isActive()
         ) {
             behandlingValidationErrors.add(
                 InvalidProperty(
@@ -1817,9 +1818,15 @@ class BehandlingService(
         ytelseId = ytelse.id,
         hjemmelIdList = hjemler.map { it.id },
         vedtakDate = avsluttetAvSaksbehandler!!,
-        sakenGjelder = behandlingMapper.getSakenGjelderView(sakenGjelder).toKabinPartView(),
-        klager = behandlingMapper.getPartView(klager.partId).toKabinPartView(),
-        fullmektig = klager.prosessfullmektig?.let { behandlingMapper.getPartView(it.partId).toKabinPartView() },
+        sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
+        klager = behandlingMapper.getPartViewWithUtsendingskanal(partId = klager.partId, behandling = this)
+            .toKabinPartView(),
+        fullmektig = klager.prosessfullmektig?.let {
+            behandlingMapper.getPartViewWithUtsendingskanal(
+                partId = it.partId,
+                behandling = this
+            ).toKabinPartView()
+        },
         fagsakId = fagsakId,
         fagsystem = fagsystem,
         fagsystemId = fagsystem.id,

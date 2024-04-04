@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.api.view.kabin
 
+import no.nav.klage.dokument.api.view.HandlingEnum
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
@@ -48,11 +49,11 @@ data class ExistingAnkebehandling(
 )
 
 data class CreatedAnkeResponse(
-    val mottakId: UUID,
+    val behandlingId: UUID,
 )
 
 data class CreatedKlageResponse(
-    val mottakId: UUID,
+    val behandlingId: UUID,
 )
 
 data class CreatedAnkebehandlingStatusForKabin(
@@ -68,7 +69,20 @@ data class CreatedAnkebehandlingStatusForKabin(
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
-)
+    val svarbrev: Svarbrev?,
+) {
+    data class Svarbrev(
+        val dokumentUnderArbeidId: UUID,
+        val title: String,
+        val receivers: List<Receiver>,
+    ) {
+        data class Receiver(
+            val part: BehandlingDetaljerView.PartViewWithUtsendingskanal,
+            val overriddenAddress: BehandlingDetaljerView.Address?,
+            val handling: HandlingEnum,
+        )
+    }
+}
 
 data class CreatedKlagebehandlingStatusForKabin(
     val typeId: String,
@@ -97,20 +111,47 @@ data class KabinPartView(
     val name: String,
     val available: Boolean,
     val statusList: List<BehandlingDetaljerView.PartStatus>,
+    val address: BehandlingDetaljerView.Address?,
+    val utsendingskanal: BehandlingDetaljerView.Utsendingskanal,
+    val language: String?,
 )
 
-fun BehandlingDetaljerView.SakenGjelderView.toKabinPartView(): KabinPartView {
+data class OldKabinPartView(
+    val id: String,
+    val type: BehandlingDetaljerView.IdType,
+    val name: String,
+    val available: Boolean,
+    val statusList: List<BehandlingDetaljerView.PartStatus>,
+)
+
+fun BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
     return KabinPartView(
         id = id,
         type = type,
         name = name,
         available = available,
         statusList = statusList,
+        address = address,
+        utsendingskanal = utsendingskanal,
+        language = language,
     )
 }
 
-fun BehandlingDetaljerView.PartView.toKabinPartView(): KabinPartView {
+fun BehandlingDetaljerView.PartViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
     return KabinPartView(
+        id = id,
+        type = type,
+        name = name,
+        available = available,
+        statusList = statusList,
+        address = address,
+        utsendingskanal = utsendingskanal,
+        language = language,
+    )
+}
+
+fun BehandlingDetaljerView.PartView.toOldKabinPartView(): OldKabinPartView {
+    return OldKabinPartView(
         id = id,
         type = type,
         name = name,
