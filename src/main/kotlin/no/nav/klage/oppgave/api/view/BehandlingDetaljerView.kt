@@ -52,6 +52,7 @@ data class BehandlingDetaljerView(
     data class CombinedMedunderskriverAndROLView(
         val employee: SaksbehandlerView?,
         val flowState: FlowState,
+        val returnedFromROLDate: LocalDate?,
     )
 
     data class KvalitetsvurderingReference(
