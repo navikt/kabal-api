@@ -483,6 +483,12 @@ class MottakService(
                 )
             )
 
+        val hjemmelCollection = if (input.replacementHjemmelIdList.isNullOrEmpty()) {
+            hjemler
+        } else {
+            input.replacementHjemmelIdList.map { Hjemmel.of(it) }
+        }
+
         return Mottak(
             type = Type.ANKE,
             klager = klager,
@@ -492,7 +498,7 @@ class MottakService(
             kildeReferanse = kildeReferanse,
             dvhReferanse = dvhReferanse,
             //Dette er søkehjemler
-            hjemler = hjemler.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
+            hjemler = hjemmelCollection.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
             forrigeSaksbehandlerident = tildeling!!.saksbehandlerident,
             forrigeBehandlendeEnhet = tildeling!!.enhet!!,
             mottakDokument = innsendtDokument,
