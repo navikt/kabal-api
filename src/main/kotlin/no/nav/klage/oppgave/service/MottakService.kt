@@ -483,7 +483,11 @@ class MottakService(
                 )
             )
 
-        val hjemmelCollection = hjemler + (input.additionalHjemmelIdList?.map { Hjemmel.of(it) } ?: emptySet())
+        val hjemmelCollection = if (input.additionalHjemmelIdList.isNullOrEmpty()) {
+            hjemler
+        } else {
+            input.additionalHjemmelIdList.map { Hjemmel.of(it) }
+        }
 
         return Mottak(
             type = Type.ANKE,
