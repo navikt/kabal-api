@@ -483,10 +483,10 @@ class MottakService(
                 )
             )
 
-        val hjemmelCollection = if (input.additionalHjemmelIdList.isNullOrEmpty()) {
+        val hjemmelCollection = if (input.replacementHjemmelIdList.isNullOrEmpty()) {
             hjemler
         } else {
-            input.additionalHjemmelIdList.map { Hjemmel.of(it) }
+            input.replacementHjemmelIdList.map { Hjemmel.of(it) }
         }
 
         return Mottak(
