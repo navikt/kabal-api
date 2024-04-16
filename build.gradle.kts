@@ -25,6 +25,7 @@ plugins {
     id("org.springframework.boot") version "3.2.4"
     id("io.spring.dependency-management") version "1.1.4"
     idea
+    kotlin("kapt") version kotlinVersion
 }
 
 java.sourceCompatibility = JavaVersion.VERSION_21
@@ -56,6 +57,7 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
+    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.4.4.Final")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")

@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.api.view
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
 data class OppgaveView(
     val id: String,
@@ -31,3 +32,41 @@ data class OppgaveView(
         val reason: String,
     )
 }
+
+interface CommonOppgaverQueryParams {
+    var typer: List<String>
+    var ytelser: List<String>
+    var hjemler: List<String>
+    var registreringshjemler: List<String>
+    val rekkefoelge: Rekkefoelge?
+    val sortering: Sortering?
+}
+
+interface FerdigstilteOppgaverQueryParams {
+    val ferdigstiltFrom: LocalDate?
+    val ferdigstiltTo: LocalDate?
+}
+
+data class MineFerdigstilteOppgaverQueryParams(
+    override var typer: List<String> = emptyList(),
+    override var ytelser: List<String> = emptyList(),
+    override var hjemler: List<String> = emptyList(),
+    override var registreringshjemler: List<String> = emptyList(),
+    override val rekkefoelge: Rekkefoelge = Rekkefoelge.STIGENDE,
+    override val sortering: Sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+    override val ferdigstiltFrom: LocalDate?,
+    override val ferdigstiltTo: LocalDate?,
+) : CommonOppgaverQueryParams, FerdigstilteOppgaverQueryParams
+
+enum class Rekkefoelge {
+    STIGENDE, SYNKENDE
+}
+
+enum class Sortering {
+    FRIST, MOTTATT, ALDER, PAA_VENT_FROM, PAA_VENT_TO, AVSLUTTET_AV_SAKSBEHANDLER, RETURNERT_FRA_ROL
+}
+
+data class BehandlingerListResponse(
+    val antallTreffTotalt: Int,
+    val behandlinger: List<UUID>,
+)
