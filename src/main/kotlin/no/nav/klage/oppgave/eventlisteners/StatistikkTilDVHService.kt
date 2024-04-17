@@ -186,7 +186,7 @@ class StatistikkTilDVHService(
         if (behandling.feilregistrering != null) {
             ExternalUtfall.FEILREGISTRERT.navn
         } else if (behandling.avsluttetAvSaksbehandler != null) {
-            behandling.utfall?.name?.let { ExternalUtfall.valueOf(it).navn }
+            behandling.utfall?.navn
         } else {
             null
         }
