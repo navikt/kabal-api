@@ -418,7 +418,7 @@ class BehandlingController(
         )
     }
 
-    @GetMapping("/{behandlingId}/aaregister")
+    @GetMapping("/{behandlingId}/aaregister/url")
     fun getAARegisterUrl(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): UrlView {
