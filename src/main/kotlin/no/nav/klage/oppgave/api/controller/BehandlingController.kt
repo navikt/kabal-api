@@ -375,12 +375,13 @@ class BehandlingController(
         )
     }
 
-    @GetMapping("/{behandlingId}/ainntekt")
-    fun getAInntektUrl(
+    //TODO: Remove url without redirect
+    @GetMapping(value = ["/{behandlingId}/ainntekt", "/{behandlingId}/ainntekt/redirect"])
+    fun getAInntektRedirect(
         @PathVariable("behandlingId") behandlingId: UUID,
     ): ModelAndView {
         logMethodDetails(
-            ::getAInntektUrl.name,
+            ::getAInntektRedirect.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             logger
         )
@@ -388,17 +389,48 @@ class BehandlingController(
         return ModelAndView(/* viewName = */ "redirect:" + behandlingService.getAInntektUrl(behandlingId))
     }
 
+    //TODO: Remove url without redirect
+    @GetMapping(value = ["/{behandlingId}/aaregister", "/{behandlingId}/aaregister/redirect"])
+    fun getAARegisterRedirect(
+        @PathVariable("behandlingId") behandlingId: UUID,
+    ): ModelAndView {
+        logMethodDetails(
+            ::getAARegisterRedirect.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        return ModelAndView(/* viewName = */ "redirect:" + behandlingService.getAARegisterUrl(behandlingId))
+    }
+
+    @GetMapping("/{behandlingId}/ainntekt/url")
+    fun getAInntektUrl(
+        @PathVariable("behandlingId") behandlingId: UUID,
+    ): UrlView {
+        logMethodDetails(
+            ::getAInntektUrl.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        return UrlView(
+            url = behandlingService.getAInntektUrl(behandlingId)
+        )
+    }
+
     @GetMapping("/{behandlingId}/aaregister")
     fun getAARegisterUrl(
         @PathVariable("behandlingId") behandlingId: UUID,
-    ): ModelAndView {
+    ): UrlView {
         logMethodDetails(
             ::getAARegisterUrl.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             logger
         )
 
-        return ModelAndView(/* viewName = */ "redirect:" + behandlingService.getAARegisterUrl(behandlingId))
+        return UrlView(
+            url = behandlingService.getAARegisterUrl(behandlingId)
+        )
     }
 
     @PostMapping("/{behandlingId}/feilregistrer")
