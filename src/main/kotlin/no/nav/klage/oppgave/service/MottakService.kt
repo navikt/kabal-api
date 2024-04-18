@@ -483,8 +483,7 @@ class MottakService(
                 )
             )
 
-        val hjemmelCollection =
-            input.hjemmelIdList?.map { Hjemmel.of(it) } ?: input.replacementHjemmelIdList!!.map { Hjemmel.of(it) }
+        val hjemmelCollection = input.hjemmelIdList.map { Hjemmel.of(it) }
 
         return Mottak(
             type = Type.ANKE,
