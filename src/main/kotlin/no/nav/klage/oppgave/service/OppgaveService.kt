@@ -5,6 +5,7 @@ import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Root
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.view.BehandlingerListResponse
 import no.nav.klage.oppgave.api.view.MineFerdigstilteOppgaverQueryParams
 import no.nav.klage.oppgave.api.view.Rekkefoelge
@@ -12,6 +13,8 @@ import no.nav.klage.oppgave.api.view.Sortering
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Behandling_
 import no.nav.klage.oppgave.repositories.BehandlingRepository
+import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
@@ -20,57 +23,31 @@ import org.springframework.stereotype.Service
 @Service
 class OppgaveService(
     private val behandlingRepository: BehandlingRepository,
-    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
+
+    companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+        private val secureLogger = getSecureLogger()
+    }
 
     fun getFerdigstilteOppgaverForNavIdent(queryParams: MineFerdigstilteOppgaverQueryParams): BehandlingerListResponse {
 
-        val specification: Specification<Behandling> = Specification { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
-            builder.isNotNull(root.get(Behandling_.avsluttetAvSaksbehandler))
-        }
+        var specification: Specification<Behandling> =
+            Specification { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+                builder.isNotNull(root.get(Behandling_.avsluttetAvSaksbehandler))
+            }
 
-        queryParams.typer.forEach { type ->
-            specification.and(isType(Type.of(type)))
-        }
-
-        queryParams.ytelser.forEach { ytelse ->
-            specification.and(isYtelse(Ytelse.of(ytelse)))
-        }
-
-        /*queryParams.registreringshjemler.forEach { hjemmel ->
-            specification.and(hasRegistreringshjemmel(Ytelse.of(ytelse)))
-        }*/
-
-        val sortDirection = when (queryParams.rekkefoelge) {
-            Rekkefoelge.STIGENDE -> {
-                Sort.Direction.ASC
-            }
-            Rekkefoelge.SYNKENDE -> {
-                Sort.Direction.DESC
-            }
-        }
-
-        val sortProperty = when (queryParams.sortering) {
-            Sortering.AVSLUTTET_AV_SAKSBEHANDLER -> {
-                Behandling::avsluttetAvSaksbehandler.name
-            }
-            Sortering.MOTTATT -> {
-                Behandling::mottattKlageinstans.name
-            }
-            Sortering.FRIST -> {
-                Behandling::frist.name
-            }
-            Sortering.ALDER -> {
-                Behandling::mottattKlageinstans.name
-            }
-            Sortering.PAA_VENT_FROM -> TODO()
-            Sortering.PAA_VENT_TO -> TODO()
-            Sortering.RETURNERT_FRA_ROL -> TODO()
-        }
+        specification = addTypeSpecifications(queryParams, specification)
+        specification = addYtelseSpecifications(queryParams, specification)
+        specification = addRegistreringshjemmelSpecifications(queryParams, specification)
 
         val data = behandlingRepository.findAll(
             specification,
-            Sort.by(sortDirection, sortProperty),
+            Sort.by(
+                getSortDirection(queryParams),
+                getSortProperty(queryParams),
+            ),
         )
 
         return BehandlingerListResponse(
@@ -79,30 +56,122 @@ class OppgaveService(
         )
     }
 
-}
+    private fun getSortDirection(queryParams: MineFerdigstilteOppgaverQueryParams): Sort.Direction {
+        val order = when (queryParams.rekkefoelge) {
+            Rekkefoelge.STIGENDE -> {
+                Sort.Direction.ASC
+            }
 
-fun isType(type: Type): Specification<Behandling> {
-    return Specification { root: Root<Behandling>, _: CriteriaQuery<*>?, builder: CriteriaBuilder ->
-        builder.equal(root.get(Behandling_.type), type)
-    }
-}
-
-fun isYtelse(ytelse: Ytelse): Specification<Behandling> {
-    return Specification { root: Root<Behandling>, _: CriteriaQuery<*>?, builder: CriteriaBuilder ->
-        builder.equal(root.get(Behandling_.ytelse), ytelse)
-    }
-}
-
-/*
-fun hasRegistreringshjemmel(registreringshjemmelList: List<Registreringshjemmel>): Specification<Behandling> {
-    return Specification { root: Root<Behandling>, _: CriteriaQuery<*>?, builder: CriteriaBuilder ->
-
-
-
-        val inClause: CriteriaBuilder.In<Registreringshjemmel> = builder.`in`(registreringshjemmelList.first())
-        for (registreringshjemmel in registreringshjemmelList) {
-            inClause.value(registreringshjemmel)
+            Rekkefoelge.SYNKENDE -> {
+                Sort.Direction.DESC
+            }
         }
-        builder.and(inClause)
+        if (queryParams.sortering == Sortering.ALDER) {
+            return if (order == Sort.Direction.ASC) {
+                Sort.Direction.DESC
+            } else {
+                Sort.Direction.ASC
+            }
+        }
+        return order
     }
-}*/
+
+    private fun getSortProperty(queryParams: MineFerdigstilteOppgaverQueryParams): String =
+        when (queryParams.sortering) {
+            Sortering.AVSLUTTET_AV_SAKSBEHANDLER -> {
+                Behandling_.avsluttetAvSaksbehandler.name
+            }
+
+            Sortering.MOTTATT -> {
+                Behandling_.mottattKlageinstans.name
+            }
+
+            Sortering.FRIST -> {
+                Behandling_.frist.name
+            }
+
+            Sortering.ALDER -> {
+                Behandling_.mottattKlageinstans.name
+            }
+
+            Sortering.PAA_VENT_FROM -> TODO()
+            Sortering.PAA_VENT_TO -> TODO()
+            Sortering.RETURNERT_FRA_ROL -> TODO()
+        }
+
+    private fun addRegistreringshjemmelSpecifications(
+        queryParams: MineFerdigstilteOppgaverQueryParams,
+        mainSpecification: Specification<Behandling>
+    ): Specification<Behandling> {
+        var specification = mainSpecification
+        if (queryParams.registreringshjemler.isNotEmpty()) {
+            queryParams.registreringshjemler.forEach { registreringshjemmelId ->
+                specification =
+                    specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+                        builder.isMember(Registreringshjemmel.of(registreringshjemmelId), root.get(Behandling_.registreringshjemler))
+                    }
+            }
+        }
+        return specification
+    }
+
+    private fun addTypeSpecifications(
+        queryParams: MineFerdigstilteOppgaverQueryParams,
+        mainSpecification: Specification<Behandling>
+    ): Specification<Behandling> {
+        var specification = mainSpecification
+        if (queryParams.typer.isNotEmpty()) {
+            var typeSpecifications: Specification<Behandling>? = null
+            queryParams.typer.forEach { typeId ->
+                val type = Type.of(typeId)
+                typeSpecifications = if (typeSpecifications == null) {
+                    Specification { root, _, builder ->
+                        builder.equal(
+                            root.get(Behandling_.type),
+                            type
+                        )
+                    }
+                } else {
+                    typeSpecifications!!.or { root, _, builder ->
+                        builder.equal(
+                            root.get(Behandling_.type),
+                            type
+                        )
+                    }
+                }
+            }
+            specification = specification.and(typeSpecifications)
+        }
+        return specification
+    }
+
+    private fun addYtelseSpecifications(
+        queryParams: MineFerdigstilteOppgaverQueryParams,
+        mainSpecification: Specification<Behandling>
+    ): Specification<Behandling> {
+        var specification = mainSpecification
+        if (queryParams.ytelser.isNotEmpty()) {
+            var ytelseSpecifications: Specification<Behandling>? = null
+            queryParams.ytelser.forEach { ytelseId ->
+                val ytelse = Ytelse.of(ytelseId)
+                ytelseSpecifications = if (ytelseSpecifications == null) {
+                    Specification<Behandling> { root, _, builder ->
+                        builder.equal(
+                            root.get(Behandling_.ytelse),
+                            ytelse
+                        )
+                    }
+                } else {
+                    ytelseSpecifications!!.or { root, _, builder ->
+                        builder.equal(
+                            root.get(Behandling_.ytelse),
+                            ytelse
+                        )
+                    }
+                }
+            }
+            specification = specification.and(ytelseSpecifications)
+        }
+        return specification
+    }
+}

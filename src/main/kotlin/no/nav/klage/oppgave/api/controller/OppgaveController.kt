@@ -10,6 +10,7 @@ import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.OppgaveService
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -33,6 +34,7 @@ class OppgaveController(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val secureLogger = getSecureLogger()
     }
 
     @GetMapping("/{behandlingId}")
@@ -60,9 +62,8 @@ class OppgaveController(
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger,
         )
+        secureLogger.debug("${::getMineFerdigstilteOppgaver.name} called with params: {}", queryParams)
 
-        oppgaveService.getFerdigstilteOppgaverForNavIdent(queryParams)
-
-        TODO()
+        return oppgaveService.getFerdigstilteOppgaverForNavIdent(queryParams)
     }
 }
