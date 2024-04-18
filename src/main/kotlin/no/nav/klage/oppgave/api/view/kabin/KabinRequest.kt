@@ -30,8 +30,7 @@ data class CreateAnkeBasedOnKabinInput(
     val ankeDocumentJournalpostId: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
-    val replacementHjemmelIdList: List<String>?,
-    val hjemmelIdList: List<String>?,
+    val hjemmelIdList: List<String>,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,
