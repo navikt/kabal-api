@@ -37,14 +37,14 @@ interface CommonOppgaverQueryParams {
     var typer: List<String>
     var ytelser: List<String>
     var hjemler: List<String>
-    var registreringshjemler: List<String>
-    val rekkefoelge: Rekkefoelge?
-    val sortering: Sortering?
+    val rekkefoelge: Rekkefoelge
+    val sortering: Sortering
 }
 
 interface FerdigstilteOppgaverQueryParams {
     val ferdigstiltFrom: LocalDate?
     val ferdigstiltTo: LocalDate?
+    val registreringshjemler: List<String>
 }
 
 data class MineFerdigstilteOppgaverQueryParams(
@@ -56,6 +56,18 @@ data class MineFerdigstilteOppgaverQueryParams(
     override val sortering: Sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
     override val ferdigstiltFrom: LocalDate?,
     override val ferdigstiltTo: LocalDate?,
+) : CommonOppgaverQueryParams, FerdigstilteOppgaverQueryParams
+
+data class EnhetensFerdigstilteOppgaverQueryParams(
+    override var typer: List<String> = emptyList(),
+    override var ytelser: List<String> = emptyList(),
+    override var hjemler: List<String> = emptyList(),
+    override var registreringshjemler: List<String> = emptyList(),
+    override val rekkefoelge: Rekkefoelge = Rekkefoelge.STIGENDE,
+    override val sortering: Sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+    override val ferdigstiltFrom: LocalDate?,
+    override val ferdigstiltTo: LocalDate?,
+    var tildelteSaksbehandlere: List<String> = emptyList(),
 ) : CommonOppgaverQueryParams, FerdigstilteOppgaverQueryParams
 
 enum class Rekkefoelge {

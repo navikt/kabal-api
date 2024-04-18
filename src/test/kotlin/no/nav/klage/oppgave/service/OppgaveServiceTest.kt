@@ -4,11 +4,13 @@ import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
+import no.nav.klage.oppgave.api.view.EnhetensFerdigstilteOppgaverQueryParams
 import no.nav.klage.oppgave.api.view.MineFerdigstilteOppgaverQueryParams
 import no.nav.klage.oppgave.api.view.Rekkefoelge
 import no.nav.klage.oppgave.api.view.Sortering
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -50,6 +52,9 @@ class OppgaveServiceTest {
     @MockkBean
     lateinit var innloggetSaksbehandlerService: InnloggetSaksbehandlerService
 
+    @MockkBean
+    lateinit var saksbehandlerService: SaksbehandlerService
+
     lateinit var oppgaveService: OppgaveService
 
     private val SAKSBEHANDLER_IDENT = "SAKSBEHANDLER_IDENT"
@@ -59,8 +64,10 @@ class OppgaveServiceTest {
         oppgaveService = OppgaveService(
             behandlingRepository = behandlingRepository,
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
+            saksbehandlerService = saksbehandlerService,
         )
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
+        every { saksbehandlerService.getEnhetForSaksbehandler(any()) } returns Enhet(enhetId = "1000", navn = "Enhet")
     }
 
     @Test
@@ -302,12 +309,47 @@ class OppgaveServiceTest {
         assertThat(results.behandlinger).containsExactly(behandling.id)
     }
 
+    @Test
+    fun `get ferdigstilte for enhet`() {
+        val behandling = simpleInsert(
+            type = Type.KLAGE,
+            ytelse = Ytelse.OMS_OMP,
+            registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(1),
+        )
+
+        simpleInsert(
+            type = Type.KLAGE,
+            ytelse = Ytelse.OMS_OMP,
+            registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(1),
+            enhetId = "2000",
+        )
+
+        val results = oppgaveService.getFerdigstilteOppgaverForEnhet(
+            EnhetensFerdigstilteOppgaverQueryParams(
+                typer = emptyList(),
+                ytelser = emptyList(),
+                registreringshjemler = emptyList(),
+                rekkefoelge = Rekkefoelge.STIGENDE,
+                sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                ferdigstiltFrom = LocalDate.now().minusDays(1),
+                ferdigstiltTo = LocalDate.now().plusDays(1),
+            )
+        )
+
+        assertThat(results.behandlinger).containsExactly(behandling.id)
+    }
+
     private fun simpleInsert(
         type: Type,
         ytelse: Ytelse,
         registreringshjemmelList: List<Registreringshjemmel>,
         tildeltSaksbehandlerIdent: String,
         avsluttetAvSaksbehandler: LocalDateTime = LocalDateTime.now(),
+        enhetId: String = "1000"
     ): Behandling {
         val now = LocalDateTime.now()
         val mottak = Mottak(
@@ -356,7 +398,7 @@ class OppgaveServiceTest {
                     previousSaksbehandlerident = "C78901",
                     tildeling = Tildeling(
                         saksbehandlerident = tildeltSaksbehandlerIdent,
-                        enhet = "1000",
+                        enhet = enhetId,
                         tidspunkt = now,
                     ),
                 )
@@ -391,7 +433,7 @@ class OppgaveServiceTest {
                     sourceBehandlingId = UUID.randomUUID(),
                     tildeling = Tildeling(
                         saksbehandlerident = tildeltSaksbehandlerIdent,
-                        enhet = "1000",
+                        enhet = enhetId,
                         tidspunkt = now,
                     ),
                 )

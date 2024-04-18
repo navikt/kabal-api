@@ -6,10 +6,7 @@ import jakarta.persistence.criteria.Root
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.oppgave.api.view.BehandlingerListResponse
-import no.nav.klage.oppgave.api.view.MineFerdigstilteOppgaverQueryParams
-import no.nav.klage.oppgave.api.view.Rekkefoelge
-import no.nav.klage.oppgave.api.view.Sortering
+import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Behandling_
 import no.nav.klage.oppgave.domain.klage.Tildeling_
@@ -25,6 +22,7 @@ import org.springframework.stereotype.Service
 class OppgaveService(
     private val behandlingRepository: BehandlingRepository,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
+    private val saksbehandlerService: SaksbehandlerService,
 ) {
 
     companion object {
@@ -59,7 +57,33 @@ class OppgaveService(
         )
     }
 
-    private fun getSortDirection(queryParams: MineFerdigstilteOppgaverQueryParams): Sort.Direction {
+    fun getFerdigstilteOppgaverForEnhet(queryParams: EnhetensFerdigstilteOppgaverQueryParams): BehandlingerListResponse {
+        var specification: Specification<Behandling> =
+            Specification { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+                builder.isNotNull(root.get(Behandling_.avsluttetAvSaksbehandler))
+            }
+
+        specification = addEnhet(specification)
+        specification = addTypeSpecifications(queryParams, specification)
+        specification = addYtelseSpecifications(queryParams, specification)
+        specification = addRegistreringshjemmelSpecifications(queryParams, specification)
+        specification = addFromToSpecifications(queryParams, specification)
+
+        val data = behandlingRepository.findAll(
+            specification,
+            Sort.by(
+                getSortDirection(queryParams),
+                getSortProperty(queryParams),
+            ),
+        )
+
+        return BehandlingerListResponse(
+            behandlinger = data.map { behandling -> behandling.id },
+            antallTreffTotalt = data.size,
+        )
+    }
+
+    private fun getSortDirection(queryParams: CommonOppgaverQueryParams): Sort.Direction {
         val order = when (queryParams.rekkefoelge) {
             Rekkefoelge.STIGENDE -> {
                 Sort.Direction.ASC
@@ -79,7 +103,7 @@ class OppgaveService(
         return order
     }
 
-    private fun getSortProperty(queryParams: MineFerdigstilteOppgaverQueryParams): String =
+    private fun getSortProperty(queryParams: CommonOppgaverQueryParams): String =
         when (queryParams.sortering) {
             Sortering.AVSLUTTET_AV_SAKSBEHANDLER -> {
                 Behandling_.avsluttetAvSaksbehandler.name
@@ -102,6 +126,16 @@ class OppgaveService(
             Sortering.RETURNERT_FRA_ROL -> TODO()
         }
 
+    private fun addEnhet(specification: Specification<Behandling>) =
+        specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+            builder.equal(
+                root.get(Behandling_.tildeling).get(Tildeling_.enhet),
+                saksbehandlerService.getEnhetForSaksbehandler(
+                    innloggetSaksbehandlerService.getInnloggetIdent()
+                ).enhetId
+            )
+        }
+
     private fun addInnloggetSaksbehandler(specification: Specification<Behandling>) =
         specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
             builder.equal(
@@ -111,7 +145,7 @@ class OppgaveService(
         }
 
     private fun addRegistreringshjemmelSpecifications(
-        queryParams: MineFerdigstilteOppgaverQueryParams,
+        queryParams: FerdigstilteOppgaverQueryParams,
         mainSpecification: Specification<Behandling>
     ): Specification<Behandling> {
         var specification = mainSpecification
@@ -130,7 +164,7 @@ class OppgaveService(
     }
 
     private fun addTypeSpecifications(
-        queryParams: MineFerdigstilteOppgaverQueryParams,
+        queryParams: CommonOppgaverQueryParams,
         mainSpecification: Specification<Behandling>
     ): Specification<Behandling> {
         var specification = mainSpecification
@@ -160,7 +194,7 @@ class OppgaveService(
     }
 
     private fun addYtelseSpecifications(
-        queryParams: MineFerdigstilteOppgaverQueryParams,
+        queryParams: CommonOppgaverQueryParams,
         mainSpecification: Specification<Behandling>
     ): Specification<Behandling> {
         var specification = mainSpecification
@@ -190,7 +224,7 @@ class OppgaveService(
     }
 
     private fun addFromToSpecifications(
-        queryParams: MineFerdigstilteOppgaverQueryParams,
+        queryParams: FerdigstilteOppgaverQueryParams,
         mainSpecification: Specification<Behandling>
     ): Specification<Behandling> {
         var specification = mainSpecification
@@ -206,7 +240,7 @@ class OppgaveService(
             specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
                 builder.greaterThanOrEqualTo(
                     root.get(Behandling_.avsluttetAvSaksbehandler),
-                    queryParams.ferdigstiltFrom.atStartOfDay()
+                    queryParams.ferdigstiltFrom!!.atStartOfDay()
                 )
             }
 
@@ -214,7 +248,7 @@ class OppgaveService(
             specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
                 builder.lessThan(
                     root.get(Behandling_.avsluttetAvSaksbehandler),
-                    queryParams.ferdigstiltTo.plusDays(1).atStartOfDay()
+                    queryParams.ferdigstiltTo!!.plusDays(1).atStartOfDay()
                 )
             }
 
