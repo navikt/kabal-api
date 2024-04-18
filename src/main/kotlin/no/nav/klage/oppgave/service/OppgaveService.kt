@@ -40,10 +40,10 @@ class OppgaveService(
             }
 
         specification = addInnloggetSaksbehandler(specification)
-
         specification = addTypeSpecifications(queryParams, specification)
         specification = addYtelseSpecifications(queryParams, specification)
         specification = addRegistreringshjemmelSpecifications(queryParams, specification)
+        specification = addFromToSpecifications(queryParams, specification)
 
         val data = behandlingRepository.findAll(
             specification,
@@ -58,14 +58,6 @@ class OppgaveService(
             antallTreffTotalt = data.size,
         )
     }
-
-    private fun addInnloggetSaksbehandler(specification: Specification<Behandling>) =
-        specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
-            builder.equal(
-                root.get(Behandling_.tildeling).get(Tildeling_.saksbehandlerident),
-                innloggetSaksbehandlerService.getInnloggetIdent()
-            )
-        }
 
     private fun getSortDirection(queryParams: MineFerdigstilteOppgaverQueryParams): Sort.Direction {
         val order = when (queryParams.rekkefoelge) {
@@ -108,6 +100,14 @@ class OppgaveService(
             Sortering.PAA_VENT_FROM -> TODO()
             Sortering.PAA_VENT_TO -> TODO()
             Sortering.RETURNERT_FRA_ROL -> TODO()
+        }
+
+    private fun addInnloggetSaksbehandler(specification: Specification<Behandling>) =
+        specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+            builder.equal(
+                root.get(Behandling_.tildeling).get(Tildeling_.saksbehandlerident),
+                innloggetSaksbehandlerService.getInnloggetIdent()
+            )
         }
 
     private fun addRegistreringshjemmelSpecifications(
@@ -188,4 +188,37 @@ class OppgaveService(
         }
         return specification
     }
+
+    private fun addFromToSpecifications(
+        queryParams: MineFerdigstilteOppgaverQueryParams,
+        mainSpecification: Specification<Behandling>
+    ): Specification<Behandling> {
+        var specification = mainSpecification
+        if ((queryParams.ferdigstiltFrom == null) xor (queryParams.ferdigstiltTo == null)) {
+            throw IllegalArgumentException("Både ferdigstiltFrom og ferdigstiltTo må være satt, eller ingen av dem.")
+        }
+
+        if (queryParams.ferdigstiltFrom == null || queryParams.ferdigstiltTo == null) {
+            return specification
+        }
+
+        specification =
+            specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+                builder.greaterThanOrEqualTo(
+                    root.get(Behandling_.avsluttetAvSaksbehandler),
+                    queryParams.ferdigstiltFrom.atStartOfDay()
+                )
+            }
+
+        specification =
+            specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+                builder.lessThan(
+                    root.get(Behandling_.avsluttetAvSaksbehandler),
+                    queryParams.ferdigstiltTo.plusDays(1).atStartOfDay()
+                )
+            }
+
+        return specification
+    }
+
 }

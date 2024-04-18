@@ -14,6 +14,7 @@ import no.nav.klage.oppgave.repositories.MottakRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
@@ -85,8 +86,8 @@ class OppgaveServiceTest {
                 registreringshjemler = emptyList(),
                 rekkefoelge = Rekkefoelge.STIGENDE,
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = LocalDate.now().minusDays(1),
-                ferdigstiltTo = LocalDate.now().plusDays(1),
+                ferdigstiltFrom = null,
+                ferdigstiltTo = null,
             )
         )
 
@@ -123,8 +124,8 @@ class OppgaveServiceTest {
                 registreringshjemler = emptyList(),
                 rekkefoelge = Rekkefoelge.STIGENDE,
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = LocalDate.now().minusDays(1),
-                ferdigstiltTo = LocalDate.now().plusDays(1),
+                ferdigstiltFrom = null,
+                ferdigstiltTo = null,
             )
         )
 
@@ -161,8 +162,8 @@ class OppgaveServiceTest {
                 registreringshjemler = emptyList(),
                 rekkefoelge = Rekkefoelge.STIGENDE,
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = LocalDate.now().minusDays(1),
-                ferdigstiltTo = LocalDate.now().plusDays(1),
+                ferdigstiltFrom = null,
+                ferdigstiltTo = null,
             )
         )
 
@@ -199,8 +200,8 @@ class OppgaveServiceTest {
                 registreringshjemler = emptyList(),
                 rekkefoelge = Rekkefoelge.STIGENDE,
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = LocalDate.now().minusDays(1),
-                ferdigstiltTo = LocalDate.now().plusDays(1),
+                ferdigstiltFrom = null,
+                ferdigstiltTo = null,
             )
         )
 
@@ -230,6 +231,69 @@ class OppgaveServiceTest {
                 registreringshjemler = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER.id),
                 rekkefoelge = Rekkefoelge.STIGENDE,
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                ferdigstiltFrom = null,
+                ferdigstiltTo = null,
+            )
+        )
+
+        assertThat(results.behandlinger).containsExactly(behandling.id)
+    }
+
+    @Test
+    fun `get ferdigstilte with missing from or to throws exception`() {
+        assertThrows<IllegalArgumentException> {
+            oppgaveService.getFerdigstilteOppgaverForNavIdent(
+                MineFerdigstilteOppgaverQueryParams(
+                    typer = emptyList(),
+                    ytelser = emptyList(),
+                    registreringshjemler = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER.id),
+                    rekkefoelge = Rekkefoelge.STIGENDE,
+                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                    ferdigstiltFrom = LocalDate.now().minusDays(1),
+                    ferdigstiltTo = null,
+                )
+            )
+        }
+        assertThrows<IllegalArgumentException> {
+            oppgaveService.getFerdigstilteOppgaverForNavIdent(
+                MineFerdigstilteOppgaverQueryParams(
+                    typer = emptyList(),
+                    ytelser = emptyList(),
+                    registreringshjemler = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER.id),
+                    rekkefoelge = Rekkefoelge.STIGENDE,
+                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                    ferdigstiltFrom = null,
+                    ferdigstiltTo = LocalDate.now().minusDays(1),
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `get ferdigstilte with specific from and to works`() {
+        val behandling = simpleInsert(
+            type = Type.KLAGE,
+            ytelse = Ytelse.OMS_OMP,
+            registreringshjemmelList = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(1),
+        )
+
+        simpleInsert(
+            type = Type.KLAGE,
+            ytelse = Ytelse.OMS_OMP,
+            registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(10),
+        )
+
+        val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
+            MineFerdigstilteOppgaverQueryParams(
+                typer = emptyList(),
+                ytelser = emptyList(),
+                registreringshjemler = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER.id),
+                rekkefoelge = Rekkefoelge.STIGENDE,
+                sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
                 ferdigstiltFrom = LocalDate.now().minusDays(1),
                 ferdigstiltTo = LocalDate.now().plusDays(1),
             )
@@ -243,6 +307,7 @@ class OppgaveServiceTest {
         ytelse: Ytelse,
         registreringshjemmelList: List<Registreringshjemmel>,
         tildeltSaksbehandlerIdent: String,
+        avsluttetAvSaksbehandler: LocalDateTime = LocalDateTime.now(),
     ): Behandling {
         val now = LocalDateTime.now()
         val mottak = Mottak(
@@ -287,7 +352,7 @@ class OppgaveServiceTest {
                     utfall = Utfall.STADFESTELSE,
                     extraUtfallSet = emptySet(),
                     registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    avsluttetAvSaksbehandler = now,
+                    avsluttetAvSaksbehandler = avsluttetAvSaksbehandler,
                     previousSaksbehandlerident = "C78901",
                     tildeling = Tildeling(
                         saksbehandlerident = tildeltSaksbehandlerIdent,
@@ -320,7 +385,7 @@ class OppgaveServiceTest {
                     utfall = Utfall.STADFESTELSE,
                     extraUtfallSet = emptySet(),
                     registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    avsluttetAvSaksbehandler = now,
+                    avsluttetAvSaksbehandler = avsluttetAvSaksbehandler,
                     previousSaksbehandlerident = "C78901",
                     klageBehandlendeEnhet = "1000",
                     sourceBehandlingId = UUID.randomUUID(),
