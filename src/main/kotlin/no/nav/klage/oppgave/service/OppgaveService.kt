@@ -12,6 +12,7 @@ import no.nav.klage.oppgave.api.view.Rekkefoelge
 import no.nav.klage.oppgave.api.view.Sortering
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Behandling_
+import no.nav.klage.oppgave.domain.klage.Tildeling_
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service
 @Service
 class OppgaveService(
     private val behandlingRepository: BehandlingRepository,
+    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
 
     companion object {
@@ -32,11 +34,12 @@ class OppgaveService(
     }
 
     fun getFerdigstilteOppgaverForNavIdent(queryParams: MineFerdigstilteOppgaverQueryParams): BehandlingerListResponse {
-
         var specification: Specification<Behandling> =
             Specification { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
                 builder.isNotNull(root.get(Behandling_.avsluttetAvSaksbehandler))
             }
+
+        specification = addInnloggetSaksbehandler(specification)
 
         specification = addTypeSpecifications(queryParams, specification)
         specification = addYtelseSpecifications(queryParams, specification)
@@ -55,6 +58,14 @@ class OppgaveService(
             antallTreffTotalt = data.size,
         )
     }
+
+    private fun addInnloggetSaksbehandler(specification: Specification<Behandling>) =
+        specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+            builder.equal(
+                root.get(Behandling_.tildeling).get(Tildeling_.saksbehandlerident),
+                innloggetSaksbehandlerService.getInnloggetIdent()
+            )
+        }
 
     private fun getSortDirection(queryParams: MineFerdigstilteOppgaverQueryParams): Sort.Direction {
         val order = when (queryParams.rekkefoelge) {
@@ -108,7 +119,10 @@ class OppgaveService(
             queryParams.registreringshjemler.forEach { registreringshjemmelId ->
                 specification =
                     specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
-                        builder.isMember(Registreringshjemmel.of(registreringshjemmelId), root.get(Behandling_.registreringshjemler))
+                        builder.isMember(
+                            Registreringshjemmel.of(registreringshjemmelId),
+                            root.get(Behandling_.registreringshjemler)
+                        )
                     }
             }
         }

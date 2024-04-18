@@ -1,5 +1,7 @@
 package no.nav.klage.oppgave.service
 
+import com.ninjasquad.springmockk.MockkBean
+import io.mockk.every
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.view.MineFerdigstilteOppgaverQueryParams
@@ -44,13 +46,20 @@ class OppgaveServiceTest {
     @Autowired
     lateinit var mottakRepository: MottakRepository
 
+    @MockkBean
+    lateinit var innloggetSaksbehandlerService: InnloggetSaksbehandlerService
+
     lateinit var oppgaveService: OppgaveService
+
+    private val SAKSBEHANDLER_IDENT = "SAKSBEHANDLER_IDENT"
 
     @BeforeEach
     fun setup() {
         oppgaveService = OppgaveService(
             behandlingRepository = behandlingRepository,
+            innloggetSaksbehandlerService = innloggetSaksbehandlerService,
         )
+        every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
     }
 
     @Test
@@ -59,6 +68,14 @@ class OppgaveServiceTest {
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+        )
+
+        simpleInsert(
+            type = Type.KLAGE,
+            ytelse = Ytelse.OMS_OMP,
+            registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = "otherIdent",
         )
 
         val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
@@ -82,18 +99,21 @@ class OppgaveServiceTest {
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         simpleInsert(
             type = Type.ANKE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         simpleInsert(
             type = Type.ANKE,
             ytelse = Ytelse.OMS_PLS,
             registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
@@ -117,18 +137,21 @@ class OppgaveServiceTest {
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         simpleInsert(
             type = Type.ANKE,
             ytelse = Ytelse.OMS_PSB,
             registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         simpleInsert(
             type = Type.ANKE,
             ytelse = Ytelse.OMS_PLS,
             registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
@@ -152,18 +175,21 @@ class OppgaveServiceTest {
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         simpleInsert(
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OLP,
             registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         simpleInsert(
             type = Type.ANKE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
@@ -187,12 +213,14 @@ class OppgaveServiceTest {
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         simpleInsert(
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
@@ -214,13 +242,15 @@ class OppgaveServiceTest {
         type: Type,
         ytelse: Ytelse,
         registreringshjemmelList: List<Registreringshjemmel>,
+        tildeltSaksbehandlerIdent: String,
     ): Behandling {
+        val now = LocalDateTime.now()
         val mottak = Mottak(
             ytelse = ytelse,
             type = type,
             klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
             kildeReferanse = "1234234",
-            sakMottattKaDato = LocalDateTime.now(),
+            sakMottattKaDato = now,
             fagsystem = Fagsystem.K9,
             fagsakId = "123",
             forrigeBehandlendeEnhet = "0101",
@@ -230,7 +260,6 @@ class OppgaveServiceTest {
 
         mottakRepository.save(mottak)
 
-        val now = LocalDateTime.now()
 
         val behandling = when (type) {
             Type.KLAGE -> {
@@ -258,8 +287,13 @@ class OppgaveServiceTest {
                     utfall = Utfall.STADFESTELSE,
                     extraUtfallSet = emptySet(),
                     registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    avsluttetAvSaksbehandler = LocalDateTime.now(),
+                    avsluttetAvSaksbehandler = now,
                     previousSaksbehandlerident = "C78901",
+                    tildeling = Tildeling(
+                        saksbehandlerident = tildeltSaksbehandlerIdent,
+                        enhet = "1000",
+                        tidspunkt = now,
+                    ),
                 )
             }
 
@@ -286,10 +320,15 @@ class OppgaveServiceTest {
                     utfall = Utfall.STADFESTELSE,
                     extraUtfallSet = emptySet(),
                     registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    avsluttetAvSaksbehandler = LocalDateTime.now(),
+                    avsluttetAvSaksbehandler = now,
                     previousSaksbehandlerident = "C78901",
                     klageBehandlendeEnhet = "1000",
                     sourceBehandlingId = UUID.randomUUID(),
+                    tildeling = Tildeling(
+                        saksbehandlerident = tildeltSaksbehandlerIdent,
+                        enhet = "1000",
+                        tidspunkt = now,
+                    ),
                 )
             }
 
