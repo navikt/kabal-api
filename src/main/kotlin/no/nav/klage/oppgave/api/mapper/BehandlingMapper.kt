@@ -18,6 +18,8 @@ import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 @Service
 class BehandlingMapper(
@@ -129,6 +131,7 @@ class BehandlingMapper(
                 )
             } else null,
             flowState = rolFlowState,
+            returnedFromROLDate = rolReturnedDate?.toLocalDate(),
         )
     }
 
@@ -141,6 +144,7 @@ class BehandlingMapper(
                 )
             } else null,
             flowState = medunderskriverFlowState,
+            returnedFromROLDate = null,
         )
     }
 
@@ -580,4 +584,41 @@ class BehandlingMapper(
         }
         return statusList
     }
+
+    fun mapBehandlingToOppgaveView(behandling: Behandling): OppgaveView {
+        return OppgaveView(
+            id = behandling.id.toString(),
+            typeId = behandling.type.id,
+            ytelseId = behandling.ytelse.id,
+            hjemmelIdList = behandling.hjemler.map { it.id },
+            registreringshjemmelIdList = behandling.registreringshjemler.map { it.id },
+            frist = behandling.frist,
+            mottatt = behandling.mottattKlageinstans.toLocalDate(),
+            medunderskriver = behandling.toMedunderskriverView(),
+            rol = behandling.toROLView(),
+            utfallId = behandling.utfall?.id,
+            avsluttetAvSaksbehandlerDate = behandling.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = behandling.avsluttetAvSaksbehandler != null,
+            tildeltSaksbehandlerident = behandling.tildeling?.saksbehandlerident,
+            ageKA = behandling.mottattKlageinstans.toAgeInDays(),
+            sattPaaVent = behandling.toSattPaaVent(),
+            feilregistrert = behandling.feilregistrering?.registered,
+            fagsystemId = behandling.fagsystem.id,
+            saksnummer = behandling.fagsakId,
+        )
+    }
+
+    private fun LocalDateTime.toAgeInDays() = ChronoUnit.DAYS.between(this.toLocalDate(), LocalDate.now()).toInt()
+
+    private fun Behandling.toSattPaaVent(): OppgaveView.SattPaaVent? {
+        return if (sattPaaVent != null) {
+            OppgaveView.SattPaaVent(
+                from = sattPaaVent!!.from,
+                to = sattPaaVent!!.to,
+                isExpired = sattPaaVent!!.to.isBefore(LocalDate.now()),
+                reason = sattPaaVent!!.reason,
+            )
+        } else null
+    }
+
 }
