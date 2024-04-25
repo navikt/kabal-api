@@ -23,7 +23,7 @@ data class OppgaveView(
     val feilregistrert: LocalDateTime?,
     val fagsystemId: String,
     val saksnummer: String,
-    val saksbehandler: SaksbehandlerView?,
+    val previousSaksbehandler: SaksbehandlerView?,
     val datoSendtTilTR: LocalDate?,
 ) {
 

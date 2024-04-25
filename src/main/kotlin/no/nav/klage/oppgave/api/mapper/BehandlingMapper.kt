@@ -605,7 +605,7 @@ class BehandlingMapper(
             feilregistrert = behandling.feilregistrering?.registered,
             fagsystemId = behandling.fagsystem.id,
             saksnummer = behandling.fagsakId,
-            saksbehandler = behandling.toSaksbehandlerView(),
+            previousSaksbehandler = behandling.toPreviousSaksbehandlerView(),
             datoSendtTilTR = if (behandling is AnkeITrygderettenbehandling) behandling.sendtTilTrygderetten.toLocalDate() else null,
         )
     }
