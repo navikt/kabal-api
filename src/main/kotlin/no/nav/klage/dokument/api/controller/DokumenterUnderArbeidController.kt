@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.mapper.DokumentInputMapper
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.api.view.DokumentUnderArbeidMetadata
@@ -302,6 +303,23 @@ class DokumentUnderArbeidController(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 dokumentTitle = input.title,
+                innloggetIdent = ident,
+            ).modified
+        )
+    }
+
+    @PutMapping("/{dokumentid}/language")
+    fun changeLanguageOnSmartdokument(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentid") dokumentId: UUID,
+        @RequestBody input: LanguageInput,
+    ): DocumentModified {
+        val ident = innloggetSaksbehandlerService.getInnloggetIdent()
+        return DocumentModified(
+            modified = dokumentUnderArbeidService.updateSmartdokumentLanguage(
+                behandlingId = behandlingId,
+                dokumentId = dokumentId,
+                language = Language.valueOf(input.language.name),
                 innloggetIdent = ident,
             ).modified
         )

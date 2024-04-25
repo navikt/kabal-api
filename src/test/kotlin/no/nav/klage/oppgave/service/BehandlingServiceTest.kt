@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
 import io.mockk.mockk
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.*
@@ -340,6 +341,7 @@ class BehandlingServiceTest {
                             creatorIdent = "null",
                             creatorRole = KABAL_SAKSBEHANDLING,
                             journalfoerendeEnhetId = null,
+                            language = Language.NB,
                         )
                     )
 

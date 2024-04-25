@@ -17,8 +17,8 @@ data class SmartHovedDokumentInput(
     val templateId: String?,
     val tittel: String?,
     val dokumentTypeId: String? = null,
-    val version: Int?,
     val parentId: UUID?,
+    val language: DokumentView.Language = DokumentView.Language.NB,
 )
 
 data class PatchSmartHovedDokumentInput(
@@ -39,6 +39,8 @@ data class JournalfoertDokumentReference(
 data class OptionalPersistentDokumentIdInput(val dokumentId: UUID?)
 
 data class DokumentTitleInput(val title: String)
+
+data class LanguageInput(val language: DokumentView.Language)
 
 data class DokumentTypeInput(val dokumentTypeId: String)
 

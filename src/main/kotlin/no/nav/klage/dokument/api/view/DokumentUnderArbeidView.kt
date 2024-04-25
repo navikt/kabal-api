@@ -1,5 +1,6 @@
 package no.nav.klage.dokument.api.view
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
@@ -35,7 +36,15 @@ data class DokumentView(
     val mottakerList: List<Mottaker>,
     val inngaaendeKanal: InngaaendeKanal?,
     val datoMottatt: LocalDate?,
+    val language: Language?,
 ) {
+
+    enum class Language {
+        @JsonProperty("nn")
+        NN,
+        @JsonProperty("nb")
+        NB,
+    }
 
     data class Mottaker(
         val part: BehandlingDetaljerView.PartViewWithUtsendingskanal,

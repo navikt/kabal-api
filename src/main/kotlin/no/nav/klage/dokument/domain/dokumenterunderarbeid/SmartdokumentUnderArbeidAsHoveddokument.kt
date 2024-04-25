@@ -22,6 +22,8 @@ class SmartdokumentUnderArbeidAsHoveddokument(
     override var mellomlagerId: String?,
     @Column(name = "mellomlagret_date")
     override var mellomlagretDate: LocalDateTime?,
+    @Column(name = "language")
+    override var language: Language,
 
     //Common properties
     id: UUID = UUID.randomUUID(),
@@ -74,6 +76,7 @@ class SmartdokumentUnderArbeidAsHoveddokument(
             creatorIdent = creatorIdent,
             creatorRole = creatorRole,
             parentId = parentId,
+            language = language,
         )
     }
 }
