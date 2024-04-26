@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
@@ -29,36 +28,32 @@ class EregClient(
     }
 
     fun hentNoekkelInformasjonOmOrganisasjon(orgnummer: String): NoekkelInfoOmOrganisasjon {
-        return kotlin.runCatching {
-            eregWebClient.get()
-                .uri { uriBuilder ->
-                    uriBuilder
-                        .path("/organisasjon/{orgnummer}/noekkelinfo")
-                        .queryParam("inkluderHierarki", false)
-                        .build(orgnummer)
-                }
-                .accept(MediaType.APPLICATION_JSON)
-                .header("Nav-Consumer-Id", applicationName)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::hentNoekkelInformasjonOmOrganisasjon.name, secureLogger)
-                }
-                .bodyToMono<NoekkelInfoOmOrganisasjon>()
-                .onErrorResume { Mono.error(EREGOrganizationNotFoundException("Fant ikke organisasjonen")) }
-                .block()
-                ?: throw EREGOrganizationNotFoundException("Search for key information about organization $orgnummer in Ereg returned null.")
-        }.fold(
-            onSuccess = { it },
-            onFailure = { error ->
-                when (error) {
-                    is WebClientResponseException.NotFound -> {
-                        throw EREGOrganizationNotFoundException("Couldn't find key info about organization $orgnummer in Ereg.")
+        return eregWebClient.get()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/organisasjon/{orgnummer}/noekkelinfo")
+                    .queryParam("inkluderHierarki", false)
+                    .build(orgnummer)
+            }
+            .accept(MediaType.APPLICATION_JSON)
+            .header("Nav-Consumer-Id", applicationName)
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                when (response.statusCode().value()) {
+                    404 -> {
+                        Mono.error(EREGOrganizationNotFoundException("Fant ingen organisasjon med orgnummer $orgnummer"))
                     }
-                    else -> throw error
+
+                    else -> {
+                        logErrorResponse(response, ::hentNoekkelInformasjonOmOrganisasjon.name, secureLogger)
+                        Mono.error(RuntimeException("Ukjent feil ved henting av nøkkelinfo om organisasjon $orgnummer"))
+                    }
                 }
             }
+            .bodyToMono<NoekkelInfoOmOrganisasjon>()
+            .block()
+            ?: throw RuntimeException("hentNoekkelInformasjonOmOrganisasjon for $orgnummer returned null.")
 
-        )
     }
 
     fun isOrganisasjonActive(orgnummer: String) = hentNoekkelInformasjonOmOrganisasjon(orgnummer).isActive()
