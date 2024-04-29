@@ -64,6 +64,10 @@ dokumenter {
     datoFerdigstilt
     originalJournalpostId
     skjerming
+    logiskeVedlegg {
+        logiskVedleggId
+        tittel
+    }
     dokumentvarianter {
         variantformat
         filnavn

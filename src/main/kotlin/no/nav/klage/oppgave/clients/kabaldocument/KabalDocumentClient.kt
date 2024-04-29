@@ -62,26 +62,4 @@ class KabalDocumentClient(
             .bodyToMono<DokumentEnhetFullfoerOutput>()
             .block() ?: throw RuntimeException("DokumentEnhet could not be finalized")
     }
-
-    fun updateDocumentTitle(
-        journalpostId: String,
-        input: UpdateTitleInput
-    ) {
-        kabalDocumentWebClient.put()
-            .uri {
-                it.path("/dokarkiv/journalposter/{journalpostId}/dokumenter/{dokumentInfoId}/title")
-                    .build(journalpostId, input.dokumentInfoId)
-            }
-            .header(
-                HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalDocumentScope()}"
-            )
-            .bodyValue(input)
-            .retrieve()
-            .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::updateDocumentTitle.name, secureLogger)
-            }
-            .bodyToMono<Void>()
-            .block()
-    }
 }

@@ -341,7 +341,13 @@ class DokumentMapper(
             kanalnavn = journalpost.kanalnavn,
             utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
             originalJournalpostId = hoveddokument.originalJournalpostId,
-            sortKey = getSortKey(journalpost = journalpost, dokumentInfoId = hoveddokument.dokumentInfoId)
+            sortKey = getSortKey(journalpost = journalpost, dokumentInfoId = hoveddokument.dokumentInfoId),
+            logiskeVedlegg = hoveddokument.logiskeVedlegg?.map {
+                no.nav.klage.oppgave.api.view.LogiskVedlegg(
+                    tittel = it.tittel,
+                    logiskVedleggId = it.logiskVedleggId
+                )
+            }
         )
 
         dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost, behandling))
@@ -428,7 +434,13 @@ class DokumentMapper(
                         vedlegg.dokumentInfoId
                     ),
                     originalJournalpostId = vedlegg.originalJournalpostId,
-                    sortKey = getSortKey(journalpost = journalpost, dokumentInfoId = vedlegg.dokumentInfoId)
+                    sortKey = getSortKey(journalpost = journalpost, dokumentInfoId = vedlegg.dokumentInfoId),
+                    logiskeVedlegg = vedlegg.logiskeVedlegg?.map {
+                        no.nav.klage.oppgave.api.view.LogiskVedlegg(
+                            tittel = it.tittel,
+                            logiskVedleggId = it.logiskVedleggId
+                        )
+                    }
                 )
             } ?: throw RuntimeException("could not create VedleggReferanser from dokumenter")
         } else {

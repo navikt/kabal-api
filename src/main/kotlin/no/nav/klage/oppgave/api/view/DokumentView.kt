@@ -25,6 +25,7 @@ data class DokumentReferanse(
     val temaId: String?,
     val harTilgangTilArkivvariant: Boolean,
     val valgt: Boolean,
+    val logiskeVedlegg: List<LogiskVedlegg>?,
     val vedlegg: MutableList<VedleggReferanse> = mutableListOf(),
     val journalposttype: Journalposttype?,
     val journalstatus: Journalstatus?,
@@ -114,6 +115,7 @@ data class DokumentReferanse(
         val valgt: Boolean,
         val originalJournalpostId: String?,
         val sortKey: String,
+        val logiskeVedlegg: List<LogiskVedlegg>?,
     )
 
     enum class Journalposttype {
@@ -212,3 +214,8 @@ data class MergedDocumentsMetadata(
         val dokumentInfoId: String,
     )
 }
+
+data class LogiskVedlegg(
+    val tittel: String,
+    val logiskVedleggId: String,
+)

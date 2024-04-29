@@ -36,6 +36,9 @@ NOM_SCOPE: prod-gcp.nom.nom-api
 SAF_BASE_URL: https://saf.prod-fss-pub.nais.io/
 SAF_SCOPE: prod-fss.teamdokumenthandtering.saf
 
+DOKARKIV_SCOPE: prod-fss.teamdokumenthandtering.dokarkiv/
+DOKARKIV_BASE_URL: https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1
+
 CLAM_AV_URL: http://clamav.nais-system/scan
 
 KAKA_VERSION_2_DATE: 2023-01-01

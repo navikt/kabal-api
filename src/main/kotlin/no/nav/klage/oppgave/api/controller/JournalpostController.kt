@@ -4,10 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
-import no.nav.klage.oppgave.api.view.JournalfoertDokumentMetadata
-import no.nav.klage.oppgave.api.view.MergedDocumentsMetadata
-import no.nav.klage.oppgave.api.view.ReferenceToMergedDocumentsResponse
-import no.nav.klage.oppgave.api.view.UpdateDocumentTitleView
+import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -63,6 +60,33 @@ class JournalpostController(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId,
             title = input.tittel
+        )
+
+        return input
+    }
+
+    @Operation(
+        summary = "Setter logiske vedlegg for dokument",
+        description = "Setter logiske vedlegg for dokument"
+    )
+    @PostMapping("/{journalpostId}/dokumenter/{dokumentInfoId}/logiskevedlegg")
+    fun setLogiskeVedlegg(
+        @Parameter(description = "Id til journalpost")
+        @PathVariable journalpostId: String,
+        @Parameter(description = "Id til dokumentInfo")
+        @PathVariable dokumentInfoId: String,
+        @Parameter(description = "Ny titler på logiske vedlegg til dokumentet")
+        @RequestBody input: UpdateLogiskeVedleggView
+    ): UpdateLogiskeVedleggView {
+        logMethodDetails(
+            methodName = ::setLogiskeVedlegg.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
+        )
+
+        dokumentService.setLogiskVedlegg(
+            dokumentInfoId = dokumentInfoId,
+            titles = input.titles
         )
 
         return input

@@ -95,9 +95,15 @@ data class DokumentInfo(
     val tittel: String?,
     val brevkode: String?,
     val skjerming: String?,
+    val logiskeVedlegg: List<LogiskVedlegg>?,
     val dokumentvarianter: List<Dokumentvariant>,
     val datoFerdigstilt: LocalDateTime?,
     val originalJournalpostId: String?,
+)
+
+data class LogiskVedlegg(
+    val tittel: String,
+    val logiskVedleggId: String,
 )
 
 data class Dokumentvariant(
