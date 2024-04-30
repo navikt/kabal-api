@@ -1975,7 +1975,7 @@ class DokumentUnderArbeidService(
             }
         }
 
-        val inholdsfortegnelsePath = if (vedleggList.isNotEmpty()) {
+        val innholdsfortegnelsePath = if (vedleggList.isNotEmpty() && !dokumentUnderArbeid.isInngaaende()) {
             val innholdsfortegnelsePDFBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
                 dokumentUnderArbeidId = dokumentUnderArbeidId,
                 fnr = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId).sakenGjelder.partId.value
@@ -2006,8 +2006,8 @@ class DokumentUnderArbeidService(
         //Add files in correct order
         filesToMerge.add(hoveddokumentPath)
 
-        if (inholdsfortegnelsePath != null) {
-            filesToMerge.add(inholdsfortegnelsePath)
+        if (innholdsfortegnelsePath != null) {
+            filesToMerge.add(innholdsfortegnelsePath)
         }
 
         filesToMerge.addAll(vedleggSmartAndUploadedPaths)
