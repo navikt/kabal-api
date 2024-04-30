@@ -7,22 +7,22 @@ val springRetryVersion = "2.0.5"
 val springMockkVersion = "4.0.2"
 val springDocVersion = "2.5.0"
 val testContainersVersion = "1.19.7"
-val shedlockVersion = "5.12.0"
-val archunitVersion = "1.2.1"
+val shedlockVersion = "5.13.0"
+val archunitVersion = "1.3.0"
 val kotlinXmlBuilderVersion = "1.9.1"
 val logbackSyslog4jVersion = "1.0.0"
 val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.2"
 val tikaVersion = "2.9.2"
-val verapdfVersion = "1.24.1"
-val klageKodeverkVersion = "1.8.12"
+val verapdfVersion = "1.24.2"
+val klageKodeverkVersion = "1.8.13"
 
 plugins {
     val kotlinVersion = "1.9.23"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
-    id("org.springframework.boot") version "3.2.4"
+    id("org.springframework.boot") version "3.2.5"
     id("io.spring.dependency-management") version "1.1.4"
     idea
     kotlin("kapt") version kotlinVersion
@@ -57,7 +57,7 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
-    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.4.4.Final")
+    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.5.0.Final")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
