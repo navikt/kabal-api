@@ -39,6 +39,7 @@ internal class StatistikkTilDVHTest {
             hjemmel = listOf("8-14"),
             klager = StatistikkTilDVH.Part(verdi = "8005138513", StatistikkTilDVH.PartIdType.VIRKSOMHET),
             opprinneligFagsaksystem = "K9Sak",
+            opprinneligFagsakId = "123456789",
             overfoertKA = LocalDate.now(),
             resultat = "resultatet",
             sakenGjelder = StatistikkTilDVH.Part(verdi = "20127529618", StatistikkTilDVH.PartIdType.PERSON),
@@ -47,7 +48,7 @@ internal class StatistikkTilDVHTest {
             tekniskTid = LocalDateTime.now(),
             vedtaksdato = LocalDate.now(),
             versjon = 1,
-            ytelseType = "OMS"
+            ytelseType = "OMS",
         )
 
         println(objectMapper.writeValueAsString(statistikkTilDVH))

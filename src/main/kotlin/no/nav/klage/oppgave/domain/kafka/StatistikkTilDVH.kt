@@ -79,6 +79,9 @@ data class StatistikkTilDVH(
     @JsonSchemaDescription("Vedtaksinstans. F.eks. Foreldrepenger. Kodeverk.")
     val opprinneligFagsaksystem: String,
 
+    @JsonSchemaDescription("SakId fra vedtaksinstans.")
+    val opprinneligFagsakId: String?,
+
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,
         pattern = DATE_FORMAT
@@ -126,7 +129,7 @@ data class StatistikkTilDVH(
     //TODO find version?
     val versjon: Int = 1,
 
-    @JsonSchemaDescription("Navnet på ytelsen i Kabal sitt kodeverk")
+    @JsonSchemaDescription("Enum-navnet på ytelsen i Kabal sitt kodeverk. F.eks. OMS_OMP.")
     val ytelseType: String,
 
     ) {
