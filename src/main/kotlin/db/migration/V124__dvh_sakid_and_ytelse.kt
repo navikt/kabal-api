@@ -38,18 +38,17 @@ class V124__dvh_sakid_and_ytelse : BaseJavaMigration() {
                         val statistikkTilDVH =
                             ourJacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
-                        if (statistikkTilDVH.resultat == "Stadfestelse") {
-                            val modifiedVersion = statistikkTilDVH.copy(
-                                opprinneligFagsakId = sakFagsakId,
-                                ytelseType = Ytelse.of(ytelseId).name,
-                            )
+                        val modifiedVersion = statistikkTilDVH.copy(
+                            opprinneligFagsakId = sakFagsakId,
+                            ytelseType = Ytelse.of(ytelseId).name,
+                        )
 
-                            preparedStatement.setString(1, ourJacksonObjectMapper().writeValueAsString(modifiedVersion))
-                            preparedStatement.setObject(2, kafkaEventId)
+                        preparedStatement.setString(1, ourJacksonObjectMapper().writeValueAsString(modifiedVersion))
+                        preparedStatement.setObject(2, kafkaEventId)
 
-                            preparedStatement.executeUpdate()
-                        }
+                        preparedStatement.executeUpdate()
                     }
+
                 }
         }
     }
