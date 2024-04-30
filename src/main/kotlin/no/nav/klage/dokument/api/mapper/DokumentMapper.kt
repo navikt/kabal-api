@@ -230,6 +230,9 @@ class DokumentMapper(
             avsender = avsender,
             mottakerList = mottakerList,
             inngaaendeKanal = inngaaendeKanal,
+            language = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
+                DokumentView.Language.valueOf(dokumentUnderArbeid.language.name)
+            } else null,
         )
     }
 
