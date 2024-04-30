@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.clients.dokarkiv
 
-data class UpdateDocumentTitleJournalpostInput(
+data class UpdateDocumentTitlesJournalpostInput(
     val dokumenter: List<UpdateDocumentTitleDokumentInput>,
 )
 

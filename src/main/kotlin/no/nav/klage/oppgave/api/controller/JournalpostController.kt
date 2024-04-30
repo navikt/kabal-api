@@ -84,7 +84,7 @@ class JournalpostController(
             logger = logger,
         )
 
-        dokumentService.setLogiskVedlegg(
+        dokumentService.setLogiskeVedlegg(
             dokumentInfoId = dokumentInfoId,
             titles = input.titles
         )

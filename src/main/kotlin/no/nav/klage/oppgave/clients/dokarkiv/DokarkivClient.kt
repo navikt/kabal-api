@@ -20,7 +20,7 @@ class DokarkivClient(
         private val secureLogger = getSecureLogger()
     }
 
-    fun updateDocumentTitleOnBehalfOf(journalpostId: String, input: UpdateDocumentTitleJournalpostInput) {
+    fun updateDocumentTitlesOnBehalfOf(journalpostId: String, input: UpdateDocumentTitlesJournalpostInput) {
         try {
             dokarkivWebClient.put()
                 .uri("/journalpost/${journalpostId}")
@@ -38,7 +38,7 @@ class DokarkivClient(
             logger.error("Error updating journalpost $journalpostId:", e)
         }
 
-        logger.debug("Document from journalpost $journalpostId with dokumentInfoId id ${input.dokumenter.first().dokumentInfoId} was succesfully updated.")
+        logger.debug("Documents from journalpost $journalpostId were successfully updated.")
     }
 
     fun setLogiskeVedleggOnBehalfOf(

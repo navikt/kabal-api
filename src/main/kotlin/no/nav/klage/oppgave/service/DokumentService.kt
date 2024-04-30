@@ -11,7 +11,7 @@ import no.nav.klage.oppgave.api.view.JournalfoertDokumentMetadata
 import no.nav.klage.oppgave.clients.dokarkiv.DokarkivClient
 import no.nav.klage.oppgave.clients.dokarkiv.SetLogiskeVedleggPayload
 import no.nav.klage.oppgave.clients.dokarkiv.UpdateDocumentTitleDokumentInput
-import no.nav.klage.oppgave.clients.dokarkiv.UpdateDocumentTitleJournalpostInput
+import no.nav.klage.oppgave.clients.dokarkiv.UpdateDocumentTitlesJournalpostInput
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.*
@@ -393,9 +393,9 @@ class DokumentService(
         title: String
     ) {
 
-        dokarkivClient.updateDocumentTitleOnBehalfOf(
+        dokarkivClient.updateDocumentTitlesOnBehalfOf(
             journalpostId = journalpostId,
-            input = UpdateDocumentTitleJournalpostInput(
+            input = UpdateDocumentTitlesJournalpostInput(
                 dokumenter = listOf(
                     UpdateDocumentTitleDokumentInput(
                         dokumentInfoId = dokumentInfoId,
@@ -431,7 +431,7 @@ class DokumentService(
         )
     }
 
-    fun setLogiskVedlegg(
+    fun setLogiskeVedlegg(
         dokumentInfoId: String,
         titles: List<String>,
     ) {
