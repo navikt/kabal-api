@@ -193,19 +193,24 @@ class DokumentService(
     }
 
     fun changeTitleInPDF(documentBytes: ByteArray, title: String): ByteArray {
-        val baos = ByteArrayOutputStream()
-        val timeMillis = measureTimeMillis {
-            val document: PDDocument =
-                Loader.loadPDF(RandomAccessReadBuffer(documentBytes), getMixedMemorySettingsForPDFBox(50_000_000))
+        try {
+            val baos = ByteArrayOutputStream()
+            val timeMillis = measureTimeMillis {
+                val document: PDDocument =
+                    Loader.loadPDF(RandomAccessReadBuffer(documentBytes), getMixedMemorySettingsForPDFBox(50_000_000))
 
-            val info: PDDocumentInformation = document.documentInformation
-            info.title = title
-            document.isAllSecurityToBeRemoved = true
-            document.save(baos)
-            document.close()
+                val info: PDDocumentInformation = document.documentInformation
+                info.title = title
+                document.isAllSecurityToBeRemoved = true
+                document.save(baos)
+                document.close()
+            }
+            secureLogger.debug("changeTitleInPDF with title $title took $timeMillis ms")
+            return baos.toByteArray()
+        } catch (e: Exception) {
+            secureLogger.warn("Unable to change title for pdf content", e)
+            return documentBytes
         }
-        secureLogger.debug("changeTitleInPDF with title $title took $timeMillis ms")
-        return baos.toByteArray()
     }
 
     fun getDokumentReferanse(journalpostId: String, behandling: Behandling): DokumentReferanse {
