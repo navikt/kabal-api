@@ -8,11 +8,11 @@ import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.ModifyCommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.CommentOutput
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
-import no.nav.klage.oppgave.exceptions.ValidationException
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
@@ -43,22 +43,19 @@ class SmartEditorController(
     @PostMapping
     fun createSmartHoveddokument(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody body: SmartHovedDokumentInput,
+        @RequestBody input: SmartHovedDokumentInput,
     ): DokumentView {
         logger.debug("Kall mottatt på createSmartHoveddokument")
 
-        if (body.version != null) {
-            throw ValidationException("Du har en gammel versjon av Kabal. Last på nytt. Teknisk: version skal ikke lenger sendes.")
-        }
-
         return dokumentUnderArbeidService.opprettSmartdokument(
             behandlingId = behandlingId,
-            dokumentType = if (body.dokumentTypeId != null) DokumentType.of(body.dokumentTypeId) else DokumentType.VEDTAK,
-            json = body.content.toString(),
-            smartEditorTemplateId = body.templateId ?: error("TODO. Can be null?"),
+            dokumentType = if (input.dokumentTypeId != null) DokumentType.of(input.dokumentTypeId) else DokumentType.VEDTAK,
+            json = input.content.toString(),
+            smartEditorTemplateId = input.templateId ?: error("TODO. Can be null?"),
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            tittel = body.tittel ?: DokumentType.VEDTAK.defaultFilnavn,
-            parentId = body.parentId,
+            tittel = input.tittel ?: DokumentType.VEDTAK.defaultFilnavn,
+            parentId = input.parentId,
+            language = Language.valueOf(input.language.name),
         )
     }
 

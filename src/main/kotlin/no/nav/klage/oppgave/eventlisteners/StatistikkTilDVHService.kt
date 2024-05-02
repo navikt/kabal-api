@@ -171,7 +171,8 @@ class StatistikkTilDVHService(
             saksbehandlerEnhet = behandling.tildeling?.enhet,
             tekniskTid = behandling.modified,
             vedtaksdato = behandling.avsluttetAvSaksbehandler?.toLocalDate(),
-            ytelseType = behandling.ytelse.navn,
+            ytelseType = behandling.ytelse.name,
+            opprinneligFagsakId = behandling.fagsakId,
         )
     }
 

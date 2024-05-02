@@ -9,6 +9,7 @@ interface DokumentUnderArbeidAsSmartdokument: DokumentUnderArbeidAsMellomlagret 
     val smartEditorId: UUID
     var smartEditorTemplateId: String
     var modified: LocalDateTime
+    var language: Language
 }
 
 interface DokumentUnderArbeidAsMellomlagret {

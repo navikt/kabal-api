@@ -279,6 +279,7 @@ class DokumentUnderArbeidService(
         innloggetIdent: String,
         tittel: String,
         parentId: UUID?,
+        language: Language = Language.NB,
     ): DokumentView {
         //Sjekker lesetilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
@@ -322,6 +323,7 @@ class DokumentUnderArbeidService(
                     created = now,
                     modified = now,
                     journalfoerendeEnhetId = null,
+                    language = language,
                 )
             )
         } else {
@@ -337,6 +339,7 @@ class DokumentUnderArbeidService(
                     creatorIdent = innloggetIdent,
                     creatorRole = behandlingRole,
                     parentId = parentId,
+                    language = language,
                     created = now,
                     modified = now,
                 )
@@ -1092,6 +1095,61 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeid
     }
 
+    fun updateSmartdokumentLanguage(
+        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        dokumentId: UUID,
+        language: Language,
+        innloggetIdent: String
+    ): DokumentUnderArbeid {
+        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
+
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
+
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
+
+        if (behandling.avsluttetAvSaksbehandler == null) {
+            if (dokumentUnderArbeid.creatorRole != behandlingRole && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+                throw MissingTilgangException("$behandlingRole har ikke anledning til å endre språk på dette dokumentet eiet av ${dokumentUnderArbeid.creatorRole}.")
+            }
+        }
+
+        if (dokumentUnderArbeid.erMarkertFerdig()) {
+            throw DokumentValidationException("Kan ikke endre språk på et dokument som er ferdigstilt")
+        }
+
+        dokumentUnderArbeid as DokumentUnderArbeidAsSmartdokument
+
+        val oldValue = dokumentUnderArbeid.language
+        dokumentUnderArbeid.language = language
+        behandling.publishEndringsloggEvent(
+            saksbehandlerident = innloggetIdent,
+            felt = Felt.DOKUMENT_UNDER_ARBEID_LANGUAGE,
+            fraVerdi = oldValue.name,
+            tilVerdi = dokumentUnderArbeid.language.name,
+            tidspunkt = LocalDateTime.now(),
+        )
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                SmartDocumentChangedEvent(
+                    actor = Employee(
+                        navIdent = innloggetIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                    ),
+                    timestamp = LocalDateTime.now(),
+                    document = SmartDocumentChangedEvent.SmartDocumentChanged(
+                        id = dokumentUnderArbeid.id.toString(),
+                        language = DokumentView.Language.valueOf(dokumentUnderArbeid.language.name),
+                    ),
+                )
+            ),
+            behandlingId = behandling.id,
+            type = InternalEventType.SMART_DOCUMENT_LANGUAGE,
+        )
+
+        return dokumentUnderArbeid
+    }
+
     fun validateDocument(
         dokumentId: UUID,
     ) {
@@ -1410,8 +1468,7 @@ class DokumentUnderArbeidService(
                 dokumentInfoId = dokarkivReference.dokumentInfoId!!,
             )
             fysiskDokument.content to fysiskDokument.title
-        }
-        else {
+        } else {
             when (dokument) {
                 is OpplastetDokumentUnderArbeidAsHoveddokument -> {
                     mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
@@ -1918,7 +1975,7 @@ class DokumentUnderArbeidService(
             }
         }
 
-        val inholdsfortegnelsePath = if (vedleggList.isNotEmpty()) {
+        val innholdsfortegnelsePath = if (vedleggList.isNotEmpty() && !dokumentUnderArbeid.isInngaaende()) {
             val innholdsfortegnelsePDFBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
                 dokumentUnderArbeidId = dokumentUnderArbeidId,
                 fnr = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId).sakenGjelder.partId.value
@@ -1949,8 +2006,8 @@ class DokumentUnderArbeidService(
         //Add files in correct order
         filesToMerge.add(hoveddokumentPath)
 
-        if (inholdsfortegnelsePath != null) {
-            filesToMerge.add(inholdsfortegnelsePath)
+        if (innholdsfortegnelsePath != null) {
+            filesToMerge.add(innholdsfortegnelsePath)
         }
 
         filesToMerge.addAll(vedleggSmartAndUploadedPaths)

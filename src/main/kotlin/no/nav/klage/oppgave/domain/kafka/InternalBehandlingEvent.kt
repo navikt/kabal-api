@@ -24,6 +24,7 @@ enum class InternalEventType {
     DOCUMENTS_ADDED,
     DOCUMENTS_REMOVED,
     DOCUMENTS_CHANGED,
+    SMART_DOCUMENT_LANGUAGE,
     MESSAGE, // Polling
     ROL, // Polling
     MEDUNDERSKRIVER, // Polling
@@ -137,6 +138,17 @@ data class DocumentsChangedEvent(
         val dokumentTypeId: String?,
         val tittel: String,
         val isMarkertAvsluttet: Boolean,
+    )
+}
+
+data class SmartDocumentChangedEvent(
+    override val actor: Employee,
+    override val timestamp: LocalDateTime,
+    val document: SmartDocumentChanged,
+) : BaseEvent(actor = actor, timestamp = timestamp) {
+    data class SmartDocumentChanged(
+        val id: String,
+        val language: DokumentView.Language,
     )
 }
 

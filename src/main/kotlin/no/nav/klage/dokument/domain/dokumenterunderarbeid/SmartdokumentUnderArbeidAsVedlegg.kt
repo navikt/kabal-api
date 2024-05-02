@@ -1,8 +1,6 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import jakarta.persistence.Column
-import jakarta.persistence.DiscriminatorValue
-import jakarta.persistence.Entity
+import jakarta.persistence.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
 import java.time.LocalDateTime
@@ -22,6 +20,9 @@ class SmartdokumentUnderArbeidAsVedlegg(
     override var mellomlagerId: String?,
     @Column(name = "mellomlagret_date")
     override var mellomlagretDate: LocalDateTime?,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "language")
+    override var language: Language,
 
     //Common properties
     id: UUID = UUID.randomUUID(),
@@ -68,6 +69,7 @@ class SmartdokumentUnderArbeidAsVedlegg(
             dokumentType = dokumentType,
             dokumentEnhetId = null,
             journalfoerendeEnhetId = null,
+            language = language,
         )
     }
 }
