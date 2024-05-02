@@ -15,6 +15,7 @@ externalHosts:
   - host: kodeverk-api.nav.no
   - host: regoppslag.prod-fss-pub.nais.io
   - host: dokdistkanal.prod-fss-pub.nais.io
+  - host: dokarkiv.prod-fss-pub.nais.io
 inboundApplications:
   - application: kabal-frontend
   - application: klage-dittnav-api

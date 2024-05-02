@@ -8,7 +8,10 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.api.view.JournalfoertDokumentMetadata
-import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.dokarkiv.DokarkivClient
+import no.nav.klage.oppgave.clients.dokarkiv.SetLogiskeVedleggPayload
+import no.nav.klage.oppgave.clients.dokarkiv.UpdateDocumentTitleDokumentInput
+import no.nav.klage.oppgave.clients.dokarkiv.UpdateDocumentTitlesJournalpostInput
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.*
@@ -50,12 +53,12 @@ class DokumentService(
     private val safRestClient: SafRestClient,
     private val mergedDocumentRepository: MergedDocumentRepository,
     private val dokumentMapper: DokumentMapper,
-    private val kabalDocumentGateway: KabalDocumentGateway,
     private val safFacade: SafFacade,
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val saksbehandlerService: SaksbehandlerService,
     private val pdlFacade: PdlFacade,
+    private val dokarkivClient: DokarkivClient
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -394,10 +397,17 @@ class DokumentService(
         dokumentInfoId: String,
         title: String
     ) {
-        kabalDocumentGateway.updateDocumentTitle(
+
+        dokarkivClient.updateDocumentTitlesOnBehalfOf(
             journalpostId = journalpostId,
-            dokumentInfoId = dokumentInfoId,
-            title = title
+            input = UpdateDocumentTitlesJournalpostInput(
+                dokumenter = listOf(
+                    UpdateDocumentTitleDokumentInput(
+                        dokumentInfoId = dokumentInfoId,
+                        tittel = title
+                    )
+                )
+            )
         )
 
         val journalpost = safFacade.getJournalpostAsSaksbehandler(
@@ -423,6 +433,18 @@ class DokumentService(
             ),
             identifikator = foedselsnummer,
             type = InternalEventType.JOURNALFOERT_DOCUMENT_MODIFIED,
+        )
+    }
+
+    fun setLogiskeVedlegg(
+        dokumentInfoId: String,
+        titles: List<String>,
+    ) {
+        return dokarkivClient.setLogiskeVedleggOnBehalfOf(
+            dokumentInfoId = dokumentInfoId,
+            payload = SetLogiskeVedleggPayload(
+                titler = titles
+            ),
         )
     }
 

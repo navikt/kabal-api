@@ -43,18 +43,4 @@ class KabalDocumentGateway(
 
     fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): DokumentEnhetFullfoerOutput =
         kabalDocumentClient.fullfoerDokumentEnhet(dokumentEnhetId)
-
-    fun updateDocumentTitle(
-        journalpostId: String,
-        dokumentInfoId: String,
-        title: String
-    ) {
-        kabalDocumentClient.updateDocumentTitle(
-            journalpostId = journalpostId,
-            input = UpdateTitleInput(
-                dokumentInfoId = dokumentInfoId,
-                title = title
-            )
-        )
-    }
 }

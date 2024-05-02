@@ -55,6 +55,12 @@ class TokenUtil(
         return response.accessToken!!
     }
 
+    fun getSaksbehandlerAccessTokenWithDokarkivScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["dokarkiv-onbehalfof"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken!!
+    }
+
     fun getSaksbehandlerAccessTokenWithKabalFileApiScope(): String {
         val clientProperties = clientConfigurationProperties.registration["kabal-file-api-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
