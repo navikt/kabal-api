@@ -16,7 +16,7 @@ class DokarkivClientConfiguration(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Value("\${DOKARKIV_SERVICE_URL}")
+    @Value("\${DOKARKIV_BASE_URL}")
     private lateinit var joarkServiceURL: String
 
     @Bean
