@@ -262,32 +262,31 @@ class OppgaveService(
         queryParams: CommonOppgaverQueryParams,
         mainSpecification: Specification<Behandling>
     ): Specification<Behandling> {
-        var specification = mainSpecification
 
         if (queryParams.fristFrom == null && queryParams.fristTo == null) {
-            return specification
+            return mainSpecification
         }
 
         val from = queryParams.fristFrom ?: LocalDate.now().minusDays(3650)
         val to = queryParams.fristTo ?: LocalDate.now().plusDays(3650)
 
-        specification =
-            specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
-                builder.greaterThanOrEqualTo(
-                    root.get(Behandling_.frist),
-                    from
-                )
-            }
+        val betweenDates = Specification { root, _, builder ->
+            builder.greaterThanOrEqualTo(
+                root.get(Behandling_.frist),
+                from
+            )
+        }.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+            builder.lessThanOrEqualTo(
+                root.get(Behandling_.frist),
+                to
+            )
+        }
 
-        specification =
-            specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
-                builder.lessThanOrEqualTo(
-                    root.get(Behandling_.frist),
-                    to
-                )
-            }
+        val isNull = Specification { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+            builder.isNull(root.get(Behandling_.frist))
+        }
 
-        return specification
+        return mainSpecification.and(betweenDates.or(isNull))
     }
 
 }
