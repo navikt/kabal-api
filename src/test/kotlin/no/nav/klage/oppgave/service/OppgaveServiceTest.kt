@@ -327,8 +327,8 @@ class OppgaveServiceTest {
     }
 
     @Test
-    fun `get oppgaver with frist with specific from and to works`() {
-        val behandling = simpleInsert(
+    fun `get oppgaver with frist with specific from and to works (or null)`() {
+        val behandling1 = simpleInsert(
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
@@ -342,6 +342,13 @@ class OppgaveServiceTest {
             registreringshjemmelList = emptyList(),
             tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
             frist = LocalDate.now().plusDays(10),
+        )
+
+        val behandling2 = simpleInsert(
+            type = Type.ANKE_I_TRYGDERETTEN,
+            ytelse = Ytelse.OMS_OMP,
+            registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
         )
 
         val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
@@ -358,7 +365,7 @@ class OppgaveServiceTest {
             )
         )
 
-        assertThat(results.behandlinger).containsExactly(behandling.id)
+        assertThat(results.behandlinger).containsExactlyInAnyOrder(behandling1.id, behandling2.id)
     }
 
     private fun simpleInsert(
@@ -458,7 +465,35 @@ class OppgaveServiceTest {
                 )
             }
 
-            Type.ANKE_I_TRYGDERETTEN -> TODO()
+            Type.ANKE_I_TRYGDERETTEN -> {
+                AnkeITrygderettenbehandling(
+                    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+                    sakenGjelder = SakenGjelder(
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                        skalMottaKopi = false
+                    ),
+                    ytelse = ytelse,
+                    type = type,
+                    hjemler = mutableSetOf(),
+                    created = now,
+                    modified = now,
+                    mottattKlageinstans = now,
+                    fagsystem = Fagsystem.K9,
+                    fagsakId = "123",
+                    kildeReferanse = "abc",
+                    utfall = Utfall.STADFESTELSE,
+                    extraUtfallSet = emptySet(),
+                    registreringshjemler = registreringshjemmelList.toMutableSet(),
+                    avsluttetAvSaksbehandler = avsluttetAvSaksbehandler,
+                    previousSaksbehandlerident = "C78901",
+                    tildeling = Tildeling(
+                        saksbehandlerident = tildeltSaksbehandlerIdent,
+                        enhet = enhetId,
+                        tidspunkt = now,
+                    ),
+                    sendtTilTrygderetten = LocalDateTime.now()
+                )
+            }
         }
 
         behandlingRepository.save(behandling)
