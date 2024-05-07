@@ -16,7 +16,6 @@ import no.nav.klage.oppgave.repositories.MottakRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
@@ -95,6 +94,8 @@ class OppgaveServiceTest {
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
                 ferdigstiltFrom = null,
                 ferdigstiltTo = null,
+                fristFrom = null,
+                fristTo = null,
             )
         )
 
@@ -133,6 +134,8 @@ class OppgaveServiceTest {
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
                 ferdigstiltFrom = null,
                 ferdigstiltTo = null,
+                fristFrom = null,
+                fristTo = null,
             )
         )
 
@@ -171,6 +174,8 @@ class OppgaveServiceTest {
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
                 ferdigstiltFrom = null,
                 ferdigstiltTo = null,
+                fristFrom = null,
+                fristTo = null,
             )
         )
 
@@ -209,6 +214,8 @@ class OppgaveServiceTest {
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
                 ferdigstiltFrom = null,
                 ferdigstiltTo = null,
+                fristFrom = null,
+                fristTo = null,
             )
         )
 
@@ -240,40 +247,12 @@ class OppgaveServiceTest {
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
                 ferdigstiltFrom = null,
                 ferdigstiltTo = null,
+                fristFrom = null,
+                fristTo = null,
             )
         )
 
         assertThat(results.behandlinger).containsExactly(behandling.id)
-    }
-
-    @Test
-    fun `get ferdigstilte with missing from or to throws exception`() {
-        assertThrows<IllegalArgumentException> {
-            oppgaveService.getFerdigstilteOppgaverForNavIdent(
-                MineFerdigstilteOppgaverQueryParams(
-                    typer = emptyList(),
-                    ytelser = emptyList(),
-                    registreringshjemler = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER.id),
-                    rekkefoelge = Rekkefoelge.STIGENDE,
-                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                    ferdigstiltFrom = LocalDate.now().minusDays(1),
-                    ferdigstiltTo = null,
-                )
-            )
-        }
-        assertThrows<IllegalArgumentException> {
-            oppgaveService.getFerdigstilteOppgaverForNavIdent(
-                MineFerdigstilteOppgaverQueryParams(
-                    typer = emptyList(),
-                    ytelser = emptyList(),
-                    registreringshjemler = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER.id),
-                    rekkefoelge = Rekkefoelge.STIGENDE,
-                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                    ferdigstiltFrom = null,
-                    ferdigstiltTo = LocalDate.now().minusDays(1),
-                )
-            )
-        }
     }
 
     @Test
@@ -303,6 +282,8 @@ class OppgaveServiceTest {
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
                 ferdigstiltFrom = LocalDate.now().minusDays(1),
                 ferdigstiltTo = LocalDate.now().plusDays(1),
+                fristFrom = null,
+                fristTo = null,
             )
         )
 
@@ -337,6 +318,43 @@ class OppgaveServiceTest {
                 sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
                 ferdigstiltFrom = LocalDate.now().minusDays(1),
                 ferdigstiltTo = LocalDate.now().plusDays(1),
+                fristFrom = null,
+                fristTo = null,
+            )
+        )
+
+        assertThat(results.behandlinger).containsExactly(behandling.id)
+    }
+
+    @Test
+    fun `get oppgaver with frist with specific from and to works`() {
+        val behandling = simpleInsert(
+            type = Type.KLAGE,
+            ytelse = Ytelse.OMS_OMP,
+            registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            frist = LocalDate.now().plusDays(9),
+        )
+
+        simpleInsert(
+            type = Type.KLAGE,
+            ytelse = Ytelse.OMS_OMP,
+            registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            frist = LocalDate.now().plusDays(10),
+        )
+
+        val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
+            MineFerdigstilteOppgaverQueryParams(
+                typer = emptyList(),
+                ytelser = emptyList(),
+                registreringshjemler = emptyList(),
+                rekkefoelge = Rekkefoelge.STIGENDE,
+                sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                ferdigstiltFrom = null,
+                ferdigstiltTo = null,
+                fristFrom = LocalDate.now(),
+                fristTo = LocalDate.now().plusDays(9),
             )
         )
 
@@ -349,7 +367,8 @@ class OppgaveServiceTest {
         registreringshjemmelList: List<Registreringshjemmel>,
         tildeltSaksbehandlerIdent: String,
         avsluttetAvSaksbehandler: LocalDateTime = LocalDateTime.now(),
-        enhetId: String = "1000"
+        enhetId: String = "1000",
+        frist: LocalDate = LocalDate.now(),
     ): Behandling {
         val now = LocalDateTime.now()
         val mottak = Mottak(
@@ -378,7 +397,7 @@ class OppgaveServiceTest {
                     ),
                     ytelse = ytelse,
                     type = type,
-                    frist = LocalDate.now(),
+                    frist = frist,
                     hjemler = mutableSetOf(),
                     created = now,
                     modified = now,
@@ -413,7 +432,7 @@ class OppgaveServiceTest {
                     ),
                     ytelse = ytelse,
                     type = type,
-                    frist = LocalDate.now(),
+                    frist = frist,
                     hjemler = mutableSetOf(),
                     created = now,
                     modified = now,
