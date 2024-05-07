@@ -41,6 +41,8 @@ interface CommonOppgaverQueryParams {
     var hjemler: List<String>
     val rekkefoelge: Rekkefoelge
     val sortering: Sortering
+    val fristFrom: LocalDate?
+    val fristTo: LocalDate?
 }
 
 interface FerdigstilteOppgaverQueryParams {
@@ -58,6 +60,8 @@ data class MineFerdigstilteOppgaverQueryParams(
     override val sortering: Sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
     override val ferdigstiltFrom: LocalDate?,
     override val ferdigstiltTo: LocalDate?,
+    override val fristFrom: LocalDate?,
+    override val fristTo: LocalDate?,
 ) : CommonOppgaverQueryParams, FerdigstilteOppgaverQueryParams
 
 data class EnhetensFerdigstilteOppgaverQueryParams(
@@ -69,6 +73,8 @@ data class EnhetensFerdigstilteOppgaverQueryParams(
     override val sortering: Sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
     override val ferdigstiltFrom: LocalDate?,
     override val ferdigstiltTo: LocalDate?,
+    override val fristFrom: LocalDate?,
+    override val fristTo: LocalDate?,
     var tildelteSaksbehandlere: List<String> = emptyList(),
 ) : CommonOppgaverQueryParams, FerdigstilteOppgaverQueryParams
 

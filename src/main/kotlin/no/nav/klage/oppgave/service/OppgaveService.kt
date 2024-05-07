@@ -16,6 +16,7 @@ import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 
 @Service
@@ -41,7 +42,8 @@ class OppgaveService(
         specification = addTypeSpecifications(queryParams, specification)
         specification = addYtelseSpecifications(queryParams, specification)
         specification = addRegistreringshjemmelSpecifications(queryParams, specification)
-        specification = addFromToSpecifications(queryParams, specification)
+        specification = addFerdigstiltFromToSpecifications(queryParams, specification)
+        specification = addFristFromToSpecifications(queryParams, specification)
 
         val data = behandlingRepository.findAll(
             specification,
@@ -67,7 +69,8 @@ class OppgaveService(
         specification = addTypeSpecifications(queryParams, specification)
         specification = addYtelseSpecifications(queryParams, specification)
         specification = addRegistreringshjemmelSpecifications(queryParams, specification)
-        specification = addFromToSpecifications(queryParams, specification)
+        specification = addFerdigstiltFromToSpecifications(queryParams, specification)
+        specification = addFristFromToSpecifications(queryParams, specification)
 
         val data = behandlingRepository.findAll(
             specification,
@@ -223,24 +226,24 @@ class OppgaveService(
         return specification
     }
 
-    private fun addFromToSpecifications(
+    private fun addFerdigstiltFromToSpecifications(
         queryParams: FerdigstilteOppgaverQueryParams,
         mainSpecification: Specification<Behandling>
     ): Specification<Behandling> {
         var specification = mainSpecification
-        if ((queryParams.ferdigstiltFrom == null) xor (queryParams.ferdigstiltTo == null)) {
-            throw IllegalArgumentException("Både ferdigstiltFrom og ferdigstiltTo må være satt, eller ingen av dem.")
-        }
 
-        if (queryParams.ferdigstiltFrom == null || queryParams.ferdigstiltTo == null) {
+        if (queryParams.ferdigstiltFrom == null && queryParams.ferdigstiltTo == null) {
             return specification
         }
+
+        val from = queryParams.ferdigstiltFrom ?: LocalDate.now().minusDays(36500)
+        val to = queryParams.ferdigstiltTo ?: LocalDate.now().plusDays(36500)
 
         specification =
             specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
                 builder.greaterThanOrEqualTo(
                     root.get(Behandling_.avsluttetAvSaksbehandler),
-                    queryParams.ferdigstiltFrom!!.atStartOfDay()
+                    from.atStartOfDay()
                 )
             }
 
@@ -248,7 +251,39 @@ class OppgaveService(
             specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
                 builder.lessThan(
                     root.get(Behandling_.avsluttetAvSaksbehandler),
-                    queryParams.ferdigstiltTo!!.plusDays(1).atStartOfDay()
+                    to!!.plusDays(1).atStartOfDay()
+                )
+            }
+
+        return specification
+    }
+
+    private fun addFristFromToSpecifications(
+        queryParams: CommonOppgaverQueryParams,
+        mainSpecification: Specification<Behandling>
+    ): Specification<Behandling> {
+        var specification = mainSpecification
+
+        if (queryParams.fristFrom == null && queryParams.fristTo == null) {
+            return specification
+        }
+
+        val from = queryParams.fristFrom ?: LocalDate.now().minusDays(3650)
+        val to = queryParams.fristTo ?: LocalDate.now().plusDays(3650)
+
+        specification =
+            specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+                builder.greaterThanOrEqualTo(
+                    root.get(Behandling_.frist),
+                    from
+                )
+            }
+
+        specification =
+            specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+                builder.lessThanOrEqualTo(
+                    root.get(Behandling_.frist),
+                    to
                 )
             }
 
