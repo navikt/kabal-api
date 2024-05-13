@@ -164,7 +164,7 @@ class MottakService(
     fun createAnkeMottakAndBehandlingFromKabinInput(input: CreateAnkeBasedOnKabinInput): Behandling {
         val sourceBehandlingId = input.sourceBehandlingId
         logger.debug("Prøver å lagre anke basert på Kabin-input med sourceBehandlingId {}", sourceBehandlingId)
-        val sourceBehandling = behandlingRepository.getReferenceById(sourceBehandlingId)
+        val sourceBehandling = behandlingRepository.findById(sourceBehandlingId).get()
 
         validateAnkeCreationBasedOnSourceBehandling(
             sourceBehandling = sourceBehandling,

@@ -80,7 +80,7 @@ class AnkebehandlingService(
         logger.debug("Created ankebehandling {} for mottak {}", ankebehandling.id, mottak.id)
 
         if (mottak.forrigeBehandlingId != null) {
-            val behandling = behandlingRepository.getReferenceById(mottak.forrigeBehandlingId)
+            val behandling = behandlingRepository.findById(mottak.forrigeBehandlingId).get()
             val dokumenter = behandling.saksdokumenter
 
             logger.debug(

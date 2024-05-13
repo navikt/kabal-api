@@ -15,6 +15,7 @@ import java.util.*
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "behandling", schema = "klage")
 @DiscriminatorColumn(name = "behandling_type")
+@NamedEntityGraph(name = "Behandling.full", attributeNodes = [NamedAttributeNode("saksdokumenter"), NamedAttributeNode("hjemler"), NamedAttributeNode("registreringshjemler"), NamedAttributeNode("medunderskriverHistorikk"), NamedAttributeNode("tildelingHistorikk"), NamedAttributeNode("rolHistorikk"), NamedAttributeNode("klagerHistorikk"), NamedAttributeNode("fullmektigHistorikk"), NamedAttributeNode("sattPaaVentHistorikk"), NamedAttributeNode("extraUtfallSet")])
 abstract class Behandling(
     @Id
     open val id: UUID = UUID.randomUUID(),
@@ -36,7 +37,7 @@ abstract class Behandling(
     open var modified: LocalDateTime = LocalDateTime.now(),
     @Column(name = "created")
     open val created: LocalDateTime = LocalDateTime.now(),
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
@@ -60,13 +61,13 @@ abstract class Behandling(
     @Column(name = "dvh_referanse")
     open val dvhReferanse: String? = null,
     //Liste med dokumenter fra Joark. De dokumentene saksbehandler krysser av for havner her. Kopierer fra forrige når ny behandling opprettes.
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     open val saksdokumenter: MutableSet<Saksdokument> = mutableSetOf(),
     //Dette er søkehjemler, input fra førsteinstans.
-    @ElementCollection(targetClass = Hjemmel::class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = Hjemmel::class, fetch = FetchType.LAZY)
     @CollectionTable(
         name = "behandling_hjemmel",
         schema = "klage",
@@ -99,7 +100,7 @@ abstract class Behandling(
     @Convert(converter = UtfallConverter::class)
     open var utfall: Utfall? = null,
 
-    @ElementCollection(targetClass = Utfall::class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = Utfall::class, fetch = FetchType.LAZY)
     @CollectionTable(
         name = "behandling_extra_utfall",
         schema = "klage",
@@ -110,7 +111,7 @@ abstract class Behandling(
     open var extraUtfallSet: Set<Utfall> = setOf(),
 
     //Overføres til neste behandling.
-    @ElementCollection(targetClass = Registreringshjemmel::class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = Registreringshjemmel::class, fetch = FetchType.LAZY)
     @CollectionTable(
         name = "behandling_registreringshjemmel",
         schema = "klage",
@@ -130,7 +131,7 @@ abstract class Behandling(
     @Column(name = "medunderskriver_flow_state_id")
     @Convert(converter = FlowStateConverter::class)
     open var medunderskriverFlowState: FlowState = FlowState.NOT_SENT,
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
@@ -146,22 +147,22 @@ abstract class Behandling(
     open var rolFlowState: FlowState = FlowState.NOT_SENT,
     @Column(name = "rol_returned_date")
     open var rolReturnedDate: LocalDateTime?,
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     open val rolHistorikk: MutableSet<RolHistorikk> = mutableSetOf(),
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     open val klagerHistorikk: MutableSet<KlagerHistorikk> = mutableSetOf(),
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     open val fullmektigHistorikk: MutableSet<FullmektigHistorikk> = mutableSetOf(),
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)

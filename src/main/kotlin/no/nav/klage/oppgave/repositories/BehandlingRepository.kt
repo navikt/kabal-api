@@ -12,29 +12,37 @@ import java.util.*
 
 interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificationExecutor<Behandling> {
 
+    @EntityGraph("Behandling.full")
     fun findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
         fagsystem: Fagsystem,
         kildeReferanse: String,
         type: Type,
     ): List<Behandling>
 
+    @EntityGraph("Behandling.full")
     fun findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull(): List<Behandling>
 
+    @EntityGraph("Behandling.full")
     fun findByAvsluttetAvSaksbehandlerIsNull(): List<Behandling>
 
+    @EntityGraph("Behandling.full")
     fun findByAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(): List<Behandling>
 
-    @EntityGraph(attributePaths = ["saksdokumenter", "hjemler", "registreringshjemler", "medunderskriverHistorikk"])
+    @EntityGraph("Behandling.full")
     fun findByTildelingEnhetAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(enhet: String): List<Behandling>
 
+    @EntityGraph("Behandling.full")
     fun findByIdAndAvsluttetIsNotNull(id: UUID): Behandling?
 
+    @EntityGraph("Behandling.full")
     fun findBySakenGjelderPartIdValueAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(partIdValue: String): List<Behandling>
 
-    @EntityGraph(attributePaths = ["saksdokumenter", "hjemler", "registreringshjemler", "medunderskriverHistorikk"])
     override fun findAll(
         specification: Specification<Behandling>,
         sort: Sort,
     ): List<Behandling>
+
+    @EntityGraph("Behandling.full")
+    override fun findById(id: UUID): Optional<Behandling>
 
 }

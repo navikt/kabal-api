@@ -94,7 +94,7 @@ class AdminService(
     }
 
     fun reindexBehandlingInSearch(behandlingId: UUID) {
-        val behandling = behandlingRepository.getReferenceById(behandlingId)
+        val behandling = behandlingRepository.findById(behandlingId).get()
         when (behandling.type) {
             Type.KLAGE ->
                 behandlingEndretKafkaProducer.sendKlageEndretV2(Hibernate.unproxy(behandling) as Klagebehandling)

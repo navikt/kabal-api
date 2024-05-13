@@ -115,7 +115,7 @@ class MeldingService(
     }
 
     private fun validateRightsToDeleteMelding(melding: Melding, innloggetIdent: String) {
-        val behandling = behandlingRepository.getReferenceById(melding.behandlingId)
+        val behandling = behandlingRepository.findById(melding.behandlingId).get()
 
         if (behandling.tildeling?.saksbehandlerident == innloggetIdent || melding.saksbehandlerident == innloggetIdent) {
             return
