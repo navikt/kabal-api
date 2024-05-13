@@ -10,7 +10,8 @@ import java.util.*
 
 @Repository
 interface AnkeITrygderettenbehandlingRepository : JpaRepository<AnkeITrygderettenbehandling, UUID> {
-    @EntityGraph("Behandling.full")
+
+    @EntityGraph(attributePaths = ["hjemler"])
     @Query(
         """
             SELECT ait
@@ -25,4 +26,3 @@ interface AnkeITrygderettenbehandlingRepository : JpaRepository<AnkeITrygderette
         infotrygdFagsystem: Fagsystem = Fagsystem.IT01
     ): List<AnkeITrygderettenbehandling>
 }
-

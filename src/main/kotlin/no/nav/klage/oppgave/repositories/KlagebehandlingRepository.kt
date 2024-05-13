@@ -12,14 +12,14 @@ import java.util.*
 
 @Repository
 interface KlagebehandlingRepository : JpaRepository<Klagebehandling, UUID> {
-    @EntityGraph("Behandling.full")
+
     fun findByMottakId(mottakId: UUID): Klagebehandling?
-    @EntityGraph("Behandling.full")
+
     fun findByKildeReferanseAndYtelseAndFeilregistreringIsNull(kildeReferanse: String, ytelse: Ytelse): Klagebehandling?
-    @EntityGraph("Behandling.full")
+
     fun findByKakaKvalitetsvurderingVersionIs(version: Int): List<Klagebehandling>
 
-    @EntityGraph("Behandling.full")
+    @EntityGraph(attributePaths = ["hjemler"])
     @Query(
         """
             SELECT k

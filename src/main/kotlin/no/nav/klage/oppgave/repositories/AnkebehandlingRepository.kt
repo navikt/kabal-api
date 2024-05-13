@@ -11,16 +11,16 @@ import java.util.*
 
 @Repository
 interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
-    @EntityGraph("Behandling.full")
+
     fun findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId: UUID): List<Ankebehandling>
-    @EntityGraph("Behandling.full")
+
     fun findByAvsluttetIsNotNullAndFeilregistreringIsNullAndUtfallIn(utfallSet: Set<Utfall>): List<Ankebehandling>
-    @EntityGraph("Behandling.full")
+
     fun findByMottakId(mottakId: UUID): Ankebehandling?
-    @EntityGraph("Behandling.full")
+
     fun findByKakaKvalitetsvurderingVersionIs(version: Int): List<Ankebehandling>
 
-    @EntityGraph("Behandling.full")
+    @EntityGraph(attributePaths = ["hjemler"])
     @Query(
         """
             SELECT a

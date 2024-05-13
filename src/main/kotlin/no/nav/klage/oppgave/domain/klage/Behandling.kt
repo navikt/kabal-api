@@ -15,7 +15,16 @@ import java.util.*
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "behandling", schema = "klage")
 @DiscriminatorColumn(name = "behandling_type")
-@NamedEntityGraph(name = "Behandling.full", attributeNodes = [NamedAttributeNode("saksdokumenter"), NamedAttributeNode("hjemler"), NamedAttributeNode("registreringshjemler"), NamedAttributeNode("medunderskriverHistorikk"), NamedAttributeNode("tildelingHistorikk"), NamedAttributeNode("rolHistorikk"), NamedAttributeNode("klagerHistorikk"), NamedAttributeNode("fullmektigHistorikk"), NamedAttributeNode("sattPaaVentHistorikk"), NamedAttributeNode("extraUtfallSet")])
+@NamedEntityGraphs(
+    NamedEntityGraph(
+        name = "Behandling.full",
+        attributeNodes = [NamedAttributeNode("saksdokumenter"), NamedAttributeNode("hjemler"), NamedAttributeNode("registreringshjemler"), NamedAttributeNode(
+            "medunderskriverHistorikk"
+        ), NamedAttributeNode("tildelingHistorikk"), NamedAttributeNode("rolHistorikk"), NamedAttributeNode("klagerHistorikk"), NamedAttributeNode(
+            "fullmektigHistorikk"
+        ), NamedAttributeNode("sattPaaVentHistorikk"), NamedAttributeNode("extraUtfallSet")]
+    ),
+)
 abstract class Behandling(
     @Id
     open val id: UUID = UUID.randomUUID(),
@@ -169,7 +178,7 @@ abstract class Behandling(
     open val sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     @Column(name = "previous_saksbehandlerident")
     open val previousSaksbehandlerident: String?,
-    ) {
+) {
 
     /**
      * Brukes til ES og statistikk per nå

@@ -14,7 +14,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.util.*
 
 @Service
 @Transactional
@@ -75,10 +74,6 @@ class KlagebehandlingService(
             )
         )
         return klagebehandling
-    }
-
-    fun getKlagebehandlingFromMottakId(mottakId: UUID): Klagebehandling? {
-        return klagebehandlingRepository.findByMottakId(mottakId)
     }
 
     private fun getKakaVersion(): Int {

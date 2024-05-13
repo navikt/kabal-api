@@ -26,7 +26,6 @@ class KabinApiService(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val klageFssProxyClient: KlageFssProxyClient,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
-    private val searchService: PartSearchService,
     private val dokumentMapper: DokumentMapper,
 ) {
 
