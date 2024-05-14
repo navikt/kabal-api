@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToMono
 
 @Component
 class DokarkivClient(
@@ -41,27 +42,81 @@ class DokarkivClient(
         logger.debug("Documents from journalpost $journalpostId were successfully updated.")
     }
 
-    fun setLogiskeVedleggOnBehalfOf(
+    fun addLogiskVedleggOnBehalfOf(
         dokumentInfoId: String,
-        payload: SetLogiskeVedleggPayload,
-    ) {
+        title: String,
+    ): AddLogiskVedleggResponse {
         try {
-            dokarkivWebClient.post()
-                .uri("dokumentInfo/${dokumentInfoId}/logiskVedlegg")
+            val response = dokarkivWebClient.post()
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}"
                 )
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(payload)
+                .bodyValue(
+                    LogiskVedleggPayload(
+                        tittel = title
+                    )
+                )
                 .retrieve()
-                .bodyToMono(UpdateJournalpostResponse::class.java)
+                .bodyToMono(AddLogiskVedleggResponse::class.java)
                 .block()
-                ?: throw RuntimeException("Could not set logiske vedlegg to dokument.")
+                ?: throw RuntimeException("Could not add logisk vedlegg to documentInfoId $dokumentInfoId.")
+            logger.debug("Added logisk vedlegg to document $dokumentInfoId successfully.")
+            return response
         } catch (e: Exception) {
-            logger.error("Error setting logisk vedlegg for document $dokumentInfoId:", e)
+            logger.error("Error adding logisk vedlegg to document $dokumentInfoId:", e)
+            throw e
         }
+    }
 
-        logger.debug("Bulk updated logiske vedlegg for document $dokumentInfoId successfully.")
+    fun updateLogiskVedleggOnBehalfOf(
+        dokumentInfoId: String,
+        logiskVedleggId: String,
+        title: String,
+    ) {
+        try {
+            dokarkivWebClient.post()
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}"
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(
+                    LogiskVedleggPayload(
+                        tittel = title,
+                    )
+                )
+                .retrieve()
+                .bodyToMono<Void>()
+                .block()
+                ?: throw RuntimeException("Could not update logisk vedlegg $logiskVedleggId for documentInfoId $dokumentInfoId.")
+            logger.debug("Updated logisk vedlegg $logiskVedleggId for document $dokumentInfoId successfully.")
+        } catch (e: Exception) {
+            logger.error("Error updating logisk vedlegg $dokumentInfoId for document $dokumentInfoId:", e)
+        }
+    }
+
+    fun deleteLogiskVedleggOnBehalfOf(
+        dokumentInfoId: String,
+        logiskVedleggId: String
+    ) {
+        try {
+            dokarkivWebClient.delete()
+                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}"
+                )
+                .retrieve()
+                .bodyToMono<Void>()
+                .block()
+                ?: throw RuntimeException("Could not delete logisk vedlegg $logiskVedleggId for documentInfoId $dokumentInfoId.")
+            logger.debug("Deleted logisk vedlegg $logiskVedleggId for document $dokumentInfoId successfully.")
+        } catch (e: Exception) {
+            logger.error("Error deleting logisk vedlegg $dokumentInfoId for document $dokumentInfoId:", e)
+        }
     }
 }

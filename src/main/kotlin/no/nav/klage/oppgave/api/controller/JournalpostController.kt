@@ -66,30 +66,76 @@ class JournalpostController(
     }
 
     @Operation(
-        summary = "Setter logiske vedlegg for dokument",
-        description = "Setter logiske vedlegg for dokument"
+        summary = "Legger logisk vedlegg til dokument",
+        description = "Legger logisk vedlegg til dokument"
     )
-    @PostMapping("/{journalpostId}/dokumenter/{dokumentInfoId}/logiskevedlegg")
-    fun setLogiskeVedlegg(
-        @Parameter(description = "Id til journalpost")
-        @PathVariable journalpostId: String,
+    @PostMapping("/dokumenter/{dokumentInfoId}/logiskevedlegg")
+    @ResponseStatus(HttpStatus.CREATED)
+    fun addLogiskVedlegg(
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
-        @Parameter(description = "Ny titler på logiske vedlegg til dokumentet")
-        @RequestBody input: UpdateLogiskeVedleggView
-    ): UpdateLogiskeVedleggView {
+        @Parameter(description = "Tittel på nytt logisk vedlegg")
+        @RequestBody input: LogiskVedleggInput
+    ): LogiskVedleggResponse {
         logMethodDetails(
-            methodName = ::setLogiskeVedlegg.name,
+            methodName = ::addLogiskVedlegg.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger,
         )
 
-        dokumentService.setLogiskeVedlegg(
+        return dokumentService.addLogiskVedlegg(
             dokumentInfoId = dokumentInfoId,
-            titles = input.titles
+            title = input.tittel
+        )
+    }
+
+    @Operation(
+        summary = "Oppdaterer logisk vedlegg",
+        description = "Oppdaterer logisk vedlegg"
+    )
+    @PutMapping("/dokumenter/{dokumentInfoId}/logiskevedlegg/{logiskVedleggId}")
+    fun updateLogiskVedlegg(
+        @Parameter(description = "Id til dokumentInfo")
+        @PathVariable dokumentInfoId: String,
+        @Parameter(description = "Id til logisk vedlegg")
+        @PathVariable logiskVedleggId: String,
+        @Parameter(description = "Ny tittel på logisk vedlegg")
+        @RequestBody input: LogiskVedleggInput
+    ): LogiskVedleggResponse {
+        logMethodDetails(
+            methodName = ::updateLogiskVedlegg.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
-        return input
+        return dokumentService.updateLogiskVedlegg(
+            dokumentInfoId = dokumentInfoId,
+            logiskVedleggId = logiskVedleggId,
+            title = input.tittel
+        )
+    }
+
+    @Operation(
+        summary = "Sletter logisk vedlegg",
+        description = "Sletter logisk vedlegg"
+    )
+    @DeleteMapping("/dokumenter/{dokumentInfoId}/logiskevedlegg/{logiskVedleggId}")
+    fun deleteLogiskVedlegg(
+        @Parameter(description = "Id til dokumentInfo")
+        @PathVariable dokumentInfoId: String,
+        @Parameter(description = "Id til logisk vedlegg")
+        @PathVariable logiskVedleggId: String,
+    ) {
+        logMethodDetails(
+            methodName = ::updateLogiskVedlegg.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
+        )
+
+        dokumentService.deleteLogiskVedlegg(
+            dokumentInfoId = dokumentInfoId,
+            logiskVedleggId = logiskVedleggId,
+        )
     }
 
     @Operation(

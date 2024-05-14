@@ -8,8 +8,8 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.DokumenterResponse
 import no.nav.klage.oppgave.api.view.JournalfoertDokumentMetadata
+import no.nav.klage.oppgave.api.view.LogiskVedleggResponse
 import no.nav.klage.oppgave.clients.dokarkiv.DokarkivClient
-import no.nav.klage.oppgave.clients.dokarkiv.SetLogiskeVedleggPayload
 import no.nav.klage.oppgave.clients.dokarkiv.UpdateDocumentTitleDokumentInput
 import no.nav.klage.oppgave.clients.dokarkiv.UpdateDocumentTitlesJournalpostInput
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
@@ -436,15 +436,35 @@ class DokumentService(
         )
     }
 
-    fun setLogiskeVedlegg(
-        dokumentInfoId: String,
-        titles: List<String>,
-    ) {
-        return dokarkivClient.setLogiskeVedleggOnBehalfOf(
+    fun addLogiskVedlegg(dokumentInfoId: String, title: String): LogiskVedleggResponse {
+        val logiskVedlegg = dokarkivClient.addLogiskVedleggOnBehalfOf(
             dokumentInfoId = dokumentInfoId,
-            payload = SetLogiskeVedleggPayload(
-                titler = titles
-            ),
+            title = title,
+        )
+
+        return LogiskVedleggResponse(
+            tittel = title,
+            logiskVedleggId = logiskVedlegg.logiskVedleggId
+        )
+    }
+
+    fun updateLogiskVedlegg(dokumentInfoId: String, logiskVedleggId: String, title: String): LogiskVedleggResponse {
+        dokarkivClient.updateLogiskVedleggOnBehalfOf(
+            dokumentInfoId = dokumentInfoId,
+            logiskVedleggId = logiskVedleggId,
+            title = title
+        )
+
+        return LogiskVedleggResponse(
+            tittel = title,
+            logiskVedleggId = logiskVedleggId
+        )
+    }
+
+    fun deleteLogiskVedlegg(dokumentInfoId: String, logiskVedleggId: String) {
+        dokarkivClient.deleteLogiskVedleggOnBehalfOf(
+            dokumentInfoId = dokumentInfoId,
+            logiskVedleggId = logiskVedleggId,
         )
     }
 
