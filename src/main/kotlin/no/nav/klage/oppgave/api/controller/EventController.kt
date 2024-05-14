@@ -5,11 +5,11 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.config.getGauge
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalIdentityEvent
-import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.service.AivenKafkaClientCreator
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
@@ -81,7 +81,7 @@ class EventController(
             traceId,
         )
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+        val behandlingView = behandlingService.getBehandlingDetaljerView(behandlingId = behandlingId)
 
         //https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-async-disconnects
         val heartbeatStream: Flux<ServerSentEvent<JsonNode>> = getHeartbeatStream(
@@ -99,7 +99,7 @@ class EventController(
         )
 
         val identityEventPublisher = getIdentityEventPublisher(
-            behandling = behandling,
+            behandlingView = behandlingView,
             testId = testId,
             listenerStartTime = listenerStarted,
             traceId = traceId,
@@ -170,7 +170,7 @@ class EventController(
     }
 
     private fun getIdentityEventPublisher(
-        behandling: Behandling,
+        behandlingView: BehandlingDetaljerView,
         testId: String?,
         listenerStartTime: LocalDateTime,
         traceId: String,
@@ -178,7 +178,7 @@ class EventController(
         val flux = aivenKafkaClientCreator.getNewKafkaInternalIdentityEventReceiver().receive()
             .mapNotNull { consumerRecord ->
                 val internalIdentityEvent = jsonToInternalIdentityEvent(consumerRecord.value())
-                if (internalIdentityEvent.identifikator == behandling.sakenGjelder.partId.value) {
+                if (internalIdentityEvent.identifikator == behandlingView.sakenGjelder.id) {
                     ServerSentEvent.builder<JsonNode>()
                         .id(consumerRecord.offset().toString())
                         .event(internalIdentityEvent.type.name)
@@ -190,7 +190,7 @@ class EventController(
                 logger.debug(
                     "identity events cancel for testId: {}, behandlingId: {}, with start time: {}, traceId: {}",
                     testId,
-                    behandling.id,
+                    behandlingView.id,
                     listenerStartTime,
                     traceId,
                 )
@@ -199,7 +199,7 @@ class EventController(
                 logger.debug(
                     "identity events terminate for testId: {}, behandlingId: {}, with start time: {}, traceId: {}",
                     testId,
-                    behandling.id,
+                    behandlingView.id,
                     listenerStartTime,
                     traceId,
                 )
@@ -208,7 +208,7 @@ class EventController(
                 logger.debug(
                     "identity events closed for testId: {}, behandlingId: {}. SignalType: {}, with start time: {}, traceId: {}",
                     testId,
-                    behandling.id,
+                    behandlingView.id,
                     signalType,
                     listenerStartTime,
                     traceId,

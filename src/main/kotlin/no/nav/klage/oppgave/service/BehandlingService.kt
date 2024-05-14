@@ -1569,7 +1569,7 @@ class BehandlingService(
         behandlingId: UUID,
         utfall: Utfall?,
         utfoerendeSaksbehandlerIdent: String
-    ): Behandling {
+    ): UtfallEditedView {
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
@@ -1615,14 +1615,18 @@ class BehandlingService(
             type = InternalEventType.UTFALL,
         )
 
-        return behandling
+        return UtfallEditedView(
+            modified = behandling.modified,
+            utfallId = behandling.utfall?.id,
+            extraUtfallIdSet = behandling.extraUtfallSet.map { it.id }.toSet(),
+        )
     }
 
     fun setExtraUtfallSet(
         behandlingId: UUID,
         extraUtfallSet: Set<Utfall>,
         utfoerendeSaksbehandlerIdent: String
-    ): Behandling {
+    ): ExtraUtfallEditedView {
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
@@ -1653,7 +1657,10 @@ class BehandlingService(
             type = InternalEventType.EXTRA_UTFALL,
         )
 
-        return behandling
+        return ExtraUtfallEditedView(
+            modified = behandling.modified,
+            extraUtfallIdSet = behandling.extraUtfallSet.map { it.id }.toSet(),
+        )
     }
 
     fun setRegistreringshjemler(
@@ -1912,5 +1919,13 @@ class BehandlingService(
                 null
             }
         } else null
+    }
+
+    fun getFradeltSaksbehandlerViewWrapped(behandlingId: UUID): FradeltSaksbehandlerViewWrapped {
+        val behandling = getBehandlingForReadWithoutCheckForAccess(behandlingId)
+        return FradeltSaksbehandlerViewWrapped(
+            modified = behandling.modified,
+            hjemmelIdList = behandling.hjemler.map { it.id }
+        )
     }
 }

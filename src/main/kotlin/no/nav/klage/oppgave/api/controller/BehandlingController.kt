@@ -458,16 +458,10 @@ class BehandlingController(
             logger
         )
 
-        val behandling = behandlingService.setUtfall(
+        return behandlingService.setUtfall(
             behandlingId = behandlingId,
             utfall = if (input.utfallId != null) Utfall.of(input.utfallId) else null,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
-
-        return UtfallEditedView(
-            modified = behandling.modified,
-            utfallId = behandling.utfall?.id,
-            extraUtfallIdSet = behandling.extraUtfallSet.map { it.id }.toSet(),
         )
     }
 
@@ -483,15 +477,10 @@ class BehandlingController(
             logger
         )
 
-        val behandling = behandlingService.setExtraUtfallSet(
+        return behandlingService.setExtraUtfallSet(
             behandlingId = behandlingId,
             extraUtfallSet = input.extraUtfallIdSet.map { Utfall.of(it) }.toSet(),
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
-
-        return ExtraUtfallEditedView(
-            modified = behandling.modified,
-            extraUtfallIdSet = behandling.extraUtfallSet.map { it.id }.toSet(),
         )
     }
 

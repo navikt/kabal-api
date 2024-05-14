@@ -77,11 +77,7 @@ class BehandlingAssignmentController(
             hjemmelIdList = saksbehandlerInput.hjemmelIdList,
         )
 
-        val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId)
-        return FradeltSaksbehandlerViewWrapped(
-            modified = behandling.modified,
-            hjemmelIdList = behandling.hjemler.map { it.id }
-        )
+        return behandlingService.getFradeltSaksbehandlerViewWrapped(behandlingId)
     }
 
     @GetMapping("/behandlinger/{id}/saksbehandler")

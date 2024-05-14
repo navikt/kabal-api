@@ -12,7 +12,6 @@ import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
-import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -30,7 +29,6 @@ class SmartEditorController(
     private val kabalSmartEditorApiGateway: DefaultKabalSmartEditorApiGateway,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val behandlingService: BehandlingService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -264,12 +262,10 @@ class SmartEditorController(
                 readOnly = true
             )
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-
         kabalSmartEditorApiGateway.deleteCommentWithPossibleThread(
             documentId = smartEditorId,
             commentId = commentId,
-            behandlingTildeltIdent = behandling.tildeling?.saksbehandlerident
+            behandlingTildeltIdent = innloggetSaksbehandlerService.getInnloggetIdent() //simplification for now. Further checks are done in kabal-smarteditor-api.
         )
     }
 }
