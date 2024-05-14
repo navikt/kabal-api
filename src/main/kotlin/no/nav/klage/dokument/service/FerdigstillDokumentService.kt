@@ -81,7 +81,10 @@ class FerdigstillDokumentService(
             val dokumentReferanseList = updatedDokument.dokarkivReferences.map {
                 val journalpost = safFacade.getJournalpostAsSystembruker(journalpostId = it.journalpostId)
 
-                dokumentMapper.mapJournalpostToDokumentReferanse(journalpost, behandling)
+                dokumentMapper.mapJournalpostToDokumentReferanse(
+                    journalpost = journalpost,
+                    saksdokumenter = behandling.saksdokumenter
+                )
             }
 
             publishInternalEvent(
