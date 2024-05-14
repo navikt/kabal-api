@@ -102,7 +102,7 @@ class BehandlingService(
         behandlingId: UUID,
         innloggetIdent: String,
         nyBehandling: Boolean
-    ): Behandling {
+    ): BehandlingFullfoertView {
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId
         )
@@ -113,11 +113,11 @@ class BehandlingService(
         validateBehandlingBeforeFinalize(behandlingId = behandlingId, nyBehandling = nyBehandling)
 
         if (nyBehandling) {
-            return setNyAnkebehandlingKA(behandlingId, innloggetIdent)
+            return behandlingMapper.mapToBehandlingFullfoertView(setNyAnkebehandlingKA(behandlingId, innloggetIdent))
         }
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
-        return markerBehandlingSomAvsluttetAvSaksbehandler(behandling, innloggetIdent)
+        return behandlingMapper.mapToBehandlingFullfoertView(markerBehandlingSomAvsluttetAvSaksbehandler(behandling, innloggetIdent))
     }
 
     private fun markerBehandlingSomAvsluttetAvSaksbehandler(
@@ -1399,6 +1399,18 @@ class BehandlingService(
         return behandling
     }
 
+    fun getBehandlingDetaljerView(behandlingId: UUID): BehandlingDetaljerView {
+        return behandlingMapper.mapBehandlingToBehandlingDetaljerView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId))
+    }
+
+    fun getBehandlingROLView(behandlingId: UUID): RolView {
+        return behandlingMapper.mapToRolView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId))
+    }
+
+    fun getBehandlingOppgaveView(behandlingId: UUID): OppgaveView {
+        return behandlingMapper.mapBehandlingToOppgaveView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId))
+    }
+
     @Transactional(readOnly = true)
     fun getBehandlingAndCheckLeseTilgangForPerson(behandlingId: UUID): Behandling =
         behandlingRepository.findById(behandlingId)
@@ -1873,5 +1885,9 @@ class BehandlingService(
         return behandlingRepository.findBySakenGjelderPartIdValueAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(
             partIdValue = behandling.sakenGjelder.partId.value
         )
+    }
+
+    fun getSakenGjelderView(behandlingId: UUID): BehandlingDetaljerView.SakenGjelderView {
+        return behandlingMapper.getSakenGjelderView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId).sakenGjelder)
     }
 }

@@ -3,7 +3,6 @@ package no.nav.klage.dokument.api.controller
 import com.fasterxml.jackson.databind.JsonNode
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.ModifyCommentInput
@@ -30,7 +29,6 @@ import java.util.*
 class SmartEditorController(
     private val kabalSmartEditorApiGateway: DefaultKabalSmartEditorApiGateway,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
-    private val dokumentMapper: DokumentMapper,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val behandlingService: BehandlingService,
 ) {

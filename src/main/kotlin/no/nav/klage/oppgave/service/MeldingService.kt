@@ -2,6 +2,9 @@ package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.EntityNotFoundException
+import no.nav.klage.oppgave.api.mapper.MeldingMapper
+import no.nav.klage.oppgave.api.view.MeldingModified
+import no.nav.klage.oppgave.api.view.MeldingView
 import no.nav.klage.oppgave.domain.kafka.Employee
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalEventType
@@ -25,6 +28,7 @@ class MeldingService(
     private val behandlingRepository: BehandlingRepository,
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val saksbehandlerService: SaksbehandlerService,
+    private val meldingMapper: MeldingMapper,
 ) {
 
     companion object {
@@ -38,7 +42,7 @@ class MeldingService(
         behandlingId: UUID,
         innloggetIdent: String,
         text: String
-    ): Melding {
+    ): MeldingView {
         logger.debug("saving new melding by $innloggetIdent")
 
         val melding = meldingRepository.save(
@@ -57,7 +61,7 @@ class MeldingService(
             timestamp = melding.modified ?: melding.created,
         )
 
-        return melding
+        return meldingMapper.toMeldingView(melding)
     }
 
     fun deleteMelding(
@@ -84,7 +88,7 @@ class MeldingService(
         innloggetIdent: String,
         meldingId: UUID,
         text: String
-    ): Melding {
+    ): MeldingModified {
         try {
             val melding = meldingRepository.getReferenceById(meldingId)
             validateRightsToModifyMelding(melding, innloggetIdent)
@@ -97,14 +101,15 @@ class MeldingService(
 
 //            publishInternalEvent(melding = melding, type = "message_modified")
 
-            return melding
+            return meldingMapper.toModifiedView(melding)
         } catch (enfe: EntityNotFoundException) {
             throw MeldingNotFoundException("couldn't find melding with id $meldingId")
         }
     }
 
-    fun getMeldingerForBehandling(behandlingId: UUID) =
-        meldingRepository.findByBehandlingIdOrderByCreatedDesc(behandlingId)
+    fun getMeldingerForBehandling(behandlingId: UUID): List<MeldingView> {
+        return meldingMapper.toMeldingerView(meldingRepository.findByBehandlingIdOrderByCreatedDesc(behandlingId))
+    }
 
     private fun validateRightsToModifyMelding(melding: Melding, innloggetIdent: String) {
         if (melding.saksbehandlerident != innloggetIdent) {

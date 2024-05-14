@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.FlowStateInput
 import no.nav.klage.oppgave.api.view.FlowStateView
 import no.nav.klage.oppgave.api.view.RolView
@@ -22,7 +21,6 @@ import java.util.*
 class BehandlingROLController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val behandlingService: BehandlingService,
-    private val behandlingMapper: BehandlingMapper,
 ) {
 
     companion object {
@@ -40,9 +38,7 @@ class BehandlingROLController(
             behandlingId,
             logger
         )
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-
-        return behandlingMapper.mapToRolView(behandling)
+        return behandlingService.getBehandlingROLView(behandlingId)
     }
 
     @GetMapping("/{id}/rolflowstate")

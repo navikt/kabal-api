@@ -37,11 +37,14 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
+import org.apache.tika.Tika
 import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDate
@@ -1423,7 +1426,7 @@ class DokumentUnderArbeidService(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         hoveddokumentId: UUID,
         innloggetIdent: String
-    ): FysiskDokument {
+    ): ResponseEntity<ByteArray> {
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         val dokument =
@@ -1434,16 +1437,33 @@ class DokumentUnderArbeidService(
 
         val title = "Innholdsfortegnelse"
 
-        return FysiskDokument(
-            title = title,
-            content = dokumentService.changeTitleInPDF(
-                documentBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
-                    dokumentUnderArbeidId = hoveddokumentId,
-                    fnr = behandling.sakenGjelder.partId.value,
+        return dokumentMapper.mapToByteArray(
+            FysiskDokument(
+                title = title,
+                content = dokumentService.changeTitleInPDF(
+                    documentBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
+                        dokumentUnderArbeidId = hoveddokumentId,
+                        fnr = behandling.sakenGjelder.partId.value,
+                    ),
+                    title = title
                 ),
-                title = title
-            ),
-            contentType = MediaType.APPLICATION_PDF
+                contentType = MediaType.APPLICATION_PDF
+            )
+        )
+    }
+
+    fun mapToFysiskDokument(
+        multipartFile: MultipartFile,
+        tittel: String?,
+        dokumentType: DokumentType
+    ): FysiskDokument {
+        val dokumentTittel =
+            tittel ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i MultipartFile") })
+        return FysiskDokument(
+            title = dokumentTittel,
+            content = multipartFile.bytes,
+            contentType = multipartFile.contentType?.let { MediaType.parseMediaType(it) }
+                ?: MediaType.valueOf(Tika().detect(multipartFile.bytes))
         )
     }
 
@@ -1451,7 +1471,7 @@ class DokumentUnderArbeidService(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         innloggetIdent: String
-    ): FysiskDokument {
+    ): ResponseEntity<ByteArray> {
         val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
@@ -1498,10 +1518,12 @@ class DokumentUnderArbeidService(
             }
         }
 
-        return FysiskDokument(
-            title = title,
-            content = dokumentService.changeTitleInPDF(content, title),
-            contentType = MediaType.APPLICATION_PDF
+        return dokumentMapper.mapToByteArray(
+            FysiskDokument(
+                title = title,
+                content = dokumentService.changeTitleInPDF(content, title),
+                contentType = MediaType.APPLICATION_PDF
+            )
         )
     }
 

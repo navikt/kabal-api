@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.AuditLogEvent
@@ -23,7 +22,6 @@ import java.util.*
 @RequestMapping("/behandlinger")
 class BehandlingDetaljerController(
     private val behandlingService: BehandlingService,
-    private val behandlingMapper: BehandlingMapper,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val auditLogger: AuditLogger
 ) {
@@ -44,16 +42,15 @@ class BehandlingDetaljerController(
             logger
         )
 
-        return behandlingMapper.mapBehandlingToBehandlingDetaljerView(
-            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-        ).also {
-            auditLogger.log(
-                AuditLogEvent(
-                    navIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-                    personFnr = it.sakenGjelder.id,
-                    message = "Hentet behandlingsdetaljer"
+        return behandlingService.getBehandlingDetaljerView(behandlingId)
+            .also {
+                auditLogger.log(
+                    AuditLogEvent(
+                        navIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                        personFnr = it.sakenGjelder.id,
+                        message = "Hentet behandlingsdetaljer"
+                    )
                 )
-            )
-        }
+            }
     }
 }

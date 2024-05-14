@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.BehandlingerListResponse
 import no.nav.klage.oppgave.api.view.EnhetensFerdigstilteOppgaverQueryParams
 import no.nav.klage.oppgave.api.view.MineFerdigstilteOppgaverQueryParams
@@ -27,7 +26,6 @@ import java.util.*
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 class OppgaveController(
     private val behandlingService: BehandlingService,
-    private val behandlingMapper: BehandlingMapper,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val oppgaveService: OppgaveService,
 ) {
@@ -49,9 +47,7 @@ class OppgaveController(
             logger = logger,
         )
 
-        return behandlingMapper.mapBehandlingToOppgaveView(
-            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-        )
+        return behandlingService.getBehandlingOppgaveView(behandlingId)
     }
 
     @GetMapping("/oppgaver/ferdigstilte", produces = ["application/json"])
