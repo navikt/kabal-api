@@ -219,3 +219,12 @@ data class LogiskVedlegg(
     val tittel: String,
     val logiskVedleggId: String,
 )
+
+data class LogiskVedleggInput(
+    val tittel: String,
+)
+
+data class LogiskVedleggResponse(
+    val tittel: String,
+    val logiskVedleggId: String,
+)
