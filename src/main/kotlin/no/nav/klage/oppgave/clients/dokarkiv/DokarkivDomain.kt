@@ -9,11 +9,14 @@ data class UpdateDocumentTitleDokumentInput(
     val tittel: String,
 )
 
-data class SetLogiskeVedleggPayload(
-    val titler: List<String>
-)
-
 data class UpdateJournalpostResponse(
     val journalpostId: String,
 )
 
+data class LogiskVedleggPayload(
+    val tittel: String,
+)
+
+data class AddLogiskVedleggResponse(
+    val logiskVedleggId: String
+)
