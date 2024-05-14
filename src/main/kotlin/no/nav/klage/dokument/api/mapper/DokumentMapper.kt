@@ -487,7 +487,7 @@ class DokumentMapper(
                 null -> error("cannot happen")
             }
         } catch (e: Exception) {
-            logger.error("could not getDatoRegSendt", e)
+            logger.debug("could not getDatoRegSendt, returning null.", e)
             null
         }
 
