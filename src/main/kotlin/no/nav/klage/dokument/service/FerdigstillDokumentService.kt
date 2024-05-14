@@ -81,6 +81,9 @@ class FerdigstillDokumentService(
             val dokumentReferanseList = updatedDokument.dokarkivReferences.map {
                 val journalpost = safFacade.getJournalpostAsSystembruker(journalpostId = it.journalpostId)
 
+                //test
+                behandling.saksdokumenter.size
+
                 dokumentMapper.mapJournalpostToDokumentReferanse(
                     journalpost = journalpost,
                     saksdokumenter = behandling.saksdokumenter
