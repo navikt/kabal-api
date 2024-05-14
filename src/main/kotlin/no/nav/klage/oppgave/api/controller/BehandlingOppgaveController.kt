@@ -5,7 +5,6 @@ import no.nav.klage.oppgave.api.view.TildelingEvent
 import no.nav.klage.oppgave.api.view.WithPrevious
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.BehandlingService
-import no.nav.klage.oppgave.service.HistoryService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logBehandlingMethodDetails
@@ -23,7 +22,6 @@ import java.util.*
 class BehandlingOppgaveController(
     private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val historyService: HistoryService,
 ) {
 
     companion object {
@@ -42,25 +40,6 @@ class BehandlingOppgaveController(
             logger
         )
 
-        val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId)
-
-        val tildelingHistory = historyService.createTildelingHistory(
-            tildelingHistorikkSet = behandling.tildelingHistorikk,
-            behandlingCreated = behandling.created,
-            originalHjemmelIdList = behandling.hjemler.joinToString(",")
-        )
-
-        return if (behandling.tildeling == null) {
-            val fradelingerBySaksbehandler = tildelingHistory.filter {
-                it.event?.fradelingReasonId != null && it.previous.event?.saksbehandler?.navIdent == innloggetSaksbehandlerService.getInnloggetIdent()
-            }
-
-            if (fradelingerBySaksbehandler.isNotEmpty()) {
-                //return most recent fradeling if there are multiple
-                fradelingerBySaksbehandler.last()
-            } else {
-                null
-            }
-        } else null
+        return behandlingService.getFradelingReason(behandlingId)
     }
 }

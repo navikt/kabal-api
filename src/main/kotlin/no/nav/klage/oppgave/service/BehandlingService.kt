@@ -1890,4 +1890,27 @@ class BehandlingService(
     fun getSakenGjelderView(behandlingId: UUID): BehandlingDetaljerView.SakenGjelderView {
         return behandlingMapper.getSakenGjelderView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId).sakenGjelder)
     }
+
+    fun getFradelingReason(behandlingId: UUID): WithPrevious<no.nav.klage.oppgave.api.view.TildelingEvent>? {
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+
+        val tildelingHistory = historyService.createTildelingHistory(
+            tildelingHistorikkSet = behandling.tildelingHistorikk,
+            behandlingCreated = behandling.created,
+            originalHjemmelIdList = behandling.hjemler.joinToString(",")
+        )
+
+        return if (behandling.tildeling == null) {
+            val fradelingerBySaksbehandler = tildelingHistory.filter {
+                it.event?.fradelingReasonId != null && it.previous.event?.saksbehandler?.navIdent == innloggetSaksbehandlerService.getInnloggetIdent()
+            }
+
+            if (fradelingerBySaksbehandler.isNotEmpty()) {
+                //return most recent fradeling if there are multiple
+                fradelingerBySaksbehandler.last()
+            } else {
+                null
+            }
+        } else null
+    }
 }
