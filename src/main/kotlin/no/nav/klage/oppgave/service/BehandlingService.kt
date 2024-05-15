@@ -1317,6 +1317,9 @@ class BehandlingService(
         behandlingRepository.findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
 
+    /**
+     * Get behandling with eager loading of relations for read without checking access.
+     */
     @Transactional(readOnly = true)
     fun getBehandlingEagerForReadWithoutCheckForAccess(behandlingId: UUID): Behandling =
         behandlingRepository.findByIdEager(behandlingId)
