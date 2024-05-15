@@ -32,4 +32,9 @@ class DokumentUnderArbeidCommonService(
                 smartdokumentUnderArbeidAsHoveddokumentRepository.findByMarkertFerdigNotNullAndFerdigstiltNull()
     }
 
+    fun findHoveddokumenterOnBehandlingByMarkertFerdigNotNullAndFerdigstiltNull(behandlingId: UUID): Set<DokumentUnderArbeidAsHoveddokument> {
+        return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByMarkertFerdigNotNullAndFerdigstiltNullAndBehandlingId(behandlingId) +
+                smartdokumentUnderArbeidAsHoveddokumentRepository.findByMarkertFerdigNotNullAndFerdigstiltNullAndBehandlingId(behandlingId)
+    }
+
 }
