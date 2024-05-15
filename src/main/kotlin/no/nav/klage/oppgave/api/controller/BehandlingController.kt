@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
@@ -29,7 +28,6 @@ import java.util.*
 @RequestMapping("/behandlinger")
 class BehandlingController(
     private val behandlingService: BehandlingService,
-    private val behandlingMapper: BehandlingMapper,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
     companion object {
@@ -89,12 +87,11 @@ class BehandlingController(
             logger
         )
 
-        val klagebehandling = behandlingService.ferdigstillBehandling(
+        return behandlingService.ferdigstillBehandling(
             behandlingId = behandlingId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             nyBehandling = nyBehandling,
         )
-        return behandlingMapper.mapToBehandlingFullfoertView(klagebehandling)
     }
 
 
@@ -370,9 +367,7 @@ class BehandlingController(
             logger
         )
 
-        return behandlingMapper.getSakenGjelderView(
-            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId).sakenGjelder
-        )
+        return behandlingService.getSakenGjelderView(behandlingId)
     }
 
     //TODO: Remove url without redirect
@@ -463,16 +458,10 @@ class BehandlingController(
             logger
         )
 
-        val behandling = behandlingService.setUtfall(
+        return behandlingService.setUtfall(
             behandlingId = behandlingId,
             utfall = if (input.utfallId != null) Utfall.of(input.utfallId) else null,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
-
-        return UtfallEditedView(
-            modified = behandling.modified,
-            utfallId = behandling.utfall?.id,
-            extraUtfallIdSet = behandling.extraUtfallSet.map { it.id }.toSet(),
         )
     }
 
@@ -488,15 +477,10 @@ class BehandlingController(
             logger
         )
 
-        val behandling = behandlingService.setExtraUtfallSet(
+        return behandlingService.setExtraUtfallSet(
             behandlingId = behandlingId,
             extraUtfallSet = input.extraUtfallIdSet.map { Utfall.of(it) }.toSet(),
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
-
-        return ExtraUtfallEditedView(
-            modified = behandling.modified,
-            extraUtfallIdSet = behandling.extraUtfallSet.map { it.id }.toSet(),
         )
     }
 

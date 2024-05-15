@@ -287,7 +287,7 @@ class DokumentMapper(
     //TODO: Har ikke tatt høyde for skjerming, ref https://confluence.adeo.no/pages/viewpage.action?pageId=320364687
     fun mapJournalpostToDokumentReferanse(
         journalpost: Journalpost,
-        behandling: Behandling
+        saksdokumenter: MutableSet<Saksdokument>
     ): DokumentReferanse {
 
         val hoveddokument = journalpost.dokumenter?.firstOrNull()
@@ -300,7 +300,7 @@ class DokumentMapper(
             dokumentInfoId = hoveddokument.dokumentInfoId,
             journalpostId = journalpost.journalpostId,
             harTilgangTilArkivvariant = harTilgangTilArkivvariant(hoveddokument),
-            valgt = behandling.saksdokumenter.containsDokument(
+            valgt = saksdokumenter.containsDokument(
                 journalpost.journalpostId,
                 hoveddokument.dokumentInfoId
             ),
@@ -353,7 +353,7 @@ class DokumentMapper(
             }
         )
 
-        dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost, behandling))
+        dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost, saksdokumenter))
 
         return dokumentReferanse
     }
@@ -424,7 +424,7 @@ class DokumentMapper(
 
     private fun getVedlegg(
         journalpost: Journalpost,
-        behandling: Behandling
+        saksdokumenter: MutableSet<Saksdokument>
     ): List<DokumentReferanse.VedleggReferanse> {
         return if ((journalpost.dokumenter?.size ?: 0) > 1) {
             journalpost.dokumenter?.subList(1, journalpost.dokumenter.size)?.map { vedlegg ->
@@ -432,7 +432,7 @@ class DokumentMapper(
                     tittel = vedlegg.tittel,
                     dokumentInfoId = vedlegg.dokumentInfoId,
                     harTilgangTilArkivvariant = harTilgangTilArkivvariant(vedlegg),
-                    valgt = behandling.saksdokumenter.containsDokument(
+                    valgt = saksdokumenter.containsDokument(
                         journalpost.journalpostId,
                         vedlegg.dokumentInfoId
                     ),

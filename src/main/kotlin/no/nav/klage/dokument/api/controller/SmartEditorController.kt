@@ -3,7 +3,6 @@ package no.nav.klage.dokument.api.controller
 import com.fasterxml.jackson.databind.JsonNode
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.ModifyCommentInput
@@ -13,7 +12,6 @@ import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
-import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -30,9 +28,7 @@ import java.util.*
 class SmartEditorController(
     private val kabalSmartEditorApiGateway: DefaultKabalSmartEditorApiGateway,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
-    private val dokumentMapper: DokumentMapper,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val behandlingService: BehandlingService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -266,12 +262,10 @@ class SmartEditorController(
                 readOnly = true
             )
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-
         kabalSmartEditorApiGateway.deleteCommentWithPossibleThread(
             documentId = smartEditorId,
             commentId = commentId,
-            behandlingTildeltIdent = behandling.tildeling?.saksbehandlerident
+            behandlingTildeltIdent = innloggetSaksbehandlerService.getInnloggetIdent() //simplification for now. Further checks are done in kabal-smarteditor-api.
         )
     }
 }

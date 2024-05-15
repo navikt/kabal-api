@@ -10,10 +10,12 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.klage.*
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
 
 @Service
+@Transactional
 class KabinApiService(
     private val behandlingMapper: BehandlingMapper,
     private val dokumentService: DokumentService,
@@ -26,7 +28,6 @@ class KabinApiService(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val klageFssProxyClient: KlageFssProxyClient,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
-    private val searchService: PartSearchService,
     private val dokumentMapper: DokumentMapper,
 ) {
 

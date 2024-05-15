@@ -13,6 +13,7 @@ class HistoryService(
     private val saksbehandlerService: SaksbehandlerService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
+
     fun createTildelingHistory(
         tildelingHistorikkSet: Set<TildelingHistorikk>,
         behandlingCreated: LocalDateTime,

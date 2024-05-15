@@ -102,7 +102,7 @@ class BehandlingService(
         behandlingId: UUID,
         innloggetIdent: String,
         nyBehandling: Boolean
-    ): Behandling {
+    ): BehandlingFullfoertView {
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId
         )
@@ -113,11 +113,11 @@ class BehandlingService(
         validateBehandlingBeforeFinalize(behandlingId = behandlingId, nyBehandling = nyBehandling)
 
         if (nyBehandling) {
-            return setNyAnkebehandlingKA(behandlingId, innloggetIdent)
+            return behandlingMapper.mapToBehandlingFullfoertView(setNyAnkebehandlingKA(behandlingId, innloggetIdent))
         }
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
-        return markerBehandlingSomAvsluttetAvSaksbehandler(behandling, innloggetIdent)
+        return behandlingMapper.mapToBehandlingFullfoertView(markerBehandlingSomAvsluttetAvSaksbehandler(behandling, innloggetIdent))
     }
 
     private fun markerBehandlingSomAvsluttetAvSaksbehandler(
@@ -1317,10 +1317,17 @@ class BehandlingService(
         behandlingRepository.findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
 
+    /**
+     * Get behandling with eager loading of relations for read without checking access.
+     */
+    @Transactional(readOnly = true)
+    fun getBehandlingEagerForReadWithoutCheckForAccess(behandlingId: UUID): Behandling =
+        behandlingRepository.findByIdEager(behandlingId)
+
     fun getBehandlingForUpdateBySystembruker(
         behandlingId: UUID,
     ): Behandling =
-        behandlingRepository.getReferenceById(behandlingId)
+        behandlingRepository.findById(behandlingId).get()
             .also { checkSkrivetilgangForSystembruker(it) }
 
     private fun checkYtelseAccess(
@@ -1397,6 +1404,18 @@ class BehandlingService(
             checkSkrivetilgang(behandling)
         }
         return behandling
+    }
+
+    fun getBehandlingDetaljerView(behandlingId: UUID): BehandlingDetaljerView {
+        return behandlingMapper.mapBehandlingToBehandlingDetaljerView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId))
+    }
+
+    fun getBehandlingROLView(behandlingId: UUID): RolView {
+        return behandlingMapper.mapToRolView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId))
+    }
+
+    fun getBehandlingOppgaveView(behandlingId: UUID): OppgaveView {
+        return behandlingMapper.mapBehandlingToOppgaveView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId))
     }
 
     @Transactional(readOnly = true)
@@ -1557,7 +1576,7 @@ class BehandlingService(
         behandlingId: UUID,
         utfall: Utfall?,
         utfoerendeSaksbehandlerIdent: String
-    ): Behandling {
+    ): UtfallEditedView {
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
@@ -1603,14 +1622,18 @@ class BehandlingService(
             type = InternalEventType.UTFALL,
         )
 
-        return behandling
+        return UtfallEditedView(
+            modified = behandling.modified,
+            utfallId = behandling.utfall?.id,
+            extraUtfallIdSet = behandling.extraUtfallSet.map { it.id }.toSet(),
+        )
     }
 
     fun setExtraUtfallSet(
         behandlingId: UUID,
         extraUtfallSet: Set<Utfall>,
         utfoerendeSaksbehandlerIdent: String
-    ): Behandling {
+    ): ExtraUtfallEditedView {
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
@@ -1641,7 +1664,10 @@ class BehandlingService(
             type = InternalEventType.EXTRA_UTFALL,
         )
 
-        return behandling
+        return ExtraUtfallEditedView(
+            modified = behandling.modified,
+            extraUtfallIdSet = behandling.extraUtfallSet.map { it.id }.toSet(),
+        )
     }
 
     fun setRegistreringshjemler(
@@ -1872,6 +1898,41 @@ class BehandlingService(
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         return behandlingRepository.findBySakenGjelderPartIdValueAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(
             partIdValue = behandling.sakenGjelder.partId.value
+        )
+    }
+
+    fun getSakenGjelderView(behandlingId: UUID): BehandlingDetaljerView.SakenGjelderView {
+        return behandlingMapper.getSakenGjelderView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId).sakenGjelder)
+    }
+
+    fun getFradelingReason(behandlingId: UUID): WithPrevious<no.nav.klage.oppgave.api.view.TildelingEvent>? {
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+
+        val tildelingHistory = historyService.createTildelingHistory(
+            tildelingHistorikkSet = behandling.tildelingHistorikk,
+            behandlingCreated = behandling.created,
+            originalHjemmelIdList = behandling.hjemler.joinToString(",")
+        )
+
+        return if (behandling.tildeling == null) {
+            val fradelingerBySaksbehandler = tildelingHistory.filter {
+                it.event?.fradelingReasonId != null && it.previous.event?.saksbehandler?.navIdent == innloggetSaksbehandlerService.getInnloggetIdent()
+            }
+
+            if (fradelingerBySaksbehandler.isNotEmpty()) {
+                //return most recent fradeling if there are multiple
+                fradelingerBySaksbehandler.last()
+            } else {
+                null
+            }
+        } else null
+    }
+
+    fun getFradeltSaksbehandlerViewWrapped(behandlingId: UUID): FradeltSaksbehandlerViewWrapped {
+        val behandling = getBehandlingForReadWithoutCheckForAccess(behandlingId)
+        return FradeltSaksbehandlerViewWrapped(
+            modified = behandling.modified,
+            hjemmelIdList = behandling.hjemler.map { it.id }
         )
     }
 }

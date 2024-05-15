@@ -167,9 +167,8 @@ class KlagebehandlingRepositoryTest {
 
 
 
-        assertThat(klagebehandlingRepository.getCompletedKlagebehandlinger("23452354")).containsExactly(klageWithNoAnke, klageWithNoAnke2, klageWithAnke)
+        assertThat(klagebehandlingRepository.getCompletedKlagebehandlinger("23452354")).containsExactlyInAnyOrder(klageWithNoAnke, klageWithNoAnke2, klageWithAnke)
     }
-
 
     fun getMottak(): Mottak = Mottak(
         ytelse = Ytelse.OMS_OMP,

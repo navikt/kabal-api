@@ -36,10 +36,6 @@ class AnkebehandlingService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getAnkebehandlingFromMottakId(mottakId: UUID): Ankebehandling? {
-        return ankebehandlingRepository.findByMottakId(mottakId)
-    }
-
     fun getAnkebehandlingerBasedOnSourceBehandlingId(sourceBehandlingId: UUID): List<Ankebehandling> {
         return ankebehandlingRepository.findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId = sourceBehandlingId)
     }
@@ -80,7 +76,7 @@ class AnkebehandlingService(
         logger.debug("Created ankebehandling {} for mottak {}", ankebehandling.id, mottak.id)
 
         if (mottak.forrigeBehandlingId != null) {
-            val behandling = behandlingRepository.getReferenceById(mottak.forrigeBehandlingId)
+            val behandling = behandlingRepository.findById(mottak.forrigeBehandlingId).get()
             val dokumenter = behandling.saksdokumenter
 
             logger.debug(

@@ -96,7 +96,10 @@ class DokumentService(
             }
 
             val dokumentReferanseList = dokumentoversiktBruker.journalposter.map { journalpost ->
-                dokumentMapper.mapJournalpostToDokumentReferanse(journalpost, behandling)
+                dokumentMapper.mapJournalpostToDokumentReferanse(
+                    journalpost = journalpost,
+                    saksdokumenter = behandling.saksdokumenter
+                )
             }
 
             return DokumenterResponse(
@@ -223,7 +226,10 @@ class DokumentService(
             saksbehandlerContext = true,
         ).first()
 
-        return dokumentMapper.mapJournalpostToDokumentReferanse(journalpost = journalpost, behandling = behandling)
+        return dokumentMapper.mapJournalpostToDokumentReferanse(
+            journalpost = journalpost,
+            saksdokumenter = behandling.saksdokumenter
+        )
     }
 
     private fun harArkivVariantformat(dokumentInfo: DokumentInfo): Boolean =

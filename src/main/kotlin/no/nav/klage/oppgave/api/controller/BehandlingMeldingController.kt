@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.oppgave.api.mapper.MeldingMapper
 import no.nav.klage.oppgave.api.view.MeldingInput
 import no.nav.klage.oppgave.api.view.MeldingModified
 import no.nav.klage.oppgave.api.view.MeldingView
@@ -24,7 +23,6 @@ import java.util.*
 class BehandlingMeldingController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val meldingService: MeldingService,
-    private val meldingMapper: MeldingMapper,
     private val behandlingService: BehandlingService,
 ) {
 
@@ -53,12 +51,10 @@ class BehandlingMeldingController(
 
         validateAccessToBehandling(behandlingId)
 
-        return meldingMapper.toMeldingView(
-            meldingService.addMelding(
-                behandlingId,
-                innloggetIdent,
-                input.text
-            )
+        return meldingService.addMelding(
+            behandlingId,
+            innloggetIdent,
+            input.text
         )
     }
 
@@ -80,7 +76,7 @@ class BehandlingMeldingController(
 
         validateAccessToBehandling(behandlingId)
 
-        return meldingMapper.toMeldingerView(meldingService.getMeldingerForBehandling(behandlingId))
+        return meldingService.getMeldingerForBehandling(behandlingId)
     }
 
     @Operation(
@@ -129,13 +125,11 @@ class BehandlingMeldingController(
 
         validateAccessToBehandling(behandlingId)
 
-        return meldingMapper.toModifiedView(
-            meldingService.modifyMelding(
-                behandlingId,
-                innloggetIdent,
-                meldingId,
-                input.text
-            )
+        return meldingService.modifyMelding(
+            behandlingId,
+            innloggetIdent,
+            meldingId,
+            input.text
         )
     }
 

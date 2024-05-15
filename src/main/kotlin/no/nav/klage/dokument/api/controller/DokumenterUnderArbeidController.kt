@@ -2,8 +2,6 @@ package no.nav.klage.dokument.api.controller
 
 
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.dokument.api.mapper.DokumentInputMapper
-import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
@@ -32,8 +30,6 @@ import java.util.*
 class DokumentUnderArbeidController(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val dokumentMapper: DokumentMapper,
-    private val dokumentInputMapper: DokumentInputMapper,
 ) {
 
     companion object {
@@ -54,7 +50,7 @@ class DokumentUnderArbeidController(
         @ModelAttribute input: FilInput
     ): DokumentView {
         logger.debug("Kall mottatt på createAndUploadDokument")
-        val opplastetFil = dokumentInputMapper.mapToMellomlagretDokument(
+        val opplastetFil = dokumentUnderArbeidService.mapToFysiskDokument(
             multipartFile = input.file,
             tittel = input.file.originalFilename,
             dokumentType = DokumentType.of(input.dokumentTypeId),
@@ -169,12 +165,10 @@ class DokumentUnderArbeidController(
         @PathVariable("dokumentId") dokumentId: UUID,
     ): ResponseEntity<ByteArray> {
         logger.debug("Kall mottatt på getPdf for {}", dokumentId)
-        return dokumentMapper.mapToByteArray(
-            dokumentUnderArbeidService.getFysiskDokument(
-                behandlingId = behandlingId,
-                dokumentId = dokumentId,
-                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-            )
+        return dokumentUnderArbeidService.getFysiskDokument(
+            behandlingId = behandlingId,
+            dokumentId = dokumentId,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
     }
 
@@ -226,12 +220,10 @@ class DokumentUnderArbeidController(
         @PathVariable("hoveddokumentId") hoveddokumentId: UUID,
     ): ResponseEntity<ByteArray> {
         logger.debug("Kall mottatt på getInnholdsfortegnelsePdf for {}", hoveddokumentId)
-        return dokumentMapper.mapToByteArray(
-            dokumentUnderArbeidService.getInnholdsfortegnelseAsFysiskDokument(
-                behandlingId = behandlingId,
-                hoveddokumentId = hoveddokumentId,
-                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-            )
+        return dokumentUnderArbeidService.getInnholdsfortegnelseAsFysiskDokument(
+            behandlingId = behandlingId,
+            hoveddokumentId = hoveddokumentId,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
     }
 
