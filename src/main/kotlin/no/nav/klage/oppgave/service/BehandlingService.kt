@@ -1317,6 +1317,10 @@ class BehandlingService(
         behandlingRepository.findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
 
+    @Transactional(readOnly = true)
+    fun getBehandlingEagerForReadWithoutCheckForAccess(behandlingId: UUID): Behandling =
+        behandlingRepository.findByIdEager(behandlingId)
+
     fun getBehandlingForUpdateBySystembruker(
         behandlingId: UUID,
     ): Behandling =
