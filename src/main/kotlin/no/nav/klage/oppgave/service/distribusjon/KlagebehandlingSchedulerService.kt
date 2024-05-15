@@ -46,7 +46,7 @@ class KlagebehandlingSchedulerService(
         behandlingIdList.forEach { (id, type) ->
             if (type != Type.ANKE_I_TRYGDERETTEN) {
                 kakaApiGateway.finalizeBehandling(
-                    behandlingService.getBehandlingForReadWithoutCheckForAccess(
+                    behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
                         id
                     )
                 )
