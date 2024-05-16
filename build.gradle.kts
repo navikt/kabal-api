@@ -15,7 +15,7 @@ val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.2"
 val tikaVersion = "2.9.2"
 val verapdfVersion = "1.24.2"
-val klageKodeverkVersion = "1.8.20"
+val klageKodeverkVersion = "1.8.22"
 
 plugins {
     val kotlinVersion = "1.9.24"
