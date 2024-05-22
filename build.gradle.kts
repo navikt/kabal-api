@@ -1,9 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val mockkVersion = "1.13.10"
-val tokenValidationVersion = "4.1.5"
+val mockkVersion = "1.13.11"
+val tokenValidationVersion = "4.1.7"
 val logstashVersion = "7.4"
-val springRetryVersion = "2.0.5"
+val springRetryVersion = "2.0.6"
 val springMockkVersion = "4.0.2"
 val springDocVersion = "2.5.0"
 val testContainersVersion = "1.19.8"
@@ -14,11 +14,11 @@ val logbackSyslog4jVersion = "1.0.0"
 val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.2"
 val tikaVersion = "2.9.2"
-val verapdfVersion = "1.24.2"
+val verapdfVersion = "1.26.1"
 val klageKodeverkVersion = "1.8.22"
 
 plugins {
-    val kotlinVersion = "1.9.24"
+    val kotlinVersion = "2.0.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
@@ -57,7 +57,7 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
-    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.5.1.Final")
+    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.5.2.Final")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
