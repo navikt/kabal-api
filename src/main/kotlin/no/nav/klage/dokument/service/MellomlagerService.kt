@@ -18,20 +18,21 @@ class MellomlagerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun uploadDocument(file: MultipartFile): String {
+    fun uploadMultipartFile(file: MultipartFile): String {
         return fileApiClient.uploadDocument(
             //If uploaded file is an image, convert to pdf
             resource = image2PDF.convertIfImage(file),
         )
     }
 
-    fun uploadByteArray(resource: Resource): String =
+    fun uploadResource(resource: Resource): String =
         fileApiClient.uploadDocument(
             resource = resource,
         )
 
-    fun getUploadedDocument(mellomlagerId: String): ByteArray =
-        fileApiClient.getDocument(mellomlagerId)
+    fun getUploadedDocument(mellomlagerId: String): Resource {
+        return fileApiClient.getDocument(mellomlagerId)
+    }
 
     fun deleteDocument(mellomlagerId: String): Unit =
         fileApiClient.deleteDocument(mellomlagerId)

@@ -156,13 +156,40 @@ class DokumentUnderArbeidController(
     fun getPdf(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
-    ): ResponseEntity<ByteArray> {
+    ): ResponseEntity<Resource> {
         logger.debug("Kall mottatt på getPdf for {}", dokumentId)
-        return dokumentUnderArbeidService.getFysiskDokument(
+        val (resource, title) = dokumentUnderArbeidService.getFysiskDokument(
             behandlingId = behandlingId,
             dokumentId = dokumentId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
+
+        val responseHeaders = HttpHeaders()
+        responseHeaders.contentType = MediaType.APPLICATION_PDF
+        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"${title.removeSuffix(".pdf")}.pdf\"")
+
+        return ResponseEntity.ok()
+            .headers(responseHeaders)
+            .contentLength(resource.contentLength())
+            .body(getResource(resource))
+    }
+
+    private fun getResource(resource: Resource): Resource {
+        if (resource is FileSystemResource) {
+            return object : FileSystemResource(resource.path) {
+                override fun getInputStream(): InputStream {
+                    return object : FileInputStream(resource.file) {
+                        override fun close() {
+                            super.close()
+                            //Override to do this after client has downloaded file
+                            Files.delete(file.toPath())
+                        }
+                    }
+                }
+            }
+        } else {
+            return resource
+        }
     }
 
     @GetMapping("/{dokumentId}/title")

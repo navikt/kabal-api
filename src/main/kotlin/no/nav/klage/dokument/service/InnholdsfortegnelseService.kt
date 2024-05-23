@@ -53,7 +53,7 @@ class InnholdsfortegnelseService(
         )
 
         val mellomlagerId =
-            mellomlagerService.uploadByteArray(
+            mellomlagerService.uploadResource(
                 resource = ByteArrayResource(content),
             )
 

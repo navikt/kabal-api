@@ -42,6 +42,7 @@ import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.io.ByteArrayResource
+import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -130,7 +131,7 @@ class DokumentUnderArbeidService(
         }
 
         attachmentValidator.validateAttachment(fileInput.file)
-        val mellomlagerId = mellomlagerService.uploadDocument(fileInput.file)
+        val mellomlagerId = mellomlagerService.uploadMultipartFile(fileInput.file)
 
         val now = LocalDateTime.now()
 
@@ -1478,7 +1479,7 @@ class DokumentUnderArbeidService(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         innloggetIdent: String
-    ): ResponseEntity<ByteArray> {
+    ): Pair<Resource, String> {
         val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
@@ -1494,7 +1495,7 @@ class DokumentUnderArbeidService(
                 journalpostId = dokarkivReference.journalpostId,
                 dokumentInfoId = dokarkivReference.dokumentInfoId!!,
             )
-            fysiskDokument.content to fysiskDokument.title
+            ByteArrayResource(fysiskDokument.content) to fysiskDokument.title
         } else {
             when (dokument) {
                 is OpplastetDokumentUnderArbeidAsHoveddokument -> {
@@ -1507,7 +1508,7 @@ class DokumentUnderArbeidService(
 
                 is DokumentUnderArbeidAsSmartdokument -> {
                     if (dokument.isPDFGenerationNeeded()) {
-                        mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes to dokument.name
+                        ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes) to dokument.name
                     } else mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
                 }
 
@@ -1516,7 +1517,7 @@ class DokumentUnderArbeidService(
                         journalpostId = dokument.journalpostId,
                         dokumentInfoId = dokument.dokumentInfoId,
                     )
-                    fysiskDokument.content to fysiskDokument.title
+                    ByteArrayResource(fysiskDokument.content) to fysiskDokument.title
                 }
 
                 else -> {
@@ -1525,13 +1526,7 @@ class DokumentUnderArbeidService(
             }
         }
 
-        return dokumentMapper.mapToByteArray(
-            FysiskDokument(
-                title = title,
-                content = dokumentService.changeTitleInPDF(content, title),
-                contentType = MediaType.APPLICATION_PDF
-            )
-        )
+        return content to title
     }
 
     fun slettDokument(
@@ -1976,11 +1971,11 @@ class DokumentUnderArbeidService(
             if (dokumentUnderArbeid.isPDFGenerationNeeded()) {
                 mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid).bytes
             } else {
-                mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
+                mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!).contentAsByteArray
             }
         } else {
             dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
-            mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
+            mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!).contentAsByteArray
         }
         val hoveddokumentPath = Files.write(Files.createTempFile("", ""), hoveddokumentPDFBytes)
 
@@ -1992,12 +1987,12 @@ class DokumentUnderArbeidService(
                     if (vedlegg.isPDFGenerationNeeded()) {
                         mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(vedlegg).bytes
                     } else {
-                        mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
+                        mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!).contentAsByteArray
                     }
                 }
 
                 is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                    mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
+                    mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!).contentAsByteArray
                 }
 
                 else -> null
@@ -2058,7 +2053,7 @@ class DokumentUnderArbeidService(
         val pdfDocument = kabalJsonToPdfClient.getPDFDocument(documentJson)
 
         val mellomlagerId =
-            mellomlagerService.uploadByteArray(
+            mellomlagerService.uploadResource(
                 resource = ByteArrayResource(pdfDocument.bytes),
             )
 

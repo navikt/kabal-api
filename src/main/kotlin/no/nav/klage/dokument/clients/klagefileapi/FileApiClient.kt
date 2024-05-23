@@ -4,7 +4,10 @@ import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
+import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
+import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.client.MultipartBodyBuilder
@@ -12,6 +15,8 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import java.nio.file.Files
+
 
 @Component
 class FileApiClient(
@@ -24,7 +29,7 @@ class FileApiClient(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getDocument(id: String, systemUser: Boolean = false): ByteArray {
+    fun getDocument(id: String, systemUser: Boolean = false): Resource {
         logger.debug("Fetching document with id {}", id)
 
         val token = if (systemUser) {
@@ -33,15 +38,19 @@ class FileApiClient(
             tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
         }
 
-        return this.fileWebClient.get()
+        val dataBufferFlux = fileWebClient.get()
             .uri { it.path("/document/{id}").build(id) }
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(response, ::getDocument.name, secureLogger)
             }
-            .bodyToMono<ByteArray>()
-            .block() ?: throw RuntimeException("Document could not be fetched")
+            .bodyToFlux(DataBuffer::class.java)
+
+        val tempFile = Files.createTempFile(null, null)
+
+        DataBufferUtils.write(dataBufferFlux, tempFile).block()
+        return FileSystemResource(tempFile)
     }
 
     fun deleteDocument(id: String, systemUser: Boolean = false) {
