@@ -10,7 +10,10 @@ import org.apache.tika.Tika
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.*
 import org.springframework.stereotype.Component
+import org.springframework.util.unit.DataSize
+import org.springframework.util.unit.DataUnit
 import java.io.ByteArrayOutputStream
+import kotlin.math.min
 
 
 @Component
@@ -26,7 +29,9 @@ class Image2PDF {
     private val A4: PDRectangle = PDRectangle.A4
 
     fun convertIfImage(bytes: ByteArray): ByteArray {
-        val mediaType = valueOf(Tika().detect(bytes))
+        val bytesForFiletypeDetection =
+            bytes.copyOfRange(0, min(DataSize.of(5, DataUnit.KILOBYTES).toBytes().toInt(), bytes.size))
+        val mediaType = valueOf(Tika().detect(bytesForFiletypeDetection))
         if (APPLICATION_PDF == mediaType) {
             return bytes
         }

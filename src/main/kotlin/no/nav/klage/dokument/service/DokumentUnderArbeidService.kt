@@ -44,6 +44,8 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.util.unit.DataSize
+import org.springframework.util.unit.DataUnit
 import org.springframework.web.multipart.MultipartFile
 import java.nio.file.Files
 import java.nio.file.Path
@@ -51,6 +53,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.math.min
 
 
 @Service
@@ -1459,11 +1462,13 @@ class DokumentUnderArbeidService(
     ): FysiskDokument {
         val dokumentTittel =
             tittel ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i MultipartFile") })
+        val bytesForFiletypeDetection = multipartFile.bytes.copyOfRange(0, min(DataSize.of(5, DataUnit.KILOBYTES).toBytes().toInt(), multipartFile.bytes.size))
+
         return FysiskDokument(
             title = dokumentTittel,
             content = multipartFile.bytes,
             contentType = multipartFile.contentType?.let { MediaType.parseMediaType(it) }
-                ?: MediaType.valueOf(Tika().detect(multipartFile.bytes))
+                ?: MediaType.valueOf(Tika().detect(bytesForFiletypeDetection))
         )
     }
 

@@ -31,16 +31,13 @@ spring:
     timeout-per-shutdown-phase: 20s
   servlet:
     multipart:
-      #       Size limitations are also handled by app itself to get nice fault messages, but this setting seems to fail faster?
-      max-request-size: 8MB
-      max-file-size: 8MB
+      max-request-size: 256MB
+      max-file-size: 256MB
   codec:
-    max-in-memory-size: 256MB
+    max-in-memory-size: 512MB
   sql:
     init:
       platform: postgresql
-
-maxAttachmentSize: 8MB
 
 server:
   port: 7081
