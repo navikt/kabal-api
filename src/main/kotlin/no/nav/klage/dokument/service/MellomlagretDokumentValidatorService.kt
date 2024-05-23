@@ -1,7 +1,6 @@
 package no.nav.klage.dokument.service
 
 import no.nav.klage.dokument.clients.clamav.ClamAvClient
-import no.nav.klage.dokument.exceptions.AttachmentHasVirusException
 import no.nav.klage.dokument.exceptions.AttachmentIsEmptyException
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
@@ -23,10 +22,10 @@ class MellomlagretDokumentValidatorService(
             throw AttachmentIsEmptyException()
         }
 
-        if (file.hasVirus()) {
-            logger.warn("Attachment has virus")
-            throw AttachmentHasVirusException()
-        }
+//        if (file.hasVirus()) {
+//            logger.warn("Attachment has virus")
+//            throw AttachmentHasVirusException()
+//        }
 
         logger.debug("Validation successful.")
     }
