@@ -2,10 +2,11 @@ package no.nav.klage.dokument.service
 
 
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
-import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.oppgave.util.Image2PDF
 import no.nav.klage.oppgave.util.getLogger
+import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 
 @Service
 class MellomlagerService(
@@ -17,18 +18,16 @@ class MellomlagerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun uploadDocument(dokument: FysiskDokument): String {
+    fun uploadDocument(file: MultipartFile): String {
         return fileApiClient.uploadDocument(
             //If uploaded file is an image, convert to pdf
-            bytes = image2PDF.convertIfImage(dokument.content),
-            originalFilename = dokument.title
+            resource = image2PDF.convertIfImage(file),
         )
     }
 
-    fun uploadByteArray(tittel: String, content: ByteArray): String =
+    fun uploadByteArray(resource: Resource): String =
         fileApiClient.uploadDocument(
-            bytes = content,
-            originalFilename = tittel,
+            resource = resource,
         )
 
     fun getUploadedDocument(mellomlagerId: String): ByteArray =

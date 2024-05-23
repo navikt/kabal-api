@@ -6,7 +6,7 @@ import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
 import java.util.*
 
-data class FilInput(
+data class FileInput(
     val file: MultipartFile,
     val dokumentTypeId: String = DokumentType.NOTAT.id,
     val parentId: UUID?,

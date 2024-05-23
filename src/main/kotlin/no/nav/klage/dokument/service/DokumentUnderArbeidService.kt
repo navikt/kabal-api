@@ -41,12 +41,16 @@ import org.apache.tika.Tika
 import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.core.io.ByteArrayResource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
 import org.springframework.web.multipart.MultipartFile
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDate
@@ -102,12 +106,14 @@ class DokumentUnderArbeidService(
 
     fun createOpplastetDokumentUnderArbeid(
         behandlingId: UUID,
-        dokumentType: DokumentType,
-        opplastetFil: FysiskDokument?,
+        fileInput: FileInput,
         innloggetIdent: String,
-        tittel: String,
-        parentId: UUID?,
     ): DokumentView {
+        val dokumentType = DokumentType.of(fileInput.dokumentTypeId)
+        val parentId = fileInput.parentId
+
+        val title = fileInput.file.originalFilename ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i MultipartFile") })
+
         //Sjekker lesetilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
@@ -123,12 +129,8 @@ class DokumentUnderArbeidService(
             }
         }
 
-        if (opplastetFil == null) {
-            throw DokumentValidationException("No file uploaded")
-        }
-
-        attachmentValidator.validateAttachment(opplastetFil)
-        val mellomlagerId = mellomlagerService.uploadDocument(opplastetFil)
+        attachmentValidator.validateAttachment(fileInput.file)
+        val mellomlagerId = mellomlagerService.uploadDocument(fileInput.file)
 
         val now = LocalDateTime.now()
 
@@ -137,8 +139,8 @@ class DokumentUnderArbeidService(
                 OpplastetDokumentUnderArbeidAsHoveddokument(
                     mellomlagerId = mellomlagerId,
                     mellomlagretDate = now,
-                    size = opplastetFil.content.size.toLong(),
-                    name = tittel,
+                    size = fileInput.file.size,
+                    name = title,
                     dokumentType = dokumentType,
                     behandlingId = behandlingId,
                     creatorIdent = innloggetIdent,
@@ -155,8 +157,8 @@ class DokumentUnderArbeidService(
                 OpplastetDokumentUnderArbeidAsVedlegg(
                     mellomlagerId = mellomlagerId,
                     mellomlagretDate = now,
-                    size = opplastetFil.content.size.toLong(),
-                    name = tittel,
+                    size = fileInput.file.size,
+                    name = title,
                     behandlingId = behandlingId,
                     creatorIdent = innloggetIdent,
                     creatorRole = behandlingRole,
@@ -2057,8 +2059,7 @@ class DokumentUnderArbeidService(
 
         val mellomlagerId =
             mellomlagerService.uploadByteArray(
-                tittel = dokument.name,
-                content = pdfDocument.bytes
+                resource = ByteArrayResource(pdfDocument.bytes),
             )
 
         if (dokument.mellomlagerId != null) {
@@ -2169,17 +2170,28 @@ class DokumentUnderArbeidService(
                 avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
             )
         )
+
+        val fileInput = FileInput(
+            file = object : MultipartFile {
+                override fun getName(): String = svarbrevInput.title
+                override fun getOriginalFilename(): String = svarbrevInput.title
+                override fun getContentType(): String = MediaType.APPLICATION_PDF_VALUE
+                override fun isEmpty(): Boolean = bytes.isEmpty()
+                override fun getSize(): Long = bytes.size.toLong()
+                override fun getBytes(): ByteArray = bytes
+                override fun getInputStream(): InputStream = ByteArrayInputStream(bytes)
+                override fun transferTo(dest: File) {
+                    dest.writeBytes(bytes)
+                }
+            },
+            dokumentTypeId = DokumentType.SVARBREV.id,
+            parentId = null,
+        )
+
         val documentView = createOpplastetDokumentUnderArbeid(
             behandlingId = behandling.id,
-            dokumentType = DokumentType.SVARBREV,
-            opplastetFil = FysiskDokument(
-                title = svarbrevInput.title,
-                content = bytes,
-                contentType = MediaType.APPLICATION_PDF
-            ),
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            tittel = svarbrevInput.title,
-            parentId = null
+            fileInput = fileInput,
         )
 
         updateMottakere(

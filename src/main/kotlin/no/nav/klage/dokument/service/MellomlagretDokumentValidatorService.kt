@@ -1,11 +1,11 @@
 package no.nav.klage.dokument.service
 
 import no.nav.klage.dokument.clients.clamav.ClamAvClient
-import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.exceptions.AttachmentHasVirusException
 import no.nav.klage.dokument.exceptions.AttachmentIsEmptyException
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
+import org.springframework.web.multipart.MultipartFile
 
 @Service
 class MellomlagretDokumentValidatorService(
@@ -16,14 +16,14 @@ class MellomlagretDokumentValidatorService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun validateAttachment(fil: FysiskDokument) {
+    fun validateAttachment(file: MultipartFile) {
         logger.debug("Validating attachment.")
-        if (fil.content.isEmpty()) {
+        if (file.isEmpty) {
             logger.warn("Attachment is empty")
             throw AttachmentIsEmptyException()
         }
 
-        if (fil.hasVirus()) {
+        if (file.hasVirus()) {
             logger.warn("Attachment has virus")
             throw AttachmentHasVirusException()
         }
@@ -31,5 +31,5 @@ class MellomlagretDokumentValidatorService(
         logger.debug("Validation successful.")
     }
 
-    private fun FysiskDokument.hasVirus() = !clamAvClient.scan(this.content)
+    private fun MultipartFile.hasVirus() = !clamAvClient.scan(this.resource)
 }

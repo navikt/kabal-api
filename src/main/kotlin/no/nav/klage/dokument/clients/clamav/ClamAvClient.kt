@@ -1,7 +1,10 @@
 package no.nav.klage.dokument.clients.clamav
 
 import no.nav.klage.oppgave.util.getLogger
+import org.springframework.core.io.Resource
+import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 
@@ -13,11 +16,15 @@ class ClamAvClient(private val clamAvWebClient: WebClient) {
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun scan(file: ByteArray): Boolean {
+    fun scan(resource: Resource): Boolean {
         logger.debug("Scanning document")
+
+        val bodyBuilder = MultipartBodyBuilder()
+        bodyBuilder.part("file", resource).filename("file")
+
         val response = try {
-            clamAvWebClient.put()
-                .bodyValue(file)
+            clamAvWebClient.post()
+                .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
                 .retrieve()
                 .bodyToMono<List<ScanResult>>()
                 .block()

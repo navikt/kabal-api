@@ -7,11 +7,14 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 import org.apache.tika.Tika
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.*
 import org.springframework.stereotype.Component
 import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
+import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayOutputStream
 import kotlin.math.min
 
@@ -28,16 +31,19 @@ class Image2PDF {
 
     private val A4: PDRectangle = PDRectangle.A4
 
-    fun convertIfImage(bytes: ByteArray): ByteArray {
+    fun convertIfImage(file: MultipartFile): Resource {
         val bytesForFiletypeDetection =
-            bytes.copyOfRange(0, min(DataSize.of(5, DataUnit.KILOBYTES).toBytes().toInt(), bytes.size))
+            file.inputStream.readNBytes(min(DataSize.of(5, DataUnit.KILOBYTES).toBytes().toInt(), file.size.toInt()))
+
         val mediaType = valueOf(Tika().detect(bytesForFiletypeDetection))
         if (APPLICATION_PDF == mediaType) {
-            return bytes
+            return file.resource
         }
         if (validImageTypes(mediaType)) {
-            return embedImageInPDF(mediaType.subtype, bytes)
+            val embedImageInPDF = embedImageInPDF(mediaType.subtype, file.bytes)
+            return ByteArrayResource(embedImageInPDF)
         }
+
         val exception = AttachmentCouldNotBeConvertedException()
         logger.warn("User tried to upload an unsupported file type: $mediaType", exception)
         throw exception

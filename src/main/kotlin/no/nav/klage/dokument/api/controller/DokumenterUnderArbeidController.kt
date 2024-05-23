@@ -47,21 +47,14 @@ class DokumentUnderArbeidController(
     @PostMapping("/fil")
     fun createAndUploadDokument(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @ModelAttribute input: FilInput
+        @ModelAttribute input: FileInput
     ): DokumentView {
         logger.debug("Kall mottatt på createAndUploadDokument")
-        val opplastetFil = dokumentUnderArbeidService.mapToFysiskDokument(
-            multipartFile = input.file,
-            tittel = input.file.originalFilename,
-            dokumentType = DokumentType.of(input.dokumentTypeId),
-        )
+
         return dokumentUnderArbeidService.createOpplastetDokumentUnderArbeid(
             behandlingId = behandlingId,
-            dokumentType = DokumentType.of(input.dokumentTypeId),
-            opplastetFil = opplastetFil,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            tittel = opplastetFil.title,
-            parentId = input.parentId,
+            fileInput = input,
         )
     }
 

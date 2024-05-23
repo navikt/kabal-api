@@ -4,6 +4,7 @@ import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.client.MultipartBodyBuilder
@@ -74,7 +75,7 @@ class FileApiClient(
         }
     }
 
-    fun uploadDocument(bytes: ByteArray, originalFilename: String, systemUser: Boolean = false): String {
+    fun uploadDocument(resource: Resource, systemUser: Boolean = false): String {
         logger.debug("Uploading document to storage")
 
         val token = if (systemUser) {
@@ -84,7 +85,7 @@ class FileApiClient(
         }
 
         val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("file", bytes).filename(originalFilename)
+        bodyBuilder.part("file", resource).filename("file")
         val response = fileWebClient
             .post()
             .uri("/document")
