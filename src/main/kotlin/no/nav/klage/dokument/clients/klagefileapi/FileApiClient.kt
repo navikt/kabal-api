@@ -53,6 +53,26 @@ class FileApiClient(
         return FileSystemResource(tempFile)
     }
 
+    fun getDocumentAsSignedURL(id: String, systemUser: Boolean = false): String {
+        logger.debug("Fetching document (signed URL) with id {}", id)
+
+        val token = if (systemUser) {
+            tokenUtil.getAppAccessTokenWithKabalFileApiScope()
+        } else {
+            tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
+        }
+
+        return fileWebClient.get()
+            .uri { it.path("/document/{id}/signedurl").build(id) }
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getDocument.name, secureLogger)
+            }
+            .bodyToMono<String>()
+            .block()!!
+    }
+
     fun deleteDocument(id: String, systemUser: Boolean = false) {
         logger.debug("Deleting document with id {}", id)
 

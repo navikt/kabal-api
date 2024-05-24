@@ -1475,6 +1475,19 @@ class DokumentUnderArbeidService(
         )
     }
 
+    fun getFysiskDokumentSignedURL(
+        behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
+        dokumentId: UUID,
+        innloggetIdent: String
+    ): Pair<String, String> {
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get() as OpplastetDokumentUnderArbeidAsHoveddokument
+
+        //Sjekker tilgang på behandlingsnivå:
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
+
+        return mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!) to dokument.name
+    }
+
     fun getFysiskDokument(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
