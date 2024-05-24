@@ -18,6 +18,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.servlet.ModelAndView
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.file.Files
@@ -151,28 +152,44 @@ class DokumentUnderArbeidController(
         )
     }
 
+//    @ResponseBody
+//    @GetMapping("/{dokumentId}/pdf")
+//    fun getPdf(
+//        @PathVariable("behandlingId") behandlingId: UUID,
+//        @PathVariable("dokumentId") dokumentId: UUID,
+//    ): ResponseEntity<Resource> {
+//        logger.debug("Kall mottatt på getPdf for {}", dokumentId)
+//        val (resource, title) = dokumentUnderArbeidService.getFysiskDokument(
+//            behandlingId = behandlingId,
+//            dokumentId = dokumentId,
+//            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+//        )
+//
+//        val responseHeaders = HttpHeaders()
+//        responseHeaders.contentType = MediaType.APPLICATION_PDF
+//        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"${title.removeSuffix(".pdf")}.pdf\"")
+//
+//        return ResponseEntity.ok()
+//            .headers(responseHeaders)
+//            .contentLength(resource.contentLength())
+//            .body(getResource(resource))
+//
+//    }
+
     @ResponseBody
     @GetMapping("/{dokumentId}/pdf")
     fun getPdf(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
-    ): ResponseEntity<Resource> {
+    ): ModelAndView {
         logger.debug("Kall mottatt på getPdf for {}", dokumentId)
-        val (resource, title) = dokumentUnderArbeidService.getFysiskDokument(
+        val (url, title) = dokumentUnderArbeidService.getFysiskDokumentSignedURL(
             behandlingId = behandlingId,
             dokumentId = dokumentId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
 
-        val responseHeaders = HttpHeaders()
-        responseHeaders.contentType = MediaType.APPLICATION_PDF
-        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"${title.removeSuffix(".pdf")}.pdf\"")
-
-        return ResponseEntity.ok()
-            .headers(responseHeaders)
-            .contentLength(resource.contentLength())
-            .body(getResource(resource))
-
+        return ModelAndView("redirect:$url")
     }
 
     private fun getResource(resource: Resource): Resource {
