@@ -61,7 +61,23 @@ class PdlClient(
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(response, ::getFoedselsnummerFromSomeIdent.name, secureLogger)
                 }
-                .bodyToMono<HentFolkeregisterIdentResponse>()
+                .bodyToMono<HentIdenterResponse>()
+                .block()?.data?.hentIdenter?.identer?.firstOrNull()?.ident ?: throw RuntimeException("Person not found")
+        }
+    }
+
+    @Retryable
+    fun getAktoerIdentFromSomeIdent(ident: String): String {
+        return runWithTiming {
+            val stsSystembrukerToken = tokenUtil.getAppAccessTokenWithPdlScope()
+            pdlWebClient.post()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $stsSystembrukerToken")
+                .bodyValue(hentAktoerIdentQuery(ident))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(response, ::getFoedselsnummerFromSomeIdent.name, secureLogger)
+                }
+                .bodyToMono<HentIdenterResponse>()
                 .block()?.data?.hentIdenter?.identer?.firstOrNull()?.ident ?: throw RuntimeException("Person not found")
         }
     }

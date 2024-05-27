@@ -4,15 +4,15 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDate
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class HentFolkeregisterIdentResponse(val data: HentFolkeregisterIdentDataWrapper?, val errors: List<PdlError>? = null)
+data class HentIdenterResponse(val data: HentIdenterDataWrapper?, val errors: List<PdlError>? = null)
 
-data class HentFolkeregisterIdentDataWrapper(val hentIdenter: FolkeregisterIdenter)
+data class HentIdenterDataWrapper(val hentIdenter: Identer)
 
-data class FolkeregisterIdenter(
-    val identer: List<FolkeregisterIdent>,
+data class Identer(
+    val identer: List<Ident>,
 )
 
-data class FolkeregisterIdent(
+data class Ident(
     val ident: String,
 )
 

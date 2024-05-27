@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
+import no.nav.klage.oppgave.clients.pdl.graphql.PdlClient
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.TokenUtil
@@ -20,6 +21,7 @@ class DevOnlyAdminController(
     private val adminService: AdminService,
     private val tokenUtil: TokenUtil,
     private val behandlingService: BehandlingService,
+    private val pdlClient: PdlClient,
 ) {
 
     companion object {
@@ -144,6 +146,17 @@ class DevOnlyAdminController(
             adminService.setSortKeyToDUA()
         } catch (e: Exception) {
             logger.warn("Failed to setSortKeyToDUA", e)
+            throw e
+        }
+    }
+
+    @GetMapping("/internal/aktoerid/{fnr}")
+    fun getAktoerId(@PathVariable("fnr") fnr: String): String {
+        try {
+            logger.info("Getting aktør-id")
+            return pdlClient.getAktoerIdentFromSomeIdent(ident = fnr)
+        } catch (e: Exception) {
+            logger.warn("Failed to get aktør-id", e)
             throw e
         }
     }

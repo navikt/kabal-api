@@ -17,6 +17,17 @@ fun hentPersonQuery(ident: String): PersonGraphqlQuery {
 
 fun hentFolkeregisterIdentQuery(ident: String): PersonGraphqlQuery {
     val query =
-        PersonGraphqlQuery::class.java.getResource("/pdl/hentIdenter.graphql").cleanForGraphql()
+        PersonGraphqlQuery::class.java.getResource("/pdl/hentIdenter.graphql").readText(Charsets.UTF_8)
+            .replace("<replace>", "FOLKEREGISTERIDENT")
+            .replace("[\n\r]", "")
+    return PersonGraphqlQuery(query, IdentVariables(ident))
+}
+
+fun hentAktoerIdentQuery(ident: String): PersonGraphqlQuery {
+    val query =
+        PersonGraphqlQuery::class.java.getResource("/pdl/hentIdenter.graphql")
+            .readText(Charsets.UTF_8)
+            .replace("<replace>", "AKTORID")
+            .replace("[\n\r]", "")
     return PersonGraphqlQuery(query, IdentVariables(ident))
 }
