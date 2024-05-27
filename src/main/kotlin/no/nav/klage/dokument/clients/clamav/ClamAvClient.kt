@@ -1,9 +1,9 @@
 package no.nav.klage.dokument.clients.clamav
 
 import no.nav.klage.oppgave.util.getLogger
-import org.springframework.core.io.Resource
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.stereotype.Component
+import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -16,11 +16,11 @@ class ClamAvClient(private val clamAvWebClient: WebClient) {
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun scan(resource: Resource): Boolean {
+    fun hasVirus(file: MultipartFile): Boolean {
         logger.debug("Scanning document")
 
         val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("file", resource).filename("file")
+        bodyBuilder.part("file", file.resource).filename(file.name)
 
         val response = try {
             clamAvWebClient.post()
@@ -43,17 +43,17 @@ class ClamAvClient(private val clamAvWebClient: WebClient) {
             return false
         }
 
-        val (filename, result) = response[0]
-        logger.debug("$filename ${result.name}")
+        val (_, result) = response[0]
+        logger.debug("${file.name} ${result.name}")
         return when (result) {
-            ClamAvResult.OK -> true
+            ClamAvResult.OK -> false
             ClamAvResult.FOUND -> {
-                logger.warn("$filename has virus")
-                false
+                logger.warn("${file.name} has virus")
+                true
             }
             ClamAvResult.ERROR -> {
-                logger.warn("Error from virus scan on file $filename")
-                false
+                logger.warn("Error from virus scan for file ${file.name}")
+                throw RuntimeException("Error from virus scan for file ${file.name}")
             }
         }
     }
