@@ -150,7 +150,8 @@ class DevOnlyAdminController(
         }
     }
 
-    @GetMapping("/internal/aktoerid/{fnr}")
+    @GetMapping("/internal/aktoerid/{fnr}", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
     fun getAktoerId(@PathVariable("fnr") fnr: String): String {
         try {
             logger.info("Getting aktør-id")
