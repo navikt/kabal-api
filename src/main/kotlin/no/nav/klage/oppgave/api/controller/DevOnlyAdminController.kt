@@ -9,11 +9,13 @@ import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.security.token.support.core.api.ProtectedWithClaims
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import java.util.*
+import no.nav.klage.oppgave.config.SecurityConfiguration
 
 @Profile("dev-gcp")
 @RestController
@@ -150,8 +152,8 @@ class DevOnlyAdminController(
         }
     }
 
+    @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
     @GetMapping("/internal/aktoerid/{fnr}", produces = ["application/json"])
-    @ResponseStatus(HttpStatus.OK)
     fun getAktoerId(@PathVariable("fnr") fnr: String): String {
         try {
             logger.info("Getting aktør-id")
