@@ -10,6 +10,7 @@ import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
+import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
@@ -114,7 +115,7 @@ class FileApiClient(
         }
 
         val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("file", resource).filename("file")
+        bodyBuilder.part("file", resource).filename("file").contentType(MediaType.APPLICATION_PDF)
         val response = fileWebClient
             .post()
             .uri("/document")
