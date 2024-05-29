@@ -37,7 +37,6 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
-import org.apache.tika.Tika
 import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
@@ -46,8 +45,6 @@ import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.util.unit.DataSize
-import org.springframework.util.unit.DataUnit
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -58,7 +55,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
-import kotlin.math.min
 
 
 @Service
@@ -1455,23 +1451,6 @@ class DokumentUnderArbeidService(
                 ),
                 contentType = MediaType.APPLICATION_PDF
             )
-        )
-    }
-
-    fun mapToFysiskDokument(
-        multipartFile: MultipartFile,
-        tittel: String?,
-        dokumentType: DokumentType
-    ): FysiskDokument {
-        val dokumentTittel =
-            tittel ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i MultipartFile") })
-        val bytesForFiletypeDetection = multipartFile.bytes.copyOfRange(0, min(DataSize.of(5, DataUnit.KILOBYTES).toBytes().toInt(), multipartFile.bytes.size))
-
-        return FysiskDokument(
-            title = dokumentTittel,
-            content = multipartFile.bytes,
-            contentType = multipartFile.contentType?.let { MediaType.parseMediaType(it) }
-                ?: MediaType.valueOf(Tika().detect(bytesForFiletypeDetection))
         )
     }
 
