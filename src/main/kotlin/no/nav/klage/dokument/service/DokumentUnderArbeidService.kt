@@ -2153,7 +2153,6 @@ class DokumentUnderArbeidService(
                         fnr = behandling.klager.partId.value,
                     )
                 } else null,
-                enhetsnavn = Enhet.entries.first { it.navn == svarbrevInput.enhetId }.beskrivelse,
                 ytelsenavn = behandling.ytelse.navn,
                 fullmektigFritekst = svarbrevInput.fullmektigFritekst,
                 ankeReceivedDate = behandling.mottattKlageinstans.toLocalDate(),
