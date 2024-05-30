@@ -37,6 +37,9 @@ inboundApplications:
   - application: etterlatte-klage
     namespace: etterlatte
     cluster: prod-gcp
+  - application: pensjon-pen
+    namespace: pensjondeployer
+    cluster: prod-fss
 springProfile: prod-gcp
 tenant: nav.no
 db_tier: db-custom-1-3840
