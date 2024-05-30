@@ -37,6 +37,9 @@ inboundApplications:
   - application: etterlatte-klage
     namespace: etterlatte
     cluster: dev-gcp
+  - application: pensjon-pen-q2
+    namespace: pensjon-q2
+    cluster: dev-fss
 springProfile: dev-gcp
 tenant: trygdeetaten.no
 db_tier: db-f1-micro
