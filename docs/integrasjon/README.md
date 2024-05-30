@@ -4,6 +4,7 @@
 
 Diagram som beskriver grunnleggende klageflyt fra innsendt klage via nav.no:
 ![](klage_teknisk.png "Dataflyt")
+NB. klage.vedtak-fattet.v1 er nå erstattet med klage.behandling-events.v1
 
 - Førsteinstans håndterer klage i sin vedtaksløsning
 - Dersom klage skal videre til klageinstans gjøres en POST til `kabal-api`
@@ -35,7 +36,7 @@ Dokumentasjon fra nais: https://security.labs.nais.io/pages/guide/api-kall/maski
 ### Oversendelse til kabal-api
 
 ```
-POST <kabal-api-url>/oversendelse/klage <oversendt-klage-json>
+POST <kabal-api-url>/oversendelse/v3/sak <oversendt-klage-json>
 ```
 
 - DEV-url: `https://kabal-api.intern.dev.nav.no`
