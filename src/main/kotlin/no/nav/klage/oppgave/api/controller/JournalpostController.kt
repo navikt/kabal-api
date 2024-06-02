@@ -148,8 +148,7 @@ class JournalpostController(
         @Parameter(description = "Id til journalpost")
         @PathVariable journalpostId: String,
         @Parameter(description = "Id til dokumentInfo")
-        @PathVariable dokumentInfoId: String
-
+        @PathVariable dokumentInfoId: String,
     ): ResponseEntity<ByteArray> {
         logMethodDetails(
             methodName = ::getArkivertDokumentPDF.name,

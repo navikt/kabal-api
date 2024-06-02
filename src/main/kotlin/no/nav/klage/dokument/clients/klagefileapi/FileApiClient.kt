@@ -115,7 +115,7 @@ class FileApiClient(
         }
 
         val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("file", resource).filename("file").contentType(MediaType.APPLICATION_PDF)
+        bodyBuilder.part("file", resource).contentType(MediaType.APPLICATION_PDF)
         val response = fileWebClient
             .post()
             .uri("/document")
@@ -129,6 +129,10 @@ class FileApiClient(
             .block()
 
         requireNotNull(response)
+
+        if (resource is FileSystemResource) {
+            resource.file.delete()
+        }
 
         logger.debug("Document uploaded to file store with id: {}", response.id)
         return response.id

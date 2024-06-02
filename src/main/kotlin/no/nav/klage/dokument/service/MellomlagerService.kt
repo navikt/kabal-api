@@ -6,19 +6,22 @@ import no.nav.klage.oppgave.util.Image2PDF
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Service
-import org.springframework.web.multipart.MultipartFile
+import java.io.File
 
 @Service
 class MellomlagerService(
     private val fileApiClient: FileApiClient,
     private val image2PDF: Image2PDF,
+    private val attachmentValidator: MellomlagretDokumentValidatorService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun uploadMultipartFile(file: MultipartFile): String {
+    fun uploadFile(file: File): String {
+        attachmentValidator.validateAttachment(file)
+
         return fileApiClient.uploadDocument(
             //If uploaded file is an image, convert to pdf
             resource = image2PDF.convertIfImage(file),

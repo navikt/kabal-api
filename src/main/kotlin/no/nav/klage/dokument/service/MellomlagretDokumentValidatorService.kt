@@ -5,7 +5,7 @@ import no.nav.klage.dokument.exceptions.AttachmentHasVirusException
 import no.nav.klage.dokument.exceptions.AttachmentIsEmptyException
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
-import org.springframework.web.multipart.MultipartFile
+import java.io.File
 
 @Service
 class MellomlagretDokumentValidatorService(
@@ -16,9 +16,9 @@ class MellomlagretDokumentValidatorService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun validateAttachment(file: MultipartFile) {
+    fun validateAttachment(file: File) {
         logger.debug("Validating attachment.")
-        if (file.isEmpty) {
+        if (file.length() == 0L) {
             logger.warn("Attachment is empty")
             throw AttachmentIsEmptyException()
         }

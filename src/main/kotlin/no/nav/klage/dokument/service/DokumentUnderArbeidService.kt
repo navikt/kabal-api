@@ -2,6 +2,7 @@ package no.nav.klage.dokument.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
@@ -12,12 +13,12 @@ import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDoc
 import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
+import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
@@ -37,6 +38,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
+import org.apache.commons.fileupload2.jakarta.JakartaServletFileUpload
 import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
@@ -45,12 +47,11 @@ import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.web.multipart.MultipartFile
-import java.io.ByteArrayInputStream
+import java.io.BufferedReader
 import java.io.File
-import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -67,7 +68,6 @@ class DokumentUnderArbeidService(
     private val smartDokumentUnderArbeidAsHoveddokumentRepository: SmartdokumentUnderArbeidAsHoveddokumentRepository,
     private val smartDokumentUnderArbeidAsVedleggRepository: SmartdokumentUnderArbeidAsVedleggRepository,
     private val journalfoertDokumentUnderArbeidRepository: JournalfoertDokumentUnderArbeidAsVedleggRepository,
-    private val attachmentValidator: MellomlagretDokumentValidatorService,
     private val mellomlagerService: MellomlagerService,
     private val smartEditorApiGateway: DefaultKabalSmartEditorApiGateway,
     private val kabalJsonToPdfClient: KabalJsonToPdfClient,
@@ -101,15 +101,17 @@ class DokumentUnderArbeidService(
         baseUnit = "versions",
     )
 
-    fun createOpplastetDokumentUnderArbeid(
+    private fun createOpplastetDokumentUnderArbeid(
         behandlingId: UUID,
-        fileInput: FileInput,
+        dokumentTypeId: String,
+        parentId: UUID?,
+        file: File,
+        filename: String?,
         innloggetIdent: String,
     ): DokumentView {
-        val dokumentType = DokumentType.of(fileInput.dokumentTypeId)
-        val parentId = fileInput.parentId
+        val dokumentType = DokumentType.of(dokumentTypeId)
 
-        val title = fileInput.file.originalFilename ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i MultipartFile") })
+        val title = filename ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i fil-request") })
 
         //Sjekker lesetilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
@@ -120,14 +122,13 @@ class DokumentUnderArbeidService(
             if (behandling.avsluttetAvSaksbehandler == null) {
                 validateCanCreateDocuments(
                     behandlingRole = behandlingRole,
-                    parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId)
+                    parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId!!)
                         .get() as DokumentUnderArbeidAsHoveddokument else null
                 )
             }
         }
 
-        attachmentValidator.validateAttachment(fileInput.file)
-        val mellomlagerId = mellomlagerService.uploadMultipartFile(fileInput.file)
+        val mellomlagerId = mellomlagerService.uploadFile(file)
 
         val now = LocalDateTime.now()
 
@@ -136,7 +137,7 @@ class DokumentUnderArbeidService(
                 OpplastetDokumentUnderArbeidAsHoveddokument(
                     mellomlagerId = mellomlagerId,
                     mellomlagretDate = now,
-                    size = fileInput.file.size,
+                    size = file.length(),
                     name = title,
                     dokumentType = dokumentType,
                     behandlingId = behandlingId,
@@ -154,12 +155,12 @@ class DokumentUnderArbeidService(
                 OpplastetDokumentUnderArbeidAsVedlegg(
                     mellomlagerId = mellomlagerId,
                     mellomlagretDate = now,
-                    size = fileInput.file.size,
+                    size = file.length(),
                     name = title,
                     behandlingId = behandlingId,
                     creatorIdent = innloggetIdent,
                     creatorRole = behandlingRole,
-                    parentId = parentId,
+                    parentId = parentId!!,
                     created = now,
                     modified = now,
                 )
@@ -198,6 +199,65 @@ class DokumentUnderArbeidService(
         )
 
         return dokumentView
+    }
+
+    fun createOpplastetDokumentUnderArbeid(
+        behandlingId: UUID,
+        uploadRequest: HttpServletRequest,
+        innloggetIdent: String,
+    ): DokumentView {
+
+        var dokumentTypeId = ""
+        var parentId: UUID? = null
+        var filename: String? = null
+
+        val filePath = Files.createTempFile(null, null)
+
+        val contentLength = uploadRequest.getHeader("Content-Length")?.toInt() ?: 0
+
+        //257 MB
+        if (contentLength > 269484032) {
+            throw AttachmentTooLargeException()
+        }
+
+        val upload = JakartaServletFileUpload()
+        val parts = upload.getItemIterator(uploadRequest)
+        parts.forEachRemaining { item ->
+            val fieldName = item.fieldName
+            val inputStream = item.inputStream
+            if (!item.isFormField) {
+                filename = item.name
+                try {
+                    Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING)
+                } catch (e: Exception) {
+                    throw RuntimeException("Failed to save file", e)
+                } finally {
+                    inputStream.close()
+                }
+            } else {
+                try {
+                    val content = inputStream.bufferedReader().use(BufferedReader::readText)
+                    if (fieldName == "dokumentTypeId") {
+                        dokumentTypeId = content
+                    } else if (fieldName == "parentId" && content.isNotBlank()) {
+                        parentId = UUID.fromString(content)
+                    }
+                } catch (e: Exception) {
+                    throw RuntimeException("Failed to read content", e)
+                } finally {
+                    inputStream.close()
+                }
+            }
+        }
+
+        return createOpplastetDokumentUnderArbeid(
+            behandlingId = behandlingId,
+            dokumentTypeId = dokumentTypeId,
+            parentId = parentId,
+            file = filePath.toFile(),
+            filename = filename,
+            innloggetIdent = innloggetIdent,
+        )
     }
 
     fun kobleEllerFrikobleVedlegg(
@@ -2157,27 +2217,16 @@ class DokumentUnderArbeidService(
             )
         )
 
-        val fileInput = FileInput(
-            file = object : MultipartFile {
-                override fun getName(): String = svarbrevInput.title
-                override fun getOriginalFilename(): String = svarbrevInput.title
-                override fun getContentType(): String = MediaType.APPLICATION_PDF_VALUE
-                override fun isEmpty(): Boolean = bytes.isEmpty()
-                override fun getSize(): Long = bytes.size.toLong()
-                override fun getBytes(): ByteArray = bytes
-                override fun getInputStream(): InputStream = ByteArrayInputStream(bytes)
-                override fun transferTo(dest: File) {
-                    dest.writeBytes(bytes)
-                }
-            },
-            dokumentTypeId = DokumentType.SVARBREV.id,
-            parentId = null,
-        )
+        val tmpFile = Files.createTempFile(null, null).toFile()
+        tmpFile.writeBytes(bytes)
 
         val documentView = createOpplastetDokumentUnderArbeid(
             behandlingId = behandling.id,
+            dokumentTypeId = DokumentType.SVARBREV.id,
+            parentId = null,
+            file = tmpFile,
+            filename = svarbrevInput.title,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            fileInput = fileInput,
         )
 
         updateMottakere(

@@ -2,6 +2,7 @@ package no.nav.klage.dokument.api.controller
 
 
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
@@ -48,14 +49,14 @@ class DokumentUnderArbeidController(
     @PostMapping("/fil")
     fun createAndUploadDokument(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @ModelAttribute input: FileInput
+        request: HttpServletRequest,
     ): DokumentView {
         logger.debug("Kall mottatt på createAndUploadDokument")
 
         return dokumentUnderArbeidService.createOpplastetDokumentUnderArbeid(
             behandlingId = behandlingId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            fileInput = input,
+            uploadRequest = request,
         )
     }
 

@@ -7,15 +7,14 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.common.PDRectangle
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 import org.apache.tika.Tika
-import org.springframework.core.io.ByteArrayResource
+import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.http.MediaType.*
 import org.springframework.stereotype.Component
 import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
-import org.springframework.web.multipart.MultipartFile
-import java.io.ByteArrayOutputStream
+import java.io.File
 import kotlin.math.min
 
 
@@ -31,17 +30,18 @@ class Image2PDF {
 
     private val A4: PDRectangle = PDRectangle.A4
 
-    fun convertIfImage(file: MultipartFile): Resource {
+    fun convertIfImage(file: File): Resource {
         val bytesForFiletypeDetection =
-            file.inputStream.readNBytes(min(DataSize.of(5, DataUnit.KILOBYTES).toBytes().toInt(), file.size.toInt()))
+            file.inputStream()
+                .readNBytes(min(DataSize.of(3, DataUnit.KILOBYTES).toBytes().toInt(), file.length().toInt()))
 
         val mediaType = valueOf(Tika().detect(bytesForFiletypeDetection))
         if (APPLICATION_PDF == mediaType) {
-            return file.resource
+            return FileSystemResource(file)
         }
         if (validImageTypes(mediaType)) {
-            val embedImageInPDF = embedImageInPDF(mediaType.subtype, file.bytes)
-            return ByteArrayResource(embedImageInPDF)
+            embedImageInPDF(mediaType.subtype, file)
+            return FileSystemResource(file)
         }
 
         val exception = AttachmentCouldNotBeConvertedException()
@@ -49,23 +49,20 @@ class Image2PDF {
         throw exception
     }
 
-    private fun embedImageInPDF(imgType: String, image: ByteArray): ByteArray {
-        return embedImageInPDF(image, imgType)
+    private fun embedImageInPDF(imgType: String, image: File) {
+        embedImageInPDF(image, imgType)
     }
 
-    private fun embedImageInPDF(image: ByteArray, imgType: String): ByteArray {
+    private fun embedImageInPDF(image: File, imgType: String) {
         try {
             PDDocument().use { doc ->
-                ByteArrayOutputStream().use { outputStream ->
-                    addPDFPageFromImage(
-                        doc,
-                        image,
-                        imgType
-                    )
-                    doc.save(outputStream)
-                    doc.close()
-                    return outputStream.toByteArray()
-                }
+                addPDFPageFromImage(
+                    doc = doc,
+                    origImg = image,
+                    imgFormat = imgType,
+                )
+                doc.save(image)
+                doc.close()
             }
         } catch (ex: Exception) {
             throw RuntimeException("Conversion of attachment failed", ex)
@@ -74,22 +71,24 @@ class Image2PDF {
 
     private fun validImageTypes(mediaType: MediaType): Boolean {
         val validImageTypes = supportedMediaTypes!!.contains(mediaType)
-        logger.debug("{} convert bytes, of type {}, to PDF", if (validImageTypes) "Will" else "Won't", mediaType)
+        logger.debug("{} convert file, of type {}, to PDF", if (validImageTypes) "Will" else "Won't", mediaType)
         return validImageTypes
     }
 
-    private fun addPDFPageFromImage(doc: PDDocument, origImg: ByteArray, imgFormat: String) {
+    private fun addPDFPageFromImage(doc: PDDocument, origImg: File, imgFormat: String) {
         val page = PDPage(A4)
         doc.addPage(page)
         val scaledImg = ImageUtils.downToA4(origImg, imgFormat)
         try {
             PDPageContentStream(doc, page).use { contentStream ->
-                val xImage: PDImageXObject = PDImageXObject.createFromByteArray(doc, scaledImg, "img")
+                val xImage: PDImageXObject = PDImageXObject.createFromFileByContent(scaledImg, doc)
                 contentStream.drawImage(xImage, A4.lowerLeftX, A4.lowerLeftY)
                 contentStream.close()
             }
         } catch (ex: Exception) {
             throw RuntimeException("Converting attachment failed", ex)
+        } finally {
+            scaledImg.delete()
         }
     }
 }

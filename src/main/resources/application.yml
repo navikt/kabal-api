@@ -31,8 +31,7 @@ spring:
     timeout-per-shutdown-phase: 20s
   servlet:
     multipart:
-      max-request-size: 256MB
-      max-file-size: 256MB
+        enabled: false
   codec:
     max-in-memory-size: 512MB
   sql:

@@ -16,6 +16,7 @@ val pdfboxVersion = "3.0.2"
 val tikaVersion = "2.9.2"
 val verapdfVersion = "1.24.2"
 val klageKodeverkVersion = "1.8.24"
+val commonsFileupload2JakartaVersion = "2.0.0-M1"
 
 plugins {
     val kotlinVersion = "1.9.24"
@@ -43,6 +44,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+
+    implementation("org.apache.commons:commons-fileupload2-jakarta:$commonsFileupload2JakartaVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("javax.cache:cache-api")

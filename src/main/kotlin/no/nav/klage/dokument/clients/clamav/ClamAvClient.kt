@@ -1,12 +1,13 @@
 package no.nav.klage.dokument.clients.clamav
 
 import no.nav.klage.oppgave.util.getLogger
+import org.springframework.core.io.FileSystemResource
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.stereotype.Component
-import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import java.io.File
 
 @Component
 class ClamAvClient(private val clamAvWebClient: WebClient) {
@@ -16,11 +17,11 @@ class ClamAvClient(private val clamAvWebClient: WebClient) {
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun hasVirus(file: MultipartFile): Boolean {
+    fun hasVirus(file: File): Boolean {
         logger.debug("Scanning document")
 
         val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("file", file.resource).filename(file.name)
+        bodyBuilder.part(file.name, FileSystemResource(file)).filename(file.name)
 
         val response = try {
             clamAvWebClient.post()
