@@ -116,7 +116,7 @@ class FileApiClient(
 
         var start = System.currentTimeMillis()
         val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("file", resource).contentType(MediaType.APPLICATION_PDF)
+        bodyBuilder.part("file", resource).contentType(MediaType.APPLICATION_PDF).filename("file")
         logger.debug("File added to body. Time taken: ${System.currentTimeMillis() - start} ms")
 
         start = System.currentTimeMillis()
