@@ -31,12 +31,17 @@ class Image2PDF {
     private val A4: PDRectangle = PDRectangle.A4
 
     fun convertIfImage(file: File): Resource {
+        var start = System.currentTimeMillis()
         val bytesForFiletypeDetection =
             file.inputStream()
                 .readNBytes(min(DataSize.of(3, DataUnit.KILOBYTES).toBytes().toInt(), file.length().toInt()))
+        logger.debug("Reading file for filetype detection took ${System.currentTimeMillis() - start} ms")
 
+        start = System.currentTimeMillis()
         val mediaType = valueOf(Tika().detect(bytesForFiletypeDetection))
+        logger.debug("Detecting filetype took ${System.currentTimeMillis() - start} ms")
         if (APPLICATION_PDF == mediaType) {
+            logger.debug("File is already a PDF")
             return FileSystemResource(file)
         }
         if (validImageTypes(mediaType)) {

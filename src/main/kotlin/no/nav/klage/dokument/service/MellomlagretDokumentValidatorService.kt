@@ -18,15 +18,19 @@ class MellomlagretDokumentValidatorService(
 
     fun validateAttachment(file: File) {
         logger.debug("Validating attachment.")
+        var start = System.currentTimeMillis()
         if (file.length() == 0L) {
             logger.warn("Attachment is empty")
             throw AttachmentIsEmptyException()
         }
+        logger.debug("Attachment is not empty. Time taken: ${System.currentTimeMillis() - start} ms")
 
+        start = System.currentTimeMillis()
         if (clamAvClient.hasVirus(file)) {
             logger.warn("Attachment has virus")
             throw AttachmentHasVirusException()
         }
+        logger.debug("Attachment does not have virus. Time taken: ${System.currentTimeMillis() - start} ms")
 
         logger.debug("Validation successful.")
     }

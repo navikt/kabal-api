@@ -206,14 +206,18 @@ class DokumentUnderArbeidService(
         uploadRequest: HttpServletRequest,
         innloggetIdent: String,
     ): DokumentView {
-
         var dokumentTypeId = ""
         var parentId: UUID? = null
         var filename: String? = null
 
+        var start = System.currentTimeMillis()
         val filePath = Files.createTempFile(null, null)
+        logger.debug("Created temp file in {} ms", System.currentTimeMillis() - start)
 
+        start = System.currentTimeMillis()
         val contentLength = uploadRequest.getHeader("Content-Length")?.toInt() ?: 0
+        logger.debug("Checked Content-Length header in {} ms", System.currentTimeMillis() - start)
+
 
         //257 MB
         if (contentLength > 269484032) {
@@ -224,11 +228,15 @@ class DokumentUnderArbeidService(
         val parts = upload.getItemIterator(uploadRequest)
         parts.forEachRemaining { item ->
             val fieldName = item.fieldName
+            start = System.currentTimeMillis()
             val inputStream = item.inputStream
+            logger.debug("Got input stream in {} ms", System.currentTimeMillis() - start)
             if (!item.isFormField) {
                 filename = item.name
                 try {
+                    start = System.currentTimeMillis()
                     Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING)
+                    logger.debug("Copied file to temp file in {} ms", System.currentTimeMillis() - start)
                 } catch (e: Exception) {
                     throw RuntimeException("Failed to save file", e)
                 } finally {
@@ -236,12 +244,14 @@ class DokumentUnderArbeidService(
                 }
             } else {
                 try {
+                    start = System.currentTimeMillis()
                     val content = inputStream.bufferedReader().use(BufferedReader::readText)
                     if (fieldName == "dokumentTypeId") {
                         dokumentTypeId = content
                     } else if (fieldName == "parentId" && content.isNotBlank()) {
                         parentId = UUID.fromString(content)
                     }
+                    logger.debug("Read content in {} ms", System.currentTimeMillis() - start)
                 } catch (e: Exception) {
                     throw RuntimeException("Failed to read content", e)
                 } finally {

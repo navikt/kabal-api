@@ -20,9 +20,12 @@ class ClamAvClient(private val clamAvWebClient: WebClient) {
     fun hasVirus(file: File): Boolean {
         logger.debug("Scanning document")
 
+        var start = System.currentTimeMillis()
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part(file.name, FileSystemResource(file)).filename(file.name)
+        logger.debug("File added to body. Time taken: ${System.currentTimeMillis() - start} ms")
 
+        start = System.currentTimeMillis()
         val response = try {
             clamAvWebClient.post()
                 .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
@@ -33,6 +36,7 @@ class ClamAvClient(private val clamAvWebClient: WebClient) {
             logger.warn("Error from clamAV", ex)
             listOf(ScanResult("Unknown", ClamAvResult.ERROR))
         }
+        logger.debug("Response received. Time taken: ${System.currentTimeMillis() - start} ms")
 
         if (response == null) {
             logger.warn("No response from virus scan.")

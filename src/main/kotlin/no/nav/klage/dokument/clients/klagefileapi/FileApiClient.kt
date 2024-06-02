@@ -108,14 +108,19 @@ class FileApiClient(
     fun uploadDocument(resource: Resource, systemUser: Boolean = false): String {
         logger.debug("Uploading document to storage")
 
+
         val token = if (systemUser) {
             tokenUtil.getAppAccessTokenWithKabalFileApiScope()
         } else {
             tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
         }
 
+        var start = System.currentTimeMillis()
         val bodyBuilder = MultipartBodyBuilder()
         bodyBuilder.part("file", resource).contentType(MediaType.APPLICATION_PDF)
+        logger.debug("File added to body. Time taken: ${System.currentTimeMillis() - start} ms")
+
+        start = System.currentTimeMillis()
         val response = fileWebClient
             .post()
             .uri("/document")
@@ -128,10 +133,13 @@ class FileApiClient(
             .bodyToMono<DocumentUploadedResponse>()
             .block()
 
+        logger.debug("Response received. Time taken: ${System.currentTimeMillis() - start} ms")
         requireNotNull(response)
 
         if (resource is FileSystemResource) {
+            start = System.currentTimeMillis()
             resource.file.delete()
+            logger.debug("File deleted. Time taken: ${System.currentTimeMillis() - start} ms")
         }
 
         logger.debug("Document uploaded to file store with id: {}", response.id)

@@ -20,7 +20,9 @@ class MellomlagerService(
     }
 
     fun uploadFile(file: File): String {
+        var start = System.currentTimeMillis()
         attachmentValidator.validateAttachment(file)
+        logger.debug("Attachment validation took ${System.currentTimeMillis() - start} ms")
 
         return fileApiClient.uploadDocument(
             //If uploaded file is an image, convert to pdf
