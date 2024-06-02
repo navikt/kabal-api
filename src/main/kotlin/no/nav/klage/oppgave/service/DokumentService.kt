@@ -378,7 +378,7 @@ class DokumentService(
         return pathToMergedDocument to title
     }
 
-    fun mergePDFFiles(pdfFilesToMerge: List<Path>, title: String = "merged document"): Pair<Path, String> {
+    fun mergePDFFiles(resourcesToMerge: List<Resource>, title: String = "merged document"): Pair<FileSystemResource, String> {
         val merger = PDFMergerUtility()
 
         val pdDocumentInformation = PDDocumentInformation()
@@ -390,8 +390,12 @@ class DokumentService(
 
         merger.destinationFileName = pathToMergedDocument.toString()
 
-        pdfFilesToMerge.forEach { path ->
-            merger.addSource(path.toFile())
+        resourcesToMerge.forEach { resource ->
+            if (resource is FileSystemResource) {
+                merger.addSource(resource.file)
+            } else {
+                merger.addSource(RandomAccessReadBuffer(resource.inputStream.readBytes()))
+            }
         }
 
         //just under 256 MB before using file system
@@ -399,14 +403,16 @@ class DokumentService(
 
         //clean tmp files
         try {
-            pdfFilesToMerge.forEach { pathToTmpFile ->
-                pathToTmpFile.toFile().delete()
+            resourcesToMerge.forEach { resource ->
+                if (resource is FileSystemResource) {
+                    resource.file.delete()
+                }
             }
         } catch (e: Exception) {
             logger.warn("couldn't delete tmp files", e)
         }
 
-        return pathToMergedDocument to title
+        return FileSystemResource(pathToMergedDocument) to title
     }
 
     fun getMergedDocument(id: UUID) = mergedDocumentRepository.getReferenceById(id)

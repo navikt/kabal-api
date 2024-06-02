@@ -14,16 +14,12 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getResourceThatWillBeDeleted
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.ModelAndView
-import java.io.FileInputStream
-import java.io.InputStream
-import java.nio.file.Files
 import java.util.*
 
 @RestController
@@ -161,22 +157,22 @@ class DokumentUnderArbeidController(
         @PathVariable("dokumentId") dokumentId: UUID,
     ): Any {
         logger.debug("Kall mottatt på getPdf for {}", dokumentId)
-        val (title, resource) = dokumentUnderArbeidService.getFysiskDokumentSignedURL(
+        val (title, resourceOrUrl) = dokumentUnderArbeidService.getFysiskDokumentAsResourceOrUrl(
             behandlingId = behandlingId,
             dokumentId = dokumentId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
 
-        return if (resource is Resource) {
+        return if (resourceOrUrl is Resource) {
             ResponseEntity.ok()
                 .headers(HttpHeaders().apply {
                     contentType = MediaType.APPLICATION_PDF
                     add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"${title.removeSuffix(".pdf")}.pdf\"")
                 })
-                .contentLength(resource.contentLength())
-                .body(getResourceThatWillBeDeleted(resource))
+                .contentLength(resourceOrUrl.contentLength())
+                .body(getResourceThatWillBeDeleted(resourceOrUrl))
         } else {
-            ModelAndView("redirect:$resource")
+            ModelAndView("redirect:$resourceOrUrl")
         }
     }
 
@@ -335,25 +331,14 @@ class DokumentUnderArbeidController(
             logger = logger,
         )
 
-        val (pathToMergedDocument, title) = dokumentUnderArbeidService.mergeDUAAndCreatePDF(dokumentUnderArbeidId)
+        val (fileResource, title) = dokumentUnderArbeidService.mergeDUAAndCreatePDF(dokumentUnderArbeidId)
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = MediaType.APPLICATION_PDF
         responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$title.pdf\"")
 
         return ResponseEntity.ok()
             .headers(responseHeaders)
-            .contentLength(pathToMergedDocument.toFile().length())
-            .body(
-                object : FileSystemResource(pathToMergedDocument) {
-                    override fun getInputStream(): InputStream {
-                        return object : FileInputStream(pathToMergedDocument.toFile()) {
-                            override fun close() {
-                                super.close()
-                                //Override to do this after client has downloaded file
-                                Files.delete(file.toPath())
-                            }
-                        }
-                    }
-                })
+            .contentLength(fileResource.file.length())
+            .body(getResourceThatWillBeDeleted(fileResource))
     }
 }

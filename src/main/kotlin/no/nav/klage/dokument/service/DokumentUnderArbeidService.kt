@@ -42,6 +42,8 @@ import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.io.ByteArrayResource
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -50,7 +52,6 @@ import org.springframework.stereotype.Service
 import java.io.BufferedReader
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -1537,7 +1538,7 @@ class DokumentUnderArbeidService(
         return mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!) to dokument.name
     }
 
-    fun getFysiskDokumentSignedURL(
+    fun getFysiskDokumentAsResourceOrUrl(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         innloggetIdent: String
@@ -1561,17 +1562,17 @@ class DokumentUnderArbeidService(
         } else {
             when (dokument) {
                 is OpplastetDokumentUnderArbeidAsHoveddokument -> {
-                    dokument.name to mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!)
+                    dokument.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!)
                 }
 
                 is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                    dokument.name to mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!)
+                    dokument.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!)
                 }
 
                 is DokumentUnderArbeidAsSmartdokument -> {
                     if (dokument.isPDFGenerationNeeded()) {
                         dokument.name to ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes)
-                    } else dokument.name to mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!)
+                    } else dokument.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!)
                 }
 
                 is JournalfoertDokumentUnderArbeidAsVedlegg -> {
@@ -2026,35 +2027,34 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeid.smartEditorId
     }
 
-    fun mergeDUAAndCreatePDF(dokumentUnderArbeidId: UUID): Pair<Path, String> {
+    fun mergeDUAAndCreatePDF(dokumentUnderArbeidId: UUID): Pair<FileSystemResource, String> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId) as DokumentUnderArbeidAsHoveddokument
 
-        val hoveddokumentPDFBytes = if (dokumentUnderArbeid is SmartdokumentUnderArbeidAsHoveddokument) {
+        val hoveddokumentPDFResource: Resource = if (dokumentUnderArbeid is SmartdokumentUnderArbeidAsHoveddokument) {
             if (dokumentUnderArbeid.isPDFGenerationNeeded()) {
-                mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid).bytes
+                ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid).bytes)
             } else {
-                mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!).contentAsByteArray
+                mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
             }
         } else {
             dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
-            mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!).contentAsByteArray
+            mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
         }
-        val hoveddokumentPath = Files.write(Files.createTempFile("", ""), hoveddokumentPDFBytes)
 
         val vedleggList = getVedlegg(dokumentUnderArbeidId)
 
-        val vedleggAsByteList = vedleggList.sortedByDescending { it.created }.mapNotNull { vedlegg ->
+        val vedleggAsResourceList: List<Resource> = vedleggList.sortedByDescending { it.created }.mapNotNull { vedlegg ->
             when (vedlegg) {
                 is SmartdokumentUnderArbeidAsVedlegg -> {
                     if (vedlegg.isPDFGenerationNeeded()) {
-                        mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(vedlegg).bytes
+                        ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(vedlegg).bytes)
                     } else {
-                        mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!).contentAsByteArray
+                        mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
                     }
                 }
 
                 is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                    mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!).contentAsByteArray
+                    mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
                 }
 
                 else -> null
@@ -2071,10 +2071,6 @@ class DokumentUnderArbeidService(
             null
         }
 
-        val vedleggSmartAndUploadedPaths = vedleggAsByteList.map {
-            Files.write(Files.createTempFile("", ""), it)
-        }
-
         val journalfoerteVedlegg = vedleggList.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
         val journalfoertePath = if (journalfoerteVedlegg.isNotEmpty()) {
             dokumentService.mergeJournalfoerteDocuments(
@@ -2087,22 +2083,22 @@ class DokumentUnderArbeidService(
             null
         }
 
-        val filesToMerge = mutableListOf<Path>()
+        val filesToMerge = mutableListOf<Resource>()
 
         //Add files in correct order
-        filesToMerge.add(hoveddokumentPath)
+        filesToMerge.add(hoveddokumentPDFResource)
 
         if (innholdsfortegnelsePath != null) {
-            filesToMerge.add(innholdsfortegnelsePath)
+            filesToMerge.add(FileSystemResource(innholdsfortegnelsePath))
         }
 
-        filesToMerge.addAll(vedleggSmartAndUploadedPaths)
+        filesToMerge.addAll(vedleggAsResourceList)
 
         if (journalfoertePath != null) {
-            filesToMerge.add(journalfoertePath)
+            filesToMerge.add(FileSystemResource(journalfoertePath))
         }
 
-        return dokumentService.mergePDFFiles(pdfFilesToMerge = filesToMerge, title = "Samlet dokument")
+        return dokumentService.mergePDFFiles(resourcesToMerge = filesToMerge, title = "Samlet dokument")
     }
 
     private fun mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument: DokumentUnderArbeid): PDFDocument {
