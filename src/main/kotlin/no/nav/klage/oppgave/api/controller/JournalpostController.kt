@@ -201,7 +201,7 @@ class JournalpostController(
             logger = logger,
         )
 
-        val dataBufferFlux = dokumentService.getFysiskDokumentAsStream(
+        val (dataBufferFlux, headers) = dokumentService.getFysiskDokumentAsStream(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId
         )
@@ -216,7 +216,8 @@ class JournalpostController(
             }.pdf\""
         )
 
-        httpServletResponse.contentType = MediaType.APPLICATION_PDF_VALUE
+        httpServletResponse.contentType = headers.contentType().get().toString()
+        httpServletResponse.setContentLengthLong(headers.contentLength().asLong)
 
         httpServletResponse.outputStream.use { outputStream ->
             dataBufferFlux

@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Flux
@@ -81,9 +82,10 @@ class SafRestClient(
         dokumentInfoId: String,
         journalpostId: String,
         variantFormat: String = "ARKIV"
-    ): Flux<DataBuffer> {
+    ): Pair<Flux<DataBuffer>, ClientResponse.Headers> {
         return try {
             runWithTimingAndLogging {
+                var headers: ClientResponse.Headers? = null
                 val dataBufferFlux = safWebClient.get()
                     .uri(
                         "/rest/hentdokument/{journalpostId}/{dokumentInfoId}/{variantFormat}",
@@ -95,13 +97,12 @@ class SafRestClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithSafScope()}"
                     )
-                    .retrieve()
-                    .onStatus(HttpStatusCode::isError) { response ->
-                        logErrorResponse(response, ::getDokument.name, secureLogger)
+                    .exchangeToFlux {
+                        headers = it.headers()
+                        it.bodyToFlux(DataBuffer::class.java)
                     }
-                    .bodyToFlux(DataBuffer::class.java)
 
-                dataBufferFlux
+                dataBufferFlux to headers!!
             }
         } catch (badRequest: WebClientResponseException.BadRequest) {
             logger.warn("Got a 400 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
