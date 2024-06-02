@@ -108,7 +108,6 @@ class FileApiClient(
     fun uploadDocument(resource: Resource, systemUser: Boolean = false): String {
         logger.debug("Uploading document to storage")
 
-
         val token = if (systemUser) {
             tokenUtil.getAppAccessTokenWithKabalFileApiScope()
         } else {

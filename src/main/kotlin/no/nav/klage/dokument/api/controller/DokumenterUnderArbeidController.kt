@@ -11,6 +11,7 @@ import no.nav.klage.oppgave.api.view.DokumentUnderArbeidMetadata
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getResourceThatWillBeDeleted
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.FileSystemResource
@@ -153,61 +154,29 @@ class DokumentUnderArbeidController(
         )
     }
 
-//    @ResponseBody
-//    @GetMapping("/{dokumentId}/pdf")
-//    fun getPdf(
-//        @PathVariable("behandlingId") behandlingId: UUID,
-//        @PathVariable("dokumentId") dokumentId: UUID,
-//    ): ResponseEntity<Resource> {
-//        logger.debug("Kall mottatt på getPdf for {}", dokumentId)
-//        val (resource, title) = dokumentUnderArbeidService.getFysiskDokument(
-//            behandlingId = behandlingId,
-//            dokumentId = dokumentId,
-//            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-//        )
-//
-//        val responseHeaders = HttpHeaders()
-//        responseHeaders.contentType = MediaType.APPLICATION_PDF
-//        responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"${title.removeSuffix(".pdf")}.pdf\"")
-//
-//        return ResponseEntity.ok()
-//            .headers(responseHeaders)
-//            .contentLength(resource.contentLength())
-//            .body(getResource(resource))
-//
-//    }
-
     @ResponseBody
     @GetMapping("/{dokumentId}/pdf")
     fun getPdf(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
-    ): ModelAndView {
+    ): Any {
         logger.debug("Kall mottatt på getPdf for {}", dokumentId)
-        val (url, title) = dokumentUnderArbeidService.getFysiskDokumentSignedURL(
+        val (title, resource) = dokumentUnderArbeidService.getFysiskDokumentSignedURL(
             behandlingId = behandlingId,
             dokumentId = dokumentId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
 
-        return ModelAndView("redirect:$url")
-    }
-
-    private fun getResource(resource: Resource): Resource {
-        if (resource is FileSystemResource) {
-            return object : FileSystemResource(resource.path) {
-                override fun getInputStream(): InputStream {
-                    return object : FileInputStream(resource.file) {
-                        override fun close() {
-                            super.close()
-                            //Override to do this after client has downloaded file
-                            Files.delete(file.toPath())
-                        }
-                    }
-                }
-            }
+        return if (resource is Resource) {
+            ResponseEntity.ok()
+                .headers(HttpHeaders().apply {
+                    contentType = MediaType.APPLICATION_PDF
+                    add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"${title.removeSuffix(".pdf")}.pdf\"")
+                })
+                .contentLength(resource.contentLength())
+                .body(getResourceThatWillBeDeleted(resource))
         } else {
-            return resource
+            ModelAndView("redirect:$resource")
         }
     }
 

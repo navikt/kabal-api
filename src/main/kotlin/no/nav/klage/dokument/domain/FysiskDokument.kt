@@ -1,32 +1,13 @@
 package no.nav.klage.dokument.domain
 
+import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 
+/**
+ * Not used when uploading documents atm.
+ */
 data class FysiskDokument(
     val title: String,
-    val content: ByteArray,
-    /** Not used for anything at the moment when uploading documents.
-     * Only used when fetching them.
-     * */
-    val contentType: MediaType
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as FysiskDokument
-
-        if (title != other.title) return false
-        if (!content.contentEquals(other.content)) return false
-        if (contentType != other.contentType) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = title.hashCode()
-        result = 31 * result + content.contentHashCode()
-        result = 31 * result + contentType.hashCode()
-        return result
-    }
-}
+    val content: Resource,
+    val contentType: MediaType,
+)

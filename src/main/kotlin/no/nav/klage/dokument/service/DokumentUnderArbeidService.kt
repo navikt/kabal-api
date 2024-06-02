@@ -10,7 +10,6 @@ import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.SvarbrevRequest
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
-import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
@@ -43,7 +42,8 @@ import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.io.ByteArrayResource
-import org.springframework.core.io.Resource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
@@ -122,7 +122,7 @@ class DokumentUnderArbeidService(
             if (behandling.avsluttetAvSaksbehandler == null) {
                 validateCanCreateDocuments(
                     behandlingRole = behandlingRole,
-                    parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId!!)
+                    parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId)
                         .get() as DokumentUnderArbeidAsHoveddokument else null
                 )
             }
@@ -160,7 +160,7 @@ class DokumentUnderArbeidService(
                     behandlingId = behandlingId,
                     creatorIdent = innloggetIdent,
                     creatorRole = behandlingRole,
-                    parentId = parentId!!,
+                    parentId = parentId,
                     created = now,
                     modified = now,
                 )
@@ -1507,29 +1507,29 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("${dokument.dokumentType.navn} støtter ikke vedleggsoversikt.")
         }
 
-        val title = "Innholdsfortegnelse"
-
-        return dokumentMapper.mapToByteArray(
-            FysiskDokument(
-                title = title,
-                content = dokumentService.changeTitleInPDF(
-                    documentBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
-                        dokumentUnderArbeidId = hoveddokumentId,
-                        fnr = behandling.sakenGjelder.partId.value,
-                    ),
-                    title = title
-                ),
+        return ResponseEntity(
+            innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
+                dokumentUnderArbeidId = hoveddokumentId,
+                fnr = behandling.sakenGjelder.partId.value,
+            ),
+            HttpHeaders().apply {
                 contentType = MediaType.APPLICATION_PDF
-            )
+                add(
+                    "Content-Disposition",
+                    "inline; filename=\"innholdsfortegnelse.pdf\""
+                )
+            },
+            HttpStatus.OK
         )
     }
 
-    fun getFysiskDokumentSignedURL(
+    fun getFysiskDokumentSignedURLNotComplete(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         innloggetIdent: String
     ): Pair<String, String> {
-        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get() as OpplastetDokumentUnderArbeidAsHoveddokument
+        val dokument =
+            dokumentUnderArbeidRepository.findById(dokumentId).get() as OpplastetDokumentUnderArbeidAsHoveddokument
 
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
@@ -1537,17 +1537,17 @@ class DokumentUnderArbeidService(
         return mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!) to dokument.name
     }
 
-    fun getFysiskDokument(
+    fun getFysiskDokumentSignedURL(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         innloggetIdent: String
-    ): Pair<Resource, String> {
+    ): Pair<String, Any> {
         val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
 
-        val (content, title) = if (dokument.erFerdigstilt()) {
+        val (title, resourceOrLink) = if (dokument.erFerdigstilt()) {
             if (dokument.dokarkivReferences.isEmpty()) {
                 throw RuntimeException("Dokument is finalized but has no dokarkiv references")
             }
@@ -1557,21 +1557,21 @@ class DokumentUnderArbeidService(
                 journalpostId = dokarkivReference.journalpostId,
                 dokumentInfoId = dokarkivReference.dokumentInfoId!!,
             )
-            ByteArrayResource(fysiskDokument.content) to fysiskDokument.title
+            fysiskDokument.title to fysiskDokument.content
         } else {
             when (dokument) {
                 is OpplastetDokumentUnderArbeidAsHoveddokument -> {
-                    mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                    dokument.name to mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!)
                 }
 
                 is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                    mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                    dokument.name to mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!)
                 }
 
                 is DokumentUnderArbeidAsSmartdokument -> {
                     if (dokument.isPDFGenerationNeeded()) {
-                        ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes) to dokument.name
-                    } else mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                        dokument.name to ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes)
+                    } else dokument.name to mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!)
                 }
 
                 is JournalfoertDokumentUnderArbeidAsVedlegg -> {
@@ -1579,7 +1579,7 @@ class DokumentUnderArbeidService(
                         journalpostId = dokument.journalpostId,
                         dokumentInfoId = dokument.dokumentInfoId,
                     )
-                    ByteArrayResource(fysiskDokument.content) to fysiskDokument.title
+                    fysiskDokument.title to fysiskDokument.content
                 }
 
                 else -> {
@@ -1588,7 +1588,7 @@ class DokumentUnderArbeidService(
             }
         }
 
-        return content to title
+        return title to resourceOrLink
     }
 
     fun slettDokument(
