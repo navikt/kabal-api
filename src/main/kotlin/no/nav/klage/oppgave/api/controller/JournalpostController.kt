@@ -218,6 +218,7 @@ class JournalpostController(
             }.pdf\""
         )
 
+        logger.debug("Starting to send data to client")
         DataBufferUtils
             .write(dataBufferFlux, httpServletResponse.outputStream)
             .map {
