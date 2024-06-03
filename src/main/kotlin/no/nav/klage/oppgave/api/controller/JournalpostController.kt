@@ -14,6 +14,7 @@ import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
+import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.*
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.file.Files
+import java.time.Duration
 import java.util.*
 
 @RestController
@@ -201,7 +203,7 @@ class JournalpostController(
             logger = logger,
         )
 
-        val (dataBufferFlux, headers) = dokumentService.getFysiskDokumentAsStream(
+        val dataBufferFlux = dokumentService.getFysiskDokumentAsStream(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId
         )
@@ -216,15 +218,12 @@ class JournalpostController(
             }.pdf\""
         )
 
-        httpServletResponse.contentType = headers.contentType().get().toString()
-        httpServletResponse.setContentLengthLong(headers.contentLength().asLong)
-
-        httpServletResponse.outputStream.use { outputStream ->
-            dataBufferFlux
-                .doOnNext { dataBuffer -> outputStream.write(dataBuffer.toByteBuffer().array()) }
-                .doOnComplete { outputStream.flush() }
-                .subscribe()
-        }
+        DataBufferUtils
+            .write(dataBufferFlux, httpServletResponse.outputStream)
+            .map {
+                DataBufferUtils.release(it)
+            }
+            .blockLast(Duration.ofMinutes(5))
     }
 
     @Operation(
