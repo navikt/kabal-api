@@ -35,7 +35,6 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDDocumentInformation
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
-import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -166,10 +165,6 @@ class DokumentService(
             content = resource,
             contentType = MediaType.APPLICATION_PDF, //for now
         )
-    }
-
-    fun getFysiskDokumentAsStream(journalpostId: String, dokumentInfoId: String): Flux<DataBuffer> {
-        return safRestClient.getDokumentAsStream(dokumentInfoId, journalpostId)
     }
 
     fun getDocumentTitle(journalpostId: String, dokumentInfoId: String): String {

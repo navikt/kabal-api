@@ -77,45 +77,6 @@ class SafRestClient(
         }
     }
 
-    fun getDokumentAsStream(
-        dokumentInfoId: String,
-        journalpostId: String,
-        variantFormat: String = "ARKIV"
-    ): Flux<DataBuffer> {
-        return try {
-            runWithTimingAndLogging {
-                val dataBufferFlux = safWebClient.get()
-                    .uri(
-                        "/rest/hentdokument/{journalpostId}/{dokumentInfoId}/{variantFormat}",
-                        journalpostId,
-                        dokumentInfoId,
-                        variantFormat
-                    )
-                    .header(
-                        HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithSafScope()}"
-                    )
-                    .exchangeToFlux {
-                        it.bodyToFlux(DataBuffer::class.java)
-                    }
-
-                dataBufferFlux
-            }
-        } catch (badRequest: WebClientResponseException.BadRequest) {
-            logger.warn("Got a 400 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
-            throw badRequest
-        } catch (unautorized: WebClientResponseException.Unauthorized) {
-            logger.warn("Got a 401 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
-            throw unautorized
-        } catch (forbidden: WebClientResponseException.Forbidden) {
-            logger.warn("Got a 403 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
-            throw forbidden
-        } catch (notFound: WebClientResponseException.NotFound) {
-            logger.warn("Got a 404 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")
-            throw notFound
-        }
-    }
-
     @Retryable
     fun downloadDocumentAsMono(
         dokumentInfoId: String,

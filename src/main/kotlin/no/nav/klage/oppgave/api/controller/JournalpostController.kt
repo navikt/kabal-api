@@ -3,18 +3,17 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
-import jakarta.servlet.http.HttpServletResponse
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getResourceThatWillBeDeleted
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
-import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -23,7 +22,6 @@ import org.springframework.web.bind.annotation.*
 import java.io.FileInputStream
 import java.io.InputStream
 import java.nio.file.Files
-import java.time.Duration
 import java.util.*
 
 @RestController
@@ -141,90 +139,41 @@ class JournalpostController(
         )
     }
 
-    //Old version
-//    @Operation(
-//        summary = "Henter fil fra dokumentarkivet",
-//        description = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang"
-//    )
-//    @ResponseBody
-//    @GetMapping("/{journalpostId}/dokumenter/{dokumentInfoId}/pdf")
-//    fun getArkivertDokumentPDF(
-//        @Parameter(description = "Id til journalpost")
-//        @PathVariable journalpostId: String,
-//        @Parameter(description = "Id til dokumentInfo")
-//        @PathVariable dokumentInfoId: String,
-//    ): ResponseEntity<Resource> {
-//        logMethodDetails(
-//            methodName = ::getArkivertDokumentPDF.name,
-//            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-//            logger = logger,
-//        )
-//
-//        val fysiskDokument = dokumentService.getFysiskDokument(
-//            journalpostId = journalpostId,
-//            dokumentInfoId = dokumentInfoId
-//        )
-//
-//        val responseHeaders = HttpHeaders()
-//        responseHeaders.contentType = fysiskDokument.contentType
-//        responseHeaders.add(
-//            "Content-Disposition",
-//            "inline; filename=\"${fysiskDokument.title.removeSuffix(".pdf")}.pdf\""
-//        )
-//        val resourceThatWillBeDeleted =
-//            getResourceThatWillBeDeleted(dokumentService.changeTitleInPDF(fysiskDokument.content, fysiskDokument.title))
-//        return ResponseEntity.ok()
-//            .headers(HttpHeaders().apply {
-//                contentType = MediaType.APPLICATION_PDF
-//                add(
-//                    HttpHeaders.CONTENT_DISPOSITION,
-//                    "inline; filename=\"${fysiskDokument.title.removeSuffix(".pdf")}.pdf\""
-//                )
-//            })
-//            .contentLength(resourceThatWillBeDeleted.contentLength())
-//            .body(resourceThatWillBeDeleted)
-//    }
-
     @Operation(
         summary = "Henter fil fra dokumentarkivet",
         description = "Henter fil fra dokumentarkivet som pdf gitt at saksbehandler har tilgang"
     )
+    @ResponseBody
     @GetMapping("/{journalpostId}/dokumenter/{dokumentInfoId}/pdf")
     fun getArkivertDokumentPDF(
         @Parameter(description = "Id til journalpost")
         @PathVariable journalpostId: String,
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
-        httpServletResponse: HttpServletResponse,
-    ) {
+    ): ResponseEntity<Resource> {
         logMethodDetails(
             methodName = ::getArkivertDokumentPDF.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger,
         )
 
-        val dataBufferFlux = dokumentService.getFysiskDokumentAsStream(
+        val fysiskDokument = dokumentService.getFysiskDokument(
             journalpostId = journalpostId,
             dokumentInfoId = dokumentInfoId
         )
 
-        httpServletResponse.addHeader(
-            HttpHeaders.CONTENT_DISPOSITION,
-            "inline; filename=\"${
-                dokumentService.getDocumentTitle(
-                    journalpostId = journalpostId,
-                    dokumentInfoId = dokumentInfoId
-                ).removeSuffix(".pdf")
-            }.pdf\""
-        )
-
-        logger.debug("Starting to send data to client")
-        DataBufferUtils
-            .write(dataBufferFlux, httpServletResponse.outputStream)
-            .map {
-                DataBufferUtils.release(it)
-            }
-            .blockLast(Duration.ofMinutes(5))
+        val resourceThatWillBeDeleted =
+            getResourceThatWillBeDeleted(dokumentService.changeTitleInPDF(fysiskDokument.content, fysiskDokument.title))
+        return ResponseEntity.ok()
+            .headers(HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_PDF
+                add(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "inline; filename=\"${fysiskDokument.title.removeSuffix(".pdf")}.pdf\""
+                )
+            })
+            .contentLength(resourceThatWillBeDeleted.contentLength())
+            .body(resourceThatWillBeDeleted)
     }
 
     @Operation(
