@@ -347,7 +347,7 @@ class DokumentService(
         merger.destinationFileName = pathToMergedDocument.toString()
 
         val documentsWithPaths = documentsToMerge.map {
-            val tmpFile = Files.createTempFile("", "")
+            val tmpFile = Files.createTempFile(null, null)
             it to tmpFile
         }
 
