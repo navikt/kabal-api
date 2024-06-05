@@ -7,28 +7,28 @@ import java.awt.Image
 import java.awt.geom.AffineTransform
 import java.awt.image.AffineTransformOp
 import java.awt.image.BufferedImage
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
+import java.nio.file.Files
 import javax.imageio.ImageIO
 
 object ImageUtils {
 
     private val logger = getLogger(javaClass)
 
-    fun downToA4(origImage: ByteArray, format: String): ByteArray {
+    fun downToA4(origImageFile: File, format: String): File {
         val A4 = PDRectangle.A4
         return try {
-            var image = ImageIO.read(ByteArrayInputStream(origImage))
+            var image = ImageIO.read(origImageFile)
             image = rotatePortrait(image)
             val pdfPageDim = Dimension(A4.width.toInt(), A4.height.toInt())
             val origDim = Dimension(image.width, image.height)
             val newDim = getScaledDimension(origDim, pdfPageDim)
             if (newDim == origDim) {
-                origImage
+                origImageFile
             } else {
                 val scaledImg = scaleDown(image, newDim)
-                toBytes(scaledImg, format)
+                toFile(scaledImg, format)
             }
         } catch (ex: IOException) {
             throw RuntimeException("Converting attachment failed.", ex)
@@ -84,10 +84,9 @@ object ImageUtils {
         return scaledImg
     }
 
-    private fun toBytes(img: BufferedImage, format: String): ByteArray {
-        ByteArrayOutputStream().use { baos ->
-            ImageIO.write(img, format, baos)
-            return baos.toByteArray()
-        }
+    private fun toFile(img: BufferedImage, format: String): File {
+        val tempFile = Files.createTempFile(null, null).toFile()
+        ImageIO.write(img, format, tempFile)
+        return tempFile
     }
 }

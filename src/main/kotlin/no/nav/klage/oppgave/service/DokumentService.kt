@@ -33,10 +33,12 @@ import org.apache.pdfbox.io.RandomAccessStreamCache.StreamCacheCreateFunction
 import org.apache.pdfbox.multipdf.PDFMergerUtility
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDDocumentInformation
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
-import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -156,12 +158,12 @@ class DokumentService(
     }
 
     fun getFysiskDokument(journalpostId: String, dokumentInfoId: String): FysiskDokument {
-        val arkivertDokument = safRestClient.getDokument(dokumentInfoId, journalpostId)
+        val resource = safRestClient.getDokument(dokumentInfoId, journalpostId)
 
         return FysiskDokument(
             title = getDocumentTitle(journalpostId = journalpostId, dokumentInfoId = dokumentInfoId),
-            content = arkivertDokument.bytes,
-            contentType = arkivertDokument.contentType,
+            content = resource,
+            contentType = MediaType.APPLICATION_PDF, //for now
         )
     }
 
@@ -198,24 +200,35 @@ class DokumentService(
         return MemoryUsageSetting.setupMixed(bytes).streamCache
     }
 
-    fun changeTitleInPDF(documentBytes: ByteArray, title: String): ByteArray {
+    fun changeTitleInPDF(resource: Resource, title: String): Resource {
         try {
-            val baos = ByteArrayOutputStream()
+            val tmpFile = Files.createTempFile(null, null).toFile()
             val timeMillis = measureTimeMillis {
-                val document: PDDocument =
-                    Loader.loadPDF(RandomAccessReadBuffer(documentBytes), getMixedMemorySettingsForPDFBox(50_000_000))
+                val memorySettingsForPDFBox: Long = 50_000_000
+                val document: PDDocument = if (resource is FileSystemResource) {
+                    Loader.loadPDF(resource.file, getMixedMemorySettingsForPDFBox(memorySettingsForPDFBox))
+                } else {
+                    Loader.loadPDF(RandomAccessReadBuffer(resource.contentAsByteArray), getMixedMemorySettingsForPDFBox(
+                        memorySettingsForPDFBox
+                    ))
+                }
 
                 val info: PDDocumentInformation = document.documentInformation
                 info.title = title
                 document.isAllSecurityToBeRemoved = true
-                document.save(baos)
+                document.save(tmpFile)
                 document.close()
             }
             secureLogger.debug("changeTitleInPDF with title $title took $timeMillis ms")
-            return baos.toByteArray()
+
+            if (resource is FileSystemResource) {
+                resource.file.delete()
+            }
+
+            return FileSystemResource(tmpFile)
         } catch (e: Exception) {
             secureLogger.warn("Unable to change title for pdf content", e)
-            return documentBytes
+            return resource
         }
     }
 
@@ -334,7 +347,7 @@ class DokumentService(
         merger.destinationFileName = pathToMergedDocument.toString()
 
         val documentsWithPaths = documentsToMerge.map {
-            val tmpFile = Files.createTempFile("", "")
+            val tmpFile = Files.createTempFile(null, null)
             it to tmpFile
         }
 
@@ -365,7 +378,7 @@ class DokumentService(
         return pathToMergedDocument to title
     }
 
-    fun mergePDFFiles(pdfFilesToMerge: List<Path>, title: String = "merged document"): Pair<Path, String> {
+    fun mergePDFFiles(resourcesToMerge: List<Resource>, title: String = "merged document"): Pair<FileSystemResource, String> {
         val merger = PDFMergerUtility()
 
         val pdDocumentInformation = PDDocumentInformation()
@@ -377,8 +390,12 @@ class DokumentService(
 
         merger.destinationFileName = pathToMergedDocument.toString()
 
-        pdfFilesToMerge.forEach { path ->
-            merger.addSource(path.toFile())
+        resourcesToMerge.forEach { resource ->
+            if (resource is FileSystemResource) {
+                merger.addSource(resource.file)
+            } else {
+                merger.addSource(RandomAccessReadBuffer(resource.inputStream.readBytes()))
+            }
         }
 
         //just under 256 MB before using file system
@@ -386,14 +403,16 @@ class DokumentService(
 
         //clean tmp files
         try {
-            pdfFilesToMerge.forEach { pathToTmpFile ->
-                pathToTmpFile.toFile().delete()
+            resourcesToMerge.forEach { resource ->
+                if (resource is FileSystemResource) {
+                    resource.file.delete()
+                }
             }
         } catch (e: Exception) {
             logger.warn("couldn't delete tmp files", e)
         }
 
-        return pathToMergedDocument to title
+        return FileSystemResource(pathToMergedDocument) to title
     }
 
     fun getMergedDocument(id: UUID) = mergedDocumentRepository.getReferenceById(id)

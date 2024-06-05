@@ -93,7 +93,6 @@ class DokumentUnderArbeidServiceTest {
             smartDokumentUnderArbeidAsHoveddokumentRepository = smartDokumentUnderArbeidAsHoveddokumentRepository,
             smartDokumentUnderArbeidAsVedleggRepository = smartDokumentUnderArbeidAsVedleggRepository,
             journalfoertDokumentUnderArbeidRepository = journalfoertDokumentUnderArbeidRepository,
-            attachmentValidator = attachmentValidator,
             mellomlagerService = mellomlagerService,
             smartEditorApiGateway = smartEditorApiGateway,
             kabalJsonToPdfClient = kabalJsonToPdfClient,

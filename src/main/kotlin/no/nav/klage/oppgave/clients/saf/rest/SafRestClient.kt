@@ -4,17 +4,19 @@ import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
-import org.springframework.http.MediaType
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.nio.file.Files
 import java.nio.file.Path
 
 
@@ -35,10 +37,10 @@ class SafRestClient(
         dokumentInfoId: String,
         journalpostId: String,
         variantFormat: String = "ARKIV"
-    ): ArkivertDokument {
+    ): Resource {
         return try {
             runWithTimingAndLogging {
-                safWebClient.get()
+                val dataBufferFlux = safWebClient.get()
                     .uri(
                         "/rest/hentdokument/{journalpostId}/{dokumentInfoId}/{variantFormat}",
                         journalpostId,
@@ -53,15 +55,12 @@ class SafRestClient(
                     .onStatus(HttpStatusCode::isError) { response ->
                         logErrorResponse(response, ::getDokument.name, secureLogger)
                     }
-                    .toEntity(ByteArray::class.java)
-                    .map {
-                        val type = it.headers.contentType
-                        ArkivertDokument(
-                            bytes = it.body ?: throw RuntimeException("no document data"),
-                            contentType = type ?: MediaType.APPLICATION_PDF,
-                        )
-                    }
-                    .block() ?: throw RuntimeException("no document data returned")
+                    .bodyToFlux(DataBuffer::class.java)
+
+                val tempFile = Files.createTempFile(null, null)
+
+                DataBufferUtils.write(dataBufferFlux, tempFile).block()
+                FileSystemResource(tempFile)
             }
         } catch (badRequest: WebClientResponseException.BadRequest) {
             logger.warn("Got a 400 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")

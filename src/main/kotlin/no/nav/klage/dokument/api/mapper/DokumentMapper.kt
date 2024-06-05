@@ -5,7 +5,6 @@ import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest.Document.Type
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
-import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.DokumentType
@@ -25,9 +24,6 @@ import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.getSortKey
 import org.hibernate.Hibernate
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
@@ -43,20 +39,6 @@ class DokumentMapper(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val secureLogger = getSecureLogger()
-    }
-
-    fun mapToByteArray(fysiskDokument: FysiskDokument): ResponseEntity<ByteArray> {
-        return ResponseEntity(
-            fysiskDokument.content,
-            HttpHeaders().apply {
-                contentType = fysiskDokument.contentType
-                add(
-                    "Content-Disposition",
-                    "inline; filename=\"${fysiskDokument.title.removeSuffix(".pdf")}.pdf\""
-                )
-            },
-            HttpStatus.OK
-        )
     }
 
     @Suppress("UNCHECKED_CAST")
