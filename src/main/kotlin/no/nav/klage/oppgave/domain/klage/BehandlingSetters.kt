@@ -398,6 +398,25 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
+    fun Behandling.setOppgaveId(
+        nyVerdi: Long,
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val gammelVerdi = oppgaveId
+        val tidspunkt = LocalDateTime.now()
+        oppgaveId = nyVerdi
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident = saksbehandlerident,
+                felt = Felt.OPPGAVE_ID,
+                fraVerdi = gammelVerdi.toString(),
+                tilVerdi = nyVerdi.toString(),
+                tidspunkt = tidspunkt
+            )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
     fun Behandling.setInnsendingshjemler(
         nyVerdi: Set<Hjemmel>,
         saksbehandlerident: String

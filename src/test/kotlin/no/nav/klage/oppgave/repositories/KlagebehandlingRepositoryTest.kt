@@ -158,6 +158,7 @@ class KlagebehandlingRepositoryTest {
             modified = LocalDateTime.now(),
             frist = LocalDate.now().plusWeeks(12),
             previousSaksbehandlerident = "C78901",
+            oppgaveId = null,
         )
 
         ankebehandlingRepository.save(ankebehandling)
@@ -211,5 +212,6 @@ class KlagebehandlingRepositoryTest {
         kakaKvalitetsvurderingId = UUID.randomUUID(),
         kakaKvalitetsvurderingVersion = 2,
         previousSaksbehandlerident = "C78901",
+        oppgaveId = null,
     )
 }

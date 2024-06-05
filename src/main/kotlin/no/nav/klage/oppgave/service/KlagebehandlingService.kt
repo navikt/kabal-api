@@ -63,7 +63,8 @@ class KlagebehandlingService(
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
-                kommentarFraFoersteinstans = mottak.kommentar
+                kommentarFraFoersteinstans = mottak.kommentar,
+                oppgaveId = null,
             )
         )
         logger.debug("Created klagebehandling {} for mottak {}", klagebehandling.id, mottak.id)

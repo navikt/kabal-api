@@ -455,6 +455,7 @@ class BehandlingServiceTest {
             ) else mutableSetOf(),
             avsluttetAvSaksbehandler = if (fullfoert) LocalDateTime.now() else null,
             previousSaksbehandlerident = "C78901",
+            oppgaveId = null,
         )
 
         behandlingRepository.save(behandling)

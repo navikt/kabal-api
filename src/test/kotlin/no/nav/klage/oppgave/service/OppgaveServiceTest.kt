@@ -427,6 +427,7 @@ class OppgaveServiceTest {
                         enhet = enhetId,
                         tidspunkt = now,
                     ),
+                    oppgaveId = null,
                 )
             }
 
@@ -462,6 +463,7 @@ class OppgaveServiceTest {
                         enhet = enhetId,
                         tidspunkt = now,
                     ),
+                    oppgaveId = null,
                 )
             }
 
@@ -491,7 +493,8 @@ class OppgaveServiceTest {
                         enhet = enhetId,
                         tidspunkt = now,
                     ),
-                    sendtTilTrygderetten = LocalDateTime.now()
+                    sendtTilTrygderetten = LocalDateTime.now(),
+                    oppgaveId = null,
                 )
             }
         }
