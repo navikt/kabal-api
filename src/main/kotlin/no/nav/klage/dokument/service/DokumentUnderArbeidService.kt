@@ -2,6 +2,7 @@ package no.nav.klage.dokument.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
@@ -9,15 +10,14 @@ import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.SvarbrevRequest
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
-import no.nav.klage.dokument.domain.FysiskDokument
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
+import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
@@ -37,16 +37,22 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
-import org.apache.tika.Tika
+import org.apache.commons.fileupload2.jakarta.JakartaServletFileUpload
 import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.core.io.ByteArrayResource
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
-import org.springframework.web.multipart.MultipartFile
+import java.io.BufferedReader
+import java.io.File
 import java.nio.file.Files
-import java.nio.file.Path
+import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -63,7 +69,6 @@ class DokumentUnderArbeidService(
     private val smartDokumentUnderArbeidAsHoveddokumentRepository: SmartdokumentUnderArbeidAsHoveddokumentRepository,
     private val smartDokumentUnderArbeidAsVedleggRepository: SmartdokumentUnderArbeidAsVedleggRepository,
     private val journalfoertDokumentUnderArbeidRepository: JournalfoertDokumentUnderArbeidAsVedleggRepository,
-    private val attachmentValidator: MellomlagretDokumentValidatorService,
     private val mellomlagerService: MellomlagerService,
     private val smartEditorApiGateway: DefaultKabalSmartEditorApiGateway,
     private val kabalJsonToPdfClient: KabalJsonToPdfClient,
@@ -97,14 +102,18 @@ class DokumentUnderArbeidService(
         baseUnit = "versions",
     )
 
-    fun createOpplastetDokumentUnderArbeid(
+    private fun createOpplastetDokumentUnderArbeid(
         behandlingId: UUID,
-        dokumentType: DokumentType,
-        opplastetFil: FysiskDokument?,
-        innloggetIdent: String,
-        tittel: String,
+        dokumentTypeId: String,
         parentId: UUID?,
+        file: File,
+        filename: String?,
+        innloggetIdent: String,
     ): DokumentView {
+        val dokumentType = DokumentType.of(dokumentTypeId)
+
+        val title = filename ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i fil-request") })
+
         //Sjekker lesetilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
@@ -120,12 +129,7 @@ class DokumentUnderArbeidService(
             }
         }
 
-        if (opplastetFil == null) {
-            throw DokumentValidationException("No file uploaded")
-        }
-
-        attachmentValidator.validateAttachment(opplastetFil)
-        val mellomlagerId = mellomlagerService.uploadDocument(opplastetFil)
+        val mellomlagerId = mellomlagerService.uploadFile(file)
 
         val now = LocalDateTime.now()
 
@@ -134,8 +138,8 @@ class DokumentUnderArbeidService(
                 OpplastetDokumentUnderArbeidAsHoveddokument(
                     mellomlagerId = mellomlagerId,
                     mellomlagretDate = now,
-                    size = opplastetFil.content.size.toLong(),
-                    name = tittel,
+                    size = file.length(),
+                    name = title,
                     dokumentType = dokumentType,
                     behandlingId = behandlingId,
                     creatorIdent = innloggetIdent,
@@ -152,8 +156,8 @@ class DokumentUnderArbeidService(
                 OpplastetDokumentUnderArbeidAsVedlegg(
                     mellomlagerId = mellomlagerId,
                     mellomlagretDate = now,
-                    size = opplastetFil.content.size.toLong(),
-                    name = tittel,
+                    size = file.length(),
+                    name = title,
                     behandlingId = behandlingId,
                     creatorIdent = innloggetIdent,
                     creatorRole = behandlingRole,
@@ -196,6 +200,75 @@ class DokumentUnderArbeidService(
         )
 
         return dokumentView
+    }
+
+    fun createOpplastetDokumentUnderArbeid(
+        behandlingId: UUID,
+        uploadRequest: HttpServletRequest,
+        innloggetIdent: String,
+    ): DokumentView {
+        var dokumentTypeId = ""
+        var parentId: UUID? = null
+        var filename: String? = null
+
+        var start = System.currentTimeMillis()
+        val filePath = Files.createTempFile(null, null)
+        logger.debug("Created temp file in {} ms", System.currentTimeMillis() - start)
+
+        start = System.currentTimeMillis()
+        val contentLength = uploadRequest.getHeader("Content-Length")?.toInt() ?: 0
+        logger.debug("Checked Content-Length header in {} ms", System.currentTimeMillis() - start)
+
+
+        //257 MB
+        if (contentLength > 269484032) {
+            throw AttachmentTooLargeException()
+        }
+
+        val upload = JakartaServletFileUpload()
+        val parts = upload.getItemIterator(uploadRequest)
+        parts.forEachRemaining { item ->
+            val fieldName = item.fieldName
+            start = System.currentTimeMillis()
+            val inputStream = item.inputStream
+            logger.debug("Got input stream in {} ms", System.currentTimeMillis() - start)
+            if (!item.isFormField) {
+                filename = item.name
+                try {
+                    start = System.currentTimeMillis()
+                    Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING)
+                    logger.debug("Copied file to temp file in {} ms", System.currentTimeMillis() - start)
+                } catch (e: Exception) {
+                    throw RuntimeException("Failed to save file", e)
+                } finally {
+                    inputStream.close()
+                }
+            } else {
+                try {
+                    start = System.currentTimeMillis()
+                    val content = inputStream.bufferedReader().use(BufferedReader::readText)
+                    if (fieldName == "dokumentTypeId") {
+                        dokumentTypeId = content
+                    } else if (fieldName == "parentId" && content.isNotBlank()) {
+                        parentId = UUID.fromString(content)
+                    }
+                    logger.debug("Read content in {} ms", System.currentTimeMillis() - start)
+                } catch (e: Exception) {
+                    throw RuntimeException("Failed to read content", e)
+                } finally {
+                    inputStream.close()
+                }
+            }
+        }
+
+        return createOpplastetDokumentUnderArbeid(
+            behandlingId = behandlingId,
+            dokumentTypeId = dokumentTypeId,
+            parentId = parentId,
+            file = filePath.toFile(),
+            filename = filename,
+            innloggetIdent = innloggetIdent,
+        )
     }
 
     fun kobleEllerFrikobleVedlegg(
@@ -1435,49 +1508,33 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("${dokument.dokumentType.navn} støtter ikke vedleggsoversikt.")
         }
 
-        val title = "Innholdsfortegnelse"
-
-        return dokumentMapper.mapToByteArray(
-            FysiskDokument(
-                title = title,
-                content = dokumentService.changeTitleInPDF(
-                    documentBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
-                        dokumentUnderArbeidId = hoveddokumentId,
-                        fnr = behandling.sakenGjelder.partId.value,
-                    ),
-                    title = title
-                ),
+        return ResponseEntity(
+            innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
+                dokumentUnderArbeidId = hoveddokumentId,
+                fnr = behandling.sakenGjelder.partId.value,
+            ),
+            HttpHeaders().apply {
                 contentType = MediaType.APPLICATION_PDF
-            )
+                add(
+                    "Content-Disposition",
+                    "inline; filename=\"innholdsfortegnelse.pdf\""
+                )
+            },
+            HttpStatus.OK
         )
     }
 
-    fun mapToFysiskDokument(
-        multipartFile: MultipartFile,
-        tittel: String?,
-        dokumentType: DokumentType
-    ): FysiskDokument {
-        val dokumentTittel =
-            tittel ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i MultipartFile") })
-        return FysiskDokument(
-            title = dokumentTittel,
-            content = multipartFile.bytes,
-            contentType = multipartFile.contentType?.let { MediaType.parseMediaType(it) }
-                ?: MediaType.valueOf(Tika().detect(multipartFile.bytes))
-        )
-    }
-
-    fun getFysiskDokument(
+    fun getFysiskDokumentAsResourceOrUrl(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         innloggetIdent: String
-    ): ResponseEntity<ByteArray> {
+    ): Pair<String, Any> {
         val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
 
-        val (content, title) = if (dokument.erFerdigstilt()) {
+        val (title, resourceOrLink) = if (dokument.erFerdigstilt()) {
             if (dokument.dokarkivReferences.isEmpty()) {
                 throw RuntimeException("Dokument is finalized but has no dokarkiv references")
             }
@@ -1487,21 +1544,21 @@ class DokumentUnderArbeidService(
                 journalpostId = dokarkivReference.journalpostId,
                 dokumentInfoId = dokarkivReference.dokumentInfoId!!,
             )
-            fysiskDokument.content to fysiskDokument.title
+            fysiskDokument.title to fysiskDokument.content
         } else {
             when (dokument) {
                 is OpplastetDokumentUnderArbeidAsHoveddokument -> {
-                    mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                    dokument.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!)
                 }
 
                 is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                    mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                    dokument.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!)
                 }
 
                 is DokumentUnderArbeidAsSmartdokument -> {
                     if (dokument.isPDFGenerationNeeded()) {
-                        mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes to dokument.name
-                    } else mellomlagerService.getUploadedDocument(dokument.mellomlagerId!!) to dokument.name
+                        dokument.name to ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes)
+                    } else dokument.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!)
                 }
 
                 is JournalfoertDokumentUnderArbeidAsVedlegg -> {
@@ -1509,7 +1566,7 @@ class DokumentUnderArbeidService(
                         journalpostId = dokument.journalpostId,
                         dokumentInfoId = dokument.dokumentInfoId,
                     )
-                    fysiskDokument.content to fysiskDokument.title
+                    fysiskDokument.title to fysiskDokument.content
                 }
 
                 else -> {
@@ -1518,13 +1575,7 @@ class DokumentUnderArbeidService(
             }
         }
 
-        return dokumentMapper.mapToByteArray(
-            FysiskDokument(
-                title = title,
-                content = dokumentService.changeTitleInPDF(content, title),
-                contentType = MediaType.APPLICATION_PDF
-            )
-        )
+        return title to resourceOrLink
     }
 
     fun slettDokument(
@@ -1962,12 +2013,12 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeid.smartEditorId
     }
 
-    fun mergeDUAAndCreatePDF(dokumentUnderArbeidId: UUID): Pair<Path, String> {
+    fun mergeDUAAndCreatePDF(dokumentUnderArbeidId: UUID): Pair<FileSystemResource, String> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId) as DokumentUnderArbeidAsHoveddokument
 
-        val hoveddokumentPDFBytes = if (dokumentUnderArbeid is SmartdokumentUnderArbeidAsHoveddokument) {
+        val hoveddokumentPDFResource: Resource = if (dokumentUnderArbeid is SmartdokumentUnderArbeidAsHoveddokument) {
             if (dokumentUnderArbeid.isPDFGenerationNeeded()) {
-                mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid).bytes
+                ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid).bytes)
             } else {
                 mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
             }
@@ -1975,15 +2026,14 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
             mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
         }
-        val hoveddokumentPath = Files.write(Files.createTempFile("", ""), hoveddokumentPDFBytes)
 
         val vedleggList = getVedlegg(dokumentUnderArbeidId)
 
-        val vedleggAsByteList = vedleggList.sortedByDescending { it.created }.mapNotNull { vedlegg ->
+        val vedleggAsResourceList: List<Resource> = vedleggList.sortedByDescending { it.created }.mapNotNull { vedlegg ->
             when (vedlegg) {
                 is SmartdokumentUnderArbeidAsVedlegg -> {
                     if (vedlegg.isPDFGenerationNeeded()) {
-                        mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(vedlegg).bytes
+                        ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(vedlegg).bytes)
                     } else {
                         mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
                     }
@@ -2007,10 +2057,6 @@ class DokumentUnderArbeidService(
             null
         }
 
-        val vedleggSmartAndUploadedPaths = vedleggAsByteList.map {
-            Files.write(Files.createTempFile("", ""), it)
-        }
-
         val journalfoerteVedlegg = vedleggList.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
         val journalfoertePath = if (journalfoerteVedlegg.isNotEmpty()) {
             dokumentService.mergeJournalfoerteDocuments(
@@ -2023,22 +2069,22 @@ class DokumentUnderArbeidService(
             null
         }
 
-        val filesToMerge = mutableListOf<Path>()
+        val filesToMerge = mutableListOf<Resource>()
 
         //Add files in correct order
-        filesToMerge.add(hoveddokumentPath)
+        filesToMerge.add(hoveddokumentPDFResource)
 
         if (innholdsfortegnelsePath != null) {
-            filesToMerge.add(innholdsfortegnelsePath)
+            filesToMerge.add(FileSystemResource(innholdsfortegnelsePath))
         }
 
-        filesToMerge.addAll(vedleggSmartAndUploadedPaths)
+        filesToMerge.addAll(vedleggAsResourceList)
 
         if (journalfoertePath != null) {
-            filesToMerge.add(journalfoertePath)
+            filesToMerge.add(FileSystemResource(journalfoertePath))
         }
 
-        return dokumentService.mergePDFFiles(pdfFilesToMerge = filesToMerge, title = "Samlet dokument")
+        return dokumentService.mergePDFFiles(resourcesToMerge = filesToMerge, title = "Samlet dokument")
     }
 
     private fun mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument: DokumentUnderArbeid): PDFDocument {
@@ -2051,9 +2097,8 @@ class DokumentUnderArbeidService(
         val pdfDocument = kabalJsonToPdfClient.getPDFDocument(documentJson)
 
         val mellomlagerId =
-            mellomlagerService.uploadByteArray(
-                tittel = dokument.name,
-                content = pdfDocument.bytes
+            mellomlagerService.uploadResource(
+                resource = ByteArrayResource(pdfDocument.bytes),
             )
 
         if (dokument.mellomlagerId != null) {
@@ -2163,17 +2208,17 @@ class DokumentUnderArbeidService(
                 avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
             )
         )
+
+        val tmpFile = Files.createTempFile(null, null).toFile()
+        tmpFile.writeBytes(bytes)
+
         val documentView = createOpplastetDokumentUnderArbeid(
             behandlingId = behandling.id,
-            dokumentType = DokumentType.SVARBREV,
-            opplastetFil = FysiskDokument(
-                title = svarbrevInput.title,
-                content = bytes,
-                contentType = MediaType.APPLICATION_PDF
-            ),
+            dokumentTypeId = DokumentType.SVARBREV.id,
+            parentId = null,
+            file = tmpFile,
+            filename = svarbrevInput.title,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            tittel = svarbrevInput.title,
-            parentId = null
         )
 
         updateMottakere(

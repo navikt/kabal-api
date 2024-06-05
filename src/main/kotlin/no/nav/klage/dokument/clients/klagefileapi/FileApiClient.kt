@@ -4,13 +4,20 @@ import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
+import org.springframework.core.io.buffer.DataBuffer
+import org.springframework.core.io.buffer.DataBufferUtils
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
+import org.springframework.http.MediaType
 import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import java.nio.file.Files
+
 
 @Component
 class FileApiClient(
@@ -23,7 +30,7 @@ class FileApiClient(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getDocument(id: String, systemUser: Boolean = false): ByteArray {
+    fun getDocument(id: String, systemUser: Boolean = false): Resource {
         logger.debug("Fetching document with id {}", id)
 
         val token = if (systemUser) {
@@ -32,15 +39,39 @@ class FileApiClient(
             tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
         }
 
-        return this.fileWebClient.get()
+        val dataBufferFlux = fileWebClient.get()
             .uri { it.path("/document/{id}").build(id) }
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(response, ::getDocument.name, secureLogger)
             }
-            .bodyToMono<ByteArray>()
-            .block() ?: throw RuntimeException("Document could not be fetched")
+            .bodyToFlux(DataBuffer::class.java)
+
+        val tempFile = Files.createTempFile(null, null)
+
+        DataBufferUtils.write(dataBufferFlux, tempFile).block()
+        return FileSystemResource(tempFile)
+    }
+
+    fun getDocumentAsSignedURL(id: String, systemUser: Boolean = false): String {
+        logger.debug("Fetching document (signed URL) with id {}", id)
+
+        val token = if (systemUser) {
+            tokenUtil.getAppAccessTokenWithKabalFileApiScope()
+        } else {
+            tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
+        }
+
+        return fileWebClient.get()
+            .uri { it.path("/document/{id}/signedurl").build(id) }
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getDocument.name, secureLogger)
+            }
+            .bodyToMono<String>()
+            .block()!!
     }
 
     fun deleteDocument(id: String, systemUser: Boolean = false) {
@@ -74,7 +105,7 @@ class FileApiClient(
         }
     }
 
-    fun uploadDocument(bytes: ByteArray, originalFilename: String, systemUser: Boolean = false): String {
+    fun uploadDocument(resource: Resource, systemUser: Boolean = false): String {
         logger.debug("Uploading document to storage")
 
         val token = if (systemUser) {
@@ -83,8 +114,12 @@ class FileApiClient(
             tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
         }
 
+        var start = System.currentTimeMillis()
         val bodyBuilder = MultipartBodyBuilder()
-        bodyBuilder.part("file", bytes).filename(originalFilename)
+        bodyBuilder.part("file", resource).contentType(MediaType.APPLICATION_PDF).filename("file")
+        logger.debug("File added to body. Time taken: ${System.currentTimeMillis() - start} ms")
+
+        start = System.currentTimeMillis()
         val response = fileWebClient
             .post()
             .uri("/document")
@@ -97,7 +132,14 @@ class FileApiClient(
             .bodyToMono<DocumentUploadedResponse>()
             .block()
 
+        logger.debug("Response received. Time taken: ${System.currentTimeMillis() - start} ms")
         requireNotNull(response)
+
+        if (resource is FileSystemResource) {
+            start = System.currentTimeMillis()
+            resource.file.delete()
+            logger.debug("File deleted. Time taken: ${System.currentTimeMillis() - start} ms")
+        }
 
         logger.debug("Document uploaded to file store with id: {}", response.id)
         return response.id

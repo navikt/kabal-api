@@ -1,16 +1,8 @@
 package no.nav.klage.dokument.api.view
 
 import com.fasterxml.jackson.databind.JsonNode
-import no.nav.klage.kodeverk.DokumentType
-import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate
 import java.util.*
-
-data class FilInput(
-    val file: MultipartFile,
-    val dokumentTypeId: String = DokumentType.NOTAT.id,
-    val parentId: UUID?,
-)
 
 data class SmartHovedDokumentInput(
     val content: JsonNode?,

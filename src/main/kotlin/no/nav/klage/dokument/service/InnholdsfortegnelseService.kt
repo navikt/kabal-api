@@ -13,6 +13,7 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
+import org.springframework.core.io.ByteArrayResource
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -52,9 +53,8 @@ class InnholdsfortegnelseService(
         )
 
         val mellomlagerId =
-            mellomlagerService.uploadByteArray(
-                tittel = "Innholdsfortegnelse",
-                content = content,
+            mellomlagerService.uploadResource(
+                resource = ByteArrayResource(content),
             )
 
         innholdsfortegnelseRepository.save(

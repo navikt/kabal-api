@@ -9,6 +9,7 @@ import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.DokumentService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getResourceThatWillBeDeleted
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.FileSystemResource
@@ -148,9 +149,8 @@ class JournalpostController(
         @Parameter(description = "Id til journalpost")
         @PathVariable journalpostId: String,
         @Parameter(description = "Id til dokumentInfo")
-        @PathVariable dokumentInfoId: String
-
-    ): ResponseEntity<ByteArray> {
+        @PathVariable dokumentInfoId: String,
+    ): ResponseEntity<Resource> {
         logMethodDetails(
             methodName = ::getArkivertDokumentPDF.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -162,17 +162,18 @@ class JournalpostController(
             dokumentInfoId = dokumentInfoId
         )
 
-        val responseHeaders = HttpHeaders()
-        responseHeaders.contentType = fysiskDokument.contentType
-        responseHeaders.add(
-            "Content-Disposition",
-            "inline; filename=\"${fysiskDokument.title.removeSuffix(".pdf")}.pdf\""
-        )
-        return ResponseEntity(
-            dokumentService.changeTitleInPDF(fysiskDokument.content, fysiskDokument.title),
-            responseHeaders,
-            HttpStatus.OK
-        )
+        val resourceThatWillBeDeleted =
+            getResourceThatWillBeDeleted(dokumentService.changeTitleInPDF(fysiskDokument.content, fysiskDokument.title))
+        return ResponseEntity.ok()
+            .headers(HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_PDF
+                add(
+                    HttpHeaders.CONTENT_DISPOSITION,
+                    "inline; filename=\"${fysiskDokument.title.removeSuffix(".pdf")}.pdf\""
+                )
+            })
+            .contentLength(resourceThatWillBeDeleted.contentLength())
+            .body(resourceThatWillBeDeleted)
     }
 
     @Operation(
