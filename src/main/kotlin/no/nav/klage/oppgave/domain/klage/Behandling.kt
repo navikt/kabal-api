@@ -178,6 +178,8 @@ abstract class Behandling(
     open val sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     @Column(name = "previous_saksbehandlerident")
     open val previousSaksbehandlerident: String?,
+    @Column(name = "oppgave_id")
+    open var oppgaveId: Long?,
 ) {
 
     /**

@@ -195,6 +195,7 @@ internal class BehandlingAvslutningServiceTest {
         utfall = Utfall.MEDHOLD,
         extraUtfallSet = setOf(Utfall.MEDHOLD),
         previousSaksbehandlerident = "C78901",
+        oppgaveId = null,
     )
 
     @Test

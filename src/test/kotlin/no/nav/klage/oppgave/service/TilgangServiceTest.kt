@@ -219,6 +219,7 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     kakaKvalitetsvurderingId = UUID.randomUUID(),
     kakaKvalitetsvurderingVersion = 2,
     previousSaksbehandlerident = "C78901",
+    oppgaveId = null,
 )
 
 fun getPerson(): Person = Person(

@@ -31,6 +31,7 @@ data class CreateAnkeBasedOnKabinInput(
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
     val hjemmelIdList: List<String>,
+    val oppgaveId: Long?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,
@@ -56,6 +57,7 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
+    val oppgaveId: Long?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,
@@ -88,6 +90,7 @@ data class CreateKlageBasedOnKabinInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
+    val oppgaveId: Long?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,

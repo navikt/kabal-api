@@ -46,6 +46,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setKlager
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverFlowState
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverNavIdent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMottattKlageinstans
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setOppgaveId
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLFlowState
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLIdent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLReturnedDate
@@ -570,6 +571,25 @@ class BehandlingService(
         )
 
         return getSaksbehandlerViewWrapped(behandling)
+    }
+
+    fun setOppgaveId(
+        behandlingId: UUID,
+        oppgaveId: Long,
+        utfoerendeSaksbehandlerIdent: String,
+    ): LocalDateTime {
+        if (!innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+            throw MissingTilgangException("$utfoerendeSaksbehandlerIdent does not have the right to modify frist")
+        }
+
+        val behandling = getBehandlingForUpdate(
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = true
+        )
+        val event = behandling.setOppgaveId(oppgaveId, utfoerendeSaksbehandlerIdent)
+
+        applicationEventPublisher.publishEvent(event)
+        return behandling.modified
     }
 
     fun setExpiredTildeltSaksbehandlerToNullInSystemContext(

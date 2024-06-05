@@ -47,16 +47,35 @@ class KabinApiService(
     }
 
     fun createAnke(input: CreateAnkeBasedOnKabinInput): CreatedAnkeResponse {
+        val behandling = mottakService.createAnkeMottakAndBehandlingFromKabinInput(input = input)
+
+        if (input.oppgaveId != null) {
+            behandlingService.setOppgaveId(
+                behandlingId = behandling.id,
+                oppgaveId = input.oppgaveId,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
+        }
+
         return createdAnkeResponse(
-            behandling = mottakService.createAnkeMottakAndBehandlingFromKabinInput(input = input),
+            behandling = behandling,
             saksbehandlerIdent = input.saksbehandlerIdent,
             svarbrevInput = input.svarbrevInput,
         )
     }
 
     fun createAnkeFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): CreatedAnkeResponse {
+        val behandling = mottakService.createAnkeMottakFromCompleteKabinInput(input = input)
+
+        if (input.oppgaveId != null) {
+            behandlingService.setOppgaveId(
+                behandlingId = behandling.id,
+                oppgaveId = input.oppgaveId,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
+        }
         return createdAnkeResponse(
-            behandling = mottakService.createAnkeMottakFromCompleteKabinInput(input = input),
+            behandling = behandling,
             saksbehandlerIdent = input.saksbehandlerIdent,
             svarbrevInput = input.svarbrevInput,
         )
@@ -133,6 +152,15 @@ class KabinApiService(
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
+
+        if (input.oppgaveId != null) {
+            behandlingService.setOppgaveId(
+                behandlingId = behandlingId,
+                oppgaveId = input.oppgaveId,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
+        }
+
         return CreatedKlageResponse(behandlingId = behandlingId)
     }
 
