@@ -30,7 +30,7 @@ class KabinApiController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @PostMapping(value = ["/isduplicate", "/behandlingIsDuplicate"])
+    @PostMapping(value = ["/isduplicate", "/behandlingisduplicate"])
     fun behandlingIsDuplicate(
         @RequestBody input: BehandlingIsDuplicateInput
     ): Boolean {
