@@ -1955,4 +1955,10 @@ class BehandlingService(
             hjemmelIdList = behandling.hjemler.map { it.id }
         )
     }
+
+    fun oppgaveIsDuplicate(oppgaveId: Long): Boolean {
+        return behandlingRepository.findByOppgaveIdAndFeilregistreringIsNullAndAvsluttetAvSaksbehandlerIsNull(
+            oppgaveId = oppgaveId
+        ).isNotEmpty()
+    }
 }

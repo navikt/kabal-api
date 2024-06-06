@@ -17,6 +17,10 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         type: Type,
     ): List<Behandling>
 
+    fun findByOppgaveIdAndFeilregistreringIsNullAndAvsluttetAvSaksbehandlerIsNull(
+        oppgaveId: Long,
+    ): List<Behandling>
+
     fun findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull(): List<Behandling>
 
     fun findByAvsluttetAvSaksbehandlerIsNull(): List<Behandling>

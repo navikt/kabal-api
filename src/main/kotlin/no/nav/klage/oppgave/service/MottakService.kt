@@ -329,7 +329,7 @@ class MottakService(
         validateEnhet(forrigeBehandlendeEnhet)
     }
 
-    fun isDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): Boolean {
+    fun behandlingIsDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): Boolean {
         return isBehandlingDuplicate(
             fagsystem = fagsystem,
             kildeReferanse = kildeReferanse,
