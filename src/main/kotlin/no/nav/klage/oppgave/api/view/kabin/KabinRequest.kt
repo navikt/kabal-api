@@ -14,10 +14,14 @@ data class SearchUsedJournalpostIdInput(
     val fnr: String,
 )
 
-data class IsDuplicateInput(
+data class BehandlingIsDuplicateInput(
     val fagsystemId: String,
     val kildereferanse: String,
     val typeId: String
+)
+
+data class OppgaveIsDuplicateInput(
+    val oppgaveId: Long,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
