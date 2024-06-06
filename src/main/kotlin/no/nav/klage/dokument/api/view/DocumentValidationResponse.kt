@@ -14,6 +14,7 @@ data class DocumentValidationResponse(
             WRONG_DATE,
             DOCUMENT_MODIFIED,
             EMPTY_REGELVERK,
+            INVALID_RECIPIENT,
         }
     }
 }

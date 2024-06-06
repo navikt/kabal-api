@@ -963,13 +963,22 @@ class DokumentUnderArbeidService(
         mottakerInput: MottakerInput,
         innloggetIdent: String
     ): DokumentUnderArbeidAsHoveddokument {
-
         //Validate parts
         mottakerInput.mottakerList.forEach { mottaker ->
-            partSearchService.searchPart(
+            val part = partSearchService.searchPart(
                 identifikator = mottaker.id,
                 skipAccessControl = true
             )
+
+            when (part.type) {
+                BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
+                    throw DokumentValidationException("Mottaker ${part.name} er død, velg en annen mottaker.")
+                }
+
+                BehandlingDetaljerView.IdType.ORGNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DELETED }) {
+                    throw DokumentValidationException("Mottaker ${part.name} er avviklet, velg en annen mottaker.")
+                }
+            }
 
             if (mottaker.overriddenAddress != null) {
                 val landkoder = kodeverkService.getLandkoder()
@@ -1412,16 +1421,45 @@ class DokumentUnderArbeidService(
     }
 
     fun validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeidId: UUID): List<DocumentValidationResponse> {
-        val smartdokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentUnderArbeidId)
+        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentUnderArbeidId)
             .get() as DokumentUnderArbeidAsHoveddokument
-        return validateDokumentUnderArbeidAndVedlegg(smartdokumentUnderArbeid)
+        return validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeid = dokumentUnderArbeid)
     }
 
-    /**
-     * As of now, this method only validates smart documents.
-     */
     private fun validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeid: DokumentUnderArbeidAsHoveddokument): List<DocumentValidationResponse> {
+
         val errors = mutableListOf<DocumentValidationResponse>()
+
+        dokumentUnderArbeid.avsenderMottakerInfoSet.forEach { mottaker ->
+            val part = partSearchService.searchPart(
+                identifikator = mottaker.identifikator,
+                skipAccessControl = true
+            )
+
+            when (part.type) {
+                BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
+                    errors += DocumentValidationResponse(
+                        dokumentId = dokumentUnderArbeid.id,
+                        errors = listOf(
+                            DocumentValidationResponse.DocumentValidationError(
+                                type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.INVALID_RECIPIENT,
+                            )
+                        )
+                    )
+                }
+
+                BehandlingDetaljerView.IdType.ORGNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DELETED }) {
+                    errors += DocumentValidationResponse(
+                        dokumentId = dokumentUnderArbeid.id,
+                        errors = listOf(
+                            DocumentValidationResponse.DocumentValidationError(
+                                type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.INVALID_RECIPIENT,
+                            )
+                        )
+                    )
+                }
+            }
+        }
 
         val vedlegg = getVedlegg(dokumentUnderArbeid.id)
 
@@ -1479,7 +1517,7 @@ class DokumentUnderArbeidService(
         )
         if (errors.any { it.errors.isNotEmpty() }) {
             throw SmartDocumentValidationException(
-                msg = "Smartdokument(er) med valideringsfeil.",
+                msg = "Dokument(er) med valideringsfeil.",
                 errors = errors,
             )
         }
@@ -2029,23 +2067,24 @@ class DokumentUnderArbeidService(
 
         val vedleggList = getVedlegg(dokumentUnderArbeidId)
 
-        val vedleggAsResourceList: List<Resource> = vedleggList.sortedByDescending { it.created }.mapNotNull { vedlegg ->
-            when (vedlegg) {
-                is SmartdokumentUnderArbeidAsVedlegg -> {
-                    if (vedlegg.isPDFGenerationNeeded()) {
-                        ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(vedlegg).bytes)
-                    } else {
+        val vedleggAsResourceList: List<Resource> =
+            vedleggList.sortedByDescending { it.created }.mapNotNull { vedlegg ->
+                when (vedlegg) {
+                    is SmartdokumentUnderArbeidAsVedlegg -> {
+                        if (vedlegg.isPDFGenerationNeeded()) {
+                            ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(vedlegg).bytes)
+                        } else {
+                            mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
+                        }
+                    }
+
+                    is OpplastetDokumentUnderArbeidAsVedlegg -> {
                         mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
                     }
-                }
 
-                is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                    mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
+                    else -> null
                 }
-
-                else -> null
             }
-        }
 
         val innholdsfortegnelsePath = if (vedleggList.isNotEmpty() && !dokumentUnderArbeid.isInngaaende()) {
             val innholdsfortegnelsePDFBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
