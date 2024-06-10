@@ -2285,11 +2285,6 @@ class DokumentUnderArbeidService(
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
     }
-
-    fun setCurrentSmartDocumentVersion(dokumentId: UUID, version: Int) {
-        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId) as DokumentUnderArbeidAsSmartdokument
-        dokument.mellomlagretVersion = version
-    }
 }
 
 
