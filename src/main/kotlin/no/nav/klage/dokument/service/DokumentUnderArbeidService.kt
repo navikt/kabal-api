@@ -2132,8 +2132,8 @@ class DokumentUnderArbeidService(
             throw RuntimeException("dokument is not smartdokument")
         }
 
-        val documentJson = smartEditorApiGateway.getDocumentAsJson(dokument.smartEditorId)
-        val pdfDocument = kabalJsonToPdfClient.getPDFDocument(documentJson)
+        val document = smartEditorApiGateway.getSmartDocumentResponse(dokument.smartEditorId)
+        val pdfDocument = kabalJsonToPdfClient.getPDFDocument(document.json)
 
         val mellomlagerId =
             mellomlagerService.uploadResource(
@@ -2146,7 +2146,7 @@ class DokumentUnderArbeidService(
 
         val now = LocalDateTime.now()
         dokument.mellomlagerId = mellomlagerId
-        dokument.mellomlagretDate = now
+        dokument.mellomlagretDate = document.modified
         dokument.size = pdfDocument.bytes.size.toLong()
         dokument.modified = now
 
