@@ -44,8 +44,8 @@ class DefaultKabalSmartEditorApiGateway(
         dokumentType: DokumentType,
         innloggetIdent: String,
         documentTitle: String,
-    ): UUID {
-        return kabalSmartEditorApiClient.createDocument(json).documentId
+    ): SmartDocumentResponse {
+        return kabalSmartEditorApiClient.createDocument(json)
     }
 
     fun deleteDocument(smartEditorId: UUID) {

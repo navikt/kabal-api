@@ -23,6 +23,8 @@ class SmartdokumentUnderArbeidAsHoveddokument(
     @Enumerated(EnumType.STRING)
     @Column(name = "language")
     override var language: Language,
+    @Column(name = "mellomlagret_version")
+    override var mellomlagretVersion: Int?,
 
     //Common properties
     id: UUID = UUID.randomUUID(),
@@ -76,6 +78,7 @@ class SmartdokumentUnderArbeidAsHoveddokument(
             creatorRole = creatorRole,
             parentId = parentId,
             language = language,
+            mellomlagretVersion = mellomlagretVersion,
         )
     }
 }

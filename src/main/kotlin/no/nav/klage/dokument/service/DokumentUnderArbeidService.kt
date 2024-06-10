@@ -373,7 +373,7 @@ class DokumentUnderArbeidService(
         if (json == null) {
             throw DokumentValidationException("Ingen json angitt")
         }
-        val smartEditorDocumentId =
+        val smartDocumentResponse =
             smartEditorApiGateway.createDocument(
                 json = json,
                 dokumentType = dokumentType,
@@ -392,7 +392,7 @@ class DokumentUnderArbeidService(
                     name = tittel,
                     dokumentType = dokumentType,
                     behandlingId = behandlingId,
-                    smartEditorId = smartEditorDocumentId,
+                    smartEditorId = smartDocumentResponse.documentId,
                     smartEditorTemplateId = smartEditorTemplateId,
                     creatorIdent = innloggetIdent,
                     creatorRole = behandlingRole,
@@ -400,6 +400,7 @@ class DokumentUnderArbeidService(
                     modified = now,
                     journalfoerendeEnhetId = null,
                     language = language,
+                    mellomlagretVersion = null,
                 )
             )
         } else {
@@ -410,7 +411,7 @@ class DokumentUnderArbeidService(
                     size = null,
                     name = tittel,
                     behandlingId = behandlingId,
-                    smartEditorId = smartEditorDocumentId,
+                    smartEditorId = smartDocumentResponse.documentId,
                     smartEditorTemplateId = smartEditorTemplateId,
                     creatorIdent = innloggetIdent,
                     creatorRole = behandlingRole,
@@ -418,6 +419,7 @@ class DokumentUnderArbeidService(
                     language = language,
                     created = now,
                     modified = now,
+                    mellomlagretVersion = null,
                 )
             )
         }
@@ -1465,27 +1467,21 @@ class DokumentUnderArbeidService(
 
         (vedlegg + dokumentUnderArbeid).forEach { document ->
             if (document is DokumentUnderArbeidAsSmartdokument) {
-                if (document.mellomlagretDate == null ||
-                    smartEditorApiGateway.getSmartDocumentResponse(document.smartEditorId).modified.isAfter(
-                        document.mellomlagretDate
-                    )
-                ) {
-                    errors += DocumentValidationResponse(
-                        dokumentId = document.id,
-                        errors = listOf(
-                            DocumentValidationResponse.DocumentValidationError(
-                                type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.DOCUMENT_MODIFIED,
-                            )
-                        )
-                    )
-                }
-
                 if (document.mellomlagretDate != null && document.mellomlagretDate!!.toLocalDate() != LocalDate.now()) {
                     errors += DocumentValidationResponse(
                         dokumentId = document.id,
                         errors = listOf(
                             DocumentValidationResponse.DocumentValidationError(
                                 type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.WRONG_DATE,
+                            )
+                        )
+                    )
+                } else if (document.isPDFGenerationNeeded()) {
+                    errors += DocumentValidationResponse(
+                        dokumentId = document.id,
+                        errors = listOf(
+                            DocumentValidationResponse.DocumentValidationError(
+                                type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.DOCUMENT_MODIFIED,
                             )
                         )
                     )
@@ -2126,29 +2122,29 @@ class DokumentUnderArbeidService(
         return dokumentService.mergePDFFiles(resourcesToMerge = filesToMerge, title = "Samlet dokument")
     }
 
-    private fun mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument: DokumentUnderArbeid): PDFDocument {
-
-        if (dokument !is DokumentUnderArbeidAsSmartdokument) {
+    private fun mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid: DokumentUnderArbeid): PDFDocument {
+        if (dokumentUnderArbeid !is DokumentUnderArbeidAsSmartdokument) {
             throw RuntimeException("dokument is not smartdokument")
         }
 
-        val document = smartEditorApiGateway.getSmartDocumentResponse(dokument.smartEditorId)
-        val pdfDocument = kabalJsonToPdfClient.getPDFDocument(document.json)
+        val smartDocument = smartEditorApiGateway.getSmartDocumentResponse(dokumentUnderArbeid.smartEditorId)
+        val pdfDocument = kabalJsonToPdfClient.getPDFDocument(smartDocument.json)
 
         val mellomlagerId =
             mellomlagerService.uploadResource(
                 resource = ByteArrayResource(pdfDocument.bytes),
             )
+        val mellomlagretDate = LocalDateTime.now()
 
-        if (dokument.mellomlagerId != null) {
-            mellomlagerService.deleteDocument(dokument.mellomlagerId!!)
+        if (dokumentUnderArbeid.mellomlagerId != null) {
+            mellomlagerService.deleteDocument(dokumentUnderArbeid.mellomlagerId!!)
         }
 
-        val now = LocalDateTime.now()
-        dokument.mellomlagerId = mellomlagerId
-        dokument.mellomlagretDate = document.modified
-        dokument.size = pdfDocument.bytes.size.toLong()
-        dokument.modified = now
+        dokumentUnderArbeid.mellomlagerId = mellomlagerId
+        dokumentUnderArbeid.mellomlagretDate = mellomlagretDate
+        dokumentUnderArbeid.size = pdfDocument.bytes.size.toLong()
+        dokumentUnderArbeid.modified = LocalDateTime.now()
+        dokumentUnderArbeid.mellomlagretVersion = smartDocument.version
 
         return pdfDocument
     }
@@ -2156,7 +2152,7 @@ class DokumentUnderArbeidService(
     private fun DokumentUnderArbeidAsSmartdokument.isPDFGenerationNeeded(): Boolean {
         return mellomlagretDate == null ||
                 mellomlagretDate!!.toLocalDate() != LocalDate.now() ||
-                smartEditorApiGateway.getSmartDocumentResponse(smartEditorId).modified.isAfter(mellomlagretDate)
+                smartEditorApiGateway.getSmartDocumentResponse(smartEditorId).version > (mellomlagretVersion ?: -1)
     }
 
     private fun Behandling.endringslogg(
@@ -2288,6 +2284,11 @@ class DokumentUnderArbeidService(
             dokumentId = documentView.id,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
+    }
+
+    fun setCurrentSmartDocumentVersion(dokumentId: UUID, version: Int) {
+        val dokument = dokumentUnderArbeidRepository.getReferenceById(dokumentId) as DokumentUnderArbeidAsSmartdokument
+        dokument.mellomlagretVersion = version
     }
 }
 

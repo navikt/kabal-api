@@ -342,6 +342,7 @@ class BehandlingServiceTest {
                             creatorRole = KABAL_SAKSBEHANDLING,
                             journalfoerendeEnhetId = null,
                             language = Language.NB,
+                            mellomlagretVersion = null,
                         )
                     )
 
