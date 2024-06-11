@@ -25,6 +25,9 @@ acl:
   - team: etterlatte
     application: etterlatte-klage
     access: read
+  - team: pensjon-q1
+    application: pensjon-pen-q1
+    access: read
   - team: pensjon-q2
     application: pensjon-pen-q2
     access: read
