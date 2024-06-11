@@ -10,6 +10,7 @@ interface DokumentUnderArbeidAsSmartdokument: DokumentUnderArbeidAsMellomlagret 
     var smartEditorTemplateId: String
     var modified: LocalDateTime
     var language: Language
+    var mellomlagretVersion: Int?
 }
 
 interface DokumentUnderArbeidAsMellomlagret {
