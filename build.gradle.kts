@@ -15,7 +15,7 @@ val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.2"
 val tikaVersion = "2.9.2"
 val verapdfVersion = "1.24.2"
-val klageKodeverkVersion = "1.8.29"
+val klageKodeverkVersion = "1.8.31"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
 
 plugins {

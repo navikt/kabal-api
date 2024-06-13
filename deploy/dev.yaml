@@ -43,6 +43,9 @@ inboundApplications:
   - application: pensjon-pen-q2
     namespace: pensjon-q2
     cluster: dev-fss
+  - application: tilleggsstonader-klage
+    namespace: tilleggsstonader
+    cluster: dev-gcp
 springProfile: dev-gcp
 tenant: trygdeetaten.no
 db_tier: db-f1-micro
