@@ -50,7 +50,7 @@ class SvarbrevSettingsService(
     private fun SvarbrevSettings.toView(): SvarbrevSettingsView {
         return SvarbrevSettingsView(
             id = id,
-            ytelseId = ytelse.name,
+            ytelseId = ytelse.id,
             behandlingstidWeeks = behandlingstidWeeks,
             customText = customText,
             shouldSend = shouldSend,
@@ -66,7 +66,7 @@ class SvarbrevSettingsService(
     private fun SvarbrevSettingsHistory.toView(): SvarbrevSettingsView {
         return SvarbrevSettingsView(
             id = id,
-            ytelseId = ytelse.name,
+            ytelseId = ytelse.id,
             behandlingstidWeeks = behandlingstidWeeks,
             customText = customText,
             shouldSend = shouldSend,
