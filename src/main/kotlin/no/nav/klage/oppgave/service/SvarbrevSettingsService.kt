@@ -9,6 +9,7 @@ import no.nav.klage.oppgave.repositories.SvarbrevSettingsRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.util.*
 
 @Service
@@ -34,6 +35,7 @@ class SvarbrevSettingsService(
             customText = updateSvarbrevSettingsInput.customText
             shouldSend = updateSvarbrevSettingsInput.shouldSend
             createdBy = tokenUtil.getIdent()
+            modified = LocalDateTime.now()
         }
 
         svarbrevSettings.history.add(svarbrevSettings.toHistory())
