@@ -25,7 +25,8 @@ class SvarbrevSettings(
     var modified: LocalDateTime,
     @Column(name = "created_by")
     var createdBy: String,
-    @OneToMany(mappedBy = "svarbrevSettings", fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
+    @JoinColumn(name = "svarbrev_settings_id")
     val history: MutableSet<SvarbrevSettingsHistory> = mutableSetOf()
 ) {
 
