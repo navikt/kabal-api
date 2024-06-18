@@ -28,3 +28,6 @@ acl:
   - team: pensjondeployer
     application: pensjon-pen
     access: read
+  - team: tilleggsstonader
+    application: tilleggsstonader-klage
+    access: read
