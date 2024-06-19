@@ -16,7 +16,7 @@ fun compareStringsIncludingNumbers(a: String, b: String): Int {
 
     for ((i, j) in splitA zip splitB) {
         val diff = if (i.first().isDigit() && j.first().isDigit()) {
-            i.toInt().compareTo(j.toInt())
+            i.toBigInteger().compareTo(j.toBigInteger())
         } else {
             i.compareTo(j)
         }

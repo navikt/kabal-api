@@ -179,4 +179,14 @@ class SortUtilTest {
             "Vedlegg10arst",
         )
     }
+
+    @Test
+    fun `handle long number input string`() {
+        assertThat(
+            listOf("17170610291302148659684992526242", "17170610291302148659684992526244").sortedWith { o1, o2 -> compareStringsIncludingNumbers(o1, o2) }
+        ).containsExactly(
+            "17170610291302148659684992526242",
+            "17170610291302148659684992526244",
+        )
+    }
 }
