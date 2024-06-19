@@ -40,6 +40,9 @@ inboundApplications:
   - application: pensjon-pen
     namespace: pensjondeployer
     cluster: prod-fss
+  - application: tilleggsstonader-klage
+    namespace: tilleggsstonader
+    cluster: prod-gcp
 springProfile: prod-gcp
 tenant: nav.no
 db_tier: db-custom-1-3840

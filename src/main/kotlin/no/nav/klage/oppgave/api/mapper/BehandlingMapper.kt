@@ -86,7 +86,7 @@ class BehandlingMapper(
             vergemaalEllerFremtidsfullmakt = klagebehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = klagebehandling.sakenGjelder.getDead(),
             fullmakt = klagebehandling.sakenGjelder.isFullmakt(),
-            kvalitetsvurderingReference = if (klagebehandling.feilregistrering == null) {
+            kvalitetsvurderingReference = if (klagebehandling.feilregistrering == null && klagebehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = klagebehandling.kakaKvalitetsvurderingId!!,
                     version = klagebehandling.kakaKvalitetsvurderingVersion,
@@ -187,7 +187,7 @@ class BehandlingMapper(
             vergemaalEllerFremtidsfullmakt = ankebehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = ankebehandling.sakenGjelder.getDead(),
             fullmakt = ankebehandling.sakenGjelder.isFullmakt(),
-            kvalitetsvurderingReference = if (ankebehandling.feilregistrering == null) {
+            kvalitetsvurderingReference = if (ankebehandling.feilregistrering == null && ankebehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = ankebehandling.kakaKvalitetsvurderingId!!,
                     version = ankebehandling.kakaKvalitetsvurderingVersion,
