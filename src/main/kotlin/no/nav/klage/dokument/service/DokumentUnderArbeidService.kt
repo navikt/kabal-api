@@ -2238,7 +2238,7 @@ class DokumentUnderArbeidService(
                 ankeReceivedDate = behandling.mottattKlageinstans.toLocalDate(),
                 behandlingstidInWeeks = ChronoUnit.WEEKS.between(
                     behandling.mottattKlageinstans.toLocalDate(),
-                    behandling.frist
+                    svarbrevInput.varsletFrist,
                 ).toInt(),
                 avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
             )
@@ -2279,11 +2279,19 @@ class DokumentUnderArbeidService(
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
 
-        return finnOgMarkerFerdigHovedDokument(
+        val hovedDokument = finnOgMarkerFerdigHovedDokument(
             behandlingId = behandling.id,
             dokumentId = documentView.id,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
+
+        behandlingService.setVarsletFrist(
+            behandlingId = behandling.id,
+            varsletFrist = svarbrevInput.varsletFrist,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+        )
+
+        return hovedDokument
     }
 }
 

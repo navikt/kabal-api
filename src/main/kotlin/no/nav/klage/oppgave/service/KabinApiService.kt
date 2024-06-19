@@ -57,11 +57,13 @@ class KabinApiService(
             )
         }
 
-        return createdAnkeResponse(
+        setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
             saksbehandlerIdent = input.saksbehandlerIdent,
             svarbrevInput = input.svarbrevInput,
         )
+
+        return CreatedAnkeResponse(behandlingId = behandling.id)
     }
 
     fun createAnkeFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): CreatedAnkeResponse {
@@ -74,18 +76,33 @@ class KabinApiService(
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
-        return createdAnkeResponse(
+
+        if (input.saksbehandlerIdent != null) {
+            behandlingService.setSaksbehandler(
+                behandlingId = behandling.id,
+                tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
+                enhetId = saksbehandlerService.getEnhetForSaksbehandler(
+                    input.saksbehandlerIdent
+                ).enhetId,
+                fradelingReason = null,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
+        }
+
+        setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
             saksbehandlerIdent = input.saksbehandlerIdent,
             svarbrevInput = input.svarbrevInput,
         )
+
+        return CreatedAnkeResponse(behandlingId = behandling.id)
     }
 
-    private fun createdAnkeResponse(
+    private fun setSaksbehandlerAndCreateSvarbrev(
         behandling: Behandling,
         saksbehandlerIdent: String?,
         svarbrevInput: SvarbrevInput?,
-    ): CreatedAnkeResponse {
+    ) {
         if (saksbehandlerIdent != null) {
             behandlingService.setSaksbehandler(
                 behandlingId = behandling.id,
@@ -105,8 +122,6 @@ class KabinApiService(
                 behandling = behandling,
             )
         }
-
-        return CreatedAnkeResponse(behandlingId = behandling.id)
     }
 
     fun getCreatedAnkebehandlingStatus(

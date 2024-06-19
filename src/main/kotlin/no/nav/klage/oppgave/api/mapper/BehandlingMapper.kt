@@ -103,6 +103,7 @@ class BehandlingMapper(
             medunderskriver = klagebehandling.toMedunderskriverView(),
             saksbehandler = klagebehandling.toSaksbehandlerView(),
             previousSaksbehandler = klagebehandling.toPreviousSaksbehandlerView(),
+            varsletFrist = klagebehandling.varsletFrist,
         )
     }
 
@@ -204,6 +205,7 @@ class BehandlingMapper(
             medunderskriver = ankebehandling.toMedunderskriverView(),
             saksbehandler = ankebehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankebehandling.toPreviousSaksbehandlerView(),
+            varsletFrist = ankebehandling.varsletFrist,
         )
     }
 
@@ -256,6 +258,7 @@ class BehandlingMapper(
             medunderskriver = ankeITrygderettenbehandling.toMedunderskriverView(),
             saksbehandler = ankeITrygderettenbehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankeITrygderettenbehandling.toPreviousSaksbehandlerView(),
+            varsletFrist = null,
         )
     }
 
@@ -609,6 +612,7 @@ class BehandlingMapper(
             saksnummer = behandling.fagsakId,
             previousSaksbehandler = behandling.toPreviousSaksbehandlerView(),
             datoSendtTilTR = if (behandling is AnkeITrygderettenbehandling) behandling.sendtTilTrygderetten.toLocalDate() else null,
+            varsletFrist = if (behandling is Klagebehandling) behandling.varsletFrist else if (behandling is Ankebehandling) behandling.varsletFrist else null,
         )
     }
 

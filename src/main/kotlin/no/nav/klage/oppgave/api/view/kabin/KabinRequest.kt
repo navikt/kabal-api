@@ -115,6 +115,7 @@ data class SvarbrevInput(
     val title: String = "Anke - orientering om saksbehandlingstid",
     val receivers: List<Receiver>,
     val fullmektigFritekst: String?,
+    val varsletFrist: LocalDate,
 ) {
     data class Receiver(
         val id: String,
