@@ -55,7 +55,6 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.*
 
 
@@ -2235,12 +2234,17 @@ class DokumentUnderArbeidService(
                 } else null,
                 ytelsenavn = behandling.ytelse.navn,
                 fullmektigFritekst = svarbrevInput.fullmektigFritekst,
-                ankeReceivedDate = behandling.mottattKlageinstans.toLocalDate(),
-                behandlingstidInWeeks = ChronoUnit.WEEKS.between(
-                    behandling.mottattKlageinstans.toLocalDate(),
-                    svarbrevInput.varsletFrist,
-                ).toInt(),
+                receivedDate = behandling.mottattKlageinstans.toLocalDate(),
+                behandlingstidInWeeks = svarbrevInput.varsletBehandlingstidWeeks,
                 avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
+                type = if (svarbrevInput.type == null) {
+                    SvarbrevRequest.Type.ANKE
+                } else {
+                    SvarbrevRequest.Type.valueOf(
+                        svarbrevInput.type.name.uppercase()
+                    )
+                },
+                customText = svarbrevInput.customText,
             )
         )
 
@@ -2283,12 +2287,6 @@ class DokumentUnderArbeidService(
             behandlingId = behandling.id,
             dokumentId = documentView.id,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-        )
-
-        behandlingService.setVarsletFrist(
-            behandlingId = behandling.id,
-            varsletFrist = svarbrevInput.varsletFrist,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
 
         return hovedDokument

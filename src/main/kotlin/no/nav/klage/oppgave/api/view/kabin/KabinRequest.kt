@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.api.view.kabin
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.domain.klage.PartId
 import java.time.LocalDate
 import java.util.*
@@ -112,11 +113,14 @@ data class CreateKlageBasedOnKabinInput(
 }
 
 data class SvarbrevInput(
-    val title: String = "Anke - orientering om saksbehandlingstid",
+    val title: String = "Orientering om saksbehandlingstid",
     val receivers: List<Receiver>,
     val fullmektigFritekst: String?,
-    val varsletFrist: LocalDate,
+    val varsletBehandlingstidWeeks: Int,
+    val type: Type?,
+    val customText: String?
 ) {
+
     data class Receiver(
         val id: String,
         val handling: HandlingEnum,

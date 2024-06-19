@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.api.view.SvarbrevSettingsView
 import no.nav.klage.oppgave.api.view.UpdateSvarbrevSettingsInput
@@ -23,6 +24,10 @@ class SvarbrevSettingsService(
         return svarbrevSettingsRepository.findAll()
             .sortedBy { it.ytelse.navn }
             .map { it.toView() }
+    }
+
+    fun getSvarbrevSettings(ytelse: Ytelse): SvarbrevSettingsView {
+        return svarbrevSettingsRepository.findAll().find { it.ytelse == ytelse}!!.toView()
     }
 
     fun updateSvarbrevSettings(

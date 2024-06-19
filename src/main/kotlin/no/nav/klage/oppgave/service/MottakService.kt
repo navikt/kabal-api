@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
@@ -10,12 +11,15 @@ import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnCompleteKabinInput
 import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnKabinInput
 import no.nav.klage.oppgave.api.view.kabin.CreateKlageBasedOnKabinInput
+import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
 import no.nav.klage.oppgave.api.view.toMottak
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.config.incrementMottattKlageAnke
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.klage.AnkebehandlingSetters.setVarsletFrist
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setVarsletFrist
 import no.nav.klage.oppgave.domain.kodeverk.LovligeTyper
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
@@ -30,6 +34,7 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.isValidFnrOrDnr
 import no.nav.klage.oppgave.util.isValidOrgnr
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -51,6 +56,9 @@ class MottakService(
     private val createBehandlingFromMottak: CreateBehandlingFromMottak,
     private val pdlFacade: PdlFacade,
     private val eregClient: EregClient,
+    private val dokumentUnderArbeidService: DokumentUnderArbeidService,
+    private val svarbrevSettingsService: SvarbrevSettingsService,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembruker: String,
 ) {
 
     private val lovligeTyperIMottakV2 = LovligeTyper.lovligeTyper(environment)
@@ -90,7 +98,44 @@ class MottakService(
         secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlageAnke: {}", mottak)
         logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
 
-        createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+
+        try {
+            val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettings(ytelse = mottak.ytelse)
+
+            dokumentUnderArbeidService.createDokumentUnderArbeidFromSvarbrevInput(
+                behandling = behandling,
+                svarbrevInput = SvarbrevInput(
+                    title = "NAV orienterer om saksbehandlingen",
+                    receivers = listOf(
+                        SvarbrevInput.Receiver(
+                            id = behandling.sakenGjelder.partId.value,
+                            handling = SvarbrevInput.Receiver.HandlingEnum.AUTO,
+                            overriddenAddress = null
+                        )
+                    ),
+                    fullmektigFritekst = null,
+                    varsletBehandlingstidWeeks = svarbrevSettings.behandlingstidWeeks,
+                    type = behandling.type,
+                    customText = svarbrevSettings.customText,
+                )
+            )
+
+            val varsletFrist = behandling.mottattKlageinstans.toLocalDate().plusWeeks(svarbrevSettings.behandlingstidWeeks.toLong())
+            when (behandling) {
+                is Klagebehandling -> behandling.setVarsletFrist(
+                    nyVerdi = varsletFrist,
+                    saksbehandlerident = systembruker,
+                )
+                is Ankebehandling -> behandling.setVarsletFrist(
+                    nyVerdi = varsletFrist,
+                    saksbehandlerident = systembruker,
+                )
+            }
+
+        } catch (e: Exception) {
+            logger.error("Feil ved opprettelse av svarbrev.", e)
+        }
 
         updateMetrics(
             kilde = oversendtKlageAnke.kilde.name,
