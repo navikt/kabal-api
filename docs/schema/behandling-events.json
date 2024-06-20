@@ -159,7 +159,8 @@
             "DELVIS_MEDHOLD",
             "STADFESTELSE",
             "UGUNST",
-            "AVVIST"
+            "AVVIST",
+            "HENVIST"
           ],
           "description": "Utfallet av behandlingen."
         },
