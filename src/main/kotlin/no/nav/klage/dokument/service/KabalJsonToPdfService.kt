@@ -7,8 +7,6 @@ import no.nav.klage.dokument.clients.kabaljsontopdf.domain.SvarbrevRequest
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
-import no.nav.klage.oppgave.domain.klage.PartId
-import no.nav.klage.oppgave.service.PartSearchService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -16,7 +14,6 @@ import java.time.LocalDate
 @Service
 class KabalJsonToPdfService(
     private val kabalJsonToPdfClient: KabalJsonToPdfClient,
-    private val partSearchService: PartSearchService
 ) {
 
     companion object {
