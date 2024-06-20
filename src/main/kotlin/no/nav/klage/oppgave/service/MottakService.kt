@@ -135,7 +135,7 @@ class MottakService(
                         customText = svarbrevSettings.customText,
                     ),
                     //Avklar hvilken enhet som skal brukes
-                    avsenderEnhetId = "UNKNOWN"
+                    avsenderEnhetId = "4291"
                 )
 
                 val varsletFrist = behandling.mottattKlageinstans.toLocalDate()
@@ -172,7 +172,12 @@ class MottakService(
             oversendtKlageAnke.type.navn
         )
 
-        return createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+
+        //For verification
+        sendSvarbrev(behandling = behandling)
+
+        return behandling
     }
 
     private fun updateMetrics(

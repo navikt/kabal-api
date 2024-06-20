@@ -95,7 +95,6 @@ class DokumentUnderArbeidServiceTest {
             journalfoertDokumentUnderArbeidRepository = journalfoertDokumentUnderArbeidRepository,
             mellomlagerService = mellomlagerService,
             smartEditorApiGateway = smartEditorApiGateway,
-            kabalJsonToPdfClient = kabalJsonToPdfClient,
             behandlingService = behandlingService,
             kabalDocumentGateway = kabalDocumentGateway,
             applicationEventPublisher = applicationEventPublisher,
@@ -112,7 +111,7 @@ class DokumentUnderArbeidServiceTest {
             partSearchService = mockk(),
             kodeverkService = mockk(),
             dokDistKanalService = mockk(),
-            azureGateway = mockk(),
+            kabalJsonToPdfService = mockk(),
         )
 
         val behandlingId = UUID.randomUUID()

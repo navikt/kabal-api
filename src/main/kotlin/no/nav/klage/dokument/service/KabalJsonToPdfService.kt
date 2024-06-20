@@ -1,7 +1,10 @@
 package no.nav.klage.dokument.service
 
 import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
+import no.nav.klage.dokument.clients.kabaljsontopdf.domain.DocumentValidationResponse
+import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.SvarbrevRequest
+import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
 import no.nav.klage.oppgave.domain.klage.PartId
@@ -59,5 +62,17 @@ class KabalJsonToPdfService(
             )
         )
         return bytes
+    }
+
+    fun getPDFDocument(json: String): PDFDocument {
+        return kabalJsonToPdfClient.getPDFDocument(json)
+    }
+
+    fun getInnholdsfortegnelse(innholdsfortegnelseRequest: InnholdsfortegnelseRequest): PDFDocument {
+        return kabalJsonToPdfClient.getInnholdsfortegnelse(innholdsfortegnelseRequest)
+    }
+
+    fun validateJsonDocument(documentJson: String): DocumentValidationResponse {
+        return kabalJsonToPdfClient.validateJsonDocument(documentJson)
     }
 }
