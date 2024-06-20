@@ -35,7 +35,11 @@ class PartSearchService(
             PartIdType.PERSON -> {
                 if (skipAccessControl || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator)) {
                     val person = pdlFacade.getPersonInfo(identifikator)
-                    val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identifikator)
+                    val krrInfo = if (skipAccessControl) {
+                        krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
+                    } else {
+                        krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
+                    }
                     BehandlingDetaljerView.PartView(
                         id = person.foedselsnr,
                         name = person.settSammenNavn(),
@@ -43,7 +47,11 @@ class PartSearchService(
                         available = person.doed == null,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = regoppslagService.getAddressForPerson(fnr = identifikator),
+                        address = if (skipAccessControl) {
+                            regoppslagService.getAddressForPersonAppAccess(fnr = identifikator)
+                        } else {
+                            regoppslagService.getAddressForPersonOnBehalfOf(fnr = identifikator)
+                        }
                     )
                 } else {
                     secureLogger.warn("Saksbehandler does not have access to view person")
@@ -75,7 +83,7 @@ class PartSearchService(
             PartIdType.PERSON -> {
                 if (skipAccessControl || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator)) {
                     val person = pdlFacade.getPersonInfo(identifikator)
-                    val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identifikator)
+                    val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
                     BehandlingDetaljerView.PartViewWithUtsendingskanal(
                         id = person.foedselsnr,
                         name = person.settSammenNavn(),
@@ -83,7 +91,7 @@ class PartSearchService(
                         available = person.doed == null,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = regoppslagService.getAddressForPerson(fnr = identifikator),
+                        address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = identifikator),
                         utsendingskanal = dokDistKanalService.getUtsendingskanal(
                             mottakerId = identifikator,
                             brukerId = sakenGjelderId,
@@ -123,7 +131,7 @@ class PartSearchService(
             PartIdType.PERSON -> {
                 if (skipAccessControl || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator)) {
                     val person = pdlFacade.getPersonInfo(identifikator)
-                    val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identifikator)
+                    val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
                     BehandlingDetaljerView.SakenGjelderView(
                         id = person.foedselsnr,
                         name = person.settSammenNavn(),
@@ -133,7 +141,7 @@ class PartSearchService(
                             ?: BehandlingDetaljerView.Sex.UKJENT,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = regoppslagService.getAddressForPerson(fnr = identifikator),
+                        address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = identifikator),
                     )
                 } else {
                     secureLogger.warn("Saksbehandler does not have access to view person")

@@ -265,7 +265,7 @@ class BehandlingMapper(
     fun getSakenGjelderView(sakenGjelder: SakenGjelder): BehandlingDetaljerView.SakenGjelderView {
         if (sakenGjelder.erPerson()) {
             val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(sakenGjelder.partId.value)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(sakenGjelder.partId.value)
             return BehandlingDetaljerView.SakenGjelderView(
                 id = person.foedselsnr,
                 name = person.settSammenNavn(),
@@ -275,7 +275,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
+                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -286,7 +286,7 @@ class BehandlingMapper(
         val sakenGjelder = behandling.sakenGjelder
         if (sakenGjelder.erPerson()) {
             val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(sakenGjelder.partId.value)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(sakenGjelder.partId.value)
             val utsendingskanal = dokDistKanalService.getUtsendingskanal(
                 mottakerId = sakenGjelder.partId.value,
                 brukerId = sakenGjelder.partId.value,
@@ -301,7 +301,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
+                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
                 utsendingskanal = utsendingskanal
             )
         } else {
@@ -327,7 +327,7 @@ class BehandlingMapper(
     private fun getPartView(identifier: String, isPerson: Boolean): BehandlingDetaljerView.PartView {
         return if (isPerson) {
             val person = pdlFacade.getPersonInfo(identifier)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identifier)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
             BehandlingDetaljerView.PartView(
                 id = person.foedselsnr,
                 name = person.settSammenNavn(),
@@ -335,7 +335,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
+                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
             )
         } else {
             val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
@@ -360,7 +360,7 @@ class BehandlingMapper(
 
         return if (isPerson) {
             val person = pdlFacade.getPersonInfo(identifier)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identifier)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
             BehandlingDetaljerView.PartViewWithUtsendingskanal(
                 id = person.foedselsnr,
                 name = person.settSammenNavn(),
@@ -368,7 +368,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
+                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
                 utsendingskanal = utsendingskanal
             )
         } else {
