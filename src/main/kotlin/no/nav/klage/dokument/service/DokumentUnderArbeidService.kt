@@ -104,13 +104,18 @@ class DokumentUnderArbeidService(
         file: File,
         filename: String?,
         utfoerendeIdent: String,
+        systemContext: Boolean,
     ): DokumentView {
         val dokumentType = DokumentType.of(dokumentTypeId)
 
         val title = filename ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i fil-request") })
 
         //Sjekker lesetilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = if (systemContext) {
+            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
+        } else {
+            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        }
 
         val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
 
@@ -263,6 +268,7 @@ class DokumentUnderArbeidService(
             file = filePath.toFile(),
             filename = filename,
             utfoerendeIdent = innloggetIdent,
+            systemContext = false,
         )
     }
 
@@ -958,13 +964,14 @@ class DokumentUnderArbeidService(
         behandlingId: UUID,
         dokumentId: UUID,
         mottakerInput: MottakerInput,
-        utfoerendeIdent: String
+        utfoerendeIdent: String,
+        systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
         //Validate parts
         mottakerInput.mottakerList.forEach { mottaker ->
             val part = partSearchService.searchPart(
                 identifikator = mottaker.id,
-                skipAccessControl = true
+                skipAccessControl = systemContext
             )
 
             when (part.type) {
@@ -1003,7 +1010,11 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid as DokumentUnderArbeidAsHoveddokument
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = if (systemContext) {
+            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
+        } else {
+            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        }
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke sette mottakere på et dokument som er ferdigstilt")
@@ -1029,6 +1040,7 @@ class DokumentUnderArbeidService(
                         mottakerId = it.id,
                         brukerId = behandling.sakenGjelder.partId.value,
                         tema = behandling.ytelse.toTema(),
+                        saksbehandlerContext = true,
                     )
 
                     if (isDeltAnsvar) {
@@ -2253,6 +2265,7 @@ class DokumentUnderArbeidService(
             file = tmpFile,
             filename = svarbrevInput.title,
             utfoerendeIdent = systembrukerIdent,
+            systemContext = true
         )
 
         updateMottakere(
@@ -2275,7 +2288,8 @@ class DokumentUnderArbeidService(
                     )
                 }
             ),
-            utfoerendeIdent = systembrukerIdent
+            utfoerendeIdent = systembrukerIdent,
+            systemContext = true,
         )
 
         val hovedDokument = finnOgMarkerFerdigHovedDokument(

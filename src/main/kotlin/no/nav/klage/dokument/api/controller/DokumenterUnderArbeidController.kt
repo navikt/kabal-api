@@ -145,7 +145,8 @@ class DokumentUnderArbeidController(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 mottakerInput = input,
-                utfoerendeIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+                utfoerendeIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                systemContext = false,
             ).modified
         )
     }
