@@ -1040,7 +1040,7 @@ class DokumentUnderArbeidService(
                         mottakerId = it.id,
                         brukerId = behandling.sakenGjelder.partId.value,
                         tema = behandling.ytelse.toTema(),
-                        saksbehandlerContext = true,
+                        saksbehandlerContext = !systemContext,
                     )
 
                     if (isDeltAnsvar) {
