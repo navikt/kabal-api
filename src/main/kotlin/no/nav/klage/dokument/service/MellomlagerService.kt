@@ -19,14 +19,18 @@ class MellomlagerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun uploadFile(file: File): String {
-        var start = System.currentTimeMillis()
+    fun uploadFile(
+        file: File,
+        systemContext: Boolean
+    ): String {
+        val start = System.currentTimeMillis()
         attachmentValidator.validateAttachment(file)
         logger.debug("Attachment validation took ${System.currentTimeMillis() - start} ms")
 
         return fileApiClient.uploadDocument(
             //If uploaded file is an image, convert to pdf
             resource = image2PDF.convertIfImage(file),
+            systemUser = systemContext
         )
     }
 

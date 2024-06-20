@@ -129,7 +129,7 @@ class DokumentUnderArbeidService(
             }
         }
 
-        val mellomlagerId = mellomlagerService.uploadFile(file)
+        val mellomlagerId = mellomlagerService.uploadFile(file = file, systemContext = systemContext)
 
         val now = LocalDateTime.now()
 
