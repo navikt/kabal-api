@@ -2220,9 +2220,11 @@ class DokumentUnderArbeidService(
             svarbrevInput = svarbrevInput,
             mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
             fristInWeeks = svarbrevInput.varsletBehandlingstidWeeks,
-            sakenGjelder = behandling.sakenGjelder.partId,
+            sakenGjelderIdentifikator =   behandling.sakenGjelder.partId.value,
+            sakenGjelderName = partSearchService.searchPart(identifikator = behandling.sakenGjelder.partId.value, skipAccessControl = true).name,
             ytelse = behandling.ytelse,
-            klager = behandling.klager.partId,
+            klagerIdentifikator = behandling.klager.partId.value,
+            klagerName = partSearchService.searchPart(identifikator = behandling.klager.partId.value, skipAccessControl = true).name,
             avsenderEnhetId = avsenderEnhetId,
         )
 

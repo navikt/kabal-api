@@ -28,22 +28,24 @@ class KabalJsonToPdfService(
         svarbrevInput: SvarbrevInput,
         mottattKlageinstans: LocalDate,
         fristInWeeks: Int,
-        sakenGjelder: PartId,
+        sakenGjelderIdentifikator: String,
+        sakenGjelderName: String,
         ytelse: Ytelse,
-        klager: PartId,
+        klagerIdentifikator: String,
+        klagerName: String,
         avsenderEnhetId: String,
     ): ByteArray {
         val bytes = kabalJsonToPdfClient.getSvarbrevPDF(
             svarbrevRequest = SvarbrevRequest(
                 title = svarbrevInput.title,
                 sakenGjelder = SvarbrevRequest.Part(
-                    name = partSearchService.searchPart(identifikator = sakenGjelder.value).name,
-                    fnr = sakenGjelder.value,
+                    name = sakenGjelderName,
+                    fnr = sakenGjelderIdentifikator,
                 ),
-                klager = if (klager.value != sakenGjelder.value) {
+                klager = if (klagerIdentifikator != sakenGjelderIdentifikator) {
                     SvarbrevRequest.Part(
-                        name = partSearchService.searchPart(identifikator = klager.value).name,
-                        fnr = klager.value,
+                        name = klagerName,
+                        fnr = klagerIdentifikator,
                     )
                 } else null,
                 ytelsenavn = ytelse.navn,
