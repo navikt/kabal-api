@@ -80,7 +80,9 @@ class MottakService(
         secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlage: {}", mottak)
         logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
 
-        createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+
+        sendSvarbrev(behandling = behandling)
 
         updateMetrics(
             kilde = oversendtKlage.kilde.name,
@@ -100,48 +102,59 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
-        try {
-            val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettings(ytelse = mottak.ytelse)
-
-            dokumentUnderArbeidService.createDokumentUnderArbeidFromSvarbrevInput(
-                behandling = behandling,
-                svarbrevInput = SvarbrevInput(
-                    title = "NAV orienterer om saksbehandlingen",
-                    receivers = listOf(
-                        SvarbrevInput.Receiver(
-                            id = behandling.sakenGjelder.partId.value,
-                            handling = SvarbrevInput.Receiver.HandlingEnum.AUTO,
-                            overriddenAddress = null
-                        )
-                    ),
-                    fullmektigFritekst = null,
-                    varsletBehandlingstidWeeks = svarbrevSettings.behandlingstidWeeks,
-                    type = behandling.type,
-                    customText = svarbrevSettings.customText,
-                )
-            )
-
-            val varsletFrist = behandling.mottattKlageinstans.toLocalDate().plusWeeks(svarbrevSettings.behandlingstidWeeks.toLong())
-            when (behandling) {
-                is Klagebehandling -> behandling.setVarsletFrist(
-                    nyVerdi = varsletFrist,
-                    saksbehandlerident = systembruker,
-                )
-                is Ankebehandling -> behandling.setVarsletFrist(
-                    nyVerdi = varsletFrist,
-                    saksbehandlerident = systembruker,
-                )
-            }
-
-        } catch (e: Exception) {
-            logger.error("Feil ved opprettelse av svarbrev.", e)
-        }
+        sendSvarbrev(behandling = behandling)
 
         updateMetrics(
             kilde = oversendtKlageAnke.kilde.name,
             ytelse = oversendtKlageAnke.ytelse.navn,
             type = oversendtKlageAnke.type.navn,
         )
+    }
+
+    private fun sendSvarbrev(
+        behandling: Behandling
+    ) {
+        try {
+            val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettings(ytelse = behandling.ytelse)
+
+            if (svarbrevSettings.shouldSend) {
+                dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrevInput(
+                    behandling = behandling,
+                    svarbrevInput = SvarbrevInput(
+                        title = "NAV orienterer om saksbehandlingen",
+                        receivers = listOf(
+                            SvarbrevInput.Receiver(
+                                id = behandling.sakenGjelder.partId.value,
+                                handling = SvarbrevInput.Receiver.HandlingEnum.AUTO,
+                                overriddenAddress = null
+                            )
+                        ),
+                        fullmektigFritekst = null,
+                        varsletBehandlingstidWeeks = svarbrevSettings.behandlingstidWeeks,
+                        type = behandling.type,
+                        customText = svarbrevSettings.customText,
+                    ),
+                    //Avklar hvilken enhet som skal brukes
+                    avsenderEnhetId = "UNKNOWN"
+                )
+
+                val varsletFrist = behandling.mottattKlageinstans.toLocalDate()
+                    .plusWeeks(svarbrevSettings.behandlingstidWeeks.toLong())
+                when (behandling) {
+                    is Klagebehandling -> behandling.setVarsletFrist(
+                        nyVerdi = varsletFrist,
+                        saksbehandlerident = systembruker,
+                    )
+
+                    is Ankebehandling -> behandling.setVarsletFrist(
+                        nyVerdi = varsletFrist,
+                        saksbehandlerident = systembruker,
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("Feil ved opprettelse av svarbrev.", e)
+        }
     }
 
     @Transactional
@@ -258,7 +271,7 @@ class MottakService(
     }
 
     @Transactional
-    fun createKlageMottakFromKabinInput(klageInput: CreateKlageBasedOnKabinInput): UUID {
+    fun createKlageMottakFromKabinInput(klageInput: CreateKlageBasedOnKabinInput): Behandling {
         secureLogger.debug("Prøver å lage mottak fra klage fra Kabin: {}", klageInput)
 
         klageInput.validate()
@@ -276,7 +289,7 @@ class MottakService(
             type = mottak.type.navn,
         )
 
-        return behandling.id
+        return behandling
     }
 
     private fun validateAnkeCreationBasedOnSourceBehandling(

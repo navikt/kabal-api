@@ -9,6 +9,7 @@ import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.gateway.AzureGateway
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -29,6 +30,7 @@ class KabinApiService(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
+    private val azureGateway: AzureGateway,
 ) {
 
     fun getCombinedAnkemuligheter(partIdValue: String): List<Ankemulighet> {
@@ -77,18 +79,6 @@ class KabinApiService(
             )
         }
 
-        if (input.saksbehandlerIdent != null) {
-            behandlingService.setSaksbehandler(
-                behandlingId = behandling.id,
-                tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
-                enhetId = saksbehandlerService.getEnhetForSaksbehandler(
-                    input.saksbehandlerIdent
-                ).enhetId,
-                fradelingReason = null,
-                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            )
-        }
-
         setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
             saksbehandlerIdent = input.saksbehandlerIdent,
@@ -117,9 +107,10 @@ class KabinApiService(
 
         //Create DokumentUnderArbeid from input based on svarbrevInput.
         if (svarbrevInput != null) {
-            dokumentUnderArbeidService.createDokumentUnderArbeidFromSvarbrevInput(
+            dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrevInput(
                 svarbrevInput = svarbrevInput,
                 behandling = behandling,
+                avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId
             )
         }
     }
@@ -155,28 +146,23 @@ class KabinApiService(
     fun createKlage(
         input: CreateKlageBasedOnKabinInput
     ): CreatedKlageResponse {
-        val behandlingId = mottakService.createKlageMottakFromKabinInput(klageInput = input)
-        if (input.saksbehandlerIdent != null) {
-            behandlingService.setSaksbehandler(
-                behandlingId = behandlingId,
-                tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
-                enhetId = saksbehandlerService.getEnhetForSaksbehandler(
-                    input.saksbehandlerIdent
-                ).enhetId,
-                fradelingReason = null,
-                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            )
-        }
+        val behandling = mottakService.createKlageMottakFromKabinInput(klageInput = input)
 
         if (input.oppgaveId != null) {
             behandlingService.setOppgaveId(
-                behandlingId = behandlingId,
+                behandlingId = behandling.id,
                 oppgaveId = input.oppgaveId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
 
-        return CreatedKlageResponse(behandlingId = behandlingId)
+        setSaksbehandlerAndCreateSvarbrev(
+            behandling = behandling,
+            saksbehandlerIdent = input.saksbehandlerIdent,
+            svarbrevInput = input.svarbrevInput,
+        )
+
+        return CreatedKlageResponse(behandlingId = behandling.id)
     }
 
     fun getCreatedKlagebehandlingStatus(

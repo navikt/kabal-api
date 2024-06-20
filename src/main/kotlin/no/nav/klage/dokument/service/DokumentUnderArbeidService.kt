@@ -17,9 +17,7 @@ import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
-import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.kodeverk.Template
+import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
 import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
@@ -88,6 +86,7 @@ class DokumentUnderArbeidService(
     private val kodeverkService: KodeverkService,
     private val dokDistKanalService: DokDistKanalService,
     private val azureGateway: DefaultAzureGateway,
+    private val kabalJsonToPdfService: KabalJsonToPdfService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -2215,37 +2214,19 @@ class DokumentUnderArbeidService(
         )
     }
 
-    fun createDokumentUnderArbeidFromSvarbrevInput(
+    fun createAndFinalizeDokumentUnderArbeidFromSvarbrevInput(
         svarbrevInput: SvarbrevInput,
-        behandling: Behandling
+        behandling: Behandling,
+        avsenderEnhetId: String,
     ): DokumentUnderArbeidAsHoveddokument {
-        val bytes = kabalJsonToPdfClient.getSvarbrevPDF(
-            svarbrevRequest = SvarbrevRequest(
-                title = svarbrevInput.title,
-                sakenGjelder = SvarbrevRequest.Part(
-                    name = partSearchService.searchPart(identifikator = behandling.sakenGjelder.partId.value).name,
-                    fnr = behandling.sakenGjelder.partId.value,
-                ),
-                klager = if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
-                    SvarbrevRequest.Part(
-                        name = partSearchService.searchPart(identifikator = behandling.klager.partId.value).name,
-                        fnr = behandling.klager.partId.value,
-                    )
-                } else null,
-                ytelsenavn = behandling.ytelse.navn,
-                fullmektigFritekst = svarbrevInput.fullmektigFritekst,
-                receivedDate = behandling.mottattKlageinstans.toLocalDate(),
-                behandlingstidInWeeks = svarbrevInput.varsletBehandlingstidWeeks,
-                avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
-                type = if (svarbrevInput.type == null) {
-                    SvarbrevRequest.Type.ANKE
-                } else {
-                    SvarbrevRequest.Type.valueOf(
-                        svarbrevInput.type.name.uppercase()
-                    )
-                },
-                customText = svarbrevInput.customText,
-            )
+        val bytes = kabalJsonToPdfService.getSvarbrevPDF(
+            svarbrevInput = svarbrevInput,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            fristInWeeks = svarbrevInput.varsletBehandlingstidWeeks,
+            sakenGjelder = behandling.sakenGjelder.partId,
+            ytelse = behandling.ytelse,
+            klager = behandling.klager.partId,
+            avsenderEnhetId = avsenderEnhetId,
         )
 
         val tmpFile = Files.createTempFile(null, null).toFile()
