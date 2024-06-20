@@ -185,7 +185,7 @@ class StatistikkTilDVHService(
 
     private fun getResultat(behandling: Behandling): String? =
         if (behandling.feilregistrering != null) {
-            ExternalUtfall.FEILREGISTRERT.navn
+            "Feilregistrert"
         } else if (behandling.avsluttetAvSaksbehandler != null) {
             behandling.utfall?.navn
         } else {
