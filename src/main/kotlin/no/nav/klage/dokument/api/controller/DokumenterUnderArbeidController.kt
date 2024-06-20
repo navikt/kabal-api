@@ -145,7 +145,7 @@ class DokumentUnderArbeidController(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
                 mottakerInput = input,
-                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+                utfoerendeIdent = innloggetSaksbehandlerService.getInnloggetIdent()
             ).modified
         )
     }
@@ -273,7 +273,8 @@ class DokumentUnderArbeidController(
             modified = dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
                 behandlingId = behandlingId,
                 dokumentId = dokumentId,
-                innloggetIdent = ident,
+                utfoerendeIdent = ident,
+                systemContext = false,
             ).modified
         )
     }

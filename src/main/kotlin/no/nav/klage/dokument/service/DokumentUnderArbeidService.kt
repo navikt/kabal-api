@@ -103,7 +103,7 @@ class DokumentUnderArbeidService(
         parentId: UUID?,
         file: File,
         filename: String?,
-        innloggetIdent: String,
+        utfoerendeIdent: String,
     ): DokumentView {
         val dokumentType = DokumentType.of(dokumentTypeId)
 
@@ -112,7 +112,7 @@ class DokumentUnderArbeidService(
         //Sjekker lesetilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
-        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
+        val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
 
         if (dokumentType.isUtgaaende() && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
             if (behandling.avsluttetAvSaksbehandler == null) {
@@ -137,7 +137,7 @@ class DokumentUnderArbeidService(
                     name = title,
                     dokumentType = dokumentType,
                     behandlingId = behandlingId,
-                    creatorIdent = innloggetIdent,
+                    creatorIdent = utfoerendeIdent,
                     creatorRole = behandlingRole,
                     created = now,
                     modified = now,
@@ -154,7 +154,7 @@ class DokumentUnderArbeidService(
                     size = file.length(),
                     name = title,
                     behandlingId = behandlingId,
-                    creatorIdent = innloggetIdent,
+                    creatorIdent = utfoerendeIdent,
                     creatorRole = behandlingRole,
                     parentId = parentId,
                     created = now,
@@ -163,7 +163,7 @@ class DokumentUnderArbeidService(
             )
         }
         behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_OPPLASTET,
             fraVerdi = null,
             tilVerdi = document.created.toString(),
@@ -181,8 +181,8 @@ class DokumentUnderArbeidService(
             data = objectMapper.writeValueAsString(
                 DocumentsAddedEvent(
                     actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                        navIdent = utfoerendeIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -262,7 +262,7 @@ class DokumentUnderArbeidService(
             parentId = parentId,
             file = filePath.toFile(),
             filename = filename,
-            innloggetIdent = innloggetIdent,
+            utfoerendeIdent = innloggetIdent,
         )
     }
 
@@ -958,7 +958,7 @@ class DokumentUnderArbeidService(
         behandlingId: UUID,
         dokumentId: UUID,
         mottakerInput: MottakerInput,
-        innloggetIdent: String
+        utfoerendeIdent: String
     ): DokumentUnderArbeidAsHoveddokument {
         //Validate parts
         mottakerInput.mottakerList.forEach { mottaker ->
@@ -1056,7 +1056,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
             fraVerdi = previousValue.toString(),
             tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
@@ -1067,8 +1067,8 @@ class DokumentUnderArbeidService(
             data = objectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                        navIdent = utfoerendeIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -1305,7 +1305,8 @@ class DokumentUnderArbeidService(
     fun finnOgMarkerFerdigHovedDokument(
         behandlingId: UUID,
         dokumentId: UUID,
-        innloggetIdent: String,
+        utfoerendeIdent: String,
+        systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
         val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
@@ -1313,11 +1314,19 @@ class DokumentUnderArbeidService(
             throw RuntimeException("document is not hoveddokument")
         }
 
-        hovedDokument.journalfoerendeEnhetId = saksbehandlerService.getEnhetForSaksbehandler(
-            innloggetIdent
-        ).enhetId
+        hovedDokument.journalfoerendeEnhetId = if (systemContext) {
+            "9999"
+        } else {
+            saksbehandlerService.getEnhetForSaksbehandler(
+                utfoerendeIdent
+            ).enhetId
+        }
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
+        val behandling = if (systemContext) {
+            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(hovedDokument.behandlingId)
+        } else {
+            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
+        }
 
         if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
             hovedDokument.avsenderMottakerInfoSet.clear()
@@ -1351,12 +1360,12 @@ class DokumentUnderArbeidService(
         }
 
         val now = LocalDateTime.now()
-        hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = innloggetIdent)
+        hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = utfoerendeIdent)
 
         vedlegg.forEach {
             it.markerFerdigHvisIkkeAlleredeMarkertFerdig(
                 tidspunkt = now,
-                saksbehandlerIdent = innloggetIdent
+                saksbehandlerIdent = utfoerendeIdent
             )
         }
 
@@ -1368,7 +1377,7 @@ class DokumentUnderArbeidService(
         }
 
         behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_MARKERT_FERDIG,
             fraVerdi = null,
             tilVerdi = hovedDokument.markertFerdig.toString(),
@@ -1376,7 +1385,7 @@ class DokumentUnderArbeidService(
         )
 
         behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_BREVMOTTAKER_IDENTS,
             fraVerdi = null,
             tilVerdi = hovedDokument.avsenderMottakerInfoSet.joinToString { it.identifikator },
@@ -1389,8 +1398,8 @@ class DokumentUnderArbeidService(
             data = objectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                        navIdent = utfoerendeIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = vedlegg.map {
@@ -2220,11 +2229,17 @@ class DokumentUnderArbeidService(
             svarbrevInput = svarbrevInput,
             mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
             fristInWeeks = svarbrevInput.varsletBehandlingstidWeeks,
-            sakenGjelderIdentifikator =   behandling.sakenGjelder.partId.value,
-            sakenGjelderName = partSearchService.searchPart(identifikator = behandling.sakenGjelder.partId.value, skipAccessControl = true).name,
+            sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
+            sakenGjelderName = partSearchService.searchPart(
+                identifikator = behandling.sakenGjelder.partId.value,
+                skipAccessControl = true
+            ).name,
             ytelse = behandling.ytelse,
             klagerIdentifikator = behandling.klager.partId.value,
-            klagerName = partSearchService.searchPart(identifikator = behandling.klager.partId.value, skipAccessControl = true).name,
+            klagerName = partSearchService.searchPart(
+                identifikator = behandling.klager.partId.value,
+                skipAccessControl = true
+            ).name,
             avsenderEnhetId = avsenderEnhetId,
         )
 
@@ -2237,7 +2252,7 @@ class DokumentUnderArbeidService(
             parentId = null,
             file = tmpFile,
             filename = svarbrevInput.title,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            utfoerendeIdent = systembrukerIdent,
         )
 
         updateMottakere(
@@ -2260,13 +2275,14 @@ class DokumentUnderArbeidService(
                     )
                 }
             ),
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            utfoerendeIdent = systembrukerIdent
         )
 
         val hovedDokument = finnOgMarkerFerdigHovedDokument(
             behandlingId = behandling.id,
             dokumentId = documentView.id,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            utfoerendeIdent = systembrukerIdent,
+            systemContext = true
         )
 
         return hovedDokument
