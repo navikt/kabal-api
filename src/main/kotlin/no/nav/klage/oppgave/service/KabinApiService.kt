@@ -10,6 +10,7 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.gateway.AzureGateway
+import no.nav.klage.oppgave.util.TokenUtil
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -31,6 +32,7 @@ class KabinApiService(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
     private val azureGateway: AzureGateway,
+    private val tokenUtil: TokenUtil,
 ) {
 
     fun getCombinedAnkemuligheter(partIdValue: String): List<Ankemulighet> {
@@ -110,7 +112,8 @@ class KabinApiService(
             dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrevInput(
                 svarbrevInput = svarbrevInput,
                 behandling = behandling,
-                avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId
+                avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
+                systemContext = false,
             )
         }
     }

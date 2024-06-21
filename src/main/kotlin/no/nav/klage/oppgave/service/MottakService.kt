@@ -134,8 +134,9 @@ class MottakService(
                         type = behandling.type,
                         customText = svarbrevSettings.customText,
                     ),
-                    //Avklar hvilken enhet som skal brukes
-                    avsenderEnhetId = "4291"
+                    //Hardcode KA Oslo
+                    avsenderEnhetId = "4291",
+                    systemContext = true
                 )
 
                 val varsletFrist = behandling.mottattKlageinstans.toLocalDate()

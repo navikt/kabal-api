@@ -84,6 +84,7 @@ class DokumentUnderArbeidService(
     private val kodeverkService: KodeverkService,
     private val dokDistKanalService: DokDistKanalService,
     private val kabalJsonToPdfService: KabalJsonToPdfService,
+    private val tokenUtil: TokenUtil,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -2236,6 +2237,7 @@ class DokumentUnderArbeidService(
         svarbrevInput: SvarbrevInput,
         behandling: Behandling,
         avsenderEnhetId: String,
+        systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
         val bytes = kabalJsonToPdfService.getSvarbrevPDF(
             svarbrevInput = svarbrevInput,
@@ -2244,13 +2246,13 @@ class DokumentUnderArbeidService(
             sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
             sakenGjelderName = partSearchService.searchPart(
                 identifikator = behandling.sakenGjelder.partId.value,
-                skipAccessControl = true
+                skipAccessControl = systemContext
             ).name,
             ytelse = behandling.ytelse,
             klagerIdentifikator = behandling.klager.partId.value,
             klagerName = partSearchService.searchPart(
                 identifikator = behandling.klager.partId.value,
-                skipAccessControl = true
+                skipAccessControl = systemContext
             ).name,
             avsenderEnhetId = avsenderEnhetId,
         )
@@ -2264,8 +2266,8 @@ class DokumentUnderArbeidService(
             parentId = null,
             file = tmpFile,
             filename = svarbrevInput.title,
-            utfoerendeIdent = systembrukerIdent,
-            systemContext = true
+            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
+            systemContext = systemContext
         )
 
         updateMottakere(
@@ -2288,15 +2290,15 @@ class DokumentUnderArbeidService(
                     )
                 }
             ),
-            utfoerendeIdent = systembrukerIdent,
-            systemContext = true,
+            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
+            systemContext = systemContext,
         )
 
         val hovedDokument = finnOgMarkerFerdigHovedDokument(
             behandlingId = behandling.id,
             dokumentId = documentView.id,
-            utfoerendeIdent = systembrukerIdent,
-            systemContext = true
+            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
+            systemContext = systemContext
         )
 
         return hovedDokument

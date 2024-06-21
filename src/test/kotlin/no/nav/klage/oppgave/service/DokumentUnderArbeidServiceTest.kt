@@ -130,6 +130,7 @@ class DokumentUnderArbeidServiceTest {
             kodeverkService = mockk(),
             dokDistKanalService = mockk(),
             kabalJsonToPdfService = mockk(),
+            tokenUtil = mockk()
         )
 
         val behandlingId = UUID.randomUUID()
