@@ -253,7 +253,7 @@ class MockDataController(
         val fnr = fnrAndJournalpostId.fnr
         val lastMonth = LocalDate.now().minusMonths(1).toEpochDay()
         val now = LocalDate.now().toEpochDay()
-        val dato = LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(lastMonth, now))
+        val dato = mockInput?.sakMottattKaTidspunkt ?: LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(lastMonth, now))
 
         val klager = mockInput?.klager ?: OversendtKlager(
             id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
@@ -361,6 +361,7 @@ class MockDataController(
         val dvhReferanse: String?,
         val forrigeBehandlendeEnhet: String?,
         val kommentar: String?,
+        val sakMottattKaTidspunkt: LocalDate?,
     )
 
     val hjemlerHJE_HJE = listOf(
