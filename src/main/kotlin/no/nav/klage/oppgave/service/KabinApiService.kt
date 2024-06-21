@@ -112,6 +112,7 @@ class KabinApiService(
             dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrevInput(
                 svarbrevInput = svarbrevInput,
                 behandling = behandling,
+                //TODO: Mulig denne skal hardkodes til Oslo?
                 avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
                 systemContext = false,
             )
