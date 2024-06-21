@@ -77,7 +77,7 @@ adRoles:
   - name: EGEN_ANSATT_ROLE_ID
     value: dbe4ad45-320b-4e9a-aaa1-73cca4ee124d
   - name: KABAL_ADMIN_ROLE_ID
-    value: a9f5ef81-4e81-42e8-b368-0273071b64b9
+    value: 14d756b4-d014-419a-a5bc-b8f9e31ce248
   - name: KABAL_ROL_ROLE_ID
     value: 615a97fc-f49c-48d1-8265-28bd9f435ce4
   - name: KABAL_KROL_ROLE_ID
