@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -11,7 +12,6 @@ import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnCompleteKabinInput
 import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnKabinInput
 import no.nav.klage.oppgave.api.view.kabin.CreateKlageBasedOnKabinInput
-import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
 import no.nav.klage.oppgave.api.view.toMottak
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
@@ -118,14 +118,14 @@ class MottakService(
             val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettings(ytelse = behandling.ytelse)
 
             if (svarbrevSettings.shouldSend) {
-                dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrevInput(
+                dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
                     behandling = behandling,
-                    svarbrevInput = SvarbrevInput(
+                    svarbrev = Svarbrev(
                         title = "NAV orienterer om saksbehandlingen",
                         receivers = listOf(
-                            SvarbrevInput.Receiver(
+                            Svarbrev.Receiver(
                                 id = behandling.sakenGjelder.partId.value,
-                                handling = SvarbrevInput.Receiver.HandlingEnum.AUTO,
+                                handling = Svarbrev.Receiver.HandlingEnum.AUTO,
                                 overriddenAddress = null
                             )
                         ),

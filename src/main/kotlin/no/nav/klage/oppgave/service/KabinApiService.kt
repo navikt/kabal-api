@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.DokumentView
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
@@ -10,7 +11,6 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.gateway.AzureGateway
-import no.nav.klage.oppgave.util.TokenUtil
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -32,7 +32,7 @@ class KabinApiService(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
     private val azureGateway: AzureGateway,
-    private val tokenUtil: TokenUtil,
+    private val svarbrevSettingsService: SvarbrevSettingsService,
 ) {
 
     fun getCombinedAnkemuligheter(partIdValue: String): List<Ankemulighet> {
@@ -109,14 +109,40 @@ class KabinApiService(
 
         //Create DokumentUnderArbeid from input based on svarbrevInput.
         if (svarbrevInput != null) {
-            dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrevInput(
-                svarbrevInput = svarbrevInput,
+            dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
+                svarbrev = svarbrevInput.toSvarbrev(behandling = behandling),
                 behandling = behandling,
                 //TODO: Mulig denne skal hardkodes til Oslo?
                 avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
                 systemContext = false,
             )
         }
+    }
+
+    private fun SvarbrevInput.toSvarbrev(behandling: Behandling): Svarbrev {
+        val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettings(ytelse = behandling.ytelse)
+        return Svarbrev(
+            title = title,
+            receivers = receivers.map { receiver ->
+                Svarbrev.Receiver(
+                    id = receiver.id,
+                    overriddenAddress = receiver.overriddenAddress?.let {
+                        Svarbrev.Receiver.AddressInput(
+                            adresselinje1 = it.adresselinje1,
+                            adresselinje2 = it.adresselinje2,
+                            adresselinje3 = it.adresselinje3,
+                            landkode = it.landkode,
+                            postnummer = it.postnummer,
+                        )
+                    },
+                    handling = Svarbrev.Receiver.HandlingEnum.valueOf(receiver.handling.name),
+                )
+            },
+            fullmektigFritekst = fullmektigFritekst,
+            varsletBehandlingstidWeeks = varsletBehandlingstidWeeks,
+            type = behandling.type,
+            customText = svarbrevSettings.customText,
+        )
     }
 
     fun getCreatedAnkebehandlingStatus(

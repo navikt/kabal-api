@@ -19,7 +19,6 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
-import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -2233,16 +2232,16 @@ class DokumentUnderArbeidService(
         )
     }
 
-    fun createAndFinalizeDokumentUnderArbeidFromSvarbrevInput(
-        svarbrevInput: SvarbrevInput,
+    fun createAndFinalizeDokumentUnderArbeidFromSvarbrev(
+        svarbrev: Svarbrev,
         behandling: Behandling,
         avsenderEnhetId: String,
         systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
         val bytes = kabalJsonToPdfService.getSvarbrevPDF(
-            svarbrevInput = svarbrevInput,
+            svarbrev = svarbrev,
             mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
-            fristInWeeks = svarbrevInput.varsletBehandlingstidWeeks,
+            fristInWeeks = svarbrev.varsletBehandlingstidWeeks,
             sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
             sakenGjelderName = partSearchService.searchPart(
                 identifikator = behandling.sakenGjelder.partId.value,
@@ -2265,7 +2264,7 @@ class DokumentUnderArbeidService(
             dokumentTypeId = DokumentType.SVARBREV.id,
             parentId = null,
             file = tmpFile,
-            filename = svarbrevInput.title,
+            filename = svarbrev.title,
             utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
             systemContext = systemContext
         )
@@ -2274,7 +2273,7 @@ class DokumentUnderArbeidService(
             behandlingId = behandling.id,
             dokumentId = documentView.id,
             mottakerInput = MottakerInput(
-                svarbrevInput.receivers.map {
+                svarbrev.receivers.map {
                     Mottaker(
                         id = it.id,
                         handling = HandlingEnum.valueOf(it.handling.name),

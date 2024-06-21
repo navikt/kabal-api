@@ -46,9 +46,9 @@ class SvarbrevPreviewController(
         ).name
 
         kabalJsonToPdfService.getSvarbrevPDF(
-            svarbrevInput = input.svarbrevInput,
+            svarbrev = input.svarbrev,
             mottattKlageinstans = input.mottattKlageinstans,
-            fristInWeeks = input.svarbrevInput.varsletBehandlingstidWeeks,
+            fristInWeeks = input.svarbrev.varsletBehandlingstidWeeks,
             sakenGjelderIdentifikator = input.sakenGjelder.value,
             sakenGjelderName = sakenGjelderName,
             ytelse = Ytelse.of(input.ytelseId),

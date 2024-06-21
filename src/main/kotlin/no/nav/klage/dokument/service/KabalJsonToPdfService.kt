@@ -5,8 +5,8 @@ import no.nav.klage.dokument.clients.kabaljsontopdf.domain.DocumentValidationRes
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.SvarbrevRequest
 import no.nav.klage.dokument.domain.PDFDocument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.kodeverk.Ytelse
-import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -22,7 +22,7 @@ class KabalJsonToPdfService(
     }
 
     fun getSvarbrevPDF(
-        svarbrevInput: SvarbrevInput,
+        svarbrev: Svarbrev,
         mottattKlageinstans: LocalDate,
         fristInWeeks: Int,
         sakenGjelderIdentifikator: String,
@@ -34,7 +34,7 @@ class KabalJsonToPdfService(
     ): ByteArray {
         val bytes = kabalJsonToPdfClient.getSvarbrevPDF(
             svarbrevRequest = SvarbrevRequest(
-                title = svarbrevInput.title,
+                title = svarbrev.title,
                 sakenGjelder = SvarbrevRequest.Part(
                     name = sakenGjelderName,
                     fnr = sakenGjelderIdentifikator,
@@ -46,18 +46,14 @@ class KabalJsonToPdfService(
                     )
                 } else null,
                 ytelsenavn = ytelse.navn,
-                fullmektigFritekst = svarbrevInput.fullmektigFritekst,
+                fullmektigFritekst = svarbrev.fullmektigFritekst,
                 receivedDate = mottattKlageinstans,
-                behandlingstidInWeeks = svarbrevInput.varsletBehandlingstidWeeks,
+                behandlingstidInWeeks = svarbrev.varsletBehandlingstidWeeks,
                 avsenderEnhetId = avsenderEnhetId,
-                type = if (svarbrevInput.type == null) {
-                    SvarbrevRequest.Type.ANKE
-                } else {
-                    SvarbrevRequest.Type.valueOf(
-                        svarbrevInput.type.navn.uppercase()
-                    )
-                },
-                customText = svarbrevInput.customText,
+                type = SvarbrevRequest.Type.valueOf(
+                    svarbrev.type.navn.uppercase()
+                ),
+                customText = svarbrev.customText,
             )
         )
         return bytes
