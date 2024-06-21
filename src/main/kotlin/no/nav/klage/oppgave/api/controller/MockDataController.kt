@@ -285,6 +285,7 @@ class MockDataController(
                         sakMottattKaDato = dato,
                         innsendtTilNav = dato.minusDays(3),
                         kilde = Fagsystem.AO01,
+                        kommentar = mockInput?.kommentar,
                     )
                 )
             }
@@ -359,6 +360,7 @@ class MockDataController(
         val kildeReferanse: String?,
         val dvhReferanse: String?,
         val forrigeBehandlendeEnhet: String?,
+        val kommentar: String?,
     )
 
     val hjemlerHJE_HJE = listOf(
