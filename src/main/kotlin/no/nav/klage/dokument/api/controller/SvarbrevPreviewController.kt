@@ -55,10 +55,8 @@ class SvarbrevPreviewController(
         }
     }
 
-    //For debugging
-    @Unprotected
     @ResponseBody
-    @PostMapping("/svarbrev-preview-anonymous")
+    @PostMapping("/svarbrev-preview/anonymous")
     fun getSvarbrevPreviewAnonymous(
         @RequestBody input: PreviewSvarbrevAnonymousInput,
     ): ResponseEntity<ByteArray> {
