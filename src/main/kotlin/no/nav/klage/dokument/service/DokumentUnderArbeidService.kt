@@ -2241,7 +2241,6 @@ class DokumentUnderArbeidService(
         val bytes = kabalJsonToPdfService.getSvarbrevPDF(
             svarbrev = svarbrev,
             mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
-            fristInWeeks = svarbrev.varsletBehandlingstidWeeks,
             sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
             sakenGjelderName = partSearchService.searchPart(
                 identifikator = behandling.sakenGjelder.partId.value,

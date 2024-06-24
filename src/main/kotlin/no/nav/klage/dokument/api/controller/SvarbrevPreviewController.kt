@@ -2,14 +2,17 @@ package no.nav.klage.dokument.api.controller
 
 
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.dokument.api.view.PreviewAnkeSvarbrevInput
+import no.nav.klage.dokument.api.view.PreviewSvarbrevAnonymousInput
+import no.nav.klage.dokument.api.view.PreviewSvarbrevInput
 import no.nav.klage.dokument.service.KabalJsonToPdfService
+import no.nav.klage.dokument.service.SvarbrevPreviewService
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.service.PartSearchService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
+import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -23,9 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "kabal-api-dokumenter")
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 class SvarbrevPreviewController(
-    private val kabalJsonToPdfService: KabalJsonToPdfService,
-    private val partSearchService: PartSearchService,
-    private val azureGateway: AzureGateway,
+    private val svarbrevPreviewService: SvarbrevPreviewService,
 ) {
 
     companion object {
@@ -36,36 +37,37 @@ class SvarbrevPreviewController(
     @ResponseBody
     @PostMapping("/svarbrev-preview")
     fun getSvarbrevPreview(
-        @RequestBody input: PreviewAnkeSvarbrevInput,
+        @RequestBody input: PreviewSvarbrevInput,
     ): ResponseEntity<ByteArray> {
         logger.debug("Kall mottatt på getSvarbrevPreview")
 
-        val sakenGjelderName = partSearchService.searchPart(
-            identifikator = input.sakenGjelder.value,
-            skipAccessControl = true
-        ).name
-
-        kabalJsonToPdfService.getSvarbrevPDF(
-            svarbrev = input.svarbrev,
-            mottattKlageinstans = input.mottattKlageinstans,
-            fristInWeeks = input.svarbrev.varsletBehandlingstidWeeks,
-            sakenGjelderIdentifikator = input.sakenGjelder.value,
-            sakenGjelderName = sakenGjelderName,
-            ytelse = Ytelse.of(input.ytelseId),
-            klagerIdentifikator = input.klager?.value ?: input.sakenGjelder.value,
-            klagerName = if (input.klager != null) {
-                partSearchService.searchPart(
-                    identifikator = input.klager.value,
-                    skipAccessControl = true
-                ).name
-            } else {
-                sakenGjelderName
-            },
-            avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
+        svarbrevPreviewService.getSvarbrevPreviewPDF(
+            input = input
         ).let {
             val responseHeaders = HttpHeaders()
             responseHeaders.contentType = MediaType.APPLICATION_PDF
-            responseHeaders.add("Content-Disposition", "inline; filename=svarbrev.pdf")
+            responseHeaders.add("Content-Disposition", "inline; filename=svarbrev-preview.pdf")
+            return ResponseEntity(
+                it,
+                responseHeaders,
+                HttpStatus.OK
+            )
+        }
+    }
+
+    //For debugging
+    @Unprotected
+    @ResponseBody
+    @PostMapping("/svarbrev-preview-anonymous")
+    fun getSvarbrevPreviewAnonymous(
+        @RequestBody input: PreviewSvarbrevAnonymousInput,
+    ): ResponseEntity<ByteArray> {
+        logger.debug("Kall mottatt på getSvarbrevPreviewAnonymous")
+
+        svarbrevPreviewService.getAnonymousSvarbrevPreviewPDF(input = input).let {
+            val responseHeaders = HttpHeaders()
+            responseHeaders.contentType = MediaType.APPLICATION_PDF
+            responseHeaders.add("Content-Disposition", "inline; filename=svarbrev-preview.pdf")
             return ResponseEntity(
                 it,
                 responseHeaders,

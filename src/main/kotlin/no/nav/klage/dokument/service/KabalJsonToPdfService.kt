@@ -24,7 +24,6 @@ class KabalJsonToPdfService(
     fun getSvarbrevPDF(
         svarbrev: Svarbrev,
         mottattKlageinstans: LocalDate,
-        fristInWeeks: Int,
         sakenGjelderIdentifikator: String,
         sakenGjelderName: String,
         ytelse: Ytelse,
