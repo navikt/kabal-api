@@ -114,47 +114,49 @@ class MottakService(
     private fun sendSvarbrev(
         behandling: Behandling
     ) {
-        try {
-            val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettings(ytelse = behandling.ytelse)
+        if (behandling.type == Type.KLAGE) {
+            try {
+                val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettings(ytelse = behandling.ytelse)
 
-            if (svarbrevSettings.shouldSend) {
-                dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
-                    behandling = behandling,
-                    svarbrev = Svarbrev(
-                        title = "NAV orienterer om saksbehandlingen",
-                        receivers = listOf(
-                            Svarbrev.Receiver(
-                                id = behandling.sakenGjelder.partId.value,
-                                handling = Svarbrev.Receiver.HandlingEnum.AUTO,
-                                overriddenAddress = null
-                            )
+                if (svarbrevSettings.shouldSend) {
+                    dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
+                        behandling = behandling,
+                        svarbrev = Svarbrev(
+                            title = "NAV orienterer om saksbehandlingen",
+                            receivers = listOf(
+                                Svarbrev.Receiver(
+                                    id = behandling.sakenGjelder.partId.value,
+                                    handling = Svarbrev.Receiver.HandlingEnum.AUTO,
+                                    overriddenAddress = null
+                                )
+                            ),
+                            fullmektigFritekst = null,
+                            varsletBehandlingstidWeeks = svarbrevSettings.behandlingstidWeeks,
+                            type = behandling.type,
+                            customText = svarbrevSettings.customText,
                         ),
-                        fullmektigFritekst = null,
-                        varsletBehandlingstidWeeks = svarbrevSettings.behandlingstidWeeks,
-                        type = behandling.type,
-                        customText = svarbrevSettings.customText,
-                    ),
-                    //Hardcode KA Oslo
-                    avsenderEnhetId = "4291",
-                    systemContext = true
-                )
-
-                val varsletFrist = behandling.mottattKlageinstans.toLocalDate()
-                    .plusWeeks(svarbrevSettings.behandlingstidWeeks.toLong())
-                when (behandling) {
-                    is Klagebehandling -> behandling.setVarsletFrist(
-                        nyVerdi = varsletFrist,
-                        saksbehandlerident = systembruker,
+                        //Hardcode KA Oslo
+                        avsenderEnhetId = "4291",
+                        systemContext = true
                     )
 
-                    is Ankebehandling -> behandling.setVarsletFrist(
-                        nyVerdi = varsletFrist,
-                        saksbehandlerident = systembruker,
-                    )
+                    val varsletFrist = behandling.mottattKlageinstans.toLocalDate()
+                        .plusWeeks(svarbrevSettings.behandlingstidWeeks.toLong())
+                    when (behandling) {
+                        is Klagebehandling -> behandling.setVarsletFrist(
+                            nyVerdi = varsletFrist,
+                            saksbehandlerident = systembruker,
+                        )
+
+                        is Ankebehandling -> behandling.setVarsletFrist(
+                            nyVerdi = varsletFrist,
+                            saksbehandlerident = systembruker,
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                logger.error("Feil ved opprettelse av svarbrev.", e)
             }
-        } catch (e: Exception) {
-            logger.error("Feil ved opprettelse av svarbrev.", e)
         }
     }
 
