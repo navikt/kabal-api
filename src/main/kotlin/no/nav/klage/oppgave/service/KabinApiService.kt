@@ -4,6 +4,7 @@ import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
+import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
@@ -112,8 +113,8 @@ class KabinApiService(
             dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
                 svarbrev = svarbrevInput.toSvarbrev(behandling = behandling),
                 behandling = behandling,
-                //TODO: Mulig denne skal hardkodes til Oslo?
-                avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
+                //Hardkodes til KA Oslo
+                avsenderEnhetId = Enhet.E4291.navn,
                 systemContext = false,
             )
         }

@@ -48,7 +48,7 @@ class SvarbrevPreviewService(
             } else {
                 sakenGjelderName
             },
-            avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
+            avsenderEnhetId = Enhet.E4291.navn,
         )
     }
 

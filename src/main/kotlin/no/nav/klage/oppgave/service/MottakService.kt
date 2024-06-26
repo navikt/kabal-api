@@ -136,7 +136,7 @@ class MottakService(
                             customText = svarbrevSettings.customText,
                         ),
                         //Hardcode KA Oslo
-                        avsenderEnhetId = "4291",
+                        avsenderEnhetId = Enhet.E4291.navn,
                         systemContext = true
                     )
 
