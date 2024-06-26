@@ -6,6 +6,7 @@ import no.nav.klage.oppgave.api.view.SvarbrevSettingsView
 import no.nav.klage.oppgave.api.view.UpdateSvarbrevSettingsInput
 import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 import no.nav.klage.oppgave.domain.klage.SvarbrevSettingsHistory
+import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.SvarbrevSettingsRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import org.springframework.stereotype.Service
@@ -19,6 +20,7 @@ class SvarbrevSettingsService(
     private val svarbrevSettingsRepository: SvarbrevSettingsRepository,
     private val tokenUtil: TokenUtil,
     private val saksbehandlerService: SaksbehandlerService,
+    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService
 ) {
     fun getSvarbrevSettings(): List<SvarbrevSettingsView> {
         return svarbrevSettingsRepository.findAll()
@@ -34,18 +36,21 @@ class SvarbrevSettingsService(
         id: UUID,
         updateSvarbrevSettingsInput: UpdateSvarbrevSettingsInput
     ): SvarbrevSettingsView {
-        val svarbrevSettings = svarbrevSettingsRepository.findById(id).get()
-        svarbrevSettings.apply {
-            behandlingstidWeeks = updateSvarbrevSettingsInput.behandlingstidWeeks
-            customText = updateSvarbrevSettingsInput.customText
-            shouldSend = updateSvarbrevSettingsInput.shouldSend
-            createdBy = tokenUtil.getIdent()
-            modified = LocalDateTime.now()
-        }
+        //TODO: Sett inn riktig rolle når den fins.
+        if (innloggetSaksbehandlerService.isKabalSvarbrevinnstillinger()) {
+            val svarbrevSettings = svarbrevSettingsRepository.findById(id).get()
+            svarbrevSettings.apply {
+                behandlingstidWeeks = updateSvarbrevSettingsInput.behandlingstidWeeks
+                customText = updateSvarbrevSettingsInput.customText
+                shouldSend = updateSvarbrevSettingsInput.shouldSend
+                createdBy = tokenUtil.getIdent()
+                modified = LocalDateTime.now()
+            }
 
-        svarbrevSettings.history.add(svarbrevSettings.toHistory())
+            svarbrevSettings.history.add(svarbrevSettings.toHistory())
 
-        return svarbrevSettings.toView()
+            return svarbrevSettings.toView()
+        } else throw MissingTilgangException("Du har ikke tilgang til å oppdatere svarbrevinnstillinger. Ta kontakt med identansvarlig.")
     }
 
     fun getSvarbrevSettingsHistory(id: UUID): List<SvarbrevSettingsView> {

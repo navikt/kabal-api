@@ -27,7 +27,6 @@ class SvarbrevSettingsController(
         @PathVariable id: UUID,
         @RequestBody input: UpdateSvarbrevSettingsInput
     ): SvarbrevSettingsView {
-        //Sjekk rolle når den fins
         return svarbrevSettingsService.updateSvarbrevSettings(id = id, updateSvarbrevSettingsInput = input)
     }
 
