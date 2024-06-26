@@ -27,14 +27,23 @@ class KrrProxyClient(
     }
 
     @Cacheable(CacheWithJCacheConfiguration.KRR_INFO_CACHE)
-    fun getDigitalKontaktinformasjonForFnr(fnr: String): DigitalKontaktinformasjon? {
+    fun getDigitalKontaktinformasjonForFnrOnBehalfOf(fnr: String): DigitalKontaktinformasjon? {
+        return getDigitalKontaktinformasjon(fnr = fnr, token = tokenUtil.getOnBehalfOfTokenWithKrrProxyScope())
+    }
+
+    @Cacheable(CacheWithJCacheConfiguration.KRR_INFO_CACHE)
+    fun getDigitalKontaktinformasjonForFnrAppAccess(fnr: String): DigitalKontaktinformasjon? {
+        return getDigitalKontaktinformasjon(fnr = fnr, token = tokenUtil.getAppAccessTokenWithKrrProxyScope())
+    }
+
+    private fun getDigitalKontaktinformasjon(fnr: String, token: String): DigitalKontaktinformasjon? {
         logger.debug("Getting info from KRR")
         return krrProxyWebClient.get()
             .uri("/rest/v1/person")
             .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKrrProxyScope()}"
+                "Bearer $token"
             )
             .header(
                 "Nav-Personident",
@@ -42,10 +51,11 @@ class KrrProxyClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getDigitalKontaktinformasjonForFnr.name, secureLogger)
+                logErrorResponse(response, ::getDigitalKontaktinformasjonForFnrOnBehalfOf.name, secureLogger)
             }
             .bodyToMono<DigitalKontaktinformasjon>()
             .onErrorResume { Mono.empty() }
             .block()
     }
+
 }

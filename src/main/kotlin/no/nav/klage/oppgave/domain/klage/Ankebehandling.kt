@@ -28,6 +28,8 @@ class Ankebehandling(
     var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = true)
     val kakaKvalitetsvurderingVersion: Int,
+    @Column(name = "varslet_frist")
+    var varsletFrist: LocalDate? = null,
 
 //    Finn ut hvordan dette skal fungere i anker etter hvert
 //    @Column(name = "dato_behandling_avsluttet_av_saksbehandler")

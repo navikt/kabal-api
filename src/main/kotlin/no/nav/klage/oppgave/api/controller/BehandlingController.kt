@@ -11,6 +11,7 @@ import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
@@ -194,6 +195,31 @@ class BehandlingController(
         val modified = behandlingService.setFrist(
             behandlingId = behandlingId,
             frist = input.date,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+
+        return BehandlingEditedView(modified = modified)
+    }
+
+    @PutMapping("/{behandlingId}/varsletfrist")
+    fun setVarsletFrist(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @RequestBody input: BehandlingDateInput
+    ): BehandlingEditedView {
+        logBehandlingMethodDetails(
+            ::setVarsletFrist.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        if (!innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+            throw MissingTilgangException("${innloggetSaksbehandlerService.getInnloggetIdent()} does not have the right to modify varslet frist")
+        }
+
+        val modified = behandlingService.setVarsletFrist(
+            behandlingId = behandlingId,
+            varsletFrist = input.date,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
 

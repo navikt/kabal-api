@@ -34,6 +34,7 @@ import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setSendtTilTrygderetten
+import no.nav.klage.oppgave.domain.klage.AnkebehandlingSetters.setVarsletFrist
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokumenter
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.removeSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttetAvSaksbehandler
@@ -55,6 +56,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setSattPaaVent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setTildeling
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtaksinstans
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setVarsletFrist
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -118,7 +120,12 @@ class BehandlingService(
         }
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
-        return behandlingMapper.mapToBehandlingFullfoertView(markerBehandlingSomAvsluttetAvSaksbehandler(behandling, innloggetIdent))
+        return behandlingMapper.mapToBehandlingFullfoertView(
+            markerBehandlingSomAvsluttetAvSaksbehandler(
+                behandling,
+                innloggetIdent
+            )
+        )
     }
 
     private fun markerBehandlingSomAvsluttetAvSaksbehandler(
@@ -579,7 +586,7 @@ class BehandlingService(
         utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
         if (!innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
-            throw MissingTilgangException("$utfoerendeSaksbehandlerIdent does not have the right to modify frist")
+            throw MissingTilgangException("$utfoerendeSaksbehandlerIdent does not have the right to modify oppgaveId")
         }
 
         val behandling = getBehandlingForUpdate(
@@ -590,6 +597,38 @@ class BehandlingService(
 
         applicationEventPublisher.publishEvent(event)
         return behandling.modified
+    }
+
+    fun setVarsletFrist(
+        behandlingId: UUID,
+        varsletFrist: LocalDate,
+        utfoerendeSaksbehandlerIdent: String,
+    ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = true
+        )
+        val event = when (behandling) {
+            is Klagebehandling -> {
+                behandling.setVarsletFrist(
+                    nyVerdi = varsletFrist,
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent
+                )
+            }
+
+            is Ankebehandling -> {
+                behandling.setVarsletFrist(
+                    nyVerdi = varsletFrist,
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent
+                )
+            }
+
+            else -> throw IllegalOperation("Dette feltet kan bare settes i klage- og ankesaker")
+        }
+
+        applicationEventPublisher.publishEvent(event)
+        return behandling.modified
+
     }
 
     fun setExpiredTildeltSaksbehandlerToNullInSystemContext(
@@ -1427,7 +1466,11 @@ class BehandlingService(
     }
 
     fun getBehandlingDetaljerView(behandlingId: UUID): BehandlingDetaljerView {
-        return behandlingMapper.mapBehandlingToBehandlingDetaljerView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId))
+        return behandlingMapper.mapBehandlingToBehandlingDetaljerView(
+            getBehandlingAndCheckLeseTilgangForPerson(
+                behandlingId
+            )
+        )
     }
 
     fun getBehandlingROLView(behandlingId: UUID): RolView {

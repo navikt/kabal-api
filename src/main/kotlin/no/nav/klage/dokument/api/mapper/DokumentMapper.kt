@@ -171,6 +171,7 @@ class DokumentMapper(
                                     mottakerId = it.identifikator,
                                     brukerId = behandling.sakenGjelder.partId.value,
                                     tema = behandling.ytelse.toTema(),
+                                    saksbehandlerContext = true,
                                 )
                             ),
                         )

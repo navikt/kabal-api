@@ -25,6 +25,7 @@ data class OppgaveView(
     val saksnummer: String,
     val previousSaksbehandler: SaksbehandlerView?,
     val datoSendtTilTR: LocalDate?,
+    val varsletFrist: LocalDate?,
 ) {
 
     data class SattPaaVent(

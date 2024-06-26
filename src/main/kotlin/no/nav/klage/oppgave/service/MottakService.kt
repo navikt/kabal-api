@@ -2,6 +2,8 @@ package no.nav.klage.oppgave.service
 
 
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
+import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
@@ -16,6 +18,8 @@ import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.config.incrementMottattKlageAnke
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.klage.AnkebehandlingSetters.setVarsletFrist
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setVarsletFrist
 import no.nav.klage.oppgave.domain.kodeverk.LovligeTyper
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
@@ -30,6 +34,7 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.isValidFnrOrDnr
 import no.nav.klage.oppgave.util.isValidOrgnr
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -51,6 +56,9 @@ class MottakService(
     private val createBehandlingFromMottak: CreateBehandlingFromMottak,
     private val pdlFacade: PdlFacade,
     private val eregClient: EregClient,
+    private val dokumentUnderArbeidService: DokumentUnderArbeidService,
+    private val svarbrevSettingsService: SvarbrevSettingsService,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembruker: String,
 ) {
 
     private val lovligeTyperIMottakV2 = LovligeTyper.lovligeTyper(environment)
@@ -72,7 +80,9 @@ class MottakService(
         secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlage: {}", mottak)
         logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
 
-        createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+
+        sendSvarbrev(behandling = behandling)
 
         updateMetrics(
             kilde = oversendtKlage.kilde.name,
@@ -90,13 +100,64 @@ class MottakService(
         secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlageAnke: {}", mottak)
         logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
 
-        createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+
+        sendSvarbrev(behandling = behandling)
 
         updateMetrics(
             kilde = oversendtKlageAnke.kilde.name,
             ytelse = oversendtKlageAnke.ytelse.navn,
             type = oversendtKlageAnke.type.navn,
         )
+    }
+
+    private fun sendSvarbrev(
+        behandling: Behandling
+    ) {
+        if (behandling.type == Type.KLAGE) {
+            try {
+                val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettings(ytelse = behandling.ytelse)
+
+                if (svarbrevSettings.shouldSend) {
+                    dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
+                        behandling = behandling,
+                        svarbrev = Svarbrev(
+                            title = "NAV orienterer om saksbehandlingen",
+                            receivers = listOf(
+                                Svarbrev.Receiver(
+                                    id = behandling.sakenGjelder.partId.value,
+                                    handling = Svarbrev.Receiver.HandlingEnum.AUTO,
+                                    overriddenAddress = null
+                                )
+                            ),
+                            fullmektigFritekst = null,
+                            varsletBehandlingstidWeeks = svarbrevSettings.behandlingstidWeeks,
+                            type = behandling.type,
+                            customText = svarbrevSettings.customText,
+                        ),
+                        //Hardcode KA Oslo
+                        avsenderEnhetId = Enhet.E4291.navn,
+                        systemContext = true
+                    )
+
+                    val varsletFrist = behandling.mottattKlageinstans.toLocalDate()
+                        .plusWeeks(svarbrevSettings.behandlingstidWeeks.toLong())
+                    when (behandling) {
+                        is Klagebehandling -> behandling.setVarsletFrist(
+                            nyVerdi = varsletFrist,
+                            saksbehandlerident = systembruker,
+                        )
+
+                        is Ankebehandling -> behandling.setVarsletFrist(
+                            nyVerdi = varsletFrist,
+                            saksbehandlerident = systembruker,
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                logger.error("Feil ved opprettelse av svarbrev.", e)
+            }
+        }
     }
 
     @Transactional
@@ -114,7 +175,12 @@ class MottakService(
             oversendtKlageAnke.type.navn
         )
 
-        return createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+
+        //For verification
+        sendSvarbrev(behandling = behandling)
+
+        return behandling
     }
 
     private fun updateMetrics(
@@ -213,7 +279,7 @@ class MottakService(
     }
 
     @Transactional
-    fun createKlageMottakFromKabinInput(klageInput: CreateKlageBasedOnKabinInput): UUID {
+    fun createKlageMottakFromKabinInput(klageInput: CreateKlageBasedOnKabinInput): Behandling {
         secureLogger.debug("Prøver å lage mottak fra klage fra Kabin: {}", klageInput)
 
         klageInput.validate()
@@ -231,7 +297,7 @@ class MottakService(
             type = mottak.type.navn,
         )
 
-        return behandling.id
+        return behandling
     }
 
     private fun validateAnkeCreationBasedOnSourceBehandling(

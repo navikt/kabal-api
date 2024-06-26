@@ -1,7 +1,6 @@
 package no.nav.klage.dokument.service
 
 import no.nav.klage.dokument.api.mapper.DokumentMapper
-import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
@@ -26,7 +25,7 @@ class InnholdsfortegnelseService(
     private val dokumentUnderArbeidCommonService: DokumentUnderArbeidCommonService,
     private val dokumentMapper: DokumentMapper,
     private val mellomlagerService: MellomlagerService,
-    private val kabalJsonToPdfClient: KabalJsonToPdfClient,
+    private val kabalJsonToPdfService: KabalJsonToPdfService,
     private val innholdsfortegnelseRepository: InnholdsfortegnelseRepository,
     private val behandlingService: BehandlingService,
     private val safFacade: SafFacade,
@@ -95,7 +94,7 @@ class InnholdsfortegnelseService(
         )
 
         val pdfDocument =
-            kabalJsonToPdfClient.getInnholdsfortegnelse(
+            kabalJsonToPdfService.getInnholdsfortegnelse(
                 InnholdsfortegnelseRequest(
                     documents = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
                         allDokumenterUnderArbeid = vedlegg,

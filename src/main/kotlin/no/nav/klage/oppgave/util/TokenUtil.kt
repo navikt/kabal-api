@@ -133,6 +133,12 @@ class TokenUtil(
         return response.accessToken!!
     }
 
+    fun getAppAccessTokenWithRegoppslagScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["regoppslag-maskintilmaskin"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken!!
+    }
+
     fun getOnBehalfOfTokenWithDokDistKanalScope(): String {
         val clientProperties = clientConfigurationProperties.registration["dok-dist-kanal-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
@@ -147,6 +153,12 @@ class TokenUtil(
 
     fun getOnBehalfOfTokenWithKrrProxyScope(): String {
         val clientProperties = clientConfigurationProperties.registration["krr-proxy-onbehalfof"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.accessToken!!
+    }
+
+    fun getAppAccessTokenWithKrrProxyScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["krr-proxy-maskintilmaskin"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.accessToken!!
     }

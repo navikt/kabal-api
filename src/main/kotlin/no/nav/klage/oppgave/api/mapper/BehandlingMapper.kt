@@ -103,6 +103,7 @@ class BehandlingMapper(
             medunderskriver = klagebehandling.toMedunderskriverView(),
             saksbehandler = klagebehandling.toSaksbehandlerView(),
             previousSaksbehandler = klagebehandling.toPreviousSaksbehandlerView(),
+            varsletFrist = klagebehandling.varsletFrist,
         )
     }
 
@@ -204,6 +205,7 @@ class BehandlingMapper(
             medunderskriver = ankebehandling.toMedunderskriverView(),
             saksbehandler = ankebehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankebehandling.toPreviousSaksbehandlerView(),
+            varsletFrist = ankebehandling.varsletFrist,
         )
     }
 
@@ -256,13 +258,14 @@ class BehandlingMapper(
             medunderskriver = ankeITrygderettenbehandling.toMedunderskriverView(),
             saksbehandler = ankeITrygderettenbehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankeITrygderettenbehandling.toPreviousSaksbehandlerView(),
+            varsletFrist = null,
         )
     }
 
     fun getSakenGjelderView(sakenGjelder: SakenGjelder): BehandlingDetaljerView.SakenGjelderView {
         if (sakenGjelder.erPerson()) {
             val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(sakenGjelder.partId.value)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(sakenGjelder.partId.value)
             return BehandlingDetaljerView.SakenGjelderView(
                 id = person.foedselsnr,
                 name = person.settSammenNavn(),
@@ -272,7 +275,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
+                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -283,11 +286,12 @@ class BehandlingMapper(
         val sakenGjelder = behandling.sakenGjelder
         if (sakenGjelder.erPerson()) {
             val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(sakenGjelder.partId.value)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(sakenGjelder.partId.value)
             val utsendingskanal = dokDistKanalService.getUtsendingskanal(
                 mottakerId = sakenGjelder.partId.value,
                 brukerId = sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
+                saksbehandlerContext = true
             )
             return BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal(
                 id = person.foedselsnr,
@@ -298,7 +302,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
+                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
                 utsendingskanal = utsendingskanal
             )
         } else {
@@ -324,7 +328,7 @@ class BehandlingMapper(
     private fun getPartView(identifier: String, isPerson: Boolean): BehandlingDetaljerView.PartView {
         return if (isPerson) {
             val person = pdlFacade.getPersonInfo(identifier)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identifier)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
             BehandlingDetaljerView.PartView(
                 id = person.foedselsnr,
                 name = person.settSammenNavn(),
@@ -332,7 +336,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
+                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
             )
         } else {
             val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
@@ -353,11 +357,12 @@ class BehandlingMapper(
             mottakerId = identifier,
             brukerId = behandling.sakenGjelder.partId.value,
             tema = behandling.ytelse.toTema(),
+            saksbehandlerContext = true,
         )
 
         return if (isPerson) {
             val person = pdlFacade.getPersonInfo(identifier)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnr(identifier)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
             BehandlingDetaljerView.PartViewWithUtsendingskanal(
                 id = person.foedselsnr,
                 name = person.settSammenNavn(),
@@ -365,7 +370,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
+                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
                 utsendingskanal = utsendingskanal
             )
         } else {
@@ -609,6 +614,7 @@ class BehandlingMapper(
             saksnummer = behandling.fagsakId,
             previousSaksbehandler = behandling.toPreviousSaksbehandlerView(),
             datoSendtTilTR = if (behandling is AnkeITrygderettenbehandling) behandling.sendtTilTrygderetten.toLocalDate() else null,
+            varsletFrist = if (behandling is Klagebehandling) behandling.varsletFrist else if (behandling is Ankebehandling) behandling.varsletFrist else null,
         )
     }
 

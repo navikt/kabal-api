@@ -94,6 +94,7 @@ data class CreateKlageBasedOnKabinInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
+    val svarbrevInput: SvarbrevInput?,
     val oppgaveId: Long?,
 ) {
     data class OversendtPartId(
@@ -112,10 +113,12 @@ data class CreateKlageBasedOnKabinInput(
 }
 
 data class SvarbrevInput(
-    val title: String = "Anke - orientering om saksbehandlingstid",
+    val title: String,
     val receivers: List<Receiver>,
     val fullmektigFritekst: String?,
+    val varsletBehandlingstidWeeks: Int,
 ) {
+
     data class Receiver(
         val id: String,
         val handling: HandlingEnum,
