@@ -217,8 +217,7 @@ class DokumentUnderArbeidService(
 
         start = System.currentTimeMillis()
         val contentLength = uploadRequest.getHeader("Content-Length")?.toInt() ?: 0
-        logger.debug("Checked Content-Length header in {} ms", System.currentTimeMillis() - start)
-
+        logger.debug("Checked Content-Length header in {} ms. It was {}", (System.currentTimeMillis() - start), contentLength)
 
         //257 MB
         if (contentLength > 269484032) {
