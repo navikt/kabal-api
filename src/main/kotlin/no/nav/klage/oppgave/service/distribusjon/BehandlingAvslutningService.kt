@@ -142,31 +142,31 @@ class BehandlingAvslutningService(
                     )
                 )
                 logger.debug("Behandlingen som er avsluttet ble sendt tilbake til Infotrygd.")
-            }
-
-            val behandlingEvent = BehandlingEvent(
-                eventId = UUID.randomUUID(),
-                kildeReferanse = behandling.kildeReferanse,
-                kilde = behandling.fagsystem.navn,
-                kabalReferanse = behandling.id.toString(),
-                type = when (behandling.type) {
-                    Type.KLAGE -> KLAGEBEHANDLING_AVSLUTTET
-                    Type.ANKE -> ANKEBEHANDLING_AVSLUTTET
-                    Type.ANKE_I_TRYGDERETTEN -> ANKEBEHANDLING_AVSLUTTET
-                },
-                detaljer = getBehandlingDetaljer(behandling, hoveddokumenter)
-            )
-            kafkaEventRepository.save(
-                KafkaEvent(
-                    id = UUID.randomUUID(),
-                    behandlingId = behandlingId,
-                    kilde = behandling.fagsystem.navn,
+            } else {
+                //Notify modern fagsystem
+                val behandlingEvent = BehandlingEvent(
+                    eventId = UUID.randomUUID(),
                     kildeReferanse = behandling.kildeReferanse,
-                    jsonPayload = objectMapperBehandlingEvents.writeValueAsString(behandlingEvent),
-                    type = EventType.BEHANDLING_EVENT
+                    kilde = behandling.fagsystem.navn,
+                    kabalReferanse = behandling.id.toString(),
+                    type = when (behandling.type) {
+                        Type.KLAGE -> KLAGEBEHANDLING_AVSLUTTET
+                        Type.ANKE -> ANKEBEHANDLING_AVSLUTTET
+                        Type.ANKE_I_TRYGDERETTEN -> ANKEBEHANDLING_AVSLUTTET
+                    },
+                    detaljer = getBehandlingDetaljer(behandling, hoveddokumenter)
                 )
-            )
-
+                kafkaEventRepository.save(
+                    KafkaEvent(
+                        id = UUID.randomUUID(),
+                        behandlingId = behandlingId,
+                        kilde = behandling.fagsystem.navn,
+                        kildeReferanse = behandling.kildeReferanse,
+                        jsonPayload = objectMapperBehandlingEvents.writeValueAsString(behandlingEvent),
+                        type = EventType.BEHANDLING_EVENT
+                    )
+                )
+            }
         }
 
         val event = behandling.setAvsluttet(systembrukerIdent)
@@ -218,7 +218,6 @@ class BehandlingAvslutningService(
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
                         avsluttet = behandling.avsluttetAvSaksbehandler!!,
-                        //TODO: Se på utfallsliste når vi har den endelige for ankeITrygderetten
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
                         journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
                             .map { it.journalpostId }
