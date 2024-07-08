@@ -12,6 +12,6 @@ enum class ExternalUtfall(val navn: String) {
     INNSTILLING_STADFESTELSE("Innstilling: Stadfestelse"),
     INNSTILLING_AVVIST("Innstilling: Avvist"),
     HENVIST("Henvist"),
-    //TODO: Uavklart hva som skal gjøres for "HEVET" fra TR
+    HEVET("Hevet"),
     ;
 }
