@@ -36,7 +36,8 @@ class SvarbrevSettingsRepositoryTest {
     fun `add svarbrevSettings works`() {
         val svarbrevSettings = SvarbrevSettings(
             ytelse = Ytelse.TIL_TIP,
-            behandlingstidWeeks = 12,
+            behandlingstidUnits = 12,
+            behandlingstidUnitType = SvarbrevSettings.BehandlingstidUnitType.WEEKS,
             customText = "custom text",
             shouldSend = true,
             created = LocalDateTime.now(),
@@ -56,7 +57,8 @@ class SvarbrevSettingsRepositoryTest {
     fun `add svarbrevSettings with history works`() {
         val svarbrevSettings = SvarbrevSettings(
             ytelse = Ytelse.TIL_TIP,
-            behandlingstidWeeks = 12,
+            behandlingstidUnits = 12,
+            behandlingstidUnitType = SvarbrevSettings.BehandlingstidUnitType.WEEKS,
             customText = "custom text",
             shouldSend = true,
             created = LocalDateTime.now(),

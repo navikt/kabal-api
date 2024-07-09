@@ -72,6 +72,9 @@ internal class DuplicateOversendelseTest {
     @MockkBean(relaxed = true)
     lateinit var svarbrevSettingsService: SvarbrevSettingsService
 
+    @MockkBean(relaxed = true)
+    lateinit var behandlingService: BehandlingService
+
     @Autowired
     lateinit var mottakService: MottakService
 

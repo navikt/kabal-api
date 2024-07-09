@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.view.kabin
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.domain.klage.PartId
+import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 import java.time.LocalDate
 import java.util.*
 
@@ -116,7 +117,8 @@ data class SvarbrevInput(
     val title: String,
     val receivers: List<Receiver>,
     val fullmektigFritekst: String?,
-    val varsletBehandlingstidWeeks: Int,
+    val varsletBehandlingstidUnits: Int,
+    val varsletBehandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
 ) {
 
     data class Receiver(

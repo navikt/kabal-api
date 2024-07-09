@@ -13,8 +13,10 @@ class SvarbrevSettings(
     @Column(name = "ytelse_id")
     @Convert(converter = YtelseConverter::class)
     val ytelse: Ytelse,
-    @Column(name = "behandlingstid_weeks")
-    var behandlingstidWeeks: Int,
+    @Column(name = "behandlingstid_units")
+    var behandlingstidUnits: Int,
+    @Column(name = "behandlingstid_unit_type")
+    var behandlingstidUnitType: BehandlingstidUnitType,
     @Column(name = "custom_text")
     var customText: String?,
     @Column(name = "should_send")
@@ -30,11 +32,17 @@ class SvarbrevSettings(
     val history: MutableSet<SvarbrevSettingsHistory> = mutableSetOf()
 ) {
 
+    enum class BehandlingstidUnitType {
+        WEEKS,
+        MONTHS,
+    }
+
     fun toHistory(): SvarbrevSettingsHistory {
         return SvarbrevSettingsHistory(
             svarbrevSettings = this,
             ytelse = ytelse,
-            behandlingstidWeeks = behandlingstidWeeks,
+            behandlingstidUnits = behandlingstidUnits,
+            behandlingstidUnitType = behandlingstidUnitType,
             customText = customText,
             shouldSend = shouldSend,
             created = modified,
@@ -56,7 +64,7 @@ class SvarbrevSettings(
     }
 
     override fun toString(): String {
-        return "SvarbrevSettings(id=$id, ytelse=$ytelse, behandlingstidWeeks=$behandlingstidWeeks, customText=$customText, shouldSend=$shouldSend, created=$created, modified=$modified, createdBy='$createdBy')"
+        return "SvarbrevSettings(id=$id, ytelse=$ytelse, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, customText=$customText, shouldSend=$shouldSend, created=$created, modified=$modified, createdBy='$createdBy', history=$history)"
     }
 
 }

@@ -47,7 +47,8 @@ class KabalJsonToPdfService(
                 ytelsenavn = ytelse.navn,
                 fullmektigFritekst = svarbrev.fullmektigFritekst,
                 receivedDate = mottattKlageinstans,
-                behandlingstidInWeeks = svarbrev.varsletBehandlingstidWeeks,
+                behandlingstidUnits = svarbrev.varsletBehandlingstidUnits,
+                behandlingstidUnitType = svarbrev.varsletBehandlingstidUnitType,
                 avsenderEnhetId = avsenderEnhetId,
                 type = SvarbrevRequest.Type.valueOf(
                     svarbrev.type.navn.uppercase()

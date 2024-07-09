@@ -40,7 +40,8 @@ class SvarbrevSettingsService(
         if (innloggetSaksbehandlerService.isKabalSvarbrevinnstillinger()) {
             val svarbrevSettings = svarbrevSettingsRepository.findById(id).get()
             svarbrevSettings.apply {
-                behandlingstidWeeks = updateSvarbrevSettingsInput.behandlingstidWeeks
+                behandlingstidUnits = updateSvarbrevSettingsInput.behandlingstidUnits
+                behandlingstidUnitType = updateSvarbrevSettingsInput.behandlingstidUnitType
                 customText = updateSvarbrevSettingsInput.customText
                 shouldSend = updateSvarbrevSettingsInput.shouldSend
                 createdBy = tokenUtil.getIdent()
@@ -63,7 +64,8 @@ class SvarbrevSettingsService(
         return SvarbrevSettingsView(
             id = id,
             ytelseId = ytelse.id,
-            behandlingstidWeeks = behandlingstidWeeks,
+            behandlingstidUnits = behandlingstidUnits,
+            behandlingstidUnitType = behandlingstidUnitType,
             customText = customText,
             shouldSend = shouldSend,
             created = created,
@@ -79,7 +81,8 @@ class SvarbrevSettingsService(
         return SvarbrevSettingsView(
             id = id,
             ytelseId = ytelse.id,
-            behandlingstidWeeks = behandlingstidWeeks,
+            behandlingstidUnits = behandlingstidUnits,
+            behandlingstidUnitType = behandlingstidUnitType,
             customText = customText,
             shouldSend = shouldSend,
             created = created,

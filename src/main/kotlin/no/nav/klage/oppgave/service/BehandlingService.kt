@@ -100,7 +100,6 @@ class BehandlingService(
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
-
     fun ferdigstillBehandling(
         behandlingId: UUID,
         innloggetIdent: String,
@@ -597,6 +596,26 @@ class BehandlingService(
 
         applicationEventPublisher.publishEvent(event)
         return behandling.modified
+    }
+
+    fun setVarsletFrist(
+        behandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
+        behandlingstidUnits: Int,
+        behandling: Behandling
+    ) {
+        val varsletFrist = when (behandlingstidUnitType) {
+            SvarbrevSettings.BehandlingstidUnitType.WEEKS -> behandling.mottattKlageinstans.toLocalDate()
+                .plusWeeks(behandlingstidUnits.toLong())
+
+            SvarbrevSettings.BehandlingstidUnitType.MONTHS -> behandling.mottattKlageinstans.toLocalDate()
+                .plusMonths(behandlingstidUnits.toLong())
+        }
+
+        setVarsletFrist(
+            behandlingId = behandling.id,
+            varsletFrist = varsletFrist,
+            utfoerendeSaksbehandlerIdent = systembrukerIdent,
+        )
     }
 
     fun setVarsletFrist(

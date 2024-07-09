@@ -18,8 +18,6 @@ import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.config.incrementMottattKlageAnke
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.domain.klage.AnkebehandlingSetters.setVarsletFrist
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setVarsletFrist
 import no.nav.klage.oppgave.domain.kodeverk.LovligeTyper
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
@@ -58,6 +56,7 @@ class MottakService(
     private val eregClient: EregClient,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val svarbrevSettingsService: SvarbrevSettingsService,
+    private val behandlingService: BehandlingService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembruker: String,
 ) {
 
@@ -131,7 +130,8 @@ class MottakService(
                                 )
                             ),
                             fullmektigFritekst = null,
-                            varsletBehandlingstidWeeks = svarbrevSettings.behandlingstidWeeks,
+                            varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
+                            varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
                             type = behandling.type,
                             customText = svarbrevSettings.customText,
                         ),
@@ -140,19 +140,11 @@ class MottakService(
                         systemContext = true
                     )
 
-                    val varsletFrist = behandling.mottattKlageinstans.toLocalDate()
-                        .plusWeeks(svarbrevSettings.behandlingstidWeeks.toLong())
-                    when (behandling) {
-                        is Klagebehandling -> behandling.setVarsletFrist(
-                            nyVerdi = varsletFrist,
-                            saksbehandlerident = systembruker,
-                        )
-
-                        is Ankebehandling -> behandling.setVarsletFrist(
-                            nyVerdi = varsletFrist,
-                            saksbehandlerident = systembruker,
-                        )
-                    }
+                    behandlingService.setVarsletFrist(
+                        behandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
+                        behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
+                        behandling = behandling,
+                    )
                 }
             } catch (e: Exception) {
                 logger.error("Feil ved opprettelse av svarbrev.", e)

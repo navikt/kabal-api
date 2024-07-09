@@ -64,7 +64,8 @@ class SvarbrevPreviewService(
                 title = "NAV orienterer om saksbehandlingen",
                 receivers = listOf(),
                 fullmektigFritekst = null,
-                varsletBehandlingstidWeeks = svarbrevSettings.behandlingstidWeeks,
+                varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
+                varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
                 type = input.type,
                 customText = svarbrevSettings.customText
             ),

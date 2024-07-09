@@ -117,6 +117,13 @@ class KabinApiService(
                 avsenderEnhetId = Enhet.E4291.navn,
                 systemContext = false,
             )
+
+            behandlingService.setVarsletFrist(
+                behandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType,
+                behandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
+                behandling = behandling,
+            )
+
         }
     }
 
@@ -140,7 +147,8 @@ class KabinApiService(
                 )
             },
             fullmektigFritekst = fullmektigFritekst,
-            varsletBehandlingstidWeeks = varsletBehandlingstidWeeks,
+            varsletBehandlingstidUnits = varsletBehandlingstidUnits,
+            varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
             type = behandling.type,
             customText = svarbrevSettings.customText,
         )

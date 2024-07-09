@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
 import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.oppgave.domain.klage.SvarbrevSettings.BehandlingstidUnitType
 import java.time.LocalDateTime
 import java.util.*
 
@@ -13,8 +14,10 @@ class SvarbrevSettingsHistory(
     @Column(name = "ytelse_id")
     @Convert(converter = YtelseConverter::class)
     val ytelse: Ytelse,
-    @Column(name = "behandlingstid_weeks")
-    val behandlingstidWeeks: Int,
+    @Column(name = "behandlingstid_units")
+    var behandlingstidUnits: Int,
+    @Column(name = "behandlingstid_unit_type")
+    var behandlingstidUnitType: BehandlingstidUnitType,
     @Column(name = "custom_text")
     val customText: String?,
     @Column(name = "created")
@@ -41,7 +44,7 @@ class SvarbrevSettingsHistory(
     }
 
     override fun toString(): String {
-        return "SvarbrevSettingsHistory(shouldSend=$shouldSend, createdBy='$createdBy', created=$created, customText=$customText, behandlingstidWeeks=$behandlingstidWeeks, ytelse=$ytelse, id=$id)"
+        return "SvarbrevSettingsHistory(id=$id, ytelse=$ytelse, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, customText=$customText, created=$created, createdBy='$createdBy', shouldSend=$shouldSend)"
     }
 
 }
