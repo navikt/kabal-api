@@ -3,7 +3,9 @@ package no.nav.klage.dokument.service
 import no.nav.klage.dokument.api.view.PreviewSvarbrevAnonymousInput
 import no.nav.klage.dokument.api.view.PreviewSvarbrevInput
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
+import no.nav.klage.dokument.exceptions.SvarbrevPreviewException
 import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.service.PartSearchService
@@ -28,6 +30,10 @@ class SvarbrevPreviewService(
     fun getSvarbrevPreviewPDF(
         input: PreviewSvarbrevInput
     ): ByteArray {
+        if (input.svarbrev.type !in listOf(Type.KLAGE, Type.ANKE)) {
+            throw SvarbrevPreviewException("Forhåndsvisning av svarbrev er bare tilgjengelig for Klage og Anke.")
+        }
+
         val sakenGjelderName = partSearchService.searchPart(
             identifikator = input.sakenGjelder.value,
             skipAccessControl = true
@@ -59,6 +65,10 @@ class SvarbrevPreviewService(
         val mockName = "Navn Navnesen"
         val mockIdentifikator = "123456789101"
 
+        if (input.typeId !in listOf(Type.KLAGE.id, Type.ANKE.id)) {
+            throw SvarbrevPreviewException("Forhåndsvisning av svarbrev er bare tilgjengelig for Klage og Anke.")
+        }
+
         return kabalJsonToPdfService.getSvarbrevPDF(
             svarbrev = Svarbrev(
                 title = "NAV orienterer om saksbehandlingen",
@@ -66,7 +76,7 @@ class SvarbrevPreviewService(
                 fullmektigFritekst = null,
                 varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
                 varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
-                type = input.type,
+                type = Type.of(input.typeId),
                 customText = svarbrevSettings.customText
             ),
             mottattKlageinstans = LocalDate.now(),

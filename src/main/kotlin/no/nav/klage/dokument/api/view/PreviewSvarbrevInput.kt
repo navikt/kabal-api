@@ -13,10 +13,11 @@ data class PreviewSvarbrevInput(
     val ytelseId: String,
     val svarbrev: Svarbrev,
     val klager: PartId?,
+    val typeId: String,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PreviewSvarbrevAnonymousInput(
     val ytelseId: String,
-    val type: Type,
+    val typeId: String,
 )
