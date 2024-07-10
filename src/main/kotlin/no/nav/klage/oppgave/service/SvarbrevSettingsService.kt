@@ -36,7 +36,6 @@ class SvarbrevSettingsService(
         id: UUID,
         updateSvarbrevSettingsInput: UpdateSvarbrevSettingsInput
     ): SvarbrevSettingsView {
-        //TODO: Sett inn riktig rolle når den fins.
         if (innloggetSaksbehandlerService.isKabalSvarbrevinnstillinger()) {
             val svarbrevSettings = svarbrevSettingsRepository.findById(id).get()
             svarbrevSettings.apply {

@@ -16,6 +16,7 @@ class SvarbrevSettings(
     @Column(name = "behandlingstid_units")
     var behandlingstidUnits: Int,
     @Column(name = "behandlingstid_unit_type")
+    @Enumerated(EnumType.STRING)
     var behandlingstidUnitType: BehandlingstidUnitType,
     @Column(name = "custom_text")
     var customText: String?,
