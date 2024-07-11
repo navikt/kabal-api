@@ -24,15 +24,17 @@ class SvarbrevSettingsService(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService
 ) {
     fun getSvarbrevSettings(): List<SvarbrevSettingsView> {
-        return svarbrevSettingsRepository.findAll().sortedWith(compareBy(SvarbrevSettings::ytelse).thenBy(SvarbrevSettings::type)).map { it.toView() }
+        return svarbrevSettingsRepository.findAll()
+            .sortedWith(compareBy<SvarbrevSettings> { it.ytelse.navn }.thenBy { it.type.id }).map { it.toView() }
     }
 
     fun getSvarbrevSettingsForYtelse(ytelse: Ytelse): List<SvarbrevSettingsView> {
-        return svarbrevSettingsRepository.findAll().filter { it.ytelse == ytelse }.sortedBy { it.type }.map { it.toView() }
+        return svarbrevSettingsRepository.findAll().filter { it.ytelse == ytelse }.sortedBy { it.type }
+            .map { it.toView() }
     }
 
     fun getSvarbrevSettingsForYtelseAndType(ytelse: Ytelse, type: Type): SvarbrevSettingsView {
-        return svarbrevSettingsRepository.findAll().find { it.ytelse == ytelse && it.type == type}!!.toView()
+        return svarbrevSettingsRepository.findAll().find { it.ytelse == ytelse && it.type == type }!!.toView()
     }
 
     fun updateSvarbrevSettings(
