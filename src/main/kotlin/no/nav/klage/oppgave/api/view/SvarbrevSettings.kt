@@ -26,5 +26,5 @@ data class SvarbrevSettingsView(
     val shouldSend: Boolean,
     val created: LocalDateTime,
     val modified: LocalDateTime,
-    val createdBy: SaksbehandlerView,
+    val modifiedBy: SaksbehandlerView,
 )

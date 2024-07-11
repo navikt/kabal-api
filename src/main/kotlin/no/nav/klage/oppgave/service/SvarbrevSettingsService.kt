@@ -93,7 +93,7 @@ class SvarbrevSettingsService(
             shouldSend = shouldSend,
             created = created,
             modified = modified,
-            createdBy = SaksbehandlerView(
+            modifiedBy = SaksbehandlerView(
                 navIdent = createdBy,
                 navn = saksbehandlerService.getNameForIdentDefaultIfNull(createdBy),
             )
@@ -111,7 +111,7 @@ class SvarbrevSettingsService(
             shouldSend = shouldSend,
             created = created,
             modified = created,
-            createdBy = SaksbehandlerView(
+            modifiedBy = SaksbehandlerView(
                 navIdent = createdBy,
                 navn = saksbehandlerService.getNameForIdentDefaultIfNull(createdBy),
             )
