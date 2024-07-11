@@ -1,11 +1,10 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.api.view.SvarbrevSettingsView
 import no.nav.klage.oppgave.api.view.UpdateSvarbrevSettingsInput
-import no.nav.klage.oppgave.api.view.YtelseSvarbrevSettingsView
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.SvarbrevSettingsService
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -21,8 +20,8 @@ class SvarbrevSettingsController(
 ) {
 
     @GetMapping
-    fun getSvarbrevSettings(): List<YtelseSvarbrevSettingsView> {
-        return svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType()
+    fun getSvarbrevSettings(): List<SvarbrevSettingsView> {
+        return svarbrevSettingsService.getSvarbrevSettings()
     }
 
     @GetMapping("/ytelser/{ytelseId}")
