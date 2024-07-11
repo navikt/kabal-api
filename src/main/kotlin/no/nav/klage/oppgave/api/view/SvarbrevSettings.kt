@@ -11,9 +11,15 @@ data class UpdateSvarbrevSettingsInput(
     val shouldSend: Boolean,
 )
 
+data class YtelseSvarbrevSettingsView(
+    val ytelseId: String,
+    val settings: List<SvarbrevSettingsView>
+)
+
 data class SvarbrevSettingsView(
     val id: UUID,
     val ytelseId: String,
+    val typeId: String,
     val behandlingstidUnits: Int,
     val behandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
     val customText: String?,

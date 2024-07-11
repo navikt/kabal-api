@@ -32,7 +32,6 @@ class KabinApiService(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
-    private val azureGateway: AzureGateway,
     private val svarbrevSettingsService: SvarbrevSettingsService,
 ) {
 
@@ -128,7 +127,10 @@ class KabinApiService(
     }
 
     private fun SvarbrevInput.toSvarbrev(behandling: Behandling): Svarbrev {
-        val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettings(ytelse = behandling.ytelse)
+        val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(
+            ytelse = behandling.ytelse,
+            type = behandling.type
+        )
         return Svarbrev(
             title = title,
             receivers = receivers.map { receiver ->

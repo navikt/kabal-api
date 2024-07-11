@@ -115,7 +115,7 @@ class MottakService(
     ) {
         if (behandling.type == Type.KLAGE) {
             try {
-                val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettings(ytelse = behandling.ytelse)
+                val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(ytelse = behandling.ytelse, type = behandling.type)
 
                 if (svarbrevSettings.shouldSend) {
                     dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(

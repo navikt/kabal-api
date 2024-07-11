@@ -1,9 +1,11 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.api.view.SvarbrevSettingsView
 import no.nav.klage.oppgave.api.view.UpdateSvarbrevSettingsInput
+import no.nav.klage.oppgave.api.view.YtelseSvarbrevSettingsView
 import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 import no.nav.klage.oppgave.domain.klage.SvarbrevSettingsHistory
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
@@ -22,14 +24,35 @@ class SvarbrevSettingsService(
     private val saksbehandlerService: SaksbehandlerService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService
 ) {
-    fun getSvarbrevSettings(): List<SvarbrevSettingsView> {
-        return svarbrevSettingsRepository.findAll()
-            .sortedBy { it.ytelse.navn }
-            .map { it.toView() }
+    fun getSvarbrevSettingsForYtelseAndType(): List<YtelseSvarbrevSettingsView> {
+        return mapToYtelseSvarbrevSettingsView(svarbrevSettingsRepository.findAll())
     }
 
-    fun getSvarbrevSettings(ytelse: Ytelse): SvarbrevSettingsView {
-        return svarbrevSettingsRepository.findAll().find { it.ytelse == ytelse}!!.toView()
+    private fun mapToYtelseSvarbrevSettingsView(svarbrevSettings: List<SvarbrevSettings>): List<YtelseSvarbrevSettingsView> {
+        val output = mutableListOf<YtelseSvarbrevSettingsView>()
+        val sortedSettings = svarbrevSettings.sortedWith(compareBy(SvarbrevSettings::ytelse).thenBy(SvarbrevSettings::type))
+        sortedSettings.mapIndexed { index, svarbrevSettings ->
+            if (index % 2 == 0) {
+                output.add(
+                    YtelseSvarbrevSettingsView(
+                        ytelseId = svarbrevSettings.ytelse.id,
+                        settings = listOf(
+                            sortedSettings[index].toView(),
+                            sortedSettings[index + 1].toView(),
+                        )
+                    )
+                )
+            }
+        }
+        return output
+    }
+
+    fun getSvarbrevSettingsForYtelse(ytelse: Ytelse): List<SvarbrevSettingsView> {
+        return svarbrevSettingsRepository.findAll().filter { it.ytelse == ytelse }.map { it.toView() }
+    }
+
+    fun getSvarbrevSettingsForYtelseAndType(ytelse: Ytelse, type: Type): SvarbrevSettingsView {
+        return svarbrevSettingsRepository.findAll().find { it.ytelse == ytelse && it.type == type}!!.toView()
     }
 
     fun updateSvarbrevSettings(
@@ -63,6 +86,7 @@ class SvarbrevSettingsService(
         return SvarbrevSettingsView(
             id = id,
             ytelseId = ytelse.id,
+            typeId = type.id,
             behandlingstidUnits = behandlingstidUnits,
             behandlingstidUnitType = behandlingstidUnitType,
             customText = customText,
@@ -80,6 +104,7 @@ class SvarbrevSettingsService(
         return SvarbrevSettingsView(
             id = id,
             ytelseId = ytelse.id,
+            typeId = type.id,
             behandlingstidUnits = behandlingstidUnits,
             behandlingstidUnitType = behandlingstidUnitType,
             customText = customText,

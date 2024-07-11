@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import java.time.LocalDateTime
 import java.util.*
@@ -28,6 +29,9 @@ class SvarbrevSettings(
     var modified: LocalDateTime,
     @Column(name = "created_by")
     var createdBy: String,
+    @Column(name = "type_id")
+    @Convert(converter = TypeConverter::class)
+    val type: Type,
     @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinColumn(name = "svarbrev_settings_id")
     val history: MutableSet<SvarbrevSettingsHistory> = mutableSetOf()
@@ -48,6 +52,7 @@ class SvarbrevSettings(
             shouldSend = shouldSend,
             created = modified,
             createdBy = createdBy,
+            type = type,
         )
     }
 
@@ -65,7 +70,6 @@ class SvarbrevSettings(
     }
 
     override fun toString(): String {
-        return "SvarbrevSettings(id=$id, ytelse=$ytelse, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, customText=$customText, shouldSend=$shouldSend, created=$created, modified=$modified, createdBy='$createdBy', history=$history)"
+        return "SvarbrevSettings(id=$id, ytelse=$ytelse, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, customText=$customText, shouldSend=$shouldSend, created=$created, modified=$modified, createdBy='$createdBy', type=$type)"
     }
-
 }

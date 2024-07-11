@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.repositories
 
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
@@ -36,6 +37,7 @@ class SvarbrevSettingsRepositoryTest {
     fun `add svarbrevSettings works`() {
         val svarbrevSettings = SvarbrevSettings(
             ytelse = Ytelse.TIL_TIP,
+            type = Type.KLAGE,
             behandlingstidUnits = 12,
             behandlingstidUnitType = SvarbrevSettings.BehandlingstidUnitType.WEEKS,
             customText = "custom text",
@@ -57,6 +59,7 @@ class SvarbrevSettingsRepositoryTest {
     fun `add svarbrevSettings with history works`() {
         val svarbrevSettings = SvarbrevSettings(
             ytelse = Ytelse.TIL_TIP,
+            type = Type.KLAGE,
             behandlingstidUnits = 12,
             behandlingstidUnitType = SvarbrevSettings.BehandlingstidUnitType.WEEKS,
             customText = "custom text",

@@ -7,7 +7,6 @@ import no.nav.klage.dokument.exceptions.SvarbrevPreviewException
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
-import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.service.PartSearchService
 import no.nav.klage.oppgave.service.SvarbrevSettingsService
 import no.nav.klage.oppgave.util.getLogger
@@ -18,7 +17,6 @@ import java.time.LocalDate
 class SvarbrevPreviewService(
     private val partSearchService: PartSearchService,
     private val kabalJsonToPdfService: KabalJsonToPdfService,
-    private val azureGateway: AzureGateway,
     private val svarbrevSettingsService: SvarbrevSettingsService,
 ) {
 
@@ -61,13 +59,12 @@ class SvarbrevPreviewService(
     fun getAnonymousSvarbrevPreviewPDF(
         input: PreviewSvarbrevAnonymousInput
     ): ByteArray {
-        val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettings(ytelse = Ytelse.of(input.ytelseId))
-        val mockName = "Navn Navnesen"
-        val mockIdentifikator = "123456789101"
-
         if (input.typeId !in listOf(Type.KLAGE.id, Type.ANKE.id)) {
             throw SvarbrevPreviewException("Forhåndsvisning av svarbrev er bare tilgjengelig for Klage og Anke.")
         }
+        val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(ytelse = Ytelse.of(input.ytelseId), type = Type.of(input.typeId))
+        val mockName = "Navn Navnesen"
+        val mockIdentifikator = "123456789101"
 
         return kabalJsonToPdfService.getSvarbrevPDF(
             svarbrev = Svarbrev(
