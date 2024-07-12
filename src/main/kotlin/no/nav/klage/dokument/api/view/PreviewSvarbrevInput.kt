@@ -5,6 +5,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.oppgave.domain.klage.PartId
 import java.time.LocalDate
 import no.nav.klage.kodeverk.Type
+import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PreviewSvarbrevInput(
@@ -20,4 +21,7 @@ data class PreviewSvarbrevInput(
 data class PreviewSvarbrevAnonymousInput(
     val ytelseId: String,
     val typeId: String,
+    val behandlingstidUnits: Int?,
+    val behandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType?,
+    val customText: String?,
 )

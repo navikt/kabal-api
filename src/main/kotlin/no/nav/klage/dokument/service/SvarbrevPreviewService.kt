@@ -71,10 +71,10 @@ class SvarbrevPreviewService(
                 title = "NAV orienterer om saksbehandlingen",
                 receivers = listOf(),
                 fullmektigFritekst = null,
-                varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
-                varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
+                varsletBehandlingstidUnits = input.behandlingstidUnits ?: svarbrevSettings.behandlingstidUnits,
+                varsletBehandlingstidUnitType = input.behandlingstidUnitType ?: svarbrevSettings.behandlingstidUnitType,
                 type = Type.of(input.typeId),
-                customText = svarbrevSettings.customText
+                customText = input.customText ?: svarbrevSettings.customText,
             ),
             mottattKlageinstans = LocalDate.now(),
             sakenGjelderIdentifikator = mockIdentifikator,
