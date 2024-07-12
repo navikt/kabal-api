@@ -23,5 +23,5 @@ data class PreviewSvarbrevAnonymousInput(
     val typeId: String,
     val behandlingstidUnits: Int,
     val behandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
-    val customText: String,
+    val customText: String?,
 )
