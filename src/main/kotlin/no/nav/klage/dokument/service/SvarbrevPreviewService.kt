@@ -8,7 +8,6 @@ import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.service.PartSearchService
-import no.nav.klage.oppgave.service.SvarbrevSettingsService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -17,7 +16,6 @@ import java.time.LocalDate
 class SvarbrevPreviewService(
     private val partSearchService: PartSearchService,
     private val kabalJsonToPdfService: KabalJsonToPdfService,
-    private val svarbrevSettingsService: SvarbrevSettingsService,
 ) {
 
     companion object {
@@ -62,7 +60,7 @@ class SvarbrevPreviewService(
         if (input.typeId !in listOf(Type.KLAGE.id, Type.ANKE.id)) {
             throw SvarbrevPreviewException("Forhåndsvisning av svarbrev er bare tilgjengelig for Klage og Anke.")
         }
-        val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(ytelse = Ytelse.of(input.ytelseId), type = Type.of(input.typeId))
+
         val mockName = "Navn Navnesen"
         val mockIdentifikator = "123456789101"
 
@@ -71,10 +69,10 @@ class SvarbrevPreviewService(
                 title = "NAV orienterer om saksbehandlingen",
                 receivers = listOf(),
                 fullmektigFritekst = null,
-                varsletBehandlingstidUnits = input.behandlingstidUnits ?: svarbrevSettings.behandlingstidUnits,
-                varsletBehandlingstidUnitType = input.behandlingstidUnitType ?: svarbrevSettings.behandlingstidUnitType,
+                varsletBehandlingstidUnits = input.behandlingstidUnits,
+                varsletBehandlingstidUnitType = input.behandlingstidUnitType,
                 type = Type.of(input.typeId),
-                customText = input.customText ?: svarbrevSettings.customText,
+                customText = input.customText,
             ),
             mottattKlageinstans = LocalDate.now(),
             sakenGjelderIdentifikator = mockIdentifikator,
