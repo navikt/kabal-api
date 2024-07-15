@@ -52,6 +52,7 @@ import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.math.log
 
 
 @Service
@@ -226,7 +227,9 @@ class DokumentUnderArbeidService(
 
         val upload = JakartaServletFileUpload()
         val parts = upload.getItemIterator(uploadRequest)
+        logger.debug("parts: {}", parts)
         parts.forEachRemaining { item ->
+            logger.debug("item: {}", item)
             val fieldName = item.fieldName
             start = System.currentTimeMillis()
             val inputStream = item.inputStream
