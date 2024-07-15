@@ -31,20 +31,20 @@ class SvarbrevPreviewService(
         }
 
         val sakenGjelderName = partSearchService.searchPart(
-            identifikator = input.sakenGjelder.value,
+            identifikator = input.sakenGjelder,
             skipAccessControl = true
         ).name
 
         return kabalJsonToPdfService.getSvarbrevPDF(
             svarbrev = input.svarbrev,
             mottattKlageinstans = input.mottattKlageinstans,
-            sakenGjelderIdentifikator = input.sakenGjelder.value,
+            sakenGjelderIdentifikator = input.sakenGjelder,
             sakenGjelderName = sakenGjelderName,
             ytelse = Ytelse.of(input.ytelseId),
-            klagerIdentifikator = input.klager?.value ?: input.sakenGjelder.value,
+            klagerIdentifikator = input.klager ?: input.sakenGjelder,
             klagerName = if (input.klager != null) {
                 partSearchService.searchPart(
-                    identifikator = input.klager.value,
+                    identifikator = input.klager,
                     skipAccessControl = true
                 ).name
             } else {

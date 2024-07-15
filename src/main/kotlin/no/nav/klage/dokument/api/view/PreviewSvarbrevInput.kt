@@ -10,10 +10,10 @@ import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class PreviewSvarbrevInput(
     val mottattKlageinstans: LocalDate,
-    val sakenGjelder: PartId,
+    val sakenGjelder: String,
     val ytelseId: String,
     val svarbrev: Svarbrev,
-    val klager: PartId?,
+    val klager: String?,
     val typeId: String,
 )
 
