@@ -7,7 +7,7 @@ import java.util.*
 data class UpdateSvarbrevSettingsInput(
     val behandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
     val behandlingstidUnits: Int,
-    val customText: String?,
+    val customText: String,
     val shouldSend: Boolean,
 )
 

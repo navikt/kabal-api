@@ -46,7 +46,7 @@ class SvarbrevSettingsService(
             svarbrevSettings.apply {
                 behandlingstidUnits = updateSvarbrevSettingsInput.behandlingstidUnits
                 behandlingstidUnitType = updateSvarbrevSettingsInput.behandlingstidUnitType
-                customText = updateSvarbrevSettingsInput.customText
+                customText = updateSvarbrevSettingsInput.customText.takeIf { it.isNotBlank() }
                 shouldSend = updateSvarbrevSettingsInput.shouldSend
                 createdBy = tokenUtil.getIdent()
                 modified = LocalDateTime.now()
