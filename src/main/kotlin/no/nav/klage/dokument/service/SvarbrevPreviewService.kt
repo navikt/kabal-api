@@ -26,7 +26,7 @@ class SvarbrevPreviewService(
     fun getSvarbrevPreviewPDF(
         input: PreviewSvarbrevInput
     ): ByteArray {
-        if (input.svarbrev.type !in listOf(Type.KLAGE, Type.ANKE)) {
+        if (Type.of(input.typeId) !in listOf(Type.KLAGE, Type.ANKE)) {
             throw SvarbrevPreviewException("Forhåndsvisning av svarbrev er bare tilgjengelig for Klage og Anke.")
         }
 
@@ -36,7 +36,7 @@ class SvarbrevPreviewService(
         ).name
 
         return kabalJsonToPdfService.getSvarbrevPDF(
-            svarbrev = input.svarbrev,
+            svarbrev = input.toSvarbrev(),
             mottattKlageinstans = input.mottattKlageinstans,
             sakenGjelderIdentifikator = input.sakenGjelder,
             sakenGjelderName = sakenGjelderName,
@@ -65,15 +65,7 @@ class SvarbrevPreviewService(
         val mockIdentifikator = "123456789101"
 
         return kabalJsonToPdfService.getSvarbrevPDF(
-            svarbrev = Svarbrev(
-                title = "NAV orienterer om saksbehandlingen",
-                receivers = listOf(),
-                fullmektigFritekst = null,
-                varsletBehandlingstidUnits = input.behandlingstidUnits,
-                varsletBehandlingstidUnitType = input.behandlingstidUnitType,
-                type = Type.of(input.typeId),
-                customText = input.customText,
-            ),
+            svarbrev = input.toSvarbrev(),
             mottattKlageinstans = LocalDate.now(),
             sakenGjelderIdentifikator = mockIdentifikator,
             sakenGjelderName = mockName,
@@ -81,6 +73,30 @@ class SvarbrevPreviewService(
             klagerIdentifikator = mockIdentifikator,
             klagerName = mockName,
             avsenderEnhetId = Enhet.E4291.navn,
+        )
+    }
+
+    private fun PreviewSvarbrevAnonymousInput.toSvarbrev(): Svarbrev {
+        return Svarbrev(
+            title = "NAV orienterer om saksbehandlingen",
+            receivers = listOf(),
+            fullmektigFritekst = null,
+            varsletBehandlingstidUnits = behandlingstidUnits,
+            varsletBehandlingstidUnitType = behandlingstidUnitType,
+            type = Type.of(typeId),
+            customText = customText,
+        )
+    }
+
+    private fun PreviewSvarbrevInput.toSvarbrev(): Svarbrev {
+        return Svarbrev(
+            title = title,
+            receivers = listOf(),
+            fullmektigFritekst = fullmektigFritekst,
+            varsletBehandlingstidUnits = varsletBehandlingstidUnits,
+            varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
+            type = Type.of(typeId),
+            customText = customText
         )
     }
 }

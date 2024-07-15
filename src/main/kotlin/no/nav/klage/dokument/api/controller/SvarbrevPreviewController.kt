@@ -4,15 +4,10 @@ package no.nav.klage.dokument.api.controller
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.view.PreviewSvarbrevAnonymousInput
 import no.nav.klage.dokument.api.view.PreviewSvarbrevInput
-import no.nav.klage.dokument.service.KabalJsonToPdfService
 import no.nav.klage.dokument.service.SvarbrevPreviewService
-import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.config.SecurityConfiguration
-import no.nav.klage.oppgave.gateway.AzureGateway
-import no.nav.klage.oppgave.service.PartSearchService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
