@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.api.view.UpdateSvarbrevSettingsInput
 import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 import no.nav.klage.oppgave.domain.klage.SvarbrevSettingsHistory
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
+import no.nav.klage.oppgave.exceptions.ValidationException
 import no.nav.klage.oppgave.repositories.SvarbrevSettingsRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import org.springframework.stereotype.Service
@@ -42,6 +43,11 @@ class SvarbrevSettingsService(
         updateSvarbrevSettingsInput: UpdateSvarbrevSettingsInput
     ): SvarbrevSettingsView {
         if (innloggetSaksbehandlerService.isKabalSvarbrevinnstillinger()) {
+
+            if (updateSvarbrevSettingsInput.behandlingstidUnits < 1) {
+                throw ValidationException("Behandlingstid må være større enn 0.")
+            }
+
             val svarbrevSettings = svarbrevSettingsRepository.findById(id).get()
             svarbrevSettings.apply {
                 behandlingstidUnits = updateSvarbrevSettingsInput.behandlingstidUnits
