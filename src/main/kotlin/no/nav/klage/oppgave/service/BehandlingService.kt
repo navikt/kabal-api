@@ -1711,6 +1711,8 @@ class BehandlingService(
             type = InternalEventType.UTFALL,
         )
 
+        logger.debug("Utfall in setUtfall: {}", behandling.utfall)
+
         return UtfallEditedView(
             modified = behandling.modified,
             utfallId = behandling.utfall?.id,
@@ -1752,6 +1754,8 @@ class BehandlingService(
             behandlingId = behandlingId,
             type = InternalEventType.EXTRA_UTFALL,
         )
+
+        logger.debug("Utfall in setExtraUtfallSet: {}", behandling.utfall)
 
         return ExtraUtfallEditedView(
             modified = behandling.modified,
