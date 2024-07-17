@@ -1659,9 +1659,12 @@ class BehandlingService(
         utfall: Utfall?,
         utfoerendeSaksbehandlerIdent: String
     ): UtfallEditedView {
+        logger.debug("Input utfall in setUtfall: {}", utfall)
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
+
+        logger.debug("Original utfall in setUtfall: {}", behandling.utfall)
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
@@ -1725,9 +1728,11 @@ class BehandlingService(
         extraUtfallSet: Set<Utfall>,
         utfoerendeSaksbehandlerIdent: String
     ): ExtraUtfallEditedView {
+        logger.debug("input in utfall in setExtraUtfallSet: {}", extraUtfallSet)
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
+        logger.debug("Original utfall in setExtraUtfallSet: {}", behandling.utfall)
 
         val curatedExtraUtfallSet = if (behandling.utfall != null && behandling.utfall in extraUtfallSet) {
             extraUtfallSet.minus(behandling.utfall!!)
