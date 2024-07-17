@@ -44,7 +44,7 @@ class BehandlingAssignmentController(
             logger
         )
 
-        return behandlingService.setSaksbehandler(
+        val saksbehandler = behandlingService.setSaksbehandler(
             behandlingId = behandlingId,
             tildeltSaksbehandlerIdent = saksbehandlerInput.navIdent,
             enhetId = saksbehandlerService.getEnhetForSaksbehandler(
@@ -53,6 +53,10 @@ class BehandlingAssignmentController(
             fradelingReason = null,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
+
+        logger.debug("After setting saksbehandler: " + behandlingService.getSaksbehandler(behandlingId))
+
+        return saksbehandler
     }
 
     @PostMapping("/behandlinger/{id}/fradel")
