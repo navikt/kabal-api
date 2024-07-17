@@ -1663,9 +1663,6 @@ class BehandlingService(
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
-
-        logger.debug("Original utfall in setUtfall: {}", behandling.utfall)
-
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
         if (utfall != null) {
@@ -1677,14 +1674,7 @@ class BehandlingService(
                     )
                 endringslogginnslag += event.endringslogginnslag
             }
-        } else {
-            val event =
-                behandling.setExtraUtfallSet(
-                    nyVerdi = setOf(),
-                    saksbehandlerident = utfoerendeSaksbehandlerIdent
-                )
-            endringslogginnslag += event.endringslogginnslag
-        }
+        } 
 
         val event =
             behandling.setUtfall(
@@ -1714,8 +1704,6 @@ class BehandlingService(
             type = InternalEventType.UTFALL,
         )
 
-        logger.debug("Utfall in setUtfall: {}", behandling.utfall)
-
         return UtfallEditedView(
             modified = behandling.modified,
             utfallId = behandling.utfall?.id,
@@ -1728,11 +1716,9 @@ class BehandlingService(
         extraUtfallSet: Set<Utfall>,
         utfoerendeSaksbehandlerIdent: String
     ): ExtraUtfallEditedView {
-        logger.debug("input in utfall in setExtraUtfallSet: {}", extraUtfallSet)
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
-        logger.debug("Original utfall in setExtraUtfallSet: {}", behandling.utfall)
 
         val curatedExtraUtfallSet = if (behandling.utfall != null && behandling.utfall in extraUtfallSet) {
             extraUtfallSet.minus(behandling.utfall!!)
@@ -1759,8 +1745,6 @@ class BehandlingService(
             behandlingId = behandlingId,
             type = InternalEventType.EXTRA_UTFALL,
         )
-
-        logger.debug("Utfall in setExtraUtfallSet: {}", behandling.utfall)
 
         return ExtraUtfallEditedView(
             modified = behandling.modified,
