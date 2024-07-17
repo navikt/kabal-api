@@ -54,8 +54,6 @@ class BehandlingAssignmentController(
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
 
-        logger.debug("After setting saksbehandler: " + behandlingService.getSaksbehandler(behandlingId))
-
         return saksbehandler
     }
 
