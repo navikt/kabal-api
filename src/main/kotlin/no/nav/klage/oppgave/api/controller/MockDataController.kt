@@ -15,6 +15,7 @@ import no.nav.klage.oppgave.domain.klage.MottakDokumentType
 import no.nav.klage.oppgave.domain.klage.utfallToTrygderetten
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.MottakService
+import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
@@ -38,6 +39,11 @@ class MockDataController(
     private val kakaVersion2Date: LocalDate,
     private val safFacade: SafFacade
 ) {
+
+    companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+    }
 
     //https://dolly.ekstern.dev.nav.no/gruppe/6336
     @Unprotected
@@ -246,7 +252,13 @@ class MockDataController(
     )
 
     private fun createKlanke(type: Type, mockInput: MockInput?): MockDataResponse {
-        val ytelse = if (mockInput == null) Ytelse.SYK_SYK else mockInput.ytelse ?: ytelseTilHjemler.keys.random()
+        val ytelse = if (mockInput == null) {
+            logger.debug("Null input/body, using SYK as ytelse.")
+            Ytelse.SYK_SYK
+        } else {
+            logger.debug("Mock input not null, but ytelse was, using random ytelse.")
+            mockInput.ytelse ?: ytelseTilHjemler.keys.random()
+        }
 
         val fnrAndJournalpostId = getFnrAndJournalpostId(ytelse)
 
