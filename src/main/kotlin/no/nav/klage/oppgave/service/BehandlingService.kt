@@ -193,7 +193,7 @@ class BehandlingService(
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "utfall",
-                    reason = "Sett et utfall på vedtaket."
+                    reason = "Sett et utfall på saken."
                 )
             )
         }
@@ -213,7 +213,7 @@ class BehandlingService(
                 behandlingValidationErrors.add(
                     InvalidProperty(
                         field = "hjemmel",
-                        reason = "Sett en eller flere hjemler på vedtaket."
+                        reason = "Sett en eller flere hjemler på saken."
                     )
                 )
             }
@@ -1674,7 +1674,14 @@ class BehandlingService(
                     )
                 endringslogginnslag += event.endringslogginnslag
             }
-        } 
+        } else {
+            val event =
+                behandling.setExtraUtfallSet(
+                    nyVerdi = setOf(),
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent
+                )
+            endringslogginnslag += event.endringslogginnslag
+        }
 
         val event =
             behandling.setUtfall(
