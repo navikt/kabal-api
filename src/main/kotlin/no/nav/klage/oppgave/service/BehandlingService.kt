@@ -1674,6 +1674,13 @@ class BehandlingService(
                     )
                 endringslogginnslag += event.endringslogginnslag
             }
+        } else {
+            val event =
+                behandling.setExtraUtfallSet(
+                    nyVerdi = setOf(),
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent
+                )
+            endringslogginnslag += event.endringslogginnslag
         }
 
         val event =
