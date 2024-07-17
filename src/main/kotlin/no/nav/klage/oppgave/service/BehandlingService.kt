@@ -118,7 +118,12 @@ class BehandlingService(
         }
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
-        return behandlingMapper.mapToBehandlingFullfoertView(markerBehandlingSomAvsluttetAvSaksbehandler(behandling, innloggetIdent))
+        return behandlingMapper.mapToBehandlingFullfoertView(
+            markerBehandlingSomAvsluttetAvSaksbehandler(
+                behandling,
+                innloggetIdent
+            )
+        )
     }
 
     private fun markerBehandlingSomAvsluttetAvSaksbehandler(
@@ -1427,7 +1432,11 @@ class BehandlingService(
     }
 
     fun getBehandlingDetaljerView(behandlingId: UUID): BehandlingDetaljerView {
-        return behandlingMapper.mapBehandlingToBehandlingDetaljerView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId))
+        return behandlingMapper.mapBehandlingToBehandlingDetaljerView(
+            getBehandlingAndCheckLeseTilgangForPerson(
+                behandlingId
+            )
+        )
     }
 
     fun getBehandlingROLView(behandlingId: UUID): RolView {
@@ -1612,6 +1621,13 @@ class BehandlingService(
                     )
                 endringslogginnslag += event.endringslogginnslag
             }
+        } else {
+            val event =
+                behandling.setExtraUtfallSet(
+                    nyVerdi = setOf(),
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent
+                )
+            endringslogginnslag += event.endringslogginnslag
         }
 
         val event =
