@@ -11,7 +11,6 @@ import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.gateway.AzureGateway
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -32,7 +31,6 @@ class KabinApiService(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
-    private val svarbrevSettingsService: SvarbrevSettingsService,
 ) {
 
     fun getCombinedAnkemuligheter(partIdValue: String): List<Ankemulighet> {
@@ -127,10 +125,6 @@ class KabinApiService(
     }
 
     private fun SvarbrevInput.toSvarbrev(behandling: Behandling): Svarbrev {
-        val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(
-            ytelse = behandling.ytelse,
-            type = behandling.type
-        )
         return Svarbrev(
             title = title,
             receivers = receivers.map { receiver ->
@@ -152,7 +146,7 @@ class KabinApiService(
             varsletBehandlingstidUnits = varsletBehandlingstidUnits,
             varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
             type = behandling.type,
-            customText = svarbrevSettings.customText,
+            customText = customText,
         )
     }
 

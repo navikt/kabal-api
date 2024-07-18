@@ -117,6 +117,7 @@ data class SvarbrevInput(
     val title: String,
     val receivers: List<Receiver>,
     val fullmektigFritekst: String?,
+    val customText: String?,
     val varsletBehandlingstidUnits: Int,
     val varsletBehandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
 ) {
