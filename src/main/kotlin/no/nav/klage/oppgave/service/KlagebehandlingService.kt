@@ -41,7 +41,7 @@ class KlagebehandlingService(
     fun createKlagebehandlingFromMottak(mottak: Mottak): Klagebehandling {
         val kvalitetsvurderingVersion = getKakaVersion()
 
-        val klagebehandling = klagebehandlingRepository.saveAndFlush(
+        val klagebehandling = klagebehandlingRepository.save(
             Klagebehandling(
                 klager = mottak.klager.copy(),
                 sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
