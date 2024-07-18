@@ -7,8 +7,6 @@ import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
-import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
-import no.nav.klage.dokument.clients.kabaljsontopdf.domain.SvarbrevRequest
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
@@ -21,8 +19,6 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
-import no.nav.klage.oppgave.api.view.kabin.SvarbrevInput
-import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -55,8 +51,8 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.*
+import kotlin.math.log
 
 
 @Service
@@ -71,7 +67,6 @@ class DokumentUnderArbeidService(
     private val journalfoertDokumentUnderArbeidRepository: JournalfoertDokumentUnderArbeidAsVedleggRepository,
     private val mellomlagerService: MellomlagerService,
     private val smartEditorApiGateway: DefaultKabalSmartEditorApiGateway,
-    private val kabalJsonToPdfClient: KabalJsonToPdfClient,
     private val behandlingService: BehandlingService,
     private val kabalDocumentGateway: KabalDocumentGateway,
     private val applicationEventPublisher: ApplicationEventPublisher,
@@ -88,7 +83,8 @@ class DokumentUnderArbeidService(
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kodeverkService: KodeverkService,
     private val dokDistKanalService: DokDistKanalService,
-    private val azureGateway: DefaultAzureGateway,
+    private val kabalJsonToPdfService: KabalJsonToPdfService,
+    private val tokenUtil: TokenUtil,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -108,18 +104,23 @@ class DokumentUnderArbeidService(
         parentId: UUID?,
         file: File,
         filename: String?,
-        innloggetIdent: String,
+        utfoerendeIdent: String,
+        systemContext: Boolean,
     ): DokumentView {
         val dokumentType = DokumentType.of(dokumentTypeId)
 
         val title = filename ?: (dokumentType.defaultFilnavn.also { logger.warn("Filnavn ikke angitt i fil-request") })
 
         //Sjekker lesetilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = if (systemContext) {
+            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
+        } else {
+            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        }
 
-        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
+        val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
 
-        if (dokumentType.isUtgaaende() && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+        if (dokumentType.isUtgaaende() && !systemContext && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
             if (behandling.avsluttetAvSaksbehandler == null) {
                 validateCanCreateDocuments(
                     behandlingRole = behandlingRole,
@@ -129,7 +130,7 @@ class DokumentUnderArbeidService(
             }
         }
 
-        val mellomlagerId = mellomlagerService.uploadFile(file)
+        val mellomlagerId = mellomlagerService.uploadFile(file = file, systemContext = systemContext)
 
         val now = LocalDateTime.now()
 
@@ -142,7 +143,7 @@ class DokumentUnderArbeidService(
                     name = title,
                     dokumentType = dokumentType,
                     behandlingId = behandlingId,
-                    creatorIdent = innloggetIdent,
+                    creatorIdent = utfoerendeIdent,
                     creatorRole = behandlingRole,
                     created = now,
                     modified = now,
@@ -159,7 +160,7 @@ class DokumentUnderArbeidService(
                     size = file.length(),
                     name = title,
                     behandlingId = behandlingId,
-                    creatorIdent = innloggetIdent,
+                    creatorIdent = utfoerendeIdent,
                     creatorRole = behandlingRole,
                     parentId = parentId,
                     created = now,
@@ -168,7 +169,7 @@ class DokumentUnderArbeidService(
             )
         }
         behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_OPPLASTET,
             fraVerdi = null,
             tilVerdi = document.created.toString(),
@@ -186,8 +187,8 @@ class DokumentUnderArbeidService(
             data = objectMapper.writeValueAsString(
                 DocumentsAddedEvent(
                     actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                        navIdent = utfoerendeIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -217,8 +218,7 @@ class DokumentUnderArbeidService(
 
         start = System.currentTimeMillis()
         val contentLength = uploadRequest.getHeader("Content-Length")?.toInt() ?: 0
-        logger.debug("Checked Content-Length header in {} ms", System.currentTimeMillis() - start)
-
+        logger.debug("Checked Content-Length header in {} ms. It was {}", (System.currentTimeMillis() - start), contentLength)
 
         //257 MB
         if (contentLength > 269484032) {
@@ -227,7 +227,9 @@ class DokumentUnderArbeidService(
 
         val upload = JakartaServletFileUpload()
         val parts = upload.getItemIterator(uploadRequest)
+        logger.debug("parts: {}", parts)
         parts.forEachRemaining { item ->
+            logger.debug("item: {}", item)
             val fieldName = item.fieldName
             start = System.currentTimeMillis()
             val inputStream = item.inputStream
@@ -267,7 +269,8 @@ class DokumentUnderArbeidService(
             parentId = parentId,
             file = filePath.toFile(),
             filename = filename,
-            innloggetIdent = innloggetIdent,
+            utfoerendeIdent = innloggetIdent,
+            systemContext = false,
         )
     }
 
@@ -963,13 +966,14 @@ class DokumentUnderArbeidService(
         behandlingId: UUID,
         dokumentId: UUID,
         mottakerInput: MottakerInput,
-        innloggetIdent: String
+        utfoerendeIdent: String,
+        systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
         //Validate parts
         mottakerInput.mottakerList.forEach { mottaker ->
             val part = partSearchService.searchPart(
                 identifikator = mottaker.id,
-                skipAccessControl = true
+                skipAccessControl = systemContext
             )
 
             when (part.type) {
@@ -1008,7 +1012,11 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid as DokumentUnderArbeidAsHoveddokument
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = if (systemContext) {
+            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
+        } else {
+            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        }
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke sette mottakere på et dokument som er ferdigstilt")
@@ -1034,6 +1042,7 @@ class DokumentUnderArbeidService(
                         mottakerId = it.id,
                         brukerId = behandling.sakenGjelder.partId.value,
                         tema = behandling.ytelse.toTema(),
+                        saksbehandlerContext = !systemContext,
                     )
 
                     if (isDeltAnsvar) {
@@ -1061,7 +1070,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
             fraVerdi = previousValue.toString(),
             tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
@@ -1072,8 +1081,8 @@ class DokumentUnderArbeidService(
             data = objectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                        navIdent = utfoerendeIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
@@ -1284,7 +1293,7 @@ class DokumentUnderArbeidService(
         logger.debug("Getting json document, dokumentId: {}", dokument.id)
         val documentJson = smartEditorApiGateway.getDocumentAsJson(dokument.smartEditorId)
         logger.debug("Validating json document in kabalJsonToPdf, dokumentId: {}", dokument.id)
-        val response = kabalJsonToPdfClient.validateJsonDocument(documentJson)
+        val response = kabalJsonToPdfService.validateJsonDocument(documentJson)
         return DocumentValidationResponse(
             dokumentId = dokument.id,
             errors = response.errors.map {
@@ -1310,7 +1319,8 @@ class DokumentUnderArbeidService(
     fun finnOgMarkerFerdigHovedDokument(
         behandlingId: UUID,
         dokumentId: UUID,
-        innloggetIdent: String,
+        utfoerendeIdent: String,
+        systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
         val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
@@ -1318,11 +1328,19 @@ class DokumentUnderArbeidService(
             throw RuntimeException("document is not hoveddokument")
         }
 
-        hovedDokument.journalfoerendeEnhetId = saksbehandlerService.getEnhetForSaksbehandler(
-            innloggetIdent
-        ).enhetId
+        hovedDokument.journalfoerendeEnhetId = if (systemContext) {
+            "9999"
+        } else {
+            saksbehandlerService.getEnhetForSaksbehandler(
+                utfoerendeIdent
+            ).enhetId
+        }
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
+        val behandling = if (systemContext) {
+            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(hovedDokument.behandlingId)
+        } else {
+            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
+        }
 
         if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
             hovedDokument.avsenderMottakerInfoSet.clear()
@@ -1356,12 +1374,12 @@ class DokumentUnderArbeidService(
         }
 
         val now = LocalDateTime.now()
-        hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = innloggetIdent)
+        hovedDokument.markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt = now, saksbehandlerIdent = utfoerendeIdent)
 
         vedlegg.forEach {
             it.markerFerdigHvisIkkeAlleredeMarkertFerdig(
                 tidspunkt = now,
-                saksbehandlerIdent = innloggetIdent
+                saksbehandlerIdent = utfoerendeIdent
             )
         }
 
@@ -1373,7 +1391,7 @@ class DokumentUnderArbeidService(
         }
 
         behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_MARKERT_FERDIG,
             fraVerdi = null,
             tilVerdi = hovedDokument.markertFerdig.toString(),
@@ -1381,7 +1399,7 @@ class DokumentUnderArbeidService(
         )
 
         behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
+            saksbehandlerident = utfoerendeIdent,
             felt = Felt.DOKUMENT_UNDER_ARBEID_BREVMOTTAKER_IDENTS,
             fraVerdi = null,
             tilVerdi = hovedDokument.avsenderMottakerInfoSet.joinToString { it.identifikator },
@@ -1394,8 +1412,8 @@ class DokumentUnderArbeidService(
             data = objectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                        navIdent = utfoerendeIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeIdent),
                     ),
                     timestamp = LocalDateTime.now(),
                     documents = vedlegg.map {
@@ -2128,7 +2146,7 @@ class DokumentUnderArbeidService(
         }
 
         val smartDocument = smartEditorApiGateway.getSmartDocumentResponse(dokumentUnderArbeid.smartEditorId)
-        val pdfDocument = kabalJsonToPdfClient.getPDFDocument(smartDocument.json)
+        val pdfDocument = kabalJsonToPdfService.getPDFDocument(smartDocument.json)
 
         val mellomlagerId =
             mellomlagerService.uploadResource(
@@ -2216,32 +2234,27 @@ class DokumentUnderArbeidService(
         )
     }
 
-    fun createDokumentUnderArbeidFromSvarbrevInput(
-        svarbrevInput: SvarbrevInput,
-        behandling: Behandling
+    fun createAndFinalizeDokumentUnderArbeidFromSvarbrev(
+        svarbrev: Svarbrev,
+        behandling: Behandling,
+        avsenderEnhetId: String,
+        systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
-        val bytes = kabalJsonToPdfClient.getSvarbrevPDF(
-            svarbrevRequest = SvarbrevRequest(
-                title = svarbrevInput.title,
-                sakenGjelder = SvarbrevRequest.Part(
-                    name = partSearchService.searchPart(identifikator = behandling.sakenGjelder.partId.value).name,
-                    fnr = behandling.sakenGjelder.partId.value,
-                ),
-                klager = if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
-                    SvarbrevRequest.Part(
-                        name = partSearchService.searchPart(identifikator = behandling.klager.partId.value).name,
-                        fnr = behandling.klager.partId.value,
-                    )
-                } else null,
-                ytelsenavn = behandling.ytelse.navn,
-                fullmektigFritekst = svarbrevInput.fullmektigFritekst,
-                ankeReceivedDate = behandling.mottattKlageinstans.toLocalDate(),
-                behandlingstidInWeeks = ChronoUnit.WEEKS.between(
-                    behandling.mottattKlageinstans.toLocalDate(),
-                    behandling.frist
-                ).toInt(),
-                avsenderEnhetId = azureGateway.getDataOmInnloggetSaksbehandler().enhet.enhetId,
-            )
+        val bytes = kabalJsonToPdfService.getSvarbrevPDF(
+            svarbrev = svarbrev,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
+            sakenGjelderName = partSearchService.searchPart(
+                identifikator = behandling.sakenGjelder.partId.value,
+                skipAccessControl = systemContext
+            ).name,
+            ytelse = behandling.ytelse,
+            klagerIdentifikator = behandling.klager.partId.value,
+            klagerName = partSearchService.searchPart(
+                identifikator = behandling.klager.partId.value,
+                skipAccessControl = systemContext
+            ).name,
+            avsenderEnhetId = avsenderEnhetId,
         )
 
         val tmpFile = Files.createTempFile(null, null).toFile()
@@ -2252,15 +2265,16 @@ class DokumentUnderArbeidService(
             dokumentTypeId = DokumentType.SVARBREV.id,
             parentId = null,
             file = tmpFile,
-            filename = svarbrevInput.title,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            filename = svarbrev.title,
+            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
+            systemContext = systemContext
         )
 
         updateMottakere(
             behandlingId = behandling.id,
             dokumentId = documentView.id,
             mottakerInput = MottakerInput(
-                svarbrevInput.receivers.map {
+                svarbrev.receivers.map {
                     Mottaker(
                         id = it.id,
                         handling = HandlingEnum.valueOf(it.handling.name),
@@ -2276,14 +2290,18 @@ class DokumentUnderArbeidService(
                     )
                 }
             ),
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
+            systemContext = systemContext,
         )
 
-        return finnOgMarkerFerdigHovedDokument(
+        val hovedDokument = finnOgMarkerFerdigHovedDokument(
             behandlingId = behandling.id,
             dokumentId = documentView.id,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
+            systemContext = systemContext
         )
+
+        return hovedDokument
     }
 }
 

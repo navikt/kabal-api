@@ -42,40 +42,58 @@ class DokumentUnderArbeidServiceTest {
 
     @MockkBean
     lateinit var dokumentUnderArbeidCommonService: DokumentUnderArbeidCommonService
+
     @MockkBean
     lateinit var opplastetDokumentUnderArbeidAsHoveddokumentRepository: OpplastetDokumentUnderArbeidAsHoveddokumentRepository
+
     @MockkBean
     lateinit var opplastetDokumentUnderArbeidAsVedleggRepository: OpplastetDokumentUnderArbeidAsVedleggRepository
+
     @MockkBean
     lateinit var smartDokumentUnderArbeidAsHoveddokumentRepository: SmartdokumentUnderArbeidAsHoveddokumentRepository
+
     @MockkBean
     lateinit var smartDokumentUnderArbeidAsVedleggRepository: SmartdokumentUnderArbeidAsVedleggRepository
+
     @MockkBean
     lateinit var journalfoertDokumentUnderArbeidRepository: JournalfoertDokumentUnderArbeidAsVedleggRepository
+
     @MockkBean
     lateinit var attachmentValidator: MellomlagretDokumentValidatorService
+
     @MockkBean
     lateinit var mellomlagerService: MellomlagerService
+
     @MockkBean
     lateinit var smartEditorApiGateway: DefaultKabalSmartEditorApiGateway
+
     @MockkBean
     lateinit var kabalJsonToPdfClient: KabalJsonToPdfClient
+
     @MockkBean
     lateinit var behandlingService: BehandlingService
+
     @MockkBean
     lateinit var kabalDocumentGateway: KabalDocumentGateway
+
     @MockkBean
     lateinit var applicationEventPublisher: ApplicationEventPublisher
+
     @MockkBean
     lateinit var innloggetSaksbehandlerService: InnloggetSaksbehandlerService
+
     @MockkBean
     lateinit var dokumentService: DokumentService
+
     @MockkBean
     lateinit var eregClient: EregClient
+
     @MockkBean
     lateinit var innholdsfortegnelseService: InnholdsfortegnelseService
+
     @MockkBean
     lateinit var safFacade: SafFacade
+
     @MockkBean
     lateinit var dokumentMapper: DokumentMapper
 
@@ -95,7 +113,6 @@ class DokumentUnderArbeidServiceTest {
             journalfoertDokumentUnderArbeidRepository = journalfoertDokumentUnderArbeidRepository,
             mellomlagerService = mellomlagerService,
             smartEditorApiGateway = smartEditorApiGateway,
-            kabalJsonToPdfClient = kabalJsonToPdfClient,
             behandlingService = behandlingService,
             kabalDocumentGateway = kabalDocumentGateway,
             applicationEventPublisher = applicationEventPublisher,
@@ -112,7 +129,8 @@ class DokumentUnderArbeidServiceTest {
             partSearchService = mockk(),
             kodeverkService = mockk(),
             dokDistKanalService = mockk(),
-            azureGateway = mockk(),
+            kabalJsonToPdfService = mockk(),
+            tokenUtil = mockk()
         )
 
         val behandlingId = UUID.randomUUID()

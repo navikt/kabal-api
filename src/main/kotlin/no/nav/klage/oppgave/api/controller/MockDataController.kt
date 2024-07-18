@@ -15,6 +15,7 @@ import no.nav.klage.oppgave.domain.klage.MottakDokumentType
 import no.nav.klage.oppgave.domain.klage.utfallToTrygderetten
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.MottakService
+import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
@@ -38,6 +39,11 @@ class MockDataController(
     private val kakaVersion2Date: LocalDate,
     private val safFacade: SafFacade
 ) {
+
+    companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+    }
 
     //https://dolly.ekstern.dev.nav.no/gruppe/6336
     @Unprotected
@@ -224,7 +230,7 @@ class MockDataController(
             )
 
             Ytelse.SYK_SYK -> Fnr(
-                fnr = "25046846764"
+                fnr = "07098330636"
             )
 
             Ytelse.SUP_UFF -> Fnr(
@@ -246,14 +252,20 @@ class MockDataController(
     )
 
     private fun createKlanke(type: Type, mockInput: MockInput?): MockDataResponse {
-        val ytelse = if (mockInput == null) Ytelse.SYK_SYK else mockInput.ytelse ?: ytelseTilHjemler.keys.random()
+        val ytelse = if (mockInput == null) {
+            logger.debug("Null input/body, using SYK as ytelse.")
+            Ytelse.SYK_SYK
+        } else {
+            logger.debug("Mock input not null, but ytelse was, using random ytelse.")
+            mockInput.ytelse ?: ytelseTilHjemler.keys.random()
+        }
 
         val fnrAndJournalpostId = getFnrAndJournalpostId(ytelse)
 
         val fnr = fnrAndJournalpostId.fnr
         val lastMonth = LocalDate.now().minusMonths(1).toEpochDay()
         val now = LocalDate.now().toEpochDay()
-        val dato = LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(lastMonth, now))
+        val dato = mockInput?.sakMottattKaTidspunkt ?: LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(lastMonth, now))
 
         val klager = mockInput?.klager ?: OversendtKlager(
             id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
@@ -285,6 +297,7 @@ class MockDataController(
                         sakMottattKaDato = dato,
                         innsendtTilNav = dato.minusDays(3),
                         kilde = Fagsystem.AO01,
+                        kommentar = mockInput?.kommentar,
                     )
                 )
             }
@@ -359,6 +372,8 @@ class MockDataController(
         val kildeReferanse: String?,
         val dvhReferanse: String?,
         val forrigeBehandlendeEnhet: String?,
+        val kommentar: String?,
+        val sakMottattKaTidspunkt: LocalDate?,
     )
 
     val hjemlerHJE_HJE = listOf(

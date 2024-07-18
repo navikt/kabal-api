@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.service
 import com.ninjasquad.springmockk.MockkBean
 import io.micrometer.core.instrument.MeterRegistry
 import io.mockk.every
+import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
@@ -64,6 +65,15 @@ internal class DuplicateOversendelseTest {
 
     @MockkBean(relaxed = true)
     lateinit var eregClient: EregClient
+
+    @MockkBean(relaxed = true)
+    lateinit var dokumentUnderArbeidService: DokumentUnderArbeidService
+
+    @MockkBean(relaxed = true)
+    lateinit var svarbrevSettingsService: SvarbrevSettingsService
+
+    @MockkBean(relaxed = true)
+    lateinit var behandlingService: BehandlingService
 
     @Autowired
     lateinit var mottakService: MottakService

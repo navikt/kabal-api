@@ -20,12 +20,13 @@ class DokDistKanalService(
         mottakerId: String,
         brukerId: String,
         tema: Tema,
+        saksbehandlerContext: Boolean
     ): BehandlingDetaljerView.Utsendingskanal {
         return getDistribusjonKanalCode(
             mottakerId = mottakerId,
             brukerId = brukerId,
             tema = tema,
-            saksbehandlerContext = true
+            saksbehandlerContext = saksbehandlerContext
         ).toBehandlingDetaljerViewUtsendingskanal()
     }
 

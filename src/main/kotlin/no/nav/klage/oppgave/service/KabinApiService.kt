@@ -2,7 +2,9 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.DokumentView
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
+import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
@@ -57,11 +59,13 @@ class KabinApiService(
             )
         }
 
-        return createdAnkeResponse(
+        setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
             saksbehandlerIdent = input.saksbehandlerIdent,
             svarbrevInput = input.svarbrevInput,
         )
+
+        return CreatedAnkeResponse(behandlingId = behandling.id)
     }
 
     fun createAnkeFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): CreatedAnkeResponse {
@@ -74,18 +78,21 @@ class KabinApiService(
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
-        return createdAnkeResponse(
+
+        setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
             saksbehandlerIdent = input.saksbehandlerIdent,
             svarbrevInput = input.svarbrevInput,
         )
+
+        return CreatedAnkeResponse(behandlingId = behandling.id)
     }
 
-    private fun createdAnkeResponse(
+    private fun setSaksbehandlerAndCreateSvarbrev(
         behandling: Behandling,
         saksbehandlerIdent: String?,
         svarbrevInput: SvarbrevInput?,
-    ): CreatedAnkeResponse {
+    ) {
         if (saksbehandlerIdent != null) {
             behandlingService.setSaksbehandler(
                 behandlingId = behandling.id,
@@ -100,13 +107,47 @@ class KabinApiService(
 
         //Create DokumentUnderArbeid from input based on svarbrevInput.
         if (svarbrevInput != null) {
-            dokumentUnderArbeidService.createDokumentUnderArbeidFromSvarbrevInput(
-                svarbrevInput = svarbrevInput,
+            dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
+                svarbrev = svarbrevInput.toSvarbrev(behandling = behandling),
+                behandling = behandling,
+                //Hardkodes til KA Oslo
+                avsenderEnhetId = Enhet.E4291.navn,
+                systemContext = false,
+            )
+
+            behandlingService.setVarsletFrist(
+                behandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType,
+                behandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
                 behandling = behandling,
             )
-        }
 
-        return CreatedAnkeResponse(behandlingId = behandling.id)
+        }
+    }
+
+    private fun SvarbrevInput.toSvarbrev(behandling: Behandling): Svarbrev {
+        return Svarbrev(
+            title = title,
+            receivers = receivers.map { receiver ->
+                Svarbrev.Receiver(
+                    id = receiver.id,
+                    overriddenAddress = receiver.overriddenAddress?.let {
+                        Svarbrev.Receiver.AddressInput(
+                            adresselinje1 = it.adresselinje1,
+                            adresselinje2 = it.adresselinje2,
+                            adresselinje3 = it.adresselinje3,
+                            landkode = it.landkode,
+                            postnummer = it.postnummer,
+                        )
+                    },
+                    handling = Svarbrev.Receiver.HandlingEnum.valueOf(receiver.handling.name),
+                )
+            },
+            fullmektigFritekst = fullmektigFritekst,
+            varsletBehandlingstidUnits = varsletBehandlingstidUnits,
+            varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
+            type = behandling.type,
+            customText = customText,
+        )
     }
 
     fun getCreatedAnkebehandlingStatus(
@@ -140,28 +181,23 @@ class KabinApiService(
     fun createKlage(
         input: CreateKlageBasedOnKabinInput
     ): CreatedKlageResponse {
-        val behandlingId = mottakService.createKlageMottakFromKabinInput(klageInput = input)
-        if (input.saksbehandlerIdent != null) {
-            behandlingService.setSaksbehandler(
-                behandlingId = behandlingId,
-                tildeltSaksbehandlerIdent = input.saksbehandlerIdent,
-                enhetId = saksbehandlerService.getEnhetForSaksbehandler(
-                    input.saksbehandlerIdent
-                ).enhetId,
-                fradelingReason = null,
-                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            )
-        }
+        val behandling = mottakService.createKlageMottakFromKabinInput(klageInput = input)
 
         if (input.oppgaveId != null) {
             behandlingService.setOppgaveId(
-                behandlingId = behandlingId,
+                behandlingId = behandling.id,
                 oppgaveId = input.oppgaveId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
 
-        return CreatedKlageResponse(behandlingId = behandlingId)
+        setSaksbehandlerAndCreateSvarbrev(
+            behandling = behandling,
+            saksbehandlerIdent = input.saksbehandlerIdent,
+            svarbrevInput = input.svarbrevInput,
+        )
+
+        return CreatedKlageResponse(behandlingId = behandling.id)
     }
 
     fun getCreatedKlagebehandlingStatus(
@@ -210,6 +246,7 @@ class KabinApiService(
             },
             mottattNav = ankebehandling.mottattKlageinstans.toLocalDate(),
             frist = ankebehandling.frist!!,
+            varsletFrist = ankebehandling.varsletFrist,
             fagsakId = ankebehandling.fagsakId,
             fagsystemId = ankebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
@@ -223,11 +260,11 @@ class KabinApiService(
                 )
             },
             svarbrev = dokumentView?.let { document ->
-                CreatedAnkebehandlingStatusForKabin.Svarbrev(
+                KabinResponseSvarbrev(
                     dokumentUnderArbeidId = document.id,
                     title = document.tittel,
                     receivers = document.mottakerList.map { mottaker ->
-                        CreatedAnkebehandlingStatusForKabin.Svarbrev.Receiver(
+                        KabinResponseSvarbrev.Receiver(
                             part = mottaker.part,
                             overriddenAddress = mottaker.overriddenAddress,
                             handling = mottaker.handling,
@@ -242,6 +279,18 @@ class KabinApiService(
         klagebehandling: Klagebehandling,
         mottak: Mottak,
     ): CreatedKlagebehandlingStatusForKabin {
+        val dokumentUnderArbeid =
+            dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = klagebehandling.id)
+
+        val dokumentView: DokumentView? = if (dokumentUnderArbeid != null) {
+            dokumentMapper.mapToDokumentView(
+                dokumentUnderArbeid = dokumentUnderArbeid,
+                behandling = klagebehandling,
+                journalpost = null,
+                smartEditorDocument = null,
+            )
+        } else null
+
         return CreatedKlagebehandlingStatusForKabin(
             typeId = Type.KLAGE.id,
             ytelseId = klagebehandling.ytelse.id,
@@ -258,6 +307,7 @@ class KabinApiService(
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
             mottattKlageinstans = klagebehandling.mottattKlageinstans.toLocalDate(),
             frist = klagebehandling.frist!!,
+            varsletFrist = klagebehandling.varsletFrist,
             fagsakId = klagebehandling.fagsakId,
             fagsystemId = klagebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
@@ -271,6 +321,19 @@ class KabinApiService(
                     navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
                 )
             },
+            svarbrev = dokumentView?.let { document ->
+                KabinResponseSvarbrev(
+                    dokumentUnderArbeidId = document.id,
+                    title = document.tittel,
+                    receivers = document.mottakerList.map { mottaker ->
+                        KabinResponseSvarbrev.Receiver(
+                            part = mottaker.part,
+                            overriddenAddress = mottaker.overriddenAddress,
+                            handling = mottaker.handling,
+                        )
+                    }
+                )
+            }
         )
     }
 

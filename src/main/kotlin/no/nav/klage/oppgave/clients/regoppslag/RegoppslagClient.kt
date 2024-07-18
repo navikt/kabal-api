@@ -23,13 +23,13 @@ class RegoppslagClient(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getMottakerOgAdresse(input: Request): HentMottakerOgAdresseResponse? {
+    fun getMottakerOgAdresse(input: Request, token: String): HentMottakerOgAdresseResponse? {
         logger.debug("Calling getMottakerOgAdresse")
         return regoppslagWebClient.post()
             .uri { it.path("/rest/hentMottakerOgAdresse").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getOnBehalfOfTokenWithRegoppslagScope()}"
+                "Bearer $token"
             )
             .bodyValue(input)
             .retrieve()

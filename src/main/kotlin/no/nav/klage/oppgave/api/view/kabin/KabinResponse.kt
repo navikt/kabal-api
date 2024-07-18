@@ -65,23 +65,24 @@ data class CreatedAnkebehandlingStatusForKabin(
     val fullmektig: KabinPartView?,
     val mottattNav: LocalDate,
     val frist: LocalDate,
+    val varsletFrist: LocalDate?,
     val fagsakId: String,
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
-    val svarbrev: Svarbrev?,
+    val svarbrev: KabinResponseSvarbrev?,
+)
+
+data class KabinResponseSvarbrev(
+    val dokumentUnderArbeidId: UUID,
+    val title: String,
+    val receivers: List<Receiver>,
 ) {
-    data class Svarbrev(
-        val dokumentUnderArbeidId: UUID,
-        val title: String,
-        val receivers: List<Receiver>,
-    ) {
-        data class Receiver(
-            val part: BehandlingDetaljerView.PartViewWithUtsendingskanal,
-            val overriddenAddress: BehandlingDetaljerView.Address?,
-            val handling: HandlingEnum,
-        )
-    }
+    data class Receiver(
+        val part: BehandlingDetaljerView.PartViewWithUtsendingskanal,
+        val overriddenAddress: BehandlingDetaljerView.Address?,
+        val handling: HandlingEnum,
+    )
 }
 
 data class CreatedKlagebehandlingStatusForKabin(
@@ -93,11 +94,13 @@ data class CreatedKlagebehandlingStatusForKabin(
     val mottattVedtaksinstans: LocalDate,
     val mottattKlageinstans: LocalDate,
     val frist: LocalDate,
+    val varsletFrist: LocalDate?,
     val fagsakId: String,
     val fagsystemId: String,
     val journalpost: DokumentReferanse,
     val kildereferanse: String,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
+    val svarbrev: KabinResponseSvarbrev?,
 )
 
 data class TildeltSaksbehandler(

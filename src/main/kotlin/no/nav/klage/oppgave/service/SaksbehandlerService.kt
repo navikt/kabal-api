@@ -25,6 +25,8 @@ class SaksbehandlerService(
     @Value("\${KABAL_INNSYN_EGEN_ENHET_ROLE_ID}") private val kabalInnsynEgenEnhetRoleId: String,
     @Value("\${KABAL_ROL_ROLE_ID}") private val kabalROLRoleId: String,
     @Value("\${KABAL_KROL_ROLE_ID}") private val kabalKROLRoleId: String,
+    @Value("\${KABAL_SVARBREVINNSTILLINGER_ROLE_ID}") private val kabalSvarbrevinnstillingerRoleId: String,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
     companion object {
@@ -39,6 +41,10 @@ class SaksbehandlerService(
 
     @Cacheable(CacheWithJCacheConfiguration.SAKSBEHANDLER_NAME_CACHE)
     fun getNameForIdentDefaultIfNull(navIdent: String): String {
+        if (navIdent == systembrukerIdent) {
+            return navIdent
+        }
+
         return try {
             azureGateway.getPersonligDataOmSaksbehandlerMedIdent(navIdent).sammensattNavn
         } catch (e: Exception) {
@@ -66,6 +72,8 @@ class SaksbehandlerService(
     fun isROL(ident: String): Boolean = getRoleIds(ident).contains(kabalROLRoleId)
 
     fun isKROL(ident: String): Boolean = getRoleIds(ident).contains(kabalKROLRoleId)
+
+    fun isKabalSvarbrevinnstillinger(ident: String): Boolean = getRoleIds(ident).contains(kabalSvarbrevinnstillingerRoleId)
 
     fun hasFortroligRole(ident: String): Boolean = getRoleIds(ident).contains(fortroligRoleId)
 

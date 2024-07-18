@@ -32,6 +32,8 @@ class Klagebehandling(
     var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
     val kakaKvalitetsvurderingVersion: Int,
+    @Column(name = "varslet_frist")
+    var varsletFrist: LocalDate? = null,
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),

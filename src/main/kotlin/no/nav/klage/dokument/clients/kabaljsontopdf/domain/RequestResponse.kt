@@ -1,5 +1,6 @@
 package no.nav.klage.dokument.clients.kabaljsontopdf.domain
 
+import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 import java.time.LocalDate
 
 data class DocumentValidationResponse(
@@ -36,12 +37,20 @@ data class SvarbrevRequest(
     val klager: Part?,
     val ytelsenavn: String,
     val fullmektigFritekst: String?,
-    val ankeReceivedDate: LocalDate,
-    val behandlingstidInWeeks: Int,
+    val receivedDate: LocalDate,
+    val behandlingstidUnits: Int,
+    val behandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
     val avsenderEnhetId: String,
+    val type: Type,
+    val customText: String?,
 ) {
     data class Part(
         val name: String,
         val fnr: String,
     )
+
+    enum class Type {
+        KLAGE,
+        ANKE,
+    }
 }
