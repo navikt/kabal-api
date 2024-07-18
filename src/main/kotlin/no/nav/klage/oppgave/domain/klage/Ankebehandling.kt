@@ -6,14 +6,12 @@ import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import org.hibernate.annotations.DynamicUpdate
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
 @DiscriminatorValue("anke")
-@DynamicUpdate
 class Ankebehandling(
     @Column(name = "klage_vedtaks_dato")
     val klageVedtaksDato: LocalDate? = null,
