@@ -5,6 +5,7 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import org.hibernate.annotations.BatchSize
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import java.time.LocalDate
@@ -25,7 +26,7 @@ import java.util.*
         ), NamedAttributeNode("sattPaaVentHistorikk"), NamedAttributeNode("extraUtfallSet")]
     ),
 )
-//@DynamicUpdate
+@DynamicUpdate
 abstract class Behandling(
     @Id
     open val id: UUID = UUID.randomUUID(),

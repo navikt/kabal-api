@@ -6,13 +6,14 @@ import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
+import org.hibernate.annotations.DynamicUpdate
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
 @DiscriminatorValue("anke_i_trygderetten")
-//@DynamicUpdate
+@DynamicUpdate
 class AnkeITrygderettenbehandling(
     @Column(name = "sendt_til_trygderetten")
     var sendtTilTrygderetten: LocalDateTime,
