@@ -246,6 +246,7 @@ class KabinApiService(
             },
             mottattNav = ankebehandling.mottattKlageinstans.toLocalDate(),
             frist = ankebehandling.frist!!,
+            varsletFrist = ankebehandling.varsletFrist,
             fagsakId = ankebehandling.fagsakId,
             fagsystemId = ankebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
@@ -259,11 +260,11 @@ class KabinApiService(
                 )
             },
             svarbrev = dokumentView?.let { document ->
-                CreatedAnkebehandlingStatusForKabin.Svarbrev(
+                KabinResponseSvarbrev(
                     dokumentUnderArbeidId = document.id,
                     title = document.tittel,
                     receivers = document.mottakerList.map { mottaker ->
-                        CreatedAnkebehandlingStatusForKabin.Svarbrev.Receiver(
+                        KabinResponseSvarbrev.Receiver(
                             part = mottaker.part,
                             overriddenAddress = mottaker.overriddenAddress,
                             handling = mottaker.handling,
@@ -278,6 +279,18 @@ class KabinApiService(
         klagebehandling: Klagebehandling,
         mottak: Mottak,
     ): CreatedKlagebehandlingStatusForKabin {
+        val dokumentUnderArbeid =
+            dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = klagebehandling.id)
+
+        val dokumentView: DokumentView? = if (dokumentUnderArbeid != null) {
+            dokumentMapper.mapToDokumentView(
+                dokumentUnderArbeid = dokumentUnderArbeid,
+                behandling = klagebehandling,
+                journalpost = null,
+                smartEditorDocument = null,
+            )
+        } else null
+
         return CreatedKlagebehandlingStatusForKabin(
             typeId = Type.KLAGE.id,
             ytelseId = klagebehandling.ytelse.id,
@@ -294,6 +307,7 @@ class KabinApiService(
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
             mottattKlageinstans = klagebehandling.mottattKlageinstans.toLocalDate(),
             frist = klagebehandling.frist!!,
+            varsletFrist = klagebehandling.varsletFrist,
             fagsakId = klagebehandling.fagsakId,
             fagsystemId = klagebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
@@ -307,6 +321,19 @@ class KabinApiService(
                     navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
                 )
             },
+            svarbrev = dokumentView?.let { document ->
+                KabinResponseSvarbrev(
+                    dokumentUnderArbeidId = document.id,
+                    title = document.tittel,
+                    receivers = document.mottakerList.map { mottaker ->
+                        KabinResponseSvarbrev.Receiver(
+                            part = mottaker.part,
+                            overriddenAddress = mottaker.overriddenAddress,
+                            handling = mottaker.handling,
+                        )
+                    }
+                )
+            }
         )
     }
 

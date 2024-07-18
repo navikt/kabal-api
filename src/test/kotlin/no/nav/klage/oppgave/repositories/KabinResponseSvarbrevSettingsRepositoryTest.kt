@@ -19,7 +19,7 @@ import java.time.LocalDateTime
 @DataJpaTest
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class SvarbrevSettingsRepositoryTest {
+class KabinResponseSvarbrevSettingsRepositoryTest {
 
     companion object {
         @Container
