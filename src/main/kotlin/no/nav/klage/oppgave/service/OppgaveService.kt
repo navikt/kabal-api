@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.service
 
 import jakarta.persistence.criteria.CriteriaBuilder
-import jakarta.persistence.criteria.CriteriaQuery
 import jakarta.persistence.criteria.Root
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
@@ -33,8 +32,7 @@ class OppgaveService(
     }
 
     fun getFerdigstilteOppgaverForNavIdent(queryParams: MineFerdigstilteOppgaverQueryParams): BehandlingerListResponse {
-        var specification: Specification<Behandling> =
-            Specification { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+      var  specification: Specification<Behandling> = Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                 builder.isNotNull(root.get(Behandling_.avsluttetAvSaksbehandler))
             }
 
@@ -61,7 +59,7 @@ class OppgaveService(
 
     fun getFerdigstilteOppgaverForEnhet(queryParams: EnhetensFerdigstilteOppgaverQueryParams): BehandlingerListResponse {
         var specification: Specification<Behandling> =
-            Specification { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+            Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                 builder.isNotNull(root.get(Behandling_.avsluttetAvSaksbehandler))
             }
 
@@ -130,7 +128,7 @@ class OppgaveService(
         }
 
     private fun addEnhet(specification: Specification<Behandling>) =
-        specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+        specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
             builder.equal(
                 root.get(Behandling_.tildeling).get(Tildeling_.enhet),
                 saksbehandlerService.getEnhetForSaksbehandler(
@@ -140,7 +138,7 @@ class OppgaveService(
         }
 
     private fun addInnloggetSaksbehandler(specification: Specification<Behandling>) =
-        specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+        specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
             builder.equal(
                 root.get(Behandling_.tildeling).get(Tildeling_.saksbehandlerident),
                 innloggetSaksbehandlerService.getInnloggetIdent()
@@ -155,7 +153,7 @@ class OppgaveService(
         if (queryParams.registreringshjemler.isNotEmpty()) {
             queryParams.registreringshjemler.forEach { registreringshjemmelId ->
                 specification =
-                    specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+                    specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                         builder.isMember(
                             Registreringshjemmel.of(registreringshjemmelId),
                             root.get(Behandling_.registreringshjemler)
@@ -240,7 +238,7 @@ class OppgaveService(
         val to = queryParams.ferdigstiltTo ?: LocalDate.now().plusDays(36500)
 
         specification =
-            specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+            specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                 builder.greaterThanOrEqualTo(
                     root.get(Behandling_.avsluttetAvSaksbehandler),
                     from.atStartOfDay()
@@ -248,7 +246,7 @@ class OppgaveService(
             }
 
         specification =
-            specification.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+            specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                 builder.lessThan(
                     root.get(Behandling_.avsluttetAvSaksbehandler),
                     to!!.plusDays(1).atStartOfDay()
@@ -275,14 +273,14 @@ class OppgaveService(
                 root.get(Behandling_.frist),
                 from
             )
-        }.and { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+        }.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
             builder.lessThanOrEqualTo(
                 root.get(Behandling_.frist),
                 to
             )
         }
 
-        val isNull = Specification { root: Root<Behandling>, _: CriteriaQuery<*>, builder: CriteriaBuilder ->
+        val isNull = Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
             builder.isNull(root.get(Behandling_.frist))
         }
 
