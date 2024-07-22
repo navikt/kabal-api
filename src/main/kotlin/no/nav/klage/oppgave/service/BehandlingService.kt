@@ -628,7 +628,7 @@ class BehandlingService(
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = systemUserContext,
+            ignoreCheckSkrivetilgang = systemUserContext || innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter(),
             systemUserContext = systemUserContext,
         )
         val event = when (behandling) {
