@@ -384,7 +384,7 @@ class AdminService(
     }
 
     fun cleanupJournalfoertDUA() {
-        val allDUAs = journalfoertDokumentUnderArbeidAsVedleggRepository.findAll()
+        val allDUAs = journalfoertDokumentUnderArbeidAsVedleggRepository.findAll().filter { it.ferdigstilt == null }
         val journalpostIdList = safFacade.getJournalposter(
             journalpostIdSet = allDUAs.map { it.journalpostId }.toSet(),
             fnr = null,
