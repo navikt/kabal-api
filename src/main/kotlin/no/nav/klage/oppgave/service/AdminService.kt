@@ -382,6 +382,23 @@ class AdminService(
         }
         logger.debug("setSortKeyToDUA: ${allDUAs.size} DUAs were updated with sortKeys: $keys")
     }
+
+    fun cleanupJournalfoertDUA() {
+        val allDUAs = journalfoertDokumentUnderArbeidAsVedleggRepository.findAll()
+        val journalpostIdList = safFacade.getJournalposter(
+            journalpostIdSet = allDUAs.map { it.journalpostId }.toSet(),
+            fnr = null,
+            saksbehandlerContext = false,
+        ).map { it.journalpostId }
+        var duasNotInSAF = 0
+        var duasInSAF = 0
+        allDUAs.forEach { dua ->
+            if (dua.journalpostId !in journalpostIdList) {
+                duasNotInSAF++
+            } else duasInSAF++
+        }
+        logger.debug("duasInSAF: $duasInSAF, duasNotInSAF: $duasNotInSAF")
+    }
 }
 
 fun migrateTables(fromJsonString: String?, secureLogger: Logger?): String {

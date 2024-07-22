@@ -148,5 +148,18 @@ class DevOnlyAdminController(
         }
     }
 
+    @Unprotected
+    @GetMapping("/internal/cleanupjournalfoertdua")
+    fun cleanupJournalfoertDUA() {
+        logger.debug("cleanupJournalfoertDUA is called in dev")
+
+        try {
+            adminService.cleanupJournalfoertDUA()
+        } catch (e: Exception) {
+            logger.warn("Failed to cleanupJournalfoertDUA", e)
+            throw e
+        }
+    }
+
     data class Fnr(val fnr: String)
 }
