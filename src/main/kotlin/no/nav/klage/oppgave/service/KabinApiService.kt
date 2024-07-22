@@ -119,6 +119,7 @@ class KabinApiService(
                 behandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType,
                 behandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
                 behandling = behandling,
+                systemUserContext = false,
             )
 
         }

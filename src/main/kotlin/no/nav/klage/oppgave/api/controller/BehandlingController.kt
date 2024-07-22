@@ -201,31 +201,6 @@ class BehandlingController(
         return BehandlingEditedView(modified = modified)
     }
 
-    @PutMapping("/{behandlingId}/varsletfrist")
-    fun setVarsletFrist(
-        @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: BehandlingDateInput
-    ): BehandlingEditedView {
-        logBehandlingMethodDetails(
-            ::setVarsletFrist.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
-        )
-
-        if (!innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
-            throw MissingTilgangException("${innloggetSaksbehandlerService.getInnloggetIdent()} does not have the right to modify varslet frist")
-        }
-
-        val modified = behandlingService.setVarsletFrist(
-            behandlingId = behandlingId,
-            varsletFrist = input.date,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
-
-        return BehandlingEditedView(modified = modified)
-    }
-
     /**
      * Valgfri validering før innsending/fullføring.
      * Gjøres uansett ved fullføring av behandlingen.

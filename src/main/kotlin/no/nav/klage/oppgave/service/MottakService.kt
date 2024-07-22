@@ -144,6 +144,7 @@ class MottakService(
                         behandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
                         behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
                         behandling = behandling,
+                        systemUserContext = true,
                     )
                 }
             } catch (e: Exception) {

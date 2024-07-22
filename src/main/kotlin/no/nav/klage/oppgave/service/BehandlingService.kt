@@ -59,6 +59,7 @@ import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtak
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setVarsletFrist
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
+import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
@@ -92,6 +93,7 @@ class BehandlingService(
     private val partSearchService: PartSearchService,
     private val safFacade: SafFacade,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val tokenUtil: TokenUtil,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -601,7 +603,8 @@ class BehandlingService(
     fun setVarsletFrist(
         behandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
         behandlingstidUnits: Int,
-        behandling: Behandling
+        behandling: Behandling,
+        systemUserContext: Boolean,
     ) {
         val varsletFrist = when (behandlingstidUnitType) {
             SvarbrevSettings.BehandlingstidUnitType.WEEKS -> behandling.mottattKlageinstans.toLocalDate()
@@ -614,31 +617,32 @@ class BehandlingService(
         setVarsletFrist(
             behandlingId = behandling.id,
             varsletFrist = varsletFrist,
-            utfoerendeSaksbehandlerIdent = systembrukerIdent,
+            systemUserContext = systemUserContext,
         )
     }
 
     fun setVarsletFrist(
         behandlingId: UUID,
         varsletFrist: LocalDate,
-        utfoerendeSaksbehandlerIdent: String,
+        systemUserContext: Boolean,
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = true
+            ignoreCheckSkrivetilgang = systemUserContext,
+            systemUserContext = systemUserContext,
         )
         val event = when (behandling) {
             is Klagebehandling -> {
                 behandling.setVarsletFrist(
                     nyVerdi = varsletFrist,
-                    saksbehandlerident = utfoerendeSaksbehandlerIdent
+                    saksbehandlerident = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
                 )
             }
 
             is Ankebehandling -> {
                 behandling.setVarsletFrist(
                     nyVerdi = varsletFrist,
-                    saksbehandlerident = utfoerendeSaksbehandlerIdent
+                    saksbehandlerident = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
                 )
             }
 
