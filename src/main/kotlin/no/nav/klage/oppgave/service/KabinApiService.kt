@@ -266,6 +266,8 @@ class KabinApiService(
             mottattNav = ankebehandling.mottattKlageinstans.toLocalDate(),
             frist = ankebehandling.frist!!,
             varsletFrist = ankebehandling.varsletFrist,
+            varsletFristUnits = ankebehandling.varsletBehandlingstidUnits,
+            varsletFristUnitTypeId = ankebehandling.varsletBehandlingstidUnitType?.id,
             fagsakId = ankebehandling.fagsakId,
             fagsystemId = ankebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
@@ -327,6 +329,8 @@ class KabinApiService(
             mottattKlageinstans = klagebehandling.mottattKlageinstans.toLocalDate(),
             frist = klagebehandling.frist!!,
             varsletFrist = klagebehandling.varsletFrist,
+            varsletFristUnits = klagebehandling.varsletBehandlingstidUnits,
+            varsletFristUnitTypeId = klagebehandling.varsletBehandlingstidUnitType?.id,
             fagsakId = klagebehandling.fagsakId,
             fagsystemId = klagebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
