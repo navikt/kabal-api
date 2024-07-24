@@ -1,5 +1,6 @@
 package no.nav.klage.dokument.clients.kabaljsontopdf.domain
 
+import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 import java.time.LocalDate
 
@@ -39,7 +40,7 @@ data class SvarbrevRequest(
     val fullmektigFritekst: String?,
     val receivedDate: LocalDate,
     val behandlingstidUnits: Int,
-    val behandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
+    val behandlingstidUnitTypeId: String,
     val avsenderEnhetId: String,
     val type: Type,
     val customText: String?,

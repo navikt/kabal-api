@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
@@ -29,13 +30,17 @@ class SvarbrevSettingsService(
             .sortedWith(compareBy<SvarbrevSettings> { it.ytelse.navn }.thenBy { it.type.id }).map { it.toView() }
     }
 
-    fun getSvarbrevSettingsForYtelse(ytelse: Ytelse): List<SvarbrevSettingsView> {
+    fun getSvarbrevSettingsViewForYtelse(ytelse: Ytelse): List<SvarbrevSettingsView> {
         return svarbrevSettingsRepository.findAll().filter { it.ytelse == ytelse }.sortedBy { it.type }
             .map { it.toView() }
     }
 
-    fun getSvarbrevSettingsForYtelseAndType(ytelse: Ytelse, type: Type): SvarbrevSettingsView {
-        return svarbrevSettingsRepository.findAll().find { it.ytelse == ytelse && it.type == type }!!.toView()
+    fun getSvarbrevSettingsViewForYtelseAndType(ytelse: Ytelse, type: Type): SvarbrevSettingsView {
+        return getSvarbrevSettingsForYtelseAndType(ytelse = ytelse, type = type).toView()
+    }
+
+    fun getSvarbrevSettingsForYtelseAndType(ytelse: Ytelse, type: Type): SvarbrevSettings {
+        return svarbrevSettingsRepository.findAll().find { it.ytelse == ytelse && it.type == type }!!
     }
 
     fun updateSvarbrevSettings(
@@ -48,10 +53,15 @@ class SvarbrevSettingsService(
                 throw ValidationException("Behandlingstid må være større enn 0.")
             }
 
+            val inputBehandlingstidUnitType = if (updateSvarbrevSettingsInput.behandlingstidUnitTypeId != null) {
+                TimeUnitType.of(updateSvarbrevSettingsInput.behandlingstidUnitTypeId)
+            } else updateSvarbrevSettingsInput.behandlingstidUnitType
+                ?: throw ValidationException("Mangler angitt behandlingstidUnitType.")
+
             val svarbrevSettings = svarbrevSettingsRepository.findById(id).get()
             svarbrevSettings.apply {
                 behandlingstidUnits = updateSvarbrevSettingsInput.behandlingstidUnits
-                behandlingstidUnitType = updateSvarbrevSettingsInput.behandlingstidUnitType
+                behandlingstidUnitType = inputBehandlingstidUnitType
                 customText = updateSvarbrevSettingsInput.customText.takeIf { it.isNotBlank() }
                 shouldSend = updateSvarbrevSettingsInput.shouldSend
                 createdBy = tokenUtil.getIdent()
@@ -77,6 +87,7 @@ class SvarbrevSettingsService(
             typeId = type.id,
             behandlingstidUnits = behandlingstidUnits,
             behandlingstidUnitType = behandlingstidUnitType,
+            behandlingstidUnitTypeId = behandlingstidUnitType.id,
             customText = customText,
             shouldSend = shouldSend,
             created = created,
@@ -95,6 +106,7 @@ class SvarbrevSettingsService(
             typeId = type.id,
             behandlingstidUnits = behandlingstidUnits,
             behandlingstidUnitType = behandlingstidUnitType,
+            behandlingstidUnitTypeId = behandlingstidUnitType.id,
             customText = customText,
             shouldSend = shouldSend,
             created = created,

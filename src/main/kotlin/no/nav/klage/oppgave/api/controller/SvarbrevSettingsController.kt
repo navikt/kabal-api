@@ -28,7 +28,7 @@ class SvarbrevSettingsController(
     fun getSvarbrevSettingsForYtelse(
         @PathVariable("ytelseId") ytelseId: String
     ): List<SvarbrevSettingsView> {
-        return svarbrevSettingsService.getSvarbrevSettingsForYtelse(ytelse = Ytelse.of(ytelseId))
+        return svarbrevSettingsService.getSvarbrevSettingsViewForYtelse(ytelse = Ytelse.of(ytelseId))
     }
 
     @GetMapping("/ytelser/{ytelseId}/typer/{typeId}")
@@ -36,7 +36,7 @@ class SvarbrevSettingsController(
         @PathVariable("ytelseId") ytelseId: String,
         @PathVariable("typeId") typeId: String
     ): SvarbrevSettingsView {
-        return svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(ytelse = Ytelse.of(ytelseId), type = Type.of(typeId))
+        return svarbrevSettingsService.getSvarbrevSettingsViewForYtelseAndType(ytelse = Ytelse.of(ytelseId), type = Type.of(typeId))
     }
 
     @PutMapping("/{id}")

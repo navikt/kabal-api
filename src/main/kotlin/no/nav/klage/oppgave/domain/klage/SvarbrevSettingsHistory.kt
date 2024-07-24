@@ -1,9 +1,10 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.TimeUnitTypeConverter
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.oppgave.domain.klage.SvarbrevSettings.BehandlingstidUnitType
+import no.nav.klage.kodeverk.Ytelse
 import java.time.LocalDateTime
 import java.util.*
 
@@ -17,9 +18,9 @@ class SvarbrevSettingsHistory(
     val ytelse: Ytelse,
     @Column(name = "behandlingstid_units")
     var behandlingstidUnits: Int,
-    @Column(name = "behandlingstid_unit_type")
-    @Enumerated(EnumType.STRING)
-    var behandlingstidUnitType: BehandlingstidUnitType,
+    @Column(name = "behandlingstid_unit_type_id")
+    @Convert(converter = TimeUnitTypeConverter::class)
+    var behandlingstidUnitType: TimeUnitType,
     @Column(name = "custom_text")
     val customText: String?,
     @Column(name = "created")
