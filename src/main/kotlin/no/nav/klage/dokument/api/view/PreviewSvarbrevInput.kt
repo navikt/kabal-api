@@ -13,7 +13,8 @@ data class PreviewSvarbrevInput(
     val typeId: String,
     val fullmektigFritekst: String?,
     val varsletBehandlingstidUnits: Int,
-    val varsletBehandlingstidUnitType: TimeUnitType,
+    val varsletBehandlingstidUnitType: TimeUnitType?,
+    val varsletBehandlingstidUnitTypeId: String?,
     val customText: String?,
     val title: String,
 )
@@ -23,6 +24,7 @@ data class PreviewSvarbrevAnonymousInput(
     val ytelseId: String,
     val typeId: String,
     val behandlingstidUnits: Int,
-    val behandlingstidUnitType: TimeUnitType,
+    val behandlingstidUnitType: TimeUnitType?,
+    val behandlingstidUnitTypeId: String?,
     val customText: String?,
 )

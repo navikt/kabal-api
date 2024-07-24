@@ -162,10 +162,10 @@ class KabinApiService(
         varsletBehandlingstidUnitTypeId: String?,
         varsletBehandlingstidUnitType: TimeUnitType?
     ): TimeUnitType {
-        if (varsletBehandlingstidUnitTypeId != null) {
-            return TimeUnitType.of(varsletBehandlingstidUnitTypeId)
+        return if (varsletBehandlingstidUnitTypeId != null) {
+            TimeUnitType.of(varsletBehandlingstidUnitTypeId)
         } else {
-            return varsletBehandlingstidUnitType!!
+            varsletBehandlingstidUnitType!!
         }
     }
 
