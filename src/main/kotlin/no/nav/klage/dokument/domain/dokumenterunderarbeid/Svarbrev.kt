@@ -1,14 +1,14 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
+import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 
 data class Svarbrev(
     val title: String,
     val receivers: List<Receiver>,
     val fullmektigFritekst: String?,
     val varsletBehandlingstidUnits: Int,
-    val varsletBehandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
+    val varsletBehandlingstidUnitType: TimeUnitType,
     val type: Type,
     val customText: String?
 ) {

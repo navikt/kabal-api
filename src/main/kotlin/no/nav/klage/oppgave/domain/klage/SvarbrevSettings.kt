@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
+import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.TimeUnitTypeConverter
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import java.time.LocalDateTime
@@ -16,9 +18,9 @@ class SvarbrevSettings(
     val ytelse: Ytelse,
     @Column(name = "behandlingstid_units")
     var behandlingstidUnits: Int,
-    @Column(name = "behandlingstid_unit_type")
-    @Enumerated(EnumType.STRING)
-    var behandlingstidUnitType: BehandlingstidUnitType,
+    @Column(name = "behandlingstid_unit_type_id")
+    @Convert(converter = TimeUnitTypeConverter::class)
+    var behandlingstidUnitType: TimeUnitType,
     @Column(name = "custom_text")
     var customText: String?,
     @Column(name = "should_send")
@@ -36,11 +38,6 @@ class SvarbrevSettings(
     @JoinColumn(name = "svarbrev_settings_id")
     val history: MutableSet<SvarbrevSettingsHistory> = mutableSetOf()
 ) {
-
-    enum class BehandlingstidUnitType {
-        WEEKS,
-        MONTHS,
-    }
 
     fun toHistory(): SvarbrevSettingsHistory {
         return SvarbrevSettingsHistory(

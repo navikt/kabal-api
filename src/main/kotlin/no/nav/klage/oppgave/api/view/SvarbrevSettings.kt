@@ -1,11 +1,13 @@
 package no.nav.klage.oppgave.api.view
 
+import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 import java.time.LocalDateTime
 import java.util.*
 
 data class UpdateSvarbrevSettingsInput(
-    val behandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
+    val behandlingstidUnitType: TimeUnitType?,
+    val behandlingstidUnitTypeId: String?,
     val behandlingstidUnits: Int,
     val customText: String,
     val shouldSend: Boolean,
@@ -16,7 +18,8 @@ data class SvarbrevSettingsView(
     val ytelseId: String,
     val typeId: String,
     val behandlingstidUnits: Int,
-    val behandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
+    val behandlingstidUnitType: TimeUnitType,
+    val behandlingstidUnitTypeId: String,
     val customText: String?,
     val shouldSend: Boolean,
     val created: LocalDateTime,

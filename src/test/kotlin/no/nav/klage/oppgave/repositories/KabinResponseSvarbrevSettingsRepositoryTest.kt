@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.repositories
 
+import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
@@ -39,7 +40,7 @@ class KabinResponseSvarbrevSettingsRepositoryTest {
             ytelse = Ytelse.TIL_TIP,
             type = Type.KLAGE,
             behandlingstidUnits = 12,
-            behandlingstidUnitType = SvarbrevSettings.BehandlingstidUnitType.WEEKS,
+            behandlingstidUnitType = TimeUnitType.WEEKS,
             customText = "custom text",
             shouldSend = true,
             created = LocalDateTime.now(),
@@ -61,7 +62,7 @@ class KabinResponseSvarbrevSettingsRepositoryTest {
             ytelse = Ytelse.TIL_TIP,
             type = Type.KLAGE,
             behandlingstidUnits = 12,
-            behandlingstidUnitType = SvarbrevSettings.BehandlingstidUnitType.WEEKS,
+            behandlingstidUnitType = TimeUnitType.WEEKS,
             customText = "custom text",
             shouldSend = true,
             created = LocalDateTime.now(),

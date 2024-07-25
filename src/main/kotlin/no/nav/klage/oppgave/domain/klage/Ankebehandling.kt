@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.*
@@ -30,6 +31,11 @@ class Ankebehandling(
     val kakaKvalitetsvurderingVersion: Int,
     @Column(name = "varslet_frist")
     var varsletFrist: LocalDate? = null,
+    @Column(name = "varslet_behandlingstid_units")
+    var varsletBehandlingstidUnits: Int? = null,
+    @Column(name = "varslet_behandlingstid_unit_type_id")
+    @Convert(converter = TimeUnitTypeConverter::class)
+    var varsletBehandlingstidUnitType: TimeUnitType? = null,
 
 //    Finn ut hvordan dette skal fungere i anker etter hvert
 //    @Column(name = "dato_behandling_avsluttet_av_saksbehandler")
