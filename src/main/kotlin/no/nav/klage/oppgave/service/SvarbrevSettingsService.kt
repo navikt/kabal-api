@@ -56,7 +56,7 @@ class SvarbrevSettingsService(
             val inputBehandlingstidUnitType = if (updateSvarbrevSettingsInput.behandlingstidUnitTypeId != null) {
                 TimeUnitType.of(updateSvarbrevSettingsInput.behandlingstidUnitTypeId)
             } else updateSvarbrevSettingsInput.behandlingstidUnitType
-                ?: throw ValidationException("Mangler angitt behandlingstidUnitType.")
+                ?: throw ValidationException("BehandlingstidUnitType må angis.")
 
             val svarbrevSettings = svarbrevSettingsRepository.findById(id).get()
             svarbrevSettings.apply {
