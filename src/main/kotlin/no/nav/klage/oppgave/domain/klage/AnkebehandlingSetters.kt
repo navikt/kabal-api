@@ -7,63 +7,51 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 object AnkebehandlingSetters {
-    fun Ankebehandling.setVarsletFrist(
-        nyVerdi: LocalDate,
-        saksbehandlerident: String
-    ): BehandlingEndretEvent {
-        val gammelVerdi = varsletFrist
-        val tidspunkt = LocalDateTime.now()
-        varsletFrist = nyVerdi
-        modified = tidspunkt
-        val endringslogg =
-            endringslogg(
-                saksbehandlerident = saksbehandlerident,
-                felt = Felt.VARSLET_FRIST,
-                fraVerdi = gammelVerdi.toString(),
-                tilVerdi = nyVerdi.toString(),
-                behandlingId = this.id,
-                tidspunkt = tidspunkt
-            )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
-    }
 
-    fun Ankebehandling.setVarsletBehandlingstidUnits(
-        nyVerdi: Int,
+    fun Ankebehandling.setVarsletBehandlingstid(
+        nyVerdiVarsletBehandlingstidUnits: Int,
+        nyVerdiVarsletBehandlingstidUnitType: TimeUnitType,
+        nyVerdiVarsletFrist: LocalDate,
         saksbehandlerident: String
     ): BehandlingEndretEvent {
-        val gammelVerdi = varsletBehandlingstidUnits
+        val gammelVerdiVarsletBehandlingstidUnits = varsletBehandlingstidUnits
+        val gammelVerdiVarsletBehandlingstidUnitType = varsletBehandlingstidUnitType
+        val gammelVerdiVarsletFrist = varsletFrist
         val tidspunkt = LocalDateTime.now()
-        varsletBehandlingstidUnits = nyVerdi
-        modified = tidspunkt
-        val endringslogg =
-            endringslogg(
-                saksbehandlerident = saksbehandlerident,
-                felt = Felt.VARSLET_BEHANDLINGSTID_UNITS,
-                fraVerdi = gammelVerdi.toString(),
-                tilVerdi = nyVerdi.toString(),
-                behandlingId = this.id,
-                tidspunkt = tidspunkt
-            )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
-    }
 
-    fun Ankebehandling.setVarsletBehandlingstidUnitType(
-        nyVerdi: TimeUnitType,
-        saksbehandlerident: String
-    ): BehandlingEndretEvent {
-        val gammelVerdi = varsletBehandlingstidUnitType
-        val tidspunkt = LocalDateTime.now()
-        varsletBehandlingstidUnitType = nyVerdi
-        modified = tidspunkt
-        val endringslogg =
-            endringslogg(
-                saksbehandlerident = saksbehandlerident,
-                felt = Felt.VARSLET_BEHANDLINGSTID_UNIT_TYPE,
-                fraVerdi = gammelVerdi.toString(),
-                tilVerdi = nyVerdi.toString(),
-                behandlingId = this.id,
-                tidspunkt = tidspunkt
-            )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        varsletBehandlingstidUnits = nyVerdiVarsletBehandlingstidUnits
+        varsletBehandlingstidUnitType = nyVerdiVarsletBehandlingstidUnitType
+        varsletFrist = nyVerdiVarsletFrist
+
+        val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+
+        endringslogg(
+            saksbehandlerident = saksbehandlerident,
+            felt = Felt.VARSLET_FRIST,
+            fraVerdi = gammelVerdiVarsletFrist.toString(),
+            tilVerdi = nyVerdiVarsletFrist.toString(),
+            behandlingId = this.id,
+            tidspunkt = tidspunkt
+        )?.let { endringslogginnslag.add(it) }
+
+        endringslogg(
+            saksbehandlerident = saksbehandlerident,
+            felt = Felt.VARSLET_BEHANDLINGSTID_UNITS,
+            fraVerdi = gammelVerdiVarsletBehandlingstidUnits.toString(),
+            tilVerdi = nyVerdiVarsletBehandlingstidUnits.toString(),
+            behandlingId = this.id,
+            tidspunkt = tidspunkt
+        )?.let { endringslogginnslag.add(it) }
+
+        endringslogg(
+            saksbehandlerident = saksbehandlerident,
+            felt = Felt.VARSLET_BEHANDLINGSTID_UNIT_TYPE,
+            fraVerdi = gammelVerdiVarsletBehandlingstidUnitType.toString(),
+            tilVerdi = nyVerdiVarsletBehandlingstidUnitType.toString(),
+            behandlingId = this.id,
+            tidspunkt = tidspunkt
+        )?.let { endringslogginnslag.add(it) }
+
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
     }
 }
