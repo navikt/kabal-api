@@ -5,6 +5,7 @@ import no.nav.klage.dokument.api.view.PreviewSvarbrevInput
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.dokument.exceptions.SvarbrevPreviewException
 import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.service.PartSearchService
@@ -82,7 +83,10 @@ class SvarbrevPreviewService(
             receivers = listOf(),
             fullmektigFritekst = null,
             varsletBehandlingstidUnits = behandlingstidUnits,
-            varsletBehandlingstidUnitType = behandlingstidUnitType,
+            varsletBehandlingstidUnitType = getTimeUnitType(
+                varsletBehandlingstidUnitTypeId = behandlingstidUnitTypeId,
+                varsletBehandlingstidUnitType = behandlingstidUnitType
+            ),
             type = Type.of(typeId),
             customText = customText,
         )
@@ -94,9 +98,23 @@ class SvarbrevPreviewService(
             receivers = listOf(),
             fullmektigFritekst = fullmektigFritekst,
             varsletBehandlingstidUnits = varsletBehandlingstidUnits,
-            varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
+            varsletBehandlingstidUnitType = getTimeUnitType(
+                varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitTypeId,
+                varsletBehandlingstidUnitType = varsletBehandlingstidUnitType
+            ),
             type = Type.of(typeId),
             customText = customText
         )
+    }
+
+    private fun getTimeUnitType(
+        varsletBehandlingstidUnitTypeId: String?,
+        varsletBehandlingstidUnitType: TimeUnitType?
+    ): TimeUnitType {
+        return if (varsletBehandlingstidUnitTypeId != null) {
+            TimeUnitType.of(varsletBehandlingstidUnitTypeId)
+        } else {
+            varsletBehandlingstidUnitType!!
+        }
     }
 }

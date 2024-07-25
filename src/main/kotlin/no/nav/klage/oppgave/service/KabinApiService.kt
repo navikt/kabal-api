@@ -5,6 +5,7 @@ import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
@@ -116,7 +117,10 @@ class KabinApiService(
             )
 
             behandlingService.setVarsletFrist(
-                behandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType,
+                behandlingstidUnitType = getTimeUnitType(
+                    varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId,
+                    varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType
+                ),
                 behandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
                 behandling = behandling,
                 systemUserContext = false,
@@ -145,10 +149,24 @@ class KabinApiService(
             },
             fullmektigFritekst = fullmektigFritekst,
             varsletBehandlingstidUnits = varsletBehandlingstidUnits,
-            varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
+            varsletBehandlingstidUnitType = getTimeUnitType(
+                varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitTypeId,
+                varsletBehandlingstidUnitType = varsletBehandlingstidUnitType
+            ),
             type = behandling.type,
             customText = customText,
         )
+    }
+
+    private fun getTimeUnitType(
+        varsletBehandlingstidUnitTypeId: String?,
+        varsletBehandlingstidUnitType: TimeUnitType?
+    ): TimeUnitType {
+        return if (varsletBehandlingstidUnitTypeId != null) {
+            TimeUnitType.of(varsletBehandlingstidUnitTypeId)
+        } else {
+            varsletBehandlingstidUnitType!!
+        }
     }
 
     fun getCreatedAnkebehandlingStatus(
@@ -248,6 +266,8 @@ class KabinApiService(
             mottattNav = ankebehandling.mottattKlageinstans.toLocalDate(),
             frist = ankebehandling.frist!!,
             varsletFrist = ankebehandling.varsletFrist,
+            varsletFristUnits = ankebehandling.varsletBehandlingstidUnits,
+            varsletFristUnitTypeId = ankebehandling.varsletBehandlingstidUnitType?.id,
             fagsakId = ankebehandling.fagsakId,
             fagsystemId = ankebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
@@ -309,6 +329,8 @@ class KabinApiService(
             mottattKlageinstans = klagebehandling.mottattKlageinstans.toLocalDate(),
             frist = klagebehandling.frist!!,
             varsletFrist = klagebehandling.varsletFrist,
+            varsletFristUnits = klagebehandling.varsletBehandlingstidUnits,
+            varsletFristUnitTypeId = klagebehandling.varsletBehandlingstidUnitType?.id,
             fagsakId = klagebehandling.fagsakId,
             fagsystemId = klagebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(

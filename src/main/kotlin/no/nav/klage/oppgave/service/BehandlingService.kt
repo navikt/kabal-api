@@ -34,7 +34,7 @@ import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setSendtTilTrygderetten
-import no.nav.klage.oppgave.domain.klage.AnkebehandlingSetters.setVarsletFrist
+import no.nav.klage.oppgave.domain.klage.AnkebehandlingSetters.setVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokumenter
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.removeSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttetAvSaksbehandler
@@ -56,7 +56,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setSattPaaVent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setTildeling
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtaksinstans
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setVarsletFrist
+import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setVarsletBehandlingstid
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.TokenUtil
@@ -601,57 +601,48 @@ class BehandlingService(
     }
 
     fun setVarsletFrist(
-        behandlingstidUnitType: SvarbrevSettings.BehandlingstidUnitType,
+        behandlingstidUnitType: TimeUnitType,
         behandlingstidUnits: Int,
         behandling: Behandling,
         systemUserContext: Boolean,
-    ) {
+    ): LocalDateTime {
         val varsletFrist = when (behandlingstidUnitType) {
-            SvarbrevSettings.BehandlingstidUnitType.WEEKS -> behandling.mottattKlageinstans.toLocalDate()
+            TimeUnitType.WEEKS -> behandling.mottattKlageinstans.toLocalDate()
                 .plusWeeks(behandlingstidUnits.toLong())
 
-            SvarbrevSettings.BehandlingstidUnitType.MONTHS -> behandling.mottattKlageinstans.toLocalDate()
+            TimeUnitType.MONTHS -> behandling.mottattKlageinstans.toLocalDate()
                 .plusMonths(behandlingstidUnits.toLong())
         }
 
-        setVarsletFrist(
-            behandlingId = behandling.id,
-            varsletFrist = varsletFrist,
-            systemUserContext = systemUserContext,
-        )
-    }
+        val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
 
-    fun setVarsletFrist(
-        behandlingId: UUID,
-        varsletFrist: LocalDate,
-        systemUserContext: Boolean,
-    ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = systemUserContext || innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter(),
-            systemUserContext = systemUserContext,
-        )
-        val event = when (behandling) {
+        when (behandling) {
             is Klagebehandling -> {
-                behandling.setVarsletFrist(
-                    nyVerdi = varsletFrist,
-                    saksbehandlerident = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
+                applicationEventPublisher.publishEvent(
+                    behandling.setVarsletBehandlingstid(
+                        nyVerdiVarsletBehandlingstidUnits = behandlingstidUnits,
+                        nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,
+                        nyVerdiVarsletFrist = varsletFrist,
+                        saksbehandlerident = saksbehandlerIdent,
+                    )
                 )
             }
 
             is Ankebehandling -> {
-                behandling.setVarsletFrist(
-                    nyVerdi = varsletFrist,
-                    saksbehandlerident = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
+                applicationEventPublisher.publishEvent(
+                    behandling.setVarsletBehandlingstid(
+                        nyVerdiVarsletBehandlingstidUnits = behandlingstidUnits,
+                        nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,
+                        nyVerdiVarsletFrist = varsletFrist,
+                        saksbehandlerident = saksbehandlerIdent,
+                    )
                 )
             }
 
             else -> throw IllegalOperation("Dette feltet kan bare settes i klage- og ankesaker")
         }
 
-        applicationEventPublisher.publishEvent(event)
         return behandling.modified
-
     }
 
     fun setExpiredTildeltSaksbehandlerToNullInSystemContext(
