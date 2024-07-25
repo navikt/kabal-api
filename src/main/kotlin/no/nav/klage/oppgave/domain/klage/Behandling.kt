@@ -176,6 +176,11 @@ abstract class Behandling(
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     open val sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
+    @Fetch(FetchMode.SELECT)
+    @BatchSize(size = 100)
+    open val varsletFristHistorikk: MutableSet<VarsletFristHistorikk> = mutableSetOf(),
     @Column(name = "previous_saksbehandlerident")
     open val previousSaksbehandlerident: String?,
     @Column(name = "oppgave_id")

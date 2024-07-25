@@ -1975,6 +1975,10 @@ class BehandlingService(
                 feilregistrering = behandling.feilregistrering,
                 behandlingCreated = behandling.created,
             ),
+            varsletFrist = historyService.createVarsletFristHistory(
+                varsletFristHistorikk = behandling.varsletFristHistorikk,
+                behandlingCreated = behandling.created,
+            )
         )
     }
 
