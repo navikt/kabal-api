@@ -8,8 +8,8 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Entity
-@Table(name = "varslet_frist_historikk", schema = "klage")
-class VarsletFristHistorikk(
+@Table(name = "varslet_behandlingstid_historikk", schema = "klage")
+class VarsletBehandlingstidHistorikk(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Embedded
@@ -26,17 +26,17 @@ class VarsletFristHistorikk(
     val utfoerendeIdent: String?,
     @Column(name = "varslet_frist")
     val varsletFrist: LocalDate?,
-    @Column(name = "varslet_frist_units")
-    val varsletFristUnits: Int?,
-    @Column(name = "varslet_frist_id")
+    @Column(name = "varslet_behandlingstid_units")
+    val varsletBehandlingstidUnits: Int?,
+    @Column(name = "varslet_behandlingstid_unit_type_id")
     @Convert(converter = TimeUnitTypeConverter::class)
-    val varsletFristUnitType: TimeUnitType?,
+    val varsletBehandlingstidUnitType: TimeUnitType?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as VarsletFristHistorikk
+        other as VarsletBehandlingstidHistorikk
 
         return id == other.id
     }
@@ -46,6 +46,6 @@ class VarsletFristHistorikk(
     }
 
     override fun toString(): String {
-        return "VarsletFristHistorikk(id=$id, mottaker=$mottaker, tidspunkt=$tidspunkt, utfoerendeIdent='$utfoerendeIdent', varsletFrist=$varsletFrist, varsletFristUnits=$varsletFristUnits, varsletFristUnitType=$varsletFristUnitType)"
+        return "VarsletFristHistorikk(id=$id, mottaker=$mottaker, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, varsletFrist=$varsletFrist, varsletBehandlingstidUnits=$varsletBehandlingstidUnits, varsletBehandlingstidUnitType=$varsletBehandlingstidUnitType)"
     }
 }

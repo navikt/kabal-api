@@ -10,10 +10,10 @@ data class TildelingEvent(
     val hjemmelIdList: List<String>?,
 )
 
-data class VarsletFristEvent(
+data class VarsletBehandlingstidEvent(
     val mottaker: Part?,
-    val varsletFristUnits: Int?,
-    val varsletFristUnitTypeId: String?,
+    val varsletBehandlingstidUnits: Int?,
+    val varsletBehandlingstidUnitTypeId: String?,
     val varsletFrist: LocalDate?,
 )
 
@@ -91,7 +91,7 @@ data class HistoryResponse(
     val sattPaaVent: List<WithPrevious<SattPaaVentEvent>>,
     val ferdigstilt: List<WithPrevious<FerdigstiltEvent>>,
     val feilregistrert: List<WithPrevious<FeilregistrertEvent>>,
-    val varsletFrist: List<WithPrevious<VarsletFristEvent>>,
+    val varsletBehandlingstid: List<WithPrevious<VarsletBehandlingstidEvent>>,
 )
 
 enum class HistoryEventType {
@@ -103,5 +103,5 @@ enum class HistoryEventType {
     SATT_PAA_VENT,
     FERDIGSTILT,
     FEILREGISTRERT,
-    VARSLET_FRIST
+    VARSLET_BEHANDLINGSTID
 }

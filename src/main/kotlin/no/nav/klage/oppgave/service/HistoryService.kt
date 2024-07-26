@@ -320,32 +320,32 @@ class HistoryService(
         } else null
     }
 
-    fun createVarsletFristHistory(
-        varsletFristHistorikk: Set<VarsletFristHistorikk>,
+    fun createVarsletBehandlingstidHistory(
+        varsletBehandlingstidHistorikk: Set<VarsletBehandlingstidHistorikk>,
         behandlingCreated: LocalDateTime
-    ): List<WithPrevious<VarsletFristEvent>> {
-        val historySorted = if (varsletFristHistorikk.size == 1) {
+    ): List<WithPrevious<VarsletBehandlingstidEvent>> {
+        val historySorted = if (varsletBehandlingstidHistorikk.size == 1) {
             listOf(
-                VarsletFristHistorikk(
+                VarsletBehandlingstidHistorikk(
                     tidspunkt = behandlingCreated,
                     utfoerendeIdent = null,
                     mottaker = null,
                     varsletFrist = null,
-                    varsletFristUnits = null,
-                    varsletFristUnitType = null,
+                    varsletBehandlingstidUnits = null,
+                    varsletBehandlingstidUnitType = null,
                 )
-            ) + varsletFristHistorikk.sortedBy { it.tidspunkt }
-        } else varsletFristHistorikk.sortedBy { it.tidspunkt }
+            ) + varsletBehandlingstidHistorikk.sortedBy { it.tidspunkt }
+        } else varsletBehandlingstidHistorikk.sortedBy { it.tidspunkt }
 
 
 
         return historySorted.zipWithNext()
             .map { (previous, current) ->
-                val previousEvent: HistoryEvent<VarsletFristEvent> = HistoryEvent(
-                    type = HistoryEventType.VARSLET_FRIST,
+                val previousEvent: HistoryEvent<VarsletBehandlingstidEvent> = HistoryEvent(
+                    type = HistoryEventType.VARSLET_BEHANDLINGSTID,
                     timestamp = previous.tidspunkt,
                     actor = previous.utfoerendeIdent.toSaksbehandlerView(),
-                    event = VarsletFristEvent(
+                    event = VarsletBehandlingstidEvent(
                         mottaker = previous.mottaker?.let {
                             Part(
                                 id = it.value,
@@ -355,17 +355,17 @@ class HistoryService(
                                 } else BehandlingDetaljerView.IdType.ORGNR
                             )
                         },
-                        varsletFristUnits = previous.varsletFristUnits,
-                        varsletFristUnitTypeId = previous.varsletFristUnitType?.id,
+                        varsletBehandlingstidUnits = previous.varsletBehandlingstidUnits,
+                        varsletBehandlingstidUnitTypeId = previous.varsletBehandlingstidUnitType?.id,
                         varsletFrist = previous.varsletFrist,
                     )
                 )
 
                 HistoryEventWithPrevious(
-                    type = HistoryEventType.VARSLET_FRIST,
+                    type = HistoryEventType.VARSLET_BEHANDLINGSTID,
                     timestamp = current.tidspunkt,
                     actor = current.utfoerendeIdent.toSaksbehandlerView(),
-                    event = VarsletFristEvent(
+                    event = VarsletBehandlingstidEvent(
                         mottaker = current.mottaker?.let {
                             Part(
                                 id = it.value,
@@ -375,8 +375,8 @@ class HistoryService(
                                 } else BehandlingDetaljerView.IdType.ORGNR
                             )
                         },
-                        varsletFristUnits = current.varsletFristUnits,
-                        varsletFristUnitTypeId = current.varsletFristUnitType?.id,
+                        varsletBehandlingstidUnits = current.varsletBehandlingstidUnits,
+                        varsletBehandlingstidUnitTypeId = current.varsletBehandlingstidUnitType?.id,
                         varsletFrist = current.varsletFrist,
                     ),
                     previous = previousEvent,

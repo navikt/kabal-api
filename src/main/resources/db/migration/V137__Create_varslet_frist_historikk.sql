@@ -1,4 +1,4 @@
-CREATE TABLE klage.varslet_frist_historikk
+CREATE TABLE klage.varslet_behandlingstid_historikk
 (
     id                  UUID PRIMARY KEY,
     behandling_id       UUID NOT NULL,
@@ -7,12 +7,12 @@ CREATE TABLE klage.varslet_frist_historikk
     tidspunkt           TIMESTAMP,
     utfoerende_ident    TEXT,
     varslet_frist       DATE,
-    varslet_frist_units INT,
-    varslet_frist_id    TEXT,
-    CONSTRAINT fk_varslet_frist_historikk_behandling
+    varslet_behandlingstid_units INT,
+    varslet_behandlingstid_unit_type_id    TEXT,
+    CONSTRAINT fk_varslet_behandlingstid_historikk_behandling
         FOREIGN KEY (behandling_id)
             REFERENCES klage.behandling (id)
 );
 
-CREATE INDEX behandling_varslet_frist_historikk_idx ON klage.varslet_frist_historikk (behandling_id);
+CREATE INDEX behandling_varslet_behandlingstid_historikk_idx ON klage.varslet_behandlingstid_historikk (behandling_id);
 

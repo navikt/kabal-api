@@ -12,16 +12,33 @@ object AnkebehandlingSetters {
         nyVerdiVarsletBehandlingstidUnits: Int,
         nyVerdiVarsletBehandlingstidUnitType: TimeUnitType,
         nyVerdiVarsletFrist: LocalDate,
-        saksbehandlerident: String
+        saksbehandlerident: String,
+        mottakere: List<PartId>
     ): BehandlingEndretEvent {
         val gammelVerdiVarsletBehandlingstidUnits = varsletBehandlingstidUnits
         val gammelVerdiVarsletBehandlingstidUnitType = varsletBehandlingstidUnitType
         val gammelVerdiVarsletFrist = varsletFrist
         val tidspunkt = LocalDateTime.now()
 
+        if (varsletBehandlingstidHistorikk.isEmpty()) {
+            recordVarsletBehandlingstidHistory(
+                tidspunkt = created,
+                utfoerendeIdent = null,
+                mottaker = null,
+            )
+        }
+
         varsletBehandlingstidUnits = nyVerdiVarsletBehandlingstidUnits
         varsletBehandlingstidUnitType = nyVerdiVarsletBehandlingstidUnitType
         varsletFrist = nyVerdiVarsletFrist
+
+        mottakere.forEach { mottaker ->
+            recordVarsletBehandlingstidHistory(
+                tidspunkt = tidspunkt,
+                utfoerendeIdent = saksbehandlerident,
+                mottaker = mottaker,
+            )
+        }
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
@@ -53,5 +70,22 @@ object AnkebehandlingSetters {
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
+    }
+
+    private fun Ankebehandling.recordVarsletBehandlingstidHistory(
+        tidspunkt: LocalDateTime,
+        utfoerendeIdent: String?,
+        mottaker: PartId?,
+    ) {
+        varsletBehandlingstidHistorikk.add(
+            VarsletBehandlingstidHistorikk(
+                mottaker = mottaker,
+                tidspunkt = tidspunkt,
+                utfoerendeIdent = utfoerendeIdent,
+                varsletFrist = varsletFrist,
+                varsletBehandlingstidUnits = varsletBehandlingstidUnits,
+                varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
+            )
+        )
     }
 }

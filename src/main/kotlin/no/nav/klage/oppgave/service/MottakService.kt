@@ -145,6 +145,7 @@ class MottakService(
                         behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
                         behandling = behandling,
                         systemUserContext = true,
+                        mottakere = listOf(behandling.sakenGjelder.partId)
                     )
                 }
             } catch (e: Exception) {

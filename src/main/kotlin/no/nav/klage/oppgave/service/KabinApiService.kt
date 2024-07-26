@@ -12,6 +12,7 @@ import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -124,8 +125,8 @@ class KabinApiService(
                 behandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
                 behandling = behandling,
                 systemUserContext = false,
+                mottakere = svarbrevInput.receivers.map { getPartIdFromIdentifikator(it.id) }
             )
-
         }
     }
 

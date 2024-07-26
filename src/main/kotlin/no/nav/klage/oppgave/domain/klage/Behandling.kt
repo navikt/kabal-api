@@ -180,7 +180,7 @@ abstract class Behandling(
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
-    open val varsletFristHistorikk: MutableSet<VarsletFristHistorikk> = mutableSetOf(),
+    open val varsletBehandlingstidHistorikk: MutableSet<VarsletBehandlingstidHistorikk> = mutableSetOf(),
     @Column(name = "previous_saksbehandlerident")
     open val previousSaksbehandlerident: String?,
     @Column(name = "oppgave_id")

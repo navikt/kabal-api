@@ -605,6 +605,7 @@ class BehandlingService(
         behandlingstidUnits: Int,
         behandling: Behandling,
         systemUserContext: Boolean,
+        mottakere: List<PartId>,
     ): LocalDateTime {
         val varsletFrist = when (behandlingstidUnitType) {
             TimeUnitType.WEEKS -> behandling.mottattKlageinstans.toLocalDate()
@@ -624,6 +625,7 @@ class BehandlingService(
                         nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,
                         nyVerdiVarsletFrist = varsletFrist,
                         saksbehandlerident = saksbehandlerIdent,
+                        mottakere = mottakere,
                     )
                 )
             }
@@ -635,6 +637,7 @@ class BehandlingService(
                         nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,
                         nyVerdiVarsletFrist = varsletFrist,
                         saksbehandlerident = saksbehandlerIdent,
+                        mottakere = mottakere,
                     )
                 )
             }
@@ -1975,8 +1978,8 @@ class BehandlingService(
                 feilregistrering = behandling.feilregistrering,
                 behandlingCreated = behandling.created,
             ),
-            varsletFrist = historyService.createVarsletFristHistory(
-                varsletFristHistorikk = behandling.varsletFristHistorikk,
+            varsletBehandlingstid = historyService.createVarsletBehandlingstidHistory(
+                varsletBehandlingstidHistorikk = behandling.varsletBehandlingstidHistorikk,
                 behandlingCreated = behandling.created,
             )
         )
