@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val mockkVersion = "1.13.12"
-val tokenValidationVersion = "4.1.5"
+val tokenValidationVersion = "5.0.1"
 val logstashVersion = "7.4"
 val springRetryVersion = "2.0.7"
 val springMockkVersion = "4.0.2"
@@ -17,13 +17,14 @@ val tikaVersion = "2.9.2"
 val verapdfVersion = "1.26.1"
 val klageKodeverkVersion = "1.8.36"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
+val tomcatVersion = "10.1.23"
 
 plugins {
     val kotlinVersion = "2.0.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
-    id("org.springframework.boot") version "3.2.5"
+    id("org.springframework.boot") version "3.3.2"
     id("io.spring.dependency-management") version "1.1.6"
     idea
     kotlin("kapt") version kotlinVersion
@@ -45,6 +46,10 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
 
+    implementation("org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion")
+    implementation("org.apache.tomcat.embed:tomcat-embed-el:$tomcatVersion")
+    implementation("org.apache.tomcat.embed:tomcat-embed-websocket:$tomcatVersion")
+
     implementation("org.apache.commons:commons-fileupload2-jakarta:$commonsFileupload2JakartaVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-cache")
@@ -56,7 +61,7 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
     implementation("io.projectreactor.kafka:reactor-kafka")
     implementation("org.flywaydb:flyway-core")
-//    implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("org.flywaydb:flyway-database-postgresql")
     implementation("com.zaxxer:HikariCP")
     implementation("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
