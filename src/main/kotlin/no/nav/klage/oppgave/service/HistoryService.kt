@@ -27,8 +27,8 @@ class HistoryService(
                     tidspunkt = behandlingCreated,
                     fradelingReason = null,
                     hjemmelIdList = originalHjemmelIdList,
-                    utfoerendeIdent = null
-
+                    utfoerendeIdent = null,
+                    utfoerendeNavn = null,
                 )
             ) + tildelingHistorikkSet.sortedBy { it.tidspunkt }
         } else tildelingHistorikkSet.sortedBy { it.tidspunkt }
@@ -37,7 +37,14 @@ class HistoryService(
             val previousEvent = HistoryEvent(
                 type = HistoryEventType.TILDELING,
                 timestamp = previous.tidspunkt,
-                actor = previous.utfoerendeIdent.toSaksbehandlerView(),
+                actor = previous.utfoerendeIdent?.let {
+                    previous.utfoerendeNavn?.let { it1 ->
+                        SaksbehandlerView(
+                            navIdent = it,
+                            navn = it1,
+                        )
+                    }
+                },
                 event = TildelingEvent(
                     saksbehandler = previous.saksbehandlerident.toSaksbehandlerView(),
                     fradelingReasonId = previous.fradelingReason?.id,
@@ -50,7 +57,14 @@ class HistoryService(
             HistoryEventWithPrevious(
                 type = HistoryEventType.TILDELING,
                 timestamp = current.tidspunkt,
-                actor = current.utfoerendeIdent.toSaksbehandlerView(),
+                actor = current.utfoerendeIdent?.let {
+                    current.utfoerendeNavn?.let { it1 ->
+                        SaksbehandlerView(
+                            navIdent = it,
+                            navn = it1,
+                        )
+                    }
+                },
                 event = TildelingEvent(
                     saksbehandler = current.saksbehandlerident.toSaksbehandlerView(),
                     fradelingReasonId = current.fradelingReason?.id,
@@ -74,6 +88,7 @@ class HistoryService(
                     saksbehandlerident = null,
                     tidspunkt = behandlingCreated,
                     utfoerendeIdent = null,
+                    utfoerendeNavn = null,
                     flowState = null,
                 )
             ) + medunderskriverHistorikkSet.sortedBy { it.tidspunkt }
@@ -84,7 +99,14 @@ class HistoryService(
                 val previousEvent: HistoryEvent<MedunderskriverEvent> = HistoryEvent(
                     type = HistoryEventType.MEDUNDERSKRIVER,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = previous.utfoerendeIdent?.let {
+                        previous.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = MedunderskriverEvent(
                         medunderskriver = previous.saksbehandlerident.toSaksbehandlerView(),
                         flow = previous.flowState
@@ -94,7 +116,14 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.MEDUNDERSKRIVER,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = current.utfoerendeIdent?.let {
+                        current.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = MedunderskriverEvent(
                         medunderskriver = current.saksbehandlerident.toSaksbehandlerView(),
                         flow = current.flowState
@@ -115,7 +144,14 @@ class HistoryService(
                 val previousEvent: HistoryEvent<RolEvent> = HistoryEvent(
                     type = HistoryEventType.ROL,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = previous.utfoerendeIdent?.let {
+                        previous.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = RolEvent(
                         rol = previous.rolIdent.toSaksbehandlerView(),
                         flow = previous.flowState
@@ -125,7 +161,14 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.ROL,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = current.utfoerendeIdent?.let {
+                        current.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = RolEvent(
                         rol = current.rolIdent.toSaksbehandlerView(),
                         flow = current.flowState
@@ -172,7 +215,14 @@ class HistoryService(
                 val previousEvent: HistoryEvent<FullmektigEvent> = HistoryEvent(
                     type = HistoryEventType.FULLMEKTIG,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = previous.utfoerendeIdent?.let {
+                        previous.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = FullmektigEvent(
                         part = previous.partId?.let {
                             Part(
@@ -189,7 +239,14 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.FULLMEKTIG,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = current.utfoerendeIdent?.let {
+                        current.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = FullmektigEvent(
                         part = current.partId?.let {
                             Part(
@@ -216,7 +273,14 @@ class HistoryService(
                 val previousEvent = HistoryEvent(
                     type = HistoryEventType.KLAGER,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = previous.utfoerendeIdent?.let {
+                        previous.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = KlagerEvent(
                         part = previous.partId.let {
                             Part(
@@ -233,7 +297,14 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.KLAGER,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = current.utfoerendeIdent?.let {
+                        current.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = KlagerEvent(
                         part = current.partId.let {
                             Part(
@@ -260,7 +331,14 @@ class HistoryService(
                 val previousEvent: HistoryEvent<SattPaaVentEvent> = HistoryEvent(
                     type = HistoryEventType.SATT_PAA_VENT,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = previous.utfoerendeIdent?.let {
+                        previous.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = previous.sattPaaVent?.let {
                         SattPaaVentEvent(
                             from = it.from,
@@ -273,7 +351,14 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.SATT_PAA_VENT,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = current.utfoerendeIdent?.let {
+                        current.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = current.sattPaaVent?.let {
                         SattPaaVentEvent(
                             from = it.from,
@@ -307,6 +392,7 @@ class HistoryService(
         } else emptyList()
     }
 
+    //TODO: Sjekk om noen av history-innslagene som ikke tar historikk som grunnlag også skal få navn
     private fun String?.toSaksbehandlerView(): SaksbehandlerView? {
         return if (this != null) {
             SaksbehandlerView(
@@ -329,6 +415,7 @@ class HistoryService(
                 VarsletBehandlingstidHistorikk(
                     tidspunkt = behandlingCreated,
                     utfoerendeIdent = null,
+                    utfoerendeNavn = null,
                     mottakerList = listOf(),
                     varsletFrist = null,
                     varsletBehandlingstidUnits = null,
@@ -344,7 +431,14 @@ class HistoryService(
                 val previousEvent: HistoryEvent<VarsletBehandlingstidEvent> = HistoryEvent(
                     type = HistoryEventType.VARSLET_BEHANDLINGSTID,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = previous.utfoerendeIdent?.let {
+                        previous.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = VarsletBehandlingstidEvent(
                         mottakere = previous.mottakerList.map {
                             Part(
@@ -364,7 +458,14 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.VARSLET_BEHANDLINGSTID,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent.toSaksbehandlerView(),
+                    actor = current.utfoerendeIdent?.let {
+                        current.utfoerendeNavn?.let { it1 ->
+                            SaksbehandlerView(
+                                navIdent = it,
+                                navn = it1,
+                            )
+                        }
+                    },
                     event = VarsletBehandlingstidEvent(
                         mottakere = current.mottakerList.map {
                             Part(

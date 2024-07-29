@@ -20,6 +20,8 @@ class TildelingHistorikk(
     val fradelingReason: FradelingReason?,
     @Column(name = "utfoerende_ident")
     val utfoerendeIdent: String?,
+    @Column(name = "utfoerende_navn")
+    val utfoerendeNavn: String?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -35,8 +37,6 @@ class TildelingHistorikk(
     }
 
     override fun toString(): String {
-        return "TildelingHistorikk(id=$id, saksbehandlerident=$saksbehandlerident, enhet=$enhet, hjemmelIdList=$hjemmelIdList, tidspunkt=$tidspunkt, fradelingReason=$fradelingReason, utfoerendeIdent=$utfoerendeIdent)"
+        return "TildelingHistorikk(id=$id, saksbehandlerident=$saksbehandlerident, enhet=$enhet, hjemmelIdList=$hjemmelIdList, tidspunkt=$tidspunkt, fradelingReason=$fradelingReason, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn)"
     }
-
-
 }

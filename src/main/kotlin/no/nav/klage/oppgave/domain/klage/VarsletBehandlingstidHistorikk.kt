@@ -24,6 +24,8 @@ class VarsletBehandlingstidHistorikk(
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
     val utfoerendeIdent: String?,
+    @Column(name = "utfoerende_navn")
+    val utfoerendeNavn: String?,
     @Column(name = "varslet_frist")
     val varsletFrist: LocalDate?,
     @Column(name = "varslet_behandlingstid_units")
@@ -45,4 +47,7 @@ class VarsletBehandlingstidHistorikk(
         return id.hashCode()
     }
 
+    override fun toString(): String {
+        return "VarsletBehandlingstidHistorikk(id=$id, mottakerList=$mottakerList, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn, varsletFrist=$varsletFrist, varsletBehandlingstidUnits=$varsletBehandlingstidUnits, varsletBehandlingstidUnitType=$varsletBehandlingstidUnitType)"
+    }
 }

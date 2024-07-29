@@ -21,6 +21,8 @@ class KlagerHistorikk(
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
     val utfoerendeIdent: String?,
+    @Column(name = "utfoerende_navn")
+    val utfoerendeNavn: String?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -36,7 +38,7 @@ class KlagerHistorikk(
     }
 
     override fun toString(): String {
-        return "KlagerHistorikk(id=$id, partId=$partId, tidspunkt=$tidspunkt, utfoerendeIdent='$utfoerendeIdent')"
+        return "KlagerHistorikk(id=$id, partId=$partId, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn)"
     }
 
 }

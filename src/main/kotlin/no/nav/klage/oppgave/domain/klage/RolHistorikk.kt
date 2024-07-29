@@ -16,6 +16,8 @@ class RolHistorikk(
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
     val utfoerendeIdent: String?,
+    @Column(name = "utfoerende_navn")
+    val utfoerendeNavn: String?,
     @Column(name = "flow_state_id")
     @Convert(converter = FlowStateConverter::class)
     val flowState: FlowState,
@@ -34,8 +36,6 @@ class RolHistorikk(
     }
 
     override fun toString(): String {
-        return "RolHistorikk(id=$id, rolIdent=$rolIdent, tidspunkt=$tidspunkt, utfoerendeIdent='$utfoerendeIdent', flowState=$flowState)"
+        return "RolHistorikk(id=$id, rolIdent=$rolIdent, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn, flowState=$flowState)"
     }
-
-
 }

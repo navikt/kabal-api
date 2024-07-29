@@ -552,6 +552,7 @@ class BehandlingService(
                 nyVerdiEnhet = enhetId,
                 fradelingReason = fradelingReason,
                 utfoerendeIdent = utfoerendeSaksbehandlerIdent,
+                utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
                 fradelingWithChangedHjemmelIdList = fradelingWithChangedHjemmelIdList,
             )
         applicationEventPublisher.publishEvent(event)
@@ -580,6 +581,7 @@ class BehandlingService(
 
         return getSaksbehandlerViewWrapped(behandling)
     }
+
 
     fun setOppgaveId(
         behandlingId: UUID,
@@ -625,6 +627,7 @@ class BehandlingService(
                         nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,
                         nyVerdiVarsletFrist = varsletFrist,
                         saksbehandlerident = saksbehandlerIdent,
+                        saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
                         mottakere = mottakere,
                     )
                 )
@@ -637,6 +640,7 @@ class BehandlingService(
                         nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,
                         nyVerdiVarsletFrist = varsletFrist,
                         saksbehandlerident = saksbehandlerIdent,
+                        saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
                         mottakere = mottakere,
                     )
                 )
@@ -691,6 +695,7 @@ class BehandlingService(
                 nyVerdiEnhet = null,
                 fradelingReason = FradelingReason.UTGAATT,
                 utfoerendeIdent = systembrukerIdent,
+                utfoerendeNavn = systembrukerIdent,
                 fradelingWithChangedHjemmelIdList = null,
             )
         applicationEventPublisher.publishEvent(event)
@@ -722,7 +727,8 @@ class BehandlingService(
             val medunderskriverFlowEvent =
                 behandling.setMedunderskriverFlowState(
                     nyMedunderskriverFlowState = FlowState.NOT_SENT,
-                    utfoerendeIdent = systembrukerIdent
+                    utfoerendeIdent = systembrukerIdent,
+                    utfoerendeNavn = systembrukerIdent
                 )
             applicationEventPublisher.publishEvent(medunderskriverFlowEvent)
         }
@@ -731,6 +737,7 @@ class BehandlingService(
             behandling.setMedunderskriverNavIdent(
                 nyMedunderskriverNavIdent = null,
                 utfoerendeIdent = systembrukerIdent,
+                utfoerendeNavn = systembrukerIdent
             )
         applicationEventPublisher.publishEvent(medunderskriverIdentEvent)
 
@@ -760,7 +767,8 @@ class BehandlingService(
             val rolFlowStateEvent =
                 behandling.setROLFlowState(
                     newROLFlowStateState = FlowState.NOT_SENT,
-                    utfoerendeIdent = systembrukerIdent
+                    utfoerendeIdent = systembrukerIdent,
+                    utfoerendeNavn = systembrukerIdent
                 )
             applicationEventPublisher.publishEvent(rolFlowStateEvent)
 
@@ -777,7 +785,8 @@ class BehandlingService(
         val rolIdentEvent =
             behandling.setROLIdent(
                 newROLIdent = null,
-                utfoerendeIdent = systembrukerIdent
+                utfoerendeIdent = systembrukerIdent,
+                utfoerendeNavn = systembrukerIdent,
             )
         applicationEventPublisher.publishEvent(rolIdentEvent)
 
@@ -853,8 +862,9 @@ class BehandlingService(
         )
         val event =
             behandling.setSattPaaVent(
-                sattPaaVent,
-                utfoerendeSaksbehandlerIdent,
+                nyVerdi = sattPaaVent,
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent,
+                utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
             )
         applicationEventPublisher.publishEvent(event)
 
@@ -1064,8 +1074,9 @@ class BehandlingService(
 
         val event =
             behandling.setFullmektig(
-                partId,
-                utfoerendeSaksbehandlerIdent
+                nyVerdi = partId,
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent,
+                utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
             )
         applicationEventPublisher.publishEvent(event)
 
@@ -1121,7 +1132,8 @@ class BehandlingService(
         val event =
             behandling.setKlager(
                 nyVerdi = getPartIdFromIdentifikator(identifikator),
-                utfoerendeIdent = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent,
+                utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
             )
         applicationEventPublisher.publishEvent(event)
 
@@ -1173,7 +1185,8 @@ class BehandlingService(
         val event =
             behandling.setMedunderskriverFlowState(
                 nyMedunderskriverFlowState = flowState,
-                utfoerendeIdent = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent,
+                utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
             )
         applicationEventPublisher.publishEvent(event)
 
@@ -1230,7 +1243,8 @@ class BehandlingService(
         val event =
             behandling.setMedunderskriverNavIdent(
                 nyMedunderskriverNavIdent = navIdent,
-                utfoerendeIdent = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent,
+                utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
             )
         applicationEventPublisher.publishEvent(event)
 
@@ -1808,7 +1822,8 @@ class BehandlingService(
         val event1 =
             behandling.setROLFlowState(
                 newROLFlowStateState = flowState,
-                utfoerendeIdent = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent,
+                utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
             )
         applicationEventPublisher.publishEvent(event1)
 
@@ -1885,7 +1900,8 @@ class BehandlingService(
         val event =
             behandling.setROLIdent(
                 newROLIdent = rolIdent,
-                utfoerendeIdent = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent,
+                utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
             )
         applicationEventPublisher.publishEvent(event)
 
@@ -2031,5 +2047,13 @@ class BehandlingService(
         return behandlingRepository.findByOppgaveIdAndFeilregistreringIsNullAndAvsluttetAvSaksbehandlerIsNull(
             oppgaveId = oppgaveId
         ).isNotEmpty()
+    }
+
+    private fun getUtfoerendeNavn(utfoerendeSaksbehandlerIdent: String): String {
+        return if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
+            systembrukerIdent
+        } else saksbehandlerService.getNameForIdentDefaultIfNull(
+            navIdent = systembrukerIdent
+        )
     }
 }

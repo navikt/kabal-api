@@ -33,6 +33,7 @@ object KlagebehandlingSetters {
         nyVerdiVarsletBehandlingstidUnitType: TimeUnitType,
         nyVerdiVarsletFrist: LocalDate,
         saksbehandlerident: String,
+        saksbehandlernavn: String,
         mottakere: List<PartId>,
     ): BehandlingEndretEvent {
         val gammelVerdiVarsletBehandlingstidUnits = varsletBehandlingstidUnits
@@ -44,6 +45,7 @@ object KlagebehandlingSetters {
             recordVarsletFristHistory(
                 tidspunkt = created,
                 utfoerendeIdent = null,
+                utfoerendeNavn = null,
                 mottakere = listOf(),
             )
         }
@@ -55,6 +57,7 @@ object KlagebehandlingSetters {
         recordVarsletFristHistory(
             tidspunkt = tidspunkt,
             utfoerendeIdent = saksbehandlerident,
+            utfoerendeNavn = saksbehandlernavn,
             mottakere = mottakere,
         )
 
@@ -93,6 +96,7 @@ object KlagebehandlingSetters {
     private fun Klagebehandling.recordVarsletFristHistory(
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
+        utfoerendeNavn: String?,
         mottakere: List<PartId>,
     ) {
         varsletBehandlingstidHistorikk.add(
@@ -100,6 +104,7 @@ object KlagebehandlingSetters {
                 mottakerList = mottakere.map { it.toVarsletBehandlingstidHistorikkMottaker() },
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
+                utfoerendeNavn = utfoerendeNavn,
                 varsletFrist = varsletFrist,
                 varsletBehandlingstidUnits = varsletBehandlingstidUnits,
                 varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
