@@ -2050,14 +2050,11 @@ class BehandlingService(
     }
 
     private fun getUtfoerendeNavn(utfoerendeSaksbehandlerIdent: String): String {
-        logger.debug("incoming utfoerendeSaksbehandlerIdent: {}", utfoerendeSaksbehandlerIdent)
         val name = if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
-            logger.debug("Matching systembrukerIdent {}, using systembrukerIdent", systembrukerIdent)
             systembrukerIdent
         } else saksbehandlerService.getNameForIdentDefaultIfNull(
-            navIdent = systembrukerIdent
+            navIdent = utfoerendeSaksbehandlerIdent
         )
-        logger.debug("Got name: {}", name)
         return name
     }
 }
