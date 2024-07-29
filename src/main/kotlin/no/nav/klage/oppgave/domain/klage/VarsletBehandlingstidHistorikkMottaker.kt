@@ -4,7 +4,7 @@ import jakarta.persistence.*
 import java.util.*
 
 @Entity
-@Table(name = "varslet_behandlingstid_historikk_mottaker", schema = "klage")
+@Table(name = "varslet_behandlingstid_historikk_mottaker_info", schema = "klage")
 class VarsletBehandlingstidHistorikkMottaker(
     @Id
     val id: UUID = UUID.randomUUID(),
