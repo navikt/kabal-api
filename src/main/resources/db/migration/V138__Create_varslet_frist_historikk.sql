@@ -16,11 +16,10 @@ CREATE INDEX behandling_varslet_behandlingstid_historikk_idx ON klage.varslet_be
 
 CREATE TABLE klage.varslet_behandlingstid_historikk_mottaker_info
 (
+    id UUID PRIMARY KEY,
     varslet_behandlingstid_historikk_id             UUID NOT NULL,
     varslet_behandlingstid_historikk_mottaker_type  TEXT NOT NULL,
     varslet_behandlingstid_historikk_mottaker_value TEXT NOT NULL,
-    PRIMARY KEY (varslet_behandlingstid_historikk_mottaker_type, varslet_behandlingstid_historikk_mottaker_value,
-                 varslet_behandlingstid_historikk_id),
     FOREIGN KEY (varslet_behandlingstid_historikk_id)
         REFERENCES klage.varslet_behandlingstid_historikk (id)
 )
