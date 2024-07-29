@@ -329,7 +329,7 @@ class HistoryService(
                 VarsletBehandlingstidHistorikk(
                     tidspunkt = behandlingCreated,
                     utfoerendeIdent = null,
-                    mottaker = null,
+                    mottakerList = listOf(),
                     varsletFrist = null,
                     varsletBehandlingstidUnits = null,
                     varsletBehandlingstidUnitType = null,
@@ -346,11 +346,11 @@ class HistoryService(
                     timestamp = previous.tidspunkt,
                     actor = previous.utfoerendeIdent.toSaksbehandlerView(),
                     event = VarsletBehandlingstidEvent(
-                        mottaker = previous.mottaker?.let {
+                        mottakere = previous.mottakerList.map {
                             Part(
-                                id = it.value,
-                                name = partSearchService.searchPart(it.value).name ?: "Manglende navn. Noe er feil.",
-                                type = if (it.type == PartIdType.PERSON) {
+                                id = it.partId.value,
+                                name = partSearchService.searchPart(it.partId.value).name ?: "Manglende navn. Noe er feil.",
+                                type = if (it.partId.type == PartIdType.PERSON) {
                                     BehandlingDetaljerView.IdType.FNR
                                 } else BehandlingDetaljerView.IdType.ORGNR
                             )
@@ -366,11 +366,11 @@ class HistoryService(
                     timestamp = current.tidspunkt,
                     actor = current.utfoerendeIdent.toSaksbehandlerView(),
                     event = VarsletBehandlingstidEvent(
-                        mottaker = current.mottaker?.let {
+                        mottakere = current.mottakerList.map {
                             Part(
-                                id = it.value,
-                                name = partSearchService.searchPart(it.value).name ?: "Manglende navn. Noe er feil.",
-                                type = if (it.type == PartIdType.PERSON) {
+                                id = it.partId.value,
+                                name = partSearchService.searchPart(it.partId.value).name ?: "Manglende navn. Noe er feil.",
+                                type = if (it.partId.type == PartIdType.PERSON) {
                                     BehandlingDetaljerView.IdType.FNR
                                 } else BehandlingDetaljerView.IdType.ORGNR
                             )

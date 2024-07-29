@@ -11,7 +11,7 @@ data class TildelingEvent(
 )
 
 data class VarsletBehandlingstidEvent(
-    val mottaker: Part?,
+    val mottakere: List<Part>?,
     val varsletBehandlingstidUnits: Int?,
     val varsletBehandlingstidUnitTypeId: String?,
     val varsletFrist: LocalDate?,

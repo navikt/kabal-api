@@ -44,7 +44,7 @@ object KlagebehandlingSetters {
             recordVarsletFristHistory(
                 tidspunkt = created,
                 utfoerendeIdent = null,
-                mottaker = null,
+                mottakere = listOf(),
             )
         }
 
@@ -52,13 +52,11 @@ object KlagebehandlingSetters {
         varsletBehandlingstidUnitType = nyVerdiVarsletBehandlingstidUnitType
         varsletFrist = nyVerdiVarsletFrist
 
-        mottakere.forEach { mottaker ->
-            recordVarsletFristHistory(
-                tidspunkt = tidspunkt,
-                utfoerendeIdent = saksbehandlerident,
-                mottaker = mottaker,
-            )
-        }
+        recordVarsletFristHistory(
+            tidspunkt = tidspunkt,
+            utfoerendeIdent = saksbehandlerident,
+            mottakere = mottakere,
+        )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
@@ -95,11 +93,11 @@ object KlagebehandlingSetters {
     private fun Klagebehandling.recordVarsletFristHistory(
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
-        mottaker: PartId?,
+        mottakere: List<PartId>,
     ) {
         varsletBehandlingstidHistorikk.add(
             VarsletBehandlingstidHistorikk(
-                mottaker = mottaker,
+                mottakerList = mottakere.map { it.toVarsletBehandlingstidHistorikkMottaker() },
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
                 varsletFrist = varsletFrist,

@@ -3,6 +3,9 @@ package no.nav.klage.oppgave.domain.klage
 import jakarta.persistence.*
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.TimeUnitTypeConverter
+import org.hibernate.annotations.BatchSize
+import org.hibernate.annotations.Fetch
+import org.hibernate.annotations.FetchMode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -12,14 +15,11 @@ import java.util.*
 class VarsletBehandlingstidHistorikk(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Embedded
-    @AttributeOverrides(
-        value = [
-            AttributeOverride(name = "type", column = Column(name = "mottaker_type")),
-            AttributeOverride(name = "value", column = Column(name = "mottaker_value"))
-        ]
-    )
-    var mottaker: PartId?,
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "varslet_behandlingstid_historikk_id", referencedColumnName = "id", nullable = false)
+    @Fetch(FetchMode.SELECT)
+    @BatchSize(size = 100)
+    val mottakerList: List<VarsletBehandlingstidHistorikkMottaker> = listOf(),
     @Column(name = "tidspunkt")
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
@@ -45,7 +45,4 @@ class VarsletBehandlingstidHistorikk(
         return id.hashCode()
     }
 
-    override fun toString(): String {
-        return "VarsletFristHistorikk(id=$id, mottaker=$mottaker, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, varsletFrist=$varsletFrist, varsletBehandlingstidUnits=$varsletBehandlingstidUnits, varsletBehandlingstidUnitType=$varsletBehandlingstidUnitType)"
-    }
 }

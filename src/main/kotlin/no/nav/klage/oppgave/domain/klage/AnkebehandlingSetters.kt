@@ -24,7 +24,7 @@ object AnkebehandlingSetters {
             recordVarsletBehandlingstidHistory(
                 tidspunkt = created,
                 utfoerendeIdent = null,
-                mottaker = null,
+                mottakere = listOf(),
             )
         }
 
@@ -32,13 +32,11 @@ object AnkebehandlingSetters {
         varsletBehandlingstidUnitType = nyVerdiVarsletBehandlingstidUnitType
         varsletFrist = nyVerdiVarsletFrist
 
-        mottakere.forEach { mottaker ->
-            recordVarsletBehandlingstidHistory(
-                tidspunkt = tidspunkt,
-                utfoerendeIdent = saksbehandlerident,
-                mottaker = mottaker,
-            )
-        }
+        recordVarsletBehandlingstidHistory(
+            tidspunkt = tidspunkt,
+            utfoerendeIdent = saksbehandlerident,
+            mottakere = mottakere,
+        )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
@@ -75,11 +73,11 @@ object AnkebehandlingSetters {
     private fun Ankebehandling.recordVarsletBehandlingstidHistory(
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
-        mottaker: PartId?,
+        mottakere: List<PartId>,
     ) {
         varsletBehandlingstidHistorikk.add(
             VarsletBehandlingstidHistorikk(
-                mottaker = mottaker,
+                mottakerList = mottakere.map { it.toVarsletBehandlingstidHistorikkMottaker() },
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
                 varsletFrist = varsletFrist,
