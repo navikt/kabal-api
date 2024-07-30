@@ -390,7 +390,7 @@ class KabinApiService(
                 ExistingAnkebehandling(
                     id = it.id,
                     created = it.created,
-                    completed = it.ferdigstilling!!.avsluttetAvSaksbehandler,
+                    completed = it.ferdigstilling?.avsluttetAvSaksbehandler,
                 )
             },
         )
