@@ -16,9 +16,7 @@ class VarsletBehandlingstidHistorikkMottaker(
         ]
     )
     val partId: PartId,
-) {
-
-}
+)
 
 fun PartId.toVarsletBehandlingstidHistorikkMottaker(): VarsletBehandlingstidHistorikkMottaker =
     VarsletBehandlingstidHistorikkMottaker(

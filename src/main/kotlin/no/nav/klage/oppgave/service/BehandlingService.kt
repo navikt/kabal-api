@@ -585,7 +585,6 @@ class BehandlingService(
         return getSaksbehandlerViewWrapped(behandling)
     }
 
-
     fun setOppgaveId(
         behandlingId: UUID,
         oppgaveId: Long,

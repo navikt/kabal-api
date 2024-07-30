@@ -298,7 +298,7 @@ class MottakService(
         sourceBehandling: Behandling,
         ankeJournalpostId: String,
     ) {
-        if (sourceBehandling.ferdigstilling == null) {
+        if (sourceBehandling.ferdigstilling?.avsluttet == null) {
             throw PreviousBehandlingNotFinalizedException("Behandling med id ${sourceBehandling.id} er ikke fullført")
         }
         validateDocumentNotAlreadyUsed(ankeJournalpostId, sourceBehandling.sakenGjelder.partId.value)
