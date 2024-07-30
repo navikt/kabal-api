@@ -298,6 +298,8 @@ class MottakService(
         sourceBehandling: Behandling,
         ankeJournalpostId: String,
     ) {
+
+        logger.debug("Change")
         if (sourceBehandling.ferdigstilling?.avsluttet == null) {
             throw PreviousBehandlingNotFinalizedException("Behandling med id ${sourceBehandling.id} er ikke fullført")
         }
