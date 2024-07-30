@@ -25,6 +25,8 @@ CREATE TABLE klage.varslet_behandlingstid_historikk_mottaker_info
         REFERENCES klage.varslet_behandlingstid_historikk (id)
 );
 
+CREATE INDEX behandling_varslet_behandlingstid_historikk_mottaker_idx ON klage.varslet_behandlingstid_historikk_mottaker_info (varslet_behandlingstid_historikk_id);
+
 ALTER TABLE klage.fullmektighistorikk
     ADD COLUMN utfoerende_navn TEXT;
 
