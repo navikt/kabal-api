@@ -121,7 +121,7 @@ class DokumentUnderArbeidService(
         val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
 
         if (dokumentType.isUtgaaende() && !systemContext && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
-            if (behandling.avsluttetAvSaksbehandler == null) {
+            if (behandling.ferdigstilling == null) {
                 validateCanCreateDocuments(
                     behandlingRole = behandlingRole,
                     parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId)
@@ -365,7 +365,7 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        if (behandling.avsluttetAvSaksbehandler == null) {
+        if (behandling.ferdigstilling == null) {
             validateCanCreateDocuments(
                 behandlingRole = behandlingRole,
                 parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId)
@@ -557,7 +557,7 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        if (behandling.avsluttetAvSaksbehandler == null) {
+        if (behandling.ferdigstilling == null) {
             val isCurrentROL = behandling.rolIdent == innloggetIdent
 
             validateCanCreateDocuments(
@@ -1141,7 +1141,7 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        if (behandling.avsluttetAvSaksbehandler == null) {
+        if (behandling.ferdigstilling == null) {
             if (dokumentUnderArbeid.creatorRole != behandlingRole && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
                 throw MissingTilgangException("$behandlingRole har ikke anledning til å endre tittel på dette dokumentet eiet av ${dokumentUnderArbeid.creatorRole}.")
             }
@@ -1203,7 +1203,7 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        if (behandling.avsluttetAvSaksbehandler == null) {
+        if (behandling.ferdigstilling == null) {
             if (dokumentUnderArbeid.creatorRole != behandlingRole && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
                 throw MissingTilgangException("$behandlingRole har ikke anledning til å endre språk på dette dokumentet eiet av ${dokumentUnderArbeid.creatorRole}.")
             }
@@ -1260,7 +1260,7 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        if (behandling.avsluttetAvSaksbehandler == null) {
+        if (behandling.ferdigstilling == null) {
             when (dokument.creatorRole) {
                 BehandlingRole.KABAL_SAKSBEHANDLING -> {
                     if (behandlingRole !in listOf(
@@ -1693,7 +1693,7 @@ class DokumentUnderArbeidService(
         behandling: Behandling,
     ) {
         documentSet.forEach { document ->
-            if (behandling.avsluttetAvSaksbehandler == null) {
+            if (behandling.ferdigstilling == null) {
                 if (document.creatorRole != behandlingRole && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
                     throw MissingTilgangException("$behandlingRole har ikke anledning til å slette dokumentet eiet av ${document.creatorRole}.")
                 }
@@ -2011,7 +2011,7 @@ class DokumentUnderArbeidService(
             val saksbehandlerIdent = systembrukerIdent
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 
-            if (behandling.avsluttetAvSaksbehandler == null) {
+            if (behandling.ferdigstilling == null) {
                 saksdokumenter.forEach { saksdokument ->
                     behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
                         ?.also { applicationEventPublisher.publishEvent(it) }

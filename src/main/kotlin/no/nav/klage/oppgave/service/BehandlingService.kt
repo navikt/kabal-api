@@ -111,7 +111,7 @@ class BehandlingService(
             behandlingId = behandlingId
         )
 
-        if (behandling.avsluttetAvSaksbehandler != null) throw BehandlingFinalizedException("Behandlingen er avsluttet")
+        if (behandling.ferdigstilling != null) throw BehandlingFinalizedException("Behandlingen er avsluttet")
 
         //Forretningsmessige krav før vedtak kan ferdigstilles
         validateBehandlingBeforeFinalize(behandlingId = behandlingId, nyBehandling = nyBehandling)
@@ -133,7 +133,10 @@ class BehandlingService(
         behandling: Behandling,
         innloggetIdent: String
     ): Behandling {
-        val event = behandling.setAvsluttetAvSaksbehandler(innloggetIdent)
+        val event = behandling.setAvsluttetAvSaksbehandler(
+            saksbehandlerident = innloggetIdent,
+            saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent)
+        )
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
@@ -144,7 +147,7 @@ class BehandlingService(
                         navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = behandling.modified,
-                    avsluttetAvSaksbehandlerDate = behandling.avsluttetAvSaksbehandler!!,
+                    avsluttetAvSaksbehandlerDate = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
                 )
             ),
             behandlingId = behandling.id,
@@ -1009,7 +1012,10 @@ class BehandlingService(
 
         if (behandling is AnkeITrygderettenbehandling) {
             val eventNyBehandling = behandling.setNyAnkebehandlingKA(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
-            val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(utfoerendeSaksbehandlerIdent)
+            val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
+                saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            )
             val endringslogginnslag =
                 eventNyBehandling.endringslogginnslag + eventAvsluttetAvSaksbehandler.endringslogginnslag
             applicationEventPublisher.publishEvent(
@@ -1520,7 +1526,7 @@ class BehandlingService(
 
     @Transactional(readOnly = true)
     fun findBehandlingerForAvslutning(): List<Pair<UUID, Type>> =
-        behandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull()
+        behandlingRepository.findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull()
             .map { it.id to it.type }
 
     fun getPotentialSaksbehandlereForBehandling(behandlingId: UUID): Saksbehandlere {
@@ -1546,7 +1552,7 @@ class BehandlingService(
     }
 
     fun getAllBehandlingerForEnhet(enhet: String): List<Behandling> {
-        return behandlingRepository.findByTildelingEnhetAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(
+        return behandlingRepository.findByTildelingEnhetAndFerdigstillingIsNullAndFeilregistreringIsNull(
             enhet
         )
     }
@@ -1605,7 +1611,7 @@ class BehandlingService(
             throw FeilregistreringException("Fant ingen saker å feilføre")
         }
 
-        candidates = candidates.filter { it.avsluttetAvSaksbehandler == null }
+        candidates = candidates.filter { it.ferdigstilling == null }
 
         if (candidates.isEmpty()) {
             throw FeilregistreringException("Kan ikke feilføre fullført sak")
@@ -1635,9 +1641,12 @@ class BehandlingService(
         reason: String,
         fagsystem: Fagsystem
     ): Behandling {
+        val navn = saksbehandlerService.getNameForIdentDefaultIfNull(navIdent)
+
         val event = behandling.setFeilregistrering(
             feilregistrering = Feilregistrering(
                 navIdent = navIdent,
+                navn = navn,
                 registered = LocalDateTime.now(),
                 reason = reason,
                 fagsystem = fagsystem,
@@ -1651,7 +1660,7 @@ class BehandlingService(
                 FeilregistreringEvent(
                     actor = Employee(
                         navIdent = navIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(navIdent),
+                        navn = navn,
                     ),
                     timestamp = behandling.modified,
                     registered = behandling.feilregistrering!!.registered,
@@ -1933,7 +1942,7 @@ class BehandlingService(
     }
 
     fun findCompletedBehandlingById(behandlingId: UUID): CompletedBehandling {
-        val behandling = behandlingRepository.findByIdAndAvsluttetIsNotNull(id = behandlingId)
+        val behandling = behandlingRepository.findByIdAndFerdigstillingAvsluttetIsNotNull(id = behandlingId)
         if (behandling != null) {
             checkLesetilgangForPerson(behandling)
             return behandling.toCompletedBehandling()
@@ -1946,7 +1955,7 @@ class BehandlingService(
         behandlingId = id,
         ytelseId = ytelse.id,
         hjemmelIdList = hjemler.map { it.id },
-        vedtakDate = avsluttetAvSaksbehandler!!,
+        vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
         sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
         klager = behandlingMapper.getPartViewWithUtsendingskanal(partId = klager.partId, behandling = this)
             .toKabinPartView(),
@@ -2003,7 +2012,7 @@ class BehandlingService(
 
     fun findRelevantBehandlinger(behandlingId: UUID): List<Behandling> {
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-        return behandlingRepository.findBySakenGjelderPartIdValueAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(
+        return behandlingRepository.findBySakenGjelderPartIdValueAndFerdigstillingIsNullAndFeilregistreringIsNull(
             partIdValue = behandling.sakenGjelder.partId.value
         )
     }
@@ -2044,7 +2053,7 @@ class BehandlingService(
     }
 
     fun oppgaveIsDuplicate(oppgaveId: Long): Boolean {
-        return behandlingRepository.findByOppgaveIdAndFeilregistreringIsNullAndAvsluttetAvSaksbehandlerIsNull(
+        return behandlingRepository.findByOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
             oppgaveId = oppgaveId
         ).isNotEmpty()
     }

@@ -419,6 +419,13 @@ class BehandlingServiceTest {
 
         val now = LocalDateTime.now()
 
+        val ferdigstilling = Ferdigstilling(
+            avsluttet = now,
+            avsluttetAvSaksbehandler = now,
+            navIdent = "navIdent",
+            navn = "navn",
+        )
+
         val behandling = Klagebehandling(
             klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
             sakenGjelder = SakenGjelder(
@@ -455,7 +462,8 @@ class BehandlingServiceTest {
             registreringshjemler = if (hjemler) mutableSetOf(
                 Registreringshjemmel.ANDRE_TRYGDEAVTALER
             ) else mutableSetOf(),
-            avsluttetAvSaksbehandler = if (fullfoert) LocalDateTime.now() else null,
+
+            ferdigstilling = if (fullfoert) ferdigstilling else null,
             previousSaksbehandlerident = "C78901",
             oppgaveId = null,
         )

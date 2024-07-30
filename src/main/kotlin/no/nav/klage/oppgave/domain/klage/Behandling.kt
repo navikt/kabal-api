@@ -98,6 +98,7 @@ abstract class Behandling(
     @AttributeOverrides(
         value = [
             AttributeOverride(name = "navIdent", column = Column(name = "feilregistrering_nav_ident")),
+            AttributeOverride(name = "navn", column = Column(name = "feilregistrering_navn")),
             AttributeOverride(name = "registered", column = Column(name = "feilregistrering_registered")),
             AttributeOverride(name = "reason", column = Column(name = "feilregistrering_reason")),
             AttributeOverride(name = "fagsystem", column = Column(name = "feilregistrering_fagsystem_id"))
@@ -145,10 +146,16 @@ abstract class Behandling(
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     open val medunderskriverHistorikk: MutableSet<MedunderskriverHistorikk> = mutableSetOf(),
-    @Column(name = "dato_behandling_avsluttet")
-    open var avsluttet: LocalDateTime? = null,
-    @Column(name = "dato_behandling_avsluttet_av_saksbehandler")
-    open var avsluttetAvSaksbehandler: LocalDateTime? = null,
+    @Embedded
+    @AttributeOverrides(
+        value = [
+            AttributeOverride(name = "avsluttet", column = Column(name = "dato_behandling_avsluttet")),
+            AttributeOverride(name = "avsluttetAvSaksbehandler", column = Column(name = "dato_behandling_avsluttet_av_saksbehandler")),
+            AttributeOverride(name = "navIdent", column = Column(name = "ferdigstilling_nav_ident")),
+            AttributeOverride(name = "navn", column = Column(name = "ferdigstilling_navn")),
+        ]
+    )
+    open var ferdigstilling: Ferdigstilling?,
     @Column(name = "rol_ident")
     open var rolIdent: String?,
     @Column(name = "rol_flow_state_id")
@@ -193,8 +200,8 @@ abstract class Behandling(
     fun getStatus(): Status {
         return when {
             feilregistrering != null -> Status.FEILREGISTRERT
-            avsluttet != null -> Status.FULLFOERT
-            avsluttetAvSaksbehandler != null -> Status.AVSLUTTET_AV_SAKSBEHANDLER
+            ferdigstilling?.avsluttet != null -> Status.FULLFOERT
+            ferdigstilling?.avsluttetAvSaksbehandler != null -> Status.AVSLUTTET_AV_SAKSBEHANDLER
             sattPaaVent != null -> Status.SATT_PAA_VENT
             medunderskriverFlowState == FlowState.SENT -> Status.SENDT_TIL_MEDUNDERSKRIVER
             medunderskriverFlowState == FlowState.RETURNED -> Status.RETURNERT_TIL_SAKSBEHANDLER

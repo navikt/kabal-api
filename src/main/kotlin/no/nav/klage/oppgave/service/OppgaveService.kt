@@ -8,6 +8,7 @@ import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Behandling_
+import no.nav.klage.oppgave.domain.klage.Ferdigstilling_
 import no.nav.klage.oppgave.domain.klage.Tildeling_
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -32,8 +33,9 @@ class OppgaveService(
     }
 
     fun getFerdigstilteOppgaverForNavIdent(queryParams: MineFerdigstilteOppgaverQueryParams): BehandlingerListResponse {
-      var  specification: Specification<Behandling> = Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
-                builder.isNotNull(root.get(Behandling_.avsluttetAvSaksbehandler))
+        var specification: Specification<Behandling> =
+            Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
+                builder.isNotNull(root.get(Behandling_.ferdigstilling))
             }
 
         specification = addInnloggetSaksbehandler(specification)
@@ -60,7 +62,7 @@ class OppgaveService(
     fun getFerdigstilteOppgaverForEnhet(queryParams: EnhetensFerdigstilteOppgaverQueryParams): BehandlingerListResponse {
         var specification: Specification<Behandling> =
             Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
-                builder.isNotNull(root.get(Behandling_.avsluttetAvSaksbehandler))
+                builder.isNotNull(root.get(Behandling_.ferdigstilling))
             }
 
         specification = addEnhet(specification)
@@ -107,7 +109,7 @@ class OppgaveService(
     private fun getSortProperty(queryParams: CommonOppgaverQueryParams): String =
         when (queryParams.sortering) {
             Sortering.AVSLUTTET_AV_SAKSBEHANDLER -> {
-                Behandling_.avsluttetAvSaksbehandler.name
+                Behandling_.ferdigstilling.name + "." + Ferdigstilling_.avsluttetAvSaksbehandler.name
             }
 
             Sortering.MOTTATT -> {
@@ -240,7 +242,7 @@ class OppgaveService(
         specification =
             specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                 builder.greaterThanOrEqualTo(
-                    root.get(Behandling_.avsluttetAvSaksbehandler),
+                    root.get(Behandling_.ferdigstilling).get(Ferdigstilling_.avsluttetAvSaksbehandler),
                     from.atStartOfDay()
                 )
             }
@@ -248,7 +250,7 @@ class OppgaveService(
         specification =
             specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
                 builder.lessThan(
-                    root.get(Behandling_.avsluttetAvSaksbehandler),
+                    root.get(Behandling_.ferdigstilling).get(Ferdigstilling_.avsluttetAvSaksbehandler),
                     to!!.plusDays(1).atStartOfDay()
                 )
             }

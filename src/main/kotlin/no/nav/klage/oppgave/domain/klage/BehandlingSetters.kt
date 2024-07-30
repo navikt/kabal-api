@@ -631,11 +631,19 @@ object BehandlingSetters {
     }
 
     fun Behandling.setAvsluttetAvSaksbehandler(
-        saksbehandlerident: String
+        saksbehandlerident: String,
+        saksbehandlernavn: String,
     ): BehandlingEndretEvent {
-        val gammelVerdi = avsluttetAvSaksbehandler
+        val gammelVerdi = ferdigstilling?.avsluttetAvSaksbehandler
         val tidspunkt = LocalDateTime.now()
-        avsluttetAvSaksbehandler = tidspunkt
+
+        ferdigstilling = Ferdigstilling(
+            avsluttet = null,
+            avsluttetAvSaksbehandler = tidspunkt,
+            navIdent = saksbehandlerident,
+            navn = saksbehandlernavn,
+        )
+
         modified = tidspunkt
         val endringslogg =
             endringslogg(
@@ -651,9 +659,9 @@ object BehandlingSetters {
     fun Behandling.setAvsluttet(
         saksbehandlerident: String
     ): BehandlingEndretEvent {
-        val gammelVerdi = avsluttet
+        val gammelVerdi = ferdigstilling?.avsluttet
         val tidspunkt = LocalDateTime.now()
-        avsluttet = tidspunkt
+        ferdigstilling!!.avsluttet = tidspunkt
         modified = tidspunkt
         val endringslogg =
             endringslogg(

@@ -44,3 +44,10 @@ ALTER TABLE klage.satt_paa_vent_historikk
 
 ALTER TABLE klage.tildelinghistorikk
     ADD COLUMN utfoerende_navn TEXT;
+
+ALTER TABLE klage.behandling
+    ADD COLUMN feilregistrering_navn TEXT;
+
+ALTER TABLE klage.behandling
+    ADD COLUMN ferdigstilling_nav_ident TEXT,
+    ADD COLUMN ferdigstilling_navn      TEXT;

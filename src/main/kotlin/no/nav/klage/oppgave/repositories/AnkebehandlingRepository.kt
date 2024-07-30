@@ -14,7 +14,7 @@ interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
 
     fun findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId: UUID): List<Ankebehandling>
 
-    fun findByAvsluttetIsNotNullAndFeilregistreringIsNullAndUtfallIn(utfallSet: Set<Utfall>): List<Ankebehandling>
+    fun findByFerdigstillingAvsluttetIsNotNullAndFeilregistreringIsNullAndUtfallIn(utfallSet: Set<Utfall>): List<Ankebehandling>
 
     fun findByMottakId(mottakId: UUID): Ankebehandling?
 
@@ -25,7 +25,7 @@ interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
         """
             SELECT a
             FROM Ankebehandling a
-            WHERE a.avsluttet IS NOT null            
+            WHERE a.ferdigstilling.avsluttet IS NOT null            
             AND a.fagsystem != :infotrygdFagsystem
             AND a.sakenGjelder.partId.value = :partIdValue
             AND a.utfall NOT IN :utfallWithoutAnkemulighet

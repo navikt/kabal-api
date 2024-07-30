@@ -183,7 +183,7 @@ class KabinApiService(
             getCreatedAnkebehandlingStatusForKabin(
                 ankebehandling = ankebehandling,
                 mottak = mottak,
-                vedtakDate = sourceBehandling.avsluttetAvSaksbehandler!!,
+                vedtakDate = sourceBehandling.ferdigstilling!!.avsluttetAvSaksbehandler,
             )
         } else {
             val klageInInfotrygd = klageFssProxyClient.getSakWithAppAccess(
@@ -369,7 +369,7 @@ class KabinApiService(
             behandlingId = id,
             ytelseId = ytelse.id,
             hjemmelIdList = hjemler.map { it.id },
-            vedtakDate = avsluttetAvSaksbehandler!!,
+            vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
             sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
             klager = behandlingMapper.getPartViewWithUtsendingskanal(partId = klager.partId, behandling = this)
                 .toKabinPartView(),
@@ -390,7 +390,7 @@ class KabinApiService(
                 ExistingAnkebehandling(
                     id = it.id,
                     created = it.created,
-                    completed = it.avsluttetAvSaksbehandler,
+                    completed = it.ferdigstilling!!.avsluttetAvSaksbehandler,
                 )
             },
         )

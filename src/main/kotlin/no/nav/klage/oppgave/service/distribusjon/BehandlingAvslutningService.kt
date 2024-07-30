@@ -195,7 +195,7 @@ class BehandlingAvslutningService(
             Type.KLAGE -> {
                 BehandlingDetaljer(
                     klagebehandlingAvsluttet = KlagebehandlingAvsluttetDetaljer(
-                        avsluttet = behandling.avsluttetAvSaksbehandler!!,
+                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
                         journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
                             .map { it.journalpostId }
@@ -206,7 +206,7 @@ class BehandlingAvslutningService(
             Type.ANKE -> {
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
-                        avsluttet = behandling.avsluttetAvSaksbehandler!!,
+                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
                         journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
                             .map { it.journalpostId }
@@ -217,7 +217,7 @@ class BehandlingAvslutningService(
             Type.ANKE_I_TRYGDERETTEN -> {
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
-                        avsluttet = behandling.avsluttetAvSaksbehandler!!,
+                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
                         journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
                             .map { it.journalpostId }

@@ -28,7 +28,7 @@ class TilgangService(
 
     //TODO: Denne brukes bare i tester, rydd opp ved anledning.
     fun verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling: Klagebehandling) {
-        if (klagebehandling.avsluttetAvSaksbehandler != null || klagebehandling.avsluttet != null) {
+        if (klagebehandling.ferdigstilling != null) {
             throw BehandlingAvsluttetException("Kan ikke endre avsluttet klagebehandling")
         }
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
@@ -38,9 +38,7 @@ class TilgangService(
     }
 
     fun verifyInnloggetSaksbehandlersSkrivetilgang(behandling: Behandling) {
-        if (behandling.avsluttetAvSaksbehandler != null ||
-            behandling.avsluttet != null
-        ) {
+        if (behandling.ferdigstilling != null) {
             throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
         }
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
@@ -56,7 +54,7 @@ class TilgangService(
         ident == behandling.tildeling?.saksbehandlerident
 
     fun checkIfBehandlingIsAvsluttet(behandling: Behandling) {
-        if (behandling.avsluttet != null) {
+        if (behandling.ferdigstilling?.avsluttet != null) {
             throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
         }
     }
@@ -74,7 +72,7 @@ class TilgangService(
     }
 
     fun verifyInnloggetSaksbehandlerIsMedunderskriverOrROLAndNotFinalized(behandling: Behandling) {
-        if (behandling.avsluttetAvSaksbehandler != null || behandling.avsluttet != null) {
+        if (behandling.ferdigstilling != null) {
             throw BehandlingAvsluttetException("Kan ikke endre avsluttet klagebehandling")
         }
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()

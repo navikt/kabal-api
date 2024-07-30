@@ -17,21 +17,21 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         type: Type,
     ): List<Behandling>
 
-    fun findByOppgaveIdAndFeilregistreringIsNullAndAvsluttetAvSaksbehandlerIsNull(
+    fun findByOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
         oppgaveId: Long,
     ): List<Behandling>
 
-    fun findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull(): List<Behandling>
+    fun findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull(): List<Behandling>
 
-    fun findByAvsluttetAvSaksbehandlerIsNull(): List<Behandling>
+    fun findByFerdigstillingIsNull(): List<Behandling>
 
-    fun findByAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(): List<Behandling>
+    fun findByFerdigstillingIsNullAndFeilregistreringIsNull(): List<Behandling>
 
-    fun findByTildelingEnhetAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(enhet: String): List<Behandling>
+    fun findByTildelingEnhetAndFerdigstillingIsNullAndFeilregistreringIsNull(enhet: String): List<Behandling>
 
-    fun findByIdAndAvsluttetIsNotNull(id: UUID): Behandling?
+    fun findByIdAndFerdigstillingAvsluttetIsNotNull(id: UUID): Behandling?
 
-    fun findBySakenGjelderPartIdValueAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(partIdValue: String): List<Behandling>
+    fun findBySakenGjelderPartIdValueAndFerdigstillingIsNullAndFeilregistreringIsNull(partIdValue: String): List<Behandling>
 
     @EntityGraph("Behandling.full")
     @Query("select b from Behandling b where b.id = :id")

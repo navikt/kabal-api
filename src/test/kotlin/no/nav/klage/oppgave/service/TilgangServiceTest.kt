@@ -42,7 +42,13 @@ class TilgangServiceTest {
     @Test
     fun `verifySaksbehandlersSkrivetilgang gir feil ved avsluttet`() {
         val klagebehandling = getKlagebehandling()
-        klagebehandling.avsluttet = LocalDateTime.now()
+
+        klagebehandling.ferdigstilling = Ferdigstilling(
+            avsluttet = LocalDateTime.now(),
+            avsluttetAvSaksbehandler = LocalDateTime.now(),
+            navIdent = "navIdent",
+            navn = "navn",
+        )
 
         assertThrows<BehandlingAvsluttetException> {
             tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(
@@ -54,7 +60,12 @@ class TilgangServiceTest {
     @Test
     fun `verifySaksbehandlersSkrivetilgang gir feil ved avsluttet av saksbehandler`() {
         val klagebehandling = getKlagebehandling()
-        klagebehandling.avsluttetAvSaksbehandler = LocalDateTime.now()
+
+        klagebehandling.ferdigstilling = Ferdigstilling(
+            avsluttetAvSaksbehandler = LocalDateTime.now(),
+            navIdent = "navIdent",
+            navn = "navn",
+        )
 
         assertThrows<BehandlingAvsluttetException> {
             tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(

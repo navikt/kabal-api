@@ -393,6 +393,12 @@ class OppgaveServiceTest {
 
         mottakRepository.save(mottak)
 
+        val ferdigstilling = Ferdigstilling(
+            avsluttet = avsluttetAvSaksbehandler,
+            avsluttetAvSaksbehandler = avsluttetAvSaksbehandler,
+            navIdent = "navIdent",
+            navn = "navn",
+        )
 
         val behandling = when (type) {
             Type.KLAGE -> {
@@ -420,7 +426,7 @@ class OppgaveServiceTest {
                     utfall = Utfall.STADFESTELSE,
                     extraUtfallSet = emptySet(),
                     registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    avsluttetAvSaksbehandler = avsluttetAvSaksbehandler,
+                    ferdigstilling = ferdigstilling,
                     previousSaksbehandlerident = "C78901",
                     tildeling = Tildeling(
                         saksbehandlerident = tildeltSaksbehandlerIdent,
@@ -454,7 +460,7 @@ class OppgaveServiceTest {
                     utfall = Utfall.STADFESTELSE,
                     extraUtfallSet = emptySet(),
                     registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    avsluttetAvSaksbehandler = avsluttetAvSaksbehandler,
+                    ferdigstilling = ferdigstilling,
                     previousSaksbehandlerident = "C78901",
                     klageBehandlendeEnhet = "1000",
                     sourceBehandlingId = UUID.randomUUID(),
@@ -486,7 +492,7 @@ class OppgaveServiceTest {
                     utfall = Utfall.STADFESTELSE,
                     extraUtfallSet = emptySet(),
                     registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    avsluttetAvSaksbehandler = avsluttetAvSaksbehandler,
+                    ferdigstilling = ferdigstilling,
                     previousSaksbehandlerident = "C78901",
                     tildeling = Tildeling(
                         saksbehandlerident = tildeltSaksbehandlerIdent,

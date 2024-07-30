@@ -44,14 +44,16 @@ internal class KlagebehandlingTest {
         @Test
         fun `status IKKE_TILDELT etter tidligere tildeling`() {
             val klagebehandling = getKlagebehandling()
-            klagebehandling.tildeling = Tildeling(saksbehandlerident = null, enhet = null, tidspunkt = LocalDateTime.now())
+            klagebehandling.tildeling =
+                Tildeling(saksbehandlerident = null, enhet = null, tidspunkt = LocalDateTime.now())
             assertThat(klagebehandling.getStatus()).isEqualTo(Behandling.Status.IKKE_TILDELT)
         }
 
         @Test
         fun `status TILDELT`() {
             val klagebehandling = getKlagebehandling()
-            klagebehandling.tildeling = Tildeling(saksbehandlerident = "abc", enhet = null, tidspunkt = LocalDateTime.now())
+            klagebehandling.tildeling =
+                Tildeling(saksbehandlerident = "abc", enhet = null, tidspunkt = LocalDateTime.now())
             assertThat(klagebehandling.getStatus()).isEqualTo(Behandling.Status.TILDELT)
         }
 
@@ -81,7 +83,8 @@ internal class KlagebehandlingTest {
         @Test
         fun `status TILDELT når medunderskriver er fjernet`() {
             val klagebehandling = getKlagebehandling()
-            klagebehandling.tildeling = Tildeling(saksbehandlerident = "abc", enhet = null, tidspunkt = LocalDateTime.now())
+            klagebehandling.tildeling =
+                Tildeling(saksbehandlerident = "abc", enhet = null, tidspunkt = LocalDateTime.now())
             klagebehandling.medunderskriver = MedunderskriverTildeling(null, LocalDateTime.now())
             assertThat(klagebehandling.getStatus()).isEqualTo(Behandling.Status.TILDELT)
         }
@@ -90,7 +93,12 @@ internal class KlagebehandlingTest {
         fun `status FULLFOERT`() {
             val klagebehandling = getKlagebehandling()
             klagebehandling.medunderskriver = MedunderskriverTildeling("abc123", LocalDateTime.now())
-            klagebehandling.avsluttet = LocalDateTime.now()
+            klagebehandling.ferdigstilling = Ferdigstilling(
+                avsluttet = LocalDateTime.now(),
+                avsluttetAvSaksbehandler = LocalDateTime.now(),
+                navIdent = "navIdent",
+                navn = "navn",
+            )
             assertThat(klagebehandling.getStatus()).isEqualTo(Behandling.Status.FULLFOERT)
         }
     }
