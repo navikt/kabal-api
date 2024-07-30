@@ -37,11 +37,11 @@ class HistoryService(
             val previousEvent = HistoryEvent(
                 type = HistoryEventType.TILDELING,
                 timestamp = previous.tidspunkt,
-                actor = previous.utfoerendeIdent?.let {
-                    previous.utfoerendeNavn?.let { it1 ->
+                actor = previous.utfoerendeIdent?.let { utfoerendeIdent ->
+                    previous.utfoerendeNavn?.let { utfoerendeNavn ->
                         SaksbehandlerView(
-                            navIdent = it,
-                            navn = it1,
+                            navIdent = utfoerendeIdent,
+                            navn = utfoerendeNavn,
                         )
                     }
                 },
@@ -57,11 +57,11 @@ class HistoryService(
             HistoryEventWithPrevious(
                 type = HistoryEventType.TILDELING,
                 timestamp = current.tidspunkt,
-                actor = current.utfoerendeIdent?.let {
-                    current.utfoerendeNavn?.let { it1 ->
+                actor = current.utfoerendeIdent?.let { utfoerendeIdent ->
+                    current.utfoerendeNavn?.let { utfoerendeNavn ->
                         SaksbehandlerView(
-                            navIdent = it,
-                            navn = it1,
+                            navIdent = utfoerendeIdent,
+                            navn = utfoerendeNavn,
                         )
                     }
                 },
@@ -99,11 +99,11 @@ class HistoryService(
                 val previousEvent: HistoryEvent<MedunderskriverEvent> = HistoryEvent(
                     type = HistoryEventType.MEDUNDERSKRIVER,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent?.let {
-                        previous.utfoerendeNavn?.let { it1 ->
+                    actor = previous.utfoerendeIdent?.let { utfoerendeIdent ->
+                        previous.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
@@ -116,11 +116,11 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.MEDUNDERSKRIVER,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent?.let {
-                        current.utfoerendeNavn?.let { it1 ->
+                    actor = current.utfoerendeIdent?.let { utfoerendeIdent ->
+                        current.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
@@ -144,11 +144,11 @@ class HistoryService(
                 val previousEvent: HistoryEvent<RolEvent> = HistoryEvent(
                     type = HistoryEventType.ROL,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent?.let {
-                        previous.utfoerendeNavn?.let { it1 ->
+                    actor = previous.utfoerendeIdent?.let { utfoerendeIdent ->
+                        previous.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
@@ -161,11 +161,11 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.ROL,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent?.let {
-                        current.utfoerendeNavn?.let { it1 ->
+                    actor = current.utfoerendeIdent?.let { utfoerendeIdent ->
+                        current.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
@@ -215,11 +215,11 @@ class HistoryService(
                 val previousEvent: HistoryEvent<FullmektigEvent> = HistoryEvent(
                     type = HistoryEventType.FULLMEKTIG,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent?.let {
-                        previous.utfoerendeNavn?.let { it1 ->
+                    actor = previous.utfoerendeIdent?.let { utfoerendeIdent ->
+                        previous.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
@@ -239,11 +239,11 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.FULLMEKTIG,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent?.let {
-                        current.utfoerendeNavn?.let { it1 ->
+                    actor = current.utfoerendeIdent?.let { utfoerendeIdent ->
+                        current.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
@@ -273,11 +273,11 @@ class HistoryService(
                 val previousEvent = HistoryEvent(
                     type = HistoryEventType.KLAGER,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent?.let {
-                        previous.utfoerendeNavn?.let { it1 ->
+                    actor = previous.utfoerendeIdent?.let { utfoerendeIdent ->
+                        previous.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
@@ -297,11 +297,11 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.KLAGER,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent?.let {
-                        current.utfoerendeNavn?.let { it1 ->
+                    actor = current.utfoerendeIdent?.let { utfoerendeIdent ->
+                        current.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
@@ -331,11 +331,11 @@ class HistoryService(
                 val previousEvent: HistoryEvent<SattPaaVentEvent> = HistoryEvent(
                     type = HistoryEventType.SATT_PAA_VENT,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent?.let {
-                        previous.utfoerendeNavn?.let { it1 ->
+                    actor = previous.utfoerendeIdent?.let { utfoerendeIdent ->
+                        previous.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
@@ -351,11 +351,11 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.SATT_PAA_VENT,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent?.let {
-                        current.utfoerendeNavn?.let { it1 ->
+                    actor = current.utfoerendeIdent?.let { utfoerendeIdent ->
+                        current.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
@@ -431,11 +431,11 @@ class HistoryService(
                 val previousEvent: HistoryEvent<VarsletBehandlingstidEvent> = HistoryEvent(
                     type = HistoryEventType.VARSLET_BEHANDLINGSTID,
                     timestamp = previous.tidspunkt,
-                    actor = previous.utfoerendeIdent?.let {
-                        previous.utfoerendeNavn?.let { it1 ->
+                    actor = previous.utfoerendeIdent?.let { utfoerendeIdent ->
+                        previous.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
@@ -458,11 +458,11 @@ class HistoryService(
                 HistoryEventWithPrevious(
                     type = HistoryEventType.VARSLET_BEHANDLINGSTID,
                     timestamp = current.tidspunkt,
-                    actor = current.utfoerendeIdent?.let {
-                        current.utfoerendeNavn?.let { it1 ->
+                    actor = current.utfoerendeIdent?.let { utfoerendeIdent ->
+                        current.utfoerendeNavn?.let { utfoerendeNavn ->
                             SaksbehandlerView(
-                                navIdent = it,
-                                navn = it1,
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
                             )
                         }
                     },
