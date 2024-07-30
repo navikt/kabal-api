@@ -12,16 +12,34 @@ object AnkebehandlingSetters {
         nyVerdiVarsletBehandlingstidUnits: Int,
         nyVerdiVarsletBehandlingstidUnitType: TimeUnitType,
         nyVerdiVarsletFrist: LocalDate,
-        saksbehandlerident: String
+        saksbehandlerident: String,
+        saksbehandlernavn: String,
+        mottakere: List<PartId>
     ): BehandlingEndretEvent {
         val gammelVerdiVarsletBehandlingstidUnits = varsletBehandlingstidUnits
         val gammelVerdiVarsletBehandlingstidUnitType = varsletBehandlingstidUnitType
         val gammelVerdiVarsletFrist = varsletFrist
         val tidspunkt = LocalDateTime.now()
 
+        if (varsletBehandlingstidHistorikk.isEmpty()) {
+            recordVarsletBehandlingstidHistory(
+                tidspunkt = created,
+                utfoerendeIdent = null,
+                utfoerendeNavn = null,
+                mottakere = listOf(),
+            )
+        }
+
         varsletBehandlingstidUnits = nyVerdiVarsletBehandlingstidUnits
         varsletBehandlingstidUnitType = nyVerdiVarsletBehandlingstidUnitType
         varsletFrist = nyVerdiVarsletFrist
+
+        recordVarsletBehandlingstidHistory(
+            tidspunkt = tidspunkt,
+            utfoerendeIdent = saksbehandlerident,
+            utfoerendeNavn = saksbehandlernavn,
+            mottakere = mottakere,
+        )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
 
@@ -53,5 +71,24 @@ object AnkebehandlingSetters {
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
+    }
+
+    private fun Ankebehandling.recordVarsletBehandlingstidHistory(
+        tidspunkt: LocalDateTime,
+        utfoerendeIdent: String?,
+        utfoerendeNavn: String?,
+        mottakere: List<PartId>,
+    ) {
+        varsletBehandlingstidHistorikk.add(
+            VarsletBehandlingstidHistorikk(
+                mottakerList = mottakere.map { it.toVarsletBehandlingstidHistorikkMottaker() },
+                tidspunkt = tidspunkt,
+                utfoerendeIdent = utfoerendeIdent,
+                utfoerendeNavn = utfoerendeNavn,
+                varsletFrist = varsletFrist,
+                varsletBehandlingstidUnits = varsletBehandlingstidUnits,
+                varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
+            )
+        )
     }
 }

@@ -40,7 +40,7 @@ fun Behandling.createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehand
         sakMottattKlageinstans = mottattKlageinstans,
         saksdokumenter = saksdokumenter,
         innsendingsHjemler = hjemler,
-        sendtTilTrygderetten = avsluttetAvSaksbehandler!!,
+        sendtTilTrygderetten = ferdigstilling!!.avsluttetAvSaksbehandler,
         registreringsHjemmelSet = registreringshjemler,
         ankebehandlingUtfall = ExternalUtfall.valueOf(utfall!!.name),
         previousSaksbehandlerident = tildeling!!.saksbehandlerident,

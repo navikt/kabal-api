@@ -8,6 +8,7 @@ import java.time.LocalDateTime
 @Embeddable
 data class Feilregistrering(
     val navIdent: String,
+    val navn: String?,
     val registered: LocalDateTime,
     val reason: String,
     @Convert(converter = FagsystemConverter::class)

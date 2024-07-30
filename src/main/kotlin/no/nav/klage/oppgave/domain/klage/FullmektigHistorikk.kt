@@ -21,6 +21,8 @@ class FullmektigHistorikk(
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
     val utfoerendeIdent: String?,
+    @Column(name = "utfoerende_navn")
+    val utfoerendeNavn: String?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -36,7 +38,6 @@ class FullmektigHistorikk(
     }
 
     override fun toString(): String {
-        return "FullmektigHistorikk(id=$id, partId=$partId, tidspunkt=$tidspunkt, utfoerendeIdent='$utfoerendeIdent')"
+        return "FullmektigHistorikk(id=$id, partId=$partId, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn)"
     }
-
 }

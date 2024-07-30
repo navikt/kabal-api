@@ -12,6 +12,7 @@ import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -124,8 +125,8 @@ class KabinApiService(
                 behandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
                 behandling = behandling,
                 systemUserContext = false,
+                mottakere = svarbrevInput.receivers.map { getPartIdFromIdentifikator(it.id) }
             )
-
         }
     }
 
@@ -182,7 +183,7 @@ class KabinApiService(
             getCreatedAnkebehandlingStatusForKabin(
                 ankebehandling = ankebehandling,
                 mottak = mottak,
-                vedtakDate = sourceBehandling.avsluttetAvSaksbehandler!!,
+                vedtakDate = sourceBehandling.ferdigstilling!!.avsluttetAvSaksbehandler,
             )
         } else {
             val klageInInfotrygd = klageFssProxyClient.getSakWithAppAccess(
@@ -368,7 +369,7 @@ class KabinApiService(
             behandlingId = id,
             ytelseId = ytelse.id,
             hjemmelIdList = hjemler.map { it.id },
-            vedtakDate = avsluttetAvSaksbehandler!!,
+            vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
             sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
             klager = behandlingMapper.getPartViewWithUtsendingskanal(partId = klager.partId, behandling = this)
                 .toKabinPartView(),
@@ -389,7 +390,7 @@ class KabinApiService(
                 ExistingAnkebehandling(
                     id = it.id,
                     created = it.created,
-                    completed = it.avsluttetAvSaksbehandler,
+                    completed = it.ferdigstilling!!.avsluttetAvSaksbehandler,
                 )
             },
         )

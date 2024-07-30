@@ -111,7 +111,7 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
             utfall = utfall!!.id,
             registreringshjemler = registreringshjemler.map { it.id },
             kvalitetsvurderingId = kvalitetsvurderingId!!,
-            avsluttetAvSaksbehandler = avsluttetAvSaksbehandler!!,
+            avsluttetAvSaksbehandler = ferdigstilling!!.avsluttetAvSaksbehandler,
             utfoerendeSaksbehandler = tildeling?.saksbehandlerident!!,
             tilknyttetEnhet = tilknyttetEnhet!!.navn
         )

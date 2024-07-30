@@ -16,7 +16,7 @@ interface AnkeITrygderettenbehandlingRepository : JpaRepository<AnkeITrygderette
         """
             SELECT ait
             FROM AnkeITrygderettenbehandling ait
-            WHERE ait.avsluttet IS NOT null            
+            WHERE ait.ferdigstilling.avsluttet IS NOT null            
             AND ait.fagsystem != :infotrygdFagsystem
             AND ait.sakenGjelder.partId.value = :partIdValue            
         """

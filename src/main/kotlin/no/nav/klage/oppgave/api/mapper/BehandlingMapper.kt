@@ -65,8 +65,8 @@ class BehandlingMapper(
             typeId = klagebehandling.type.id,
             mottattKlageinstans = klagebehandling.mottattKlageinstans.toLocalDate(),
             tildelt = klagebehandling.tildeling?.tidspunkt?.toLocalDate(),
-            avsluttetAvSaksbehandlerDate = klagebehandling.avsluttetAvSaksbehandler?.toLocalDate(),
-            isAvsluttetAvSaksbehandler = klagebehandling.avsluttetAvSaksbehandler != null,
+            avsluttetAvSaksbehandlerDate = klagebehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = klagebehandling.ferdigstilling != null,
             frist = klagebehandling.frist,
             datoSendtMedunderskriver = klagebehandling.medunderskriver?.tidspunkt?.toLocalDate(),
             hjemmelIdList = klagebehandling.hjemler.map { it.id },
@@ -167,8 +167,8 @@ class BehandlingMapper(
             typeId = ankebehandling.type.id,
             mottattKlageinstans = ankebehandling.mottattKlageinstans.toLocalDate(),
             tildelt = ankebehandling.tildeling?.tidspunkt?.toLocalDate(),
-            avsluttetAvSaksbehandlerDate = ankebehandling.avsluttetAvSaksbehandler?.toLocalDate(),
-            isAvsluttetAvSaksbehandler = ankebehandling.avsluttetAvSaksbehandler != null,
+            avsluttetAvSaksbehandlerDate = ankebehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = ankebehandling.ferdigstilling != null,
             frist = ankebehandling.frist,
             datoSendtMedunderskriver = ankebehandling.medunderskriver?.tidspunkt?.toLocalDate(),
             hjemmelIdList = ankebehandling.hjemler.map { it.id },
@@ -223,8 +223,8 @@ class BehandlingMapper(
             typeId = ankeITrygderettenbehandling.type.id,
             mottattKlageinstans = ankeITrygderettenbehandling.mottattKlageinstans.toLocalDate(),
             tildelt = ankeITrygderettenbehandling.tildeling?.tidspunkt?.toLocalDate(),
-            avsluttetAvSaksbehandlerDate = ankeITrygderettenbehandling.avsluttetAvSaksbehandler?.toLocalDate(),
-            isAvsluttetAvSaksbehandler = ankeITrygderettenbehandling.avsluttetAvSaksbehandler != null,
+            avsluttetAvSaksbehandlerDate = ankeITrygderettenbehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = ankeITrygderettenbehandling.ferdigstilling != null,
             frist = ankeITrygderettenbehandling.frist,
             datoSendtMedunderskriver = ankeITrygderettenbehandling.medunderskriver?.tidspunkt?.toLocalDate(),
             hjemmelIdList = ankeITrygderettenbehandling.hjemler.map { it.id },
@@ -465,7 +465,7 @@ class BehandlingMapper(
     fun mapToBehandlingFullfoertView(behandling: Behandling): BehandlingFullfoertView {
         return BehandlingFullfoertView(
             modified = behandling.modified,
-            isAvsluttetAvSaksbehandler = behandling.avsluttetAvSaksbehandler != null
+            isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null
         )
     }
 
@@ -604,8 +604,8 @@ class BehandlingMapper(
             medunderskriver = behandling.toMedunderskriverView(),
             rol = behandling.toROLView(),
             utfallId = behandling.utfall?.id,
-            avsluttetAvSaksbehandlerDate = behandling.avsluttetAvSaksbehandler?.toLocalDate(),
-            isAvsluttetAvSaksbehandler = behandling.avsluttetAvSaksbehandler != null,
+            avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
             tildeltSaksbehandlerident = behandling.tildeling?.saksbehandlerident,
             ageKA = behandling.mottattKlageinstans.toAgeInDays(),
             sattPaaVent = behandling.toSattPaaVent(),

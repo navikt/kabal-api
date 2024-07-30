@@ -120,19 +120,35 @@ class KlagebehandlingRepositoryTest {
         val klageWithNoAnke = getKlagebehandling(
             mottakId = mottak1.id,
         )
-        klageWithNoAnke.avsluttet = LocalDateTime.now()
+        klageWithNoAnke.ferdigstilling = Ferdigstilling(
+            avsluttet = LocalDateTime.now(),
+            avsluttetAvSaksbehandler = LocalDateTime.now(),
+            navIdent = "navIdent",
+            navn = "navn",
+        )
         klageWithNoAnke.utfall = Utfall.STADFESTELSE
 
         val klageWithNoAnke2 = getKlagebehandling(
             mottakId = mottak1.id
         )
-        klageWithNoAnke2.avsluttet = LocalDateTime.now()
+        klageWithNoAnke2.ferdigstilling = Ferdigstilling(
+            avsluttet = LocalDateTime.now(),
+            avsluttetAvSaksbehandler = LocalDateTime.now(),
+            navIdent = "navIdent",
+            navn = "navn",
+        )
+
         klageWithNoAnke2.utfall = Utfall.RETUR
 
         val klageWithAnke = getKlagebehandling(
             mottakId = mottak2.id
         )
-        klageWithAnke.avsluttet = LocalDateTime.now()
+        klageWithAnke.ferdigstilling = Ferdigstilling(
+            avsluttet = LocalDateTime.now(),
+            avsluttetAvSaksbehandler = LocalDateTime.now(),
+            navIdent = "navIdent",
+            navn = "navn",
+        )
         klageWithAnke.utfall = Utfall.STADFESTELSE
 
         klagebehandlingRepository.saveAll(listOf(klageWithNoAnke, klageWithNoAnke2, klageWithAnke))
@@ -168,7 +184,11 @@ class KlagebehandlingRepositoryTest {
 
 
 
-        assertThat(klagebehandlingRepository.getCompletedKlagebehandlinger("23452354")).containsExactlyInAnyOrder(klageWithNoAnke, klageWithNoAnke2, klageWithAnke)
+        assertThat(klagebehandlingRepository.getCompletedKlagebehandlinger("23452354")).containsExactlyInAnyOrder(
+            klageWithNoAnke,
+            klageWithNoAnke2,
+            klageWithAnke
+        )
     }
 
     fun getMottak(): Mottak = Mottak(

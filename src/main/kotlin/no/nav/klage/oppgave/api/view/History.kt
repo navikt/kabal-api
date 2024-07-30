@@ -10,6 +10,13 @@ data class TildelingEvent(
     val hjemmelIdList: List<String>?,
 )
 
+data class VarsletBehandlingstidEvent(
+    val mottakere: List<Part>?,
+    val varsletBehandlingstidUnits: Int?,
+    val varsletBehandlingstidUnitTypeId: String?,
+    val varsletFrist: LocalDate?,
+)
+
 data class MedunderskriverEvent(
     val medunderskriver: SaksbehandlerView?,
     //nullable b/c possible missing history initially
@@ -83,7 +90,8 @@ data class HistoryResponse(
     val fullmektig: List<WithPrevious<FullmektigEvent>>,
     val sattPaaVent: List<WithPrevious<SattPaaVentEvent>>,
     val ferdigstilt: List<WithPrevious<FerdigstiltEvent>>,
-    val feilregistrert: List<WithPrevious<FeilregistrertEvent>>
+    val feilregistrert: List<WithPrevious<FeilregistrertEvent>>,
+    val varsletBehandlingstid: List<WithPrevious<VarsletBehandlingstidEvent>>,
 )
 
 enum class HistoryEventType {
@@ -95,4 +103,5 @@ enum class HistoryEventType {
     SATT_PAA_VENT,
     FERDIGSTILT,
     FEILREGISTRERT,
+    VARSLET_BEHANDLINGSTID
 }

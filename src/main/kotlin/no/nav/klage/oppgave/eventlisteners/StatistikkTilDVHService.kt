@@ -170,7 +170,7 @@ class StatistikkTilDVHService(
             saksbehandler = behandling.tildeling?.saksbehandlerident,
             saksbehandlerEnhet = behandling.tildeling?.enhet,
             tekniskTid = behandling.modified,
-            vedtaksdato = behandling.avsluttetAvSaksbehandler?.toLocalDate(),
+            vedtaksdato = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
             ytelseType = behandling.ytelse.name,
             opprinneligFagsakId = behandling.fagsakId,
         )
@@ -186,7 +186,7 @@ class StatistikkTilDVHService(
     private fun getResultat(behandling: Behandling): String? =
         if (behandling.feilregistrering != null) {
             "Feilregistrert"
-        } else if (behandling.avsluttetAvSaksbehandler != null) {
+        } else if (behandling.ferdigstilling != null) {
             behandling.utfall?.navn
         } else {
             null
@@ -206,7 +206,7 @@ class StatistikkTilDVHService(
                 } else if (behandling is AnkeITrygderettenbehandling) {
                     behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
                 } else {
-                    behandling.avsluttetAvSaksbehandler
+                    behandling.ferdigstilling?.avsluttetAvSaksbehandler
                         ?: throw RuntimeException("avsluttetAvSaksbehandler mangler")
                 }
             }
@@ -216,7 +216,7 @@ class StatistikkTilDVHService(
                 LocalDateTime.now()
             }
 
-            BehandlingState.SENDT_TIL_TR -> behandling.avsluttetAvSaksbehandler
+            BehandlingState.SENDT_TIL_TR -> behandling.ferdigstilling?.avsluttetAvSaksbehandler
                 ?: throw RuntimeException("avsluttetAvSaksbehandler mangler")
 
             else -> throw RuntimeException("cannot happen!!")

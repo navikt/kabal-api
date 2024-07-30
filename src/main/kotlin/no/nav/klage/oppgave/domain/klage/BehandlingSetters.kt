@@ -17,6 +17,7 @@ object BehandlingSetters {
         nyVerdiEnhet: String?,
         fradelingReason: FradelingReason?,
         utfoerendeIdent: String,
+        utfoerendeNavn: String,
         fradelingWithChangedHjemmelIdList: String?,
     ): BehandlingEndretEvent {
         if (!(nyVerdiSaksbehandlerident == null && nyVerdiEnhet == null) &&
@@ -35,6 +36,7 @@ object BehandlingSetters {
             recordTildelingHistory(
                 tidspunkt = gammelVerdiTidspunkt ?: created,
                 utfoerendeIdent = null,
+                utfoerendeNavn = null,
                 fradelingReason = null,
                 hjemmelIdList = hjemler.joinToString(",") { it.id },
             )
@@ -50,6 +52,7 @@ object BehandlingSetters {
         recordTildelingHistory(
             tidspunkt = tidspunkt,
             utfoerendeIdent = utfoerendeIdent,
+            utfoerendeNavn = utfoerendeNavn,
             fradelingReason = fradelingReason,
             hjemmelIdList = if (tildeling == null) {
                 fradelingWithChangedHjemmelIdList
@@ -89,6 +92,7 @@ object BehandlingSetters {
     private fun Behandling.recordTildelingHistory(
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
+        utfoerendeNavn: String?,
         fradelingReason: FradelingReason?,
         hjemmelIdList: String?,
     ) {
@@ -98,6 +102,7 @@ object BehandlingSetters {
                 enhet = tildeling?.enhet,
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
+                utfoerendeNavn = utfoerendeNavn,
                 fradelingReason = fradelingReason,
                 hjemmelIdList = hjemmelIdList,
             )
@@ -107,6 +112,7 @@ object BehandlingSetters {
     fun Behandling.setMedunderskriverFlowState(
         nyMedunderskriverFlowState: FlowState,
         utfoerendeIdent: String,
+        utfoerendeNavn: String,
     ): BehandlingEndretEvent {
         val gammelVerdiMedunderskriverFlowState = medunderskriverFlowState
         val tidspunkt = LocalDateTime.now()
@@ -116,6 +122,7 @@ object BehandlingSetters {
             recordMedunderskriverHistory(
                 tidspunkt = created,
                 utfoerendeIdent = null,
+                utfoerendeNavn = null,
             )
         }
 
@@ -124,7 +131,8 @@ object BehandlingSetters {
 
         recordMedunderskriverHistory(
             tidspunkt = tidspunkt,
-            utfoerendeIdent = utfoerendeIdent
+            utfoerendeIdent = utfoerendeIdent,
+            utfoerendeNavn = utfoerendeNavn,
         )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
@@ -142,7 +150,8 @@ object BehandlingSetters {
 
     fun Behandling.setMedunderskriverNavIdent(
         nyMedunderskriverNavIdent: String?,
-        utfoerendeIdent: String
+        utfoerendeIdent: String,
+        utfoerendeNavn: String
     ): BehandlingEndretEvent {
         val gammelVerdiMedunderskriverNavIdent = medunderskriver?.saksbehandlerident
         val tidspunkt = LocalDateTime.now()
@@ -152,6 +161,7 @@ object BehandlingSetters {
             recordMedunderskriverHistory(
                 tidspunkt = medunderskriver?.tidspunkt ?: created,
                 utfoerendeIdent = null,
+                utfoerendeNavn = null,
             )
         }
 
@@ -166,7 +176,8 @@ object BehandlingSetters {
 
         recordMedunderskriverHistory(
             tidspunkt = tidspunkt,
-            utfoerendeIdent = utfoerendeIdent
+            utfoerendeIdent = utfoerendeIdent,
+            utfoerendeNavn = utfoerendeNavn,
         )
 
         modified = tidspunkt
@@ -187,12 +198,14 @@ object BehandlingSetters {
     private fun Behandling.recordMedunderskriverHistory(
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
+        utfoerendeNavn: String?,
     ) {
         medunderskriverHistorikk.add(
             MedunderskriverHistorikk(
                 saksbehandlerident = medunderskriver?.saksbehandlerident,
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
+                utfoerendeNavn = utfoerendeNavn,
                 flowState = medunderskriverFlowState,
             )
         )
@@ -201,6 +214,7 @@ object BehandlingSetters {
     fun Behandling.setROLFlowState(
         newROLFlowStateState: FlowState,
         utfoerendeIdent: String,
+        utfoerendeNavn: String,
     ): BehandlingEndretEvent {
         val oldValue = rolFlowState
         val now = LocalDateTime.now()
@@ -209,7 +223,8 @@ object BehandlingSetters {
         if (rolHistorikk.isEmpty()) {
             recordRolHistory(
                 tidspunkt = created,
-                utfoerendeIdent = null
+                utfoerendeIdent = null,
+                utfoerendeNavn = null,
             )
         }
 
@@ -218,7 +233,8 @@ object BehandlingSetters {
 
         recordRolHistory(
             tidspunkt = now,
-            utfoerendeIdent = utfoerendeIdent
+            utfoerendeIdent = utfoerendeIdent,
+            utfoerendeNavn = utfoerendeNavn,
         )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
@@ -259,7 +275,8 @@ object BehandlingSetters {
 
     fun Behandling.setROLIdent(
         newROLIdent: String?,
-        utfoerendeIdent: String
+        utfoerendeIdent: String,
+        utfoerendeNavn: String,
     ): BehandlingEndretEvent {
         val oldValue = rolIdent
         val now = LocalDateTime.now()
@@ -269,6 +286,7 @@ object BehandlingSetters {
             recordRolHistory(
                 tidspunkt = created,
                 utfoerendeIdent = null,
+                utfoerendeNavn = null,
             )
         }
 
@@ -281,7 +299,8 @@ object BehandlingSetters {
 
         recordRolHistory(
             tidspunkt = now,
-            utfoerendeIdent = utfoerendeIdent
+            utfoerendeIdent = utfoerendeIdent,
+            utfoerendeNavn = utfoerendeNavn,
         )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
@@ -300,12 +319,14 @@ object BehandlingSetters {
     private fun Behandling.recordRolHistory(
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
+        utfoerendeNavn: String?
     ) {
         rolHistorikk.add(
             RolHistorikk(
                 rolIdent = rolIdent,
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
+                utfoerendeNavn = utfoerendeNavn,
                 flowState = rolFlowState,
             )
         )
@@ -313,7 +334,8 @@ object BehandlingSetters {
 
     fun Behandling.setSattPaaVent(
         nyVerdi: SattPaaVent?,
-        utfoerendeIdent: String
+        utfoerendeIdent: String,
+        utfoerendeNavn: String,
     ): BehandlingEndretEvent {
         val gammelSattPaaVent = sattPaaVent
         val tidspunkt = LocalDateTime.now()
@@ -323,6 +345,7 @@ object BehandlingSetters {
             recordSattPaaVentHistory(
                 tidspunkt = sattPaaVent?.from?.atStartOfDay() ?: created,
                 utfoerendeIdent = null,
+                utfoerendeNavn = null,
             )
         }
 
@@ -332,6 +355,7 @@ object BehandlingSetters {
         recordSattPaaVentHistory(
             tidspunkt = tidspunkt,
             utfoerendeIdent = utfoerendeIdent,
+            utfoerendeNavn = utfoerendeNavn,
         )
 
         val endringslogginnslag = mutableListOf<Endringslogginnslag>()
@@ -350,12 +374,14 @@ object BehandlingSetters {
     private fun Behandling.recordSattPaaVentHistory(
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
+        utfoerendeNavn: String?,
     ) {
         sattPaaVentHistorikk.add(
             SattPaaVentHistorikk(
                 sattPaaVent = sattPaaVent,
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
+                utfoerendeNavn = utfoerendeNavn,
             )
         )
     }
@@ -438,7 +464,8 @@ object BehandlingSetters {
 
     fun Behandling.setFullmektig(
         nyVerdi: PartId?,
-        utfoerendeIdent: String
+        utfoerendeIdent: String,
+        utfoerendeNavn: String,
     ): BehandlingEndretEvent {
         val gammelVerdi = klager.prosessfullmektig
         val tidspunkt = LocalDateTime.now()
@@ -448,6 +475,7 @@ object BehandlingSetters {
             recordFullmektigHistory(
                 tidspunkt = created,
                 utfoerendeIdent = null,
+                utfoerendeNavn = null,
             )
         }
 
@@ -461,6 +489,7 @@ object BehandlingSetters {
         recordFullmektigHistory(
             tidspunkt = tidspunkt,
             utfoerendeIdent = utfoerendeIdent,
+            utfoerendeNavn = utfoerendeNavn,
         )
 
         val endringslogg =
@@ -477,19 +506,22 @@ object BehandlingSetters {
     private fun Behandling.recordFullmektigHistory(
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
+        utfoerendeNavn: String?
     ) {
         fullmektigHistorikk.add(
             FullmektigHistorikk(
                 partId = klager.prosessfullmektig?.partId,
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
+                utfoerendeNavn = utfoerendeNavn
             )
         )
     }
 
     fun Behandling.setKlager(
         nyVerdi: PartId,
-        utfoerendeIdent: String
+        utfoerendeIdent: String,
+        utfoerendeNavn: String,
     ): BehandlingEndretEvent {
         val gammelVerdi = klager
         val tidspunkt = LocalDateTime.now()
@@ -499,6 +531,7 @@ object BehandlingSetters {
             recordKlagerHistory(
                 tidspunkt = created,
                 utfoerendeIdent = null,
+                utfoerendeNavn = null,
             )
         }
 
@@ -507,6 +540,7 @@ object BehandlingSetters {
         recordKlagerHistory(
             tidspunkt = tidspunkt,
             utfoerendeIdent = utfoerendeIdent,
+            utfoerendeNavn = utfoerendeNavn,
         )
 
         modified = tidspunkt
@@ -524,12 +558,14 @@ object BehandlingSetters {
     private fun Behandling.recordKlagerHistory(
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
+        utfoerendeNavn: String?,
     ) {
         klagerHistorikk.add(
             KlagerHistorikk(
                 partId = klager.partId,
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
+                utfoerendeNavn = utfoerendeNavn,
             )
         )
     }
@@ -595,11 +631,19 @@ object BehandlingSetters {
     }
 
     fun Behandling.setAvsluttetAvSaksbehandler(
-        saksbehandlerident: String
+        saksbehandlerident: String,
+        saksbehandlernavn: String,
     ): BehandlingEndretEvent {
-        val gammelVerdi = avsluttetAvSaksbehandler
+        val gammelVerdi = ferdigstilling?.avsluttetAvSaksbehandler
         val tidspunkt = LocalDateTime.now()
-        avsluttetAvSaksbehandler = tidspunkt
+
+        ferdigstilling = Ferdigstilling(
+            avsluttet = null,
+            avsluttetAvSaksbehandler = tidspunkt,
+            navIdent = saksbehandlerident,
+            navn = saksbehandlernavn,
+        )
+
         modified = tidspunkt
         val endringslogg =
             endringslogg(
@@ -615,9 +659,9 @@ object BehandlingSetters {
     fun Behandling.setAvsluttet(
         saksbehandlerident: String
     ): BehandlingEndretEvent {
-        val gammelVerdi = avsluttet
+        val gammelVerdi = ferdigstilling?.avsluttet
         val tidspunkt = LocalDateTime.now()
-        avsluttet = tidspunkt
+        ferdigstilling!!.avsluttet = tidspunkt
         modified = tidspunkt
         val endringslogg =
             endringslogg(

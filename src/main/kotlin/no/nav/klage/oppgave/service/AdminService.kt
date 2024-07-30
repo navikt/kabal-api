@@ -159,7 +159,7 @@ class AdminService(
         logger.debug("Attempting generate missing AnkeITrygderettenBehandling")
 
         val candidates =
-            ankebehandlingRepository.findByAvsluttetIsNotNullAndFeilregistreringIsNullAndUtfallIn(
+            ankebehandlingRepository.findByFerdigstillingAvsluttetIsNotNullAndFeilregistreringIsNullAndUtfallIn(
                 utfallToTrygderetten
             )
 
@@ -263,7 +263,7 @@ class AdminService(
     }
 
     fun logExpiredUsers() {
-        val unfinishedBehandlinger = behandlingRepository.findByAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull()
+        val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val saksbehandlerSet = unfinishedBehandlinger.mapNotNull { it.tildeling?.saksbehandlerident }.toSet()
         var saksbehandlerLogOutput = ""
         saksbehandlerSet.forEach {
@@ -302,7 +302,7 @@ class AdminService(
     @SchedulerLock(name = "cleanupExpiredAssignees")
     fun cleanupExpiredAssignees() {
         logger.info("Running scheduled expired assignee check.")
-        val unfinishedBehandlinger = behandlingRepository.findByAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull()
+        val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         unfinishedBehandlinger.forEach {
             val assignedMedunderskriver = it.medunderskriver?.saksbehandlerident
             if (assignedMedunderskriver != null) {
@@ -338,7 +338,7 @@ class AdminService(
     }
 
     fun logInvalidRegistreringshjemler() {
-        val unfinishedBehandlinger = behandlingRepository.findByAvsluttetAvSaksbehandlerIsNull()
+        val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNull()
         val ytelseAndHjemmelPairSet = unfinishedBehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
         val (_, invalidHjemler) = ytelseAndHjemmelPairSet.partition { pair ->
             pair.second.any { ytelseTilRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }

@@ -70,6 +70,7 @@ class BehandlingRepositoryTest {
 
         klagebehandling.feilregistrering = Feilregistrering(
             navIdent = "navIdent",
+            navn = "navn",
             registered = LocalDateTime.now(),
             reason = "reason",
             fagsystem = Fagsystem.K9,
@@ -109,14 +110,18 @@ class BehandlingRepositoryTest {
         fullfoertKlage.tildeling = Tildeling(
             saksbehandlerident = "1", enhet = ENHET_1, tidspunkt = LocalDateTime.now()
         )
-        fullfoertKlage.avsluttetAvSaksbehandler = LocalDateTime.now()
+        fullfoertKlage.ferdigstilling = Ferdigstilling(
+                        avsluttetAvSaksbehandler = LocalDateTime.now(),
+            navIdent = "navIdent",
+            navn = "navn",
+        )
 
         behandlingRepository.saveAll(listOf(klageTildeltEnhet1, klageTildeltEnhet2, klageUtenTildeling, fullfoertKlage))
 
         testEntityManager.flush()
         testEntityManager.clear()
         val result =
-            behandlingRepository.findByTildelingEnhetAndAvsluttetAvSaksbehandlerIsNullAndFeilregistreringIsNull(enhet = ENHET_1)
+            behandlingRepository.findByTildelingEnhetAndFerdigstillingIsNullAndFeilregistreringIsNull(enhet = ENHET_1)
 
         assertThat(result).isEqualTo(listOf(klageTildeltEnhet1))
     }

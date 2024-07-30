@@ -202,7 +202,13 @@ internal class BehandlingAvslutningServiceTest {
     fun `save klagebehandling`() {
         mottakRepository.save(mottak)
 
-        klagebehandlingRepository.save(klage.apply { this.avsluttetAvSaksbehandler = LocalDateTime.now() })
+        klagebehandlingRepository.save(klage.apply {
+            this.ferdigstilling = Ferdigstilling(
+                avsluttetAvSaksbehandler = LocalDateTime.now(),
+                navIdent = "navIdent",
+                navn = "navn",
+            )
+        })
 
         behandlingAvslutningService.avsluttBehandling(klagebehandlingId)
 
@@ -219,11 +225,17 @@ internal class BehandlingAvslutningServiceTest {
 
         mottakRepository.save(mottak)
 
-        klagebehandlingRepository.save(klage.apply { this.avsluttetAvSaksbehandler = LocalDateTime.now() })
+        klagebehandlingRepository.save(klage.apply {
+            this.ferdigstilling = Ferdigstilling(
+                avsluttetAvSaksbehandler = LocalDateTime.now(),
+                navIdent = "navIdent",
+                navn = "navn",
+            )
+        })
 
         behandlingAvslutningService.avsluttBehandling(klagebehandlingId)
 
         val result = klagebehandlingRepository.findById(klagebehandlingId).get()
-        assertThat(result.avsluttet).isNotNull
+        assertThat(result.ferdigstilling?.avsluttet).isNotNull
     }
 }
