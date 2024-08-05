@@ -13,16 +13,17 @@ import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.ANKEBEHANDLING_AVSLUTTET
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.KLAGEBEHANDLING_AVSLUTTET
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.klage.Ankebehandling
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttet
 import no.nav.klage.oppgave.domain.klage.createAnkeITrygderettenbehandlingInput
+import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.AnkebehandlingService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
-import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -79,8 +80,13 @@ class BehandlingAvslutningService(
     }
 
     private fun privateAvsluttBehandling(behandlingId: UUID): Behandling {
-        val behandling = behandlingService.getBehandlingForUpdateBySystembruker(behandlingId)
-        if (behandling.type == Type.ANKE && behandling.shouldBeSentToTrygderetten()) {
+        val behandling = behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
+
+        if (behandling.ferdigstilling?.avsluttet != null) {
+            throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
+        }
+
+        if (behandling is Ankebehandling && behandling.shouldBeSentToTrygderetten()) {
             logger.debug("Anken sendes til trygderetten. Oppretter AnkeITrygderettenbehandling.")
             createAnkeITrygderettenbehandling(behandling)
             //if fagsystem is Infotrygd also do this.
@@ -100,10 +106,9 @@ class BehandlingAvslutningService(
                 logger.debug("Vi har informert Infotrygd om innstilling til Trygderetten.")
             }
 
-        } else if (behandling.type == Type.ANKE_I_TRYGDERETTEN && (Hibernate.unproxy(behandling) as AnkeITrygderettenbehandling).shouldCreateNewAnkebehandling()) {
+        } else if (behandling is AnkeITrygderettenbehandling && behandling.shouldCreateNewAnkebehandling()) {
             logger.debug("Oppretter ny Ankebehandling basert på AnkeITrygderettenbehandling")
-            val ankeITrygderettenbehandling = Hibernate.unproxy(behandling) as AnkeITrygderettenbehandling
-            createNewAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
+            createNewAnkebehandlingFromAnkeITrygderettenbehandling(behandling)
         } else {
             val hoveddokumenter =
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(

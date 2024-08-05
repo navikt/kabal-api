@@ -25,7 +25,6 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.getSortKey
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
-import org.hibernate.Hibernate
 import org.slf4j.Logger
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -94,16 +93,15 @@ class AdminService(
     }
 
     fun reindexBehandlingInSearch(behandlingId: UUID) {
-        val behandling = behandlingRepository.findByIdEager(behandlingId)
-        when (behandling.type) {
-            Type.KLAGE ->
-                behandlingEndretKafkaProducer.sendKlageEndretV2(Hibernate.unproxy(behandling) as Klagebehandling)
+        when (val behandling = behandlingRepository.findByIdEager(behandlingId)) {
+            is Klagebehandling ->
+                behandlingEndretKafkaProducer.sendKlageEndretV2(behandling)
 
-            Type.ANKE ->
-                behandlingEndretKafkaProducer.sendAnkeEndretV2(Hibernate.unproxy(behandling) as Ankebehandling)
+            is Ankebehandling ->
+                behandlingEndretKafkaProducer.sendAnkeEndretV2(behandling)
 
-            Type.ANKE_I_TRYGDERETTEN ->
-                behandlingEndretKafkaProducer.sendAnkeITrygderettenEndretV2(Hibernate.unproxy(behandling) as AnkeITrygderettenbehandling)
+            is AnkeITrygderettenbehandling ->
+                behandlingEndretKafkaProducer.sendAnkeITrygderettenEndretV2(behandling)
         }
     }
 

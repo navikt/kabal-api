@@ -18,11 +18,18 @@ import java.util.*
 @NamedEntityGraphs(
     NamedEntityGraph(
         name = "Behandling.full",
-        attributeNodes = [NamedAttributeNode("saksdokumenter"), NamedAttributeNode("hjemler"), NamedAttributeNode("registreringshjemler"), NamedAttributeNode(
-            "medunderskriverHistorikk"
-        ), NamedAttributeNode("tildelingHistorikk"), NamedAttributeNode("rolHistorikk"), NamedAttributeNode("klagerHistorikk"), NamedAttributeNode(
-            "fullmektigHistorikk"
-        ), NamedAttributeNode("sattPaaVentHistorikk"), NamedAttributeNode("extraUtfallSet")]
+        attributeNodes = [
+            NamedAttributeNode("saksdokumenter"),
+            NamedAttributeNode("hjemler"),
+            NamedAttributeNode("registreringshjemler"),
+            NamedAttributeNode("medunderskriverHistorikk"),
+            NamedAttributeNode("tildelingHistorikk"),
+            NamedAttributeNode("rolHistorikk"),
+            NamedAttributeNode("klagerHistorikk"),
+            NamedAttributeNode("fullmektigHistorikk"),
+            NamedAttributeNode("sattPaaVentHistorikk"),
+            NamedAttributeNode("extraUtfallSet")
+        ]
     ),
 )
 abstract class Behandling(
