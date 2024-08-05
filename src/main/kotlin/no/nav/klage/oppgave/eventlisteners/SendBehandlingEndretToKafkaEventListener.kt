@@ -13,6 +13,8 @@ import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.hibernate.Hibernate
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 
@@ -28,9 +30,10 @@ class SendBehandlingEndretToKafkaEventListener(
         val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
-    /* Denne kjøres utenfor transaksjonen. Trenger man at dette kjøres i en transaksjon, kan man bruke @Transactional(propagation = Propagation.REQUIRES_NEW)  eller en kombinasjon av @Transactional og @Async */
+    /* This code need a transaction b/c of lazy loading */
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun indexKlagebehandling(behandlingEndretEvent: BehandlingEndretEvent) {
         logger.debug("Received BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
         val unproxiedBehandling = Hibernate.unproxy(behandlingEndretEvent.behandling) as Behandling
