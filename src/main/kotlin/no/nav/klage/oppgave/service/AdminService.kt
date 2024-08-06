@@ -56,6 +56,7 @@ class AdminService(
     private val safFacade: SafFacade,
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingService: BehandlingService,
+    private val mottakRepository: MottakRepository,
 ) {
 
     companion object {
@@ -136,6 +137,14 @@ class AdminService(
         dokumentUnderArbeidRepository.deleteAll(hoveddokumenter)
 
         endringsloggRepository.deleteAll(endringsloggRepository.findByBehandlingIdOrderByTidspunktDesc(behandlingId))
+
+        //delete mottak also
+        val behandling = behandlingRepository.findById(behandlingId).get()
+        if (behandling is Klagebehandling) {
+            mottakRepository.deleteById(behandling.mottakId)
+        } else if (behandling is Ankebehandling && behandling.mottakId != null) {
+            mottakRepository.deleteById(behandling.mottakId)
+        }
 
         behandlingRepository.deleteById(behandlingId)
 
