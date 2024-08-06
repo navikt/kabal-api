@@ -140,13 +140,17 @@ class AdminService(
 
         //delete mottak also
         val behandling = behandlingRepository.findById(behandlingId).get()
-        if (behandling is Klagebehandling) {
-            mottakRepository.deleteById(behandling.mottakId)
+        val mottakId = if (behandling is Klagebehandling) {
+            behandling.mottakId
         } else if (behandling is Ankebehandling && behandling.mottakId != null) {
-            mottakRepository.deleteById(behandling.mottakId)
-        }
+            behandling.mottakId
+        } else null
 
         behandlingRepository.deleteById(behandlingId)
+
+        if (mottakId != null) {
+            mottakRepository.deleteById(mottakId)
+        }
 
         //Delete in search
         behandlingEndretKafkaProducer.sendBehandlingDeleted(behandlingId)
