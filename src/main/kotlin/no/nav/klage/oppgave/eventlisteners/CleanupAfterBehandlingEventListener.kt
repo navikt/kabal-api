@@ -108,10 +108,15 @@ class CleanupAfterBehandlingEventListener(
     private fun deleteDokumenterUnderBehandling(behandling: Behandling) {
         dokumentUnderArbeidService.findDokumenterNotFinished(behandlingId = behandling.id, checkReadAccess = false).forEach {
             try {
-                dokumentUnderArbeidService.slettDokument(
-                    dokumentId = it.id,
-                    innloggetIdent = behandling.feilregistrering!!.navIdent,
-                )
+                if (!it.erMarkertFerdig()) {
+                    dokumentUnderArbeidService.slettDokument(
+                        dokumentId = it.id,
+                        innloggetIdent = behandling.feilregistrering!!.navIdent,
+                    )
+                } else {
+                    //Don't delete since it's marked as finished, and is being sent.
+                    //This will probably only happen during E2E-tests (which will delete the behandling anyway).
+                }
             } catch (e: Exception) {
                 //best effort
                 logger.warn("Couldn't clean up dokumenter under arbeid", e)
