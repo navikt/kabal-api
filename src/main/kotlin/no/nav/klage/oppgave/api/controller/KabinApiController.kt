@@ -36,7 +36,7 @@ class KabinApiController(
     ): BehandlingIsDuplicateResponse {
         logMethodDetails(
             methodName = ::behandlingIsDuplicate.name,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            innloggetIdent = "N/A",
             logger = logger
         )
         return mottakService.behandlingIsDuplicate(
