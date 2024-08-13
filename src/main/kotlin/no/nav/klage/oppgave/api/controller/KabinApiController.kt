@@ -33,7 +33,7 @@ class KabinApiController(
     @PostMapping(value = ["/isduplicate", "/behandlingisduplicate"])
     fun behandlingIsDuplicate(
         @RequestBody input: BehandlingIsDuplicateInput
-    ): Boolean {
+    ): BehandlingIsDuplicateResponse {
         logMethodDetails(
             methodName = ::behandlingIsDuplicate.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
