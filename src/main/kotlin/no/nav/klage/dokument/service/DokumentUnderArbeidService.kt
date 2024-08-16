@@ -52,7 +52,6 @@ import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.math.log
 
 
 @Service
@@ -353,7 +352,8 @@ class DokumentUnderArbeidService(
     fun opprettSmartdokument(
         behandlingId: UUID,
         dokumentType: DokumentType,
-        json: String?,
+        json: String,
+        data: String,
         smartEditorTemplateId: String,
         innloggetIdent: String,
         tittel: String,
@@ -373,12 +373,10 @@ class DokumentUnderArbeidService(
             )
         }
 
-        if (json == null) {
-            throw DokumentValidationException("Ingen json angitt")
-        }
         val smartDocumentResponse =
             smartEditorApiGateway.createDocument(
                 json = json,
+                data = data,
                 dokumentType = dokumentType,
                 innloggetIdent = innloggetIdent,
                 documentTitle = tittel

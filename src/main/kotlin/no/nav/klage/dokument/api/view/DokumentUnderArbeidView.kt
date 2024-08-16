@@ -25,6 +25,7 @@ data class DokumentView(
     val isSmartDokument: Boolean,
     val templateId: String?,
     val content: JsonNode?,
+    val data: String?,
     val version: Int?,
     val isMarkertAvsluttet: Boolean,
     val parentId: UUID?,

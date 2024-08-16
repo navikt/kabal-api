@@ -31,7 +31,8 @@ class KabalSmartEditorApiClient(
     }
 
     fun createDocument(
-        jsonInput: String
+        jsonInput: String,
+        data: String,
     ): SmartDocumentResponse {
         return kabalSmartEditorApiWebClient.post()
             .uri { it.path("/documents").build() }
@@ -40,7 +41,13 @@ class KabalSmartEditorApiClient(
                 "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalSmartEditorApiScope()}"
             )
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(jsonInput)
+            .bodyValue(
+                DocumentUpdateInput(
+                    json = jsonInput,
+                    data = data,
+                    currentVersion = null,
+                )
+            )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(response, ::createDocument.name, secureLogger)
@@ -52,6 +59,7 @@ class KabalSmartEditorApiClient(
     fun updateDocument(
         documentId: UUID,
         jsonInput: String,
+        data: String,
         currentVersion: Int?,
     ): SmartDocumentResponse {
         return kabalSmartEditorApiWebClient.put()
@@ -64,6 +72,7 @@ class KabalSmartEditorApiClient(
             .bodyValue(
                 DocumentUpdateInput(
                     json = jsonInput,
+                    data = data,
                     currentVersion = currentVersion,
                 )
             )

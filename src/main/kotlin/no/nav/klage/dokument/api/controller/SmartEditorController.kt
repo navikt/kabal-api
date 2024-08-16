@@ -47,6 +47,7 @@ class SmartEditorController(
             behandlingId = behandlingId,
             dokumentType = if (input.dokumentTypeId != null) DokumentType.of(input.dokumentTypeId) else DokumentType.VEDTAK,
             json = input.content.toString(),
+            data = input.data,
             smartEditorTemplateId = input.templateId ?: error("TODO. Can be null?"),
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             tittel = input.tittel ?: DokumentType.VEDTAK.defaultFilnavn,
@@ -76,6 +77,7 @@ class SmartEditorController(
         val updatedDocument = kabalSmartEditorApiGateway.updateDocument(
             smartDocumentId = smartDocumentId,
             json = input.content.toString(),
+            data = input.data,
             currentVersion = input.version,
         )
 
