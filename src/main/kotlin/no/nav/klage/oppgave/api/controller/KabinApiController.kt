@@ -30,6 +30,22 @@ class KabinApiController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    @PostMapping(value = ["/checkbehandlingisduplicate"])
+    fun checkBehandlingIsDuplicate(
+        @RequestBody input: BehandlingIsDuplicateInput
+    ): BehandlingIsDuplicateResponse {
+        logMethodDetails(
+            methodName = ::checkBehandlingIsDuplicate.name,
+            innloggetIdent = "N/A",
+            logger = logger
+        )
+        return mottakService.behandlingIsDuplicate(
+            fagsystem = Fagsystem.of(input.fagsystemId),
+            kildeReferanse = input.kildereferanse,
+            type = Type.of(input.typeId)
+        )
+    }
+
     @PostMapping(value = ["/isduplicate", "/behandlingisduplicate"])
     fun behandlingIsDuplicate(
         @RequestBody input: BehandlingIsDuplicateInput
@@ -43,7 +59,7 @@ class KabinApiController(
             fagsystem = Fagsystem.of(input.fagsystemId),
             kildeReferanse = input.kildereferanse,
             type = Type.of(input.typeId)
-        )
+        ).duplicate
     }
 
     @PostMapping("/oppgaveisduplicate")

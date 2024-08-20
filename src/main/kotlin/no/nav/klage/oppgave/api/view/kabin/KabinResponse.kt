@@ -166,3 +166,10 @@ fun BehandlingDetaljerView.PartView.toOldKabinPartView(): OldKabinPartView {
         statusList = statusList,
     )
 }
+
+data class BehandlingIsDuplicateResponse(
+    val fagsystemId: String,
+    val kildereferanse: String,
+    val typeId: String,
+    val duplicate: Boolean,
+)
