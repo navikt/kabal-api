@@ -9,6 +9,7 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
+import no.nav.klage.oppgave.api.view.kabin.BehandlingIsDuplicateResponse
 import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnCompleteKabinInput
 import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnKabinInput
 import no.nav.klage.oppgave.api.view.kabin.CreateKlageBasedOnKabinInput
@@ -389,11 +390,16 @@ class MottakService(
         validateEnhet(forrigeBehandlendeEnhet)
     }
 
-    fun behandlingIsDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): Boolean {
-        return isBehandlingDuplicate(
-            fagsystem = fagsystem,
-            kildeReferanse = kildeReferanse,
-            type = type
+    fun behandlingIsDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): BehandlingIsDuplicateResponse {
+        return BehandlingIsDuplicateResponse(
+            fagsystemId = fagsystem.id,
+            kildereferanse = kildeReferanse,
+            typeId = type.id,
+            duplicate = isBehandlingDuplicate(
+                fagsystem = fagsystem,
+                kildeReferanse = kildeReferanse,
+                type = type
+            )
         )
     }
 
