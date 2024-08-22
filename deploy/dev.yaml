@@ -5,17 +5,17 @@ externalHosts:
   - host: hooks.slack.com
   - host: klage-fss-proxy.dev-fss-pub.nais.io
   - host: kafka-schema-registry.nais-q.adeo.no
-  - host: saf.dev-fss-pub.nais.io
-  - host: norg2.dev-fss-pub.nais.io
-  - host: ereg-services-q1.dev-fss-pub.nais.io
-  - host: arbeid-og-inntekt-q1.dev-fss-pub.nais.io
-  - host: nom-api.intern.dev.nav.no
-  - host: pdl-api.dev-fss-pub.nais.io
-  - host: digdir-krr-proxy.intern.dev.nav.no
-  - host: kodeverk-api.nav.no
-  - host: regoppslag.dev-fss-pub.nais.io
-  - host: dokdistkanal-q1.dev-fss-pub.nais.io
-  - host: dokarkiv.dev-fss-pub.nais.io
+  - host: saf-q2.dev-fss-pub.nais.io
+  - host: norg2.dev-fss-pub.nais.io #Ingen forskjeller miljø
+  - host: ereg-services-q2.dev-fss-pub.nais.io
+  - host: arbeid-og-inntekt-q2.dev-fss-pub.nais.io
+  - host: nom-api.intern.dev.nav.no #Ingen forskjeller miljø
+  - host: pdl-api.dev-fss-pub.nais.io #Bruker allerede q2
+  - host: digdir-krr-proxy.intern.dev.nav.no #Ingen forskjeller miljø
+  - host: kodeverk-api.intern.dev.nav.no
+  - host: regoppslag.dev-fss-pub.nais.io #Bruker allerede q2
+  - host: dokdistkanal-q2.dev-fss-pub.nais.io
+  - host: dokarkiv-q2.dev-fss-pub.nais.io
 inboundApplications:
   - application: kabal-frontend
   - application: klage-dittnav-api

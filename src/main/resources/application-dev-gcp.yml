@@ -9,12 +9,12 @@ PROXY_APP_CLIENT_ID: c6050231-3b9f-4173-8d1e-39b7e6e3392e
 REGOPPSLAG_URL: https://regoppslag.dev-fss-pub.nais.io
 REGOPPSLAG_SCOPE: dev-fss.teamdokumenthandtering.regoppslag
 
-EREG_URL: https://ereg-services-q1.dev-fss-pub.nais.io/api/v2
+EREG_URL: https://ereg-services-q2.dev-fss-pub.nais.io/api/v2
 
-DOK_DIST_KANAL_URL: https://dokdistkanal-q1.dev-fss-pub.nais.io
-DOK_DIST_KANAL_SCOPE: dev-fss.teamdokumenthandtering.dokdistkanal-q1
+DOK_DIST_KANAL_URL: https://dokdistkanal-q2.dev-fss-pub.nais.io
+DOK_DIST_KANAL_SCOPE: dev-fss.teamdokumenthandtering.dokdistkanal-q2
 
-KODEVERK_API_URL: https://kodeverk-api.nav.no/api/v1/kodeverk
+KODEVERK_API_URL: https://kodeverk-api.intern.dev.nav.no/api/v1/kodeverk
 KODEVERK_SCOPE: dev-gcp.team-rocket.kodeverk-api
 
 VEDTAK_FATTET_TOPIC: klage.vedtak-fattet.v1
@@ -33,11 +33,11 @@ AIVEN_ES_USE_SSL: true
 NOM_BASE_URL: https://nom-api.intern.dev.nav.no/graphql
 NOM_SCOPE: dev-gcp.nom.nom-api
 
-SAF_BASE_URL: https://saf.dev-fss-pub.nais.io/
-SAF_SCOPE: dev-fss.teamdokumenthandtering.saf-q1
+SAF_BASE_URL: https://saf-q2.dev-fss-pub.nais.io/
+SAF_SCOPE: dev-fss.teamdokumenthandtering.saf-q2
 
-DOKARKIV_SCOPE: dev-fss.teamdokumenthandtering.dokarkiv-q1/
-DOKARKIV_BASE_URL: https://dokarkiv.dev-fss-pub.nais.io/rest/journalpostapi/v1
+DOKARKIV_SCOPE: dev-fss.teamdokumenthandtering.dokarkiv-q2/
+DOKARKIV_BASE_URL: https://dokarkiv-q2.dev-fss-pub.nais.io/rest/journalpostapi/v1
 
 CLAM_AV_URL: http://clamav.nais-system/scan
 
@@ -45,7 +45,7 @@ FERDIGSTILLE_DOKUMENTER_DELAY_MILLIS: 20000
 
 KAKA_VERSION_2_DATE: 2022-12-20
 
-ARBEID_OG_INNTEKT_URL: https://arbeid-og-inntekt-q1.dev-fss-pub.nais.io/
+ARBEID_OG_INNTEKT_URL: https://arbeid-og-inntekt-q2.dev-fss-pub.nais.io/
 
 KLAGE_FSS_PROXY_URL: https://klage-fss-proxy.dev-fss-pub.nais.io
 

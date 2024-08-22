@@ -312,8 +312,6 @@ PDL_PERSON_KAFKA_TOPIC: aapen-person-pdl-dokument-v1
 INTERNAL_BEHANDLING_EVENT_TOPIC: klage.internal-behandling-events.v1
 INTERNAL_IDENTITY_EVENT_TOPIC: klage.internal-identity-events.v1
 
-JOARK_DOCUMENT_TOPIC: teamdokumenthandtering.aapen-dok-journalfoering-q1
-
 SERVICE_USER_PASSWORD: itest
 
 KABAL_DOCUMENT_BASE_URL: http://kabal-document
