@@ -119,13 +119,19 @@ class MottakService(
                 val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(ytelse = behandling.ytelse, type = behandling.type)
 
                 if (svarbrevSettings.shouldSend) {
+                    val receiverId = if (behandling.klager.prosessfullmektig != null) {
+                        behandling.klager.prosessfullmektig!!.partId.value
+                    } else {
+                        behandling.sakenGjelder.partId.value
+                    }
+
                     dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
                         behandling = behandling,
                         svarbrev = Svarbrev(
                             title = "NAV orienterer om saksbehandlingen",
                             receivers = listOf(
                                 Svarbrev.Receiver(
-                                    id = behandling.sakenGjelder.partId.value,
+                                    id = receiverId,
                                     handling = Svarbrev.Receiver.HandlingEnum.AUTO,
                                     overriddenAddress = null
                                 )
