@@ -34,17 +34,7 @@ class V146__dvh_pesys_fix_teknisk_tid : BaseJavaMigration() {
                         val statistikkTilDVH =
                             ourJacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
-                        val modifiedVersion = when (statistikkTilDVH.behandlingId) {
-                            "66053136" -> statistikkTilDVH.copy(tekniskTid = LocalDateTime.now())
-                            "68377705" -> statistikkTilDVH.copy(tekniskTid = LocalDateTime.now())
-                            "68377717" -> statistikkTilDVH.copy(tekniskTid = LocalDateTime.now())
-                            "68377745" -> statistikkTilDVH.copy(tekniskTid = LocalDateTime.now())
-                            "68377764" -> statistikkTilDVH.copy(tekniskTid = LocalDateTime.now())
-                            "68377816" -> statistikkTilDVH.copy(tekniskTid = LocalDateTime.now())
-                            "68377844" -> statistikkTilDVH.copy(tekniskTid = LocalDateTime.now())
-                            "68378050" -> statistikkTilDVH.copy(tekniskTid = LocalDateTime.now())
-                            else -> throw RuntimeException("Unknown behandlingId: ${statistikkTilDVH.behandlingId}")
-                        }
+                        val modifiedVersion = statistikkTilDVH.copy(tekniskTid = LocalDateTime.now())
 
                         preparedStatement.setString(1, ourJacksonObjectMapper().writeValueAsString(modifiedVersion))
                         preparedStatement.setObject(2, kafkaEventId)
