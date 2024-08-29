@@ -503,6 +503,41 @@ class OppgaveServiceTest {
                     oppgaveId = null,
                 )
             }
+
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+                BehandlingEtterTrygderettenOpphevet(
+                    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+                    sakenGjelder = SakenGjelder(
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                        skalMottaKopi = false
+                    ),
+                    ytelse = ytelse,
+                    type = type,
+                    hjemler = mutableSetOf(),
+                    created = now,
+                    modified = now,
+                    mottattKlageinstans = now,
+                    fagsystem = Fagsystem.K9,
+                    fagsakId = "123",
+                    kildeReferanse = "abc",
+                    utfall = Utfall.STADFESTELSE,
+                    extraUtfallSet = emptySet(),
+                    registreringshjemler = registreringshjemmelList.toMutableSet(),
+                    ferdigstilling = ferdigstilling,
+                    previousSaksbehandlerident = "C78901",
+                    tildeling = Tildeling(
+                        saksbehandlerident = tildeltSaksbehandlerIdent,
+                        enhet = enhetId,
+                        tidspunkt = now,
+                    ),
+                    kjennelseMottatt = LocalDateTime.now(),
+                    oppgaveId = null,
+                    sourceBehandlingId = UUID.randomUUID(),
+                    frist = LocalDate.now().plusWeeks(12),
+                    kakaKvalitetsvurderingId = UUID.randomUUID(),
+                    kakaKvalitetsvurderingVersion = 2,
+                )
+            }
         }
 
         behandlingRepository.save(behandling)

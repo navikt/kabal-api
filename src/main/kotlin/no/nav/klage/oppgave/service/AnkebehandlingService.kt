@@ -194,8 +194,7 @@ class AnkebehandlingService(
                 klager = ankeITrygderettenbehandling.klager.copy(),
                 sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.copy(),
                 ytelse = ankeITrygderettenbehandling.ytelse,
-                //TODO
-                type = Type.ANKE,
+                type = Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
                 kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
                 dvhReferanse = ankeITrygderettenbehandling.dvhReferanse,
                 fagsystem = ankeITrygderettenbehandling.fagsystem,

@@ -39,13 +39,13 @@ class SendBehandlingEndretToKafkaEventListener(
         try {
             when (behandling) {
                 is Klagebehandling ->
-                    behandlingEndretKafkaProducer.sendKlageEndretV2(behandling)
+                    behandlingEndretKafkaProducer.sendKlageEndret(behandling)
 
                 is Ankebehandling ->
-                    behandlingEndretKafkaProducer.sendAnkeEndretV2(behandling)
+                    behandlingEndretKafkaProducer.sendAnkeEndret(behandling)
 
                 is AnkeITrygderettenbehandling ->
-                    behandlingEndretKafkaProducer.sendAnkeITrygderettenEndretV2(behandling)
+                    behandlingEndretKafkaProducer.sendAnkeITrygderettenEndret(behandling)
             }
         } catch (e: Exception) {
             logger.error("could not index behandling with id ${behandlingEndretEvent.behandling.id}", e)

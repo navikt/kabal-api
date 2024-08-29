@@ -223,6 +223,7 @@ class MottakService(
                 }
 
                 Type.ANKE_I_TRYGDERETTEN -> TODO()
+                Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> TODO()
             }
         return mottak
     }
@@ -328,6 +329,7 @@ class MottakService(
                     Type.KLAGE -> klagebehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
                     Type.ANKE -> ankebehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
                     Type.ANKE_I_TRYGDERETTEN -> true//Ikke relevant for AnkeITrygderetten
+                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET ->  TODO() //TODO: sjekk hva vi trenger når vi får opprettelse fra Kabin
                 }
             }
             .flatMap { it.mottakDokument }

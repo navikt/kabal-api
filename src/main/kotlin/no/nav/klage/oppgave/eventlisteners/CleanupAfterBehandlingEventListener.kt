@@ -178,6 +178,7 @@ class CleanupAfterBehandlingEventListener(
             }
 
             Type.ANKE_I_TRYGDERETTEN -> {}//nothing
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {}//TODO
         }
     }
 }

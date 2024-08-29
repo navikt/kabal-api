@@ -10,8 +10,7 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.ANKEBEHANDLING_AVSLUTTET
-import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.KLAGEBEHANDLING_AVSLUTTET
+import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.klage.Ankebehandling
 import no.nav.klage.oppgave.domain.klage.Behandling
@@ -161,6 +160,7 @@ class BehandlingAvslutningService(
                         Type.KLAGE -> KLAGEBEHANDLING_AVSLUTTET
                         Type.ANKE -> ANKEBEHANDLING_AVSLUTTET
                         Type.ANKE_I_TRYGDERETTEN -> ANKEBEHANDLING_AVSLUTTET
+                        Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
                     },
                     detaljer = getBehandlingDetaljer(behandling, hoveddokumenter)
                 )
@@ -230,6 +230,17 @@ class BehandlingAvslutningService(
             Type.ANKE_I_TRYGDERETTEN -> {
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
+                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
+                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+                            .map { it.journalpostId }
+                    )
+                )
+            }
+
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+                BehandlingDetaljer(
+                    behandlingEtterTrygderettenOpphevetAvsluttet = BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
                         journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }

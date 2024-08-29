@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.klage.Ankebehandling
+import no.nav.klage.oppgave.domain.klage.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
 import no.nav.klage.oppgave.service.mapper.mapToSkjemaV2
@@ -31,7 +32,7 @@ class BehandlingEndretKafkaProducer(
         )
     }
 
-    fun sendKlageEndretV2(klagebehandling: Klagebehandling) {
+    fun sendKlageEndret(klagebehandling: Klagebehandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
 
         val json = klagebehandling.mapToSkjemaV2().toJson()
@@ -53,7 +54,7 @@ class BehandlingEndretKafkaProducer(
         }
     }
 
-    fun sendAnkeEndretV2(ankebehandling: Ankebehandling) {
+    fun sendAnkeEndret(ankebehandling: Ankebehandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
         runCatching {
             val result = aivenKafkaTemplate.send(
@@ -71,7 +72,7 @@ class BehandlingEndretKafkaProducer(
         }
     }
 
-    fun sendAnkeITrygderettenEndretV2(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
+    fun sendAnkeITrygderettenEndret(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
         runCatching {
             val result = aivenKafkaTemplate.send(
@@ -91,6 +92,31 @@ class BehandlingEndretKafkaProducer(
             logger.error(errorMessage)
             secureLogger.error(
                 "Could not send ankeITrygderettenbehandling ${ankeITrygderettenbehandling.id} endret to Kafka",
+                it
+            )
+        }
+    }
+
+    fun sendBehandlingOpprettetEtterTrygderettenOpphevet(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet) {
+        logger.debug("Sending to Kafka topic: {}", topicV2)
+        runCatching {
+            val result = aivenKafkaTemplate.send(
+                topicV2,
+                behandlingEtterTrygderettenOpphevet.id.toString(),
+                behandlingEtterTrygderettenOpphevet.mapToSkjemaV2().toJson()
+            ).get()
+            logger.info("Behandling etter Trygderetten opphevet sent to Kafka")
+            secureLogger.debug(
+                "Behandling etter Trygderetten opphevet endret for behandling {} sent to kafka ({})",
+                behandlingEtterTrygderettenOpphevet.id,
+                result
+            )
+        }.onFailure {
+            val errorMessage =
+                "Could not send behandling etter Trygderetten opphevet endret to Kafka. Need to resend behandling etter Trygderetten opphevet ${behandlingEtterTrygderettenOpphevet.id} manually. Check secure logs for more information."
+            logger.error(errorMessage)
+            secureLogger.error(
+                "Could not send behandling etter Trygderetten opphevet ${behandlingEtterTrygderettenOpphevet.id} endret to Kafka",
                 it
             )
         }

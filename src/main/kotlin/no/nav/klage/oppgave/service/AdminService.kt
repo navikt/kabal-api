@@ -76,13 +76,16 @@ class AdminService(
                 try {
                     when (behandling.type) {
                         Type.KLAGE ->
-                            behandlingEndretKafkaProducer.sendKlageEndretV2(behandling as Klagebehandling)
+                            behandlingEndretKafkaProducer.sendKlageEndret(behandling as Klagebehandling)
 
                         Type.ANKE ->
-                            behandlingEndretKafkaProducer.sendAnkeEndretV2(behandling as Ankebehandling)
+                            behandlingEndretKafkaProducer.sendAnkeEndret(behandling as Ankebehandling)
 
                         Type.ANKE_I_TRYGDERETTEN ->
-                            behandlingEndretKafkaProducer.sendAnkeITrygderettenEndretV2(behandling as AnkeITrygderettenbehandling)
+                            behandlingEndretKafkaProducer.sendAnkeITrygderettenEndret(behandling as AnkeITrygderettenbehandling)
+
+                        Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET ->
+                            behandlingEndretKafkaProducer.sendBehandlingOpprettetEtterTrygderettenOpphevet(behandling as BehandlingEtterTrygderettenOpphevet)
                     }
                 } catch (e: Exception) {
                     logger.warn("Exception during send to Kafka", e)
@@ -96,13 +99,13 @@ class AdminService(
     fun reindexBehandlingInSearch(behandlingId: UUID) {
         when (val behandling = behandlingRepository.findByIdEager(behandlingId)) {
             is Klagebehandling ->
-                behandlingEndretKafkaProducer.sendKlageEndretV2(behandling)
+                behandlingEndretKafkaProducer.sendKlageEndret(behandling)
 
             is Ankebehandling ->
-                behandlingEndretKafkaProducer.sendAnkeEndretV2(behandling)
+                behandlingEndretKafkaProducer.sendAnkeEndret(behandling)
 
             is AnkeITrygderettenbehandling ->
-                behandlingEndretKafkaProducer.sendAnkeITrygderettenEndretV2(behandling)
+                behandlingEndretKafkaProducer.sendAnkeITrygderettenEndret(behandling)
         }
     }
 
@@ -242,7 +245,7 @@ class AdminService(
             parsedStatistikkTilDVH.behandlingType == "Anke" &&
                     parsedStatistikkTilDVH.behandlingStatus in listOf(
                 BehandlingState.AVSLUTTET,
-                BehandlingState.NY_ANKEBEHANDLING_I_KA
+                BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA
             )
         }
 

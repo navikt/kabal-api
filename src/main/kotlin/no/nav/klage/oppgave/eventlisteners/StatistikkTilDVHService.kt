@@ -86,13 +86,13 @@ class StatistikkTilDVHService(
             endringslogginnslag.any {
                 it.felt === Felt.NY_ANKEBEHANDLING_KA
                         && type == Type.ANKE_I_TRYGDERETTEN
-            } -> BehandlingState.NY_ANKEBEHANDLING_I_KA
+            } -> BehandlingState.NY_ANKEBEHANDLING_I_KA_UTEN_TR
 
             endringslogginnslag.any {
                 it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type == Type.ANKE_I_TRYGDERETTEN
                         && utfall in utfallToNewAnkebehandling
-            } -> BehandlingState.NY_ANKEBEHANDLING_I_KA
+            } -> BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA
 
             endringslogginnslag.any {
                 it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
@@ -130,7 +130,7 @@ class StatistikkTilDVHService(
     private fun getEnhetInCaseOfTR(behandling: Behandling, behandlingState: BehandlingState): String? {
         return if (behandling.type == Type.ANKE_I_TRYGDERETTEN && behandlingState in listOf(
                 BehandlingState.AVSLUTTET,
-                BehandlingState.NY_ANKEBEHANDLING_I_KA,
+                BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA,
             )
         ) {
             behandling as AnkeITrygderettenbehandling
@@ -200,7 +200,17 @@ class StatistikkTilDVHService(
             BehandlingState.MOTTATT -> behandling.mottattKlageinstans
             BehandlingState.TILDELT_SAKSBEHANDLER -> behandling.modified //tildelt eller fradelt
 
-            BehandlingState.AVSLUTTET, BehandlingState.NY_ANKEBEHANDLING_I_KA -> {
+            BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA -> {
+                behandling as AnkeITrygderettenbehandling
+                behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
+            }
+
+            BehandlingState.NY_ANKEBEHANDLING_I_KA_UTEN_TR -> {
+                behandling.ferdigstilling?.avsluttetAvSaksbehandler
+                    ?: throw RuntimeException("avsluttetAvSaksbehandler mangler")
+            }
+
+            BehandlingState.AVSLUTTET -> {
                 if (behandling.feilregistrering != null) {
                     behandling.feilregistrering!!.registered
                 } else if (behandling is AnkeITrygderettenbehandling) {

@@ -43,6 +43,7 @@ class CreateBehandlingFromMottak(
             }
 
             Type.ANKE_I_TRYGDERETTEN -> TODO()
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> TODO()
         }
     }
 
