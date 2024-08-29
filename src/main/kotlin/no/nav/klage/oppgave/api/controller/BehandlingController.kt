@@ -78,7 +78,8 @@ class BehandlingController(
     @PostMapping("/{behandlingId}/fullfoer")
     fun fullfoerBehandling(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestParam(value = "nybehandlingettertropphevet", required = false) nyBehandlingEtterTROpphevet: Boolean = false,
+        //change value name after testing
+        @RequestParam(value = "nyankebehandling", required = false) nyBehandlingEtterTROpphevet: Boolean = false,
     ): BehandlingFullfoertView {
         logKlagebehandlingMethodDetails(
             ::fullfoerBehandling.name,
