@@ -5,6 +5,7 @@ import no.nav.klage.oppgave.clients.kaka.model.request.SaksdataInput
 import no.nav.klage.oppgave.clients.kaka.model.response.KakaOutput
 import no.nav.klage.oppgave.domain.klage.Ankebehandling
 import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.klage.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.util.getLogger
@@ -30,11 +31,7 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
     fun finalizeBehandling(behandling: Behandling) {
         logger.debug("Sending saksdata to Kaka because behandling is finished.")
 
-        val kvalitetsvurderingVersion = when (behandling) {
-            is Klagebehandling -> behandling.kakaKvalitetsvurderingVersion
-            is Ankebehandling -> behandling.kakaKvalitetsvurderingVersion
-            else -> error("Not valid type")
-        }
+        val kvalitetsvurderingVersion = 2
 
         kakaApiClient.finalizeBehandling(
             saksdataInput = behandling.toSaksdataInput(),
@@ -94,6 +91,10 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
                     klageBehandlendeEnhet to kakaKvalitetsvurderingId
                 }
 
+                is BehandlingEtterTrygderettenOpphevet -> {
+                    null to kakaKvalitetsvurderingId
+                }
+
                 else -> {
                     throw RuntimeException("Wrong behandling type")
                 }
@@ -105,7 +106,7 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
             sakenGjelder = sakenGjelder.partId.value,
             sakstype = type.id,
             ytelseId = ytelse.id,
-            mottattKlageinstans = mottattKlageinstans.toLocalDate(),
+            mottattKlageinstans = if (this is BehandlingEtterTrygderettenOpphevet) kjennelseMottatt.toLocalDate() else mottattKlageinstans.toLocalDate(),
             vedtaksinstansEnhet = vedtaksinstansEnhet,
             mottattVedtaksinstans = if (this is Klagebehandling) mottattVedtaksinstans else null,
             utfall = utfall!!.id,
