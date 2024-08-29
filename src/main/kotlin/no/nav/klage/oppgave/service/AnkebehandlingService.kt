@@ -49,8 +49,6 @@ class AnkebehandlingService(
     }
 
     fun createAnkebehandlingFromMottak(mottak: Mottak): Ankebehandling {
-        val kvalitetsvurderingVersion = getKakaVersion()
-
         val ankebehandling = ankebehandlingRepository.save(
             Ankebehandling(
                 klager = mottak.klager.copy(),
@@ -67,8 +65,8 @@ class AnkebehandlingService(
                 frist = mottak.generateFrist(),
                 mottakId = mottak.id,
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
-                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
-                kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
+                kakaKvalitetsvurderingVersion = 2,
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
                 sourceBehandlingId = mottak.forrigeBehandlingId,
@@ -111,18 +109,7 @@ class AnkebehandlingService(
         return ankebehandling
     }
 
-    private fun getKakaVersion(): Int {
-        val kvalitetsvurderingVersion = if (LocalDate.now() >= kakaVersion2Date) {
-            2
-        } else {
-            1
-        }
-        return kvalitetsvurderingVersion
-    }
-
     fun createAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): Ankebehandling {
-        val kvalitetsvurderingVersion = getKakaVersion()
-
         val ankebehandling = ankebehandlingRepository.save(
             Ankebehandling(
                 klager = ankeITrygderettenbehandling.klager.copy(),
@@ -137,8 +124,8 @@ class AnkebehandlingService(
                 mottattKlageinstans = ankeITrygderettenbehandling.mottattKlageinstans,
                 tildeling = null,
                 frist = LocalDate.now() + Period.ofWeeks(12),
-                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
-                kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
+                kakaKvalitetsvurderingVersion = 2,
                 hjemler = ankeITrygderettenbehandling.hjemler,
                 klageBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
                 sourceBehandlingId = ankeITrygderettenbehandling.id,
@@ -184,71 +171,6 @@ class AnkebehandlingService(
         //TODO: Undersøk om vi skal sende noen infomelding om at dette har skjedd
 
         return ankebehandling
-    }
-
-    fun createBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): BehandlingEtterTrygderettenOpphevet {
-        val kvalitetsvurderingVersion = getKakaVersion()
-
-        val behandlingEtterTrygderettenOpphevet = behandlingEtterTrygderettenOpphevetRepository.save(
-            BehandlingEtterTrygderettenOpphevet(
-                klager = ankeITrygderettenbehandling.klager.copy(),
-                sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.copy(),
-                ytelse = ankeITrygderettenbehandling.ytelse,
-                type = Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
-                kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-                dvhReferanse = ankeITrygderettenbehandling.dvhReferanse,
-                fagsystem = ankeITrygderettenbehandling.fagsystem,
-                fagsakId = ankeITrygderettenbehandling.fagsakId,
-                mottattKlageinstans = ankeITrygderettenbehandling.mottattKlageinstans,
-                tildeling = null,
-                frist = LocalDate.now() + Period.ofWeeks(12),
-                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
-                kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                hjemler = ankeITrygderettenbehandling.hjemler,
-                sourceBehandlingId = ankeITrygderettenbehandling.id,
-                previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
-                oppgaveId = ankeITrygderettenbehandling.oppgaveId,
-                kjennelseMottatt = ankeITrygderettenbehandling.kjennelseMottatt!!,
-            )
-        )
-        logger.debug(
-            "Created BehandlingEtterTrygderettenOpphevet {} from ankeITrygderettenbehandling {}",
-            behandlingEtterTrygderettenOpphevet.id,
-            ankeITrygderettenbehandling.id
-        )
-
-        behandlingService.connectDocumentsToBehandling(
-            behandlingId = behandlingEtterTrygderettenOpphevet.id,
-            journalfoertDokumentReferenceSet = ankeITrygderettenbehandling.saksdokumenter.map {
-                JournalfoertDokumentReference(
-                    journalpostId = it.journalpostId,
-                    dokumentInfoId = it.dokumentInfoId
-                )
-            }.toSet(),
-            saksbehandlerIdent = systembrukerIdent,
-            systemUserContext = true,
-            ignoreCheckSkrivetilgang = true
-        )
-
-        applicationEventPublisher.publishEvent(
-            BehandlingEndretEvent(
-                behandling = behandlingEtterTrygderettenOpphevet,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
-                        saksbehandlerident = ankeITrygderettenbehandling.tildeling!!.saksbehandlerident,
-                        felt = Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET,
-                        fraVerdi = null,
-                        tilVerdi = "Opprettet",
-                        behandlingId = behandlingEtterTrygderettenOpphevet.id,
-                        tidspunkt = behandlingEtterTrygderettenOpphevet.created,
-                    )
-                )
-            )
-        )
-
-        //TODO: Undersøk om vi skal sende noen infomelding om at dette har skjedd
-
-        return behandlingEtterTrygderettenOpphevet
     }
 
     private fun createHjemmelSetFromMottak(hjemler: Set<MottakHjemmel>?): MutableSet<Hjemmel> =

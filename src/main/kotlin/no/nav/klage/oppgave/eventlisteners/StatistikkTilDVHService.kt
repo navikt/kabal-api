@@ -84,6 +84,11 @@ class StatistikkTilDVHService(
             } -> BehandlingState.AVSLUTTET
 
             endringslogginnslag.any {
+                it.felt === Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET
+                        && type == Type.ANKE_I_TRYGDERETTEN
+            } -> BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA
+
+            endringslogginnslag.any {
                 it.felt === Felt.NY_ANKEBEHANDLING_KA
                         && type == Type.ANKE_I_TRYGDERETTEN
             } -> BehandlingState.NY_ANKEBEHANDLING_I_KA_UTEN_TR
@@ -229,7 +234,10 @@ class StatistikkTilDVHService(
             BehandlingState.SENDT_TIL_TR -> behandling.ferdigstilling?.avsluttetAvSaksbehandler
                 ?: throw RuntimeException("avsluttetAvSaksbehandler mangler")
 
-            else -> throw RuntimeException("cannot happen!!")
+            BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA -> {
+                behandling as AnkeITrygderettenbehandling
+                behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
+            }
         }
     }
 

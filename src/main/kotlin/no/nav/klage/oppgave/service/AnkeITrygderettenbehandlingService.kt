@@ -36,12 +36,6 @@ class AnkeITrygderettenbehandlingService(
         )
     }
 
-    fun getCompletedAnkeITrygderettenbehandlingerByPartIdValue(
-        partIdValue: String
-    ): List<AnkeITrygderettenbehandling> {
-        return ankeITrygderettenbehandlingRepository.getCompletedAnkeITrygderettenbehandlinger(partIdValue = partIdValue)
-    }
-
     fun createAnkeITrygderettenbehandling(input: AnkeITrygderettenbehandlingInput): AnkeITrygderettenbehandling {
         val ankeITrygderettenbehandling = ankeITrygderettenbehandlingRepository.save(
             AnkeITrygderettenbehandling(

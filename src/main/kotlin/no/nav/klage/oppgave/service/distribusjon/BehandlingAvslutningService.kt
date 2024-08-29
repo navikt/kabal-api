@@ -20,6 +20,7 @@ import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.AnkebehandlingService
+import no.nav.klage.oppgave.service.BehandlingEtterTrygderettenOpphevetService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -37,6 +38,7 @@ class BehandlingAvslutningService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokumentUnderArbeidCommonService: DokumentUnderArbeidCommonService,
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
+    private val behandlingEtterTrygderettenOpphevetService: BehandlingEtterTrygderettenOpphevetService,
     private val ankebehandlingService: AnkebehandlingService,
     private val fssProxyClient: KlageFssProxyClient,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
@@ -190,7 +192,7 @@ class BehandlingAvslutningService(
 
     private fun createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
         logger.debug("Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}", ankeITrygderettenbehandling.id)
-        ankebehandlingService.createBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
+        behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandling)
     }
 
     private fun createAnkeITrygderettenbehandling(behandling: Behandling) {
