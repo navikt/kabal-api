@@ -18,8 +18,11 @@ class AnkeITrygderettenbehandling(
     @Column(name = "kjennelse_mottatt")
     var kjennelseMottatt: LocalDateTime? = null,
     /** Tatt over av KA mens den er i TR */
-    @Column(name = "ny_behandling_ka")
-    var nyBehandlingKA: LocalDateTime? = null,
+    @Column(name = "ny_ankebehandling_ka")
+    var nyAnkebehandlingKA: LocalDateTime? = null,
+    /** Skal det opprettes ny behandling etter TR har opphevet? */
+    @Column(name = "ny_behandling_etter_tr_opphevet")
+    var nyBehandlingEtterTROpphevet: LocalDateTime? = null,
 
     //Common properties
     id: UUID = UUID.randomUUID(),

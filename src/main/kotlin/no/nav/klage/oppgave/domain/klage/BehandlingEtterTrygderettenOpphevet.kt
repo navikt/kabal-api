@@ -27,6 +27,8 @@ class BehandlingEtterTrygderettenOpphevet(
     var varsletBehandlingstidUnitType: TimeUnitType? = null,
     @Column(name = "source_behandling_id")
     var sourceBehandlingId: UUID?,
+    @Column(name = "kjennelse_mottatt")
+    val kjennelseMottatt: LocalDateTime,
 
     //Common properties
     id: UUID = UUID.randomUUID(),

@@ -229,7 +229,15 @@ abstract class Behandling(
 
     fun shouldCreateNewAnkebehandling(): Boolean {
         return if (this is AnkeITrygderettenbehandling) {
-            nyBehandlingKA != null || utfall in utfallToNewAnkebehandling
+            nyAnkebehandlingKA != null || utfall in utfallToNewAnkebehandling
+        } else {
+            false
+        }
+    }
+
+    fun shouldCreateNewBehandlingEtterTROpphevet(): Boolean {
+        return if (this is AnkeITrygderettenbehandling) {
+            nyBehandlingEtterTROpphevet != null && utfall == Utfall.OPPHEVET
         } else {
             false
         }

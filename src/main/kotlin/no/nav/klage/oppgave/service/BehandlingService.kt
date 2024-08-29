@@ -33,6 +33,7 @@ import no.nav.klage.oppgave.domain.kafka.TildelingEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
+import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyBehandlingEtterTROpphevet
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setSendtTilTrygderetten
 import no.nav.klage.oppgave.domain.klage.AnkebehandlingSetters.setVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokumenter
@@ -105,13 +106,8 @@ class BehandlingService(
     fun ferdigstillBehandling(
         behandlingId: UUID,
         innloggetIdent: String,
-        nyAnkebehandling: Boolean?,
-        nyBehandlingEtterTROpphevet: Boolean?,
+        nyBehandlingEtterTROpphevet: Boolean,
     ): BehandlingFullfoertView {
-        if (nyAnkebehandling == true && nyBehandlingEtterTROpphevet == true) {
-            throw IllegalOperation("Kan ikke opprette ny ankebehandling og ny behandling etter at Trygderetten har opphevet samtidig.")
-        }
-
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId
         )
@@ -119,14 +115,10 @@ class BehandlingService(
         if (behandling.ferdigstilling != null) throw BehandlingFinalizedException("Behandlingen er avsluttet")
 
         //Forretningsmessige krav før vedtak kan ferdigstilles
-        validateBehandlingBeforeFinalize(behandlingId = behandlingId, nyBehandling = nyBehandling)
+        validateBehandlingBeforeFinalize(behandlingId = behandlingId, nyBehandlingEtterTROpphevet = nyBehandlingEtterTROpphevet)
 
-        if (nyAnkebehandling == true) {
-            return behandlingMapper.mapToBehandlingFullfoertView(setNyAnkebehandlingKA(behandlingId, innloggetIdent))
-        }
-
-        if (nyBehandlingEtterTROpphevet == true) {
-            return behandlingMapper.mapToBehandlingFullfoertView(setNyAnkebehandlingKA(behandlingId, innloggetIdent))
+        if (nyBehandlingEtterTROpphevet) {
+            return behandlingMapper.mapToBehandlingFullfoertView(setNyBehandlingEtterTROpphevetAndSetToAvsluttet(behandlingId, innloggetIdent))
         }
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
@@ -166,13 +158,13 @@ class BehandlingService(
         return behandling
     }
 
-    fun validateBehandlingBeforeFinalize(behandlingId: UUID, nyBehandling: Boolean) {
+    fun validateBehandlingBeforeFinalize(behandlingId: UUID, nyBehandlingEtterTROpphevet: Boolean) {
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
         val behandlingValidationErrors = mutableListOf<InvalidProperty>()
         val sectionList = mutableListOf<ValidationSection>()
 
-        if (nyBehandling) {
+        if (nyBehandlingEtterTROpphevet) {
             if (behandling is AnkeITrygderettenbehandling) {
                 if (behandling.utfall != Utfall.OPPHEVET) {
                     throw IllegalOperation("Ny ankebehandling kan kun opprettes hvis utfall er 'Opphevet'.")
@@ -1012,7 +1004,7 @@ class BehandlingService(
         } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
     }
 
-    fun setNyAnkebehandlingKA(
+    fun setNyAnkebehandlingKAAndSetToAvsluttet(
         behandlingId: UUID,
         utfoerendeSaksbehandlerIdent: String
     ): Behandling {
@@ -1020,6 +1012,31 @@ class BehandlingService(
 
         if (behandling is AnkeITrygderettenbehandling) {
             val eventNyBehandling = behandling.setNyAnkebehandlingKA(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
+            val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
+                saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            )
+            val endringslogginnslag =
+                eventNyBehandling.endringslogginnslag + eventAvsluttetAvSaksbehandler.endringslogginnslag
+            applicationEventPublisher.publishEvent(
+                BehandlingEndretEvent(
+                    behandling = behandling,
+                    endringslogginnslag = endringslogginnslag
+                )
+            )
+
+            return behandling
+        } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
+    }
+
+    fun setNyBehandlingEtterTROpphevetAndSetToAvsluttet(
+        behandlingId: UUID,
+        utfoerendeSaksbehandlerIdent: String
+    ): Behandling {
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
+
+        if (behandling is AnkeITrygderettenbehandling) {
+            val eventNyBehandling = behandling.setNyBehandlingEtterTROpphevet(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
             val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
                 saksbehandlerident = utfoerendeSaksbehandlerIdent,
                 saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),

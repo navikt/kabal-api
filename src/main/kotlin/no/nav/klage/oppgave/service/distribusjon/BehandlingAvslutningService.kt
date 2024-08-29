@@ -109,6 +109,9 @@ class BehandlingAvslutningService(
         } else if (behandling is AnkeITrygderettenbehandling && behandling.shouldCreateNewAnkebehandling()) {
             logger.debug("Oppretter ny Ankebehandling basert på AnkeITrygderettenbehandling")
             createNewAnkebehandlingFromAnkeITrygderettenbehandling(behandling)
+        } else if (behandling is AnkeITrygderettenbehandling && behandling.shouldCreateNewBehandlingEtterTROpphevet()) {
+            logger.debug("Oppretter ny behandling, etter TR opphevet, basert på AnkeITrygderettenbehandling")
+            createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(behandling)
         } else {
             val hoveddokumenter =
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
@@ -183,6 +186,11 @@ class BehandlingAvslutningService(
     private fun createNewAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
         logger.debug("Creating ankebehandling based on behandling with id {}", ankeITrygderettenbehandling.id)
         ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
+    }
+
+    private fun createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
+        logger.debug("Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}", ankeITrygderettenbehandling.id)
+        ankebehandlingService.createBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
     }
 
     private fun createAnkeITrygderettenbehandling(behandling: Behandling) {

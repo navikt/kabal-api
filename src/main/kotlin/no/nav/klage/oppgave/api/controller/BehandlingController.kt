@@ -78,7 +78,6 @@ class BehandlingController(
     @PostMapping("/{behandlingId}/fullfoer")
     fun fullfoerBehandling(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestParam(value = "nyankebehandling", required = false) nyAnkebehandling: Boolean = false,
         @RequestParam(value = "nybehandlingettertropphevet", required = false) nyBehandlingEtterTROpphevet: Boolean = false,
     ): BehandlingFullfoertView {
         logKlagebehandlingMethodDetails(
@@ -91,7 +90,7 @@ class BehandlingController(
         return behandlingService.ferdigstillBehandling(
             behandlingId = behandlingId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            nyBehandling = nyBehandling,
+            nyBehandlingEtterTROpphevet = nyBehandlingEtterTROpphevet,
         )
     }
 
@@ -518,7 +517,7 @@ class BehandlingController(
 
         behandlingService.validateAnkeITrygderettenbehandlingBeforeNyAnkebehandling(behandlingId)
 
-        behandlingService.setNyAnkebehandlingKA(
+        behandlingService.setNyAnkebehandlingKAAndSetToAvsluttet(
             behandlingId = behandlingId,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )

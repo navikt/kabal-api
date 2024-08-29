@@ -134,7 +134,7 @@ class StatistikkTilDVHService(
             )
         ) {
             behandling as AnkeITrygderettenbehandling
-            if (behandling.nyBehandlingKA != null) {
+            if (behandling.nyAnkebehandlingKA != null) {
                 behandling.tildeling!!.enhet
             } else {
                 TR_ENHET
