@@ -11,7 +11,6 @@ import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
@@ -79,7 +78,8 @@ class BehandlingController(
     @PostMapping("/{behandlingId}/fullfoer")
     fun fullfoerBehandling(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestParam(value = "nybehandling", required = false) nyBehandling: Boolean = false
+        @RequestParam(value = "nyankebehandling", required = false) nyAnkebehandling: Boolean = false,
+        @RequestParam(value = "nybehandlingettertropphevet", required = false) nyBehandlingEtterTROpphevet: Boolean = false,
     ): BehandlingFullfoertView {
         logKlagebehandlingMethodDetails(
             ::fullfoerBehandling.name,

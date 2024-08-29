@@ -105,8 +105,13 @@ class BehandlingService(
     fun ferdigstillBehandling(
         behandlingId: UUID,
         innloggetIdent: String,
-        nyBehandling: Boolean
+        nyAnkebehandling: Boolean?,
+        nyBehandlingEtterTROpphevet: Boolean?,
     ): BehandlingFullfoertView {
+        if (nyAnkebehandling == true && nyBehandlingEtterTROpphevet == true) {
+            throw IllegalOperation("Kan ikke opprette ny ankebehandling og ny behandling etter at Trygderetten har opphevet samtidig.")
+        }
+
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId
         )
@@ -116,7 +121,11 @@ class BehandlingService(
         //Forretningsmessige krav før vedtak kan ferdigstilles
         validateBehandlingBeforeFinalize(behandlingId = behandlingId, nyBehandling = nyBehandling)
 
-        if (nyBehandling) {
+        if (nyAnkebehandling == true) {
+            return behandlingMapper.mapToBehandlingFullfoertView(setNyAnkebehandlingKA(behandlingId, innloggetIdent))
+        }
+
+        if (nyBehandlingEtterTROpphevet == true) {
             return behandlingMapper.mapToBehandlingFullfoertView(setNyAnkebehandlingKA(behandlingId, innloggetIdent))
         }
 
