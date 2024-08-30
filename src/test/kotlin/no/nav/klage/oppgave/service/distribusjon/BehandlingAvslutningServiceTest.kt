@@ -138,6 +138,9 @@ internal class BehandlingAvslutningServiceTest {
     lateinit var ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService
 
     @MockkBean
+    lateinit var behandlingEtterTrygderettenOpphevetService: BehandlingEtterTrygderettenOpphevetService
+
+    @MockkBean
     lateinit var arbeidOgInntektClient: ArbeidOgInntektClient
 
     @SpykBean
