@@ -115,10 +115,18 @@ class BehandlingService(
         if (behandling.ferdigstilling != null) throw BehandlingFinalizedException("Behandlingen er avsluttet")
 
         //Forretningsmessige krav før vedtak kan ferdigstilles
-        validateBehandlingBeforeFinalize(behandlingId = behandlingId, nyBehandlingEtterTROpphevet = nyBehandlingEtterTROpphevet)
+        validateBehandlingBeforeFinalize(
+            behandlingId = behandlingId,
+            nyBehandlingEtterTROpphevet = nyBehandlingEtterTROpphevet
+        )
 
         if (nyBehandlingEtterTROpphevet) {
-            return behandlingMapper.mapToBehandlingFullfoertView(setNyBehandlingEtterTROpphevetAndSetToAvsluttet(behandlingId, innloggetIdent))
+            return behandlingMapper.mapToBehandlingFullfoertView(
+                setNyBehandlingEtterTROpphevetAndSetToAvsluttet(
+                    behandlingId,
+                    innloggetIdent
+                )
+            )
         }
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
@@ -225,7 +233,11 @@ class BehandlingService(
             }
         }
 
-        if (behandling !is AnkeITrygderettenbehandling && behandling.utfall !in noKvalitetsvurderingNeeded) {
+        if (behandling.type !in listOf(
+                Type.ANKE_I_TRYGDERETTEN,
+                Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET
+            ) && behandling.utfall !in noKvalitetsvurderingNeeded
+        ) {
             val kvalitetsvurderingValidationErrors = kakaApiGateway.getValidationErrors(behandling)
 
             if (kvalitetsvurderingValidationErrors.isNotEmpty()) {
@@ -1036,7 +1048,8 @@ class BehandlingService(
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
         if (behandling is AnkeITrygderettenbehandling) {
-            val eventNyBehandling = behandling.setNyBehandlingEtterTROpphevet(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
+            val eventNyBehandling =
+                behandling.setNyBehandlingEtterTROpphevet(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
             val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
                 saksbehandlerident = utfoerendeSaksbehandlerIdent,
                 saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
