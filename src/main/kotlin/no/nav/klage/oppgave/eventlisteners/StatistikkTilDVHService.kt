@@ -84,7 +84,7 @@ class StatistikkTilDVHService(
             } -> BehandlingState.AVSLUTTET
 
             endringslogginnslag.any {
-                it.felt === Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET
+                it.felt === Felt.NY_BEHANDLING_ETTER_TR_OPPHEVET
                         && type == Type.ANKE_I_TRYGDERETTEN
             } -> BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA
 
