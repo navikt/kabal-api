@@ -79,7 +79,7 @@ class BehandlingController(
     fun fullfoerBehandling(
         @PathVariable("behandlingId") behandlingId: UUID,
         //change value name after testing
-        @RequestParam(value = "nyankebehandling", required = false) nyBehandlingEtterTROpphevet: Boolean = false,
+        @RequestParam(value = "nybehandling", required = false) nyBehandlingEtterTROpphevet: Boolean = false,
     ): BehandlingFullfoertView {
         logKlagebehandlingMethodDetails(
             ::fullfoerBehandling.name,
