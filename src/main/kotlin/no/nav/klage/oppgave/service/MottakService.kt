@@ -458,6 +458,8 @@ class MottakService(
                         throw OversendtKlageNotValidException("Behandling med ytelse ${ytelse.navn} kan ikke registreres med hjemmel $it. Ta kontakt med team klage dersom du mener hjemmelen skal være mulig å bruke for denne ytelsen.")
                     }
                 }
+            } else {
+                throw OversendtKlageNotValidException("Behandling kan ikke registreres, mangler hjemmel.")
             }
         } else {
             throw OversendtKlageNotValidException("Behandling med ytelse ${ytelse.navn} kan ikke registreres. Ta kontakt med team klage dersom du vil ta i bruk ytelsen.")
