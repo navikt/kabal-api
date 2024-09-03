@@ -3,7 +3,7 @@ PDL_BASE_URL: https://pdl-api.dev-fss-pub.nais.io/graphql
 PDL_SCOPE: dev-fss.pdl.pdl-api
 SKJERMEDE_BASE_URL: https://skjermede-personer-pip.dev.intern.nav.no
 
-NORG2_API_V1_URL: https://norg2.dev-fss-pub.nais.io/norg2/api/v1
+NORG2_API_V1_URL: https://norg2.intern.dev.nav.no/norg2/api/v1
 PROXY_APP_CLIENT_ID: c6050231-3b9f-4173-8d1e-39b7e6e3392e
 
 REGOPPSLAG_URL: https://regoppslag.dev-fss-pub.nais.io
@@ -48,6 +48,9 @@ KAKA_VERSION_2_DATE: 2022-12-20
 ARBEID_OG_INNTEKT_URL: https://arbeid-og-inntekt-q2.dev-fss-pub.nais.io/
 
 KLAGE_FSS_PROXY_URL: https://klage-fss-proxy.dev-fss-pub.nais.io
+
+OPPGAVE_API_BASE_URL: https://oppgave.dev-fss-pub.nais.io/api/v1
+OPPGAVE_API_SCOPE: dev-fss.oppgavehandtering.oppgave
 
 FSS_CLUSTER: dev-fss
 

@@ -52,7 +52,7 @@ data class OversendtKlageV2(
     val innsynUrl: String? = null,
     @Schema(
         description = "Hjemler knyttet til klagen",
-        required = false
+        required = true
     )
     val hjemler: List<Hjemmel>? = emptyList(),
     val avsenderSaksbehandlerIdent: String,

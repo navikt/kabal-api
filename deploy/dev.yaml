@@ -6,7 +6,7 @@ externalHosts:
   - host: klage-fss-proxy.dev-fss-pub.nais.io
   - host: kafka-schema-registry.nais-q.adeo.no
   - host: saf-q2.dev-fss-pub.nais.io
-  - host: norg2.dev-fss-pub.nais.io #Ingen forskjeller miljø
+  - host: norg2.intern.dev.nav.no #Ingen forskjeller miljø
   - host: ereg-services-q2.dev-fss-pub.nais.io
   - host: arbeid-og-inntekt-q2.dev-fss-pub.nais.io
   - host: nom-api.intern.dev.nav.no #Ingen forskjeller miljø
