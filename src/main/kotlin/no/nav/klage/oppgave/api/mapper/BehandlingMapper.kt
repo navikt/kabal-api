@@ -11,10 +11,7 @@ import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.service.DokDistKanalService
-import no.nav.klage.oppgave.service.KodeverkService
-import no.nav.klage.oppgave.service.RegoppslagService
-import no.nav.klage.oppgave.service.SaksbehandlerService
+import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -34,6 +31,7 @@ class BehandlingMapper(
     private val kodeverkService: KodeverkService,
     private val regoppslagService: RegoppslagService,
     private val dokDistKanalService: DokDistKanalService,
+    private val oppgaveApiService: OppgaveApiService,
 ) {
 
     companion object {
@@ -104,6 +102,7 @@ class BehandlingMapper(
             saksbehandler = klagebehandling.toSaksbehandlerView(),
             previousSaksbehandler = klagebehandling.toPreviousSaksbehandlerView(),
             varsletFrist = klagebehandling.varsletFrist,
+            oppgavebeskrivelse = getOppgavebeskrivelse(klagebehandling.oppgaveId),
         )
     }
 
@@ -206,6 +205,7 @@ class BehandlingMapper(
             saksbehandler = ankebehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankebehandling.toPreviousSaksbehandlerView(),
             varsletFrist = ankebehandling.varsletFrist,
+            oppgavebeskrivelse = getOppgavebeskrivelse(ankebehandling.oppgaveId),
         )
     }
 
@@ -259,7 +259,16 @@ class BehandlingMapper(
             saksbehandler = ankeITrygderettenbehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankeITrygderettenbehandling.toPreviousSaksbehandlerView(),
             varsletFrist = null,
+            oppgavebeskrivelse = getOppgavebeskrivelse(ankeITrygderettenbehandling.oppgaveId),
         )
+    }
+
+    private fun getOppgavebeskrivelse(oppgaveId: Long?): String? {
+        return if (oppgaveId == null) {
+            null
+        } else {
+            oppgaveApiService.getOppgaveEntryView(oppgaveId)
+        }
     }
 
     fun getSakenGjelderView(sakenGjelder: SakenGjelder): BehandlingDetaljerView.SakenGjelderView {

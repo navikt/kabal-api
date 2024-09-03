@@ -49,6 +49,9 @@ ARBEID_OG_INNTEKT_URL: https://arbeid-og-inntekt-q2.dev-fss-pub.nais.io/
 
 KLAGE_FSS_PROXY_URL: https://klage-fss-proxy.dev-fss-pub.nais.io
 
+OPPGAVE_API_BASE_URL: https://oppgave.dev-fss-pub.nais.io/api/v1
+OPPGAVE_API_SCOPE: dev-fss.oppgavehandtering.oppgave
+
 FSS_CLUSTER: dev-fss
 
 SETTINGS_CLEANUP_CRON: 0 0 12 * * MON

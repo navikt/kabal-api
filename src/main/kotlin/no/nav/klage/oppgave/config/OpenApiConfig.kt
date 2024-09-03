@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.config
 
 import no.nav.klage.dokument.api.controller.DokumentUnderArbeidController
 import no.nav.klage.oppgave.api.controller.BehandlingDetaljerController
-import no.nav.klage.oppgave.api.controller.ExternalApiController
+import no.nav.klage.oppgave.api.controller.external.ExternalApiController
 import org.springdoc.core.models.GroupedOpenApi
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
