@@ -14,7 +14,7 @@ class OppgaveApiClientConfiguration(private val webClientBuilder: WebClient.Buil
     @Value("\${OPPGAVE_API_BASE_URL}")
     private lateinit var oppgaveBaseURL: String
 
-    @Bean("oppgaveApiWebClient")
+    @Bean
     fun oppgaveApiWebClient(): WebClient {
         return webClientBuilder
             .baseUrl(oppgaveBaseURL)
