@@ -17,6 +17,7 @@ val tikaVersion = "2.9.2"
 val verapdfVersion = "1.26.1"
 val klageKodeverkVersion = "1.8.37"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
+val otelVersion = "1.40.0"
 
 plugins {
     val kotlinVersion = "2.0.0"
@@ -65,6 +66,8 @@ dependencies {
 
     implementation("io.micrometer:micrometer-registry-prometheus")
     implementation("io.micrometer:micrometer-tracing-bridge-brave")
+
+    implementation("io.opentelemetry:opentelemetry-api:$otelVersion")
 
     implementation("net.javacrumbs.shedlock:shedlock-spring:$shedlockVersion")
     implementation("net.javacrumbs.shedlock:shedlock-provider-jdbc-template:$shedlockVersion")
