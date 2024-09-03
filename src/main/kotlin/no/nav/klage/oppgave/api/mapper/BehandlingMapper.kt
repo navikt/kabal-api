@@ -326,6 +326,7 @@ class BehandlingMapper(
             previousSaksbehandler = behandlingEtterTrygderettenOpphevet.toPreviousSaksbehandlerView(),
             varsletFrist = behandlingEtterTrygderettenOpphevet.varsletFrist,
             kjennelseMottatt = behandlingEtterTrygderettenOpphevet.kjennelseMottatt,
+            oppgavebeskrivelse = getOppgavebeskrivelse(behandlingEtterTrygderettenOpphevet.oppgaveId)
         )
     }
 
