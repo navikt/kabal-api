@@ -48,6 +48,7 @@ data class BehandlingDetaljerView(
     val saksbehandler: SaksbehandlerView?,
     val previousSaksbehandler: SaksbehandlerView?,
     val varsletFrist: LocalDate?,
+    val oppgavebeskrivelse: String?,
 ) {
 
     data class CombinedMedunderskriverAndROLView(

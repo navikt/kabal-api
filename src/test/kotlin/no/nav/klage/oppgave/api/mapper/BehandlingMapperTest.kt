@@ -10,10 +10,7 @@ import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.service.DokDistKanalService
-import no.nav.klage.oppgave.service.KodeverkService
-import no.nav.klage.oppgave.service.RegoppslagService
-import no.nav.klage.oppgave.service.SaksbehandlerService
+import no.nav.klage.oppgave.service.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -55,6 +52,9 @@ class BehandlingMapperTest {
 
     @MockkBean
     lateinit var dokDistKanalService: DokDistKanalService
+
+    @MockkBean
+    lateinit var oppgaveApiService: OppgaveApiService
 
     @Autowired
     lateinit var behandlingMapper: BehandlingMapper

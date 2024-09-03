@@ -31,7 +31,7 @@ spring:
     timeout-per-shutdown-phase: 20s
   servlet:
     multipart:
-        enabled: false
+      enabled: false
   codec:
     max-in-memory-size: 512MB
   sql:
@@ -299,6 +299,14 @@ no.nav.security.jwt:
         token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
         grant-type: client_credentials
         scope: api://${NOM_SCOPE}/.default
+        authentication:
+          client-id: ${AZURE_APP_CLIENT_ID}
+          client-jwk: ${AZURE_APP_JWK}
+          client-auth-method: private_key_jwt
+      oppgave-api-onbehalfof:
+        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
+        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
+        scope: api://${OPPGAVE_SCOPE}/.default
         authentication:
           client-id: ${AZURE_APP_CLIENT_ID}
           client-jwk: ${AZURE_APP_JWK}
