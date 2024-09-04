@@ -454,7 +454,7 @@ class SmartDocumentService(
                 )
             ),
             behandlingId = document.behandlingId,
-            type = InternalEventType.SMART_DOCUMENT_COMMENT_DELETED,
+            type = InternalEventType.SMART_DOCUMENT_COMMENT_REMOVED,
         )
     }
 
