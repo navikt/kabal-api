@@ -343,7 +343,7 @@ class SmartDocumentService(
                 )
             ),
             behandlingId = document.behandlingId,
-            type = InternalEventType.SMART_DOCUMENT_COMMENT_EDITED,
+            type = InternalEventType.SMART_DOCUMENT_COMMENT_CHANGED,
         )
 
         return commentOutput
