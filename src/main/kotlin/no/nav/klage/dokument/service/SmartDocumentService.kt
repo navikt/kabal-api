@@ -205,7 +205,7 @@ class SmartDocumentService(
                 )
             ),
             behandlingId = behandlingId,
-            type = InternalEventType.SMART_DOCUMENT_PATCHED,
+            type = InternalEventType.SMART_DOCUMENT_VERSION,
         )
 
         return SmartDocumentModified(
@@ -266,6 +266,9 @@ class SmartDocumentService(
         commentInput: CommentInput,
     ): CommentOutput {
         dokumentUnderArbeidService.validateDocument(documentId)
+        val document = dokumentUnderArbeidRepository.findById(documentId).get()
+
+        val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =
             getSmartEditorId(
@@ -273,7 +276,31 @@ class SmartDocumentService(
                 readOnly = true
             )
 
-        return kabalSmartEditorApiGateway.createComment(smartEditorId, commentInput)
+        val commentOutput = kabalSmartEditorApiGateway.createComment(smartEditorId, commentInput)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                CommentEvent(
+                    actor = Employee(
+                        navIdent = innloggetIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                    ),
+                    timestamp = LocalDateTime.now(),
+                    author = Employee(
+                        navIdent = commentOutput.author.ident,
+                        navn = commentOutput.author.name,
+                    ),
+                    commentId = commentOutput.id.toString(),
+                    text = commentOutput.text,
+                    documentId = documentId.toString(),
+                    parentId = commentOutput.parentId.toString(),
+                )
+            ),
+            behandlingId = document.behandlingId,
+            type = InternalEventType.SMART_DOCUMENT_NEW_COMMENT,
+        )
+
+        return commentOutput
     }
 
     fun modifyComment(
@@ -282,6 +309,8 @@ class SmartDocumentService(
         modifyCommentInput: ModifyCommentInput,
     ): CommentOutput {
         dokumentUnderArbeidService.validateDocument(documentId)
+        val document = dokumentUnderArbeidRepository.findById(documentId).get()
+        val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =
             getSmartEditorId(
@@ -289,11 +318,35 @@ class SmartDocumentService(
                 readOnly = true
             )
 
-        return kabalSmartEditorApiGateway.modifyComment(
+        val commentOutput = kabalSmartEditorApiGateway.modifyComment(
             documentId = smartEditorId,
             commentId = commentId,
             input = modifyCommentInput
         )
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                CommentEvent(
+                    actor = Employee(
+                        navIdent = innloggetIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                    ),
+                    timestamp = LocalDateTime.now(),
+                    author = Employee(
+                        navIdent = commentOutput.author.ident,
+                        navn = commentOutput.author.name,
+                    ),
+                    commentId = commentOutput.id.toString(),
+                    text = commentOutput.text,
+                    documentId = documentId.toString(),
+                    parentId = commentOutput.parentId.toString(),
+                )
+            ),
+            behandlingId = document.behandlingId,
+            type = InternalEventType.SMART_DOCUMENT_EDIT_COMMENT,
+        )
+
+        return commentOutput
     }
 
     fun getAllCommentsWithPossibleThreads(
@@ -313,6 +366,8 @@ class SmartDocumentService(
         commentInput: CommentInput,
     ): CommentOutput {
         dokumentUnderArbeidService.validateDocument(documentId)
+        val document = dokumentUnderArbeidRepository.findById(documentId).get()
+        val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =
             getSmartEditorId(
@@ -320,7 +375,31 @@ class SmartDocumentService(
                 readOnly = true
             )
 
-        return kabalSmartEditorApiGateway.replyToComment(smartEditorId, commentId, commentInput)
+        val commentOutput = kabalSmartEditorApiGateway.replyToComment(smartEditorId, commentId, commentInput)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                CommentEvent(
+                    actor = Employee(
+                        navIdent = innloggetIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                    ),
+                    timestamp = LocalDateTime.now(),
+                    author = Employee(
+                        navIdent = commentOutput.author.ident,
+                        navn = commentOutput.author.name,
+                    ),
+                    commentId = commentOutput.id.toString(),
+                    text = commentOutput.text,
+                    parentId = commentOutput.parentId.toString(),
+                    documentId = documentId.toString(),
+                )
+            ),
+            behandlingId = document.behandlingId,
+            type = InternalEventType.SMART_DOCUMENT_NEW_COMMENT,
+        )
+
+        return commentOutput
     }
 
     fun getCommentWithPossibleThreads(
@@ -341,6 +420,8 @@ class SmartDocumentService(
         commentId: UUID,
     ) {
         dokumentUnderArbeidService.validateDocument(documentId)
+        val document = dokumentUnderArbeidRepository.findById(documentId).get()
+        val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =
             getSmartEditorId(
@@ -348,10 +429,32 @@ class SmartDocumentService(
                 readOnly = true
             )
 
-        kabalSmartEditorApiGateway.deleteCommentWithPossibleThread(
+        val commentOutput = kabalSmartEditorApiGateway.deleteCommentWithPossibleThread(
             documentId = smartEditorId,
             commentId = commentId,
             behandlingTildeltIdent = innloggetSaksbehandlerService.getInnloggetIdent() //simplification for now. Further checks are done in kabal-smarteditor-api.
+        )
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                CommentEvent(
+                    actor = Employee(
+                        navIdent = innloggetIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                    ),
+                    timestamp = LocalDateTime.now(),
+                    author = Employee(
+                        navIdent = commentOutput.author.ident,
+                        navn = commentOutput.author.name,
+                    ),
+                    commentId = commentOutput.id.toString(),
+                    text = commentOutput.text,
+                    documentId = documentId.toString(),
+                    parentId = commentOutput.parentId.toString(),
+                )
+            ),
+            behandlingId = document.behandlingId,
+            type = InternalEventType.SMART_DOCUMENT_DELETE_COMMENT,
         )
     }
 
