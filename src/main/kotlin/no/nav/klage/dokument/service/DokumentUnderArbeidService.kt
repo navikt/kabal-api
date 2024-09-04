@@ -349,20 +349,12 @@ class DokumentUnderArbeidService(
         }
     }
 
-    fun opprettSmartdokument(
-        behandlingId: UUID,
-        dokumentType: DokumentType,
-        json: String,
-        data: String,
-        smartEditorTemplateId: String,
+    fun validateCanCreateDocumentsAndReturnBehandlingRole(
+        behandling: Behandling,
         innloggetIdent: String,
-        tittel: String,
         parentId: UUID?,
-        language: Language = Language.NB,
-    ): DokumentView {
+    ): BehandlingRole {
         //Sjekker lesetilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
         if (behandling.ferdigstilling == null) {
@@ -373,92 +365,7 @@ class DokumentUnderArbeidService(
             )
         }
 
-        val smartDocumentResponse =
-            smartEditorApiGateway.createDocument(
-                json = json,
-                data = data,
-                dokumentType = dokumentType,
-                innloggetIdent = innloggetIdent,
-                documentTitle = tittel
-            )
-
-        val now = LocalDateTime.now()
-
-        val document = if (parentId == null) {
-            smartDokumentUnderArbeidAsHoveddokumentRepository.save(
-                SmartdokumentUnderArbeidAsHoveddokument(
-                    mellomlagerId = null,
-                    mellomlagretDate = null,
-                    size = null,
-                    name = tittel,
-                    dokumentType = dokumentType,
-                    behandlingId = behandlingId,
-                    smartEditorId = smartDocumentResponse.documentId,
-                    smartEditorTemplateId = smartEditorTemplateId,
-                    creatorIdent = innloggetIdent,
-                    creatorRole = behandlingRole,
-                    created = now,
-                    modified = now,
-                    journalfoerendeEnhetId = null,
-                    language = language,
-                    mellomlagretVersion = null,
-                )
-            )
-        } else {
-            smartDokumentUnderArbeidAsVedleggRepository.save(
-                SmartdokumentUnderArbeidAsVedlegg(
-                    mellomlagerId = null,
-                    mellomlagretDate = null,
-                    size = null,
-                    name = tittel,
-                    behandlingId = behandlingId,
-                    smartEditorId = smartDocumentResponse.documentId,
-                    smartEditorTemplateId = smartEditorTemplateId,
-                    creatorIdent = innloggetIdent,
-                    creatorRole = behandlingRole,
-                    parentId = parentId,
-                    language = language,
-                    created = now,
-                    modified = now,
-                    mellomlagretVersion = null,
-                )
-            )
-        }
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.SMARTDOKUMENT_OPPRETTET,
-            fraVerdi = null,
-            tilVerdi = document.created.toString(),
-            tidspunkt = document.created,
-        )
-
-        val smartEditorDocument = smartEditorApiGateway.getSmartDocumentResponse(smartEditorId = document.smartEditorId)
-
-        val dokumentView = dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = document,
-            journalpost = null,
-            smartEditorDocument = smartEditorDocument,
-            behandling = behandling,
-        )
-
-        publishInternalEvent(
-            data = objectMapper.writeValueAsString(
-                DocumentsAddedEvent(
-                    actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
-                    ),
-                    timestamp = LocalDateTime.now(),
-                    documents = listOf(
-                        dokumentView
-                    )
-                )
-            ),
-            behandlingId = behandling.id,
-            type = InternalEventType.DOCUMENTS_ADDED,
-        )
-
-        return dokumentView
+        return behandlingRole
     }
 
     fun addJournalfoerteDokumenterAsVedlegg(
@@ -664,22 +571,6 @@ class DokumentUnderArbeidService(
     }
 
     fun getDokumentUnderArbeid(dokumentId: UUID) = dokumentUnderArbeidRepository.findById(dokumentId).get()
-
-    fun getMappedDokumentUnderArbeid(
-        dokumentId: UUID,
-        smartEditorDocument: SmartDocumentResponse?,
-        behandlingId: UUID
-    ): DokumentView {
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
-            behandlingId = behandlingId
-        )
-        return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId),
-            journalpost = null,
-            smartEditorDocument = smartEditorDocument,
-            behandling = behandling,
-        )
-    }
 
     fun updateDokumentType(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
@@ -2048,19 +1939,6 @@ class DokumentUnderArbeidService(
         }
         logger.debug("about to return hoveddokument for hoveddokumentId {}", hovedDokumentId)
         return hovedDokument
-    }
-
-    fun getSmartEditorId(dokumentId: UUID, readOnly: Boolean): UUID {
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
-
-        if (dokumentUnderArbeid !is DokumentUnderArbeidAsSmartdokument) {
-            throw RuntimeException("dokument is not smartdokument")
-        }
-
-        //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
-
-        return dokumentUnderArbeid.smartEditorId
     }
 
     fun mergeDUAAndCreatePDF(dokumentUnderArbeidId: UUID): Pair<FileSystemResource, String> {

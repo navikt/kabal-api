@@ -25,6 +25,7 @@ enum class InternalEventType {
     DOCUMENTS_REMOVED,
     DOCUMENTS_CHANGED,
     SMART_DOCUMENT_LANGUAGE,
+    SMART_DOCUMENT_PATCHED,
     MESSAGE, // Polling
     ROL, // Polling
     MEDUNDERSKRIVER, // Polling
@@ -169,6 +170,13 @@ data class DocumentsAddedEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val documents: List<DokumentView>,
+) : BaseEvent(actor = actor, timestamp = timestamp)
+
+data class DocumentPatched(
+    override val actor: Employee,
+    override val timestamp: LocalDateTime,
+    val author: Employee,
+    val version: Int,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class JournalfoertDocumentModified(
