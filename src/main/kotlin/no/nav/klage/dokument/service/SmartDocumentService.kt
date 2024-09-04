@@ -205,7 +205,7 @@ class SmartDocumentService(
                 )
             ),
             behandlingId = behandlingId,
-            type = InternalEventType.SMART_DOCUMENT_VERSION,
+            type = InternalEventType.SMART_DOCUMENT_VERSIONED,
         )
 
         return SmartDocumentModified(
@@ -297,7 +297,7 @@ class SmartDocumentService(
                 )
             ),
             behandlingId = document.behandlingId,
-            type = InternalEventType.SMART_DOCUMENT_NEW_COMMENT,
+            type = InternalEventType.SMART_DOCUMENT_COMMENT_ADDED,
         )
 
         return commentOutput
@@ -343,7 +343,7 @@ class SmartDocumentService(
                 )
             ),
             behandlingId = document.behandlingId,
-            type = InternalEventType.SMART_DOCUMENT_EDIT_COMMENT,
+            type = InternalEventType.SMART_DOCUMENT_COMMENT_EDITED,
         )
 
         return commentOutput
@@ -396,7 +396,7 @@ class SmartDocumentService(
                 )
             ),
             behandlingId = document.behandlingId,
-            type = InternalEventType.SMART_DOCUMENT_NEW_COMMENT,
+            type = InternalEventType.SMART_DOCUMENT_COMMENT_ADDED,
         )
 
         return commentOutput
@@ -454,7 +454,7 @@ class SmartDocumentService(
                 )
             ),
             behandlingId = document.behandlingId,
-            type = InternalEventType.SMART_DOCUMENT_DELETE_COMMENT,
+            type = InternalEventType.SMART_DOCUMENT_COMMENT_DELETED,
         )
     }
 

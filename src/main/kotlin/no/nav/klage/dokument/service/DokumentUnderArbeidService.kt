@@ -7,7 +7,6 @@ import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
-import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
@@ -1129,7 +1128,7 @@ class DokumentUnderArbeidService(
                 )
             ),
             behandlingId = behandling.id,
-            type = InternalEventType.SMART_DOCUMENT_LANGUAGE,
+            type = InternalEventType.SMART_DOCUMENT_LANGUAGE_CHANGED,
         )
 
         return dokumentUnderArbeid
