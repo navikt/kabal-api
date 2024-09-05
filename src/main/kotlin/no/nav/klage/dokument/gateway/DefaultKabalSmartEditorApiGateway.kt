@@ -115,7 +115,7 @@ class DefaultKabalSmartEditorApiGateway(
         )
     }
 
-    fun deleteCommentWithPossibleThread(documentId: UUID, commentId: UUID, behandlingTildeltIdent: String?) {
+    fun deleteCommentWithPossibleThread(documentId: UUID, commentId: UUID, behandlingTildeltIdent: String?): CommentOutput {
         return kabalSmartEditorApiClient.deleteCommentWithPossibleThread(
             documentId = documentId,
             commentId = commentId,

@@ -9,7 +9,8 @@ data class CommentOutput(
     val author: Author,
     val comments: List<CommentOutput> = emptyList(),
     val created: LocalDateTime,
-    val modified: LocalDateTime
+    val modified: LocalDateTime,
+    val parentId: UUID?,
 ) {
     data class Author(
         val name: String,

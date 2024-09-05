@@ -241,8 +241,8 @@ class KabalSmartEditorApiClient(
         documentId: UUID,
         commentId: UUID,
         behandlingTildeltIdent: String?
-    ) {
-        kabalSmartEditorApiWebClient.post()
+    ): CommentOutput {
+        return kabalSmartEditorApiWebClient.post()
             .uri { it.path("/documents/$documentId/comments/$commentId/delete").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
@@ -257,8 +257,8 @@ class KabalSmartEditorApiClient(
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(response, ::deleteCommentWithPossibleThread.name, secureLogger)
             }
-            .bodyToMono<Unit>()
-            .block()
+            .bodyToMono<CommentOutput>()
+            .block() ?: throw RuntimeException("Comment could not be deleted")
     }
 
     fun modifyComment(
