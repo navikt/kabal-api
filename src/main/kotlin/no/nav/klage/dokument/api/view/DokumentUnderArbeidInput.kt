@@ -7,7 +7,7 @@ import java.util.*
 data class SmartHovedDokumentInput(
     val content: JsonNode,
     val data: String,
-    val templateId: String?,
+    val templateId: String,
     val tittel: String?,
     val dokumentTypeId: String? = null,
     val parentId: UUID?,

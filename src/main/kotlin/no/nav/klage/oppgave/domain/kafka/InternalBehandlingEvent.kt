@@ -181,6 +181,7 @@ data class DocumentPatched(
     override val timestamp: LocalDateTime,
     val author: Employee,
     val version: Int,
+    val documentId: String,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class CommentEvent(
