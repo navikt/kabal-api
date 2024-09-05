@@ -1128,7 +1128,7 @@ class DokumentUnderArbeidService(
                 )
             ),
             behandlingId = behandling.id,
-            type = InternalEventType.SMART_DOCUMENT_LANGUAGE_CHANGED,
+            type = InternalEventType.SMART_DOCUMENT_LANGUAGE,
         )
 
         return dokumentUnderArbeid
