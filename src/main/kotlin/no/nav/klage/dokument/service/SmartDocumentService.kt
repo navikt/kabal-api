@@ -293,7 +293,7 @@ class SmartDocumentService(
                     commentId = commentOutput.id.toString(),
                     text = commentOutput.text,
                     documentId = documentId.toString(),
-                    parentId = commentOutput.parentId.toString(),
+                    parentId = commentOutput.parentId?.toString(),
                 )
             ),
             behandlingId = document.behandlingId,
@@ -339,7 +339,7 @@ class SmartDocumentService(
                     commentId = commentOutput.id.toString(),
                     text = commentOutput.text,
                     documentId = documentId.toString(),
-                    parentId = commentOutput.parentId.toString(),
+                    parentId = commentOutput.parentId?.toString(),
                 )
             ),
             behandlingId = document.behandlingId,
@@ -357,7 +357,7 @@ class SmartDocumentService(
                 dokumentId = documentId,
                 readOnly = true
             )
-        return kabalSmartEditorApiGateway.getAllCommentsWithPossibleThreads(smartEditorId)
+        return kabalSmartEditorApiGateway.getAllCommentsWithPossibleThreads(smartEditorId = smartEditorId)
     }
 
     fun replyToComment(
@@ -375,7 +375,11 @@ class SmartDocumentService(
                 readOnly = true
             )
 
-        val commentOutput = kabalSmartEditorApiGateway.replyToComment(smartEditorId, commentId, commentInput)
+        val commentOutput = kabalSmartEditorApiGateway.replyToComment(
+            smartEditorId = smartEditorId,
+            commentId = commentId,
+            commentInput = commentInput
+        )
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -391,7 +395,7 @@ class SmartDocumentService(
                     ),
                     commentId = commentOutput.id.toString(),
                     text = commentOutput.text,
-                    parentId = commentOutput.parentId.toString(),
+                    parentId = commentOutput.parentId?.toString(),
                     documentId = documentId.toString(),
                 )
             ),
@@ -450,7 +454,7 @@ class SmartDocumentService(
                     commentId = commentOutput.id.toString(),
                     text = commentOutput.text,
                     documentId = documentId.toString(),
-                    parentId = commentOutput.parentId.toString(),
+                    parentId = commentOutput.parentId?.toString(),
                 )
             ),
             behandlingId = document.behandlingId,
