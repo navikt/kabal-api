@@ -200,6 +200,7 @@ class SmartDocumentService(
                         navn = saksbehandlerService.getNameForIdentDefaultIfNull(updatedDocument.authorNavIdent),
                     ),
                     version = updatedDocument.version,
+                    documentId = dokumentId.toString(),
                 )
             ),
             behandlingId = behandlingId,
