@@ -59,7 +59,7 @@ class StatistikkTilDVHService(
     private fun StatistikkTilDVH.toJson(): String = objectMapper.writeValueAsString(this)
 
     fun shouldSendStats(behandlingEndretEvent: BehandlingEndretEvent): Boolean {
-        return if (behandlingEndretEvent.behandling.fagsystem == Fagsystem.IT01) {
+        return if (behandlingEndretEvent.behandling.fagsystem == Fagsystem.IT01 && behandlingEndretEvent.behandling.type != Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET) {
             false
         } else if (behandlingEndretEvent.endringslogginnslag.isEmpty() && behandlingEndretEvent.behandling.type != Type.ANKE_I_TRYGDERETTEN) {
             true
@@ -154,9 +154,20 @@ class StatistikkTilDVHService(
         behandling: Behandling,
         behandlingState: BehandlingState
     ): StatistikkTilDVH {
+        val behandlingId = if (behandling.fagsystem == Fagsystem.IT01 && behandling.type == Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET) {
+            try {
+                behandling.fagsakId.substring(0, 4) + "-" + behandling.fagsakId.substring(4, 5) + "-" + behandling.fagsakId.substring(5)
+            } catch (e: Exception) {
+                logger.error("Error while generating Infotrygd behandlingId, for DVH, for behandling with id ${behandling.id} and fagsakId ${behandling.fagsakId}", e)
+                behandling.fagsakId
+            }
+        } else {
+            behandling.dvhReferanse ?: behandling.kildeReferanse
+        }
+
         return StatistikkTilDVH(
             eventId = eventId,
-            behandlingId = behandling.dvhReferanse ?: behandling.kildeReferanse,
+            behandlingId = behandlingId,
             behandlingIdKabal = behandling.id.toString(),
             //Means enhetTildeltDato
             behandlingStartetKA = behandling.tildeling?.tidspunkt?.toLocalDate(),
