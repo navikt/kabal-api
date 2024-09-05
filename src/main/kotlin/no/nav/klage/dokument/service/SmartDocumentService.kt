@@ -68,7 +68,7 @@ class SmartDocumentService(
         val dokumentType =
             if (input.dokumentTypeId != null) DokumentType.of(input.dokumentTypeId) else DokumentType.VEDTAK
         val language = Language.valueOf(input.language.name)
-        val smartEditorTemplateId = input.templateId ?: error("TODO. Can be null?")
+        val smartEditorTemplateId = input.templateId
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
