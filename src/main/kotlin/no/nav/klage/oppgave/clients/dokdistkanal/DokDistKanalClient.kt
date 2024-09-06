@@ -59,6 +59,7 @@ class DokDistKanalClient(
         val mottakerId: String,
         val brukerId: String,
         val tema: String,
+        val erArkivert: Boolean = true,
     )
 
     data class BestemDistribusjonskanalResponse(
