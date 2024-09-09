@@ -1134,7 +1134,7 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeid
     }
 
-    fun validateDocument(
+    fun validateWriteAccessToDocument(
         dokumentId: UUID,
     ) {
         val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
