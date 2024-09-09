@@ -1,16 +1,15 @@
 package no.nav.klage.oppgave.clients.oppgaveapi
 
-import no.nav.klage.oppgave.util.TokenUtil
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.web.reactive.function.client.WebClient
 import io.opentelemetry.api.trace.Span
+import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
-
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
-
 import org.springframework.web.reactive.function.client.bodyToMono
 
 @Component
@@ -41,6 +40,45 @@ class OppgaveApiClient(
                 .retrieve()
                 .bodyToMono<OppgaveApiRecord>()
                 .block() ?: throw OppgaveClientException("Oppgave could not be fetched")
+        }
+    }
+
+    fun updateOppgave(oppgaveId: Long, updateOppgaveInput: UpdateOppgaveInput): OppgaveApiRecord {
+        return logTimingAndWebClientResponseException(OppgaveApiClient::updateOppgave.name) {
+            oppgaveApiWebClient.patch()
+                .uri { uriBuilder ->
+                    uriBuilder.pathSegment("oppgaver", "{id}").build(oppgaveId)
+                }
+                .bodyValue(updateOppgaveInput)
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                )
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                .header("Nav-Consumer-Id", applicationName)
+                .retrieve()
+                .bodyToMono<OppgaveApiRecord>()
+                .block() ?: throw OppgaveClientException("Oppgave could not be updated")
+        }
+    }
+
+    fun ferdigstillOppgave(ferdigstillOppgaveRequest: FerdigstillOppgaveRequest): OppgaveApiRecord {
+        return logTimingAndWebClientResponseException(OppgaveApiClient::ferdigstillOppgave.name) {
+            oppgaveApiWebClient.patch()
+                .uri { uriBuilder ->
+                    uriBuilder.pathSegment("oppgaver", "{id}").build(ferdigstillOppgaveRequest.oppgaveId)
+                }
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                )
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                .header("Nav-Consumer-Id", applicationName)
+                .bodyValue(ferdigstillOppgaveRequest)
+                .retrieve()
+                .bodyToMono<OppgaveApiRecord>()
+                .block() ?: throw OppgaveClientException("Kunne ikke ferdigstille oppgaven.")
         }
     }
 
