@@ -32,7 +32,7 @@ class KabalSmartEditorApiClient(
 
     fun createDocument(
         jsonInput: String,
-        data: String,
+        data: String?,
     ): SmartDocumentResponse {
         return kabalSmartEditorApiWebClient.post()
             .uri { it.path("/documents").build() }
@@ -59,7 +59,7 @@ class KabalSmartEditorApiClient(
     fun updateDocument(
         documentId: UUID,
         jsonInput: String,
-        data: String,
+        data: String?,
         currentVersion: Int?,
     ): SmartDocumentResponse {
         return kabalSmartEditorApiWebClient.put()
