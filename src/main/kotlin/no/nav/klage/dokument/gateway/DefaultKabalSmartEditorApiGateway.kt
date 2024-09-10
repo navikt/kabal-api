@@ -41,11 +41,12 @@ class DefaultKabalSmartEditorApiGateway(
 
     fun createDocument(
         json: String,
+        data: String?,
         dokumentType: DokumentType,
         innloggetIdent: String,
         documentTitle: String,
     ): SmartDocumentResponse {
-        return kabalSmartEditorApiClient.createDocument(json)
+        return kabalSmartEditorApiClient.createDocument(jsonInput = json, data = data)
     }
 
     fun deleteDocument(smartEditorId: UUID) {
@@ -56,10 +57,11 @@ class DefaultKabalSmartEditorApiGateway(
         kabalSmartEditorApiClient.deleteDocumentAsSystemUser(smartEditorId)
     }
 
-    fun updateDocument(smartDocumentId: UUID, json: String, currentVersion: Int?): SmartDocumentResponse {
+    fun updateDocument(smartDocumentId: UUID, json: String, data: String?, currentVersion: Int?): SmartDocumentResponse {
         return kabalSmartEditorApiClient.updateDocument(
             documentId = smartDocumentId,
             jsonInput = json,
+            data = data,
             currentVersion = currentVersion,
         )
     }

@@ -25,6 +25,7 @@ data class DokumentView(
     val isSmartDokument: Boolean,
     val templateId: String?,
     val content: JsonNode?,
+    val data: String?,
     val version: Int?,
     val isMarkertAvsluttet: Boolean,
     val parentId: UUID?,
@@ -91,4 +92,13 @@ enum class HandlingEnum {
     AUTO,
     LOCAL_PRINT,
     CENTRAL_PRINT
+}
+
+data class DocumentAccessView(
+    val access: Access,
+) {
+    enum class Access {
+        READ,
+        WRITE,
+    }
 }

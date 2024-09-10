@@ -193,4 +193,19 @@ class SmartEditorController(
             commentId = commentId,
         )
     }
+
+    @Operation(
+        summary = "What kind of access does the employee have to the document",
+        description = "What kind of access does the employee have to the document"
+    )
+    @GetMapping("/{dokumentId}/access")
+    fun getDocumentAccess(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") documentId: UUID
+    ): DocumentAccessView {
+        return smartDocumentService.getDocumentAccess(
+            behandlingId = behandlingId,
+            documentId = documentId
+        )
+    }
 }
