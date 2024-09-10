@@ -237,16 +237,10 @@ class SmartDocumentService(
         behandlingId: UUID,
         documentId: UUID,
     ): DocumentAccessView {
-        try {
-            dokumentUnderArbeidService.validateWriteAccessToDocument(dokumentId = documentId)
-            return DocumentAccessView(
-                access = DocumentAccessView.Access.WRITE,
-            )
-        } catch (e: Exception) {
-            return DocumentAccessView(
-                access = DocumentAccessView.Access.NONE,
-            )
-        }
+        return dokumentUnderArbeidService.getSmartdocumentAccess(
+            behandlingId = behandlingId,
+            dokumentId = documentId
+        )
     }
 
     fun getSmartDocumentVersion(

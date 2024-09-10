@@ -100,6 +100,5 @@ data class DocumentAccessView(
     enum class Access {
         READ,
         WRITE,
-        NONE,
     }
 }

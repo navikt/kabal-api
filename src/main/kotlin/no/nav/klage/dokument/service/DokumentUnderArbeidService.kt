@@ -15,6 +15,7 @@ import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
@@ -216,7 +217,11 @@ class DokumentUnderArbeidService(
 
         start = System.currentTimeMillis()
         val contentLength = uploadRequest.getHeader("Content-Length")?.toInt() ?: 0
-        logger.debug("Checked Content-Length header in {} ms. It was {}", (System.currentTimeMillis() - start), contentLength)
+        logger.debug(
+            "Checked Content-Length header in {} ms. It was {}",
+            (System.currentTimeMillis() - start),
+            contentLength
+        )
 
         //257 MB
         if (contentLength > 269484032) {
@@ -541,14 +546,6 @@ class DokumentUnderArbeidService(
         return journalpost.dokumenter?.find { it.dokumentInfoId == dokumentInfoId }?.tittel
             ?: error("can't be null")
     }
-
-    private fun Behandling.getRoleInBehandling(innloggetIdent: String) = if (rolIdent == innloggetIdent) {
-        BehandlingRole.KABAL_ROL
-    } else if (tildeling?.saksbehandlerident == innloggetIdent) {
-        BehandlingRole.KABAL_SAKSBEHANDLING
-    } else if (medunderskriver?.saksbehandlerident == innloggetIdent) {
-        BehandlingRole.KABAL_MEDUNDERSKRIVER
-    } else BehandlingRole.NONE
 
     private fun validateCanCreateDocuments(
         behandlingRole: BehandlingRole,
@@ -1132,6 +1129,75 @@ class DokumentUnderArbeidService(
         )
 
         return dokumentUnderArbeid
+    }
+
+    /**
+     * Who should have access to a smartdocument?
+     */
+    fun getSmartdocumentAccess(
+        behandlingId: UUID,
+        dokumentId: UUID,
+    ): DocumentAccessView {
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
+        val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
+
+        if (behandling.ferdigstilling == null) {
+            when (dokument.creatorRole) {
+                BehandlingRole.KABAL_SAKSBEHANDLING -> {
+                    when (behandlingRole) {
+                        BehandlingRole.KABAL_SAKSBEHANDLING -> {
+                            if (behandling.medunderskriverFlowState in listOf(
+                                    FlowState.NOT_SENT,
+                                    FlowState.RETURNED
+                                )
+                            ) {
+                                return DocumentAccessView(
+                                    access = DocumentAccessView.Access.WRITE
+                                )
+                            }
+                        }
+
+                        BehandlingRole.KABAL_MEDUNDERSKRIVER -> {
+                            if (behandling.medunderskriverFlowState == FlowState.SENT) {
+                                return DocumentAccessView(
+                                    access = DocumentAccessView.Access.WRITE
+                                )
+                            }
+                        }
+
+                        else -> {
+                            //fall through to default READ access
+                        }
+                    }
+                }
+
+                BehandlingRole.KABAL_ROL -> {
+                    if (behandlingRole == BehandlingRole.KABAL_ROL && behandling.rolFlowState == FlowState.SENT) {
+                        return DocumentAccessView(
+                            access = DocumentAccessView.Access.WRITE
+                        )
+                    }
+                }
+
+                BehandlingRole.KABAL_MEDUNDERSKRIVER -> error("Smartdocument is created by medunderskriver. This should not be possible.")
+
+                /* Can this happen? Maybe for documents created automatically by the system? */
+                BehandlingRole.NONE -> {
+                    if (innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+                        return DocumentAccessView(
+                            access = DocumentAccessView.Access.WRITE
+                        )
+                    }
+                }
+            }
+        }
+
+        return DocumentAccessView(
+            access = DocumentAccessView.Access.READ
+        )
     }
 
     fun validateWriteAccessToDocument(
