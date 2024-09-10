@@ -10,30 +10,30 @@ import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.ModifyCom
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.CommentOutput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
-import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
-import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
-import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
-import org.springframework.stereotype.Service
-import java.util.*
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumentRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
+import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Endringslogginnslag
 import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.service.BehandlingService
+import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.KafkaInternalEventService
 import no.nav.klage.oppgave.service.SaksbehandlerService
+import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.stereotype.Service
 import java.time.LocalDateTime
+import java.util.*
 
 @Service
 @Transactional
@@ -81,6 +81,7 @@ class SmartDocumentService(
         val smartDocumentResponse =
             kabalSmartEditorApiGateway.createDocument(
                 json = input.content.toString(),
+                data = input.data,
                 dokumentType = dokumentType,
                 innloggetIdent = innloggetIdent,
                 documentTitle = tittel,
@@ -179,11 +180,12 @@ class SmartDocumentService(
                 readOnly = false
             )
 
-        dokumentUnderArbeidService.validateDocument(dokumentId = dokumentId)
+        dokumentUnderArbeidService.validateWriteAccessToDocument(dokumentId = dokumentId)
 
         val updatedDocument = kabalSmartEditorApiGateway.updateDocument(
             smartDocumentId = smartDocumentId,
             json = input.content.toString(),
+            data = input.data,
             currentVersion = input.version,
         )
 
@@ -231,6 +233,16 @@ class SmartDocumentService(
         )
     }
 
+    fun getDocumentAccess(
+        behandlingId: UUID,
+        documentId: UUID,
+    ): DocumentAccessView {
+        return dokumentUnderArbeidService.getSmartdocumentAccess(
+            behandlingId = behandlingId,
+            dokumentId = documentId
+        )
+    }
+
     fun getSmartDocumentVersion(
         documentId: UUID,
         version: Int,
@@ -264,7 +276,7 @@ class SmartDocumentService(
         documentId: UUID,
         commentInput: CommentInput,
     ): CommentOutput {
-        dokumentUnderArbeidService.validateDocument(documentId)
+        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidRepository.findById(documentId).get()
 
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
@@ -307,7 +319,7 @@ class SmartDocumentService(
         commentId: UUID,
         modifyCommentInput: ModifyCommentInput,
     ): CommentOutput {
-        dokumentUnderArbeidService.validateDocument(documentId)
+        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidRepository.findById(documentId).get()
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
@@ -364,7 +376,7 @@ class SmartDocumentService(
         commentId: UUID,
         commentInput: CommentInput,
     ): CommentOutput {
-        dokumentUnderArbeidService.validateDocument(documentId)
+        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidRepository.findById(documentId).get()
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
@@ -422,7 +434,7 @@ class SmartDocumentService(
         documentId: UUID,
         commentId: UUID,
     ) {
-        dokumentUnderArbeidService.validateDocument(documentId)
+        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidRepository.findById(documentId).get()
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 

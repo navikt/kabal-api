@@ -30,7 +30,7 @@ import java.util.*
 @DataJpaTest
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class DokumentUnderArbeidServiceTest {
+class DokumentUnderArbeidServiceWithJPATest {
     companion object {
         @Container
         @JvmField

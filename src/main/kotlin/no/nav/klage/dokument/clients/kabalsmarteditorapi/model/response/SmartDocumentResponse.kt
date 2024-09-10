@@ -6,6 +6,7 @@ import java.util.*
 data class SmartDocumentResponse(
     val documentId: UUID,
     val json: String,
+    val data: String?,
     val version: Int,
     val authorNavIdent: String?,
     val created: LocalDateTime,

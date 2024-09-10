@@ -15,7 +15,7 @@ val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.2"
 val tikaVersion = "2.9.2"
 val verapdfVersion = "1.26.1"
-val klageKodeverkVersion = "1.8.42"
+val klageKodeverkVersion = "1.8.43"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
 val otelVersion = "1.40.0"
 

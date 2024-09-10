@@ -157,7 +157,10 @@ abstract class Behandling(
     @AttributeOverrides(
         value = [
             AttributeOverride(name = "avsluttet", column = Column(name = "dato_behandling_avsluttet")),
-            AttributeOverride(name = "avsluttetAvSaksbehandler", column = Column(name = "dato_behandling_avsluttet_av_saksbehandler")),
+            AttributeOverride(
+                name = "avsluttetAvSaksbehandler",
+                column = Column(name = "dato_behandling_avsluttet_av_saksbehandler")
+            ),
             AttributeOverride(name = "navIdent", column = Column(name = "ferdigstilling_nav_ident")),
             AttributeOverride(name = "navn", column = Column(name = "ferdigstilling_navn")),
         ]
@@ -242,6 +245,14 @@ abstract class Behandling(
             false
         }
     }
+
+    fun getRoleInBehandling(innloggetIdent: String) = if (rolIdent == innloggetIdent) {
+        BehandlingRole.KABAL_ROL
+    } else if (tildeling?.saksbehandlerident == innloggetIdent) {
+        BehandlingRole.KABAL_SAKSBEHANDLING
+    } else if (medunderskriver?.saksbehandlerident == innloggetIdent) {
+        BehandlingRole.KABAL_MEDUNDERSKRIVER
+    } else BehandlingRole.NONE
 }
 
 enum class BehandlingRole {

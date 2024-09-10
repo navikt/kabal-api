@@ -199,6 +199,9 @@ class DokumentMapper(
             content = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
                 jacksonObjectMapper().readTree(smartEditorDocument!!.json)
             } else null,
+            data = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
+                smartEditorDocument?.data
+            } else null,
             version = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
                 smartEditorDocument?.version
             } else null,
