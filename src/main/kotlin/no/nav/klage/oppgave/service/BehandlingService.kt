@@ -1671,6 +1671,15 @@ class BehandlingService(
             type = InternalEventType.FEILREGISTRERING,
         )
 
+        setSaksbehandler(
+            behandlingId = behandling.id,
+            tildeltSaksbehandlerIdent = null,
+            enhetId = null,
+            fradelingReason = FradelingReason.ANNET,
+            utfoerendeSaksbehandlerIdent = navIdent,
+            fradelingWithChangedHjemmelIdList = null
+        )
+
         return behandling
     }
 
