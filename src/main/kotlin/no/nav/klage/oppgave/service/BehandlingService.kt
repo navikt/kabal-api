@@ -1642,6 +1642,15 @@ class BehandlingService(
     ): Behandling {
         val navn = saksbehandlerService.getNameForIdentDefaultIfNull(navIdent)
 
+        setSaksbehandler(
+            behandlingId = behandling.id,
+            tildeltSaksbehandlerIdent = null,
+            enhetId = null,
+            fradelingReason = FradelingReason.ANNET,
+            utfoerendeSaksbehandlerIdent = navIdent,
+            fradelingWithChangedHjemmelIdList = null
+        )
+
         val event = behandling.setFeilregistrering(
             feilregistrering = Feilregistrering(
                 navIdent = navIdent,
@@ -1669,15 +1678,6 @@ class BehandlingService(
             ),
             behandlingId = behandling.id,
             type = InternalEventType.FEILREGISTRERING,
-        )
-
-        setSaksbehandler(
-            behandlingId = behandling.id,
-            tildeltSaksbehandlerIdent = null,
-            enhetId = null,
-            fradelingReason = FradelingReason.ANNET,
-            utfoerendeSaksbehandlerIdent = navIdent,
-            fradelingWithChangedHjemmelIdList = null
         )
 
         return behandling
