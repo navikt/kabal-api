@@ -28,7 +28,7 @@ class OppgaveApiService(
         }
 
         return try {
-            oppgaveApiClient.getOppgave(oppgaveId = oppgaveId).beskrivelse
+            oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = false).beskrivelse
         } catch (e: Exception) {
             logger.error("Failed to get (gosys-) oppgave", e)
             "Klarte ikke å hente oppgavebeskrivelse"
@@ -40,7 +40,7 @@ class OppgaveApiService(
         tildeltSaksbehandlerIdent: String?,
         systemContext: Boolean,
     ) {
-        val currentOppgave = oppgaveApiClient.getOppgave(oppgaveId = oppgaveId)
+        val currentOppgave = oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = systemContext)
         val endretAvEnhetsnr = if (systemContext) "9999" else {
             microsoftGraphService.getDataOmInnloggetSaksbehandler().enhet.enhetId
         }
@@ -76,7 +76,7 @@ class OppgaveApiService(
         mappeId: Long?,
         kommentar: String,
     ) {
-        val currentOppgave = oppgaveApiClient.getOppgave(oppgaveId = oppgaveId)
+        val currentOppgave = oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = true)
         val endretAvEnhetsnr = "9999"
 
         val returnOppgaveRequest = ReturnOppgaveInput(

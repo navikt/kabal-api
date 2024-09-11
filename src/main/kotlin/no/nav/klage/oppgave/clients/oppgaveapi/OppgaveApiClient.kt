@@ -24,7 +24,7 @@ class OppgaveApiClient(
         private val securelogger = getSecureLogger()
     }
 
-    fun getOppgave(oppgaveId: Long): OppgaveApiRecord {
+    fun getOppgave(oppgaveId: Long, systemContext: Boolean): OppgaveApiRecord {
         return logTimingAndWebClientResponseException(OppgaveApiClient::getOppgave.name) {
             oppgaveApiWebClient.get()
                 .uri { uriBuilder ->
@@ -32,7 +32,7 @@ class OppgaveApiClient(
                 }
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithOppgaveApiScope() else tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
                 )
                 .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
