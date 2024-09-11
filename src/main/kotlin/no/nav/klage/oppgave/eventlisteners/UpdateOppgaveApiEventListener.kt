@@ -33,7 +33,7 @@ class UpdateOppgaveApiEventListener(
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun updateOppgave(behandlingEndretEvent: BehandlingEndretEvent) {
-        logger.debug("Received BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
+        logger.debug("updateOppgave called. Received BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
         val behandling = behandlingRepository.findByIdEager(behandlingEndretEvent.behandling.id)
 
         if (behandling.oppgaveId != null && behandlingEndretEvent.endringslogginnslag.any { it.felt == Felt.TILDELT_SAKSBEHANDLERIDENT }) {
