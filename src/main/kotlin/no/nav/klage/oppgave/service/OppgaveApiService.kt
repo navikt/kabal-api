@@ -20,9 +20,17 @@ class OppgaveApiService(
         private val securelogger = getSecureLogger()
     }
 
-    fun getOppgaveEntryView(oppgaveId: Long): String? {
-        val oppgave = oppgaveApiClient.getOppgave(oppgaveId = oppgaveId)
-        return oppgave.beskrivelse
+    fun getOppgavebeskrivelse(oppgaveId: Long?): String? {
+        if (oppgaveId == null) {
+            return null
+        }
+
+        return try {
+            oppgaveApiClient.getOppgave(oppgaveId = oppgaveId).beskrivelse
+        } catch (e: Exception) {
+            logger.error("Failed to get (gosys-) oppgave", e)
+            "Klarte ikke å hente oppgavebeskrivelse"
+        }
     }
 
     fun assignOppgave(
