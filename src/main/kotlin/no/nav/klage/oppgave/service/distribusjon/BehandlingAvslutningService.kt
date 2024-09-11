@@ -175,7 +175,7 @@ class BehandlingAvslutningService(
                 )
             }
 
-            if (behandling.oppgaveId != null) {
+            if (behandling.oppgaveId != null && behandling.oppgaveReturned != null) {
                 try {
                     oppgaveApiService.returnOppgave(
                         oppgaveId = behandling.oppgaveId!!,
