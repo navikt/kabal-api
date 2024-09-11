@@ -48,6 +48,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverFlo
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverNavIdent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMottattKlageinstans
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setOppgaveId
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setOppgaveReturnInfo
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLFlowState
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLIdent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLReturnedDate
@@ -105,7 +106,8 @@ class BehandlingService(
     fun ferdigstillBehandling(
         behandlingId: UUID,
         innloggetIdent: String,
-        nyBehandling: Boolean
+        nyBehandling: Boolean,
+        returnOppgaveInput: ReturnOppgaveInput?
     ): BehandlingFullfoertView {
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId
@@ -118,6 +120,32 @@ class BehandlingService(
 
         if (nyBehandling) {
             return behandlingMapper.mapToBehandlingFullfoertView(setNyAnkebehandlingKA(behandlingId, innloggetIdent))
+        }
+
+        if (behandling.oppgaveId != null && !(behandling.shouldBeSentToTrygderetten() || behandling.shouldCreateNewAnkebehandling())) {
+            if (returnOppgaveInput == null) {
+                throw SectionedValidationErrorWithDetailsException(
+                    title = "Validation error",
+                    sections = listOf(
+                        ValidationSection(
+                            section = "behandling",
+                            properties = listOf(
+                                InvalidProperty(
+                                    field = "returnOppgaveInput",
+                                    reason = "Returinformasjon for Gosys-oppgaven må fylles ut for å avslutte behandlingen."
+                                )
+                            )
+                        )
+                    )
+                )
+            } else {
+                behandling.setOppgaveReturnInfo(
+                    tildeltEnhet = returnOppgaveInput.tildeltEnhet,
+                    mappeId = returnOppgaveInput.mappeId,
+                    kommentar = returnOppgaveInput.kommentar,
+                    saksbehandlerident = innloggetIdent,
+                )
+            }
         }
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull

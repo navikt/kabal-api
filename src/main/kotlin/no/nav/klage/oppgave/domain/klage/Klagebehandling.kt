@@ -77,9 +77,7 @@ class Klagebehandling(
     sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     previousSaksbehandlerident: String?,
     oppgaveId: Long?,
-    oppgaveReturnedTildeltEnhetsnummer: String? = null,
-    oppgaveReturnedMappeId: Long? = null,
-    oppgaveReturnedKommentar: String? = null,
+    oppgaveReturned: OppgaveReturned? = null,
 ) : Behandling(
     id = id,
     klager = klager,
@@ -116,9 +114,7 @@ class Klagebehandling(
     sattPaaVentHistorikk = sattPaaVentHistorikk,
     previousSaksbehandlerident = previousSaksbehandlerident,
     oppgaveId = oppgaveId,
-    oppgaveReturnedTildeltEnhetsnummer = oppgaveReturnedTildeltEnhetsnummer,
-    oppgaveReturnedMappeId = oppgaveReturnedMappeId,
-    oppgaveReturnedKommentar = oppgaveReturnedKommentar,
+    oppgaveReturned = oppgaveReturned,
 ) {
 
     override fun toString(): String {

@@ -179,9 +179,9 @@ class BehandlingAvslutningService(
                 try {
                     oppgaveApiService.returnOppgave(
                         oppgaveId = behandling.oppgaveId!!,
-                        tildeltEnhetsnummer = behandling.oppgaveReturnedTildeltEnhetsnummer!!,
-                        mappeId = behandling.oppgaveReturnedMappeId,
-                        kommentar = behandling.oppgaveReturnedKommentar!!,
+                        tildeltEnhetsnummer = behandling.oppgaveReturned!!.oppgaveReturnedTildeltEnhetsnummer,
+                        mappeId = behandling.oppgaveReturned!!.oppgaveReturnedMappeId,
+                        kommentar = behandling.oppgaveReturned!!.oppgaveReturnedKommentar,
                     )
                 } catch (e: Exception) {
                     logger.error("Feilet under tilbakeføring av oppgave $behandlingId.")

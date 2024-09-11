@@ -202,12 +202,8 @@ abstract class Behandling(
     open val previousSaksbehandlerident: String?,
     @Column(name = "oppgave_id")
     open var oppgaveId: Long?,
-    @Column(name = "oppgave_returned_tildelt_enhetsnummer")
-    open var oppgaveReturnedTildeltEnhetsnummer: String?,
-    @Column(name = "oppgave_returned_mappe_id")
-    open var oppgaveReturnedMappeId: Long?,
-    @Column(name = "oppgave_returned_kommentar")
-    open var oppgaveReturnedKommentar: String?,
+    @Embedded
+    open var oppgaveReturned: OppgaveReturned?,
 ) {
 
     /**
