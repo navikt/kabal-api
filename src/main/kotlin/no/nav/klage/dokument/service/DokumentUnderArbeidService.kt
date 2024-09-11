@@ -7,7 +7,6 @@ import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
-import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
@@ -16,6 +15,7 @@ import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Template
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
@@ -52,7 +52,6 @@ import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.math.log
 
 
 @Service
@@ -218,7 +217,11 @@ class DokumentUnderArbeidService(
 
         start = System.currentTimeMillis()
         val contentLength = uploadRequest.getHeader("Content-Length")?.toInt() ?: 0
-        logger.debug("Checked Content-Length header in {} ms. It was {}", (System.currentTimeMillis() - start), contentLength)
+        logger.debug(
+            "Checked Content-Length header in {} ms. It was {}",
+            (System.currentTimeMillis() - start),
+            contentLength
+        )
 
         //257 MB
         if (contentLength > 269484032) {
@@ -350,19 +353,12 @@ class DokumentUnderArbeidService(
         }
     }
 
-    fun opprettSmartdokument(
-        behandlingId: UUID,
-        dokumentType: DokumentType,
-        json: String?,
-        smartEditorTemplateId: String,
+    fun validateCanCreateDocumentsAndReturnBehandlingRole(
+        behandling: Behandling,
         innloggetIdent: String,
-        tittel: String,
         parentId: UUID?,
-        language: Language = Language.NB,
-    ): DokumentView {
+    ): BehandlingRole {
         //Sjekker lesetilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
         if (behandling.ferdigstilling == null) {
@@ -373,94 +369,7 @@ class DokumentUnderArbeidService(
             )
         }
 
-        if (json == null) {
-            throw DokumentValidationException("Ingen json angitt")
-        }
-        val smartDocumentResponse =
-            smartEditorApiGateway.createDocument(
-                json = json,
-                dokumentType = dokumentType,
-                innloggetIdent = innloggetIdent,
-                documentTitle = tittel
-            )
-
-        val now = LocalDateTime.now()
-
-        val document = if (parentId == null) {
-            smartDokumentUnderArbeidAsHoveddokumentRepository.save(
-                SmartdokumentUnderArbeidAsHoveddokument(
-                    mellomlagerId = null,
-                    mellomlagretDate = null,
-                    size = null,
-                    name = tittel,
-                    dokumentType = dokumentType,
-                    behandlingId = behandlingId,
-                    smartEditorId = smartDocumentResponse.documentId,
-                    smartEditorTemplateId = smartEditorTemplateId,
-                    creatorIdent = innloggetIdent,
-                    creatorRole = behandlingRole,
-                    created = now,
-                    modified = now,
-                    journalfoerendeEnhetId = null,
-                    language = language,
-                    mellomlagretVersion = null,
-                )
-            )
-        } else {
-            smartDokumentUnderArbeidAsVedleggRepository.save(
-                SmartdokumentUnderArbeidAsVedlegg(
-                    mellomlagerId = null,
-                    mellomlagretDate = null,
-                    size = null,
-                    name = tittel,
-                    behandlingId = behandlingId,
-                    smartEditorId = smartDocumentResponse.documentId,
-                    smartEditorTemplateId = smartEditorTemplateId,
-                    creatorIdent = innloggetIdent,
-                    creatorRole = behandlingRole,
-                    parentId = parentId,
-                    language = language,
-                    created = now,
-                    modified = now,
-                    mellomlagretVersion = null,
-                )
-            )
-        }
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.SMARTDOKUMENT_OPPRETTET,
-            fraVerdi = null,
-            tilVerdi = document.created.toString(),
-            tidspunkt = document.created,
-        )
-
-        val smartEditorDocument = smartEditorApiGateway.getSmartDocumentResponse(smartEditorId = document.smartEditorId)
-
-        val dokumentView = dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = document,
-            journalpost = null,
-            smartEditorDocument = smartEditorDocument,
-            behandling = behandling,
-        )
-
-        publishInternalEvent(
-            data = objectMapper.writeValueAsString(
-                DocumentsAddedEvent(
-                    actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
-                    ),
-                    timestamp = LocalDateTime.now(),
-                    documents = listOf(
-                        dokumentView
-                    )
-                )
-            ),
-            behandlingId = behandling.id,
-            type = InternalEventType.DOCUMENTS_ADDED,
-        )
-
-        return dokumentView
+        return behandlingRole
     }
 
     fun addJournalfoerteDokumenterAsVedlegg(
@@ -638,14 +547,6 @@ class DokumentUnderArbeidService(
             ?: error("can't be null")
     }
 
-    private fun Behandling.getRoleInBehandling(innloggetIdent: String) = if (rolIdent == innloggetIdent) {
-        BehandlingRole.KABAL_ROL
-    } else if (tildeling?.saksbehandlerident == innloggetIdent) {
-        BehandlingRole.KABAL_SAKSBEHANDLING
-    } else if (medunderskriver?.saksbehandlerident == innloggetIdent) {
-        BehandlingRole.KABAL_MEDUNDERSKRIVER
-    } else BehandlingRole.NONE
-
     private fun validateCanCreateDocuments(
         behandlingRole: BehandlingRole,
         parentDocument: DokumentUnderArbeidAsHoveddokument?
@@ -666,22 +567,6 @@ class DokumentUnderArbeidService(
     }
 
     fun getDokumentUnderArbeid(dokumentId: UUID) = dokumentUnderArbeidRepository.findById(dokumentId).get()
-
-    fun getMappedDokumentUnderArbeid(
-        dokumentId: UUID,
-        smartEditorDocument: SmartDocumentResponse?,
-        behandlingId: UUID
-    ): DokumentView {
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
-            behandlingId = behandlingId
-        )
-        return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId),
-            journalpost = null,
-            smartEditorDocument = smartEditorDocument,
-            behandling = behandling,
-        )
-    }
 
     fun updateDokumentType(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
@@ -1246,7 +1131,76 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeid
     }
 
-    fun validateDocument(
+    /**
+     * Who should have access to a smartdocument?
+     */
+    fun getSmartdocumentAccess(
+        behandlingId: UUID,
+        dokumentId: UUID,
+    ): DocumentAccessView {
+        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
+        val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
+
+        if (behandling.ferdigstilling == null) {
+            when (dokument.creatorRole) {
+                BehandlingRole.KABAL_SAKSBEHANDLING -> {
+                    when (behandlingRole) {
+                        BehandlingRole.KABAL_SAKSBEHANDLING -> {
+                            if (behandling.medunderskriverFlowState in listOf(
+                                    FlowState.NOT_SENT,
+                                    FlowState.RETURNED
+                                )
+                            ) {
+                                return DocumentAccessView(
+                                    access = DocumentAccessView.Access.WRITE
+                                )
+                            }
+                        }
+
+                        BehandlingRole.KABAL_MEDUNDERSKRIVER -> {
+                            if (behandling.medunderskriverFlowState == FlowState.SENT) {
+                                return DocumentAccessView(
+                                    access = DocumentAccessView.Access.WRITE
+                                )
+                            }
+                        }
+
+                        else -> {
+                            //fall through to default READ access
+                        }
+                    }
+                }
+
+                BehandlingRole.KABAL_ROL -> {
+                    if (behandlingRole == BehandlingRole.KABAL_ROL && behandling.rolFlowState == FlowState.SENT) {
+                        return DocumentAccessView(
+                            access = DocumentAccessView.Access.WRITE
+                        )
+                    }
+                }
+
+                BehandlingRole.KABAL_MEDUNDERSKRIVER -> error("Smartdocument is created by medunderskriver. This should not be possible.")
+
+                /* Can this happen? Maybe for documents created automatically by the system? */
+                BehandlingRole.NONE -> {
+                    if (innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+                        return DocumentAccessView(
+                            access = DocumentAccessView.Access.WRITE
+                        )
+                    }
+                }
+            }
+        }
+
+        return DocumentAccessView(
+            access = DocumentAccessView.Access.READ
+        )
+    }
+
+    fun validateWriteAccessToDocument(
         dokumentId: UUID,
     ) {
         val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
@@ -2050,19 +2004,6 @@ class DokumentUnderArbeidService(
         }
         logger.debug("about to return hoveddokument for hoveddokumentId {}", hovedDokumentId)
         return hovedDokument
-    }
-
-    fun getSmartEditorId(dokumentId: UUID, readOnly: Boolean): UUID {
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
-
-        if (dokumentUnderArbeid !is DokumentUnderArbeidAsSmartdokument) {
-            throw RuntimeException("dokument is not smartdokument")
-        }
-
-        //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
-
-        return dokumentUnderArbeid.smartEditorId
     }
 
     fun mergeDUAAndCreatePDF(dokumentUnderArbeidId: UUID): Pair<FileSystemResource, String> {

@@ -5,8 +5,9 @@ import java.time.LocalDate
 import java.util.*
 
 data class SmartHovedDokumentInput(
-    val content: JsonNode?,
-    val templateId: String?,
+    val content: JsonNode,
+    val data: String?,
+    val templateId: String,
     val tittel: String?,
     val dokumentTypeId: String? = null,
     val parentId: UUID?,
@@ -14,7 +15,8 @@ data class SmartHovedDokumentInput(
 )
 
 data class PatchSmartHovedDokumentInput(
-    val content: JsonNode?,
+    val content: JsonNode,
+    val data: String?,
     val version: Int?,
 )
 

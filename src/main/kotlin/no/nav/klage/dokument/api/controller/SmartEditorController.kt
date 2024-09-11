@@ -7,15 +7,10 @@ import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.ModifyCommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.CommentOutput
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
-import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
-import no.nav.klage.dokument.service.DokumentUnderArbeidService
-import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.dokument.service.SmartDocumentService
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
-import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -26,9 +21,7 @@ import java.util.*
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/behandlinger/{behandlingId}/smartdokumenter")
 class SmartEditorController(
-    private val kabalSmartEditorApiGateway: DefaultKabalSmartEditorApiGateway,
-    private val dokumentUnderArbeidService: DokumentUnderArbeidService,
-    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
+    private val smartDocumentService: SmartDocumentService
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -43,15 +36,9 @@ class SmartEditorController(
     ): DokumentView {
         logger.debug("Kall mottatt på createSmartHoveddokument")
 
-        return dokumentUnderArbeidService.opprettSmartdokument(
+        return smartDocumentService.createSmartDocument(
             behandlingId = behandlingId,
-            dokumentType = if (input.dokumentTypeId != null) DokumentType.of(input.dokumentTypeId) else DokumentType.VEDTAK,
-            json = input.content.toString(),
-            smartEditorTemplateId = input.templateId ?: error("TODO. Can be null?"),
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            tittel = input.tittel ?: DokumentType.VEDTAK.defaultFilnavn,
-            parentId = input.parentId,
-            language = Language.valueOf(input.language.name),
+            input = input,
         )
     }
 
@@ -65,23 +52,10 @@ class SmartEditorController(
         @PathVariable("dokumentId") dokumentId: UUID,
         @RequestBody input: PatchSmartHovedDokumentInput,
     ): SmartDocumentModified {
-        val smartDocumentId =
-            dokumentUnderArbeidService.getSmartEditorId(
-                dokumentId = dokumentId,
-                readOnly = false
-            )
-
-        dokumentUnderArbeidService.validateDocument(dokumentId = dokumentId)
-
-        val updatedDocument = kabalSmartEditorApiGateway.updateDocument(
-            smartDocumentId = smartDocumentId,
-            json = input.content.toString(),
-            currentVersion = input.version,
-        )
-
-        return SmartDocumentModified(
-            modified = updatedDocument.modified,
-            version = updatedDocument.version,
+        return smartDocumentService.patchSmartDocument(
+            behandlingId = behandlingId,
+            dokumentId = dokumentId,
+            input = input
         )
     }
 
@@ -94,17 +68,9 @@ class SmartEditorController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") documentId: UUID
     ): DokumentView {
-        val smartEditorId =
-            dokumentUnderArbeidService.getSmartEditorId(
-                dokumentId = documentId,
-                readOnly = true
-            )
-        val smartEditorDocument = kabalSmartEditorApiGateway.getSmartDocumentResponse(smartEditorId)
-
-        return dokumentUnderArbeidService.getMappedDokumentUnderArbeid(
-            dokumentId = documentId,
-            smartEditorDocument = smartEditorDocument,
-            behandlingId = behandlingId
+        return smartDocumentService.getSmartDocument(
+            behandlingId = behandlingId,
+            documentId = documentId
         )
     }
 
@@ -117,17 +83,10 @@ class SmartEditorController(
         @PathVariable("dokumentId") documentId: UUID,
         @PathVariable("version") version: Int,
     ): JsonNode {
-        val smartEditorId =
-            dokumentUnderArbeidService.getSmartEditorId(
-                dokumentId = documentId,
-                readOnly = true
-            )
-        val document = kabalSmartEditorApiGateway.getSmartDocumentResponseForVersion(
-            smartEditorId = smartEditorId,
-            version = version,
+        return smartDocumentService.getSmartDocumentVersion(
+            documentId = documentId,
+            version = version
         )
-
-        return ourJacksonObjectMapper().readTree(document.json)
     }
 
     @GetMapping("/{dokumentId}/versions")
@@ -135,12 +94,10 @@ class SmartEditorController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") documentId: UUID,
     ): List<SmartDocumentVersionView> {
-        val smartEditorId =
-            dokumentUnderArbeidService.getSmartEditorId(
-                dokumentId = documentId,
-                readOnly = true
-            )
-        return kabalSmartEditorApiGateway.getDocumentVersions(smartEditorId).reversed()
+        return smartDocumentService.findSmartDocumentVersions(
+            behandlingId = behandlingId,
+            documentId = documentId
+        )
     }
 
     @Operation(
@@ -152,16 +109,10 @@ class SmartEditorController(
         @PathVariable("dokumentId") documentId: UUID,
         @RequestBody commentInput: CommentInput
     ): CommentOutput {
-
-        dokumentUnderArbeidService.validateDocument(documentId)
-
-        val smartEditorId =
-            dokumentUnderArbeidService.getSmartEditorId(
-                dokumentId = documentId,
-                readOnly = true
-            )
-
-        return kabalSmartEditorApiGateway.createComment(smartEditorId, commentInput)
+        return smartDocumentService.createComment(
+            documentId = documentId,
+            commentInput = commentInput
+        )
     }
 
     @Operation(
@@ -174,19 +125,10 @@ class SmartEditorController(
         @PathVariable("commentId") commentId: UUID,
         @RequestBody modifyCommentInput: ModifyCommentInput
     ): CommentOutput {
-
-        dokumentUnderArbeidService.validateDocument(documentId)
-
-        val smartEditorId =
-            dokumentUnderArbeidService.getSmartEditorId(
-                dokumentId = documentId,
-                readOnly = true
-            )
-
-        return kabalSmartEditorApiGateway.modifyComment(
-            documentId = smartEditorId,
+        return smartDocumentService.modifyComment(
+            documentId = documentId,
             commentId = commentId,
-            input = modifyCommentInput
+            modifyCommentInput = modifyCommentInput
         )
     }
 
@@ -198,12 +140,9 @@ class SmartEditorController(
     fun getAllCommentsWithPossibleThreads(
         @PathVariable("dokumentId") documentId: UUID
     ): List<CommentOutput> {
-        val smartEditorId =
-            dokumentUnderArbeidService.getSmartEditorId(
-                dokumentId = documentId,
-                readOnly = true
-            )
-        return kabalSmartEditorApiGateway.getAllCommentsWithPossibleThreads(smartEditorId)
+        return smartDocumentService.getAllCommentsWithPossibleThreads(
+            documentId = documentId
+        )
     }
 
     @Operation(
@@ -216,15 +155,11 @@ class SmartEditorController(
         @PathVariable("commentId") commentId: UUID,
         @RequestBody commentInput: CommentInput,
     ): CommentOutput {
-        dokumentUnderArbeidService.validateDocument(documentId)
-
-        val smartEditorId =
-            dokumentUnderArbeidService.getSmartEditorId(
-                dokumentId = documentId,
-                readOnly = true
-            )
-
-        return kabalSmartEditorApiGateway.replyToComment(smartEditorId, commentId, commentInput)
+        return smartDocumentService.replyToComment(
+            documentId = documentId,
+            commentId = commentId,
+            commentInput = commentInput
+        )
     }
 
     @Operation(
@@ -236,12 +171,10 @@ class SmartEditorController(
         @PathVariable("dokumentId") documentId: UUID,
         @PathVariable("commentId") commentId: UUID
     ): CommentOutput {
-        val smartEditorId =
-            dokumentUnderArbeidService.getSmartEditorId(
-                dokumentId = documentId,
-                readOnly = true
-            )
-        return kabalSmartEditorApiGateway.getCommentWithPossibleThread(smartEditorId, commentId)
+        return smartDocumentService.getCommentWithPossibleThreads(
+            documentId = documentId,
+            commentId = commentId,
+        )
     }
 
     @Operation(
@@ -254,18 +187,25 @@ class SmartEditorController(
         @PathVariable("dokumentId") documentId: UUID,
         @PathVariable("commentId") commentId: UUID
     ) {
-        dokumentUnderArbeidService.validateDocument(documentId)
-
-        val smartEditorId =
-            dokumentUnderArbeidService.getSmartEditorId(
-                dokumentId = documentId,
-                readOnly = true
-            )
-
-        kabalSmartEditorApiGateway.deleteCommentWithPossibleThread(
-            documentId = smartEditorId,
+        smartDocumentService.deleteCommentWithPossibleThread(
+            behandlingId = behandlingId,
+            documentId = documentId,
             commentId = commentId,
-            behandlingTildeltIdent = innloggetSaksbehandlerService.getInnloggetIdent() //simplification for now. Further checks are done in kabal-smarteditor-api.
+        )
+    }
+
+    @Operation(
+        summary = "What kind of access does the employee have to the document",
+        description = "What kind of access does the employee have to the document"
+    )
+    @GetMapping("/{dokumentId}/access")
+    fun getDocumentAccess(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") documentId: UUID
+    ): DocumentAccessView {
+        return smartDocumentService.getDocumentAccess(
+            behandlingId = behandlingId,
+            documentId = documentId
         )
     }
 }
