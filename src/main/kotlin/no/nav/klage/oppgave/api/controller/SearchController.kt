@@ -7,7 +7,9 @@ import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.IdentifikatorInput
 import no.nav.klage.oppgave.api.view.OppgaveApiMappeView
 import no.nav.klage.oppgave.api.view.SearchPartWithUtsendingskanalInput
+import no.nav.klage.oppgave.clients.norg2.Enhet
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
+import no.nav.klage.oppgave.service.EnhetService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.OppgaveApiService
 import no.nav.klage.oppgave.service.PartSearchService
@@ -23,7 +25,8 @@ import org.springframework.web.bind.annotation.*
 class SearchController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val partSearchService: PartSearchService,
-    private val oppgaveApiService: OppgaveApiService
+    private val oppgaveApiService: OppgaveApiService,
+    private val enhetService: EnhetService,
 ) {
 
     companion object {
@@ -86,5 +89,19 @@ class SearchController(
         )
 
         return oppgaveApiService.getMapperForEnhet(enhetsnr = enhetsnr)
+    }
+
+    @GetMapping("/search/enheter")
+    fun searchEnheter(
+        @RequestParam("enhetsnr", required = false) enhetsnr: String?,
+        @RequestParam("enhetsnavn", required = false) enhetsnavn: String?,
+    ): List<Enhet> {
+        logMethodDetails(
+            ::searchEnheter.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        return enhetService.findEnheter(enhetsnr = enhetsnr, enhetsnavn = enhetsnavn)
     }
 }
