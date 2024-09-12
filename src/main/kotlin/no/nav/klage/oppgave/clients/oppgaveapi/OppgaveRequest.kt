@@ -12,6 +12,7 @@ data class TildelOppgaveInput(
     override val endretAvEnhetsnr: String,
     val tilordnetRessurs: String,
     val tildeltEnhetsnr: String,
+    val mappeId: Long?,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
 data class FradelOppgaveInput(

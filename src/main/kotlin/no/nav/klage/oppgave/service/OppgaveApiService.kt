@@ -58,6 +58,7 @@ class OppgaveApiService(
                     endretAvEnhetsnr = endretAvEnhetsnr,
                     tilordnetRessurs = tildeltSaksbehandlerIdent,
                     tildeltEnhetsnr = tildeltSaksbehandlerInfo.enhet.enhetId,
+                    mappeId = null,
                 )
             }
 
