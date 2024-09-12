@@ -2,10 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.api.view.OppgaveApiMappeView
 import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
-import no.nav.klage.oppgave.clients.oppgaveapi.FradelOppgaveInput
-import no.nav.klage.oppgave.clients.oppgaveapi.OppgaveApiClient
-import no.nav.klage.oppgave.clients.oppgaveapi.ReturnOppgaveInput
-import no.nav.klage.oppgave.clients.oppgaveapi.TildelOppgaveInput
+import no.nav.klage.oppgave.clients.oppgaveapi.*
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -23,16 +20,16 @@ class OppgaveApiService(
         private val securelogger = getSecureLogger()
     }
 
-    fun getOppgavebeskrivelse(oppgaveId: Long?): String? {
+    fun getOppgave(oppgaveId: Long?): OppgaveApiRecord? {
         if (oppgaveId == null) {
             return null
         }
 
         return try {
-            oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = false).beskrivelse
+            oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = false)
         } catch (e: Exception) {
             logger.error("Failed to get (gosys-) oppgave", e)
-            "Klarte ikke å hente oppgavebeskrivelse"
+            null
         }
     }
 

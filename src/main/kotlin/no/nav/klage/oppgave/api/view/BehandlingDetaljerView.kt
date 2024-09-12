@@ -49,6 +49,7 @@ data class BehandlingDetaljerView(
     val previousSaksbehandler: SaksbehandlerView?,
     val varsletFrist: LocalDate?,
     val oppgavebeskrivelse: String?,
+    val oppgaveOpprettetAvEnhetsnr: String?,
 ) {
 
     data class CombinedMedunderskriverAndROLView(
