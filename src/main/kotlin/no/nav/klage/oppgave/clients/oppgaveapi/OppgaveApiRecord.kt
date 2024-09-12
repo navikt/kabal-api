@@ -110,19 +110,27 @@ enum class Statuskategori {
     }
 }
 
-data class OppgaveResponse(
-    val antallTreffTotalt: Int,
-    val oppgaver: List<OppgaveApiRecord>
-)
-
 class OppgaveClientException : Exception {
     constructor(message: String?) : super(message)
 
     constructor(message: String?, cause: Throwable?) : super(message, cause)
 }
 
-data class FerdigstillOppgaveRequest(
-    val oppgaveId: Long,
-    val versjon: Int,
-    val status: Status = Status.FERDIGSTILT,
-)
+data class OppgaveMapperResponse(
+    val antallTreffTotalt: Int,
+    val mapper: List<OppgaveMappe>
+) {
+    data class OppgaveMappe(
+        val id: Int?,
+        val enhetsnr: String,
+        val navn: String,
+        val tema: String?,
+        val versjon: Int,
+        val opprettetAv: String?,
+        val endretAv: String?,
+        @JsonDeserialize(using = OffsetDateTimeToLocalDateTimeDeserializer::class)
+        val opprettetTidspunkt: LocalDateTime?,
+        @JsonDeserialize(using = OffsetDateTimeToLocalDateTimeDeserializer::class)
+        val endretTidspunkt: LocalDateTime?
+    )
+}

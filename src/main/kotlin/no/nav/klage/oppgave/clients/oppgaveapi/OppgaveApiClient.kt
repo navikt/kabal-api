@@ -65,6 +65,29 @@ class OppgaveApiClient(
         }
     }
 
+    fun getMapperForEnhet(
+        enhetsnr: String
+    ): OppgaveMapperResponse {
+        return logTimingAndWebClientResponseException(OppgaveApiClient::getMapperForEnhet.name) {
+            oppgaveApiWebClient.get()
+                .uri { uriBuilder ->
+                    uriBuilder
+                        .path("/mapper")
+                        .queryParam("enhetsnr", enhetsnr)
+                        .build()
+                }
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                )
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                .header("Nav-Consumer-Id", applicationName)
+                .retrieve()
+                .bodyToMono<OppgaveMapperResponse>()
+                .block() ?: throw OppgaveClientException("Could not get mapper for enhet")
+        }
+    }
+
     private fun <T> logTimingAndWebClientResponseException(methodName: String, function: () -> T): T {
         val start: Long = System.currentTimeMillis()
         try {

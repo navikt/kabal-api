@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.oppgave.api.view.OppgaveApiMappeView
 import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
 import no.nav.klage.oppgave.clients.oppgaveapi.FradelOppgaveInput
 import no.nav.klage.oppgave.clients.oppgaveapi.OppgaveApiClient
@@ -97,5 +98,22 @@ class OppgaveApiService(
             updateOppgaveInput = returnOppgaveRequest,
             systemContext = true,
         )
+    }
+
+    fun getMapperForEnhet(
+        enhetsnr: String
+    ): List<OppgaveApiMappeView> {
+        val output = oppgaveApiClient.getMapperForEnhet(
+            enhetsnr = enhetsnr,
+        )
+
+        return output.mapper.mapNotNull { mappe ->
+            if (mappe.id != null) {
+                OppgaveApiMappeView(
+                    id = mappe.id,
+                    navn = mappe.navn
+                )
+            } else null
+        }.sortedBy { it.navn }
     }
 }
