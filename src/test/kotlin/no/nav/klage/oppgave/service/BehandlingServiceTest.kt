@@ -314,6 +314,7 @@ class BehandlingServiceTest {
                 behandlingId = behandling.id,
                 innloggetIdent = SAKSBEHANDLER_IDENT,
                 nyBehandling = false,
+                returnOppgaveInput = null,
             )
         }
     }

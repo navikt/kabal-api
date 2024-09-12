@@ -656,6 +656,32 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
+    fun Behandling.setOppgaveReturnInfo(
+        tildeltEnhet: String,
+        mappeId: Long?,
+        kommentar: String,
+        saksbehandlerident: String,
+    ): BehandlingEndretEvent {
+        val tidspunkt = LocalDateTime.now()
+
+        oppgaveReturned = OppgaveReturned(
+            oppgaveReturnedTildeltEnhetsnummer = tildeltEnhet,
+            oppgaveReturnedMappeId = mappeId,
+            oppgaveReturnedKommentar = kommentar
+        )
+
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident = saksbehandlerident,
+                felt = Felt.OPPGAVE_RETURNED,
+                fraVerdi = null,
+                tilVerdi = oppgaveReturned.toString(),
+                tidspunkt = tidspunkt
+            )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
     fun Behandling.setAvsluttet(
         saksbehandlerident: String
     ): BehandlingEndretEvent {

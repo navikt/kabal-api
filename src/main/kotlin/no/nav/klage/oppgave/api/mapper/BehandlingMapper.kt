@@ -102,7 +102,7 @@ class BehandlingMapper(
             saksbehandler = klagebehandling.toSaksbehandlerView(),
             previousSaksbehandler = klagebehandling.toPreviousSaksbehandlerView(),
             varsletFrist = klagebehandling.varsletFrist,
-            oppgavebeskrivelse = getOppgavebeskrivelse(klagebehandling.oppgaveId),
+            oppgavebeskrivelse = oppgaveApiService.getOppgavebeskrivelse(klagebehandling.oppgaveId),
         )
     }
 
@@ -205,7 +205,7 @@ class BehandlingMapper(
             saksbehandler = ankebehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankebehandling.toPreviousSaksbehandlerView(),
             varsletFrist = ankebehandling.varsletFrist,
-            oppgavebeskrivelse = getOppgavebeskrivelse(ankebehandling.oppgaveId),
+            oppgavebeskrivelse = oppgaveApiService.getOppgavebeskrivelse(ankebehandling.oppgaveId),
         )
     }
 
@@ -259,16 +259,8 @@ class BehandlingMapper(
             saksbehandler = ankeITrygderettenbehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankeITrygderettenbehandling.toPreviousSaksbehandlerView(),
             varsletFrist = null,
-            oppgavebeskrivelse = getOppgavebeskrivelse(ankeITrygderettenbehandling.oppgaveId),
+            oppgavebeskrivelse = oppgaveApiService.getOppgavebeskrivelse(ankeITrygderettenbehandling.oppgaveId),
         )
-    }
-
-    private fun getOppgavebeskrivelse(oppgaveId: Long?): String? {
-        return if (oppgaveId == null) {
-            null
-        } else {
-            oppgaveApiService.getOppgaveEntryView(oppgaveId)
-        }
     }
 
     fun getSakenGjelderView(sakenGjelder: SakenGjelder): BehandlingDetaljerView.SakenGjelderView {

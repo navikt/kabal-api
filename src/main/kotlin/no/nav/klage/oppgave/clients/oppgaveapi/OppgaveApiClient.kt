@@ -1,16 +1,14 @@
 package no.nav.klage.oppgave.clients.oppgaveapi
 
-import no.nav.klage.oppgave.util.TokenUtil
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.web.reactive.function.client.WebClient
 import io.opentelemetry.api.trace.Span
+import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
-
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
-
 import org.springframework.web.reactive.function.client.bodyToMono
 
 @Component
@@ -18,7 +16,7 @@ class OppgaveApiClient(
     private val oppgaveApiWebClient: WebClient,
     private val tokenUtil: TokenUtil,
     @Value("\${spring.application.name}") private val applicationName: String,
-){
+) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -26,7 +24,7 @@ class OppgaveApiClient(
         private val securelogger = getSecureLogger()
     }
 
-    fun getOppgave(oppgaveId: Long): OppgaveApiRecord {
+    fun getOppgave(oppgaveId: Long, systemContext: Boolean): OppgaveApiRecord {
         return logTimingAndWebClientResponseException(OppgaveApiClient::getOppgave.name) {
             oppgaveApiWebClient.get()
                 .uri { uriBuilder ->
@@ -34,13 +32,36 @@ class OppgaveApiClient(
                 }
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithOppgaveApiScope() else tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
                 )
                 .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveApiRecord>()
                 .block() ?: throw OppgaveClientException("Oppgave could not be fetched")
+        }
+    }
+
+    fun updateOppgave(
+        oppgaveId: Long,
+        updateOppgaveInput: UpdateOppgaveRequest,
+        systemContext: Boolean
+    ): OppgaveApiRecord {
+        return logTimingAndWebClientResponseException(OppgaveApiClient::updateOppgave.name) {
+            oppgaveApiWebClient.patch()
+                .uri { uriBuilder ->
+                    uriBuilder.pathSegment("oppgaver", "{id}").build(oppgaveId)
+                }
+                .bodyValue(updateOppgaveInput)
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithOppgaveApiScope() else tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                )
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                .header("Nav-Consumer-Id", applicationName)
+                .retrieve()
+                .bodyToMono<OppgaveApiRecord>()
+                .block() ?: throw OppgaveClientException("Oppgave could not be updated")
         }
     }
 

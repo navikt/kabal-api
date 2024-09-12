@@ -58,6 +58,7 @@ class AnkeITrygderettenbehandling(
     sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     previousSaksbehandlerident: String?,
     oppgaveId: Long?,
+    oppgaveReturned: OppgaveReturned? = null,
 ) : Behandling(
     id = id,
     klager = klager,
@@ -94,6 +95,7 @@ class AnkeITrygderettenbehandling(
     sattPaaVentHistorikk = sattPaaVentHistorikk,
     previousSaksbehandlerident = previousSaksbehandlerident,
     oppgaveId = oppgaveId,
+    oppgaveReturned = oppgaveReturned,
 ) {
     override fun toString(): String {
         return "Ankebehandling(id=$id, " +
