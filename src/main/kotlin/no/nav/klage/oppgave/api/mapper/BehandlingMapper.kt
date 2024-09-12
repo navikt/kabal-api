@@ -50,6 +50,8 @@ class BehandlingMapper(
     fun mapKlagebehandlingToBehandlingDetaljerView(klagebehandling: Klagebehandling): BehandlingDetaljerView {
         val enhetNavn = klagebehandling.avsenderEnhetFoersteinstans.let { norg2Client.fetchEnhet(it) }.navn
 
+        val oppgave = oppgaveApiService.getOppgave(klagebehandling.oppgaveId)
+
         return BehandlingDetaljerView(
             id = klagebehandling.id,
             fraNAVEnhet = klagebehandling.avsenderEnhetFoersteinstans,
@@ -102,7 +104,10 @@ class BehandlingMapper(
             saksbehandler = klagebehandling.toSaksbehandlerView(),
             previousSaksbehandler = klagebehandling.toPreviousSaksbehandlerView(),
             varsletFrist = klagebehandling.varsletFrist,
-            oppgavebeskrivelse = oppgaveApiService.getOppgavebeskrivelse(klagebehandling.oppgaveId),
+            oppgavebeskrivelse = if (klagebehandling.oppgaveId != null) {
+                oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
+            } else null,
+            oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
         )
     }
 
@@ -152,6 +157,8 @@ class BehandlingMapper(
 
     fun mapAnkebehandlingToBehandlingDetaljerView(ankebehandling: Ankebehandling): BehandlingDetaljerView {
         val forrigeEnhetNavn = ankebehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
+
+        val oppgave = oppgaveApiService.getOppgave(ankebehandling.oppgaveId)
 
         return BehandlingDetaljerView(
             id = ankebehandling.id,
@@ -205,11 +212,16 @@ class BehandlingMapper(
             saksbehandler = ankebehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankebehandling.toPreviousSaksbehandlerView(),
             varsletFrist = ankebehandling.varsletFrist,
-            oppgavebeskrivelse = oppgaveApiService.getOppgavebeskrivelse(ankebehandling.oppgaveId),
+            oppgavebeskrivelse = if (ankebehandling.oppgaveId != null) {
+                oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
+            } else null,
+            oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
         )
     }
 
     fun mapAnkeITrygderettenbehandlingToBehandlingDetaljerView(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): BehandlingDetaljerView {
+        val oppgave = oppgaveApiService.getOppgave(ankeITrygderettenbehandling.oppgaveId)
+
         return BehandlingDetaljerView(
             id = ankeITrygderettenbehandling.id,
             fraNAVEnhet = null,
@@ -259,7 +271,10 @@ class BehandlingMapper(
             saksbehandler = ankeITrygderettenbehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankeITrygderettenbehandling.toPreviousSaksbehandlerView(),
             varsletFrist = null,
-            oppgavebeskrivelse = oppgaveApiService.getOppgavebeskrivelse(ankeITrygderettenbehandling.oppgaveId),
+            oppgavebeskrivelse = if (ankeITrygderettenbehandling.oppgaveId != null) {
+                oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
+            } else null,
+            oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
         )
     }
 
