@@ -313,6 +313,8 @@ class BehandlingServiceTest {
             behandlingService.ferdigstillBehandling(
                 behandlingId = behandling.id,
                 innloggetIdent = SAKSBEHANDLER_IDENT,
+                nyBehandling = false,
+                returnOppgaveInput = null,
                 nyBehandlingEtterTROpphevet = false,
             )
         }

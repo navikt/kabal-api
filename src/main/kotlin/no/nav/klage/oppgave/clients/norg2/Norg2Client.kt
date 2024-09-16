@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.clients.norg2
 
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHETER_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHET_CACHE
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -35,6 +36,30 @@ class Norg2Client(private val norg2WebClient: WebClient) {
                 ?.asEnhet() ?: throw RuntimeException("No enhet returned for enhetNr $enhetNr")
         } catch (ex: Exception) {
             val errorMessage = "Problems with getting enhet $enhetNr from Norg2"
+            logger.error(errorMessage, ex)
+            throw RuntimeException(errorMessage, ex)
+        }
+    }
+
+    @Retryable
+    @Cacheable(ENHETER_CACHE)
+    fun fetchEnheter(
+    ): List<Enhet> {
+        return try {
+            norg2WebClient.get()
+                .uri { uriBuilder ->
+                    uriBuilder
+                        .path("/enhet")
+                        .queryParam("enhetStatusListe", "AKTIV")
+                        .build()
+                }
+                .retrieve()
+                .bodyToMono<List<EnhetResponse>>()
+                .block()?.map {
+                    it.asEnhet()
+                } ?: throw RuntimeException("No enhet list returned")
+        } catch (ex: Exception) {
+            val errorMessage = "Problems with getting enhet list from Norg2"
             logger.error(errorMessage, ex)
             throw RuntimeException(errorMessage, ex)
         }

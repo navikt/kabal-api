@@ -230,7 +230,11 @@ class StatistikkTilDVHService(
                 if (behandling.feilregistrering != null) {
                     behandling.feilregistrering!!.registered
                 } else if (behandling is AnkeITrygderettenbehandling) {
-                    behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
+                    if (behandling.utfall != null) {
+                        behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
+                    } else {
+                        behandling.nyBehandlingKA ?: throw RuntimeException("nyBehandlingKA mangler")
+                    }
                 } else {
                     behandling.ferdigstilling?.avsluttetAvSaksbehandler
                         ?: throw RuntimeException("avsluttetAvSaksbehandler mangler")

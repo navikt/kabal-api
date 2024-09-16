@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class EnhetResponse(
-    val navn: String
+    val navn: String,
+    val enhetNr: String,
 ) {
-    fun asEnhet() = Enhet(navn)
+    fun asEnhet() = Enhet(enhetsnr = enhetNr, navn = navn)
 }

@@ -106,6 +106,8 @@ class BehandlingService(
     fun ferdigstillBehandling(
         behandlingId: UUID,
         innloggetIdent: String,
+        nyBehandling: Boolean,
+        returnOppgaveInput: ReturnOppgaveInput?
         nyBehandlingEtterTROpphevet: Boolean,
     ): BehandlingFullfoertView {
         val behandling = getBehandlingForUpdate(
@@ -128,6 +130,33 @@ class BehandlingService(
                 )
             )
         }
+
+//        TODO: Introduce when FE is in place
+//        if (behandling.oppgaveId != null && !(behandling.shouldBeSentToTrygderetten() || behandling.shouldCreateNewAnkebehandling())) {
+//            if (returnOppgaveInput == null) {
+//                throw SectionedValidationErrorWithDetailsException(
+//                    title = "Validation error",
+//                    sections = listOf(
+//                        ValidationSection(
+//                            section = "behandling",
+//                            properties = listOf(
+//                                InvalidProperty(
+//                                    field = "returnOppgaveInput",
+//                                    reason = "Returinformasjon for Gosys-oppgaven må fylles ut for å avslutte behandlingen."
+//                                )
+//                            )
+//                        )
+//                    )
+//                )
+//            } else {
+//                behandling.setOppgaveReturnInfo(
+//                    tildeltEnhet = returnOppgaveInput.tildeltEnhet,
+//                    mappeId = returnOppgaveInput.mappeId,
+//                    kommentar = returnOppgaveInput.kommentar,
+//                    saksbehandlerident = innloggetIdent,
+//                )
+//            }
+//        }
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
         return behandlingMapper.mapToBehandlingFullfoertView(
@@ -1680,6 +1709,15 @@ class BehandlingService(
         fagsystem: Fagsystem
     ): Behandling {
         val navn = saksbehandlerService.getNameForIdentDefaultIfNull(navIdent)
+
+        setSaksbehandler(
+            behandlingId = behandling.id,
+            tildeltSaksbehandlerIdent = null,
+            enhetId = null,
+            fradelingReason = FradelingReason.ANNET,
+            utfoerendeSaksbehandlerIdent = navIdent,
+            fradelingWithChangedHjemmelIdList = null
+        )
 
         val event = behandling.setFeilregistrering(
             feilregistrering = Feilregistrering(

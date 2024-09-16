@@ -22,6 +22,7 @@ import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.AnkebehandlingService
 import no.nav.klage.oppgave.service.BehandlingEtterTrygderettenOpphevetService
 import no.nav.klage.oppgave.service.BehandlingService
+import no.nav.klage.oppgave.service.OppgaveApiService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.beans.factory.annotation.Value
@@ -41,6 +42,7 @@ class BehandlingAvslutningService(
     private val behandlingEtterTrygderettenOpphevetService: BehandlingEtterTrygderettenOpphevetService,
     private val ankebehandlingService: AnkebehandlingService,
     private val fssProxyClient: KlageFssProxyClient,
+    private val oppgaveApiService: OppgaveApiService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -176,6 +178,19 @@ class BehandlingAvslutningService(
                         type = EventType.BEHANDLING_EVENT
                     )
                 )
+            }
+
+            if (behandling.oppgaveId != null && behandling.oppgaveReturned != null) {
+                try {
+                    oppgaveApiService.returnOppgave(
+                        oppgaveId = behandling.oppgaveId!!,
+                        tildeltEnhetsnummer = behandling.oppgaveReturned!!.oppgaveReturnedTildeltEnhetsnummer,
+                        mappeId = behandling.oppgaveReturned!!.oppgaveReturnedMappeId,
+                        kommentar = behandling.oppgaveReturned!!.oppgaveReturnedKommentar,
+                    )
+                } catch (e: Exception) {
+                    logger.error("Feilet under tilbakeføring av oppgave $behandlingId.")
+                }
             }
         }
 
