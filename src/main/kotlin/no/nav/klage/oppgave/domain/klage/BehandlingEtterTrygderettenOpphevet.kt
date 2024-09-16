@@ -29,6 +29,8 @@ class BehandlingEtterTrygderettenOpphevet(
     var sourceBehandlingId: UUID?,
     @Column(name = "kjennelse_mottatt")
     val kjennelseMottatt: LocalDateTime,
+    @Column(name = "anke_behandlende_enhet")
+    val ankeBehandlendeEnhet: String,
 
     //Common properties
     id: UUID = UUID.randomUUID(),

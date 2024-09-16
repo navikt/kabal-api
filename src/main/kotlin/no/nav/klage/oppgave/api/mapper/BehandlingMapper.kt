@@ -281,11 +281,12 @@ class BehandlingMapper(
 
     fun mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet): BehandlingDetaljerView {
         val oppgave = oppgaveApiService.getOppgave(behandlingEtterTrygderettenOpphevet.oppgaveId)
+        val forrigeEnhetNavn = behandlingEtterTrygderettenOpphevet.ankeBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
         return BehandlingDetaljerView(
             id = behandlingEtterTrygderettenOpphevet.id,
-            fraNAVEnhet = null,
-            fraNAVEnhetNavn = null,
+            fraNAVEnhet = behandlingEtterTrygderettenOpphevet.ankeBehandlendeEnhet,
+            fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
             sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandlingEtterTrygderettenOpphevet),
             klager = getPartViewWithUtsendingskanal(behandlingEtterTrygderettenOpphevet.klager.partId, behandlingEtterTrygderettenOpphevet),

@@ -92,7 +92,7 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
                 }
 
                 is BehandlingEtterTrygderettenOpphevet -> {
-                    null to kakaKvalitetsvurderingId
+                    ankeBehandlendeEnhet to kakaKvalitetsvurderingId
                 }
 
                 else -> {

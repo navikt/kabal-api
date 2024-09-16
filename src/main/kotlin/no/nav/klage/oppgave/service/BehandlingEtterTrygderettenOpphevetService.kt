@@ -55,7 +55,7 @@ class BehandlingEtterTrygderettenOpphevetService(
                 fagsystem = ankeITrygderettenbehandling.fagsystem,
                 fagsakId = ankeITrygderettenbehandling.fagsakId,
                 mottattKlageinstans = ankeITrygderettenbehandling.mottattKlageinstans,
-                tildeling = null,
+                tildeling = ankeITrygderettenbehandling.tildeling,
                 frist = LocalDate.now() + Period.ofWeeks(12),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = 2,
@@ -64,6 +64,7 @@ class BehandlingEtterTrygderettenOpphevetService(
                 previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
                 oppgaveId = ankeITrygderettenbehandling.oppgaveId,
                 kjennelseMottatt = ankeITrygderettenbehandling.kjennelseMottatt!!,
+                ankeBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!
             )
         )
         logger.debug(
