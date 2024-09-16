@@ -233,7 +233,7 @@ class StatistikkTilDVHService(
                     if (behandling.utfall != null) {
                         behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
                     } else {
-                        behandling.nyBehandlingKA ?: throw RuntimeException("nyBehandlingKA mangler")
+                        behandling.nyAnkebehandlingKA ?: throw RuntimeException("nyAnkebehandlingKA mangler")
                     }
                 } else {
                     behandling.ferdigstilling?.avsluttetAvSaksbehandler

@@ -106,8 +106,7 @@ class BehandlingService(
     fun ferdigstillBehandling(
         behandlingId: UUID,
         innloggetIdent: String,
-        nyBehandling: Boolean,
-        returnOppgaveInput: ReturnOppgaveInput?
+        returnOppgaveInput: ReturnOppgaveInput?,
         nyBehandlingEtterTROpphevet: Boolean,
     ): BehandlingFullfoertView {
         val behandling = getBehandlingForUpdate(

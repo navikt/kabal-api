@@ -280,6 +280,8 @@ class BehandlingMapper(
     }
 
     fun mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet): BehandlingDetaljerView {
+        val oppgave = oppgaveApiService.getOppgave(behandlingEtterTrygderettenOpphevet.oppgaveId)
+
         return BehandlingDetaljerView(
             id = behandlingEtterTrygderettenOpphevet.id,
             fraNAVEnhet = null,
@@ -333,7 +335,10 @@ class BehandlingMapper(
             previousSaksbehandler = behandlingEtterTrygderettenOpphevet.toPreviousSaksbehandlerView(),
             varsletFrist = behandlingEtterTrygderettenOpphevet.varsletFrist,
             kjennelseMottatt = behandlingEtterTrygderettenOpphevet.kjennelseMottatt,
-            oppgavebeskrivelse = getOppgavebeskrivelse(behandlingEtterTrygderettenOpphevet.oppgaveId)
+            oppgavebeskrivelse = if (behandlingEtterTrygderettenOpphevet.oppgaveId != null) {
+                oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
+            } else null,
+            oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
         )
     }
 
