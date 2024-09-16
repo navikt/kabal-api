@@ -536,6 +536,7 @@ class OppgaveServiceTest {
                     frist = LocalDate.now().plusWeeks(12),
                     kakaKvalitetsvurderingId = UUID.randomUUID(),
                     kakaKvalitetsvurderingVersion = 2,
+                    ankeBehandlendeEnhet = "4291",
                 )
             }
         }
