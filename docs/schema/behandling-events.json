@@ -28,7 +28,8 @@
         "ANKEBEHANDLING_OPPRETTET",
         "ANKEBEHANDLING_AVSLUTTET",
         "ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET",
-        "BEHANDLING_FEILREGISTRERT"
+        "BEHANDLING_FEILREGISTRERT",
+        "BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET"
       ],
       "description": "Typen event som har skjedd. Matcher et av feltene i BehandlingDetaljer, typen her vil vise hvilket felt som ikke er null. Kan og vil utvides med flere verdier på sikt."
     },
@@ -60,6 +61,12 @@
         },
         "ankeITrygderettenbehandlingOpprettet": {
           "$ref": "#/definitions/AnkeITrygderettenbehandlingOpprettetDetaljer"
+        },
+        "behandlingFeilregistrert": {
+          "$ref": "#/definitions/BehandlingFeilregistrertDetaljer"
+        },
+        "behandlingEtterTrygderettenOpphevetAvsluttet": {
+          "$ref": "#/definitions/BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer"
         }
       }
     },
@@ -110,35 +117,6 @@
       },
       "required": [
         "mottattKlageinstans"
-      ]
-    },
-    "AnkeITrygderettenbehandlingOpprettetDetaljer": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "sendtTilTrygderetten": {
-          "type": "string",
-          "format": "date-time"
-        },
-        "utfall": {
-          "type": "string",
-          "enum": [
-            "TRUKKET",
-            "RETUR",
-            "OPPHEVET",
-            "MEDHOLD",
-            "DELVIS_MEDHOLD",
-            "STADFESTELSE",
-            "UGUNST",
-            "AVVIST",
-            "INNSTILLING_STADFESTELSE",
-            "INNSTILLING_AVVIST"
-          ],
-          "description": "Utfallet av behandlingen."
-        }
-      },
-      "required": [
-        "sendtTilTrygderetten"
       ]
     },
     "AnkebehandlingAvsluttetDetaljer": {
@@ -200,7 +178,8 @@
           "enum": [
             "KLAGE",
             "ANKE",
-            "ANKE_I_TRYGDERETTEN"
+            "ANKE_I_TRYGDERETTEN",
+            "BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET"
           ],
           "description": "Type behandling."
         }
@@ -210,6 +189,40 @@
         "navIdent",
         "reason",
         "type"
+      ]
+    },
+    "BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "avsluttet": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "utfall": {
+          "type": "string",
+          "enum": [
+            "TRUKKET",
+            "RETUR",
+            "OPPHEVET",
+            "MEDHOLD",
+            "DELVIS_MEDHOLD",
+            "STADFESTELSE",
+            "UGUNST",
+            "AVVIST"
+          ]
+        },
+        "journalpostReferanser": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "avsluttet",
+        "utfall",
+        "journalpostReferanser"
       ]
     }
   }
