@@ -26,7 +26,7 @@ class KabinApiService(
     private val saksbehandlerService: SaksbehandlerService,
     private val mottakService: MottakService,
     private val ankebehandlingService: AnkebehandlingService,
-    private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
+    private val behandlingEtterTrygderettenOpphevetService: BehandlingEtterTrygderettenOpphevetService,
     private val behandlingService: BehandlingService,
     private val klagebehandlingService: KlagebehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
@@ -43,11 +43,11 @@ class KabinApiService(
         val ankemuligheterFromAnkebehandlinger =
             ankebehandlingService.getCompletedAnkebehandlingerByPartIdValue(partIdValue = partIdValue)
                 .map { it.toAnkemulighet() }
-        val ankemuligheterFromAnkeITrygderettenbehandlinger =
-            ankeITrygderettenbehandlingService.getCompletedAnkeITrygderettenbehandlingerByPartIdValue(partIdValue = partIdValue)
+        val ankemuligheterFromBehandlingEtterTrygderettenOpphevet =
+            behandlingEtterTrygderettenOpphevetService.getCompletedBehandlingEtterTrygderettenOpphevetServiceByPartIdValue(partIdValue = partIdValue)
                 .map { it.toAnkemulighet() }
 
-        return ankemuligheterFromKlagebehandlinger + ankemuligheterFromAnkebehandlinger + ankemuligheterFromAnkeITrygderettenbehandlinger
+        return ankemuligheterFromKlagebehandlinger + ankemuligheterFromAnkebehandlinger + ankemuligheterFromBehandlingEtterTrygderettenOpphevet
     }
 
     fun createAnke(input: CreateAnkeBasedOnKabinInput): CreatedAnkeResponse {

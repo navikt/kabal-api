@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.Column
+import jakarta.persistence.Convert
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.*
@@ -11,18 +12,25 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Entity
-@DiscriminatorValue("anke_i_trygderetten")
-class AnkeITrygderettenbehandling(
-    @Column(name = "sendt_til_trygderetten")
-    var sendtTilTrygderetten: LocalDateTime,
+@DiscriminatorValue("behandling_etter_tr_opphevet")
+class BehandlingEtterTrygderettenOpphevet(
+    @Column(name = "kaka_kvalitetsvurdering_id")
+    var kakaKvalitetsvurderingId: UUID?,
+    @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
+    val kakaKvalitetsvurderingVersion: Int,
+    @Column(name = "varslet_frist")
+    var varsletFrist: LocalDate? = null,
+    @Column(name = "varslet_behandlingstid_units")
+    var varsletBehandlingstidUnits: Int? = null,
+    @Column(name = "varslet_behandlingstid_unit_type_id")
+    @Convert(converter = TimeUnitTypeConverter::class)
+    var varsletBehandlingstidUnitType: TimeUnitType? = null,
+    @Column(name = "source_behandling_id")
+    var sourceBehandlingId: UUID?,
     @Column(name = "kjennelse_mottatt")
-    var kjennelseMottatt: LocalDateTime? = null,
-    /** Tatt over av KA mens den er i TR */
-    @Column(name = "ny_ankebehandling_ka")
-    var nyAnkebehandlingKA: LocalDateTime? = null,
-    /** Skal det opprettes ny behandling etter TR har opphevet? */
-    @Column(name = "ny_behandling_etter_tr_opphevet")
-    var nyBehandlingEtterTROpphevet: LocalDateTime? = null,
+    val kjennelseMottatt: LocalDateTime,
+    @Column(name = "anke_behandlende_enhet")
+    val ankeBehandlendeEnhet: String,
 
     //Common properties
     id: UUID = UUID.randomUUID(),
@@ -35,8 +43,7 @@ class AnkeITrygderettenbehandling(
     fagsystem: Fagsystem,
     fagsakId: String,
     mottattKlageinstans: LocalDateTime,
-    //TODO: Trenger denne være nullable? Den blir da alltid satt i createKlagebehandlingFromMottak?
-    frist: LocalDate? = null,
+    frist: LocalDate,
     tildeling: Tildeling? = null,
     created: LocalDateTime = LocalDateTime.now(),
     modified: LocalDateTime = LocalDateTime.now(),
@@ -45,7 +52,7 @@ class AnkeITrygderettenbehandling(
     sattPaaVent: SattPaaVent? = null,
     feilregistrering: Feilregistrering? = null,
     utfall: Utfall? = null,
-    extraUtfallSet: Set<Utfall> = setOf(),
+    extraUtfallSet: Set<Utfall> = emptySet(),
     registreringshjemler: MutableSet<Registreringshjemmel> = mutableSetOf(),
     medunderskriver: MedunderskriverTildeling? = null,
     medunderskriverFlowState: FlowState = FlowState.NOT_SENT,
@@ -100,8 +107,9 @@ class AnkeITrygderettenbehandling(
     oppgaveId = oppgaveId,
     oppgaveReturned = oppgaveReturned,
 ) {
+
     override fun toString(): String {
-        return "Ankebehandling(id=$id, " +
+        return "BehandlingEtterTrygderettenOpphevet(id=$id, " +
                 "modified=$modified, " +
                 "created=$created)"
     }
@@ -110,7 +118,7 @@ class AnkeITrygderettenbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as AnkeITrygderettenbehandling
+        other as BehandlingEtterTrygderettenOpphevet
 
         return id == other.id
     }
@@ -118,31 +126,4 @@ class AnkeITrygderettenbehandling(
     override fun hashCode(): Int {
         return id.hashCode()
     }
-
-    /*
-    Mulige utfall av første behandling:
-
-    HVIS behandling er AVSLUTTET
-     OG utfall er en av denne mengden: {STADFESTELSE, AVVIST, ?DELVIS_MEDHOLD?}
-     DA skal innstillingsbrev sendes til bruker
-       OG status skal settes til PÅ VENT
-       OG Ankebehandlingen får en datoverdi for "ventetid påbegynt"
-       "Ventetid påbegynt" er utledet av datoverdi for behandling AVSLUTTET
-
-    HVIS behandling er AVSLUTTET
-     OG utfall er en av denne mengden: {TRUKKET, OPPHEVET, MEDHOLD, UGUNST}
-     DA skal infobrev sendes til bruker
-       OG status er AVSLUTTET
-       OG Ankbehandlingen anses som ferdig
-
-    RETUR er ikke aktuelt for anker, skal ikke være et valg for saksbehandler
-
-    SEARCH lager en liste med anker på vent basert på statusen PÅ VENT
-
-    Dette fører til opprettelse av andre behandling:
-     - Noen trykker på knappen Gjenåpne
-
-     Situasjonen blir at vi har en ankebehandling med en åpen 2. behandling
-
-     */
 }

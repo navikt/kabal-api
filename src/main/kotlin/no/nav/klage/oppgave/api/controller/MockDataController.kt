@@ -280,7 +280,7 @@ class MockDataController(
         )
 
         val behandling = when (type) {
-            Type.KLAGE, Type.ANKE -> {
+            Type.KLAGE, Type.ANKE, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
                 mottakService.createMottakForKlageAnkeV3ForE2ETests(
                     OversendtKlageAnkeV3(
                         ytelse = ytelse,

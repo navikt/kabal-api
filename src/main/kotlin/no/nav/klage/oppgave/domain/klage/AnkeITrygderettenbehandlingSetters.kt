@@ -56,14 +56,37 @@ object AnkeITrygderettenbehandlingSetters {
         nyVerdi: LocalDateTime,
         saksbehandlerident: String
     ): BehandlingEndretEvent {
-        val gammelVerdi = nyBehandlingKA
+        val gammelVerdi = nyAnkebehandlingKA
         val tidspunkt = LocalDateTime.now()
-        nyBehandlingKA = nyVerdi
+        nyAnkebehandlingKA = nyVerdi
         modified = tidspunkt
         val endringslogg =
             endringslogg(
                 saksbehandlerident = saksbehandlerident,
                 felt = Felt.NY_ANKEBEHANDLING_KA,
+                fraVerdi = gammelVerdi.toString(),
+                tilVerdi = nyVerdi.toString(),
+                behandlingId = this.id,
+                tidspunkt = tidspunkt,
+            )
+        return BehandlingEndretEvent(
+            behandling = this,
+            endringslogginnslag = listOfNotNull(endringslogg)
+        )
+    }
+
+    fun AnkeITrygderettenbehandling.setNyBehandlingEtterTROpphevet(
+        nyVerdi: LocalDateTime,
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val gammelVerdi = nyBehandlingEtterTROpphevet
+        val tidspunkt = LocalDateTime.now()
+        nyBehandlingEtterTROpphevet = nyVerdi
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident = saksbehandlerident,
+                felt = Felt.NY_BEHANDLING_ETTER_TR_OPPHEVET,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
                 behandlingId = this.id,

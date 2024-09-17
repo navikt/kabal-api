@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.verify
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.view.EnhetensFerdigstilteOppgaverQueryParams
@@ -52,11 +53,17 @@ class OppgaveServiceTest {
     lateinit var innloggetSaksbehandlerService: InnloggetSaksbehandlerService
 
     @MockkBean
+    lateinit var tilgangService: TilgangService
+
+    @MockkBean
     lateinit var saksbehandlerService: SaksbehandlerService
 
     lateinit var oppgaveService: OppgaveService
 
     private val SAKSBEHANDLER_IDENT = "SAKSBEHANDLER_IDENT"
+    private val FNR = "23452354123"
+    private val FNR2 = "23452354124"
+    private val SAKS_ID = "SAKS_ID"
 
     @BeforeEach
     fun setup() {
@@ -64,6 +71,8 @@ class OppgaveServiceTest {
             behandlingRepository = behandlingRepository,
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             saksbehandlerService = saksbehandlerService,
+            tilgangService = tilgangService
+
         )
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
         every { saksbehandlerService.getEnhetForSaksbehandler(any()) } returns Enhet(enhetId = "1000", navn = "Enhet")
@@ -368,6 +377,60 @@ class OppgaveServiceTest {
         assertThat(results.behandlinger).containsExactlyInAnyOrder(behandling1.id, behandling2.id)
     }
 
+    @Test
+    fun `searchOppgaverByFagsakId filters out inaccessible entries`() {
+        val klagebehandling1 = simpleInsert(
+            type = Type.KLAGE,
+            ytelse = Ytelse.OMS_OMP,
+            registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            frist = LocalDate.now().plusDays(9),
+            fnr = FNR,
+            saksId = SAKS_ID,
+            fagsystem = Fagsystem.K9,
+            ferdigstilt = false
+        )
+        val klagebehandling2 = simpleInsert(
+            type = Type.KLAGE,
+            ytelse = Ytelse.OMS_OMP,
+            registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            frist = LocalDate.now().plusDays(9),
+            fnr = FNR2,
+            saksId = SAKS_ID,
+            fagsystem = Fagsystem.AO01,
+            ferdigstilt = false
+        )
+        val klagebehandling3 = simpleInsert(
+            type = Type.KLAGE,
+            ytelse = Ytelse.OMS_OMP,
+            registreringshjemmelList = emptyList(),
+            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            frist = LocalDate.now().plusDays(9),
+            fnr = FNR,
+            saksId = SAKS_ID,
+            fagsystem = Fagsystem.BISYS,
+            ferdigstilt = true
+        )
+
+        behandlingRepository.saveAll(listOf(klagebehandling1, klagebehandling2, klagebehandling3))
+
+        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR) } returns true
+        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR2) } returns false
+
+        val output = oppgaveService.searchOppgaverByFagsakId(
+            fagsakId = SAKS_ID
+        )
+
+        verify(exactly = 1) { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR) }
+        verify(exactly = 1) { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR2) }
+
+        assertThat(output.aapneBehandlinger).containsExactlyInAnyOrder(klagebehandling1.id)
+        assertThat(output.avsluttedeBehandlinger).containsExactlyInAnyOrder(klagebehandling3.id)
+        assertThat(output.feilregistrerteBehandlinger).isEmpty()
+        assertThat(output.paaVentBehandlinger).isEmpty()
+    }
+
     private fun simpleInsert(
         type: Type,
         ytelse: Ytelse,
@@ -376,16 +439,20 @@ class OppgaveServiceTest {
         avsluttetAvSaksbehandler: LocalDateTime = LocalDateTime.now(),
         enhetId: String = "1000",
         frist: LocalDate = LocalDate.now(),
+        fnr: String = FNR,
+        saksId: String = SAKS_ID,
+        fagsystem: Fagsystem = Fagsystem.K9,
+        ferdigstilt: Boolean = true,
     ): Behandling {
         val now = LocalDateTime.now()
         val mottak = Mottak(
             ytelse = ytelse,
             type = type,
-            klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+            klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
             kildeReferanse = "1234234",
             sakMottattKaDato = now,
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
+            fagsystem = fagsystem,
+            fagsakId = saksId,
             forrigeBehandlendeEnhet = "0101",
             brukersHenvendelseMottattNavDato = LocalDate.now(),
             kommentar = null,
@@ -403,9 +470,9 @@ class OppgaveServiceTest {
         val behandling = when (type) {
             Type.KLAGE -> {
                 Klagebehandling(
-                    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+                    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
                     sakenGjelder = SakenGjelder(
-                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                        partId = PartId(type = PartIdType.PERSON, value = fnr),
                         skalMottaKopi = false
                     ),
                     ytelse = ytelse,
@@ -415,8 +482,8 @@ class OppgaveServiceTest {
                     created = now,
                     modified = now,
                     mottattKlageinstans = now,
-                    fagsystem = Fagsystem.K9,
-                    fagsakId = "123",
+                    fagsystem = fagsystem,
+                    fagsakId = saksId,
                     kildeReferanse = "abc",
                     mottakId = mottak.id,
                     mottattVedtaksinstans = LocalDate.now(),
@@ -426,7 +493,7 @@ class OppgaveServiceTest {
                     utfall = Utfall.STADFESTELSE,
                     extraUtfallSet = emptySet(),
                     registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    ferdigstilling = ferdigstilling,
+                    ferdigstilling = if (ferdigstilt) ferdigstilling else null,
                     previousSaksbehandlerident = "C78901",
                     tildeling = Tildeling(
                         saksbehandlerident = tildeltSaksbehandlerIdent,
@@ -439,9 +506,9 @@ class OppgaveServiceTest {
 
             Type.ANKE -> {
                 Ankebehandling(
-                    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+                    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
                     sakenGjelder = SakenGjelder(
-                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                        partId = PartId(type = PartIdType.PERSON, value = fnr),
                         skalMottaKopi = false
                     ),
                     ytelse = ytelse,
@@ -451,8 +518,8 @@ class OppgaveServiceTest {
                     created = now,
                     modified = now,
                     mottattKlageinstans = now,
-                    fagsystem = Fagsystem.K9,
-                    fagsakId = "123",
+                    fagsystem = fagsystem,
+                    fagsakId = saksId,
                     kildeReferanse = "abc",
                     mottakId = mottak.id,
                     kakaKvalitetsvurderingId = UUID.randomUUID(),
@@ -460,7 +527,7 @@ class OppgaveServiceTest {
                     utfall = Utfall.STADFESTELSE,
                     extraUtfallSet = emptySet(),
                     registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    ferdigstilling = ferdigstilling,
+                    ferdigstilling = if (ferdigstilt) ferdigstilling else null,
                     previousSaksbehandlerident = "C78901",
                     klageBehandlendeEnhet = "1000",
                     sourceBehandlingId = UUID.randomUUID(),
@@ -475,6 +542,37 @@ class OppgaveServiceTest {
 
             Type.ANKE_I_TRYGDERETTEN -> {
                 AnkeITrygderettenbehandling(
+                    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
+                    sakenGjelder = SakenGjelder(
+                        partId = PartId(type = PartIdType.PERSON, value = fnr),
+                        skalMottaKopi = false
+                    ),
+                    ytelse = ytelse,
+                    type = type,
+                    hjemler = mutableSetOf(),
+                    created = now,
+                    modified = now,
+                    mottattKlageinstans = now,
+                    fagsystem = fagsystem,
+                    fagsakId = saksId,
+                    kildeReferanse = "abc",
+                    utfall = Utfall.STADFESTELSE,
+                    extraUtfallSet = emptySet(),
+                    registreringshjemler = registreringshjemmelList.toMutableSet(),
+                    ferdigstilling = if (ferdigstilt) ferdigstilling else null,
+                    previousSaksbehandlerident = "C78901",
+                    tildeling = Tildeling(
+                        saksbehandlerident = tildeltSaksbehandlerIdent,
+                        enhet = enhetId,
+                        tidspunkt = now,
+                    ),
+                    sendtTilTrygderetten = LocalDateTime.now(),
+                    oppgaveId = null,
+                )
+            }
+
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+                BehandlingEtterTrygderettenOpphevet(
                     klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = "23452354"),
@@ -499,8 +597,13 @@ class OppgaveServiceTest {
                         enhet = enhetId,
                         tidspunkt = now,
                     ),
-                    sendtTilTrygderetten = LocalDateTime.now(),
+                    kjennelseMottatt = LocalDateTime.now(),
                     oppgaveId = null,
+                    sourceBehandlingId = UUID.randomUUID(),
+                    frist = LocalDate.now().plusWeeks(12),
+                    kakaKvalitetsvurderingId = UUID.randomUUID(),
+                    kakaKvalitetsvurderingVersion = 2,
+                    ankeBehandlendeEnhet = "4291",
                 )
             }
         }

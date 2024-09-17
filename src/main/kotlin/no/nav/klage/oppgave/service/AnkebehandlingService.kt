@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
+import no.nav.klage.oppgave.repositories.BehandlingEtterTrygderettenOpphevetRepository
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -21,6 +22,7 @@ import java.util.*
 @Transactional
 class AnkebehandlingService(
     private val ankebehandlingRepository: AnkebehandlingRepository,
+    private val behandlingEtterTrygderettenOpphevetRepository: BehandlingEtterTrygderettenOpphevetRepository,
     private val behandlingRepository: BehandlingRepository,
     private val kakaApiGateway: KakaApiGateway,
     private val dokumentService: DokumentService,
@@ -47,8 +49,6 @@ class AnkebehandlingService(
     }
 
     fun createAnkebehandlingFromMottak(mottak: Mottak): Ankebehandling {
-        val kvalitetsvurderingVersion = getKakaVersion()
-
         val ankebehandling = ankebehandlingRepository.save(
             Ankebehandling(
                 klager = mottak.klager.copy(),
@@ -65,8 +65,8 @@ class AnkebehandlingService(
                 frist = mottak.generateFrist(),
                 mottakId = mottak.id,
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
-                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
-                kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
+                kakaKvalitetsvurderingVersion = 2,
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
                 sourceBehandlingId = mottak.forrigeBehandlingId,
@@ -109,18 +109,7 @@ class AnkebehandlingService(
         return ankebehandling
     }
 
-    private fun getKakaVersion(): Int {
-        val kvalitetsvurderingVersion = if (LocalDate.now() >= kakaVersion2Date) {
-            2
-        } else {
-            1
-        }
-        return kvalitetsvurderingVersion
-    }
-
     fun createAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): Ankebehandling {
-        val kvalitetsvurderingVersion = getKakaVersion()
-
         val ankebehandling = ankebehandlingRepository.save(
             Ankebehandling(
                 klager = ankeITrygderettenbehandling.klager.copy(),
@@ -133,10 +122,10 @@ class AnkebehandlingService(
                 fagsakId = ankeITrygderettenbehandling.fagsakId,
                 innsendt = ankeITrygderettenbehandling.mottattKlageinstans.toLocalDate(),
                 mottattKlageinstans = ankeITrygderettenbehandling.mottattKlageinstans,
-                tildeling = null,
+                tildeling = ankeITrygderettenbehandling.tildeling,
                 frist = LocalDate.now() + Period.ofWeeks(12),
-                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
-                kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
+                kakaKvalitetsvurderingVersion = 2,
                 hjemler = ankeITrygderettenbehandling.hjemler,
                 klageBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
                 sourceBehandlingId = ankeITrygderettenbehandling.id,

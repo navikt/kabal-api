@@ -3,16 +3,10 @@ package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.Ytelse
-import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
-import no.nav.klage.oppgave.api.view.IdentifikatorInput
-import no.nav.klage.oppgave.api.view.OppgaveApiMappeView
-import no.nav.klage.oppgave.api.view.SearchPartWithUtsendingskanalInput
+import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.norg2.Enhet
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
-import no.nav.klage.oppgave.service.EnhetService
-import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
-import no.nav.klage.oppgave.service.OppgaveApiService
-import no.nav.klage.oppgave.service.PartSearchService
+import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -26,6 +20,7 @@ class SearchController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val partSearchService: PartSearchService,
     private val oppgaveApiService: OppgaveApiService,
+    private val oppgaveService: OppgaveService,
     private val enhetService: EnhetService,
 ) {
 
@@ -103,5 +98,18 @@ class SearchController(
         )
 
         return enhetService.findEnheter(enhetsnr = enhetsnr, enhetsnavn = enhetsnavn)
+    }
+
+    @GetMapping("/search/saksnummer")
+    fun searchSaksnummer(
+        @RequestParam("saksnummer", required = true) fagsakId: String,
+    ): SearchSaksnummerResponse {
+        logMethodDetails(
+            ::searchSaksnummer.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        return oppgaveService.searchOppgaverByFagsakId(fagsakId = fagsakId)
     }
 }

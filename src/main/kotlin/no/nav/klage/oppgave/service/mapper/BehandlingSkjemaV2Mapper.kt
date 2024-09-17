@@ -232,6 +232,49 @@ fun AnkeITrygderettenbehandling.mapToSkjemaV2(): BehandlingSkjemaV2 {
     )
 }
 
+fun BehandlingEtterTrygderettenOpphevet.mapToSkjemaV2(): BehandlingSkjemaV2 {
+
+    return BehandlingSkjemaV2(
+        id = id.toString(),
+        klager = klager.mapToSkjemaV2(),
+        klagersProsessfullmektig = klager.prosessfullmektig?.mapToSkjemaV2(),
+        sakenGjelder = sakenGjelder.mapToSkjemaV2(),
+        tema = ytelse.toTema().mapToSkjemaV2(),
+        ytelse = ytelse.mapToSkjemaV2(),
+        type = type.mapToSkjemaV2(),
+        kildeReferanse = kildeReferanse,
+        sakFagsystem = fagsystem.mapToSkjemaV2(),
+        sakFagsakId = fagsakId,
+        sakMottattKaDato = mottattKlageinstans,
+        avsluttetAvSaksbehandlerTidspunkt = ferdigstilling?.avsluttetAvSaksbehandler,
+        avsluttetTidspunkt = ferdigstilling?.avsluttet,
+        fristDato = frist,
+        varsletFristDato = null,
+        gjeldendeTildeling = tildeling?.mapToSkjemaV2(),
+        medunderskriver = medunderskriver?.mapToSkjemaV2(),
+        medunderskriverFlowStateId = medunderskriverFlowState.id,
+        hjemler = hjemler.map { it.mapToSkjemaV2() },
+        opprettetTidspunkt = created,
+        sistEndretTidspunkt = modified,
+        kildesystem = fagsystem.mapToSkjemaV2(),
+        saksdokumenter = saksdokumenter.mapToSkjemaV2(),
+        vedtak =
+        BehandlingSkjemaV2.Vedtak(
+            utfall = utfall?.mapToSkjemaV2(),
+            hjemler = registreringshjemler.map { it.mapToSkjemaV2() },
+        ),
+        status = BehandlingSkjemaV2.StatusType.valueOf(getStatus().name),
+        feilregistrert = feilregistrering?.registered,
+        sattPaaVent = sattPaaVent?.from,
+        sattPaaVentExpires = sattPaaVent?.to,
+        sattPaaVentReason = sattPaaVent?.reason,
+        rolIdent = rolIdent,
+        rolFlowStateId = rolFlowState.id,
+        returnertFraROLTidspunkt = rolReturnedDate,
+
+        )
+}
+
 data class BehandlingSkjemaV2(
     val id: String,
     val klager: PersonEllerOrganisasjon,

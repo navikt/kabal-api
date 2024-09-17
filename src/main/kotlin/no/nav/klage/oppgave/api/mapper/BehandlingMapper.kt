@@ -44,6 +44,7 @@ class BehandlingMapper(
             Type.KLAGE -> mapKlagebehandlingToBehandlingDetaljerView(behandling as Klagebehandling)
             Type.ANKE -> mapAnkebehandlingToBehandlingDetaljerView(behandling as Ankebehandling)
             Type.ANKE_I_TRYGDERETTEN -> mapAnkeITrygderettenbehandlingToBehandlingDetaljerView(behandling as AnkeITrygderettenbehandling)
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandling as BehandlingEtterTrygderettenOpphevet)
         }
     }
 
@@ -272,6 +273,70 @@ class BehandlingMapper(
             previousSaksbehandler = ankeITrygderettenbehandling.toPreviousSaksbehandlerView(),
             varsletFrist = null,
             oppgavebeskrivelse = if (ankeITrygderettenbehandling.oppgaveId != null) {
+                oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
+            } else null,
+            oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
+        )
+    }
+
+    fun mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet): BehandlingDetaljerView {
+        val oppgave = oppgaveApiService.getOppgave(behandlingEtterTrygderettenOpphevet.oppgaveId)
+        val forrigeEnhetNavn = behandlingEtterTrygderettenOpphevet.ankeBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
+
+        return BehandlingDetaljerView(
+            id = behandlingEtterTrygderettenOpphevet.id,
+            fraNAVEnhet = behandlingEtterTrygderettenOpphevet.ankeBehandlendeEnhet,
+            fraNAVEnhetNavn = forrigeEnhetNavn,
+            mottattVedtaksinstans = null,
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandlingEtterTrygderettenOpphevet),
+            klager = getPartViewWithUtsendingskanal(behandlingEtterTrygderettenOpphevet.klager.partId, behandlingEtterTrygderettenOpphevet),
+            prosessfullmektig = behandlingEtterTrygderettenOpphevet.klager.prosessfullmektig?.let { getPartViewWithUtsendingskanal(it.partId, behandlingEtterTrygderettenOpphevet) },
+            temaId = behandlingEtterTrygderettenOpphevet.ytelse.toTema().id,
+            ytelseId = behandlingEtterTrygderettenOpphevet.ytelse.id,
+            typeId = behandlingEtterTrygderettenOpphevet.type.id,
+            mottattKlageinstans = behandlingEtterTrygderettenOpphevet.mottattKlageinstans.toLocalDate(),
+            tildelt = behandlingEtterTrygderettenOpphevet.tildeling?.tidspunkt?.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = behandlingEtterTrygderettenOpphevet.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = behandlingEtterTrygderettenOpphevet.ferdigstilling != null,
+            frist = behandlingEtterTrygderettenOpphevet.frist,
+            datoSendtMedunderskriver = behandlingEtterTrygderettenOpphevet.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = behandlingEtterTrygderettenOpphevet.hjemler.map { it.id },
+            modified = behandlingEtterTrygderettenOpphevet.modified,
+            created = behandlingEtterTrygderettenOpphevet.created,
+            resultat = behandlingEtterTrygderettenOpphevet.mapToVedtakView(),
+            kommentarFraVedtaksinstans = null,
+            tilknyttedeDokumenter = behandlingEtterTrygderettenOpphevet.saksdokumenter.map {
+                TilknyttetDokument(
+                    journalpostId = it.journalpostId,
+                    dokumentInfoId = it.dokumentInfoId
+                )
+            }.toSet(),
+            egenAnsatt = behandlingEtterTrygderettenOpphevet.sakenGjelder.erEgenAnsatt(),
+            fortrolig = behandlingEtterTrygderettenOpphevet.sakenGjelder.harBeskyttelsesbehovFortrolig(),
+            strengtFortrolig = behandlingEtterTrygderettenOpphevet.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
+            vergemaalEllerFremtidsfullmakt = behandlingEtterTrygderettenOpphevet.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
+            dead = behandlingEtterTrygderettenOpphevet.sakenGjelder.getDead(),
+            fullmakt = behandlingEtterTrygderettenOpphevet.sakenGjelder.isFullmakt(),
+            kvalitetsvurderingReference = if (behandlingEtterTrygderettenOpphevet.feilregistrering == null && behandlingEtterTrygderettenOpphevet.kakaKvalitetsvurderingId != null) {
+                BehandlingDetaljerView.KvalitetsvurderingReference(
+                    id = behandlingEtterTrygderettenOpphevet.kakaKvalitetsvurderingId!!,
+                    version = behandlingEtterTrygderettenOpphevet.kakaKvalitetsvurderingVersion,
+                )
+            } else null,
+            sattPaaVent = behandlingEtterTrygderettenOpphevet.sattPaaVent,
+            feilregistrering = behandlingEtterTrygderettenOpphevet.feilregistrering.toView(),
+            fagsystemId = behandlingEtterTrygderettenOpphevet.fagsystem.id,
+            relevantDocumentIdList = behandlingEtterTrygderettenOpphevet.saksdokumenter.map {
+                it.dokumentInfoId
+            }.toSet(),
+            saksnummer = behandlingEtterTrygderettenOpphevet.fagsakId,
+            rol = behandlingEtterTrygderettenOpphevet.toROLView(),
+            medunderskriver = behandlingEtterTrygderettenOpphevet.toMedunderskriverView(),
+            saksbehandler = behandlingEtterTrygderettenOpphevet.toSaksbehandlerView(),
+            previousSaksbehandler = behandlingEtterTrygderettenOpphevet.toPreviousSaksbehandlerView(),
+            varsletFrist = behandlingEtterTrygderettenOpphevet.varsletFrist,
+            kjennelseMottatt = behandlingEtterTrygderettenOpphevet.kjennelseMottatt,
+            oppgavebeskrivelse = if (behandlingEtterTrygderettenOpphevet.oppgaveId != null) {
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
             oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,

@@ -10,8 +10,7 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.ANKEBEHANDLING_AVSLUTTET
-import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.KLAGEBEHANDLING_AVSLUTTET
+import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.klage.Ankebehandling
 import no.nav.klage.oppgave.domain.klage.Behandling
@@ -21,6 +20,7 @@ import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.AnkebehandlingService
+import no.nav.klage.oppgave.service.BehandlingEtterTrygderettenOpphevetService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.OppgaveApiService
 import no.nav.klage.oppgave.util.getLogger
@@ -39,6 +39,7 @@ class BehandlingAvslutningService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokumentUnderArbeidCommonService: DokumentUnderArbeidCommonService,
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
+    private val behandlingEtterTrygderettenOpphevetService: BehandlingEtterTrygderettenOpphevetService,
     private val ankebehandlingService: AnkebehandlingService,
     private val fssProxyClient: KlageFssProxyClient,
     private val oppgaveApiService: OppgaveApiService,
@@ -111,6 +112,9 @@ class BehandlingAvslutningService(
         } else if (behandling is AnkeITrygderettenbehandling && behandling.shouldCreateNewAnkebehandling()) {
             logger.debug("Oppretter ny Ankebehandling basert på AnkeITrygderettenbehandling")
             createNewAnkebehandlingFromAnkeITrygderettenbehandling(behandling)
+        } else if (behandling is AnkeITrygderettenbehandling && behandling.shouldCreateNewBehandlingEtterTROpphevet()) {
+            logger.debug("Oppretter ny behandling, etter TR opphevet, basert på AnkeITrygderettenbehandling")
+            createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(behandling)
         } else {
             val hoveddokumenter =
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
@@ -160,6 +164,7 @@ class BehandlingAvslutningService(
                         Type.KLAGE -> KLAGEBEHANDLING_AVSLUTTET
                         Type.ANKE -> ANKEBEHANDLING_AVSLUTTET
                         Type.ANKE_I_TRYGDERETTEN -> ANKEBEHANDLING_AVSLUTTET
+                        Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
                     },
                     detaljer = getBehandlingDetaljer(behandling, hoveddokumenter)
                 )
@@ -200,6 +205,11 @@ class BehandlingAvslutningService(
         ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
     }
 
+    private fun createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
+        logger.debug("Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}", ankeITrygderettenbehandling.id)
+        behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandling)
+    }
+
     private fun createAnkeITrygderettenbehandling(behandling: Behandling) {
         logger.debug("Creating ankeITrygderettenbehandling based on behandling with id {}", behandling.id)
         ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
@@ -237,6 +247,17 @@ class BehandlingAvslutningService(
             Type.ANKE_I_TRYGDERETTEN -> {
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
+                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
+                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+                            .map { it.journalpostId }
+                    )
+                )
+            }
+
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+                BehandlingDetaljer(
+                    behandlingEtterTrygderettenOpphevetAvsluttet = BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
                         journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }

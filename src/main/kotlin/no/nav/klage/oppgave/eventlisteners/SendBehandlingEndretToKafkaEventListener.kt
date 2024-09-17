@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.klage.Ankebehandling
+import no.nav.klage.oppgave.domain.klage.BehandlingEtterTrygderettenOpphevet
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.service.BehandlingEndretKafkaProducer
@@ -39,13 +40,16 @@ class SendBehandlingEndretToKafkaEventListener(
         try {
             when (behandling) {
                 is Klagebehandling ->
-                    behandlingEndretKafkaProducer.sendKlageEndretV2(behandling)
+                    behandlingEndretKafkaProducer.sendKlageEndret(behandling)
 
                 is Ankebehandling ->
-                    behandlingEndretKafkaProducer.sendAnkeEndretV2(behandling)
+                    behandlingEndretKafkaProducer.sendAnkeEndret(behandling)
 
                 is AnkeITrygderettenbehandling ->
-                    behandlingEndretKafkaProducer.sendAnkeITrygderettenEndretV2(behandling)
+                    behandlingEndretKafkaProducer.sendAnkeITrygderettenEndret(behandling)
+
+                is BehandlingEtterTrygderettenOpphevet ->
+                    behandlingEndretKafkaProducer.sendBehandlingOpprettetEtterTrygderettenOpphevet(behandling)
             }
         } catch (e: Exception) {
             logger.error("could not index behandling with id ${behandlingEndretEvent.behandling.id}", e)

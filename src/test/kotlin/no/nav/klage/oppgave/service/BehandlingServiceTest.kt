@@ -313,8 +313,8 @@ class BehandlingServiceTest {
             behandlingService.ferdigstillBehandling(
                 behandlingId = behandling.id,
                 innloggetIdent = SAKSBEHANDLER_IDENT,
-                nyBehandling = false,
                 returnOppgaveInput = null,
+                nyBehandlingEtterTROpphevet = false,
             )
         }
     }
@@ -351,7 +351,7 @@ class BehandlingServiceTest {
             assertThrows<SectionedValidationErrorWithDetailsException> {
                 behandlingService.validateBehandlingBeforeFinalize(
                     behandlingId = behandling.id,
-                    nyBehandling = false,
+                    nyBehandlingEtterTROpphevet = false,
                 )
             }
         }
@@ -363,7 +363,7 @@ class BehandlingServiceTest {
             assertThrows<SectionedValidationErrorWithDetailsException> {
                 behandlingService.validateBehandlingBeforeFinalize(
                     behandlingId = behandling.id,
-                    nyBehandling = false,
+                    nyBehandlingEtterTROpphevet = false,
                 )
             }
         }
@@ -376,7 +376,7 @@ class BehandlingServiceTest {
             assertThrows<SectionedValidationErrorWithDetailsException> {
                 behandlingService.validateBehandlingBeforeFinalize(
                     behandlingId = behandling.id,
-                    nyBehandling = false,
+                    nyBehandlingEtterTROpphevet = false,
                 )
             }
         }
@@ -392,7 +392,7 @@ class BehandlingServiceTest {
 
             behandlingService.validateBehandlingBeforeFinalize(
                 behandlingId = behandling.id,
-                nyBehandling = false,
+                nyBehandlingEtterTROpphevet = false,
             )
         }
     }
