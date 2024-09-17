@@ -94,9 +94,14 @@ class OppgaveService(
         val feilregistrerteBehandlinger = mutableListOf<UUID>()
         val avsluttedeBehandlinger = mutableListOf<UUID>()
         val aapneBehandlinger = mutableListOf<UUID>()
+        
+        val individualPartIdValues = data.map { it.sakenGjelder.partId.value }.toSet()
+        val accessiblePartIdValues = individualPartIdValues.filter {
+            tilgangService.harInnloggetSaksbehandlerTilgangTil(it)
+        }
 
         data.forEach {
-            if(!tilgangService.harInnloggetSaksbehandlerTilgangTil(it.sakenGjelder.partId.value)) {
+            if(it.sakenGjelder.partId.value !in accessiblePartIdValues) {
                 return@forEach
             } else if (it.sattPaaVent != null) {
                 paaVentBehandlinger.add(it.id)
