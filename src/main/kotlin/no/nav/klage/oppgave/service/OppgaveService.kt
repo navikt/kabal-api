@@ -17,6 +17,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.util.*
 
 
 @Service
@@ -24,6 +25,7 @@ class OppgaveService(
     private val behandlingRepository: BehandlingRepository,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val saksbehandlerService: SaksbehandlerService,
+    private val tilgangService: TilgangService
 ) {
 
     companion object {
@@ -83,6 +85,35 @@ class OppgaveService(
         return BehandlingerListResponse(
             behandlinger = data.map { behandling -> behandling.id },
             antallTreffTotalt = data.size,
+        )
+    }
+
+    fun searchOppgaverByFagsakId(fagsakId: String): SearchSaksnummerResponse {
+        val data = behandlingRepository.findByFagsakId(fagsakId = fagsakId)
+        val paaVentBehandlinger = mutableListOf<UUID>()
+        val feilregistrerteBehandlinger = mutableListOf<UUID>()
+        val avsluttedeBehandlinger = mutableListOf<UUID>()
+        val aapneBehandlinger = mutableListOf<UUID>()
+
+        data.forEach {
+            if(!tilgangService.harInnloggetSaksbehandlerTilgangTil(it.sakenGjelder.partId.value)) {
+                return@forEach
+            } else if (it.sattPaaVent != null) {
+                paaVentBehandlinger.add(it.id)
+            } else if (it.feilregistrering != null) {
+                feilregistrerteBehandlinger.add(it.id)
+            } else if (it.ferdigstilling != null) {
+                avsluttedeBehandlinger.add(it.id)
+            } else {
+                aapneBehandlinger.add(it.id)
+            }
+        }
+
+        return SearchSaksnummerResponse(
+            aapneBehandlinger = aapneBehandlinger,
+            avsluttedeBehandlinger = avsluttedeBehandlinger,
+            feilregistrerteBehandlinger = feilregistrerteBehandlinger,
+            paaVentBehandlinger = paaVentBehandlinger,
         )
     }
 
