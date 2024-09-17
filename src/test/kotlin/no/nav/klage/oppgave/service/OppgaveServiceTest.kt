@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
+import io.mockk.verify
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.view.EnhetensFerdigstilteOppgaverQueryParams
@@ -420,6 +421,9 @@ class OppgaveServiceTest {
         val output = oppgaveService.searchOppgaverByFagsakId(
             fagsakId = SAKS_ID
         )
+
+        verify(exactly = 1) { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR) }
+        verify(exactly = 1) { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR2) }
 
         assertThat(output.aapneBehandlinger).containsExactlyInAnyOrder(klagebehandling1.id)
         assertThat(output.avsluttedeBehandlinger).containsExactlyInAnyOrder(klagebehandling3.id)
