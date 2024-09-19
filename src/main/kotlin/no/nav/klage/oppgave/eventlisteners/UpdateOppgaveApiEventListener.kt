@@ -34,7 +34,7 @@ class UpdateOppgaveApiEventListener(
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun updateOppgave(behandlingEndretEvent: BehandlingEndretEvent) {
         logger.debug("updateOppgave called. Received BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
-        val behandling = behandlingRepository.findByIdEager(behandlingEndretEvent.behandling.id)
+        val behandling = behandlingRepository.findById(behandlingEndretEvent.behandling.id).get()
 
         if (behandling.oppgaveId != null && behandlingEndretEvent.endringslogginnslag.any { it.felt == Felt.TILDELT_SAKSBEHANDLERIDENT }) {
             oppgaveApiService.assignOppgave(
