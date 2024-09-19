@@ -35,6 +35,7 @@ class AdminController(
         try {
             logger.info("Syncing db with Kafka")
             adminService.syncKafkaWithDb()
+            logger.info("Finished syncing db with Kafka")
         } catch (e: Exception) {
             logger.warn("Failed to resync db with Kafka")
             throw e
