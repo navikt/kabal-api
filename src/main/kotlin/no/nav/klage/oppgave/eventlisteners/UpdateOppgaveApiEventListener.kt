@@ -35,7 +35,7 @@ class UpdateOppgaveApiEventListener(
     fun updateOppgave(behandlingEndretEvent: BehandlingEndretEvent) {
         logger.debug("updateOppgave called. Received BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
 
-        if (behandlingEndretEvent.behandling.oppgaveId != null && behandlingEndretEvent.endringslogginnslag.any { it.felt == Felt.TILDELT_SAKSBEHANDLERIDENT }) {
+        if (behandlingEndretEvent.endringslogginnslag.any { it.felt == Felt.TILDELT_SAKSBEHANDLERIDENT } && behandlingEndretEvent.behandling.oppgaveId != null) {
             oppgaveApiService.assignOppgave(
                 oppgaveId = behandlingEndretEvent.behandling.oppgaveId!!,
                 tildeltSaksbehandlerIdent = behandlingEndretEvent.behandling.tildeling?.saksbehandlerident,
