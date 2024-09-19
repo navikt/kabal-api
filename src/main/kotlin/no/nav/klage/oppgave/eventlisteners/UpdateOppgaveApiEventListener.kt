@@ -34,12 +34,11 @@ class UpdateOppgaveApiEventListener(
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun updateOppgave(behandlingEndretEvent: BehandlingEndretEvent) {
         logger.debug("updateOppgave called. Received BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
-        val behandling = behandlingRepository.findById(behandlingEndretEvent.behandling.id).get()
 
-        if (behandling.oppgaveId != null && behandlingEndretEvent.endringslogginnslag.any { it.felt == Felt.TILDELT_SAKSBEHANDLERIDENT }) {
+        if (behandlingEndretEvent.endringslogginnslag.any { it.felt == Felt.TILDELT_SAKSBEHANDLERIDENT } && behandlingEndretEvent.behandling.oppgaveId != null) {
             oppgaveApiService.assignOppgave(
-                oppgaveId = behandling.oppgaveId!!,
-                tildeltSaksbehandlerIdent = behandling.tildeling?.saksbehandlerident,
+                oppgaveId = behandlingEndretEvent.behandling.oppgaveId!!,
+                tildeltSaksbehandlerIdent = behandlingEndretEvent.behandling.tildeling?.saksbehandlerident,
                 systemContext = behandlingEndretEvent.endringslogginnslag.any { it.saksbehandlerident == systembrukerIdent }
             )
         }
