@@ -27,7 +27,7 @@ class CleanupMellomlagerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 60, initialDelay = 10)
+    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 720, initialDelay = 10)
     @SchedulerLock(name = "cleanupFinalizedDUAs")
     @Transactional
     fun cleanupFinalizedDUAs() {
