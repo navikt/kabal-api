@@ -27,26 +27,25 @@ class CleanupMellomlagerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-//TODO: Sett initialDelay til 10 i prod
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 60, initialDelay = 3)
+    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 60, initialDelay = 10)
     @SchedulerLock(name = "cleanupFinalizedDUAs")
     @Transactional
     fun cleanupFinalizedDUAs() {
         val oneWeekAgo = LocalDateTime.now().minusWeeks(1)
-        logger.debug("Cleaning up finalized duas, getting candidates finalized before {}.", oneWeekAgo)
+        logger.debug("cleanupFinalizedDUAs, getting candidates finalized before {}.", oneWeekAgo)
 
         val candidates = opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(ferdigstiltBefore = oneWeekAgo) +
                 opplastetDokumentUnderArbeidAsVedleggRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(ferdigstiltBefore = oneWeekAgo) +
                 smartdokumentUnderArbeidAsHoveddokumentRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(ferdigstiltBefore = oneWeekAgo) +
                 smartdokumentUnderArbeidAsVedleggRepository.findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(ferdigstiltBefore = oneWeekAgo)
 
-        logger.debug("cleanupFinalizedDUAs, found {} candidates.", candidates)
+        logger.debug("cleanupFinalizedDUAs, found {} candidates.", candidates.size)
 
         candidates.forEach { candidate ->
             mellomlagerService.deleteDocument(mellomlagerId = candidate.mellomlagerId!!, systemContext = true)
             candidate.mellomlagerId = null
         }
 
-        logger.debug("Finished cleaning up finalized DUAs.")
+        logger.debug("Finished cleanupFinalizedDUAs.")
     }
 }
