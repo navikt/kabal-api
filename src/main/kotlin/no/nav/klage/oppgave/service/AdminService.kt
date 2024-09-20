@@ -86,6 +86,9 @@ class AdminService(
 
                         Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET ->
                             behandlingEndretKafkaProducer.sendBehandlingOpprettetEtterTrygderettenOpphevet(behandling as BehandlingEtterTrygderettenOpphevet)
+
+                        Type.OMGJOERINGSKRAV ->
+                            behandlingEndretKafkaProducer.sendOmgjoeringskravEndret(behandling as Omgjoeringskravbehandling)
                     }
                 } catch (e: Exception) {
                     logger.warn("Exception during send to Kafka", e)

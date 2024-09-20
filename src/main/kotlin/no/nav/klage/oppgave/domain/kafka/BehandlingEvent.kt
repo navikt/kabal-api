@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.domain.kafka
 
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.oppgave.domain.klage.BehandlingEtterTrygderettenOpphevet
 import java.time.LocalDateTime
 import java.util.*
 
@@ -21,6 +20,7 @@ enum class BehandlingEventType {
     ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET,
     BEHANDLING_FEILREGISTRERT,
     BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET,
+    OMGJOERINGSKRAVBEHANDLING_AVSLUTTET,
 }
 
 data class BehandlingDetaljer(
@@ -29,7 +29,8 @@ data class BehandlingDetaljer(
     val ankebehandlingAvsluttet: AnkebehandlingAvsluttetDetaljer? = null,
     val ankeITrygderettenbehandlingOpprettet: AnkeITrygderettenbehandlingOpprettetDetaljer? = null,
     val behandlingFeilregistrert: BehandlingFeilregistrertDetaljer? = null,
-    val behandlingEtterTrygderettenOpphevetAvsluttet: BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer? = null
+    val behandlingEtterTrygderettenOpphevetAvsluttet: BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer? = null,
+    val omgjoeringskravbehandlingAvsluttet: OmgjoeringskravbehandlingAvsluttetDetaljer? = null,
 )
 
 data class KlagebehandlingAvsluttetDetaljer(
@@ -37,7 +38,6 @@ data class KlagebehandlingAvsluttetDetaljer(
     val utfall: ExternalUtfall,
     val journalpostReferanser: List<String>,
 )
-
 
 data class AnkebehandlingOpprettetDetaljer(
     val mottattKlageinstans: LocalDateTime
@@ -49,6 +49,12 @@ data class AnkeITrygderettenbehandlingOpprettetDetaljer(
 )
 
 data class AnkebehandlingAvsluttetDetaljer(
+    val avsluttet: LocalDateTime,
+    val utfall: ExternalUtfall,
+    val journalpostReferanser: List<String>,
+)
+
+data class OmgjoeringskravbehandlingAvsluttetDetaljer(
     val avsluttet: LocalDateTime,
     val utfall: ExternalUtfall,
     val journalpostReferanser: List<String>,

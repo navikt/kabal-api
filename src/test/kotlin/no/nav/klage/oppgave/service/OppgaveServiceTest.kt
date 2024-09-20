@@ -456,6 +456,7 @@ class OppgaveServiceTest {
             forrigeBehandlendeEnhet = "0101",
             brukersHenvendelseMottattNavDato = LocalDate.now(),
             kommentar = null,
+            hjemler = emptySet(),
         )
 
         mottakRepository.save(mottak)
@@ -606,6 +607,8 @@ class OppgaveServiceTest {
                     ankeBehandlendeEnhet = "4291",
                 )
             }
+
+            else -> throw RuntimeException("Type not supported")
         }
 
         behandlingRepository.save(behandling)

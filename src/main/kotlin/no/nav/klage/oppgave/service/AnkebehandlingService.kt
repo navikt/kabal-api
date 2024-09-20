@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.service
 import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.*
@@ -67,7 +66,7 @@ class AnkebehandlingService(
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = 2,
-                hjemler = createHjemmelSetFromMottak(mottak.hjemler),
+                hjemler = mottak.mapToBehandlingHjemler(),
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
                 sourceBehandlingId = mottak.forrigeBehandlingId,
                 previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
@@ -172,11 +171,4 @@ class AnkebehandlingService(
 
         return ankebehandling
     }
-
-    private fun createHjemmelSetFromMottak(hjemler: Set<MottakHjemmel>?): MutableSet<Hjemmel> =
-        if (hjemler.isNullOrEmpty()) {
-            mutableSetOf(Hjemmel.MANGLER)
-        } else {
-            hjemler.map { Hjemmel.of(it.hjemmelId) }.toMutableSet()
-        }
 }

@@ -45,6 +45,7 @@ class BehandlingMapper(
             Type.ANKE -> mapAnkebehandlingToBehandlingDetaljerView(behandling as Ankebehandling)
             Type.ANKE_I_TRYGDERETTEN -> mapAnkeITrygderettenbehandlingToBehandlingDetaljerView(behandling as AnkeITrygderettenbehandling)
             Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandling as BehandlingEtterTrygderettenOpphevet)
+            Type.OMGJOERINGSKRAV -> mapOmgjoeringskravbehandlingToBehandlingDetaljerView(behandling as Omgjoeringskravbehandling)
         }
     }
 
@@ -109,6 +110,69 @@ class BehandlingMapper(
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
             oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
+        )
+    }
+
+    fun mapOmgjoeringskravbehandlingToBehandlingDetaljerView(omgjoeringskravbehandling: Omgjoeringskravbehandling): BehandlingDetaljerView {
+        val enhetNavn = omgjoeringskravbehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
+
+        val oppgave = oppgaveApiService.getOppgave(omgjoeringskravbehandling.oppgaveId)
+
+        return BehandlingDetaljerView(
+            id = omgjoeringskravbehandling.id,
+            fraNAVEnhet = omgjoeringskravbehandling.klageBehandlendeEnhet,
+            fraNAVEnhetNavn = enhetNavn,
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(omgjoeringskravbehandling),
+            klager = getPartViewWithUtsendingskanal(omgjoeringskravbehandling.klager.partId, omgjoeringskravbehandling),
+            prosessfullmektig = omgjoeringskravbehandling.klager.prosessfullmektig?.let { getPartViewWithUtsendingskanal(it.partId, omgjoeringskravbehandling) },
+            temaId = omgjoeringskravbehandling.ytelse.toTema().id,
+            ytelseId = omgjoeringskravbehandling.ytelse.id,
+            typeId = omgjoeringskravbehandling.type.id,
+            mottattKlageinstans = omgjoeringskravbehandling.mottattKlageinstans.toLocalDate(),
+            tildelt = omgjoeringskravbehandling.tildeling?.tidspunkt?.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = omgjoeringskravbehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = omgjoeringskravbehandling.ferdigstilling != null,
+            frist = omgjoeringskravbehandling.frist,
+            datoSendtMedunderskriver = omgjoeringskravbehandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = omgjoeringskravbehandling.hjemler.map { it.id },
+            modified = omgjoeringskravbehandling.modified,
+            created = omgjoeringskravbehandling.created,
+            resultat = omgjoeringskravbehandling.mapToVedtakView(),
+            tilknyttedeDokumenter = omgjoeringskravbehandling.saksdokumenter.map {
+                TilknyttetDokument(
+                    journalpostId = it.journalpostId,
+                    dokumentInfoId = it.dokumentInfoId
+                )
+            }.toSet(),
+            egenAnsatt = omgjoeringskravbehandling.sakenGjelder.erEgenAnsatt(),
+            fortrolig = omgjoeringskravbehandling.sakenGjelder.harBeskyttelsesbehovFortrolig(),
+            strengtFortrolig = omgjoeringskravbehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
+            vergemaalEllerFremtidsfullmakt = omgjoeringskravbehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
+            dead = omgjoeringskravbehandling.sakenGjelder.getDead(),
+            fullmakt = omgjoeringskravbehandling.sakenGjelder.isFullmakt(),
+            kvalitetsvurderingReference = if (omgjoeringskravbehandling.feilregistrering == null && omgjoeringskravbehandling.kakaKvalitetsvurderingId != null) {
+                BehandlingDetaljerView.KvalitetsvurderingReference(
+                    id = omgjoeringskravbehandling.kakaKvalitetsvurderingId!!,
+                    version = omgjoeringskravbehandling.kakaKvalitetsvurderingVersion,
+                )
+            } else null,
+            sattPaaVent = omgjoeringskravbehandling.sattPaaVent,
+            feilregistrering = omgjoeringskravbehandling.feilregistrering.toView(),
+            fagsystemId = omgjoeringskravbehandling.fagsystem.id,
+            relevantDocumentIdList = omgjoeringskravbehandling.saksdokumenter.map {
+                it.dokumentInfoId
+            }.toSet(),
+            saksnummer = omgjoeringskravbehandling.fagsakId,
+            rol = omgjoeringskravbehandling.toROLView(),
+            medunderskriver = omgjoeringskravbehandling.toMedunderskriverView(),
+            saksbehandler = omgjoeringskravbehandling.toSaksbehandlerView(),
+            previousSaksbehandler = omgjoeringskravbehandling.toPreviousSaksbehandlerView(),
+            varsletFrist = omgjoeringskravbehandling.varsletFrist,
+            oppgavebeskrivelse = if (omgjoeringskravbehandling.oppgaveId != null) {
+                oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
+            } else null,
+            oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
+            kommentarFraVedtaksinstans = null,
         )
     }
 

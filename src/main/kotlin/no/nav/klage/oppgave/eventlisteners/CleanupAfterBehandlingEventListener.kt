@@ -176,9 +176,13 @@ class CleanupAfterBehandlingEventListener(
                     }
                 }
             }
+            Type.OMGJOERINGSKRAV -> {
+                //TODO
+            }
 
             Type.ANKE_I_TRYGDERETTEN -> {}//nothing
-            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {}//TODO
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {}//nothing
+
         }
     }
 }

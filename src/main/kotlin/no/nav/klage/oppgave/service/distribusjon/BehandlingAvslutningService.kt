@@ -18,11 +18,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttet
 import no.nav.klage.oppgave.domain.klage.createAnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
-import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
-import no.nav.klage.oppgave.service.AnkebehandlingService
-import no.nav.klage.oppgave.service.BehandlingEtterTrygderettenOpphevetService
-import no.nav.klage.oppgave.service.BehandlingService
-import no.nav.klage.oppgave.service.OppgaveApiService
+import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.beans.factory.annotation.Value
@@ -165,6 +161,7 @@ class BehandlingAvslutningService(
                         Type.ANKE -> ANKEBEHANDLING_AVSLUTTET
                         Type.ANKE_I_TRYGDERETTEN -> ANKEBEHANDLING_AVSLUTTET
                         Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
+                        Type.OMGJOERINGSKRAV -> OMGJOERINGSKRAVBEHANDLING_AVSLUTTET
                     },
                     detaljer = getBehandlingDetaljer(behandling, hoveddokumenter)
                 )
@@ -258,6 +255,17 @@ class BehandlingAvslutningService(
             Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
                 BehandlingDetaljer(
                     behandlingEtterTrygderettenOpphevetAvsluttet = BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer(
+                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
+                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+                            .map { it.journalpostId }
+                    )
+                )
+            }
+
+            Type.OMGJOERINGSKRAV -> {
+                BehandlingDetaljer(
+                    omgjoeringskravbehandlingAvsluttet = OmgjoeringskravbehandlingAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
                         journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }

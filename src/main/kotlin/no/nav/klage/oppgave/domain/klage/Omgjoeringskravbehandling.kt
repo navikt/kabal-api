@@ -16,12 +16,8 @@ import java.util.*
 @Entity
 @DiscriminatorValue("omgjoeringskrav")
 class Omgjoeringskravbehandling(
-    //Brukes ikke i anke
-    @Column(name = "dato_mottatt_foersteinstans")
-    var mottattVedtaksinstans: LocalDate,
-    //Vises i GUI.
-    @Column(name = "avsender_enhet_foersteinstans")
-    val avsenderEnhetFoersteinstans: String,
+    @Column(name = "klage_behandlende_enhet")
+    val klageBehandlendeEnhet: String,
     @Column(name = "mottak_id")
     val mottakId: UUID,
     @Column(name = "dato_innsendt")
@@ -37,6 +33,8 @@ class Omgjoeringskravbehandling(
     @Column(name = "varslet_behandlingstid_unit_type_id")
     @Convert(converter = TimeUnitTypeConverter::class)
     var varsletBehandlingstidUnitType: TimeUnitType? = null,
+    @Column(name = "source_behandling_id")
+    var sourceBehandlingId: UUID?,
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),

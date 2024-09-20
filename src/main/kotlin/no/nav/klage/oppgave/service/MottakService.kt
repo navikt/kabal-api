@@ -25,10 +25,7 @@ import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException
 import no.nav.klage.oppgave.exceptions.PreviousBehandlingNotFinalizedException
 import no.nav.klage.oppgave.gateway.AzureGateway
-import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
-import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
-import no.nav.klage.oppgave.repositories.MottakRepository
+import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.isValidFnrOrDnr
@@ -47,6 +44,7 @@ class MottakService(
     private val mottakRepository: MottakRepository,
     private val klagebehandlingRepository: KlagebehandlingRepository,
     private val ankebehandlingRepository: AnkebehandlingRepository,
+    private val omgjoeringskravbehandlingRepository: OmgjoeringskravbehandlingRepository,
     private val behandlingRepository: BehandlingRepository,
     private val dokumentService: DokumentService,
     private val norg2Client: Norg2Client,
@@ -224,6 +222,7 @@ class MottakService(
 
                 Type.ANKE_I_TRYGDERETTEN -> TODO()
                 Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> TODO()
+                Type.OMGJOERINGSKRAV -> TODO()
             }
         return mottak
     }
@@ -329,7 +328,8 @@ class MottakService(
                     Type.KLAGE -> klagebehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
                     Type.ANKE -> ankebehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
                     Type.ANKE_I_TRYGDERETTEN -> true//Ikke relevant for AnkeITrygderetten
-                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET ->  TODO() //TODO: sjekk hva vi trenger når vi får opprettelse fra Kabin
+                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> true//Ikke relevant for behandlingEtterTrygderettenOpphevet
+                    Type.OMGJOERINGSKRAV -> omgjoeringskravbehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
                 }
             }
             .flatMap { it.mottakDokument }
