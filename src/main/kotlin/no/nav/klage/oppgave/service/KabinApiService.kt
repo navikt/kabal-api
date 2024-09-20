@@ -26,28 +26,23 @@ class KabinApiService(
     private val saksbehandlerService: SaksbehandlerService,
     private val mottakService: MottakService,
     private val ankebehandlingService: AnkebehandlingService,
-    private val behandlingEtterTrygderettenOpphevetService: BehandlingEtterTrygderettenOpphevetService,
     private val behandlingService: BehandlingService,
-    private val klagebehandlingService: KlagebehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val klageFssProxyClient: KlageFssProxyClient,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
 ) {
 
-    fun getCombinedAnkemuligheter(partIdValue: String): List<Ankemulighet> {
+    fun getAnkemuligheterExcludingInfotrygd(partIdValue: String): List<Ankemulighet> {
         behandlingService.checkLesetilgangForPerson(partIdValue)
-        val ankemuligheterFromKlagebehandlinger =
-            klagebehandlingService.getCompletedKlagebehandlingerByPartIdValue(partIdValue = partIdValue)
+        return behandlingService.getAnkemuligheterByPartIdValue(partIdValue = partIdValue, includeFromInfotrygd = false)
                 .map { it.toAnkemulighet() }
-        val ankemuligheterFromAnkebehandlinger =
-            ankebehandlingService.getCompletedAnkebehandlingerByPartIdValue(partIdValue = partIdValue)
-                .map { it.toAnkemulighet() }
-        val ankemuligheterFromBehandlingEtterTrygderettenOpphevet =
-            behandlingEtterTrygderettenOpphevetService.getCompletedBehandlingEtterTrygderettenOpphevetServiceByPartIdValue(partIdValue = partIdValue)
-                .map { it.toAnkemulighet() }
+    }
 
-        return ankemuligheterFromKlagebehandlinger + ankemuligheterFromAnkebehandlinger + ankemuligheterFromBehandlingEtterTrygderettenOpphevet
+    fun getOmgjoeringskravmuligheter(partIdValue: String): List<Ankemulighet> {
+        behandlingService.checkLesetilgangForPerson(partIdValue)
+        return behandlingService.getAnkemuligheterByPartIdValue(partIdValue = partIdValue, includeFromInfotrygd = true)
+            .map { it.toAnkemulighet() }
     }
 
     fun createAnke(input: CreateAnkeBasedOnKabinInput): CreatedAnkeResponse {

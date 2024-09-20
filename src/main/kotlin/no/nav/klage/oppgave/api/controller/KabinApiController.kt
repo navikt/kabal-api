@@ -95,7 +95,7 @@ class KabinApiController(
 
     @PostMapping("/ankemuligheter")
     fun getAnkemuligheter(
-        @RequestBody input: GetCompletedKlagebehandlingerInput
+        @RequestBody input: GetCompletedBehandlingerInput
     ): List<Ankemulighet> {
         logMethodDetails(
             methodName = ::getAnkemuligheter.name,
@@ -103,7 +103,20 @@ class KabinApiController(
             logger = logger
         )
 
-        return kabinApiService.getCombinedAnkemuligheter(partIdValue = input.idnummer)
+        return kabinApiService.getAnkemuligheterExcludingInfotrygd(partIdValue = input.idnummer)
+    }
+
+    @PostMapping("/omgjoeringskravmuligheter")
+    fun getOmgjoeringskravmuligheter(
+        @RequestBody input: GetCompletedBehandlingerInput
+    ): List<Ankemulighet> {
+        logMethodDetails(
+            methodName = ::getOmgjoeringskravmuligheter.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger
+        )
+
+        return kabinApiService.getOmgjoeringskravmuligheter(partIdValue = input.idnummer)
     }
 
     @GetMapping("/completedbehandlinger/{behandlingId}")

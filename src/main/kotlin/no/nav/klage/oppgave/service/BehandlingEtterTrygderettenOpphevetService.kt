@@ -37,12 +37,6 @@ class BehandlingEtterTrygderettenOpphevetService(
         )
     }
 
-    fun getCompletedBehandlingEtterTrygderettenOpphevetServiceByPartIdValue(
-        partIdValue: String
-    ): List<BehandlingEtterTrygderettenOpphevet> {
-        return behandlingEtterTrygderettenOpphevetRepository.getCompletedBehandlinger(partIdValue = partIdValue)
-    }
-
     fun createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): BehandlingEtterTrygderettenOpphevet {
         val behandlingEtterTrygderettenOpphevet = behandlingEtterTrygderettenOpphevetRepository.save(
             BehandlingEtterTrygderettenOpphevet(

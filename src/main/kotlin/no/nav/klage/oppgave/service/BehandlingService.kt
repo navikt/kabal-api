@@ -2133,6 +2133,17 @@ class BehandlingService(
         ).isNotEmpty()
     }
 
+    fun getAnkemuligheterByPartIdValue(
+        partIdValue: String,
+        includeFromInfotrygd: Boolean,
+    ): List<Behandling> {
+        return if (includeFromInfotrygd) {
+            behandlingRepository.getAnkemuligheterNotFromInfotrygd(partIdValue)
+        } else {
+            behandlingRepository.getAnkemuligheter(partIdValue)
+        }
+    }
+
     private fun getUtfoerendeNavn(utfoerendeSaksbehandlerIdent: String): String {
         val name = if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
             systembrukerIdent

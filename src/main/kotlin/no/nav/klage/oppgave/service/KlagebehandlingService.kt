@@ -30,12 +30,6 @@ class KlagebehandlingService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getCompletedKlagebehandlingerByPartIdValue(
-        partIdValue: String
-    ): List<Klagebehandling> {
-        return klagebehandlingRepository.getCompletedKlagebehandlinger(partIdValue)
-    }
-
     fun createKlagebehandlingFromMottak(mottak: Mottak): Klagebehandling {
         val kvalitetsvurderingVersion = getKakaVersion()
 

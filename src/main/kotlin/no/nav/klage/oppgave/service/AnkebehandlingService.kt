@@ -41,12 +41,6 @@ class AnkebehandlingService(
         return ankebehandlingRepository.findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId = sourceBehandlingId)
     }
 
-    fun getCompletedAnkebehandlingerByPartIdValue(
-        partIdValue: String
-    ): List<Ankebehandling> {
-        return ankebehandlingRepository.getCompletedAnkebehandlinger(partIdValue = partIdValue)
-    }
-
     fun createAnkebehandlingFromMottak(mottak: Mottak): Ankebehandling {
         val ankebehandling = ankebehandlingRepository.save(
             Ankebehandling(
