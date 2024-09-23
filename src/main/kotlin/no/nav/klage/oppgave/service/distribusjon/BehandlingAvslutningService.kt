@@ -18,11 +18,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttet
 import no.nav.klage.oppgave.domain.klage.createAnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
-import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
-import no.nav.klage.oppgave.service.AnkebehandlingService
-import no.nav.klage.oppgave.service.BehandlingEtterTrygderettenOpphevetService
-import no.nav.klage.oppgave.service.BehandlingService
-import no.nav.klage.oppgave.service.OppgaveApiService
+import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.beans.factory.annotation.Value
@@ -128,7 +124,10 @@ class BehandlingAvslutningService(
 
 
             //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01) {
+            if (behandling.fagsystem == Fagsystem.IT01 && behandling.type !in listOf(
+                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
+                )
+            ) {
                 logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
 
                 val sakInKlanke = fssProxyClient.getSakWithAppAccess(
