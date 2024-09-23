@@ -11,11 +11,8 @@ import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.*
-import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.klage.Ankebehandling
-import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttet
-import no.nav.klage.oppgave.domain.klage.createAnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.*
@@ -111,6 +108,13 @@ class BehandlingAvslutningService(
         } else if (behandling is AnkeITrygderettenbehandling && behandling.shouldCreateNewBehandlingEtterTROpphevet()) {
             logger.debug("Oppretter ny behandling, etter TR opphevet, basert på AnkeITrygderettenbehandling")
             createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(behandling)
+        } else if (behandling is Omgjoeringskravbehandling && behandling.utfall != Utfall.MEDHOLD_ETTER_FVL_35) {
+            logger.debug("Avslutter omgjøringskravbehandling med utfall som ikke skal formidles til førsteinstans.")
+            if (behandling.oppgaveId != null) {
+                logger.debug("Avslutter oppgave i gosys.")
+                //TODO: Finn ut hva vi skal gjøre med oppgaven i dette tilfellet.
+                //oppgaveApiService.avsluttOppgave()
+            }
         } else {
             val hoveddokumenter =
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
@@ -124,7 +128,11 @@ class BehandlingAvslutningService(
 
 
             //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01) {
+            if (behandling.fagsystem == Fagsystem.IT01 && behandling.type !in listOf(
+                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
+                    Type.OMGJOERINGSKRAV
+                )
+            ) {
                 logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
 
                 val sakInKlanke = fssProxyClient.getSakWithAppAccess(
@@ -203,7 +211,10 @@ class BehandlingAvslutningService(
     }
 
     private fun createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
-        logger.debug("Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}", ankeITrygderettenbehandling.id)
+        logger.debug(
+            "Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}",
+            ankeITrygderettenbehandling.id
+        )
         behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandling)
     }
 

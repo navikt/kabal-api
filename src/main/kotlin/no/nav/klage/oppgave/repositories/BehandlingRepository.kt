@@ -48,7 +48,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             WHERE b.ferdigstilling.avsluttet IS NOT null
             AND b.sakenGjelder.partId.value = :partIdValue
             AND b.utfall NOT IN :utfallWithoutAnkemulighet
-            AND b.type NOT IN :types
+            AND b.type NOT IN :excludedTypes
         """
     )
     fun getAnkemuligheter(
@@ -57,7 +57,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             Utfall.INNSTILLING_AVVIST,
             Utfall.INNSTILLING_STADFESTELSE,
         ),
-        types: List<Type> = listOf(
+        excludedTypes: List<Type> = listOf(
             Type.ANKE_I_TRYGDERETTEN,
         )
     ): List<Behandling>
@@ -71,7 +71,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             AND b.fagsystem != :infotrygdFagsystem
             AND b.sakenGjelder.partId.value = :partIdValue
             AND b.utfall NOT IN :utfallWithoutAnkemulighet
-            AND b.type NOT IN :types
+            AND b.type NOT IN :excludedTypes
         """
     )
     fun getAnkemuligheterNotFromInfotrygd(
@@ -81,7 +81,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             Utfall.INNSTILLING_AVVIST,
             Utfall.INNSTILLING_STADFESTELSE,
         ),
-        types: List<Type> = listOf(
+        excludedTypes: List<Type> = listOf(
             Type.ANKE_I_TRYGDERETTEN,
         )
     ): List<Behandling>
