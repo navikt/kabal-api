@@ -113,7 +113,7 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
             sakenGjelder = sakenGjelder.partId.value,
             sakstype = type.id,
             ytelseId = ytelse.id,
-            mottattKlageinstans = if (this is BehandlingEtterTrygderettenOpphevet) kjennelseMottatt.toLocalDate() else mottattKlageinstans.toLocalDate(),
+            mottattKlageinstans = mottattKlageinstans.toLocalDate(),
             vedtaksinstansEnhet = vedtaksinstansEnhet,
             mottattVedtaksinstans = if (this is Klagebehandling) mottattVedtaksinstans else null,
             utfall = utfall!!.id,

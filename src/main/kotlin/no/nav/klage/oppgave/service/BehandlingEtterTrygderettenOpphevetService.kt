@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.time.Period
+import java.time.LocalDateTime
 
 @Service
 @Transactional
@@ -48,9 +48,9 @@ class BehandlingEtterTrygderettenOpphevetService(
                 dvhReferanse = ankeITrygderettenbehandling.dvhReferanse,
                 fagsystem = ankeITrygderettenbehandling.fagsystem,
                 fagsakId = ankeITrygderettenbehandling.fagsakId,
-                mottattKlageinstans = ankeITrygderettenbehandling.mottattKlageinstans,
-                tildeling = ankeITrygderettenbehandling.tildeling,
-                frist = LocalDate.now() + Period.ofWeeks(12),
+                mottattKlageinstans = ankeITrygderettenbehandling.kjennelseMottatt!!,
+                tildeling = ankeITrygderettenbehandling.tildeling?.copy(tidspunkt = LocalDateTime.now()),
+                frist = LocalDate.now(),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = 2,
                 hjemler = ankeITrygderettenbehandling.hjemler,
