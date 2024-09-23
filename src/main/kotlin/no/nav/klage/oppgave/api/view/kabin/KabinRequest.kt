@@ -47,6 +47,28 @@ data class CreateAnkeBasedOnKabinInput(
 }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+data class CreateBehandlingBasedOnKabinInput(
+    val typeId: String,
+    val sourceBehandlingId: UUID,
+    val mottattNav: LocalDate,
+    val frist: LocalDate,
+    val klager: OversendtPartId?,
+    val fullmektig: OversendtPartId?,
+    val receivedDocumentJournalpostId: String,
+    val saksbehandlerIdent: String?,
+    val svarbrevInput: SvarbrevInput?,
+    val hjemmelIdList: List<String>,
+    val oppgaveId: Long?,
+) {
+    data class OversendtPartId(
+        val type: OversendtPartIdType,
+        val value: String
+    )
+
+    enum class OversendtPartIdType { PERSON, VIRKSOMHET }
+}
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class CreateAnkeBasedOnCompleteKabinInput(
     val sakenGjelder: OversendtPartId,
     val klager: OversendtPartId?,

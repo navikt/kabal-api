@@ -137,7 +137,7 @@ class KabinApiController(
     @PostMapping("/createanke")
     fun createAnke(
         @RequestBody input: CreateAnkeBasedOnKabinInput
-    ): CreatedAnkeResponse {
+    ): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createAnke.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -149,10 +149,25 @@ class KabinApiController(
         )
     }
 
+    @PostMapping("/createbehandling")
+    fun createBehandling(
+        @RequestBody input: CreateBehandlingBasedOnKabinInput
+    ): CreatedBehandlingResponse {
+        logMethodDetails(
+            methodName = ::createAnke.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger
+        )
+
+        return kabinApiService.createBehandling(
+            input = input
+        )
+    }
+
     @PostMapping("/createankefromcompleteinput")
     fun createAnkeFromCompleteInput(
         @RequestBody input: CreateAnkeBasedOnCompleteKabinInput
-    ): CreatedAnkeResponse {
+    ): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createAnkeFromCompleteInput.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -197,7 +212,7 @@ class KabinApiController(
     @PostMapping("/createklage")
     fun createKlage(
         @RequestBody input: CreateKlageBasedOnKabinInput
-    ): CreatedKlageResponse {
+    ): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createKlage.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),

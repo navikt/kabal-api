@@ -45,7 +45,7 @@ class KabinApiService(
             .map { it.toAnkemulighet() }
     }
 
-    fun createAnke(input: CreateAnkeBasedOnKabinInput): CreatedAnkeResponse {
+    fun createAnke(input: CreateAnkeBasedOnKabinInput): CreatedBehandlingResponse {
         val behandling = mottakService.createAnkeMottakAndBehandlingFromKabinInput(input = input)
 
         if (input.oppgaveId != null) {
@@ -62,10 +62,30 @@ class KabinApiService(
             svarbrevInput = input.svarbrevInput,
         )
 
-        return CreatedAnkeResponse(behandlingId = behandling.id)
+        return CreatedBehandlingResponse(behandlingId = behandling.id)
     }
 
-    fun createAnkeFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): CreatedAnkeResponse {
+    fun createBehandling(input: CreateBehandlingBasedOnKabinInput): CreatedBehandlingResponse {
+        val behandling = mottakService.createMottakAndBehandlingFromKabinInput(input = input)
+
+        if (input.oppgaveId != null) {
+            behandlingService.setOppgaveId(
+                behandlingId = behandling.id,
+                oppgaveId = input.oppgaveId,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
+        }
+
+        setSaksbehandlerAndCreateSvarbrev(
+            behandling = behandling,
+            saksbehandlerIdent = input.saksbehandlerIdent,
+            svarbrevInput = input.svarbrevInput,
+        )
+
+        return CreatedBehandlingResponse(behandlingId = behandling.id)
+    }
+
+    fun createAnkeFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): CreatedBehandlingResponse {
         val behandling = mottakService.createAnkeMottakFromCompleteKabinInput(input = input)
 
         if (input.oppgaveId != null) {
@@ -82,7 +102,7 @@ class KabinApiService(
             svarbrevInput = input.svarbrevInput,
         )
 
-        return CreatedAnkeResponse(behandlingId = behandling.id)
+        return CreatedBehandlingResponse(behandlingId = behandling.id)
     }
 
     private fun setSaksbehandlerAndCreateSvarbrev(
@@ -195,7 +215,7 @@ class KabinApiService(
 
     fun createKlage(
         input: CreateKlageBasedOnKabinInput
-    ): CreatedKlageResponse {
+    ): CreatedBehandlingResponse {
         val behandling = mottakService.createKlageMottakFromKabinInput(klageInput = input)
 
         if (input.oppgaveId != null) {
@@ -212,7 +232,7 @@ class KabinApiService(
             svarbrevInput = input.svarbrevInput,
         )
 
-        return CreatedKlageResponse(behandlingId = behandling.id)
+        return CreatedBehandlingResponse(behandlingId = behandling.id)
     }
 
     fun getCreatedKlagebehandlingStatus(

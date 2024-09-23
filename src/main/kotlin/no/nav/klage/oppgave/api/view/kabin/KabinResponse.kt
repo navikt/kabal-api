@@ -48,11 +48,7 @@ data class ExistingAnkebehandling(
     val completed: LocalDateTime?,
 )
 
-data class CreatedAnkeResponse(
-    val behandlingId: UUID,
-)
-
-data class CreatedKlageResponse(
+data class CreatedBehandlingResponse(
     val behandlingId: UUID,
 )
 
