@@ -154,7 +154,7 @@ class StatistikkTilDVHService(
         behandling: Behandling,
         behandlingState: BehandlingState
     ): StatistikkTilDVH {
-        val behandlingId = if (behandling.fagsystem == Fagsystem.IT01 && behandling.type == Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET) {
+        val behandlingId = if (behandling.fagsystem == Fagsystem.IT01) {
             try {
                 behandling.fagsakId.substring(0, 4) + "-" + behandling.fagsakId.substring(4, 5) + "-" + behandling.fagsakId.substring(5)
             } catch (e: Exception) {
