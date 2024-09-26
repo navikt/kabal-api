@@ -50,8 +50,6 @@ server:
     threads:
       max: 600
 
-navCallIdName: Nav-Callid
-
 management:
   health:
     elasticsearch:
@@ -67,12 +65,7 @@ management:
     tags:
       application: ${spring.application.name}
   tracing:
-    baggage:
-      remote-fields:
-        - ${navCallIdName}
-      correlation:
-        fields:
-          - ${navCallIdName}
+    enabled: false
   prometheus:
     metrics:
       export:
