@@ -59,7 +59,7 @@ class StatistikkTilDVHService(
     private fun StatistikkTilDVH.toJson(): String = objectMapper.writeValueAsString(this)
 
     fun shouldSendStats(behandlingEndretEvent: BehandlingEndretEvent): Boolean {
-        return if (behandlingEndretEvent.behandling.fagsystem == Fagsystem.IT01 && behandlingEndretEvent.behandling.type != Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET) {
+        return if (behandlingEndretEvent.behandling.fagsystem == Fagsystem.IT01 && behandlingEndretEvent.endringslogginnslag.none { it.felt == Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET }) {
             false
         } else if (behandlingEndretEvent.endringslogginnslag.isEmpty() && behandlingEndretEvent.behandling.type != Type.ANKE_I_TRYGDERETTEN) {
             true
