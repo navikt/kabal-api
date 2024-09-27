@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.service.distribusjon
 
 import com.ninjasquad.springmockk.MockkBean
 import com.ninjasquad.springmockk.SpykBean
-import io.micrometer.tracing.Tracer
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
@@ -83,9 +82,6 @@ internal class BehandlingAvslutningServiceTest {
 
         @MockkBean(relaxed = true)
         lateinit var dokumentService: DokumentService
-
-        @MockkBean(relaxed = true)
-        lateinit var tracer: Tracer
 
         @MockkBean(relaxed = true)
         lateinit var pdlFacade: PdlFacade
