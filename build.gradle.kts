@@ -64,6 +64,8 @@ dependencies {
     implementation("ch.qos.logback:logback-classic")
     kapt("org.hibernate.orm:hibernate-jpamodelgen:6.5.2.Final")
 
+    implementation("io.micrometer:micrometer-registry-prometheus")
+
     implementation("io.opentelemetry:opentelemetry-api:$otelVersion")
 
     implementation("net.javacrumbs.shedlock:shedlock-spring:$shedlockVersion")
