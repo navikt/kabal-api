@@ -194,16 +194,16 @@ class StatistikkTilDVHService(
 
     private fun getBehandlingTypeName(type: Type): String =
         if (type == Type.ANKE_I_TRYGDERETTEN) {
-            Type.ANKE.navn
+            Type.ANKE.name
         } else {
-            type.navn
+            type.name
         }
 
     private fun getResultat(behandling: Behandling): String? =
         if (behandling.feilregistrering != null) {
             "Feilregistrert"
         } else if (behandling.ferdigstilling != null) {
-            behandling.utfall?.navn
+            behandling.utfall?.name
         } else {
             null
         }
