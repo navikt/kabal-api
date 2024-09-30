@@ -253,6 +253,10 @@ class StatistikkTilDVHService(
                 behandling as AnkeITrygderettenbehandling
                 behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
             }
+
+            else -> {
+                error("BehandlingState not in use. ${behandlingState.name}")
+            }
         }
     }
 
