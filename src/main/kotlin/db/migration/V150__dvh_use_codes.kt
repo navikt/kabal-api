@@ -31,6 +31,7 @@ class V150__dvh_use_codes : BaseJavaMigration() {
                 """
                     select ke.id, ke.json_payload
                     from klage.kafka_event ke
+                    where ke.type = 'STATS_DVH'
                     order by ke.created
                 """
             )
