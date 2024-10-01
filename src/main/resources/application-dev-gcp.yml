@@ -59,4 +59,4 @@ SETTINGS_CLEANUP_CRON: 0 0 12 * * MON
 spring:
   datasource:
     hikari:
-      maximum-pool-size: 5
+      maximum-pool-size: 4
