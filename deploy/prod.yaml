@@ -51,6 +51,9 @@ db_ha: true
 db_type: POSTGRES_15
 kafka_pool: nav-prod
 
+replicasMin: 2
+replicasMax: 5
+
 adRoles:
   - name: KABAL_OPPGAVESTYRING_ALLE_ENHETER_ROLE_ID
     value: 1c006e8b-c667-4622-9df7-43ed2fd494d6
