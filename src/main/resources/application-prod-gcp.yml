@@ -53,3 +53,8 @@ OPPGAVE_API_SCOPE: prod-fss.oppgavehandtering.oppgave
 FSS_CLUSTER: prod-fss
 
 SETTINGS_CLEANUP_CRON: 0 15 16 * * WED
+
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 15

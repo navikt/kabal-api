@@ -54,5 +54,6 @@ class SendBehandlingEndretToKafkaEventListener(
         } catch (e: Exception) {
             logger.error("could not index behandling with id ${behandlingEndretEvent.behandling.id}", e)
         }
+        logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
     }
 }

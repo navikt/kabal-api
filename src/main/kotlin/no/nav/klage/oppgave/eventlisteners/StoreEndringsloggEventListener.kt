@@ -23,5 +23,6 @@ class StoreEndringsloggEventListener(private val endringsloggRepository: Endring
         if (behandlingEndretEvent.endringslogginnslag.isNotEmpty()) {
             endringsloggRepository.saveAll(behandlingEndretEvent.endringslogginnslag)
         }
+        logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
     }
 }

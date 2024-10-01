@@ -20,5 +20,6 @@ class StatistikkTilDVHEventListener(private val statistikkTilDVHService: Statist
             behandlingEndretEvent.behandling.id
         )
         statistikkTilDVHService.process(behandlingEndretEvent)
+        logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
     }
 }

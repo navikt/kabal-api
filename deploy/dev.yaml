@@ -54,10 +54,8 @@ db_ha: false
 db_type: POSTGRES_15
 kafka_pool: nav-dev
 
-spring:
-  datasource:
-    hikari:
-      maximum-pool-size: 5
+replicasMin: 2
+replicasMax: 2
 
 adRoles:
   - name: KABAL_OPPGAVESTYRING_ALLE_ENHETER_ROLE_ID

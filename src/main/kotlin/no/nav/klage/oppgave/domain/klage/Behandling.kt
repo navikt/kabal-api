@@ -17,18 +17,11 @@ import java.util.*
 @DiscriminatorColumn(name = "behandling_type")
 @NamedEntityGraphs(
     NamedEntityGraph(
-        name = "Behandling.full",
+        name = "Behandling.commonProperties",
         attributeNodes = [
             NamedAttributeNode("saksdokumenter"),
             NamedAttributeNode("hjemler"),
             NamedAttributeNode("registreringshjemler"),
-            NamedAttributeNode("medunderskriverHistorikk"),
-            NamedAttributeNode("tildelingHistorikk"),
-            NamedAttributeNode("rolHistorikk"),
-            NamedAttributeNode("klagerHistorikk"),
-            NamedAttributeNode("fullmektigHistorikk"),
-            NamedAttributeNode("sattPaaVentHistorikk"),
-            NamedAttributeNode("extraUtfallSet")
         ]
     ),
 )
