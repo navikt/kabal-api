@@ -39,6 +39,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
+import java.io.File
 import java.io.IOException
 import java.math.BigInteger
 import java.nio.file.Files
@@ -202,7 +203,8 @@ class DokumentService(
 
     fun changeTitleInPDF(resource: Resource, title: String): Resource {
         try {
-            val tmpFile = Files.createTempFile(null, null).toFile()
+            val tmpFile = getFileToUse()
+
             val timeMillis = measureTimeMillis {
                 val memorySettingsForPDFBox: Long = 50_000_000
                 val document: PDDocument = if (resource is FileSystemResource) {
@@ -230,6 +232,16 @@ class DokumentService(
             secureLogger.warn("Unable to change title for pdf content", e)
             return resource
         }
+    }
+
+    private fun getFileToUse(): File {
+        //TODO: is there a better way to do this?
+        val tmpFile = Files.createTempFile(null, null)
+        val pathToFile = tmpFile.toAbsolutePath().toString()
+
+        Files.delete(tmpFile)
+
+        return File(pathToFile)
     }
 
     fun getDokumentReferanse(journalpostId: String, behandling: Behandling): DokumentReferanse {
@@ -386,7 +398,6 @@ class DokumentService(
         merger.destinationDocumentInformation = pdDocumentInformation
 
         val pathToMergedDocument = Files.createTempFile(null, null)
-        pathToMergedDocument.toFile().deleteOnExit()
 
         merger.destinationFileName = pathToMergedDocument.toString()
 
