@@ -42,5 +42,7 @@ class UpdateOppgaveApiEventListener(
                 systemContext = behandlingEndretEvent.endringslogginnslag.any { it.saksbehandlerident == systembrukerIdent }
             )
         }
+
+        logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
     }
 }
