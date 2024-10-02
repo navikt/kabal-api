@@ -205,7 +205,7 @@ class DokumentService(
 
     fun changeTitleInPDF(resource: Resource, title: String): Resource {
         try {
-            val tmpFile = getFileToUse()
+            val tmpFile = createFileNotYetOnDisk()
 
             val timeMillis = measureTimeMillis {
                 val memorySettingsForPDFBox: Long = 50_000_000
@@ -236,8 +236,11 @@ class DokumentService(
         }
     }
 
-    private fun getFileToUse(): File {
-        //TODO: is there a better way to do this?
+    /**
+     * Create a File object pointing to temporary file path that does not yet exist on disk.
+     */
+    private fun createFileNotYetOnDisk(): File {
+        //is there a better way to do this?
         val tmpFile = Files.createTempFile(null, null)
         val pathToFile = tmpFile.toAbsolutePath().toString()
 
@@ -355,10 +358,9 @@ class DokumentService(
         pdDocumentInformation.title = title
         merger.destinationDocumentInformation = pdDocumentInformation
 
-        val pathToMergedDocument = Files.createTempFile(null, null)
-        pathToMergedDocument.toFile().deleteOnExit()
+        val pathToMergedDocument = createFileNotYetOnDisk()
 
-        merger.destinationFileName = pathToMergedDocument.toString()
+        merger.destinationFileName = pathToMergedDocument.absolutePath
 
         val documentsWithPaths = documentsToMerge.map {
             val tmpFile = Files.createTempFile(null, null)
@@ -392,7 +394,7 @@ class DokumentService(
             logger.warn("couldn't delete tmp files", e)
         }
 
-        return pathToMergedDocument to title
+        return pathToMergedDocument.toPath() to title
     }
 
     fun mergePDFFiles(resourcesToMerge: List<Resource>, title: String = "merged document"): Pair<FileSystemResource, String> {
@@ -402,9 +404,9 @@ class DokumentService(
         pdDocumentInformation.title = title
         merger.destinationDocumentInformation = pdDocumentInformation
 
-        val pathToMergedDocument = Files.createTempFile(null, null)
+        val mergedDocumentFile = createFileNotYetOnDisk()
 
-        merger.destinationFileName = pathToMergedDocument.toString()
+        merger.destinationFileName = mergedDocumentFile.absolutePath
 
         resourcesToMerge.forEach { resource ->
             if (resource is FileSystemResource) {
@@ -428,7 +430,7 @@ class DokumentService(
             logger.warn("couldn't delete tmp files", e)
         }
 
-        return FileSystemResource(pathToMergedDocument) to title
+        return FileSystemResource(mergedDocumentFile) to title
     }
 
     fun getMergedDocument(id: UUID) = mergedDocumentRepository.getReferenceById(id)
