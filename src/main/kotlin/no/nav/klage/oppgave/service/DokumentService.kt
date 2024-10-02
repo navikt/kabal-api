@@ -23,6 +23,7 @@ import no.nav.klage.oppgave.domain.klage.MergedDocument
 import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.repositories.MergedDocumentRepository
+import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
@@ -61,7 +62,8 @@ class DokumentService(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val saksbehandlerService: SaksbehandlerService,
     private val pdlFacade: PdlFacade,
-    private val dokarkivClient: DokarkivClient
+    private val dokarkivClient: DokarkivClient,
+    private val tokenUtil: TokenUtil
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -363,11 +365,14 @@ class DokumentService(
             it to tmpFile
         }
 
+        val userToken = tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
+
         Flux.fromIterable(documentsWithPaths).flatMapSequential { (document, path) ->
             safRestClient.downloadDocumentAsMono(
                 journalpostId = document.first,
                 dokumentInfoId = document.second,
                 pathToFile = path,
+                token = userToken,
             )
         }.collectList().block()
 

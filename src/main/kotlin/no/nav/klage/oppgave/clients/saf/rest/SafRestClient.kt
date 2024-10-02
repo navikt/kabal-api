@@ -83,6 +83,7 @@ class SafRestClient(
         journalpostId: String,
         variantFormat: String = "ARKIV",
         pathToFile: Path,
+        token: String,
     ): Mono<Void> {
         return try {
             runWithTimingAndLogging {
@@ -95,7 +96,7 @@ class SafRestClient(
                     )
                     .header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithSafScope()}"
+                        "Bearer $token"
                     )
                     .retrieve()
                     .onStatus(HttpStatusCode::isError) { response ->
