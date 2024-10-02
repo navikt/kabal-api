@@ -205,7 +205,7 @@ class DokumentService(
 
     fun changeTitleInPDF(resource: Resource, title: String): Resource {
         try {
-            val tmpFile = getFileToUse()
+            val tmpFile = createFileNotYetOnDisk()
 
             val timeMillis = measureTimeMillis {
                 val memorySettingsForPDFBox: Long = 50_000_000
@@ -236,8 +236,11 @@ class DokumentService(
         }
     }
 
-    private fun getFileToUse(): File {
-        //TODO: is there a better way to do this?
+    /**
+     * Create a File object pointing to temporary file path that does not yet exist on disk.
+     */
+    private fun createFileNotYetOnDisk(): File {
+        //is there a better way to do this?
         val tmpFile = Files.createTempFile(null, null)
         val pathToFile = tmpFile.toAbsolutePath().toString()
 
@@ -355,7 +358,7 @@ class DokumentService(
         pdDocumentInformation.title = title
         merger.destinationDocumentInformation = pdDocumentInformation
 
-        val pathToMergedDocument = getFileToUse()
+        val pathToMergedDocument = createFileNotYetOnDisk()
 
         merger.destinationFileName = pathToMergedDocument.absolutePath
 
@@ -401,7 +404,7 @@ class DokumentService(
         pdDocumentInformation.title = title
         merger.destinationDocumentInformation = pdDocumentInformation
 
-        val mergedDocumentFile = getFileToUse()
+        val mergedDocumentFile = createFileNotYetOnDisk()
 
         merger.destinationFileName = mergedDocumentFile.absolutePath
 
