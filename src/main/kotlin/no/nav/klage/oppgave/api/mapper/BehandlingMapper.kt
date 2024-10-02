@@ -54,6 +54,7 @@ class BehandlingMapper(
     fun mapKlagebehandlingToBehandlingDetaljerView(klagebehandling: Klagebehandling): BehandlingDetaljerView {
         val enhetNavn = klagebehandling.avsenderEnhetFoersteinstans.let { norg2Client.fetchEnhet(it) }.navn
 
+        //TODO: Remove after oppgavebeskrivelse is removed
         val oppgave = oppgaveApiService.getOppgave(klagebehandling.oppgaveId)
 
         return BehandlingDetaljerView(
@@ -119,14 +120,7 @@ class BehandlingMapper(
             oppgavebeskrivelse = if (klagebehandling.oppgaveId != null) {
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
-            oppgave = if (klagebehandling.oppgaveId != null) {
-                BehandlingDetaljerView.OppgaveView(
-                    beskrivelse = oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse",
-                    opprettetAv = oppgave?.opprettetAvEnhetsnr?.let {
-                        toEnhetView(enhet = norg2Client.fetchEnhet(enhetNr = oppgave.opprettetAvEnhetsnr))
-                    }
-                )
-            } else null,
+            oppgave = getOppgaveView(oppgaveId = klagebehandling.oppgaveId),
         )
     }
 
@@ -239,14 +233,7 @@ class BehandlingMapper(
             oppgavebeskrivelse = if (ankebehandling.oppgaveId != null) {
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
-            oppgave = if (ankebehandling.oppgaveId != null) {
-                BehandlingDetaljerView.OppgaveView(
-                    beskrivelse = oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse",
-                    opprettetAv = oppgave?.opprettetAvEnhetsnr?.let {
-                        toEnhetView(enhet = norg2Client.fetchEnhet(enhetNr = oppgave.opprettetAvEnhetsnr))
-                    }
-                )
-            } else null,
+            oppgave = getOppgaveView(oppgaveId = ankebehandling.oppgaveId),
         )
     }
 
@@ -313,14 +300,7 @@ class BehandlingMapper(
             oppgavebeskrivelse = if (ankeITrygderettenbehandling.oppgaveId != null) {
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
-            oppgave = if (ankeITrygderettenbehandling.oppgaveId != null) {
-                BehandlingDetaljerView.OppgaveView(
-                    beskrivelse = oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse",
-                    opprettetAv = oppgave?.opprettetAvEnhetsnr?.let {
-                        toEnhetView(enhet = norg2Client.fetchEnhet(enhetNr = oppgave.opprettetAvEnhetsnr))
-                    }
-                )
-            } else null,
+            oppgave = getOppgaveView(oppgaveId = ankeITrygderettenbehandling.oppgaveId),
         )
     }
 
@@ -393,14 +373,7 @@ class BehandlingMapper(
             oppgavebeskrivelse = if (behandlingEtterTrygderettenOpphevet.oppgaveId != null) {
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
-            oppgave = if (behandlingEtterTrygderettenOpphevet.oppgaveId != null) {
-                BehandlingDetaljerView.OppgaveView(
-                    beskrivelse = oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse",
-                    opprettetAv = oppgave?.opprettetAvEnhetsnr?.let {
-                        toEnhetView(enhet = norg2Client.fetchEnhet(enhetNr = oppgave.opprettetAvEnhetsnr))
-                    }
-                )
-            } else null,
+            oppgave = getOppgaveView(oppgaveId = behandlingEtterTrygderettenOpphevet.oppgaveId),
         )
     }
 
@@ -776,6 +749,19 @@ class BehandlingMapper(
                 to = sattPaaVent!!.to,
                 isExpired = sattPaaVent!!.to.isBefore(LocalDate.now()),
                 reason = sattPaaVent!!.reason,
+            )
+        } else null
+    }
+
+    private fun getOppgaveView(oppgaveId: Long?): BehandlingDetaljerView.OppgaveView? {
+        return if (oppgaveId != null) {
+            val oppgave = oppgaveApiService.getOppgave(oppgaveId)
+
+            BehandlingDetaljerView.OppgaveView(
+                beskrivelse = oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse",
+                opprettetAv = oppgave?.opprettetAvEnhetsnr?.let {
+                    toEnhetView(enhet = norg2Client.fetchEnhet(enhetNr = oppgave.opprettetAvEnhetsnr))
+                }
             )
         } else null
     }
