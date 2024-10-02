@@ -4,7 +4,7 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.api.view.*
-import no.nav.klage.oppgave.clients.norg2.Enhet
+
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.getLogger
@@ -90,7 +90,7 @@ class SearchController(
     fun searchEnheter(
         @RequestParam("enhetsnr", required = false) enhetsnr: String?,
         @RequestParam("enhetsnavn", required = false) enhetsnavn: String?,
-    ): List<Enhet> {
+    ): List<EnhetView> {
         logMethodDetails(
             ::searchEnheter.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),

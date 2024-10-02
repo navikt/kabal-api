@@ -7,6 +7,7 @@ import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.ereg.NoekkelInfoOmOrganisasjon
 import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
+import no.nav.klage.oppgave.clients.norg2.Enhet
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
@@ -44,13 +45,16 @@ class BehandlingMapper(
             Type.KLAGE -> mapKlagebehandlingToBehandlingDetaljerView(behandling as Klagebehandling)
             Type.ANKE -> mapAnkebehandlingToBehandlingDetaljerView(behandling as Ankebehandling)
             Type.ANKE_I_TRYGDERETTEN -> mapAnkeITrygderettenbehandlingToBehandlingDetaljerView(behandling as AnkeITrygderettenbehandling)
-            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandling as BehandlingEtterTrygderettenOpphevet)
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(
+                behandling as BehandlingEtterTrygderettenOpphevet
+            )
         }
     }
 
     fun mapKlagebehandlingToBehandlingDetaljerView(klagebehandling: Klagebehandling): BehandlingDetaljerView {
         val enhetNavn = klagebehandling.avsenderEnhetFoersteinstans.let { norg2Client.fetchEnhet(it) }.navn
 
+        //TODO: Remove after oppgavebeskrivelse is removed
         val oppgave = oppgaveApiService.getOppgave(klagebehandling.oppgaveId)
 
         return BehandlingDetaljerView(
@@ -59,8 +63,16 @@ class BehandlingMapper(
             fraNAVEnhetNavn = enhetNavn,
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
             sakenGjelder = getSakenGjelderViewWithUtsendingskanal(klagebehandling),
-            klager = getPartViewWithUtsendingskanal(klagebehandling.klager.partId, klagebehandling),
-            prosessfullmektig = klagebehandling.klager.prosessfullmektig?.let { getPartViewWithUtsendingskanal(it.partId, klagebehandling) },
+            klager = getPartViewWithUtsendingskanal(
+                partId = klagebehandling.klager.partId,
+                behandling = klagebehandling
+            ),
+            prosessfullmektig = klagebehandling.klager.prosessfullmektig?.let {
+                getPartViewWithUtsendingskanal(
+                    partId = it.partId,
+                    behandling = klagebehandling
+                )
+            },
             temaId = klagebehandling.ytelse.toTema().id,
             ytelseId = klagebehandling.ytelse.id,
             typeId = klagebehandling.type.id,
@@ -108,7 +120,7 @@ class BehandlingMapper(
             oppgavebeskrivelse = if (klagebehandling.oppgaveId != null) {
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
-            oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
+            oppgave = getOppgaveView(oppgaveId = klagebehandling.oppgaveId),
         )
     }
 
@@ -167,8 +179,13 @@ class BehandlingMapper(
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
             sakenGjelder = getSakenGjelderViewWithUtsendingskanal(ankebehandling),
-            klager = getPartViewWithUtsendingskanal(ankebehandling.klager.partId, ankebehandling),
-            prosessfullmektig = ankebehandling.klager.prosessfullmektig?.let { getPartViewWithUtsendingskanal(it.partId, ankebehandling) },
+            klager = getPartViewWithUtsendingskanal(partId = ankebehandling.klager.partId, behandling = ankebehandling),
+            prosessfullmektig = ankebehandling.klager.prosessfullmektig?.let {
+                getPartViewWithUtsendingskanal(
+                    partId = it.partId,
+                    behandling = ankebehandling
+                )
+            },
             temaId = ankebehandling.ytelse.toTema().id,
             ytelseId = ankebehandling.ytelse.id,
             typeId = ankebehandling.type.id,
@@ -216,7 +233,7 @@ class BehandlingMapper(
             oppgavebeskrivelse = if (ankebehandling.oppgaveId != null) {
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
-            oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
+            oppgave = getOppgaveView(oppgaveId = ankebehandling.oppgaveId),
         )
     }
 
@@ -229,8 +246,16 @@ class BehandlingMapper(
             fraNAVEnhetNavn = null,
             mottattVedtaksinstans = null,
             sakenGjelder = getSakenGjelderViewWithUtsendingskanal(ankeITrygderettenbehandling),
-            klager = getPartViewWithUtsendingskanal(ankeITrygderettenbehandling.klager.partId, ankeITrygderettenbehandling),
-            prosessfullmektig = ankeITrygderettenbehandling.klager.prosessfullmektig?.let { getPartViewWithUtsendingskanal(it.partId, ankeITrygderettenbehandling) },
+            klager = getPartViewWithUtsendingskanal(
+                partId = ankeITrygderettenbehandling.klager.partId,
+                behandling = ankeITrygderettenbehandling
+            ),
+            prosessfullmektig = ankeITrygderettenbehandling.klager.prosessfullmektig?.let {
+                getPartViewWithUtsendingskanal(
+                    partId = it.partId,
+                    behandling = ankeITrygderettenbehandling
+                )
+            },
             temaId = ankeITrygderettenbehandling.ytelse.toTema().id,
             ytelseId = ankeITrygderettenbehandling.ytelse.id,
             typeId = ankeITrygderettenbehandling.type.id,
@@ -275,13 +300,14 @@ class BehandlingMapper(
             oppgavebeskrivelse = if (ankeITrygderettenbehandling.oppgaveId != null) {
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
-            oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
+            oppgave = getOppgaveView(oppgaveId = ankeITrygderettenbehandling.oppgaveId),
         )
     }
 
     fun mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet): BehandlingDetaljerView {
         val oppgave = oppgaveApiService.getOppgave(behandlingEtterTrygderettenOpphevet.oppgaveId)
-        val forrigeEnhetNavn = behandlingEtterTrygderettenOpphevet.ankeBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
+        val forrigeEnhetNavn =
+            behandlingEtterTrygderettenOpphevet.ankeBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
         return BehandlingDetaljerView(
             id = behandlingEtterTrygderettenOpphevet.id,
@@ -289,8 +315,16 @@ class BehandlingMapper(
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
             sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandlingEtterTrygderettenOpphevet),
-            klager = getPartViewWithUtsendingskanal(behandlingEtterTrygderettenOpphevet.klager.partId, behandlingEtterTrygderettenOpphevet),
-            prosessfullmektig = behandlingEtterTrygderettenOpphevet.klager.prosessfullmektig?.let { getPartViewWithUtsendingskanal(it.partId, behandlingEtterTrygderettenOpphevet) },
+            klager = getPartViewWithUtsendingskanal(
+                partId = behandlingEtterTrygderettenOpphevet.klager.partId,
+                behandling = behandlingEtterTrygderettenOpphevet
+            ),
+            prosessfullmektig = behandlingEtterTrygderettenOpphevet.klager.prosessfullmektig?.let {
+                getPartViewWithUtsendingskanal(
+                    partId = it.partId,
+                    behandling = behandlingEtterTrygderettenOpphevet
+                )
+            },
             temaId = behandlingEtterTrygderettenOpphevet.ytelse.toTema().id,
             ytelseId = behandlingEtterTrygderettenOpphevet.ytelse.id,
             typeId = behandlingEtterTrygderettenOpphevet.type.id,
@@ -339,7 +373,7 @@ class BehandlingMapper(
             oppgavebeskrivelse = if (behandlingEtterTrygderettenOpphevet.oppgaveId != null) {
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
-            oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
+            oppgave = getOppgaveView(oppgaveId = behandlingEtterTrygderettenOpphevet.oppgaveId),
         )
     }
 
@@ -398,7 +432,10 @@ class BehandlingMapper(
         )
     }
 
-    fun getPartViewWithUtsendingskanal(partId: PartId, behandling: Behandling): BehandlingDetaljerView.PartViewWithUtsendingskanal {
+    fun getPartViewWithUtsendingskanal(
+        partId: PartId,
+        behandling: Behandling
+    ): BehandlingDetaljerView.PartViewWithUtsendingskanal {
         return getPartViewWithUtsendingskanal(
             identifier = partId.value,
             isPerson = partId.isPerson(),
@@ -433,7 +470,11 @@ class BehandlingMapper(
         }
     }
 
-    private fun getPartViewWithUtsendingskanal(identifier: String, isPerson: Boolean, behandling: Behandling): BehandlingDetaljerView.PartViewWithUtsendingskanal {
+    private fun getPartViewWithUtsendingskanal(
+        identifier: String,
+        isPerson: Boolean,
+        behandling: Behandling
+    ): BehandlingDetaljerView.PartViewWithUtsendingskanal {
         val utsendingskanal = dokDistKanalService.getUtsendingskanal(
             mottakerId = identifier,
             brukerId = behandling.sakenGjelder.partId.value,
@@ -712,4 +753,21 @@ class BehandlingMapper(
         } else null
     }
 
+    private fun getOppgaveView(oppgaveId: Long?): BehandlingDetaljerView.OppgaveView? {
+        return if (oppgaveId != null) {
+            val oppgave = oppgaveApiService.getOppgave(oppgaveId)
+
+            BehandlingDetaljerView.OppgaveView(
+                beskrivelse = oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse",
+                opprettetAv = oppgave?.opprettetAvEnhetsnr?.let {
+                    toEnhetView(enhet = norg2Client.fetchEnhet(enhetNr = oppgave.opprettetAvEnhetsnr))
+                }
+            )
+        } else null
+    }
 }
+
+fun toEnhetView(enhet: Enhet): EnhetView = EnhetView(
+    enhetsnr = enhet.enhetsnr,
+    navn = enhet.navn,
+)
