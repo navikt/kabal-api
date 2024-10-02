@@ -397,9 +397,9 @@ class DokumentService(
         pdDocumentInformation.title = title
         merger.destinationDocumentInformation = pdDocumentInformation
 
-        val pathToMergedDocument = Files.createTempFile(null, null)
+        val mergedDocumentFile = getFileToUse()
 
-        merger.destinationFileName = pathToMergedDocument.toString()
+        merger.destinationFileName = mergedDocumentFile.absolutePath
 
         resourcesToMerge.forEach { resource ->
             if (resource is FileSystemResource) {
@@ -423,7 +423,7 @@ class DokumentService(
             logger.warn("couldn't delete tmp files", e)
         }
 
-        return FileSystemResource(pathToMergedDocument) to title
+        return FileSystemResource(mergedDocumentFile) to title
     }
 
     fun getMergedDocument(id: UUID) = mergedDocumentRepository.getReferenceById(id)
