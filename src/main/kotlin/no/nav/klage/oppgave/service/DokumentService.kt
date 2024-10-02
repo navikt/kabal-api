@@ -353,10 +353,9 @@ class DokumentService(
         pdDocumentInformation.title = title
         merger.destinationDocumentInformation = pdDocumentInformation
 
-        val pathToMergedDocument = Files.createTempFile(null, null)
-        pathToMergedDocument.toFile().deleteOnExit()
+        val pathToMergedDocument = getFileToUse()
 
-        merger.destinationFileName = pathToMergedDocument.toString()
+        merger.destinationFileName = pathToMergedDocument.absolutePath
 
         val documentsWithPaths = documentsToMerge.map {
             val tmpFile = Files.createTempFile(null, null)
@@ -387,7 +386,7 @@ class DokumentService(
             logger.warn("couldn't delete tmp files", e)
         }
 
-        return pathToMergedDocument to title
+        return pathToMergedDocument.toPath() to title
     }
 
     fun mergePDFFiles(resourcesToMerge: List<Resource>, title: String = "merged document"): Pair<FileSystemResource, String> {
