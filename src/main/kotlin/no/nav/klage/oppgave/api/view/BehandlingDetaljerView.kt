@@ -49,8 +49,12 @@ data class BehandlingDetaljerView(
     val previousSaksbehandler: SaksbehandlerView?,
     val varsletFrist: LocalDate?,
     val oppgavebeskrivelse: String?,
-    val oppgaveOpprettetAvEnhetsnr: String?,
+    val oppgave: GosysOppgaveView?,
 ) {
+    data class GosysOppgaveView(
+        val beskrivelse: String,
+        val opprettetAv: EnhetView?,
+    )
 
     data class CombinedMedunderskriverAndROLView(
         val employee: SaksbehandlerView?,

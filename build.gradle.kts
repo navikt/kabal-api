@@ -17,7 +17,7 @@ val tikaVersion = "2.9.2"
 val verapdfVersion = "1.26.1"
 val klageKodeverkVersion = "1.8.47-rc.0"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
-val otelVersion = "1.40.0"
+val otelVersion = "1.42.1"
 
 plugins {
     val kotlinVersion = "2.0.0"
@@ -65,7 +65,6 @@ dependencies {
     kapt("org.hibernate.orm:hibernate-jpamodelgen:6.5.2.Final")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
-    implementation("io.micrometer:micrometer-tracing-bridge-brave")
 
     implementation("io.opentelemetry:opentelemetry-api:$otelVersion")
 

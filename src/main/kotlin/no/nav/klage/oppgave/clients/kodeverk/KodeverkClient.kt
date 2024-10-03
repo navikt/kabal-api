@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.clients.kodeverk
 
-import brave.Tracer
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.exceptions.KodeverkNotFoundException
 import no.nav.klage.oppgave.util.TokenUtil
@@ -19,7 +18,6 @@ import org.springframework.web.reactive.function.client.bodyToMono
 @Component
 class KodeverkClient(
     private val kodeverkWebClient: WebClient,
-    private val tracer: Tracer,
     private val tokenUtil: TokenUtil,
 ) {
 
@@ -40,7 +38,6 @@ class KodeverkClient(
                         .queryParam("spraak", "NO")
                         .build()
                 }
-                .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope()}"
@@ -77,7 +74,6 @@ class KodeverkClient(
                         .queryParam("spraak", "NO")
                         .build()
                 }
-                .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope()}"

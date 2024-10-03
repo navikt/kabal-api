@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.oppgave.clients.norg2.Enhet
+import no.nav.klage.oppgave.api.mapper.toEnhetView
+import no.nav.klage.oppgave.api.view.EnhetView
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
@@ -27,15 +28,15 @@ class EnhetService(
     fun findEnheter(
         enhetsnr: String?,
         enhetsnavn: String?,
-    ): List<Enhet> {
+    ): List<EnhetView> {
         val enheter = norg2Client.fetchEnheter()
         if (enhetsnr.isNullOrBlank() && enhetsnavn.isNullOrBlank()) {
-            return enheter
+            return enheter.map { toEnhetView(enhet = it) }
         }
 
         return enheter.filter {
             (enhetsnr.isNullOrBlank() || it.enhetsnr.contains(enhetsnr)) &&
-            (enhetsnavn.isNullOrBlank() || it.navn.contains(enhetsnavn, ignoreCase = true))
-        }
+                    (enhetsnavn.isNullOrBlank() || it.navn.contains(enhetsnavn, ignoreCase = true))
+        }.map { toEnhetView(enhet = it) }
     }
 }

@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.clients.krrproxy
 
-import brave.Tracer
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
@@ -18,7 +17,6 @@ import reactor.core.publisher.Mono
 class KrrProxyClient(
     private val krrProxyWebClient: WebClient,
     private val tokenUtil: TokenUtil,
-    private val tracer: Tracer
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -40,7 +38,6 @@ class KrrProxyClient(
         logger.debug("Getting info from KRR")
         return krrProxyWebClient.get()
             .uri("/rest/v1/person")
-            .header("Nav-Call-Id", tracer.currentSpan().context().traceIdString())
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer $token"

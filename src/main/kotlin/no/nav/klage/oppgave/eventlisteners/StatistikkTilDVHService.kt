@@ -59,11 +59,8 @@ class StatistikkTilDVHService(
     private fun StatistikkTilDVH.toJson(): String = objectMapper.writeValueAsString(this)
 
     fun shouldSendStats(behandlingEndretEvent: BehandlingEndretEvent): Boolean {
-        return if (behandlingEndretEvent.behandling.fagsystem == Fagsystem.IT01 && behandlingEndretEvent.behandling.type !in listOf(
-                Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
-                Type.OMGJOERINGSKRAV
-            )
-        ) {
+        //TODO: Omgjøringskrav
+        return if (behandlingEndretEvent.behandling.fagsystem == Fagsystem.IT01 && behandlingEndretEvent.endringslogginnslag.none { it.felt in listOf(Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET, Felt.OMGJOERINGSKRAV) }) {
             false
         } else if (behandlingEndretEvent.endringslogginnslag.isEmpty() && behandlingEndretEvent.behandling.type != Type.ANKE_I_TRYGDERETTEN) {
             true
@@ -205,16 +202,16 @@ class StatistikkTilDVHService(
 
     private fun getBehandlingTypeName(type: Type): String =
         if (type == Type.ANKE_I_TRYGDERETTEN) {
-            Type.ANKE.navn
+            Type.ANKE.name
         } else {
-            type.navn
+            type.name
         }
 
     private fun getResultat(behandling: Behandling): String? =
         if (behandling.feilregistrering != null) {
             "Feilregistrert"
         } else if (behandling.ferdigstilling != null) {
-            behandling.utfall?.navn
+            behandling.utfall?.name
         } else {
             null
         }
@@ -263,6 +260,10 @@ class StatistikkTilDVHService(
             BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA -> {
                 behandling as AnkeITrygderettenbehandling
                 behandling.kjennelseMottatt ?: throw RuntimeException("kjennelseMottatt mangler")
+            }
+
+            else -> {
+                error("BehandlingState not in use. ${behandlingState.name}")
             }
         }
     }

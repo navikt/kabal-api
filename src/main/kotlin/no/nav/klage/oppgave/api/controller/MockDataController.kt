@@ -252,6 +252,8 @@ class MockDataController(
     )
 
     private fun createKlanke(type: Type, mockInput: MockInput?): MockDataResponse {
+        val start = System.currentTimeMillis()
+        logger.debug("Creating klage/anke of type {} for testing", type)
         val ytelse = if (mockInput == null) {
             logger.debug("Null input/body, using SYK as ytelse.")
             Ytelse.SYK_SYK
@@ -276,9 +278,9 @@ class MockDataController(
         val oversendtSak = OversendtSak(
             fagsakId = Random.nextInt(from = 1, until = 9999).toString(),
             fagsystem = Fagsystem.AO01
-
         )
 
+        logger.debug("Will create mottak/behandling for klage/anke of type {} for ytelse {}", type, ytelse)
         val behandling = when (type) {
             Type.KLAGE, Type.ANKE, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET, Type.OMGJOERINGSKRAV -> {
                 mottakService.createMottakForKlageAnkeV3ForE2ETests(
@@ -340,6 +342,9 @@ class MockDataController(
                 )
             }
         }
+        logger.debug("Behandling with id {} was returned", behandling.id)
+
+        logger.debug("{} created for testing. It took {} millis", type, System.currentTimeMillis() - start)
 
         return MockDataResponse(
             id = behandling.id,

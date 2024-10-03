@@ -114,6 +114,7 @@ class MottakService(
                 val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(ytelse = behandling.ytelse, type = behandling.type)
 
                 if (svarbrevSettings.shouldSend) {
+                    logger.debug("Sender svarbrev for behandling {}", behandling.id)
                     val receiverId = if (behandling.klager.prosessfullmektig != null) {
                         behandling.klager.prosessfullmektig!!.partId.value
                     } else {
@@ -149,6 +150,10 @@ class MottakService(
                         systemUserContext = true,
                         mottakere = listOf(behandling.sakenGjelder.partId)
                     )
+
+                    logger.debug("Svarbrev klargjort for utsending for behandling {}", behandling.id)
+                } else {
+                    logger.debug("Svarbrev skal ikke sendes for behandling {}", behandling.id)
                 }
             } catch (e: Exception) {
                 logger.error("Feil ved opprettelse av svarbrev.", e)
@@ -158,20 +163,23 @@ class MottakService(
 
     @Transactional
     fun createMottakForKlageAnkeV3ForE2ETests(oversendtKlageAnke: OversendtKlageAnkeV3): Behandling {
-        secureLogger.debug("Prøver å lagre oversendtKlageAnkeV3 for E2E-tests: {}", oversendtKlageAnke)
+        logger.debug("Prøver å lagre oversendtKlageAnkeV3 for E2E-tests: {}", oversendtKlageAnke)
 
         val mottak = validateAndSaveMottak(oversendtKlageAnke)
 
-        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlageAnkeV3: {}", mottak)
-        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+        logger.debug("Har lagret følgende mottak basert på en oversendtKlageAnkeV3: {}", mottak)
 
+        logger.debug("Updating metrics")
         meterRegistry.incrementMottattKlageAnke(
             oversendtKlageAnke.kilde.name,
             oversendtKlageAnke.ytelse.navn,
             oversendtKlageAnke.type.navn
         )
+        logger.debug("Metrics updated")
 
+        logger.debug("Creating behandling from mottak")
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
+        logger.debug("Behandling created from mottak")
 
         //For verification
         sendSvarbrev(behandling = behandling)
