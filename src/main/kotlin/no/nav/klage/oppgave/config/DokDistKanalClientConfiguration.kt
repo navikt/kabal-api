@@ -4,9 +4,7 @@ package no.nav.klage.oppgave.config
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.web.reactive.function.client.WebClient
-import reactor.netty.http.client.HttpClient
 
 @Configuration
 class DokDistKanalClientConfiguration(private val webClientBuilder: WebClient.Builder) {
@@ -22,6 +20,5 @@ class DokDistKanalClientConfiguration(private val webClientBuilder: WebClient.Bu
         webClientBuilder
             .baseUrl(url)
             .defaultHeader("Nav-Consumer-Id", applicationName)
-            .clientConnector(ReactorClientHttpConnector(HttpClient.newConnection()))
             .build()
 }
