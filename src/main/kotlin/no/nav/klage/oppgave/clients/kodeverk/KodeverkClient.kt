@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.clients.kodeverk
 
-import io.opentelemetry.api.trace.Span
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.exceptions.KodeverkNotFoundException
 import no.nav.klage.oppgave.util.TokenUtil
@@ -39,7 +38,6 @@ class KodeverkClient(
                         .queryParam("spraak", "NO")
                         .build()
                 }
-                .header("Nav-Call-Id", Span.current().spanContext.traceId)
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope()}"
@@ -76,7 +74,6 @@ class KodeverkClient(
                         .queryParam("spraak", "NO")
                         .build()
                 }
-                .header("Nav-Call-Id", Span.current().spanContext.traceId)
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope()}"

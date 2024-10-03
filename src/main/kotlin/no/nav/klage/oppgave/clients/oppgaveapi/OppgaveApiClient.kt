@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.clients.oppgaveapi
 
-import io.opentelemetry.api.trace.Span
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -34,7 +33,6 @@ class OppgaveApiClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithOppgaveApiScope() else tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
                 )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveApiRecord>()
@@ -57,7 +55,6 @@ class OppgaveApiClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithOppgaveApiScope() else tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
                 )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveApiRecord>()
@@ -80,7 +77,6 @@ class OppgaveApiClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
                 )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveMapperResponse>()
