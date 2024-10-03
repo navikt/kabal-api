@@ -813,13 +813,15 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
-            fraVerdi = previousValue.toString(),
-            tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
-            tidspunkt = dokumentUnderArbeid.modified,
-        )
+        if (previousValue.toString() != dokumentUnderArbeid.avsenderMottakerInfoSet.toString()) {
+            behandling.publishEndringsloggEvent(
+                saksbehandlerident = innloggetIdent,
+                felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
+                fraVerdi = previousValue.toString(),
+                tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
+                tidspunkt = dokumentUnderArbeid.modified,
+            )
+        }
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -954,13 +956,15 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = utfoerendeIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
-            fraVerdi = previousValue.toString(),
-            tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
-            tidspunkt = dokumentUnderArbeid.modified,
-        )
+        if (previousValue.toString() != dokumentUnderArbeid.avsenderMottakerInfoSet.toString()) {
+            behandling.publishEndringsloggEvent(
+                saksbehandlerident = utfoerendeIdent,
+                felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
+                fraVerdi = previousValue.toString(),
+                tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
+                tidspunkt = dokumentUnderArbeid.modified,
+            )
+        }
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
