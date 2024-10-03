@@ -753,11 +753,11 @@ class BehandlingMapper(
         } else null
     }
 
-    private fun getOppgaveView(oppgaveId: Long?): BehandlingDetaljerView.OppgaveView? {
+    private fun getOppgaveView(oppgaveId: Long?): BehandlingDetaljerView.GosysOppgaveView? {
         return if (oppgaveId != null) {
             val oppgave = oppgaveApiService.getOppgave(oppgaveId)
 
-            BehandlingDetaljerView.OppgaveView(
+            BehandlingDetaljerView.GosysOppgaveView(
                 beskrivelse = oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse",
                 opprettetAv = oppgave?.opprettetAvEnhetsnr?.let {
                     toEnhetView(enhet = norg2Client.fetchEnhet(enhetNr = oppgave.opprettetAvEnhetsnr))
