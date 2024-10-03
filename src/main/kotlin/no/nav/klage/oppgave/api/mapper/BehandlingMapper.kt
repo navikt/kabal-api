@@ -184,7 +184,7 @@ class BehandlingMapper(
             oppgavebeskrivelse = if (omgjoeringskravbehandling.oppgaveId != null) {
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
-            oppgaveOpprettetAvEnhetsnr = oppgave?.opprettetAvEnhetsnr,
+            oppgave = getOppgaveView(oppgaveId = omgjoeringskravbehandling.oppgaveId),
             kommentarFraVedtaksinstans = null,
         )
     }
