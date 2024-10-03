@@ -14,11 +14,13 @@ import no.nav.tms.varsel.action.Tekst
 import no.nav.tms.varsel.action.Varseltype
 import no.nav.tms.varsel.builder.VarselActionBuilder
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 
 @Service
+@Transactional
 class BrukervarselService(
     private val kafkaEventRepository: KafkaEventRepository
 ) {
@@ -86,7 +88,7 @@ class BrukervarselService(
 
             2 -> {
                 if (strings[0].equals(other = strings[1], ignoreCase = true)) {
-                    replaceFirstChar { it.lowercase(Locale.getDefault()) }
+                    replaceFirstChar { strings[0].lowercase(Locale.getDefault()) }
                 } else {
                     replaceFirstChar { strings[0].lowercase(Locale.getDefault()) } + " - " + replaceFirstChar {
                         strings[0].lowercase(

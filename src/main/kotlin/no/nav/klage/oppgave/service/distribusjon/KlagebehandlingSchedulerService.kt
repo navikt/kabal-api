@@ -85,7 +85,7 @@ class KlagebehandlingSchedulerService(
         )
     }
 
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 12)
+    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 2)
     @SchedulerLock(name = "dispatchUnsentBrukervarselToKafka")
     fun dispatchUnsentBrukervarselToKafka() {
         logger.debug("dispatchUnsentBrukervarselToKafka is called by scheduler")
