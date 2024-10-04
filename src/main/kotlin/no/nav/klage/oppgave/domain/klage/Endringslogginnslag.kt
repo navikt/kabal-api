@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
+import no.nav.klage.oppgave.util.getLogger
 import java.time.LocalDateTime
 import java.util.*
 
@@ -30,6 +31,8 @@ class Endringslogginnslag(
     val tidspunkt: LocalDateTime = LocalDateTime.now()
 ) {
     companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
 
         fun endringslogg(
             saksbehandlerident: String?,
@@ -40,6 +43,13 @@ class Endringslogginnslag(
             tidspunkt: LocalDateTime
         ): Endringslogginnslag? {
             if ((fraVerdi == null && tilVerdi == null) || fraVerdi == tilVerdi) {
+                logger.debug(
+                    "Returning null from endringslogg. Felt: {}, fraVerdi: {}, tilVerdi: {}, behandlingId: {}",
+                    felt.name,
+                    fraVerdi,
+                    tilVerdi,
+                    behandlingId
+                )
                 return null
             } else {
                 val handling = when {
@@ -85,20 +95,7 @@ enum class Felt {
     AVSLUTTET_TIDSPUNKT,
     MEDUNDERSKRIVER_FLOW_STATE_ID,
     SATT_PAA_VENT,
-    DOKUMENT_UNDER_ARBEID_OPPLASTET,
-    DOKUMENT_UNDER_ARBEID_SLETTET,
-    DOKUMENT_UNDER_ARBEID_TYPE,
-    DOKUMENT_UNDER_ARBEID_DATO_MOTTATT,
-    DOKUMENT_UNDER_ARBEID_INNGAAENDE_KANAL,
-    DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
-    DOKUMENT_UNDER_ARBEID_ID,
-    DOKUMENT_UNDER_ARBEID_MARKERT_FERDIG,
-    DOKUMENT_UNDER_ARBEID_NAME,
-    DOKUMENT_UNDER_ARBEID_LANGUAGE,
-    DOKUMENT_UNDER_ARBEID_JOURNALPOST_ID,
     MOTTATT_KLAGEINSTANS_TIDSPUNKT,
-    DOKUMENT_UNDER_ARBEID_BREVMOTTAKER_IDENTS,
-    SMARTDOKUMENT_TEMPLATE_ID,
     SMARTDOKUMENT_OPPRETTET,
     SENDT_TIL_TRYGDERETTEN_TIDSPUNKT,
     KJENNELSE_MOTTATT_TIDSPUNKT,
@@ -108,10 +105,7 @@ enum class Felt {
     VARSLET_BEHANDLINGSTID_UNITS,
     VARSLET_BEHANDLINGSTID_UNIT_TYPE,
     FULLMEKTIG,
-    ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN,
-    BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET,
     FEILREGISTRERING,
-    JOURNALFOERT_DOKUMENT_UNDER_ARBEID_OPPRETTET,
     KLAGER,
     ROL_FLOW_STATE_ID,
     ROL_IDENT,
@@ -119,4 +113,9 @@ enum class Felt {
     NY_ANKEBEHANDLING_KA,
     OPPGAVE_RETURNED,
     NY_BEHANDLING_ETTER_TR_OPPHEVET,
+    KLAGEBEHANDLING_MOTTATT,
+    ANKEBEHANDLING_MOTTATT,
+    ANKE_I_TRYGDERETTEN_OPPRETTET,
+    BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET,
+    ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN,
 }
