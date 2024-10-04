@@ -2138,7 +2138,7 @@ class DokumentUnderArbeidService(
         tilVerdi: String?,
         tidspunkt: LocalDateTime,
     ) {
-        listOfNotNull(
+        val endringslogginnslag = listOfNotNull(
             this.endringslogg(
                 saksbehandlerident = saksbehandlerident,
                 felt = felt,
@@ -2146,11 +2146,13 @@ class DokumentUnderArbeidService(
                 tilVerdi = tilVerdi,
                 tidspunkt = tidspunkt,
             )
-        ).let {
+        )
+
+        if (endringslogginnslag.isNotEmpty()) {
             applicationEventPublisher.publishEvent(
                 BehandlingEndretEvent(
                     behandling = this,
-                    endringslogginnslag = it
+                    endringslogginnslag = endringslogginnslag
                 )
             )
         }
