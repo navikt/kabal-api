@@ -26,9 +26,7 @@ class BrukervarselService(
 ) {
 
     fun process(behandlingEndretEvent: BehandlingEndretEvent) {
-        val payload = getBrukervarselPayload(behandlingEndretEvent)
-
-        if (payload != null) {
+        if (shouldSendVarsel(behandlingEndretEvent)) {
             val eventId = UUID.randomUUID()
 
             kafkaEventRepository.save(
@@ -38,24 +36,38 @@ class BrukervarselService(
                     kilde = behandlingEndretEvent.behandling.fagsystem.navn,
                     kildeReferanse = behandlingEndretEvent.behandling.kildeReferanse,
                     status = UtsendingStatus.IKKE_SENDT,
-                    jsonPayload = payload,
+                    jsonPayload = getBrukervarselPayload(behandlingEndretEvent),
                     type = EventType.BRUKERVARSEL
                 )
             )
         }
     }
 
-    private fun getBrukervarselPayload(behandlingEndretEvent: BehandlingEndretEvent): String? {
-        if (behandlingEndretEvent.behandling.type in listOf(Type.KLAGE, Type.ANKE)) {
-            if (behandlingEndretEvent.endringslogginnslag.isEmpty()) {
-                return behandlingOpprettet(behandling = behandlingEndretEvent.behandling)
-            } else if (behandlingEndretEvent.endringslogginnslag.any {
+    private fun shouldSendVarsel(behandlingEndretEvent: BehandlingEndretEvent): Boolean {
+        if (behandlingEndretEvent.endringslogginnslag.any { it.felt === Felt.KLAGEBEHANDLING_MOTTATT }) {
+            return true
+        } else if (behandlingEndretEvent.behandling.type == Type.KLAGE) {
+            if (behandlingEndretEvent.endringslogginnslag.any {
+                    it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
+                }) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun getBrukervarselPayload(behandlingEndretEvent: BehandlingEndretEvent): String {
+        if (behandlingEndretEvent.endringslogginnslag.any { it.felt === Felt.KLAGEBEHANDLING_MOTTATT }) {
+            return behandlingOpprettet(behandling = behandlingEndretEvent.behandling)
+        } else if (behandlingEndretEvent.behandling.type == Type.KLAGE) {
+            if (behandlingEndretEvent.endringslogginnslag.any {
                     it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                 }) {
                 return behandlingInaktivert(behandling = behandlingEndretEvent.behandling)
             }
         }
-        return null
+
+        throw Error("Invalid state")
     }
 
     fun behandlingOpprettet(behandling: Behandling): String {
