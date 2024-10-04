@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
+import no.nav.klage.oppgave.util.getLogger
 import java.time.LocalDateTime
 import java.util.*
 
@@ -30,6 +31,8 @@ class Endringslogginnslag(
     val tidspunkt: LocalDateTime = LocalDateTime.now()
 ) {
     companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
 
         fun endringslogg(
             saksbehandlerident: String?,
@@ -40,6 +43,13 @@ class Endringslogginnslag(
             tidspunkt: LocalDateTime
         ): Endringslogginnslag? {
             if ((fraVerdi == null && tilVerdi == null) || fraVerdi == tilVerdi) {
+                logger.debug(
+                    "Returning null from endringslogg. Felt: {}, fraVerdi: {}, tilVerdi: {}, behandlingId: {}",
+                    felt.name,
+                    fraVerdi,
+                    tilVerdi,
+                    behandlingId
+                )
                 return null
             } else {
                 val handling = when {
