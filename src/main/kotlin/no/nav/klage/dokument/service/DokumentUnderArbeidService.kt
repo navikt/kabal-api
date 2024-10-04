@@ -813,13 +813,15 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
-            fraVerdi = previousValue.toString(),
-            tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
-            tidspunkt = dokumentUnderArbeid.modified,
-        )
+        if (previousValue.toString() != dokumentUnderArbeid.avsenderMottakerInfoSet.toString()) {
+            behandling.publishEndringsloggEvent(
+                saksbehandlerident = innloggetIdent,
+                felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
+                fraVerdi = previousValue.toString(),
+                tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
+                tidspunkt = dokumentUnderArbeid.modified,
+            )
+        }
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -854,6 +856,7 @@ class DokumentUnderArbeidService(
         utfoerendeIdent: String,
         systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
+        //TODO: Undersøk om vi gjør dette kallet unødvendig når vi sender ut svarbrev fra mottak.
         //Validate parts
         mottakerInput.mottakerList.forEach { mottaker ->
             val part = partSearchService.searchPart(
@@ -954,13 +957,15 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = utfoerendeIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
-            fraVerdi = previousValue.toString(),
-            tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
-            tidspunkt = dokumentUnderArbeid.modified,
-        )
+        if (previousValue.toString() != dokumentUnderArbeid.avsenderMottakerInfoSet.toString()) {
+            behandling.publishEndringsloggEvent(
+                saksbehandlerident = utfoerendeIdent,
+                felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
+                fraVerdi = previousValue.toString(),
+                tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
+                tidspunkt = dokumentUnderArbeid.modified,
+            )
+        }
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
