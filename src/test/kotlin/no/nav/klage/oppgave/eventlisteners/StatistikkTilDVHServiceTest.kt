@@ -30,17 +30,50 @@ class StatistikkTilDVHServiceTest {
 
         val klagebehandlingEndretEvent = BehandlingEndretEvent(
             behandling = klagebehandlingOMP,
-            endringslogginnslag = listOf()
+            endringslogginnslag = listOf(
+                Endringslogginnslag(
+                    saksbehandlerident = null,
+                    kilde = KildeSystem.KABAL,
+                    handling = Handling.NY,
+                    felt = Felt.KLAGEBEHANDLING_MOTTATT,
+                    behandlingId = UUID.randomUUID(),
+                    tidspunkt = LocalDateTime.now(),
+                    fraVerdi = null,
+                    tilVerdi = null,
+                )
+            )
         )
 
         val ankebehandlingEndretEvent = BehandlingEndretEvent(
             behandling = ankebehandlingOMP,
-            endringslogginnslag = listOf()
+            endringslogginnslag = listOf(
+                Endringslogginnslag(
+                    saksbehandlerident = null,
+                    kilde = KildeSystem.KABAL,
+                    handling = Handling.NY,
+                    felt = Felt.ANKEBEHANDLING_MOTTATT,
+                    behandlingId = UUID.randomUUID(),
+                    tidspunkt = LocalDateTime.now(),
+                    fraVerdi = null,
+                    tilVerdi = null,
+                )
+            )
         )
 
         val ankeITrygderettenbehandlingEndretEvent = BehandlingEndretEvent(
             behandling = ankeITrygderettenbehandlingOMP,
-            endringslogginnslag = listOf()
+            endringslogginnslag = listOf(
+                Endringslogginnslag(
+                    saksbehandlerident = null,
+                    kilde = KildeSystem.KABAL,
+                    handling = Handling.NY,
+                    felt = Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
+                    behandlingId = UUID.randomUUID(),
+                    tidspunkt = LocalDateTime.now(),
+                    fraVerdi = null,
+                    tilVerdi = null,
+                )
+            )
         )
 
         assertTrue(statistikkTilDVHService.shouldSendStats(klagebehandlingEndretEvent))

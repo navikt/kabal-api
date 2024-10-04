@@ -62,12 +62,12 @@ class StatistikkTilDVHService(
         //TODO: Omgjøringskrav
         return if (behandlingEndretEvent.behandling.fagsystem == Fagsystem.IT01 && behandlingEndretEvent.endringslogginnslag.none { it.felt in listOf(Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET, Felt.OMGJOERINGSKRAV) }) {
             false
-        } else if (behandlingEndretEvent.endringslogginnslag.isEmpty() && behandlingEndretEvent.behandling.type != Type.ANKE_I_TRYGDERETTEN) {
-            true
         } else behandlingEndretEvent.endringslogginnslag.any {
             it.felt === Felt.TILDELT_SAKSBEHANDLERIDENT
                     || it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                     || it.felt === Felt.FEILREGISTRERING
+                    || it.felt === Felt.KLAGEBEHANDLING_MOTTATT
+                    || it.felt === Felt.ANKEBEHANDLING_MOTTATT
         }
     }
 
@@ -78,7 +78,10 @@ class StatistikkTilDVHService(
         val utfall = behandling.utfall
 
         return when {
-            endringslogginnslag.isEmpty() && type != Type.ANKE_I_TRYGDERETTEN -> BehandlingState.MOTTATT
+            endringslogginnslag.any {
+                it.felt === Felt.KLAGEBEHANDLING_MOTTATT ||
+                        it.felt === Felt.ANKEBEHANDLING_MOTTATT
+            } -> BehandlingState.MOTTATT
 
             endringslogginnslag.any {
                 it.felt === Felt.FEILREGISTRERING
@@ -155,23 +158,22 @@ class StatistikkTilDVHService(
         behandling: Behandling,
         behandlingState: BehandlingState
     ): StatistikkTilDVH {
-        val behandlingId =
-            if (behandling.fagsystem == Fagsystem.IT01) {
-                try {
-                    behandling.fagsakId.substring(0, 4) + "-" + behandling.fagsakId.substring(
-                        4,
-                        5
-                    ) + "-" + behandling.fagsakId.substring(5)
-                } catch (e: Exception) {
-                    logger.error(
-                        "Error while generating Infotrygd behandlingId, for DVH, for behandling with id ${behandling.id} and fagsakId ${behandling.fagsakId}",
-                        e
-                    )
-                    behandling.fagsakId
-                }
-            } else {
-                behandling.dvhReferanse ?: behandling.kildeReferanse
+        val behandlingId = if (behandling.fagsystem == Fagsystem.IT01) {
+            try {
+                behandling.fagsakId.substring(0, 4) + "-" + behandling.fagsakId.substring(
+                    4,
+                    5
+                ) + "-" + behandling.fagsakId.substring(5)
+            } catch (e: Exception) {
+                logger.error(
+                    "Error while generating Infotrygd behandlingId, for DVH, for behandling with id ${behandling.id} and fagsakId ${behandling.fagsakId}",
+                    e
+                )
+                behandling.fagsakId
             }
+        } else {
+            behandling.dvhReferanse ?: behandling.kildeReferanse
+        }
 
         return StatistikkTilDVH(
             eventId = eventId,

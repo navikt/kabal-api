@@ -25,11 +25,12 @@ import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.getHistogram
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.klage.BehandlingRole
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
+import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
@@ -167,13 +168,6 @@ class DokumentUnderArbeidService(
                 )
             )
         }
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = utfoerendeIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_OPPLASTET,
-            fraVerdi = null,
-            tilVerdi = document.created.toString(),
-            tidspunkt = document.created,
-        )
 
         val dokumentView = dokumentMapper.mapToDokumentView(
             dokumentUnderArbeid = document,
@@ -529,16 +523,6 @@ class DokumentUnderArbeidService(
             )
         }
 
-        val resultingIdList = alreadyAddedDocuments.map { it.id }.union(resultingDocuments.map { it.id })
-
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.JOURNALFOERT_DOKUMENT_UNDER_ARBEID_OPPRETTET,
-            fraVerdi = alreadyAddedDocuments.joinToString { it.id.toString() },
-            tilVerdi = resultingIdList.joinToString(),
-            tidspunkt = now,
-        )
-
         return resultingDocuments to duplicates
     }
 
@@ -611,18 +595,9 @@ class DokumentUnderArbeidService(
         behandling: Behandling,
         innloggetIdent: String
     ) {
-        val previousValue = dokumentUnderArbeid.dokumentType
         dokumentUnderArbeid.dokumentType = newDokumentType
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
-
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_TYPE,
-            fraVerdi = previousValue.id,
-            tilVerdi = dokumentUnderArbeid.dokumentType.toString(),
-            tidspunkt = dokumentUnderArbeid.modified,
-        )
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -672,18 +647,9 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan bare sette dato mottatt på inngående dokument.")
         }
 
-        val previousValue = dokumentUnderArbeid.datoMottatt
         dokumentUnderArbeid.datoMottatt = datoMottatt
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
-
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_DATO_MOTTATT,
-            fraVerdi = previousValue.toString(),
-            tilVerdi = dokumentUnderArbeid.datoMottatt.toString(),
-            tidspunkt = dokumentUnderArbeid.modified,
-        )
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -730,18 +696,9 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan bare sette inngående kanal på ${DokumentType.ANNEN_INNGAAENDE_POST.navn}.")
         }
 
-        val previousValue = dokumentUnderArbeid.inngaaendeKanal
         dokumentUnderArbeid.inngaaendeKanal = inngaaendeKanal
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
-
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_INNGAAENDE_KANAL,
-            fraVerdi = previousValue.toString(),
-            tilVerdi = dokumentUnderArbeid.inngaaendeKanal.toString(),
-            tidspunkt = dokumentUnderArbeid.modified,
-        )
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -800,7 +757,6 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan bare sette avsender på inngående dokument")
         }
 
-        val previousValue = dokumentUnderArbeid.avsenderMottakerInfoSet.firstOrNull()
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
         dokumentUnderArbeid.avsenderMottakerInfoSet.add(
             DokumentUnderArbeidAvsenderMottakerInfo(
@@ -812,14 +768,6 @@ class DokumentUnderArbeidService(
         )
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
-
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
-            fraVerdi = previousValue.toString(),
-            tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
-            tidspunkt = dokumentUnderArbeid.modified,
-        )
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -854,6 +802,7 @@ class DokumentUnderArbeidService(
         utfoerendeIdent: String,
         systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
+        //TODO: Undersøk om vi gjør dette kallet unødvendig når vi sender ut svarbrev fra mottak.
         //Validate parts
         mottakerInput.mottakerList.forEach { mottaker ->
             val part = partSearchService.searchPart(
@@ -911,8 +860,6 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan bare sette mottakere på utgående dokument")
         }
 
-        val previousValue = dokumentUnderArbeid.avsenderMottakerInfoSet
-
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
 
         mottakerInput.mottakerList.forEach {
@@ -953,14 +900,6 @@ class DokumentUnderArbeidService(
         }
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
-
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = utfoerendeIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_AVSENDER_MOTTAKER,
-            fraVerdi = previousValue.toString(),
-            tilVerdi = dokumentUnderArbeid.avsenderMottakerInfoSet.toString(),
-            tidspunkt = dokumentUnderArbeid.modified,
-        )
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -1040,15 +979,7 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke endre tittel på journalført dokument i denne konteksten")
         }
 
-        val oldValue = dokumentUnderArbeid.name
         dokumentUnderArbeid.name = dokumentTitle
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_NAME,
-            fraVerdi = oldValue,
-            tilVerdi = dokumentUnderArbeid.name,
-            tidspunkt = LocalDateTime.now(),
-        )
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -1100,15 +1031,7 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid as DokumentUnderArbeidAsSmartdokument
 
-        val oldValue = dokumentUnderArbeid.language
         dokumentUnderArbeid.language = language
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_LANGUAGE,
-            fraVerdi = oldValue.name,
-            tilVerdi = dokumentUnderArbeid.language.name,
-            tidspunkt = LocalDateTime.now(),
-        )
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -1343,22 +1266,6 @@ class DokumentUnderArbeidService(
                 fnr = behandling.sakenGjelder.partId.value,
             )
         }
-
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = utfoerendeIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_MARKERT_FERDIG,
-            fraVerdi = null,
-            tilVerdi = hovedDokument.markertFerdig.toString(),
-            tidspunkt = LocalDateTime.now(),
-        )
-
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = utfoerendeIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_BREVMOTTAKER_IDENTS,
-            fraVerdi = null,
-            tilVerdi = hovedDokument.avsenderMottakerInfoSet.joinToString { it.identifikator },
-            tidspunkt = LocalDateTime.now(),
-        )
 
         applicationEventPublisher.publishEvent(DokumentFerdigstiltAvSaksbehandler(hovedDokument))
 
@@ -1674,14 +1581,6 @@ class DokumentUnderArbeidService(
         }
 
         dokumentUnderArbeidRepository.deleteAll(documentSet)
-
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.DOKUMENT_UNDER_ARBEID_SLETTET,
-            fraVerdi = documentSet.joinToString { it.id.toString() },
-            tilVerdi = null,
-            tidspunkt = LocalDateTime.now(),
-        )
     }
 
     fun setAsVedlegg(
@@ -2112,48 +2011,6 @@ class DokumentUnderArbeidService(
         return mellomlagretDate == null ||
                 mellomlagretDate!!.toLocalDate() != LocalDate.now() ||
                 smartEditorApiGateway.getSmartDocumentResponse(smartEditorId).version > (mellomlagretVersion ?: -1)
-    }
-
-    private fun Behandling.endringslogg(
-        saksbehandlerident: String,
-        felt: Felt,
-        fraVerdi: String?,
-        tilVerdi: String?,
-        tidspunkt: LocalDateTime
-    ): Endringslogginnslag? {
-        return Endringslogginnslag.endringslogg(
-            saksbehandlerident = saksbehandlerident,
-            felt = felt,
-            fraVerdi = fraVerdi,
-            tilVerdi = tilVerdi,
-            behandlingId = this.id,
-            tidspunkt = tidspunkt
-        )
-    }
-
-    private fun Behandling.publishEndringsloggEvent(
-        saksbehandlerident: String,
-        felt: Felt,
-        fraVerdi: String?,
-        tilVerdi: String?,
-        tidspunkt: LocalDateTime,
-    ) {
-        listOfNotNull(
-            this.endringslogg(
-                saksbehandlerident = saksbehandlerident,
-                felt = felt,
-                fraVerdi = fraVerdi,
-                tilVerdi = tilVerdi,
-                tidspunkt = tidspunkt,
-            )
-        ).let {
-            applicationEventPublisher.publishEvent(
-                BehandlingEndretEvent(
-                    behandling = this,
-                    endringslogginnslag = it
-                )
-            )
-        }
     }
 
     private fun Journalpost?.mapToSaksdokumenter(): List<Saksdokument> {
