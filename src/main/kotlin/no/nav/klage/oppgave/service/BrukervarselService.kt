@@ -95,15 +95,15 @@ class BrukervarselService(
         val strings = this.split(" - ")
         return when (strings.size) {
             1 -> {
-                replaceFirstChar { it.lowercase(Locale.getDefault()) }
+                this.replaceFirstChar { it.lowercase(Locale.getDefault()) }
             }
 
             2 -> {
                 if (strings[0].equals(other = strings[1], ignoreCase = true)) {
-                    replaceFirstChar { strings[0].lowercase(Locale.getDefault()) }
+                    strings[0].replaceFirstChar { it.lowercase(Locale.getDefault()) }
                 } else {
-                    replaceFirstChar { strings[0].lowercase(Locale.getDefault()) } + " - " + replaceFirstChar {
-                        strings[0].lowercase(
+                    strings[0].replaceFirstChar { it.lowercase(Locale.getDefault()) } + " - " + strings[1].replaceFirstChar {
+                        it.lowercase(
                             Locale.getDefault()
                         )
                     }
