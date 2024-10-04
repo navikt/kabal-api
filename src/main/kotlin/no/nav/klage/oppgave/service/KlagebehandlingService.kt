@@ -3,9 +3,7 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
-import no.nav.klage.oppgave.domain.klage.Klagebehandling
-import no.nav.klage.oppgave.domain.klage.Mottak
-import no.nav.klage.oppgave.domain.klage.MottakHjemmel
+import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -24,6 +22,7 @@ class KlagebehandlingService(
     private val kakaApiGateway: KakaApiGateway,
     @Value("#{T(java.time.LocalDate).parse('\${KAKA_VERSION_2_DATE}')}")
     private val kakaVersion2Date: LocalDate,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
     companion object {
@@ -68,10 +67,20 @@ class KlagebehandlingService(
             )
         )
         logger.debug("Created klagebehandling {} for mottak {}", klagebehandling.id, mottak.id)
+
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = klagebehandling,
-                endringslogginnslag = emptyList()
+                endringslogginnslag = listOfNotNull(
+                    Endringslogginnslag.endringslogg(
+                        saksbehandlerident = systembrukerIdent,
+                        felt = Felt.KLAGEBEHANDLING_MOTTATT,
+                        fraVerdi = null,
+                        tilVerdi = "Opprettet",
+                        behandlingId = klagebehandling.id,
+                        tidspunkt = klagebehandling.created,
+                    )
+                )
             )
         )
         return klagebehandling
