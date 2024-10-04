@@ -18,6 +18,7 @@ val verapdfVersion = "1.26.1"
 val klageKodeverkVersion = "1.8.48"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
 val otelVersion = "1.42.1"
+val varselKotlinBuilderVersion = "1.1.0"
 
 plugins {
     val kotlinVersion = "2.0.0"
@@ -92,6 +93,7 @@ dependencies {
     }
     implementation("org.apache.pdfbox:pdfbox:$pdfboxVersion")
     implementation("org.apache.tika:tika-core:$tikaVersion")
+    implementation("no.nav.tms.varsel:kotlin-builder:$varselKotlinBuilderVersion")
 
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {

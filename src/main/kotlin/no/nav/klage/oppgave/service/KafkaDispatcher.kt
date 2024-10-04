@@ -31,6 +31,9 @@ class KafkaDispatcher(
     @Value("\${BEHANDLING_EVENTS_TOPIC}")
     lateinit var behandlingEventTopic: String
 
+    @Value("\${BRUKERVARSEL_TOPIC}")
+    lateinit var brukervarselTopic: String
+
     fun dispatchEventsToKafka(type: EventType, utsendingStatusList: List<UtsendingStatus>) {
         logger.debug("dispatchUnsentEventsToKafka for type: {}, and statuses: {}", type, utsendingStatusList)
         kafkaEventRepository.getAllByStatusInAndTypeOrderByCreated(utsendingStatusList, type)
@@ -58,5 +61,6 @@ class KafkaDispatcher(
             EventType.KLAGE_VEDTAK -> vedtakTopic
             EventType.STATS_DVH -> dvhTopic
             EventType.BEHANDLING_EVENT -> behandlingEventTopic
+            EventType.BRUKERVARSEL -> brukervarselTopic
         }
 }
