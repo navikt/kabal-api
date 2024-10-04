@@ -856,6 +856,7 @@ class DokumentUnderArbeidService(
         utfoerendeIdent: String,
         systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
+        //TODO: Undersøk om vi gjør dette kallet unødvendig når vi sender ut svarbrev fra mottak.
         //Validate parts
         mottakerInput.mottakerList.forEach { mottaker ->
             val part = partSearchService.searchPart(
