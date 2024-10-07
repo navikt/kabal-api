@@ -10,6 +10,7 @@ import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
+import no.nav.klage.dokument.exceptions.DocumentDoesNotExistException
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
@@ -124,8 +125,8 @@ class DokumentUnderArbeidService(
             if (behandling.ferdigstilling == null) {
                 validateCanCreateDocuments(
                     behandlingRole = behandlingRole,
-                    parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId)
-                        .get() as DokumentUnderArbeidAsHoveddokument else null
+                    parentDocument = if (parentId != null) getDokumentUnderArbeid(parentId)
+                         as DokumentUnderArbeidAsHoveddokument else null
                 )
             }
         }
@@ -341,7 +342,7 @@ class DokumentUnderArbeidService(
             dokumentUnderArbeid.dokumentType.id
         } else {
             dokumentUnderArbeid as DokumentUnderArbeidAsVedlegg
-            val parentDocument = dokumentUnderArbeidRepository.findById(dokumentUnderArbeid.parentId).get()
+            val parentDocument = getDokumentUnderArbeid(dokumentUnderArbeid.parentId)
             parentDocument as DokumentUnderArbeidAsHoveddokument
             parentDocument.dokumentType.id
         }
@@ -358,8 +359,8 @@ class DokumentUnderArbeidService(
         if (behandling.ferdigstilling == null) {
             validateCanCreateDocuments(
                 behandlingRole = behandlingRole,
-                parentDocument = if (parentId != null) dokumentUnderArbeidRepository.findById(parentId)
-                    .get() as DokumentUnderArbeidAsHoveddokument else null
+                parentDocument = if (parentId != null) getDokumentUnderArbeid(parentId)
+                     as DokumentUnderArbeidAsHoveddokument else null
             )
         }
 
@@ -374,8 +375,8 @@ class DokumentUnderArbeidService(
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
         val parentDocument =
-            dokumentUnderArbeidRepository.findById(journalfoerteDokumenterInput.parentId)
-                .get() as DokumentUnderArbeidAsHoveddokument
+            getDokumentUnderArbeid(journalfoerteDokumenterInput.parentId)
+                 as DokumentUnderArbeidAsHoveddokument
 
         if (parentDocument.isInngaaende()) {
             throw DokumentValidationException("Kan ikke sette journalførte dokumenter som vedlegg til ${parentDocument.dokumentType.navn}.")
@@ -452,7 +453,7 @@ class DokumentUnderArbeidService(
         journalpostListForUser: List<Journalpost>,
     ): Pair<List<JournalfoertDokumentUnderArbeidAsVedlegg>, List<JournalfoertDokumentReference>> {
         val parentDocument =
-            dokumentUnderArbeidRepository.findById(parentId).get() as DokumentUnderArbeidAsHoveddokument
+            getDokumentUnderArbeid(parentId) as DokumentUnderArbeidAsHoveddokument
 
         if (parentDocument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
@@ -550,7 +551,9 @@ class DokumentUnderArbeidService(
         }
     }
 
-    fun getDokumentUnderArbeid(dokumentId: UUID) = dokumentUnderArbeidRepository.findById(dokumentId).get()
+    fun getDokumentUnderArbeid(dokumentId: UUID): DokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).orElseThrow {
+        throw DocumentDoesNotExistException("Dokumentet med id $dokumentId finnes ikke.")
+    }
 
     fun updateDokumentType(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
@@ -558,7 +561,7 @@ class DokumentUnderArbeidService(
         newDokumentType: DokumentType,
         innloggetIdent: String
     ): DokumentUnderArbeidAsHoveddokument {
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
@@ -630,7 +633,7 @@ class DokumentUnderArbeidService(
         innloggetIdent: String
     ): DokumentUnderArbeidAsHoveddokument {
         val dokumentUnderArbeid =
-            dokumentUnderArbeidRepository.findById(dokumentId).get() as OpplastetDokumentUnderArbeidAsHoveddokument
+            getDokumentUnderArbeid(dokumentId) as OpplastetDokumentUnderArbeidAsHoveddokument
 
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
@@ -683,8 +686,7 @@ class DokumentUnderArbeidService(
         inngaaendeKanal: InngaaendeKanal,
         innloggetIdent: String
     ): DokumentUnderArbeidAsHoveddokument {
-        val dokumentUnderArbeid =
-            dokumentUnderArbeidRepository.findById(dokumentId).get() as OpplastetDokumentUnderArbeidAsHoveddokument
+        val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId) as OpplastetDokumentUnderArbeidAsHoveddokument
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
@@ -739,7 +741,7 @@ class DokumentUnderArbeidService(
             skipAccessControl = true
         )
 
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
         if (dokumentUnderArbeid.isVedlegg()) {
             throw DokumentValidationException("Kan ikke sette avsender på vedlegg")
@@ -795,6 +797,7 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeid
     }
 
+    //TODO: Undersøk om vi gjør dette kallet unødvendig når vi sender ut svarbrev fra mottak.
     fun updateMottakere(
         behandlingId: UUID,
         dokumentId: UUID,
@@ -802,7 +805,8 @@ class DokumentUnderArbeidService(
         utfoerendeIdent: String,
         systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
-        //TODO: Undersøk om vi gjør dette kallet unødvendig når vi sender ut svarbrev fra mottak.
+        val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
+
         //Validate parts
         mottakerInput.mottakerList.forEach { mottaker ->
             val part = partSearchService.searchPart(
@@ -838,7 +842,6 @@ class DokumentUnderArbeidService(
             }
         }
 
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
 
         if (dokumentUnderArbeid.isVedlegg()) {
             throw DokumentValidationException("Kan ikke sette mottakere på vedlegg")
@@ -959,7 +962,7 @@ class DokumentUnderArbeidService(
         dokumentTitle: String,
         innloggetIdent: String
     ): DokumentUnderArbeid {
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
 
@@ -1013,7 +1016,7 @@ class DokumentUnderArbeidService(
         language: Language,
         innloggetIdent: String
     ): DokumentUnderArbeid {
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
 
@@ -1061,7 +1064,7 @@ class DokumentUnderArbeidService(
         behandlingId: UUID,
         dokumentId: UUID,
     ): DocumentAccessView {
-        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val dokument = getDokumentUnderArbeid(dokumentId)
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
@@ -1126,7 +1129,7 @@ class DokumentUnderArbeidService(
     fun validateWriteAccessToDocument(
         dokumentId: UUID,
     ) {
-        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val dokument = getDokumentUnderArbeid(dokumentId)
         if (dokument.erMarkertFerdig()) {
             throw DokumentValidationException("Dokument er allerede ferdigstilt.")
         }
@@ -1199,7 +1202,7 @@ class DokumentUnderArbeidService(
         utfoerendeIdent: String,
         systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
-        val hovedDokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val hovedDokument = getDokumentUnderArbeid(dokumentId)
 
         if (hovedDokument !is DokumentUnderArbeidAsHoveddokument) {
             throw RuntimeException("document is not hoveddokument")
@@ -1302,8 +1305,8 @@ class DokumentUnderArbeidService(
     }
 
     fun validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeidId: UUID): List<DocumentValidationResponse> {
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentUnderArbeidId)
-            .get() as DokumentUnderArbeidAsHoveddokument
+        val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId)
+             as DokumentUnderArbeidAsHoveddokument
         return validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeid = dokumentUnderArbeid)
     }
 
@@ -1416,7 +1419,7 @@ class DokumentUnderArbeidService(
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         val dokument =
-            dokumentUnderArbeidRepository.findById(hoveddokumentId).get() as DokumentUnderArbeidAsHoveddokument
+            getDokumentUnderArbeid(hoveddokumentId) as DokumentUnderArbeidAsHoveddokument
         if (dokument.dokumentType.isInngaaende()) {
             throw DokumentValidationException("${dokument.dokumentType.navn} støtter ikke vedleggsoversikt.")
         }
@@ -1442,42 +1445,42 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         innloggetIdent: String
     ): Pair<String, Any> {
-        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
+        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
 
-        val (title, resourceOrLink) = if (dokument.erFerdigstilt()) {
-            if (dokument.dokarkivReferences.isEmpty()) {
+        val (title, resourceOrLink) = if (dokumentUnderArbeid.erFerdigstilt()) {
+            if (dokumentUnderArbeid.dokarkivReferences.isEmpty()) {
                 throw RuntimeException("Dokument is finalized but has no dokarkiv references")
             }
 
-            val dokarkivReference = dokument.dokarkivReferences.first()
+            val dokarkivReference = dokumentUnderArbeid.dokarkivReferences.first()
             val fysiskDokument = dokumentService.getFysiskDokument(
                 journalpostId = dokarkivReference.journalpostId,
                 dokumentInfoId = dokarkivReference.dokumentInfoId!!,
             )
             fysiskDokument.title to fysiskDokument.content
         } else {
-            when (dokument) {
+            when (dokumentUnderArbeid) {
                 is OpplastetDokumentUnderArbeidAsHoveddokument -> {
-                    dokument.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!)
+                    dokumentUnderArbeid.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!)
                 }
 
                 is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                    dokument.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!)
+                    dokumentUnderArbeid.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!)
                 }
 
                 is DokumentUnderArbeidAsSmartdokument -> {
-                    if (dokument.isPDFGenerationNeeded()) {
-                        dokument.name to ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokument).bytes)
-                    } else dokument.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokument.mellomlagerId!!)
+                    if (dokumentUnderArbeid.isPDFGenerationNeeded()) {
+                        dokumentUnderArbeid.name to ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid).bytes)
+                    } else dokumentUnderArbeid.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!)
                 }
 
                 is JournalfoertDokumentUnderArbeidAsVedlegg -> {
                     val fysiskDokument = dokumentService.getFysiskDokument(
-                        journalpostId = dokument.journalpostId,
-                        dokumentInfoId = dokument.dokumentInfoId,
+                        journalpostId = dokumentUnderArbeid.journalpostId,
+                        dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
                     )
                     fysiskDokument.title to fysiskDokument.content
                 }
@@ -1495,7 +1498,7 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         innloggetIdent: String,
     ) {
-        val document = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val document = getDokumentUnderArbeid(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
@@ -1592,7 +1595,7 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke gjøre et dokument til vedlegg for seg selv.")
         }
         val parentDocument =
-            dokumentUnderArbeidRepository.findById(newParentId).get() as DokumentUnderArbeidAsHoveddokument
+            getDokumentUnderArbeid(newParentId) as DokumentUnderArbeidAsHoveddokument
 
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
             behandlingId = parentDocument.behandlingId,
@@ -1601,7 +1604,7 @@ class DokumentUnderArbeidService(
         if (parentDocument.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
         }
-        val currentDocument = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val currentDocument = getDokumentUnderArbeid(dokumentId)
 
         if (parentDocument.isInngaaende()) {
             if (!((currentDocument is OpplastetDokumentUnderArbeidAsVedlegg) || (currentDocument is OpplastetDokumentUnderArbeidAsHoveddokument))) {
@@ -1635,7 +1638,7 @@ class DokumentUnderArbeidService(
         parentId: UUID,
     ): Pair<DokumentUnderArbeid?, JournalfoertDokumentUnderArbeidAsVedlegg?> {
         var dokumentUnderArbeid: DokumentUnderArbeid =
-            dokumentUnderArbeidRepository.findById(currentDokumentId).get()
+            getDokumentUnderArbeid(currentDokumentId)
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke koble et dokument som er ferdigstilt")
@@ -1684,7 +1687,7 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         innloggetIdent: String
     ): DokumentUnderArbeidAsHoveddokument {
-        val dokument = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val dokument = getDokumentUnderArbeid(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
@@ -1703,7 +1706,7 @@ class DokumentUnderArbeidService(
         dokument as DokumentUnderArbeidAsVedlegg
 
         val parentDocument =
-            dokumentUnderArbeidRepository.findById(dokument.parentId).get() as DokumentUnderArbeidAsHoveddokument
+            getDokumentUnderArbeid(dokument.parentId) as DokumentUnderArbeidAsHoveddokument
 
         val savedDocument = when (dokument) {
             is OpplastetDokumentUnderArbeidAsVedlegg -> {
@@ -1761,8 +1764,9 @@ class DokumentUnderArbeidService(
     fun getDokumentUnderArbeidView(dokumentUnderArbeidId: UUID, behandlingId: UUID): DokumentView {
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId)
         return getDokumentViewList(
-            dokumentUnderArbeidList = listOf(dokumentUnderArbeidRepository.findById(dokumentUnderArbeidId).get()),
+            dokumentUnderArbeidList = listOf(dokumentUnderArbeid),
             behandling = behandling,
         ).first()
     }
@@ -1809,7 +1813,7 @@ class DokumentUnderArbeidService(
     fun opprettDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
         logger.debug("opprettDokumentEnhet hoveddokument with id {}", hovedDokumentId)
         val hovedDokument =
-            dokumentUnderArbeidRepository.findById(hovedDokumentId).get() as DokumentUnderArbeidAsHoveddokument
+            getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
         logger.debug("got hoveddokument with id {}, dokmentEnhetId {}", hovedDokumentId, hovedDokument.dokumentEnhetId)
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         logger.debug("got vedlegg for hoveddokument id {}, size: {}", hovedDokumentId, vedlegg.size)
@@ -1834,7 +1838,7 @@ class DokumentUnderArbeidService(
     fun ferdigstillDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
         logger.debug("ferdigstillDokumentEnhet hoveddokument with id {}", hovedDokumentId)
         val hovedDokument =
-            dokumentUnderArbeidRepository.findById(hovedDokumentId).get() as DokumentUnderArbeidAsHoveddokument
+            getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         val behandling: Behandling =
             behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
