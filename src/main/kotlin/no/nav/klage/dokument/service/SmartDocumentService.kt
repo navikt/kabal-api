@@ -14,7 +14,6 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsVedlegg
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
-import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumentRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.kodeverk.DokumentType
@@ -44,7 +43,6 @@ class SmartDocumentService(
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val smartDokumentUnderArbeidAsHoveddokumentRepository: SmartdokumentUnderArbeidAsHoveddokumentRepository,
     private val smartDokumentUnderArbeidAsVedleggRepository: SmartdokumentUnderArbeidAsVedleggRepository,
-    private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokumentMapper: DokumentMapper,
@@ -277,7 +275,7 @@ class SmartDocumentService(
         commentInput: CommentInput,
     ): CommentOutput {
         dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
-        val document = dokumentUnderArbeidRepository.findById(documentId).get()
+        val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
 
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
@@ -320,7 +318,7 @@ class SmartDocumentService(
         modifyCommentInput: ModifyCommentInput,
     ): CommentOutput {
         dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
-        val document = dokumentUnderArbeidRepository.findById(documentId).get()
+        val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =
@@ -377,7 +375,7 @@ class SmartDocumentService(
         commentInput: CommentInput,
     ): CommentOutput {
         dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
-        val document = dokumentUnderArbeidRepository.findById(documentId).get()
+        val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =
@@ -435,7 +433,7 @@ class SmartDocumentService(
         commentId: UUID,
     ) {
         dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
-        val document = dokumentUnderArbeidRepository.findById(documentId).get()
+        val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =
@@ -526,7 +524,7 @@ class SmartDocumentService(
     }
 
     private fun getSmartEditorId(dokumentId: UUID, readOnly: Boolean): UUID {
-        val dokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).get()
+        val dokumentUnderArbeid = dokumentUnderArbeidService.getDokumentUnderArbeid(dokumentId)
 
         if (dokumentUnderArbeid !is DokumentUnderArbeidAsSmartdokument) {
             throw RuntimeException("dokument is not smartdokument")
@@ -547,12 +545,10 @@ class SmartDocumentService(
             behandlingId = behandlingId
         )
         return dokumentMapper.mapToDokumentView(
-            dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId),
+            dokumentUnderArbeid = dokumentUnderArbeidService.getDokumentUnderArbeid(dokumentId),
             journalpost = null,
             smartEditorDocument = smartEditorDocument,
             behandling = behandling,
         )
     }
-
-    private fun getDokumentUnderArbeid(dokumentId: UUID) = dokumentUnderArbeidRepository.findById(dokumentId).get()
 }
