@@ -71,6 +71,25 @@ data class CreatedAnkebehandlingStatusForKabin(
     val svarbrev: KabinResponseSvarbrev?,
 )
 
+data class CreatedBehandlingStatusForKabin(
+    val typeId: String,
+    val ytelseId: String,
+    val sakenGjelder: KabinPartView,
+    val klager: KabinPartView,
+    val fullmektig: KabinPartView?,
+    val mottattVedtaksinstans: LocalDate?,
+    val mottattKlageinstans: LocalDate,
+    val frist: LocalDate,
+    val varsletFrist: LocalDate?,
+    val varsletFristUnits: Int?,
+    val varsletFristUnitTypeId: String?,
+    val fagsakId: String,
+    val fagsystemId: String,
+    val journalpost: DokumentReferanse,
+    val tildeltSaksbehandler: TildeltSaksbehandler?,
+    val svarbrev: KabinResponseSvarbrev?,
+)
+
 data class KabinResponseSvarbrev(
     val dokumentUnderArbeidId: UUID,
     val title: String,

@@ -179,21 +179,6 @@ class KabinApiController(
         )
     }
 
-    @GetMapping("/anker/{mottakId}/status")
-    fun getCreatedAnkebehandlingStatus(
-        @PathVariable mottakId: UUID
-    ): CreatedAnkebehandlingStatusForKabin {
-        logMethodDetails(
-            methodName = ::getCreatedAnkebehandlingStatus.name,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
-        )
-
-        return kabinApiService.getCreatedAnkebehandlingStatus(
-            behandlingId = mottakId
-        )
-    }
-
     @PostMapping("/searchusedjournalpostid")
     fun getUsedJournalpostIdListForPerson(
         @RequestBody input: SearchUsedJournalpostIdInput,
@@ -224,17 +209,17 @@ class KabinApiController(
         )
     }
 
-    @GetMapping("/klager/{behandlingId}/status")
-    fun getCreatedKlagebehandlingStatus(
+    @GetMapping("/behandlinger/{behandlingId}/status")
+    fun getCreatedBehandlingStatus(
         @PathVariable behandlingId: UUID
-    ): CreatedKlagebehandlingStatusForKabin {
+    ): CreatedBehandlingStatusForKabin {
         logMethodDetails(
-            methodName = ::getCreatedKlagebehandlingStatus.name,
+            methodName = ::CreatedBehandlingStatusForKabin.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
 
-        return kabinApiService.getCreatedKlagebehandlingStatus(
+        return kabinApiService.getCreatedBehandlingStatus(
             behandlingId = behandlingId
         )
     }
