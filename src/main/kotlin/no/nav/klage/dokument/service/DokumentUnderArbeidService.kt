@@ -1265,7 +1265,7 @@ class DokumentUnderArbeidService(
 
         if (vedlegg.isNotEmpty() && !hovedDokument.isInngaaende()) {
             innholdsfortegnelseService.saveInnholdsfortegnelse(
-                dokumentUnderArbeidId = dokumentId,
+                dokumentUnderArbeid = hovedDokument,
                 fnr = behandling.sakenGjelder.partId.value,
             )
         }
@@ -1426,7 +1426,7 @@ class DokumentUnderArbeidService(
 
         return ResponseEntity(
             innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
-                dokumentUnderArbeidId = hoveddokumentId,
+                dokumentUnderArbeid = dokument,
                 fnr = behandling.sakenGjelder.partId.value,
             ),
             HttpHeaders().apply {
@@ -1946,7 +1946,7 @@ class DokumentUnderArbeidService(
 
         val innholdsfortegnelsePath = if (vedleggList.isNotEmpty() && !dokumentUnderArbeid.isInngaaende()) {
             val innholdsfortegnelsePDFBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
-                dokumentUnderArbeidId = dokumentUnderArbeidId,
+                dokumentUnderArbeid = dokumentUnderArbeid,
                 fnr = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId).sakenGjelder.partId.value
             )
             Files.write(Files.createTempFile("", ""), innholdsfortegnelsePDFBytes)

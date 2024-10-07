@@ -2,10 +2,7 @@ package no.nav.klage.dokument.service
 
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.Innholdsfortegnelse
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.JournalfoertDokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.InnholdsfortegnelseRepository
 import no.nav.klage.kodeverk.DokumentType
@@ -41,13 +38,13 @@ class InnholdsfortegnelseService(
     }
 
     fun saveInnholdsfortegnelse(
-        dokumentUnderArbeidId: UUID,
+        dokumentUnderArbeid: DokumentUnderArbeid,
         fnr: String,
     ) {
         logger.debug("Received saveInnholdsfortegnelse")
 
         val content = getInnholdsfortegnelseAsPdf(
-            dokumentUnderArbeidId = dokumentUnderArbeidId,
+            dokumentUnderArbeid = dokumentUnderArbeid,
             fnr = fnr
         )
 
@@ -59,7 +56,7 @@ class InnholdsfortegnelseService(
         innholdsfortegnelseRepository.save(
             Innholdsfortegnelse(
                 mellomlagerId = mellomlagerId,
-                hoveddokumentId = dokumentUnderArbeidId,
+                hoveddokumentId = dokumentUnderArbeid.id,
                 created = LocalDateTime.now(),
                 modified = LocalDateTime.now(),
             )
@@ -67,20 +64,18 @@ class InnholdsfortegnelseService(
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun getInnholdsfortegnelseAsPdf(dokumentUnderArbeidId: UUID, fnr: String): ByteArray {
+    fun getInnholdsfortegnelseAsPdf(dokumentUnderArbeid: DokumentUnderArbeid, fnr: String): ByteArray {
         logger.debug("Received getInnholdsfortegnelseAsPdf")
 
-        val document = dokumentUnderArbeidRepository.findById(dokumentUnderArbeidId).get()
-
-        if (document is DokumentUnderArbeidAsVedlegg) {
+        if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) {
             throw IllegalArgumentException("must be hoveddokument")
         }
 
-        document as DokumentUnderArbeidAsHoveddokument
+        dokumentUnderArbeid as DokumentUnderArbeidAsHoveddokument
 
-        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentUnderArbeidId)
+        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentUnderArbeid.id)
 
-        if (document.dokumentType in listOf(DokumentType.BREV, DokumentType.VEDTAK, DokumentType.BESLUTNING)) {
+        if (dokumentUnderArbeid.dokumentType in listOf(DokumentType.BREV, DokumentType.VEDTAK, DokumentType.BESLUTNING)) {
             if (vedlegg.any { it !is JournalfoertDokumentUnderArbeidAsVedlegg }) {
                 error("All documents must be JournalfoertDokumentUnderArbeidAsVedlegg")
             }
@@ -98,8 +93,8 @@ class InnholdsfortegnelseService(
                 InnholdsfortegnelseRequest(
                     documents = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
                         allDokumenterUnderArbeid = vedlegg,
-                        behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
-                        hoveddokument = document,
+                        behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId),
+                        hoveddokument = dokumentUnderArbeid,
                         journalpostList = journalpostList,
                     )
                 )
