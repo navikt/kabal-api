@@ -102,7 +102,7 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
-        if (oversendtKlageAnke.utenSvarbrev == true) {
+        if (oversendtKlageAnke.utenSvarbrev != true) {
             sendSvarbrev(behandling = behandling)
         }
 
