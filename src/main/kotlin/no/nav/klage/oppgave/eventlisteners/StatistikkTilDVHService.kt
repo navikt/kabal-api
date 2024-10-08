@@ -60,7 +60,7 @@ class StatistikkTilDVHService(
 
     fun shouldSendStats(behandlingEndretEvent: BehandlingEndretEvent): Boolean {
         return if (behandlingEndretEvent.behandling.fagsystem == Fagsystem.IT01 &&
-            behandlingEndretEvent.behandling.type !in listOf(Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET)) {
+            behandlingEndretEvent.behandling.type !in listOf(Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET, Type.OMGJOERINGSKRAV)) {
             false
         } else behandlingEndretEvent.endringslogginnslag.any {
             it.felt === Felt.TILDELT_SAKSBEHANDLERIDENT
@@ -81,7 +81,8 @@ class StatistikkTilDVHService(
         return when {
             endringslogginnslag.any {
                 it.felt === Felt.KLAGEBEHANDLING_MOTTATT ||
-                        it.felt === Felt.ANKEBEHANDLING_MOTTATT
+                        it.felt === Felt.ANKEBEHANDLING_MOTTATT ||
+                        it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT
             } -> BehandlingState.MOTTATT
 
             endringslogginnslag.any {
