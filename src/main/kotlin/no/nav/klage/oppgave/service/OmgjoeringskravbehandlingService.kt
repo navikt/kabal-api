@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
+import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
@@ -17,6 +18,7 @@ class OmgjoeringskravbehandlingService(
     private val behandlingService: BehandlingService,
     private val behandlingRepository: BehandlingRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
+    private val kakaApiGateway: KakaApiGateway,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -42,7 +44,7 @@ class OmgjoeringskravbehandlingService(
                 frist = mottak.generateFrist(),
                 mottakId = mottak.id,
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
-                kakaKvalitetsvurderingId = null,
+                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = 2,
                 hjemler = mottak.mapToBehandlingHjemler(),
                 sourceBehandlingId = mottak.forrigeBehandlingId,
