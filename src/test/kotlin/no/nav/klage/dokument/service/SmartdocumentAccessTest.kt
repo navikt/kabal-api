@@ -29,6 +29,8 @@ class SmartdocumentAccessTest {
 
     private val innloggetSaksbehandlerService = mockk<InnloggetSaksbehandlerService>()
 
+    private var dua = mockk<DokumentUnderArbeid>()
+
     @BeforeEach
     fun setUp() {
         val meterRegistry = mockk<MeterRegistry>(relaxed = true)
@@ -65,12 +67,15 @@ class SmartdocumentAccessTest {
         )
 
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns "navident"
+
+        dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        every { dokumentUnderArbeidRepository.findById(any()) } returns Optional.of(dua)
     }
 
     @Test
     fun `saksbehandler does not have WRITE access if behandling is finished`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns false
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.KABAL_SAKSBEHANDLING
@@ -81,7 +86,7 @@ class SmartdocumentAccessTest {
             navn = "Saks Behandler",
         )
         every { behandling.medunderskriverFlowState } returns FlowState.NOT_SENT
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
+        
         every { dua.creatorRole } returns BehandlingRole.KABAL_SAKSBEHANDLING
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
@@ -95,13 +100,13 @@ class SmartdocumentAccessTest {
     @Test
     fun `saksbehandler has write access because NOT_SENT`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns false
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.KABAL_SAKSBEHANDLING
         every { behandling.ferdigstilling } returns null
         every { behandling.medunderskriverFlowState } returns FlowState.NOT_SENT
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
+        
         every { dua.creatorRole } returns BehandlingRole.KABAL_SAKSBEHANDLING
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
@@ -115,13 +120,12 @@ class SmartdocumentAccessTest {
     @Test
     fun `saksbehandler has write access because RETURNED`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns false
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.KABAL_SAKSBEHANDLING
         every { behandling.ferdigstilling } returns null
         every { behandling.medunderskriverFlowState } returns FlowState.RETURNED
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
         every { dua.creatorRole } returns BehandlingRole.KABAL_SAKSBEHANDLING
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
@@ -135,13 +139,13 @@ class SmartdocumentAccessTest {
     @Test
     fun `saksbehandler has READ access because behandling is at MU`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns false
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.KABAL_SAKSBEHANDLING
         every { behandling.ferdigstilling } returns null
         every { behandling.medunderskriverFlowState } returns FlowState.SENT
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
+        
         every { dua.creatorRole } returns BehandlingRole.KABAL_SAKSBEHANDLING
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
@@ -155,13 +159,13 @@ class SmartdocumentAccessTest {
     @Test
     fun `MU has WRITE access because behandling is at MU`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns false
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.KABAL_MEDUNDERSKRIVER
         every { behandling.ferdigstilling } returns null
         every { behandling.medunderskriverFlowState } returns FlowState.SENT
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
+        
         every { dua.creatorRole } returns BehandlingRole.KABAL_SAKSBEHANDLING
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
@@ -175,13 +179,13 @@ class SmartdocumentAccessTest {
     @Test
     fun `MU has READ access because behandling is at saksbehandler`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns false
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.KABAL_MEDUNDERSKRIVER
         every { behandling.ferdigstilling } returns null
         every { behandling.medunderskriverFlowState } returns FlowState.RETURNED
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
+        
         every { dua.creatorRole } returns BehandlingRole.KABAL_SAKSBEHANDLING
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
@@ -195,13 +199,13 @@ class SmartdocumentAccessTest {
     @Test
     fun `MU has READ access because behandling is at saksbehandler 2`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns false
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.KABAL_MEDUNDERSKRIVER
         every { behandling.ferdigstilling } returns null
         every { behandling.medunderskriverFlowState } returns FlowState.NOT_SENT
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
+        
         every { dua.creatorRole } returns BehandlingRole.KABAL_SAKSBEHANDLING
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
@@ -215,13 +219,13 @@ class SmartdocumentAccessTest {
     @Test
     fun `ROL has WRITE access to own document because behandling is at ROL`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns false
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.KABAL_ROL
         every { behandling.ferdigstilling } returns null
         every { behandling.rolFlowState } returns FlowState.SENT
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
+        
         every { dua.creatorRole } returns BehandlingRole.KABAL_ROL
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
@@ -235,13 +239,13 @@ class SmartdocumentAccessTest {
     @Test
     fun `ROL has READ access to own document because behandling is RETURNED`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns false
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.KABAL_ROL
         every { behandling.ferdigstilling } returns null
         every { behandling.rolFlowState } returns FlowState.RETURNED
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
+        
         every { dua.creatorRole } returns BehandlingRole.KABAL_ROL
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
@@ -255,13 +259,13 @@ class SmartdocumentAccessTest {
     @Test
     fun `ROL has READ access to saksbehandlers document even if SENT to ROL`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns false
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.KABAL_ROL
         every { behandling.ferdigstilling } returns null
         every { behandling.rolFlowState } returns FlowState.SENT
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
+        
         every { dua.creatorRole } returns BehandlingRole.KABAL_SAKSBEHANDLING
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
@@ -275,13 +279,13 @@ class SmartdocumentAccessTest {
     @Test
     fun `saksbehandler has READ access to ROLs document even if RETURNED`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns false
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.KABAL_SAKSBEHANDLING
         every { behandling.ferdigstilling } returns null
         every { behandling.rolFlowState } returns FlowState.RETURNED
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
+        
         every { dua.creatorRole } returns BehandlingRole.KABAL_ROL
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
@@ -295,13 +299,13 @@ class SmartdocumentAccessTest {
     @Test
     fun `merkantil has WRITE access to document created by the system`() {
         val behandling = mockk<Behandling>()
-        val dua = mockk<DokumentUnderArbeid>(relaxed = true)
+        
         every { innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter() } returns true
         every { behandlingService.getBehandlingAndCheckLeseTilgangForPerson(any()) } returns behandling
         every { behandling.getRoleInBehandling(any()) } returns BehandlingRole.NONE
         every { behandling.ferdigstilling } returns null
         every { behandling.rolFlowState } returns FlowState.RETURNED
-        every { dokumentUnderArbeidRepository.findById(any()).get() } returns dua
+        
         every { dua.creatorRole } returns BehandlingRole.NONE
 
         val documentAccessView = dokumentUnderArbeidService.getSmartdocumentAccess(
