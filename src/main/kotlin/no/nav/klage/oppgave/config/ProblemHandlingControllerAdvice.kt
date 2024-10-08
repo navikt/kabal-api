@@ -1,9 +1,6 @@
 package no.nav.klage.oppgave.config
 
-import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
-import no.nav.klage.dokument.exceptions.DokumentValidationException
-import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
-import no.nav.klage.dokument.exceptions.SvarbrevPreviewException
+import no.nav.klage.dokument.exceptions.*
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.http.HttpStatus
@@ -182,6 +179,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         request: NativeWebRequest
     ): ProblemDetail =
         create(HttpStatus.BAD_REQUEST, ex)
+
+    @ExceptionHandler
+    fun handleDocumentDoesNotExistException(
+        ex: DocumentDoesNotExistException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.NOT_FOUND, ex)
 
     @ExceptionHandler(IllegalUpdateException::class)
     fun handleIllegalUpdateException(
