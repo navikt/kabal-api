@@ -59,8 +59,8 @@ class StatistikkTilDVHService(
     private fun StatistikkTilDVH.toJson(): String = objectMapper.writeValueAsString(this)
 
     fun shouldSendStats(behandlingEndretEvent: BehandlingEndretEvent): Boolean {
-        //TODO: Omgjøringskrav
-        return if (behandlingEndretEvent.behandling.fagsystem == Fagsystem.IT01 && behandlingEndretEvent.endringslogginnslag.none { it.felt in listOf(Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET, Felt.OMGJOERINGSKRAV) }) {
+        return if (behandlingEndretEvent.behandling.fagsystem == Fagsystem.IT01 &&
+            behandlingEndretEvent.endringslogginnslag.none { it.felt in listOf(Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET, Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT) }) {
             false
         } else behandlingEndretEvent.endringslogginnslag.any {
             it.felt === Felt.TILDELT_SAKSBEHANDLERIDENT
@@ -68,6 +68,7 @@ class StatistikkTilDVHService(
                     || it.felt === Felt.FEILREGISTRERING
                     || it.felt === Felt.KLAGEBEHANDLING_MOTTATT
                     || it.felt === Felt.ANKEBEHANDLING_MOTTATT
+                    || it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT
         }
     }
 

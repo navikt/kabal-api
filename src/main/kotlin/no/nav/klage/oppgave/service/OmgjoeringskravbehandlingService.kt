@@ -2,9 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.Mottak
-import no.nav.klage.oppgave.domain.klage.Omgjoeringskravbehandling
+import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.OmgjoeringskravbehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -82,7 +80,16 @@ class OmgjoeringskravbehandlingService(
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = omgjoeringskravbehandling,
-                endringslogginnslag = emptyList()
+                endringslogginnslag = listOfNotNull(
+                    Endringslogginnslag.endringslogg(
+                        saksbehandlerident = systembrukerIdent,
+                        felt = Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT,
+                        fraVerdi = null,
+                        tilVerdi = "Opprettet",
+                        behandlingId = omgjoeringskravbehandling.id,
+                        tidspunkt = omgjoeringskravbehandling.created,
+                    )
+                )
             )
         )
         return omgjoeringskravbehandling
