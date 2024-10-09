@@ -110,7 +110,7 @@ data class OversendtKlageAnkeV3(
         description = "Brukes for å hindre Kabal i å sende ut automatisk svarbrev til bruker.",
         required = false
     )
-    val utenSvarbrev: Boolean? = false
+    val hindreAutomatiskSvarbrev: Boolean?
 
 )
 
