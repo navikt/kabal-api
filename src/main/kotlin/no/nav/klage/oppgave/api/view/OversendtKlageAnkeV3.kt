@@ -104,7 +104,13 @@ data class OversendtKlageAnkeV3(
         description = "Kommentarer fra saksbehandler i førsteinstans som ikke er med i oversendelsesbrevet klager mottar",
         required = false
     )
-    val kommentar: String? = null
+    val kommentar: String? = null,
+
+    @Schema(
+        description = "Brukes for å hindre Kabal i å sende ut automatisk svarbrev til bruker.",
+        required = false
+    )
+    val hindreAutomatiskSvarbrev: Boolean?
 
 )
 
