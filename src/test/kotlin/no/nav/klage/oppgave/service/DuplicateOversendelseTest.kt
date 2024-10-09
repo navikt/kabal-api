@@ -114,7 +114,8 @@ internal class DuplicateOversendelseTest {
             fagsak = OversendtSak(
                 fagsakId = "123",
                 fagsystem = Fagsystem.K9
-            )
+            ),
+            hindreAutomatiskSvarbrev = null,
         )
 
         mottakService.createMottakForKlageV2(oversendtKlage)
