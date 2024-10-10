@@ -482,7 +482,9 @@ object BehandlingSetters {
         if (nyVerdi == null) {
             klager.prosessfullmektig = null
         } else {
-            klager.prosessfullmektig = Prosessfullmektig(partId = nyVerdi, skalPartenMottaKopi = false)
+            klager.prosessfullmektig = Prosessfullmektig(
+                partId = nyVerdi,
+            )
         }
         modified = tidspunkt
 

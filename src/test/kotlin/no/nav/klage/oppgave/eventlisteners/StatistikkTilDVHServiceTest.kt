@@ -171,7 +171,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), skalMottaKopi = false
+            ),
         ),
         ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,
@@ -210,7 +210,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), skalMottaKopi = false
+            ),
         ),
         ytelse = Ytelse.HJE_HJE,
         type = Type.KLAGE,
@@ -245,7 +245,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), skalMottaKopi = false
+            ),
         ),
         ytelse = Ytelse.OMS_OMP,
         type = Type.ANKE,
@@ -282,7 +282,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), skalMottaKopi = false
+            ),
         ),
         ytelse = Ytelse.OMS_OMP,
         type = Type.ANKE_I_TRYGDERETTEN,

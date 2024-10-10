@@ -111,7 +111,7 @@ class BehandlingRepositoryTest {
             saksbehandlerident = "1", enhet = ENHET_1, tidspunkt = LocalDateTime.now()
         )
         fullfoertKlage.ferdigstilling = Ferdigstilling(
-                        avsluttetAvSaksbehandler = LocalDateTime.now(),
+            avsluttetAvSaksbehandler = LocalDateTime.now(),
             navIdent = "navIdent",
             navn = "navn",
         )
@@ -143,7 +143,6 @@ class BehandlingRepositoryTest {
         klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
         sakenGjelder = SakenGjelder(
             partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            skalMottaKopi = false
         ),
         ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,

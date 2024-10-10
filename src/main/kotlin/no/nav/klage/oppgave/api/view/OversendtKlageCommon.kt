@@ -11,14 +11,15 @@ data class OversendtSakenGjelder(
     )
     val id: OversendtPartId,
     @Schema(
-        required = true,
-        example = "true"
+        description = "Ikke lenger i bruk",
+        required = false,
+        example = "true",
+        deprecated = true,
     )
     val skalMottaKopi: Boolean
 ) {
     fun toSakenGjelder() = SakenGjelder(
         partId = id.toPartId(),
-        skalMottaKopi = skalMottaKopi
     )
 }
 
@@ -46,14 +47,15 @@ data class OversendtProsessfullmektig(
     )
     val id: OversendtPartId,
     @Schema(
-        required = true,
-        example = "true"
+        description = "Ikke lenger i bruk",
+        required = false,
+        example = "true",
+        deprecated = true,
     )
     val skalKlagerMottaKopi: Boolean
 ) {
     fun toProsessfullmektig() = Prosessfullmektig(
         partId = id.toPartId(),
-        skalPartenMottaKopi = skalKlagerMottaKopi
     )
 }
 

@@ -540,7 +540,6 @@ class MottakService(
                     type = PartIdType.of(input.fullmektig.type.name),
                     value = input.fullmektig.value
                 ),
-                skalPartenMottaKopi = true
             )
         } else {
             null
@@ -605,7 +604,6 @@ class MottakService(
         val prosessfullmektig = if (fullmektig != null) {
             Prosessfullmektig(
                 partId = fullmektig.toPartId(),
-                skalPartenMottaKopi = true
             )
         } else {
             null
@@ -628,8 +626,6 @@ class MottakService(
             klager = klager,
             sakenGjelder = SakenGjelder(
                 partId = sakenGjelder.toPartId(),
-                //TODO ever used?
-                skalMottaKopi = false
             ),
             innsynUrl = null,
             fagsystem = Fagsystem.of(fagsystemId),
@@ -659,7 +655,6 @@ class MottakService(
         val prosessfullmektig = if (fullmektig != null) {
             Prosessfullmektig(
                 partId = fullmektig.toPartId(),
-                skalPartenMottaKopi = true
             )
         } else {
             null
@@ -682,8 +677,6 @@ class MottakService(
             klager = klager,
             sakenGjelder = SakenGjelder(
                 partId = sakenGjelder.toPartId(),
-                //TODO ever used?
-                skalMottaKopi = false
             ),
             innsynUrl = null,
             fagsystem = Fagsystem.of(fagsystemId),

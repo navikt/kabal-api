@@ -18,7 +18,9 @@ internal class KlagebehandlingTest {
             fagsakId = "123",
             kildeReferanse = "abc",
             klager = Klager(PartId(PartIdType.PERSON, fnr)),
-            sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, fnr), false),
+            sakenGjelder = SakenGjelder(
+                partId = PartId(PartIdType.PERSON, fnr),
+            ),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
