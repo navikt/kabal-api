@@ -12,6 +12,4 @@ data class Prosessfullmektig(
         ]
     )
     val partId: PartId,
-    @Column(name = "skal_parten_motta_kopi")
-    val skalPartenMottaKopi: Boolean
 )

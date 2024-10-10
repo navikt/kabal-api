@@ -13,8 +13,6 @@ data class SakenGjelder(
         ]
     )
     val partId: PartId,
-    @Column(name = "saken_gjelder_skal_motta_kopi")
-    val skalMottaKopi: Boolean
 ) {
     fun erPerson() = partId.type == PartIdType.PERSON
 

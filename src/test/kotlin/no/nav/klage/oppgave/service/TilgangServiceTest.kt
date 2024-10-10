@@ -77,11 +77,16 @@ class TilgangServiceTest {
     @Test
     fun `verifySaksbehandlersSkrivetilgang gir feil ved annen tildelt saksbehandler`() {
         val klagebehandling = getKlagebehandling()
-        klagebehandling.tildeling = Tildeling(saksbehandlerident = "Z123456", enhet = "", tidspunkt = LocalDateTime.now())
+        klagebehandling.tildeling =
+            Tildeling(saksbehandlerident = "Z123456", enhet = "", tidspunkt = LocalDateTime.now())
 
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z654321")
 
-        assertThrows<MissingTilgangException> { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling) }
+        assertThrows<MissingTilgangException> {
+            tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(
+                klagebehandling
+            )
+        }
     }
 
     @Test
@@ -90,13 +95,18 @@ class TilgangServiceTest {
 
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z654321")
 
-        assertThrows<MissingTilgangException> { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling) }
+        assertThrows<MissingTilgangException> {
+            tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(
+                klagebehandling
+            )
+        }
     }
 
     @Test
     fun `verifySaksbehandlersSkrivetilgang gir ok ved samme ident`() {
         val klagebehandling = getKlagebehandling()
-        klagebehandling.tildeling = Tildeling(saksbehandlerident = "Z123456", enhet = "", tidspunkt = LocalDateTime.now())
+        klagebehandling.tildeling =
+            Tildeling(saksbehandlerident = "Z123456", enhet = "", tidspunkt = LocalDateTime.now())
 
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
 
@@ -210,7 +220,6 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
     sakenGjelder = SakenGjelder(
         partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-        skalMottaKopi = false
     ),
     ytelse = Ytelse.OMS_OMP,
     type = Type.KLAGE,

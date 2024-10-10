@@ -473,7 +473,6 @@ class OppgaveServiceTest {
                     klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
-                        skalMottaKopi = false
                     ),
                     ytelse = ytelse,
                     type = type,
@@ -509,7 +508,6 @@ class OppgaveServiceTest {
                     klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
-                        skalMottaKopi = false
                     ),
                     ytelse = ytelse,
                     type = type,
@@ -545,7 +543,6 @@ class OppgaveServiceTest {
                     klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
-                        skalMottaKopi = false
                     ),
                     ytelse = ytelse,
                     type = type,
@@ -576,7 +573,6 @@ class OppgaveServiceTest {
                     klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-                        skalMottaKopi = false
                     ),
                     ytelse = ytelse,
                     type = type,
