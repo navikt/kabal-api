@@ -49,6 +49,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverFlo
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverNavIdent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMottattKlageinstans
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setOppgaveId
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setOppgaveReturnInfo
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLFlowState
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLIdent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLReturnedDate
@@ -130,32 +131,32 @@ class BehandlingService(
             )
         }
 
-//        TODO: Introduce when FE is in place
-//        if (behandling.oppgaveId != null && !(behandling.shouldBeSentToTrygderetten() || behandling.shouldCreateNewAnkebehandling())) {
-//            if (returnOppgaveInput == null) {
-//                throw SectionedValidationErrorWithDetailsException(
-//                    title = "Validation error",
-//                    sections = listOf(
-//                        ValidationSection(
-//                            section = "behandling",
-//                            properties = listOf(
-//                                InvalidProperty(
-//                                    field = "returnOppgaveInput",
-//                                    reason = "Returinformasjon for Gosys-oppgaven må fylles ut for å avslutte behandlingen."
-//                                )
-//                            )
-//                        )
-//                    )
-//                )
-//            } else {
-//                behandling.setOppgaveReturnInfo(
-//                    tildeltEnhet = returnOppgaveInput.tildeltEnhet,
-//                    mappeId = returnOppgaveInput.mappeId,
-//                    kommentar = returnOppgaveInput.kommentar,
-//                    saksbehandlerident = innloggetIdent,
-//                )
-//            }
-//        }
+//        TODO: Handle other types than Klage
+        if (behandling.oppgaveId != null && behandling.type == Type.KLAGE && !(behandling.shouldBeSentToTrygderetten() || behandling.shouldCreateNewAnkebehandling())) {
+            if (returnOppgaveInput == null) {
+                throw SectionedValidationErrorWithDetailsException(
+                    title = "Validation error",
+                    sections = listOf(
+                        ValidationSection(
+                            section = "behandling",
+                            properties = listOf(
+                                InvalidProperty(
+                                    field = "returnOppgaveInput",
+                                    reason = "Returinformasjon for Gosys-oppgaven må fylles ut for å avslutte behandlingen."
+                                )
+                            )
+                        )
+                    )
+                )
+            } else {
+                behandling.setOppgaveReturnInfo(
+                    tildeltEnhet = returnOppgaveInput.tildeltEnhet,
+                    mappeId = returnOppgaveInput.mappeId,
+                    kommentar = returnOppgaveInput.kommentar,
+                    saksbehandlerident = innloggetIdent,
+                )
+            }
+        }
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
         return behandlingMapper.mapToBehandlingFullfoertView(
