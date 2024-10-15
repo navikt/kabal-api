@@ -45,6 +45,7 @@ enum class InternalEventType {
     FERDIGSTILT,
     SATT_PAA_VENT,
     TILDELING,
+    TILBAKEKREVING,
 }
 
 data class Employee(
@@ -106,6 +107,12 @@ data class UtfallEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val utfallId: String?,
+) : BaseEvent(actor = actor, timestamp = timestamp)
+
+data class TilbakekrevingEvent(
+    override val actor: Employee,
+    override val timestamp: LocalDateTime,
+    val tilbakekreving: Boolean,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class ExtraUtfallEvent(

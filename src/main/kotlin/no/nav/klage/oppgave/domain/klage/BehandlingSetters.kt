@@ -632,6 +632,25 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
+    fun Behandling.setTilbakekreving(
+        nyVerdi: Boolean,
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val gammelVerdi = tilbakekreving
+        val tidspunkt = LocalDateTime.now()
+        tilbakekreving = nyVerdi
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident = saksbehandlerident,
+                felt = Felt.TILBAKEKREVING,
+                fraVerdi = gammelVerdi.toString(),
+                tilVerdi = tilbakekreving.toString(),
+                tidspunkt = tidspunkt
+            )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
     fun Behandling.setAvsluttetAvSaksbehandler(
         saksbehandlerident: String,
         saksbehandlernavn: String,

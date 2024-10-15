@@ -39,4 +39,6 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
     @Query("select b from Behandling b where b.id = :id")
     fun findByIdEager(id: UUID): Behandling
 
+    fun findByTilbakekrevingIsFalse(): List<Behandling>
+
 }

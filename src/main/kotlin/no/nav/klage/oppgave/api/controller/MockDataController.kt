@@ -338,6 +338,7 @@ class MockDataController(
                     ankebehandlingUtfall = ExternalUtfall.valueOf(utfallToTrygderetten.random().name),
                     previousSaksbehandlerident = null,
                     oppgaveId = null,
+                    tilbakekreving = false,
                 )
 
                 ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
