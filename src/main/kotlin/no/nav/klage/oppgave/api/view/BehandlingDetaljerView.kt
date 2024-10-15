@@ -50,6 +50,7 @@ data class BehandlingDetaljerView(
     val varsletFrist: LocalDate?,
     val oppgavebeskrivelse: String?,
     val oppgave: GosysOppgaveView?,
+    val tilbakekreving: Boolean,
 ) {
     data class GosysOppgaveView(
         val beskrivelse: String,

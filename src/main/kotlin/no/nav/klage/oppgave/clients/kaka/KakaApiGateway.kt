@@ -114,7 +114,8 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
             kvalitetsvurderingId = kvalitetsvurderingId!!,
             avsluttetAvSaksbehandler = ferdigstilling!!.avsluttetAvSaksbehandler,
             utfoerendeSaksbehandler = tildeling?.saksbehandlerident!!,
-            tilknyttetEnhet = tilknyttetEnhet!!.navn
+            tilknyttetEnhet = tilknyttetEnhet!!.navn,
+            tilbakekreving = tilbakekreving,
         )
     }
 }

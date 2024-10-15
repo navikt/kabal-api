@@ -17,4 +17,5 @@ data class SaksdataInput(
     val tilknyttetEnhet: String,
     val kvalitetsvurderingId: UUID?,
     val avsluttetAvSaksbehandler: LocalDateTime,
+    val tilbakekreving: Boolean,
 )

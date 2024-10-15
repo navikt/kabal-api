@@ -62,6 +62,7 @@ class AnkeITrygderettenbehandling(
     previousSaksbehandlerident: String?,
     oppgaveId: Long?,
     oppgaveReturned: OppgaveReturned? = null,
+    tilbakekreving: Boolean = false,
 ) : Behandling(
     id = id,
     klager = klager,
@@ -99,6 +100,7 @@ class AnkeITrygderettenbehandling(
     previousSaksbehandlerident = previousSaksbehandlerident,
     oppgaveId = oppgaveId,
     oppgaveReturned = oppgaveReturned,
+    tilbakekreving = tilbakekreving,
 ) {
     override fun toString(): String {
         return "Ankebehandling(id=$id, " +

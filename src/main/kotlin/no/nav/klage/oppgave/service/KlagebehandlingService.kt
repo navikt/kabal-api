@@ -64,6 +64,7 @@ class KlagebehandlingService(
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
                 kommentarFraFoersteinstans = mottak.kommentar,
                 oppgaveId = null,
+                tilbakekreving = false,
             )
         )
         logger.debug("Created klagebehandling {} for mottak {}", klagebehandling.id, mottak.id)

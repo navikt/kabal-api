@@ -11,6 +11,7 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.skjermede.SkjermedeApiClient
@@ -396,6 +397,33 @@ class AdminService(
         }
         logger.debug("setSortKeyToDUA: ${allDUAs.size} DUAs were updated with sortKeys: $keys")
     }
+
+    fun migrateTilbakekreving() {
+        val candidates = behandlingRepository.findByTilbakekrevingIsFalse()
+        logger.debug("Found ${candidates.size} candidates for tilbakekreving migration.")
+        var migrations = 0
+        candidates.forEach { candidate ->
+            if (candidate.registreringshjemler.any {
+                    it in tilbakekrevingHjemler
+                }
+            ) {
+                candidate.tilbakekreving = true
+                migrations++
+            }
+        }
+        logger.debug("Migrated $migrations candidates.")
+    }
+
+    val tilbakekrevingHjemler = listOf(
+        Registreringshjemmel.FTRL_22_15_TILBAKEKREVING,
+        Registreringshjemmel.FTRL_22_15A,
+        Registreringshjemmel.FTRL_22_15B,
+        Registreringshjemmel.FTRL_22_15C,
+        Registreringshjemmel.FTRL_22_15G,
+        Registreringshjemmel.FTRL_22_15D,
+        Registreringshjemmel.FTRL_22_15E,
+        Registreringshjemmel.FTRL_22_15F,
+    )
 }
 
 fun migrateTables(fromJsonString: String?, secureLogger: Logger?): String {
