@@ -470,6 +470,25 @@ class BehandlingController(
         )
     }
 
+    @PutMapping("/{behandlingId}/gosysoppgaveid")
+    fun setGosysoppgaveId(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @RequestBody input: LongInput
+    ): GosysoppgaveEditedView {
+        logBehandlingMethodDetails(
+            ::setGosysoppgaveId.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        return behandlingService.setGosysoppgaveId(
+            behandlingId = behandlingId,
+            gosysoppgaveId = input.value,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+    }
+
     @PutMapping("/{behandlingId}/resultat/utfall")
     fun setUtfall(
         @PathVariable("behandlingId") behandlingId: UUID,

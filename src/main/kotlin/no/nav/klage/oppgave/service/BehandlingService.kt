@@ -8,6 +8,7 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
+import no.nav.klage.oppgave.api.mapper.getGosysOppgaveView
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.api.view.kabin.CompletedBehandling
 import no.nav.klage.oppgave.api.view.kabin.toKabinPartView
@@ -19,6 +20,8 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
+import no.nav.klage.oppgave.clients.norg2.Norg2Client
+import no.nav.klage.oppgave.clients.oppgaveapi.Status
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
@@ -43,6 +46,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setExtraUtfallSet
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFeilregistrering
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFrist
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFullmektig
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setGosysoppgaveId
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setInnsendingshjemler
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setKlager
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverFlowState
@@ -97,6 +101,8 @@ class BehandlingService(
     private val safFacade: SafFacade,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val tokenUtil: TokenUtil,
+    private val oppgaveApiService: OppgaveApiService,
+    private val norg2Client: Norg2Client,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -2176,5 +2182,69 @@ class BehandlingService(
             navIdent = utfoerendeSaksbehandlerIdent
         )
         return name
+    }
+
+    fun setGosysoppgaveId(
+        behandlingId: UUID,
+        gosysoppgaveId: Long?,
+        utfoerendeSaksbehandlerIdent: String
+    ): GosysoppgaveEditedView {
+        logger.debug("Input utfall in setGosysoppgaveId: {}", gosysoppgaveId)
+
+        val gosysoppgave = gosysoppgaveId?.let {
+            val gosysoppgave = oppgaveApiService.getOppgave(it)
+
+            if (gosysoppgave == null) {
+                logger.error("Klarte ikke å hente gosysoppgave med id $gosysoppgaveId")
+                throw ValidationException("Klarte ikke å hente gosysoppgave med id $gosysoppgaveId")
+            }
+
+            if (gosysoppgave.status in listOf(
+                    Status.FERDIGSTILT,
+                    Status.FEILREGISTRERT
+                )
+            ) {
+                throw ValidationException("Kan ikke legge til ferdigstilt eller feilregistrert gosysoppgave")
+            }
+            gosysoppgave
+        }
+
+        val behandling = getBehandlingForUpdate(
+            behandlingId
+        )
+        val event =
+            behandling.setGosysoppgaveId(
+                nyVerdi = gosysoppgaveId,
+                saksbehandlerident = utfoerendeSaksbehandlerIdent
+            )
+        applicationEventPublisher.publishEvent(event)
+
+        val enhet = gosysoppgave?.opprettetAvEnhetsnr?.let {
+            norg2Client.fetchEnhet(enhetNr = gosysoppgave.opprettetAvEnhetsnr)
+        }
+
+        val gosysoppgaveView = gosysoppgave?.let {
+            getGosysOppgaveView(gosysoppgave = it, enhet = enhet)
+        }
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                GosysoppgaveEvent(
+                    actor = Employee(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    gosysoppgave = gosysoppgaveView,
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.GOSYSOPPGAVE,
+        )
+
+        return GosysoppgaveEditedView(
+            modified = behandling.modified,
+            gosysoppgave = gosysoppgaveView,
+        )
     }
 }

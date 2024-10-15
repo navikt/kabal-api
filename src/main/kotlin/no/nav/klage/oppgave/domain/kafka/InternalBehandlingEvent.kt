@@ -46,6 +46,7 @@ enum class InternalEventType {
     SATT_PAA_VENT,
     TILDELING,
     TILBAKEKREVING,
+    GOSYSOPPGAVE,
 }
 
 data class Employee(
@@ -107,6 +108,12 @@ data class UtfallEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val utfallId: String?,
+) : BaseEvent(actor = actor, timestamp = timestamp)
+
+data class GosysoppgaveEvent(
+    override val actor: Employee,
+    override val timestamp: LocalDateTime,
+    val gosysoppgave: BehandlingDetaljerView.GosysOppgaveView?,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class TilbakekrevingEvent(

@@ -12,7 +12,7 @@ data class OppgaveApiRecord(
     val journalpostId: String?,
     val saksreferanse: String?,
     val mappeId: Long?,
-    val status: Status?,
+    val status: Status,
     val tildeltEnhetsnr: String?,
     val opprettetAvEnhetsnr: String?,
     val endretAvEnhetsnr: String?,

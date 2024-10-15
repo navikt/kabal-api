@@ -53,8 +53,10 @@ data class BehandlingDetaljerView(
     val tilbakekreving: Boolean,
 ) {
     data class GosysOppgaveView(
-        val beskrivelse: String,
+        val id: Long?,
+        val beskrivelse: String?,
         val opprettetAv: EnhetView?,
+        val editable: Boolean?,
     )
 
     data class CombinedMedunderskriverAndROLView(

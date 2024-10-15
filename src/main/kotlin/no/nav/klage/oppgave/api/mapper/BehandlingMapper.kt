@@ -9,6 +9,8 @@ import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Enhet
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
+import no.nav.klage.oppgave.clients.oppgaveapi.OppgaveApiRecord
+import no.nav.klage.oppgave.clients.oppgaveapi.Status
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
@@ -759,16 +761,37 @@ class BehandlingMapper(
 
     private fun getOppgaveView(oppgaveId: Long?): BehandlingDetaljerView.GosysOppgaveView? {
         return if (oppgaveId != null) {
-            val oppgave = oppgaveApiService.getOppgave(oppgaveId)
+            val gosysoppgave = oppgaveApiService.getOppgave(oppgaveId)
 
-            BehandlingDetaljerView.GosysOppgaveView(
-                beskrivelse = oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse",
-                opprettetAv = oppgave?.opprettetAvEnhetsnr?.let {
-                    toEnhetView(enhet = norg2Client.fetchEnhet(enhetNr = oppgave.opprettetAvEnhetsnr))
-                }
-            )
+            val enhet = gosysoppgave?.opprettetAvEnhetsnr?.let {
+                norg2Client.fetchEnhet(enhetNr = gosysoppgave.opprettetAvEnhetsnr)
+            }
+
+            getGosysOppgaveView(gosysoppgave = gosysoppgave, enhet = enhet)
         } else null
     }
+
+}
+
+fun getGosysOppgaveView(
+    gosysoppgave: OppgaveApiRecord?,
+    enhet: Enhet?
+): BehandlingDetaljerView.GosysOppgaveView {
+    val editable: Boolean? = gosysoppgave?.let {
+        it.status !in listOf(
+            Status.FERDIGSTILT,
+            Status.FEILREGISTRERT
+        )
+    }
+
+    return BehandlingDetaljerView.GosysOppgaveView(
+        id = gosysoppgave?.id,
+        beskrivelse = gosysoppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse",
+        opprettetAv = enhet?.let {
+            toEnhetView(enhet = enhet)
+        },
+        editable = editable
+    )
 }
 
 fun toEnhetView(enhet: Enhet): EnhetView = EnhetView(
