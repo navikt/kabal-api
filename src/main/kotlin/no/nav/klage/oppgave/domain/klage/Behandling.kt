@@ -197,6 +197,8 @@ abstract class Behandling(
     open var oppgaveId: Long?,
     @Embedded
     open var oppgaveReturned: OppgaveReturned?,
+    @Column(name = "tilbakekreving")
+    var tilbakekreving: Boolean,
 ) {
 
     /**

@@ -121,6 +121,7 @@ class BehandlingMapper(
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
             oppgave = getOppgaveView(oppgaveId = klagebehandling.oppgaveId),
+            tilbakekreving = klagebehandling.tilbakekreving,
         )
     }
 
@@ -234,6 +235,7 @@ class BehandlingMapper(
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
             oppgave = getOppgaveView(oppgaveId = ankebehandling.oppgaveId),
+            tilbakekreving = ankebehandling.tilbakekreving,
         )
     }
 
@@ -301,6 +303,7 @@ class BehandlingMapper(
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
             oppgave = getOppgaveView(oppgaveId = ankeITrygderettenbehandling.oppgaveId),
+            tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
         )
     }
 
@@ -374,6 +377,7 @@ class BehandlingMapper(
                 oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
             } else null,
             oppgave = getOppgaveView(oppgaveId = behandlingEtterTrygderettenOpphevet.oppgaveId),
+            tilbakekreving = behandlingEtterTrygderettenOpphevet.tilbakekreving,
         )
     }
 

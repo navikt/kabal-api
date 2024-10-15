@@ -55,6 +55,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLIdent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLReturnedDate
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setRegistreringshjemler
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setSattPaaVent
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setTilbakekreving
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setTildeling
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtaksinstans
@@ -1240,6 +1241,40 @@ class BehandlingService(
             ),
             behandlingId = behandlingId,
             type = InternalEventType.KLAGER,
+        )
+
+        return behandling.modified
+    }
+
+    fun setTilbakekreving(
+        behandlingId: UUID,
+        tilbakekreving: Boolean,
+        utfoerendeSaksbehandlerIdent: String
+    ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId
+        )
+
+        val event =
+            behandling.setTilbakekreving(
+                nyVerdi = tilbakekreving,
+                saksbehandlerident = utfoerendeSaksbehandlerIdent,
+            )
+        applicationEventPublisher.publishEvent(event)
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                TilbakekrevingEvent(
+                    actor = Employee(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    tilbakekreving = behandling.tilbakekreving,
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.TILBAKEKREVING,
         )
 
         return behandling.modified

@@ -25,6 +25,7 @@ data class AnkeITrygderettenbehandlingInput(
     val ankebehandlingUtfall: ExternalUtfall,
     val previousSaksbehandlerident: String?,
     val oppgaveId: Long?,
+    val tilbakekreving: Boolean,
 )
 
 fun Behandling.createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehandlingInput {
@@ -45,5 +46,6 @@ fun Behandling.createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehand
         ankebehandlingUtfall = ExternalUtfall.valueOf(utfall!!.name),
         previousSaksbehandlerident = tildeling!!.saksbehandlerident,
         oppgaveId = oppgaveId,
+        tilbakekreving = tilbakekreving,
     )
 }

@@ -72,6 +72,7 @@ class AnkebehandlingService(
                 sourceBehandlingId = mottak.forrigeBehandlingId,
                 previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                 oppgaveId = null,
+                tilbakekreving = false,
             )
         )
         logger.debug("Created ankebehandling {} for mottak {}", ankebehandling.id, mottak.id)
@@ -141,6 +142,7 @@ class AnkebehandlingService(
                 sourceBehandlingId = ankeITrygderettenbehandling.id,
                 previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
                 oppgaveId = ankeITrygderettenbehandling.oppgaveId,
+                tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
             )
         )
         logger.debug(

@@ -321,6 +321,27 @@ class BehandlingController(
         return BehandlingEditedView(modified = modified)
     }
 
+    @PutMapping("/{behandlingId}/tilbakekreving")
+    fun setTilbakekreving(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @RequestBody input: BooleanInput,
+    ): BehandlingEditedView {
+        logBehandlingMethodDetails(
+            ::setTilbakekreving.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        val modified = behandlingService.setTilbakekreving(
+            behandlingId = behandlingId,
+            tilbakekreving = input.value,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+
+        return BehandlingEditedView(modified = modified)
+    }
+
     @GetMapping("/{behandlingId}/potentialsaksbehandlere")
     fun getPotentialSaksbehandlere(
         @PathVariable("behandlingId") behandlingId: UUID,
