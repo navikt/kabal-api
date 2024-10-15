@@ -132,7 +132,7 @@ class BehandlingService(
         }
 
 //        TODO: Handle other types than Klage
-        if (behandling.oppgaveId != null && behandling.type == Type.KLAGE && !(behandling.shouldBeSentToTrygderetten() || behandling.shouldCreateNewAnkebehandling())) {
+        if (behandling.oppgaveId != null && behandling.type == Type.KLAGE) { //&& !(behandling.shouldBeSentToTrygderetten() || behandling.shouldCreateNewAnkebehandling())) {
             if (returnOppgaveInput == null) {
                 throw SectionedValidationErrorWithDetailsException(
                     title = "Validation error",
