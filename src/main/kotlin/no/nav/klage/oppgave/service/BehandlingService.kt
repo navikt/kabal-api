@@ -2139,7 +2139,11 @@ class BehandlingService(
         return oppgaveApiService.getOppgaveList(
             fnr = behandling.sakenGjelder.partId.value,
             tema = behandling.ytelse.toTema(),
-        )
+        ).map {
+            it.copy(
+                alreadyUsed = oppgaveIsDuplicate(it.id)
+            )
+        }
     }
 
     fun getSakenGjelderView(behandlingId: UUID): BehandlingDetaljerView.SakenGjelderView {
@@ -2200,6 +2204,10 @@ class BehandlingService(
         logger.debug("Input utfall in setGosysoppgaveId: {}", gosysoppgaveId)
 
         val gosysoppgave = gosysoppgaveId?.let {
+            if (oppgaveIsDuplicate(gosysoppgaveId)) {
+                throw ValidationException("Gosysoppgave med id $gosysoppgaveId er allerede i bruk")
+            }
+
             val gosysoppgave = oppgaveApiService.getOppgave(it)
 
             if (gosysoppgave == null) {

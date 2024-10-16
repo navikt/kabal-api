@@ -127,12 +127,11 @@ class OppgaveApiService(
             tema = tema,
         )
 
-        return oppgaveList.map { it.toGosysOppgaveView() }.filter { it.oppgavetype !in listOf("Journalføring", "Kontakt bruker") }
+        return oppgaveList.map { it.toGosysOppgaveView() }
     }
 
     fun OppgaveApiRecord.toGosysOppgaveView(): GosysOppgaveView {
         val tema = Tema.fromNavn(tema)
-        val alreadyUsed = false //Sjekk bruk blant andre oppgaver i Kabal
         return GosysOppgaveView(
             id = id,
             temaId = tema.id,
@@ -147,7 +146,7 @@ class OppgaveApiService(
             opprettetAvEnhetsnr = opprettetAvEnhetsnr,
             opprettetTidspunkt = opprettetTidspunkt,
             fristFerdigstillelse = fristFerdigstillelse,
-            alreadyUsed = alreadyUsed,
+            alreadyUsed = false,
         )
     }
 
