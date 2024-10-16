@@ -21,7 +21,6 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
-import no.nav.klage.oppgave.clients.oppgaveapi.Status
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
@@ -281,6 +280,18 @@ class BehandlingService(
                     ValidationSection(
                         section = "kvalitetsvurdering",
                         properties = kvalitetsvurderingValidationErrors
+                    )
+                )
+            }
+        }
+
+        if (behandling.oppgaveId != null) {
+            val oppgave = oppgaveApiService.getOppgave(behandling.oppgaveId!!)
+            if (!oppgave.isEditable()) {
+                behandlingValidationErrors.add(
+                    InvalidProperty(
+                        field = "oppgave",
+                        reason = "Den valgte Gosys-oppgaven er lukket. Velg en annen oppgave."
                     )
                 )
             }
@@ -2210,16 +2221,7 @@ class BehandlingService(
 
             val gosysoppgave = oppgaveApiService.getOppgave(it)
 
-            if (gosysoppgave == null) {
-                logger.error("Klarte ikke å hente gosysoppgave med id $gosysoppgaveId")
-                throw ValidationException("Klarte ikke å hente gosysoppgave med id $gosysoppgaveId")
-            }
-
-            if (gosysoppgave.status in listOf(
-                    Status.FERDIGSTILT,
-                    Status.FEILREGISTRERT
-                )
-            ) {
+            if (!gosysoppgave.isEditable()) {
                 throw ValidationException("Kan ikke legge til ferdigstilt eller feilregistrert gosysoppgave")
             }
             gosysoppgave

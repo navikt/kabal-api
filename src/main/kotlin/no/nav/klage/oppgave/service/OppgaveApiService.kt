@@ -24,17 +24,8 @@ class OppgaveApiService(
         private val securelogger = getSecureLogger()
     }
 
-    fun getOppgave(oppgaveId: Long?): OppgaveApiRecord? {
-        if (oppgaveId == null) {
-            return null
-        }
-
-        return try {
-            oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = false)
-        } catch (e: Exception) {
-            logger.error("Failed to get (gosys-) oppgave", e)
-            null
-        }
+    fun getOppgave(oppgaveId: Long): OppgaveApiRecord {
+        return oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = false)
     }
 
     fun assignOppgave(
@@ -43,6 +34,11 @@ class OppgaveApiService(
         systemContext: Boolean,
     ) {
         val currentOppgave = oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = systemContext)
+        if (!currentOppgave.isEditable()) {
+            logger.warn("Oppgave $oppgaveId kan ikke oppdateres, returnerer")
+            return
+        }
+
         val endretAvEnhetsnr = if (systemContext) "9999" else {
             microsoftGraphService.getDataOmInnloggetSaksbehandler().enhet.enhetId
         }
@@ -80,6 +76,7 @@ class OppgaveApiService(
         kommentar: String,
     ) {
         val currentOppgave = oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = true)
+
         val endretAvEnhetsnr = "9999"
 
         val returnOppgaveRequest = ReturnOppgaveInput(

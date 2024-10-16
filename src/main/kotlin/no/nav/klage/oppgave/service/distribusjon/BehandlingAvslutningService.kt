@@ -180,16 +180,12 @@ class BehandlingAvslutningService(
             }
 
             if (behandling.oppgaveId != null && behandling.oppgaveReturned != null) {
-                try {
-                    oppgaveApiService.returnOppgave(
-                        oppgaveId = behandling.oppgaveId!!,
-                        tildeltEnhetsnummer = behandling.oppgaveReturned!!.oppgaveReturnedTildeltEnhetsnummer,
-                        mappeId = behandling.oppgaveReturned!!.oppgaveReturnedMappeId,
-                        kommentar = behandling.oppgaveReturned!!.oppgaveReturnedKommentar,
-                    )
-                } catch (e: Exception) {
-                    logger.error("Feilet under tilbakeføring av oppgave $behandlingId.")
-                }
+                oppgaveApiService.returnOppgave(
+                    oppgaveId = behandling.oppgaveId!!,
+                    tildeltEnhetsnummer = behandling.oppgaveReturned!!.oppgaveReturnedTildeltEnhetsnummer,
+                    mappeId = behandling.oppgaveReturned!!.oppgaveReturnedMappeId,
+                    kommentar = behandling.oppgaveReturned!!.oppgaveReturnedKommentar,
+                )
             }
         }
 
@@ -205,7 +201,10 @@ class BehandlingAvslutningService(
     }
 
     private fun createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
-        logger.debug("Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}", ankeITrygderettenbehandling.id)
+        logger.debug(
+            "Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}",
+            ankeITrygderettenbehandling.id
+        )
         behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandling)
     }
 

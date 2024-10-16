@@ -10,7 +10,6 @@ import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Enhet
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.oppgaveapi.OppgaveApiRecord
-import no.nav.klage.oppgave.clients.oppgaveapi.Status
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
@@ -57,7 +56,7 @@ class BehandlingMapper(
         val enhetNavn = klagebehandling.avsenderEnhetFoersteinstans.let { norg2Client.fetchEnhet(it) }.navn
 
         //TODO: Remove after oppgavebeskrivelse is removed
-        val oppgave = oppgaveApiService.getOppgave(klagebehandling.oppgaveId)
+        val oppgave = klagebehandling.oppgaveId?.let { oppgaveApiService.getOppgave(it) }
 
         return BehandlingDetaljerView(
             id = klagebehandling.id,
@@ -119,10 +118,8 @@ class BehandlingMapper(
             saksbehandler = klagebehandling.toSaksbehandlerView(),
             previousSaksbehandler = klagebehandling.toPreviousSaksbehandlerView(),
             varsletFrist = klagebehandling.varsletFrist,
-            oppgavebeskrivelse = if (klagebehandling.oppgaveId != null) {
-                oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
-            } else null,
-            oppgave = getOppgaveView(oppgaveId = klagebehandling.oppgaveId),
+            oppgavebeskrivelse = oppgave?.beskrivelse,
+            oppgave = oppgave?.let { getOppgaveView(oppgave = it) },
             tilbakekreving = klagebehandling.tilbakekreving,
         )
     }
@@ -174,7 +171,7 @@ class BehandlingMapper(
     fun mapAnkebehandlingToBehandlingDetaljerView(ankebehandling: Ankebehandling): BehandlingDetaljerView {
         val forrigeEnhetNavn = ankebehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
-        val oppgave = oppgaveApiService.getOppgave(ankebehandling.oppgaveId)
+        val oppgave = ankebehandling.oppgaveId?.let { oppgaveApiService.getOppgave(it) }
 
         return BehandlingDetaljerView(
             id = ankebehandling.id,
@@ -233,16 +230,14 @@ class BehandlingMapper(
             saksbehandler = ankebehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankebehandling.toPreviousSaksbehandlerView(),
             varsletFrist = ankebehandling.varsletFrist,
-            oppgavebeskrivelse = if (ankebehandling.oppgaveId != null) {
-                oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
-            } else null,
-            oppgave = getOppgaveView(oppgaveId = ankebehandling.oppgaveId),
+            oppgavebeskrivelse = oppgave?.beskrivelse,
+            oppgave = oppgave?.let { getOppgaveView(oppgave = it) },
             tilbakekreving = ankebehandling.tilbakekreving,
         )
     }
 
     fun mapAnkeITrygderettenbehandlingToBehandlingDetaljerView(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): BehandlingDetaljerView {
-        val oppgave = oppgaveApiService.getOppgave(ankeITrygderettenbehandling.oppgaveId)
+        val oppgave = ankeITrygderettenbehandling.oppgaveId?.let { oppgaveApiService.getOppgave(it) }
 
         return BehandlingDetaljerView(
             id = ankeITrygderettenbehandling.id,
@@ -301,16 +296,14 @@ class BehandlingMapper(
             saksbehandler = ankeITrygderettenbehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankeITrygderettenbehandling.toPreviousSaksbehandlerView(),
             varsletFrist = null,
-            oppgavebeskrivelse = if (ankeITrygderettenbehandling.oppgaveId != null) {
-                oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
-            } else null,
-            oppgave = getOppgaveView(oppgaveId = ankeITrygderettenbehandling.oppgaveId),
+            oppgavebeskrivelse = oppgave?.beskrivelse,
+            oppgave = oppgave?.let { getOppgaveView(oppgave = it) },
             tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
         )
     }
 
     fun mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet): BehandlingDetaljerView {
-        val oppgave = oppgaveApiService.getOppgave(behandlingEtterTrygderettenOpphevet.oppgaveId)
+        val oppgave = behandlingEtterTrygderettenOpphevet.oppgaveId?.let { oppgaveApiService.getOppgave(it) }
         val forrigeEnhetNavn =
             behandlingEtterTrygderettenOpphevet.ankeBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
@@ -375,10 +368,8 @@ class BehandlingMapper(
             previousSaksbehandler = behandlingEtterTrygderettenOpphevet.toPreviousSaksbehandlerView(),
             varsletFrist = behandlingEtterTrygderettenOpphevet.varsletFrist,
             kjennelseMottatt = behandlingEtterTrygderettenOpphevet.kjennelseMottatt,
-            oppgavebeskrivelse = if (behandlingEtterTrygderettenOpphevet.oppgaveId != null) {
-                oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
-            } else null,
-            oppgave = getOppgaveView(oppgaveId = behandlingEtterTrygderettenOpphevet.oppgaveId),
+            oppgavebeskrivelse = oppgave?.beskrivelse,
+            oppgave = oppgave?.let { getOppgaveView(oppgave = it) },
             tilbakekreving = behandlingEtterTrygderettenOpphevet.tilbakekreving,
         )
     }
@@ -759,38 +750,25 @@ class BehandlingMapper(
         } else null
     }
 
-    private fun getOppgaveView(oppgaveId: Long?): BehandlingDetaljerView.GosysOppgaveView? {
-        return if (oppgaveId != null) {
-            val gosysoppgave = oppgaveApiService.getOppgave(oppgaveId)
-
-            val enhet = gosysoppgave?.opprettetAvEnhetsnr?.let {
-                norg2Client.fetchEnhet(enhetNr = gosysoppgave.opprettetAvEnhetsnr)
+    private fun getOppgaveView(oppgave: OppgaveApiRecord): BehandlingDetaljerView.GosysOppgaveView {
+        val enhet = oppgave.opprettetAvEnhetsnr?.let {
+                norg2Client.fetchEnhet(enhetNr = oppgave.opprettetAvEnhetsnr)
             }
-
-            getGosysOppgaveView(gosysoppgave = gosysoppgave, enhet = enhet)
-        } else null
+        return getGosysOppgaveView(gosysoppgave = oppgave, enhet = enhet)
     }
-
 }
 
 fun getGosysOppgaveView(
     gosysoppgave: OppgaveApiRecord?,
     enhet: Enhet?
 ): BehandlingDetaljerView.GosysOppgaveView {
-    val editable: Boolean? = gosysoppgave?.let {
-        it.status !in listOf(
-            Status.FERDIGSTILT,
-            Status.FEILREGISTRERT
-        )
-    }
-
     return BehandlingDetaljerView.GosysOppgaveView(
         id = gosysoppgave?.id,
         beskrivelse = gosysoppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse",
         opprettetAv = enhet?.let {
             toEnhetView(enhet = enhet)
         },
-        editable = editable
+        editable = gosysoppgave?.isEditable()
     )
 }
 

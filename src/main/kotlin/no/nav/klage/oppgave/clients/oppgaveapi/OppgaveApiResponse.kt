@@ -42,7 +42,14 @@ data class OppgaveApiRecord(
     val samhandlernr: String?,
     val aktoerId: String?,
     val orgnr: String?,
-)
+) {
+    fun isEditable(): Boolean {
+        return status !in listOf(
+            Status.FERDIGSTILT,
+            Status.FEILREGISTRERT
+        )
+    }
+}
 
 enum class Status(val statusId: Long) {
 
