@@ -51,17 +51,32 @@ class PdlClient(
     }
 
     @Retryable
-    fun getFoedselsnummerFromSomeIdent(ident: String): String {
+    fun getIdents(query: PersonGraphqlQuery): HentIdenterResponse {
         return runWithTiming {
             val stsSystembrukerToken = tokenUtil.getAppAccessTokenWithPdlScope()
             pdlWebClient.post()
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $stsSystembrukerToken")
-                .bodyValue(hentFolkeregisterIdentQuery(ident))
+                .bodyValue(query)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::getFoedselsnummerFromSomeIdent.name, secureLogger)
+                    logErrorResponse(response, ::getIdents.name, secureLogger)
                 }
-                .bodyToMono<HentFolkeregisterIdentResponse>()
+                .bodyToMono<HentIdenterResponse>()
+                .block() ?: throw RuntimeException("Person not found")
+        }
+    }
+
+    @Retryable
+    fun hentAktoerIdent(fnr: String): String {
+        return runWithTiming {
+            pdlWebClient.post()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithPdlScope()}")
+                .bodyValue(hentAktorIdQuery(fnr))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(response, ::hentAktoerIdent.name, secureLogger)
+                }
+                .bodyToMono<HentIdenterResponse>()
                 .block()?.data?.hentIdenter?.identer?.firstOrNull()?.ident ?: throw RuntimeException("Person not found")
         }
     }

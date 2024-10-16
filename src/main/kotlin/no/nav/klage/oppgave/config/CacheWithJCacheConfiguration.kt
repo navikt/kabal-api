@@ -31,6 +31,8 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
         const val SAKSBEHANDLER_NAME_CACHE = "saksbehandler-name"
         const val PERSON_ADDRESS = "person-address"
         const val DOK_DIST_KANAL = "dok-dist-kanal"
+        const val GOSYSOPPGAVE_GJELDER_CACHE = "gosysoppgave-gjelder"
+        const val GOSYSOPPGAVE_OPPGAVETYPE_CACHE = "gosysoppgave-oppgavetype"
 
 
         val cacheKeys =
@@ -47,6 +49,8 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
                 LANDKODER_CACHE,
                 PERSON_ADDRESS,
                 DOK_DIST_KANAL,
+                GOSYSOPPGAVE_GJELDER_CACHE,
+                GOSYSOPPGAVE_OPPGAVETYPE_CACHE,
             )
 
         @Suppress("JAVA_CLASS_ON_COMPANION")

@@ -457,7 +457,7 @@ class DokumentService(
             journalpostId = journalpostId,
         )
 
-        val foedselsnummer = pdlFacade.getFoedselsnummerFromSomeIdent(journalpost.bruker.id)
+        val foedselsnummer = pdlFacade.getFoedselsnummerFromIdent(journalpost.bruker.id)
 
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 

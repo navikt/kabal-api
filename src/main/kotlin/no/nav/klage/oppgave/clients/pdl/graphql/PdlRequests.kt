@@ -6,7 +6,8 @@ data class PersonGraphqlQuery(
 )
 
 data class IdentVariables(
-    val ident: String
+    val ident: String,
+    val identType: IdentType? = null,
 )
 
 fun hentPersonQuery(ident: String): PersonGraphqlQuery {
@@ -18,5 +19,16 @@ fun hentPersonQuery(ident: String): PersonGraphqlQuery {
 fun hentFolkeregisterIdentQuery(ident: String): PersonGraphqlQuery {
     val query =
         PersonGraphqlQuery::class.java.getResource("/pdl/hentIdenter.graphql").cleanForGraphql()
-    return PersonGraphqlQuery(query, IdentVariables(ident))
+    return PersonGraphqlQuery(query, IdentVariables(ident, IdentType.FOLKEREGISTERIDENT))
+}
+
+fun hentAktorIdQuery(ident: String): PersonGraphqlQuery {
+    val query =
+        PersonGraphqlQuery::class.java.getResource("/pdl/hentIdenter.graphql").cleanForGraphql()
+    return PersonGraphqlQuery(query, IdentVariables(ident, IdentType.AKTORID))
+}
+
+enum class IdentType {
+    FOLKEREGISTERIDENT,
+    AKTORID,
 }

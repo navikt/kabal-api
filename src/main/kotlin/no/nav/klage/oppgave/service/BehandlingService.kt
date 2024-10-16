@@ -2134,6 +2134,14 @@ class BehandlingService(
         )
     }
 
+    fun findRelevantGosysOppgaver(behandlingId: UUID): List<GosysOppgaveView> {
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        return oppgaveApiService.getOppgaveList(
+            fnr = behandling.sakenGjelder.partId.value,
+            tema = behandling.ytelse.toTema(),
+        )
+    }
+
     fun getSakenGjelderView(behandlingId: UUID): BehandlingDetaljerView.SakenGjelderView {
         return behandlingMapper.getSakenGjelderView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId).sakenGjelder)
     }

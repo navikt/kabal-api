@@ -602,4 +602,23 @@ class BehandlingController(
                 .sortedByDescending { it.mottattKlageinstans }.map { it.id },
         )
     }
+
+    @Operation(
+        summary = "Hent oppgaver i Gosys gjelder personen i behandlingen",
+        description = "Finner alle Gosys-oppgaver som gjelder personen behandlingen gjelder.."
+    )
+    @GetMapping("/{behandlingId}/gosysoppgaver", produces = ["application/json"])
+    fun findGosysoppgaver(
+        @PathVariable("behandlingId") behandlingId: UUID,
+    ): List<GosysOppgaveView> {
+        logMethodDetails(
+            ::findGosysoppgaver.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        return behandlingService.findRelevantGosysOppgaver(
+            behandlingId = behandlingId
+        )
+    }
 }

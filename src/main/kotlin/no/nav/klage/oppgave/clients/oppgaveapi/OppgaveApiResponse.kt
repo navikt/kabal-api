@@ -134,3 +134,20 @@ data class OppgaveMapperResponse(
         val endretTidspunkt: LocalDateTime?
     )
 }
+
+data class OppgaveListResponse(
+    val antallTreffTotalt: Int,
+    val oppgaver: List<OppgaveApiRecord>
+)
+
+data class Gjelder(
+    val behandlingsTema: String?,
+    val behandlingstemaTerm : String?,
+    val behandlingstype: String?,
+    val behandlingstypeTerm: String?,
+)
+
+data class OppgavetypeResponse(
+    val oppgavetype: String,
+    val term: String,
+)
