@@ -1,4 +1,4 @@
-query($ident: ID!) {
+query($ident: ID!, $identType: String) {
     hentIdenter(ident: $ident, grupper: [$identType]) {
         identer {
             ident
