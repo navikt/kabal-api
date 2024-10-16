@@ -140,6 +140,8 @@ class BehandlingServiceTest {
             partSearchService = mockk(),
             safFacade = mockk(),
             tokenUtil = mockk(),
+            oppgaveApiService = mockk(),
+            norg2Client = mockk(),
         )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT

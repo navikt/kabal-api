@@ -12,7 +12,7 @@ data class OppgaveApiRecord(
     val journalpostId: String?,
     val saksreferanse: String?,
     val mappeId: Long?,
-    val status: Status?,
+    val status: Status,
     val tildeltEnhetsnr: String?,
     val opprettetAvEnhetsnr: String?,
     val endretAvEnhetsnr: String?,
@@ -42,7 +42,14 @@ data class OppgaveApiRecord(
     val samhandlernr: String?,
     val aktoerId: String?,
     val orgnr: String?,
-)
+) {
+    fun isEditable(): Boolean {
+        return status !in listOf(
+            Status.FERDIGSTILT,
+            Status.FEILREGISTRERT
+        )
+    }
+}
 
 enum class Status(val statusId: Long) {
 
@@ -134,3 +141,20 @@ data class OppgaveMapperResponse(
         val endretTidspunkt: LocalDateTime?
     )
 }
+
+data class OppgaveListResponse(
+    val antallTreffTotalt: Int,
+    val oppgaver: List<OppgaveApiRecord>
+)
+
+data class Gjelder(
+    val behandlingsTema: String?,
+    val behandlingstemaTerm : String?,
+    val behandlingstype: String?,
+    val behandlingstypeTerm: String?,
+)
+
+data class OppgavetypeResponse(
+    val oppgavetype: String,
+    val term: String,
+)
