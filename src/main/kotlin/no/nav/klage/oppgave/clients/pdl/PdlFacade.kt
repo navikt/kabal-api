@@ -43,7 +43,6 @@ class PdlFacade(
         return getIdent(query = query)
     }
 
-
     fun getAktorIdFromIdent(ident: String): String {
         val query = hentAktorIdQuery(ident = ident)
         return getIdent(query = query)

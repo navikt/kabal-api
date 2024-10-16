@@ -1,5 +1,5 @@
-query($ident: ID!, $identType: String) {
-    hentIdenter(ident: $ident, grupper: [$identType]) {
+query($ident: ID!, $grupper: [IdentGruppe!]) {
+    hentIdenter(ident: $ident, grupper: $grupper) {
         identer {
             ident
         }
