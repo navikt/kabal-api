@@ -428,6 +428,8 @@ class AdminService(
         Registreringshjemmel.INNKL_26A_T,
         Registreringshjemmel.INNKL_26B_T,
         Registreringshjemmel.INNKL_29,
+        Registreringshjemmel.FTRL_22_17A,
+        Registreringshjemmel.FTRL_4_28,
     )
 }
 
