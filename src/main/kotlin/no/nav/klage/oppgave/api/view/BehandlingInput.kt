@@ -20,3 +20,8 @@ data class ReturnOppgaveInput(
     val mappeId: Long?,
     val kommentar: String,
 )
+
+data class OppgaveInput(
+    val returnOppgaveInput: ReturnOppgaveInput?,
+    val ignoreOppgave: Boolean?,
+)
