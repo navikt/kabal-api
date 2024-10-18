@@ -4,6 +4,7 @@ import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
+import no.nav.klage.oppgave.api.view.GosysOppgaveView
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -113,7 +114,7 @@ data class UtfallEvent(
 data class GosysoppgaveEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
-    val gosysoppgave: BehandlingDetaljerView.GosysOppgaveView?,
+    val gosysOppgave: GosysOppgaveView?,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class TilbakekrevingEvent(

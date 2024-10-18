@@ -97,7 +97,6 @@ class OppgaveApiClient(
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
-                        uriBuilder.queryParam("statuskategori", Statuskategori.AAPEN)
                         tema?.let { uriBuilder.queryParam("tema", it.navn) }
                         uriBuilder.queryParam("limit", 1000)
                         uriBuilder.queryParam("offset", 0)

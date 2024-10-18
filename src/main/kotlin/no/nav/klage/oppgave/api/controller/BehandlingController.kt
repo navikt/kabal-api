@@ -80,7 +80,7 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
         //change value name after testing
         @RequestParam(value = "nybehandling", required = false) nyBehandlingEtterTROpphevet: Boolean = false,
-        @RequestBody(required = false) input: ReturnOppgaveInput?
+        @RequestBody(required = false) oppgaveInput: OppgaveInput?,
     ): BehandlingFullfoertView {
         logKlagebehandlingMethodDetails(
             ::fullfoerBehandling.name,
@@ -92,7 +92,7 @@ class BehandlingController(
         return behandlingService.ferdigstillBehandling(
             behandlingId = behandlingId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            returnOppgaveInput = input,
+            oppgaveInput = oppgaveInput,
             nyBehandlingEtterTROpphevet = nyBehandlingEtterTROpphevet,
         )
     }
@@ -471,20 +471,20 @@ class BehandlingController(
     }
 
     @PutMapping("/{behandlingId}/gosysoppgaveid")
-    fun setGosysoppgaveId(
+    fun setGosysOppgaveId(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: GosysoppgaveIdInput
-    ): GosysoppgaveEditedView {
+        @RequestBody input: GosysOppgaveIdInput
+    ): GosysOppgaveEditedView {
         logBehandlingMethodDetails(
-            ::setGosysoppgaveId.name,
+            ::setGosysOppgaveId.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             behandlingId,
             logger
         )
 
-        return behandlingService.setGosysoppgaveId(
+        return behandlingService.setGosysOppgaveId(
             behandlingId = behandlingId,
-            gosysoppgaveId = input.gosysoppgaveId,
+            gosysOppgaveId = input.gosysOppgaveId,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
     }
@@ -605,7 +605,7 @@ class BehandlingController(
 
     @Operation(
         summary = "Hent oppgaver i Gosys gjelder personen i behandlingen",
-        description = "Finner alle Gosys-oppgaver som gjelder personen behandlingen gjelder.."
+        description = "Finner alle Gosys-oppgaver som gjelder personen behandlingen gjelder."
     )
     @GetMapping("/{behandlingId}/gosysoppgaver", produces = ["application/json"])
     fun findGosysoppgaver(
@@ -620,5 +620,40 @@ class BehandlingController(
         return behandlingService.findRelevantGosysOppgaver(
             behandlingId = behandlingId
         )
+    }
+
+    @Operation(
+        summary = "Hent en konkret oppgave i Gosys",
+        description = "Henter en Gosys-oppgave."
+    )
+    @GetMapping("/{behandlingId}/gosysoppgaver/{gosysOppgaveId}", produces = ["application/json"])
+    fun getGosysOppgave(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("gosysOppgaveId") gosysOppgaveId: Long,
+    ): GosysOppgaveView {
+        logMethodDetails(
+            ::getGosysOppgave.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        return behandlingService.getGosysOppgave(
+            behandlingId = behandlingId,
+            gosysOppgaveId = gosysOppgaveId
+        )
+    }
+
+    @GetMapping("/{behandlingId}/fradelingreason")
+    fun getFradelingReason(
+        @PathVariable("behandlingId") behandlingId: UUID
+    ): WithPrevious<TildelingEvent>? {
+        logBehandlingMethodDetails(
+            ::getFradelingReason.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        return behandlingService.getFradelingReason(behandlingId)
     }
 }

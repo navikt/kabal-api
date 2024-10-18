@@ -139,6 +139,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.CONFLICT, ex)
 
     @ExceptionHandler
+    fun handleDuplicateGosysOppgaveIdException(
+        ex: DuplicateGosysOppgaveIdException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.CONFLICT, ex)
+
+    @ExceptionHandler
     fun handleBehandlingManglerMedunderskriverException(
         ex: BehandlingManglerMedunderskriverException,
         request: NativeWebRequest

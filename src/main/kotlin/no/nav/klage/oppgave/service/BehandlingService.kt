@@ -8,7 +8,6 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
-import no.nav.klage.oppgave.api.mapper.getGosysOppgaveView
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.api.view.kabin.CompletedBehandling
 import no.nav.klage.oppgave.api.view.kabin.toKabinPartView
@@ -113,9 +112,26 @@ class BehandlingService(
     fun ferdigstillBehandling(
         behandlingId: UUID,
         innloggetIdent: String,
-        returnOppgaveInput: ReturnOppgaveInput?,
+        oppgaveInput: OppgaveInput?,
         nyBehandlingEtterTROpphevet: Boolean,
     ): BehandlingFullfoertView {
+        if (oppgaveInput?.returnOppgaveInput != null && oppgaveInput.ignoreOppgave == true) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = "returnOppgaveInput",
+                                reason = "Kan ikke sette både returinformasjon om Gosys-oppgaven og be om å ignorere Gosys-oppgaven."
+                            )
+                        )
+                    )
+                )
+            )
+        }
+
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId
         )
@@ -139,7 +155,7 @@ class BehandlingService(
 
 //        TODO: Handle other types than Klage
         if (behandling.oppgaveId != null && behandling.type == Type.KLAGE) { //&& !(behandling.shouldBeSentToTrygderetten() || behandling.shouldCreateNewAnkebehandling())) {
-            if (returnOppgaveInput == null) {
+            if (oppgaveInput?.returnOppgaveInput == null && oppgaveInput?.ignoreOppgave != true) {
                 throw SectionedValidationErrorWithDetailsException(
                     title = "Validation error",
                     sections = listOf(
@@ -155,12 +171,38 @@ class BehandlingService(
                     )
                 )
             } else {
-                behandling.setOppgaveReturnInfo(
-                    tildeltEnhet = returnOppgaveInput.tildeltEnhet,
-                    mappeId = returnOppgaveInput.mappeId,
-                    kommentar = returnOppgaveInput.kommentar,
-                    saksbehandlerident = innloggetIdent,
-                )
+                if (oppgaveInput.returnOppgaveInput != null) {
+                    val gosysOppgave = oppgaveApiService.getOppgave(behandling.oppgaveId!!)
+                    if (!gosysOppgave.editable) {
+                        throw SectionedValidationErrorWithDetailsException(
+                            title = "Validation error",
+                            sections = listOf(
+                                ValidationSection(
+                                    section = "behandling",
+                                    properties = listOf(
+                                        InvalidProperty(
+                                            field = "returnOppgaveInput",
+                                            reason = "Den valgte Gosys-oppgaven er lukket. Velg en annen oppgave."
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    }
+
+                    behandling.setOppgaveReturnInfo(
+                        tildeltEnhet = oppgaveInput.returnOppgaveInput.tildeltEnhet,
+                        mappeId = oppgaveInput.returnOppgaveInput.mappeId,
+                        kommentar = oppgaveInput.returnOppgaveInput.kommentar,
+                        saksbehandlerident = innloggetIdent,
+                    )
+                } else {
+                    //Her må ignoreOppgave være true
+                    behandling.setIgnoreOppgave(
+                        ignoreOppgave = true,
+                        saksbehandlerident = innloggetIdent,
+                    )
+                }
             }
         }
 
@@ -280,18 +322,6 @@ class BehandlingService(
                     ValidationSection(
                         section = "kvalitetsvurdering",
                         properties = kvalitetsvurderingValidationErrors
-                    )
-                )
-            }
-        }
-
-        if (behandling.oppgaveId != null) {
-            val oppgave = oppgaveApiService.getOppgave(behandling.oppgaveId!!)
-            if (!oppgave.isEditable()) {
-                behandlingValidationErrors.add(
-                    InvalidProperty(
-                        field = "oppgave",
-                        reason = "Den valgte Gosys-oppgaven er lukket. Velg en annen oppgave."
                     )
                 )
             }
@@ -2207,43 +2237,42 @@ class BehandlingService(
         return name
     }
 
-    fun setGosysoppgaveId(
+    fun setGosysOppgaveId(
         behandlingId: UUID,
-        gosysoppgaveId: Long?,
+        gosysOppgaveId: Long?,
         utfoerendeSaksbehandlerIdent: String
-    ): GosysoppgaveEditedView {
-        logger.debug("Input utfall in setGosysoppgaveId: {}", gosysoppgaveId)
-
-        val gosysoppgave = gosysoppgaveId?.let {
-            if (oppgaveIsDuplicate(gosysoppgaveId)) {
-                throw ValidationException("Gosysoppgave med id $gosysoppgaveId er allerede i bruk")
-            }
-
-            val gosysoppgave = oppgaveApiService.getOppgave(it)
-
-            if (!gosysoppgave.isEditable()) {
-                throw ValidationException("Kan ikke legge til ferdigstilt eller feilregistrert gosysoppgave")
-            }
-            gosysoppgave
-        }
+    ): GosysOppgaveEditedView {
+        logger.debug("Input utfall in setGosysOppgaveId: {}", gosysOppgaveId)
 
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
+
+        val gosysOppgave = gosysOppgaveId?.let {
+            val gosysOppgave = oppgaveApiService.getOppgave(it).copy(
+                alreadyUsed = oppgaveIsDuplicate(gosysOppgaveId)
+            )
+
+            if (behandling.oppgaveId == gosysOppgave.id) {
+                return GosysOppgaveEditedView(
+                    modified = behandling.modified,
+                    gosysOppgave = gosysOppgave
+                )
+            }
+
+            if (gosysOppgave.alreadyUsed) {
+                throw DuplicateGosysOppgaveIdException("Gosysoppgave med id $gosysOppgaveId er allerede i bruk")
+            }
+
+            gosysOppgave
+        }
+
         val event =
             behandling.setGosysoppgaveId(
-                nyVerdi = gosysoppgaveId,
+                nyVerdi = gosysOppgaveId,
                 saksbehandlerident = utfoerendeSaksbehandlerIdent
             )
         applicationEventPublisher.publishEvent(event)
-
-        val enhet = gosysoppgave?.opprettetAvEnhetsnr?.let {
-            norg2Client.fetchEnhet(enhetNr = gosysoppgave.opprettetAvEnhetsnr)
-        }
-
-        val gosysoppgaveView = gosysoppgave?.let {
-            getGosysOppgaveView(gosysoppgave = it, enhet = enhet)
-        }
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -2253,16 +2282,30 @@ class BehandlingService(
                         navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = behandling.modified,
-                    gosysoppgave = gosysoppgaveView,
+                    gosysOppgave = gosysOppgave,
                 )
             ),
             behandlingId = behandlingId,
             type = InternalEventType.GOSYSOPPGAVE,
         )
 
-        return GosysoppgaveEditedView(
+        return GosysOppgaveEditedView(
             modified = behandling.modified,
-            gosysoppgave = gosysoppgaveView,
+            gosysOppgave = gosysOppgave,
+        )
+    }
+
+    fun getGosysOppgave(behandlingId: UUID, gosysOppgaveId: Long): GosysOppgaveView {
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+        val gosysOppgave = oppgaveApiService.getOppgave(
+            oppgaveId = gosysOppgaveId,
+            fnrToValidate = behandling.sakenGjelder.partId.value
+        )
+        if (gosysOppgave.temaId != behandling.ytelse.toTema().navn) {
+            throw IllegalOperation("Gosys-oppgave hører ikke til angitt tema")
+        }
+        return gosysOppgave.copy(
+            alreadyUsed = oppgaveIsDuplicate(gosysOppgave.id)
         )
     }
 }

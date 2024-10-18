@@ -1,11 +1,14 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.oppgave.api.view.EnhetView
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
 import no.nav.klage.oppgave.api.view.OppgaveApiMappeView
 import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
+import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.oppgaveapi.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
+import no.nav.klage.oppgave.exceptions.IllegalOperation
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
@@ -16,6 +19,7 @@ class OppgaveApiService(
     private val oppgaveApiClient: OppgaveApiClient,
     private val microsoftGraphService: DefaultAzureGateway,
     private val pdlFacade: PdlFacade,
+    private val norg2Client: Norg2Client,
 ) {
 
     companion object {
@@ -24,8 +28,14 @@ class OppgaveApiService(
         private val securelogger = getSecureLogger()
     }
 
-    fun getOppgave(oppgaveId: Long): OppgaveApiRecord {
-        return oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = false)
+    fun getOppgave(oppgaveId: Long, fnrToValidate: String? = null): GosysOppgaveView {
+        val oppgave = oppgaveApiClient.getOppgave(oppgaveId, systemContext = false)
+        if (fnrToValidate != null) {
+            if (oppgave.bruker.ident != fnrToValidate) {
+                throw IllegalOperation("Gosys-oppgave hører ikke til angitt person")
+            }
+        }
+        return oppgave.toGosysOppgaveView()
     }
 
     fun assignOppgave(
@@ -131,18 +141,26 @@ class OppgaveApiService(
         val tema = Tema.fromNavn(tema)
         return GosysOppgaveView(
             id = id,
+            tildeltEnhetsnr = tildeltEnhetsnr,
+            endretAvEnhetsnr = endretAvEnhetsnr,
+            endretAv = endretAv,
+            endretTidspunkt = endretTidspunkt,
+            opprettetAv = opprettetAv,
+            opprettetTidspunkt = opprettetTidspunkt,
+            beskrivelse = beskrivelse,
             temaId = tema.id,
             gjelder = getGjelder(behandlingstype = behandlingstype, tema = tema),
             oppgavetype = getOppgavetype(oppgavetype = oppgavetype, tema = tema),
-            opprettetAv = opprettetAv,
-            tildeltEnhetsnr = tildeltEnhetsnr,
-            beskrivelse = beskrivelse,
-            endretAv = endretAv,
-            endretAvEnhetsnr = endretAvEnhetsnr,
-            endretTidspunkt = endretTidspunkt,
-            opprettetAvEnhetsnr = opprettetAvEnhetsnr,
-            opprettetTidspunkt = opprettetTidspunkt,
             fristFerdigstillelse = fristFerdigstillelse,
+            ferdigstiltTidspunkt = ferdigstiltTidspunkt,
+            status = status,
+            editable = isEditable(),
+            opprettetAvEnhet = opprettetAvEnhetsnr?.let {
+                EnhetView(
+                    enhetsnr = it,
+                    navn = norg2Client.fetchEnhet(enhetNr = it).navn,
+                )
+            },
             alreadyUsed = false,
         )
     }

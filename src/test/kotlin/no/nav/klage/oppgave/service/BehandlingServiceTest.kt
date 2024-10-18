@@ -315,7 +315,7 @@ class BehandlingServiceTest {
             behandlingService.ferdigstillBehandling(
                 behandlingId = behandling.id,
                 innloggetIdent = SAKSBEHANDLER_IDENT,
-                returnOppgaveInput = null,
+                oppgaveInput = null,
                 nyBehandlingEtterTROpphevet = false,
             )
         }
