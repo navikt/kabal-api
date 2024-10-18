@@ -12,6 +12,8 @@ data class SakFromKlanke(
     val vedtaksdato: LocalDate,
     val fnr: String,
     val sakstype: String?,
+    val typeResultat: String,
+    val nivaa: String,
 )
 
 data class SakAssignedInput(
