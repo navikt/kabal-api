@@ -434,6 +434,13 @@ class AdminService(
         Registreringshjemmel.FTRL_22_15D,
         Registreringshjemmel.FTRL_22_15E,
         Registreringshjemmel.FTRL_22_15F,
+        Registreringshjemmel.FORSKL_8,
+        Registreringshjemmel.INNKL_25_T,
+        Registreringshjemmel.INNKL_26A_T,
+        Registreringshjemmel.INNKL_26B_T,
+        Registreringshjemmel.INNKL_29,
+        Registreringshjemmel.FTRL_22_17A,
+        Registreringshjemmel.FTRL_4_28,
     )
 }
 
