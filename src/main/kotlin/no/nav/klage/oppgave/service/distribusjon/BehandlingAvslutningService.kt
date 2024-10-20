@@ -185,7 +185,7 @@ class BehandlingAvslutningService(
                 )
             }
 
-            if (behandling.oppgaveId != null && behandling.oppgaveReturned != null) {
+            if (behandling.oppgaveId != null && behandling.oppgaveReturned != null && !behandling.ignoreOppgave) {
                 oppgaveApiService.returnOppgave(
                     oppgaveId = behandling.oppgaveId!!,
                     tildeltEnhetsnummer = behandling.oppgaveReturned!!.oppgaveReturnedTildeltEnhetsnummer,

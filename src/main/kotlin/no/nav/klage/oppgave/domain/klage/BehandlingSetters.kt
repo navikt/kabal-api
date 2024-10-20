@@ -722,6 +722,26 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
+    fun Behandling.setIgnoreOppgave(
+        ignoreOppgaveNewValue: Boolean,
+        saksbehandlerident: String,
+    ): BehandlingEndretEvent {
+        val tidspunkt = LocalDateTime.now()
+        val gammelVerdi = ignoreOppgave
+        ignoreOppgave = ignoreOppgaveNewValue
+        modified = tidspunkt
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident = saksbehandlerident,
+                felt = Felt.IGNORE_OPPGAVE,
+                fraVerdi = gammelVerdi.toString(),
+                tilVerdi = ignoreOppgave.toString(),
+                tidspunkt = tidspunkt
+            )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
     fun Behandling.setAvsluttet(
         saksbehandlerident: String
     ): BehandlingEndretEvent {

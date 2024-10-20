@@ -45,6 +45,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFeilregistrering
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFrist
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFullmektig
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setGosysoppgaveId
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setIgnoreOppgave
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setInnsendingshjemler
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setKlager
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverFlowState
@@ -199,7 +200,7 @@ class BehandlingService(
                 } else {
                     //Her må ignoreOppgave være true
                     behandling.setIgnoreOppgave(
-                        ignoreOppgave = true,
+                        ignoreOppgaveNewValue = true,
                         saksbehandlerident = innloggetIdent,
                     )
                 }
