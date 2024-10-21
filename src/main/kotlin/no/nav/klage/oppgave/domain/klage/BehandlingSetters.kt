@@ -612,6 +612,25 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
+    fun Behandling.setGosysoppgaveId(
+        nyVerdi: Long?,
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val gammelVerdi = oppgaveId
+        val tidspunkt = LocalDateTime.now()
+        oppgaveId = nyVerdi
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident = saksbehandlerident,
+                felt = Felt.GOSYSOPPGAVE_ID,
+                fraVerdi = gammelVerdi?.toString(),
+                tilVerdi = oppgaveId?.toString(),
+                tidspunkt = tidspunkt
+            )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
     fun Behandling.setExtraUtfallSet(
         nyVerdi: Set<Utfall>,
         saksbehandlerident: String
@@ -698,6 +717,26 @@ object BehandlingSetters {
                 felt = Felt.OPPGAVE_RETURNED,
                 fraVerdi = null,
                 tilVerdi = oppgaveReturned.toString(),
+                tidspunkt = tidspunkt
+            )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
+    fun Behandling.setIgnoreOppgave(
+        ignoreOppgaveNewValue: Boolean,
+        saksbehandlerident: String,
+    ): BehandlingEndretEvent {
+        val tidspunkt = LocalDateTime.now()
+        val gammelVerdi = ignoreOppgave
+        ignoreOppgave = ignoreOppgaveNewValue
+        modified = tidspunkt
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident = saksbehandlerident,
+                felt = Felt.IGNORE_OPPGAVE,
+                fraVerdi = gammelVerdi.toString(),
+                tilVerdi = ignoreOppgave.toString(),
                 tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))

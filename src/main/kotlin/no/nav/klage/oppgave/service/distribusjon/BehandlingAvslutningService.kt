@@ -134,24 +134,30 @@ class BehandlingAvslutningService(
                     sakId = behandling.kildeReferanse,
                     input = GetSakAppAccessInput(saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!)
                 )
-                val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
-                    klageTilbakebetalingutfallToInfotrygdutfall[behandling.utfall!!]!!
-                } else {
-                    klageutfallToInfotrygdutfall[behandling.utfall!!]!!
-                }
 
-                fssProxyClient.setToFinishedWithAppAccess(
-                    sakId = behandling.kildeReferanse,
-                    SakFinishedInput(
-                        status = SakFinishedInput.Status.RETURNERT_TK,
-                        nivaa = SakFinishedInput.Nivaa.KA,
-                        typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
-                        utfall = SakFinishedInput.Utfall.valueOf(utfall),
-                        mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
-                        saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!
+                if (sakInKlanke.typeResultat == SakFinishedInput.TypeResultat.RESULTAT.name &&
+                    sakInKlanke.nivaa == SakFinishedInput.Nivaa.KA.name) {
+                    logger.warn("Behandlingen er allerede satt til ferdig i Infotrygd, så trenger ikke å oppdatere.")
+                } else {
+                    val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
+                        klageTilbakebetalingutfallToInfotrygdutfall[behandling.utfall!!]!!
+                    } else {
+                        klageutfallToInfotrygdutfall[behandling.utfall!!]!!
+                    }
+
+                    fssProxyClient.setToFinishedWithAppAccess(
+                        sakId = behandling.kildeReferanse,
+                        SakFinishedInput(
+                            status = SakFinishedInput.Status.RETURNERT_TK,
+                            nivaa = SakFinishedInput.Nivaa.KA,
+                            typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
+                            utfall = SakFinishedInput.Utfall.valueOf(utfall),
+                            mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
+                            saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!
+                        )
                     )
-                )
-                logger.debug("Behandlingen som er avsluttet ble sendt tilbake til Infotrygd.")
+                    logger.debug("Behandlingen som er avsluttet ble sendt tilbake til Infotrygd.")
+                }
             } else {
                 //Notify modern fagsystem
                 val behandlingEvent = BehandlingEvent(
@@ -179,17 +185,13 @@ class BehandlingAvslutningService(
                 )
             }
 
-            if (behandling.oppgaveId != null && behandling.oppgaveReturned != null) {
-                try {
-                    oppgaveApiService.returnOppgave(
-                        oppgaveId = behandling.oppgaveId!!,
-                        tildeltEnhetsnummer = behandling.oppgaveReturned!!.oppgaveReturnedTildeltEnhetsnummer,
-                        mappeId = behandling.oppgaveReturned!!.oppgaveReturnedMappeId,
-                        kommentar = behandling.oppgaveReturned!!.oppgaveReturnedKommentar,
-                    )
-                } catch (e: Exception) {
-                    logger.error("Feilet under tilbakeføring av oppgave $behandlingId.")
-                }
+            if (behandling.oppgaveId != null && behandling.oppgaveReturned != null && !behandling.ignoreOppgave) {
+                oppgaveApiService.returnOppgave(
+                    oppgaveId = behandling.oppgaveId!!,
+                    tildeltEnhetsnummer = behandling.oppgaveReturned!!.oppgaveReturnedTildeltEnhetsnummer,
+                    mappeId = behandling.oppgaveReturned!!.oppgaveReturnedMappeId,
+                    kommentar = behandling.oppgaveReturned!!.oppgaveReturnedKommentar,
+                )
             }
         }
 
@@ -205,7 +207,10 @@ class BehandlingAvslutningService(
     }
 
     private fun createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
-        logger.debug("Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}", ankeITrygderettenbehandling.id)
+        logger.debug(
+            "Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}",
+            ankeITrygderettenbehandling.id
+        )
         behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandling)
     }
 

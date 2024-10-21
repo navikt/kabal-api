@@ -79,6 +79,7 @@ class Klagebehandling(
     oppgaveId: Long?,
     oppgaveReturned: OppgaveReturned? = null,
     tilbakekreving: Boolean = false,
+    ignoreOppgave: Boolean = false,
 ) : Behandling(
     id = id,
     klager = klager,
@@ -117,6 +118,7 @@ class Klagebehandling(
     oppgaveId = oppgaveId,
     oppgaveReturned = oppgaveReturned,
     tilbakekreving = tilbakekreving,
+    ignoreOppgave = ignoreOppgave,
 ) {
 
     override fun toString(): String {
