@@ -2250,7 +2250,10 @@ class BehandlingService(
         )
 
         val gosysOppgave = gosysOppgaveId?.let {
-            val gosysOppgave = oppgaveApiService.getOppgave(it).copy(
+            val gosysOppgave = oppgaveApiService.getOppgave(
+                oppgaveId = it,
+                fnrToValidate = behandling.sakenGjelder.partId.value
+            ).copy(
                 alreadyUsed = oppgaveIsDuplicate(gosysOppgaveId)
             )
 
@@ -2296,15 +2299,18 @@ class BehandlingService(
         )
     }
 
-    fun getGosysOppgave(behandlingId: UUID, gosysOppgaveId: Long): GosysOppgaveView {
+    fun getGosysOppgave(behandlingId: UUID): GosysOppgaveView {
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+
+        if (behandling.oppgaveId == null) {
+            throw GosysOppgaveNotFoundException("Behandlingen har ingen gosysoppgave")
+        }
+
         val gosysOppgave = oppgaveApiService.getOppgave(
-            oppgaveId = gosysOppgaveId,
+            oppgaveId = behandling.oppgaveId!!,
             fnrToValidate = behandling.sakenGjelder.partId.value
         )
-        if (gosysOppgave.temaId != behandling.ytelse.toTema().navn) {
-            throw IllegalOperation("Gosys-oppgave hører ikke til angitt tema")
-        }
+
         return gosysOppgave.copy(
             alreadyUsed = oppgaveIsDuplicate(gosysOppgave.id)
         )

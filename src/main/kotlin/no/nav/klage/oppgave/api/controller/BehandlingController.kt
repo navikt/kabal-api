@@ -623,13 +623,12 @@ class BehandlingController(
     }
 
     @Operation(
-        summary = "Hent en konkret oppgave i Gosys",
+        summary = "Hent gjeldende Gosys-oppgave for behandlingen",
         description = "Henter en Gosys-oppgave."
     )
-    @GetMapping("/{behandlingId}/gosysoppgaver/{gosysOppgaveId}", produces = ["application/json"])
+    @GetMapping("/{behandlingId}/gosysoppgave", produces = ["application/json"])
     fun getGosysOppgave(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @PathVariable("gosysOppgaveId") gosysOppgaveId: Long,
     ): GosysOppgaveView {
         logMethodDetails(
             ::getGosysOppgave.name,
@@ -639,7 +638,6 @@ class BehandlingController(
 
         return behandlingService.getGosysOppgave(
             behandlingId = behandlingId,
-            gosysOppgaveId = gosysOppgaveId
         )
     }
 
