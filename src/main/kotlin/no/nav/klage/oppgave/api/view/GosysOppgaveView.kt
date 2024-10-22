@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.api.view
 
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
 data class GosysOppgaveView(
     val id: Long,
@@ -22,7 +23,7 @@ data class GosysOppgaveView(
     val status: Status,
     val editable: Boolean,
     val opprettetAvEnhet: EnhetView?,
-    var alreadyUsed: Boolean,
+    var alreadyUsedBy: UUID?,
 ) {
     enum class Status {
         OPPRETTET,

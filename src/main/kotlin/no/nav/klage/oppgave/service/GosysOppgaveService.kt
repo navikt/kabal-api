@@ -161,7 +161,7 @@ class GosysOppgaveService(
                     navn = norg2Client.fetchEnhet(enhetNr = it).navn,
                 )
             },
-            alreadyUsed = false,
+            alreadyUsedBy = null,
         )
     }
 

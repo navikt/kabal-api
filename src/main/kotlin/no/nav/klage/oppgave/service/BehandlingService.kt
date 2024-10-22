@@ -2183,7 +2183,7 @@ class BehandlingService(
             tema = behandling.ytelse.toTema(),
         ).map {
             it.copy(
-                alreadyUsed = gosysOppgaveIsDuplicate(it.id)
+                alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(it.id)
             )
         }
     }
@@ -2229,6 +2229,20 @@ class BehandlingService(
         ).isNotEmpty()
     }
 
+    fun findOpenBehandlingUsingGosysOppgave(gosysOppgaveId: Long): UUID? {
+        val behandlingList = behandlingRepository.findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
+            gosysOppgaveId = gosysOppgaveId
+        )
+
+        return if (behandlingList.isEmpty()) {
+            null
+        } else if (behandlingList.size != 1) {
+            throw Exception("Found more than one behandling for gosysOppgaveId $gosysOppgaveId, investigate")
+        } else {
+            behandlingList.first().id
+        }
+    }
+
     private fun getUtfoerendeNavn(utfoerendeSaksbehandlerIdent: String): String {
         val name = if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
             systembrukerIdent
@@ -2254,7 +2268,7 @@ class BehandlingService(
                 gosysOppgaveId = it,
                 fnrToValidate = behandling.sakenGjelder.partId.value
             ).copy(
-                alreadyUsed = gosysOppgaveIsDuplicate(gosysOppgaveId)
+                alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(gosysOppgaveId)
             )
 
             if (behandling.gosysOppgaveId == gosysOppgave.id) {
@@ -2264,7 +2278,7 @@ class BehandlingService(
                 )
             }
 
-            if (gosysOppgave.alreadyUsed) {
+            if (gosysOppgave.alreadyUsedBy != null) {
                 throw DuplicateGosysOppgaveIdException("Gosysoppgave med id $gosysOppgaveId er allerede i bruk")
             }
 
@@ -2312,7 +2326,7 @@ class BehandlingService(
         )
 
         return gosysOppgave.copy(
-            alreadyUsed = gosysOppgaveIsDuplicate(gosysOppgave.id)
+            alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(gosysOppgave.id)
         )
     }
 }
