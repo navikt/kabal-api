@@ -32,7 +32,7 @@ class BehandlingMapper(
     private val kodeverkService: KodeverkService,
     private val regoppslagService: RegoppslagService,
     private val dokDistKanalService: DokDistKanalService,
-    private val oppgaveApiService: OppgaveApiService,
+    private val oppgaveApiService: GosysOppgaveService,
 ) {
 
     companion object {
@@ -114,7 +114,7 @@ class BehandlingMapper(
             saksbehandler = klagebehandling.toSaksbehandlerView(),
             previousSaksbehandler = klagebehandling.toPreviousSaksbehandlerView(),
             varsletFrist = klagebehandling.varsletFrist,
-            gosysOppgaveId = klagebehandling.oppgaveId,
+            gosysOppgaveId = klagebehandling.gosysOppgaveId,
             tilbakekreving = klagebehandling.tilbakekreving,
         )
     }
@@ -223,7 +223,7 @@ class BehandlingMapper(
             saksbehandler = ankebehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankebehandling.toPreviousSaksbehandlerView(),
             varsletFrist = ankebehandling.varsletFrist,
-            gosysOppgaveId = ankebehandling.oppgaveId,
+            gosysOppgaveId = ankebehandling.gosysOppgaveId,
             tilbakekreving = ankebehandling.tilbakekreving,
         )
     }
@@ -286,7 +286,7 @@ class BehandlingMapper(
             saksbehandler = ankeITrygderettenbehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankeITrygderettenbehandling.toPreviousSaksbehandlerView(),
             varsletFrist = null,
-            gosysOppgaveId = ankeITrygderettenbehandling.oppgaveId,
+            gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
             tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
         )
     }
@@ -356,7 +356,7 @@ class BehandlingMapper(
             previousSaksbehandler = behandlingEtterTrygderettenOpphevet.toPreviousSaksbehandlerView(),
             varsletFrist = behandlingEtterTrygderettenOpphevet.varsletFrist,
             kjennelseMottatt = behandlingEtterTrygderettenOpphevet.kjennelseMottatt,
-            gosysOppgaveId = behandlingEtterTrygderettenOpphevet.oppgaveId,
+            gosysOppgaveId = behandlingEtterTrygderettenOpphevet.gosysOppgaveId,
             tilbakekreving = behandlingEtterTrygderettenOpphevet.tilbakekreving,
         )
     }

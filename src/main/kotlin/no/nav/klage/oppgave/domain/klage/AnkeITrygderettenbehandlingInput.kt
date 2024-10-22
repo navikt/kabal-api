@@ -24,7 +24,7 @@ data class AnkeITrygderettenbehandlingInput(
     val registreringsHjemmelSet: Set<Registreringshjemmel>? = null,
     val ankebehandlingUtfall: ExternalUtfall,
     val previousSaksbehandlerident: String?,
-    val oppgaveId: Long?,
+    val gosysOppgaveId: Long?,
     val tilbakekreving: Boolean,
 )
 
@@ -45,7 +45,7 @@ fun Behandling.createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehand
         registreringsHjemmelSet = registreringshjemler,
         ankebehandlingUtfall = ExternalUtfall.valueOf(utfall!!.name),
         previousSaksbehandlerident = tildeling!!.saksbehandlerident,
-        oppgaveId = oppgaveId,
+        gosysOppgaveId = gosysOppgaveId,
         tilbakekreving = tilbakekreving,
     )
 }

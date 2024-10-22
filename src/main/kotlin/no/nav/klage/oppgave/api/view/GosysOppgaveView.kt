@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.api.view
 
-import no.nav.klage.oppgave.clients.oppgaveapi.Status
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -24,4 +23,12 @@ data class GosysOppgaveView(
     val editable: Boolean,
     val opprettetAvEnhet: EnhetView?,
     var alreadyUsed: Boolean,
-)
+) {
+    enum class Status {
+        OPPRETTET,
+        AAPNET,
+        UNDER_BEHANDLING,
+        FERDIGSTILT,
+        FEILREGISTRERT
+    }
+}

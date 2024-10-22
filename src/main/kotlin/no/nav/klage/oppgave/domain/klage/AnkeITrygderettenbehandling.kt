@@ -60,10 +60,10 @@ class AnkeITrygderettenbehandling(
     fullmektigHistorikk: MutableSet<FullmektigHistorikk> = mutableSetOf(),
     sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     previousSaksbehandlerident: String?,
-    oppgaveId: Long?,
-    oppgaveReturned: OppgaveReturned? = null,
+    gosysOppgaveId: Long?,
+    gosysOppgaveReturned: GosysOppgaveReturned? = null,
     tilbakekreving: Boolean = false,
-    ignoreOppgave: Boolean = false,
+    ignoreGosysOppgave: Boolean = false,
 ) : Behandling(
     id = id,
     klager = klager,
@@ -99,10 +99,10 @@ class AnkeITrygderettenbehandling(
     fullmektigHistorikk = fullmektigHistorikk,
     sattPaaVentHistorikk = sattPaaVentHistorikk,
     previousSaksbehandlerident = previousSaksbehandlerident,
-    oppgaveId = oppgaveId,
-    oppgaveReturned = oppgaveReturned,
+    gosysOppgaveId = gosysOppgaveId,
+    gosysOppgaveReturned = gosysOppgaveReturned,
     tilbakekreving = tilbakekreving,
-    ignoreOppgave = ignoreOppgave,
+    ignoreGosysOppgave = ignoreGosysOppgave,
 ) {
     override fun toString(): String {
         return "Ankebehandling(id=$id, " +

@@ -14,7 +14,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.reactive.function.client.bodyToMono
 
 @Component
-class OppgaveApiClient(
+class GosysOppgaveClient(
     private val oppgaveApiWebClient: WebClient,
     private val tokenUtil: TokenUtil,
     @Value("\${spring.application.name}") private val applicationName: String,
@@ -26,11 +26,11 @@ class OppgaveApiClient(
         private val securelogger = getSecureLogger()
     }
 
-    fun getOppgave(oppgaveId: Long, systemContext: Boolean): OppgaveApiRecord {
-        return logTimingAndWebClientResponseException(OppgaveApiClient::getOppgave.name) {
+    fun getGosysOppgave(gosysOppgaveId: Long, systemContext: Boolean): GosysOppgaveRecord {
+        return logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgave.name) {
             oppgaveApiWebClient.get()
                 .uri { uriBuilder ->
-                    uriBuilder.pathSegment("oppgaver", "{id}").build(oppgaveId)
+                    uriBuilder.pathSegment("oppgaver", "{id}").build(gosysOppgaveId)
                 }
                 .header(
                     HttpHeaders.AUTHORIZATION,
@@ -38,20 +38,20 @@ class OppgaveApiClient(
                 )
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
-                .bodyToMono<OppgaveApiRecord>()
+                .bodyToMono<GosysOppgaveRecord>()
                 .block() ?: throw OppgaveClientException("Oppgave could not be fetched")
         }
     }
 
-    fun updateOppgave(
-        oppgaveId: Long,
+    fun updateGosysOppgave(
+        gosysOppgaveId: Long,
         updateOppgaveInput: UpdateOppgaveRequest,
         systemContext: Boolean
-    ): OppgaveApiRecord {
-        return logTimingAndWebClientResponseException(OppgaveApiClient::updateOppgave.name) {
+    ): GosysOppgaveRecord {
+        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
             oppgaveApiWebClient.patch()
                 .uri { uriBuilder ->
-                    uriBuilder.pathSegment("oppgaver", "{id}").build(oppgaveId)
+                    uriBuilder.pathSegment("oppgaver", "{id}").build(gosysOppgaveId)
                 }
                 .bodyValue(updateOppgaveInput)
                 .header(
@@ -60,7 +60,7 @@ class OppgaveApiClient(
                 )
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
-                .bodyToMono<OppgaveApiRecord>()
+                .bodyToMono<GosysOppgaveRecord>()
                 .block() ?: throw OppgaveClientException("Oppgave could not be updated")
         }
     }
@@ -68,7 +68,7 @@ class OppgaveApiClient(
     fun getMapperForEnhet(
         enhetsnr: String
     ): OppgaveMapperResponse {
-        return logTimingAndWebClientResponseException(OppgaveApiClient::getMapperForEnhet.name) {
+        return logTimingAndWebClientResponseException(GosysOppgaveClient::getMapperForEnhet.name) {
             oppgaveApiWebClient.get()
                 .uri { uriBuilder ->
                     uriBuilder
@@ -87,12 +87,12 @@ class OppgaveApiClient(
         }
     }
 
-    fun fetchOppgaveForAktoerIdAndTema(
+    fun fetchGosysOppgaveForAktoerIdAndTema(
         aktoerId: String,
         tema: Tema?
-    ): List<OppgaveApiRecord> {
+    ): List<GosysOppgaveRecord> {
         val oppgaveResponse =
-            logTimingAndWebClientResponseException(OppgaveApiClient::fetchOppgaveForAktoerIdAndTema.name) {
+            logTimingAndWebClientResponseException(GosysOppgaveClient::fetchGosysOppgaveForAktoerIdAndTema.name) {
                 oppgaveApiWebClient.get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("oppgaver")
@@ -141,7 +141,7 @@ class OppgaveApiClient(
     @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_GJELDER_CACHE)
     fun getGjelderKodeverkForTema(tema: Tema): List<Gjelder> {
         val gjelderResponse =
-            logTimingAndWebClientResponseException(OppgaveApiClient::getGjelderKodeverkForTema.name) {
+            logTimingAndWebClientResponseException(GosysOppgaveClient::getGjelderKodeverkForTema.name) {
                 oppgaveApiWebClient.get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("kodeverk", "gjelder", "{tema}")
@@ -163,7 +163,7 @@ class OppgaveApiClient(
     @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_OPPGAVETYPE_CACHE)
     fun getOppgavetypeKodeverkForTema(tema: Tema): List<OppgavetypeResponse> {
         val oppgavetypeResponse =
-            logTimingAndWebClientResponseException(OppgaveApiClient::getGjelderKodeverkForTema.name) {
+            logTimingAndWebClientResponseException(GosysOppgaveClient::getGjelderKodeverkForTema.name) {
                 oppgaveApiWebClient.get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("kodeverk", "oppgavetype", "{tema}")

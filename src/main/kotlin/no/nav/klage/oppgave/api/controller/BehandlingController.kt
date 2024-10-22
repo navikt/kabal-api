@@ -80,7 +80,7 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
         //change value name after testing
         @RequestParam(value = "nybehandling", required = false) nyBehandlingEtterTROpphevet: Boolean = false,
-        @RequestBody(required = false) oppgaveInput: OppgaveInput?,
+        @RequestBody(required = false) gosysOppgaveInput: GosysOppgaveInput?,
     ): BehandlingFullfoertView {
         logKlagebehandlingMethodDetails(
             ::fullfoerBehandling.name,
@@ -92,7 +92,7 @@ class BehandlingController(
         return behandlingService.ferdigstillBehandling(
             behandlingId = behandlingId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            oppgaveInput = oppgaveInput,
+            oppgaveInput = gosysOppgaveInput,
             nyBehandlingEtterTROpphevet = nyBehandlingEtterTROpphevet,
         )
     }

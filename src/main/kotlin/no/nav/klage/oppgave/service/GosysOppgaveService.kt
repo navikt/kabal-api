@@ -2,8 +2,8 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.EnhetView
+import no.nav.klage.oppgave.api.view.GosysOppgaveApiMappeView
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
-import no.nav.klage.oppgave.api.view.OppgaveApiMappeView
 import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.oppgaveapi.*
@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 @Service
-class OppgaveApiService(
-    private val oppgaveApiClient: OppgaveApiClient,
+class GosysOppgaveService(
+    private val gosysOppgaveClient: GosysOppgaveClient,
     private val microsoftGraphService: DefaultAzureGateway,
     private val pdlFacade: PdlFacade,
     private val norg2Client: Norg2Client,
@@ -28,34 +28,34 @@ class OppgaveApiService(
         private val securelogger = getSecureLogger()
     }
 
-    fun getOppgave(oppgaveId: Long, fnrToValidate: String? = null): GosysOppgaveView {
-        val oppgave = oppgaveApiClient.getOppgave(oppgaveId, systemContext = false)
+    fun getGosysOppgave(gosysOppgaveId: Long, fnrToValidate: String? = null): GosysOppgaveView {
+        val gosysOppgaveRecord = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId, systemContext = false)
         if (fnrToValidate != null) {
-            if (oppgave.bruker.ident != fnrToValidate) {
+            if (gosysOppgaveRecord.bruker.ident != fnrToValidate) {
                 throw IllegalOperation("Gosys-oppgave hører ikke til angitt person")
             }
         }
-        return oppgave.toGosysOppgaveView()
+        return gosysOppgaveRecord.toGosysOppgaveView()
     }
 
-    fun assignOppgave(
-        oppgaveId: Long,
+    fun assignGosysOppgave(
+        gosysOppgaveId: Long,
         tildeltSaksbehandlerIdent: String?,
         systemContext: Boolean,
     ) {
-        val currentOppgave = oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = systemContext)
-        if (!currentOppgave.isEditable()) {
-            logger.warn("Oppgave $oppgaveId kan ikke oppdateres, returnerer")
+        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
+        if (!currentGosysOppgave.isEditable()) {
+            logger.warn("Oppgave $gosysOppgaveId kan ikke oppdateres, returnerer")
             return
         }
 
         val endretAvEnhetsnr = if (systemContext) "9999" else {
             microsoftGraphService.getDataOmInnloggetSaksbehandler().enhet.enhetId
         }
-        val updateOppgaveRequest =
+        val updateGosysOppgaveRequest =
             if (tildeltSaksbehandlerIdent.isNullOrBlank()) {
-                FradelOppgaveInput(
-                    versjon = currentOppgave.versjon,
+                FradelGosysOppgaveInput(
+                    versjon = currentGosysOppgave.versjon,
                     endretAvEnhetsnr = endretAvEnhetsnr,
                     tilordnetRessurs = null,
                 )
@@ -63,8 +63,8 @@ class OppgaveApiService(
                 val tildeltSaksbehandlerInfo =
                     microsoftGraphService.getPersonligDataOmSaksbehandlerMedIdent(tildeltSaksbehandlerIdent)
 
-                TildelOppgaveInput(
-                    versjon = currentOppgave.versjon,
+                TildelGosysOppgaveInput(
+                    versjon = currentGosysOppgave.versjon,
                     endretAvEnhetsnr = endretAvEnhetsnr,
                     tilordnetRessurs = tildeltSaksbehandlerIdent,
                     tildeltEnhetsnr = tildeltSaksbehandlerInfo.enhet.enhetId,
@@ -72,53 +72,53 @@ class OppgaveApiService(
                 )
             }
 
-        oppgaveApiClient.updateOppgave(
-            oppgaveId = oppgaveId,
-            updateOppgaveInput = updateOppgaveRequest,
+        gosysOppgaveClient.updateGosysOppgave(
+            gosysOppgaveId = gosysOppgaveId,
+            updateOppgaveInput = updateGosysOppgaveRequest,
             systemContext = systemContext
         )
     }
 
-    fun returnOppgave(
-        oppgaveId: Long,
+    fun returnGosysOppgave(
+        gosysOppgaveId: Long,
         tildeltEnhetsnummer: String,
         mappeId: Long?,
         kommentar: String,
     ) {
-        val currentOppgave = oppgaveApiClient.getOppgave(oppgaveId = oppgaveId, systemContext = true)
+        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = true)
 
         val endretAvEnhetsnr = "9999"
 
-        val returnOppgaveRequest = ReturnOppgaveInput(
-            versjon = currentOppgave.versjon,
+        val returnGosysOppgaveRequest = ReturnGosysOppgaveInput(
+            versjon = currentGosysOppgave.versjon,
             endretAvEnhetsnr = endretAvEnhetsnr,
             fristFerdigstillelse = LocalDate.now(),
             mappeId = mappeId,
             tilordnetRessurs = null,
             tildeltEnhetsnr = tildeltEnhetsnummer,
-            kommentar = ReturnOppgaveInput.Kommentar(
+            kommentar = ReturnGosysOppgaveInput.Kommentar(
                 tekst = kommentar,
                 automatiskGenerert = false
             )
         )
 
-        oppgaveApiClient.updateOppgave(
-            oppgaveId = oppgaveId,
-            updateOppgaveInput = returnOppgaveRequest,
+        gosysOppgaveClient.updateGosysOppgave(
+            gosysOppgaveId = gosysOppgaveId,
+            updateOppgaveInput = returnGosysOppgaveRequest,
             systemContext = true,
         )
     }
 
     fun getMapperForEnhet(
         enhetsnr: String
-    ): List<OppgaveApiMappeView> {
-        val output = oppgaveApiClient.getMapperForEnhet(
+    ): List<GosysOppgaveApiMappeView> {
+        val output = gosysOppgaveClient.getMapperForEnhet(
             enhetsnr = enhetsnr,
         )
 
         return output.mapper.mapNotNull { mappe ->
             if (mappe.id != null) {
-                OppgaveApiMappeView(
+                GosysOppgaveApiMappeView(
                     id = mappe.id,
                     navn = mappe.navn
                 )
@@ -126,18 +126,18 @@ class OppgaveApiService(
         }.sortedBy { it.navn }
     }
 
-    fun getOppgaveList(fnr: String, tema: Tema?): List<GosysOppgaveView> {
+    fun getGosysOppgaveList(fnr: String, tema: Tema?): List<GosysOppgaveView> {
         val aktoerId = pdlFacade.getAktorIdFromIdent(ident = fnr)
 
-        val oppgaveList = oppgaveApiClient.fetchOppgaveForAktoerIdAndTema(
+        val gosysOppgaveList = gosysOppgaveClient.fetchGosysOppgaveForAktoerIdAndTema(
             aktoerId = aktoerId,
             tema = tema,
         )
 
-        return oppgaveList.map { it.toGosysOppgaveView() }
+        return gosysOppgaveList.map { it.toGosysOppgaveView() }
     }
 
-    fun OppgaveApiRecord.toGosysOppgaveView(): GosysOppgaveView {
+    fun GosysOppgaveRecord.toGosysOppgaveView(): GosysOppgaveView {
         val tema = Tema.fromNavn(tema)
         return GosysOppgaveView(
             id = id,
@@ -153,7 +153,7 @@ class OppgaveApiService(
             oppgavetype = getOppgavetype(oppgavetype = oppgavetype, tema = tema),
             fristFerdigstillelse = fristFerdigstillelse,
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
-            status = status,
+            status = GosysOppgaveView.Status.valueOf(status.name),
             editable = isEditable(),
             opprettetAvEnhet = opprettetAvEnhetsnr?.let {
                 EnhetView(
@@ -174,10 +174,10 @@ class OppgaveApiService(
     }
 
     private fun getGjelderKodeverkForTema(tema: Tema): List<Gjelder> {
-        return oppgaveApiClient.getGjelderKodeverkForTema(tema = tema)
+        return gosysOppgaveClient.getGjelderKodeverkForTema(tema = tema)
     }
 
     private fun getOppgavetypeKodeverkForTema(tema: Tema): List<OppgavetypeResponse> {
-        return oppgaveApiClient.getOppgavetypeKodeverkForTema(tema = tema)
+        return gosysOppgaveClient.getOppgavetypeKodeverkForTema(tema = tema)
     }
 }

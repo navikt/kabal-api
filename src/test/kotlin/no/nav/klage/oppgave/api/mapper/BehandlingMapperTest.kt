@@ -54,7 +54,7 @@ class BehandlingMapperTest {
     lateinit var dokDistKanalService: DokDistKanalService
 
     @MockkBean
-    lateinit var oppgaveApiService: OppgaveApiService
+    lateinit var oppgaveApiService: GosysOppgaveService
 
     @Autowired
     lateinit var behandlingMapper: BehandlingMapper
@@ -104,7 +104,7 @@ class BehandlingMapperTest {
             kakaKvalitetsvurderingVersion = 2,
             frist = LocalDate.now().plusWeeks(12),
             previousSaksbehandlerident = "C78901",
-            oppgaveId = null,
+            gosysOppgaveId = null,
         )
     }
 

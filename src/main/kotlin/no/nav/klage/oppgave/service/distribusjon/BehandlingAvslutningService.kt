@@ -38,7 +38,7 @@ class BehandlingAvslutningService(
     private val behandlingEtterTrygderettenOpphevetService: BehandlingEtterTrygderettenOpphevetService,
     private val ankebehandlingService: AnkebehandlingService,
     private val fssProxyClient: KlageFssProxyClient,
-    private val oppgaveApiService: OppgaveApiService,
+    private val oppgaveApiService: GosysOppgaveService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -185,12 +185,12 @@ class BehandlingAvslutningService(
                 )
             }
 
-            if (behandling.oppgaveId != null && behandling.oppgaveReturned != null && !behandling.ignoreOppgave) {
-                oppgaveApiService.returnOppgave(
-                    oppgaveId = behandling.oppgaveId!!,
-                    tildeltEnhetsnummer = behandling.oppgaveReturned!!.oppgaveReturnedTildeltEnhetsnummer,
-                    mappeId = behandling.oppgaveReturned!!.oppgaveReturnedMappeId,
-                    kommentar = behandling.oppgaveReturned!!.oppgaveReturnedKommentar,
+            if (behandling.gosysOppgaveId != null && behandling.gosysOppgaveReturned != null && !behandling.ignoreGosysOppgave) {
+                oppgaveApiService.returnGosysOppgave(
+                    gosysOppgaveId = behandling.gosysOppgaveId!!,
+                    tildeltEnhetsnummer = behandling.gosysOppgaveReturned!!.oppgaveReturnedTildeltEnhetsnummer,
+                    mappeId = behandling.gosysOppgaveReturned!!.oppgaveReturnedMappeId,
+                    kommentar = behandling.gosysOppgaveReturned!!.oppgaveReturnedKommentar,
                 )
             }
         }

@@ -6,7 +6,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class OppgaveApiRecord(
+data class GosysOppgaveRecord(
     val id: Long,
     val versjon: Int,
     val journalpostId: String?,
@@ -93,7 +93,7 @@ data class OppgaveMapperResponse(
 
 data class OppgaveListResponse(
     val antallTreffTotalt: Int,
-    val oppgaver: List<OppgaveApiRecord>
+    val oppgaver: List<GosysOppgaveRecord>
 )
 
 data class Gjelder(

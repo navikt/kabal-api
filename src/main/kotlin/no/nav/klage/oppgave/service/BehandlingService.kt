@@ -45,7 +45,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFeilregistrering
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFrist
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFullmektig
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setGosysoppgaveId
-import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setIgnoreOppgave
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setIgnoreGosysOppgave
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setInnsendingshjemler
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setKlager
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverFlowState
@@ -100,7 +100,7 @@ class BehandlingService(
     private val safFacade: SafFacade,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val tokenUtil: TokenUtil,
-    private val oppgaveApiService: OppgaveApiService,
+    private val oppgaveApiService: GosysOppgaveService,
     private val norg2Client: Norg2Client,
 ) {
     companion object {
@@ -113,10 +113,10 @@ class BehandlingService(
     fun ferdigstillBehandling(
         behandlingId: UUID,
         innloggetIdent: String,
-        oppgaveInput: OppgaveInput?,
+        oppgaveInput: GosysOppgaveInput?,
         nyBehandlingEtterTROpphevet: Boolean,
     ): BehandlingFullfoertView {
-        if (oppgaveInput?.returnOppgaveInput != null && oppgaveInput.ignoreOppgave == true) {
+        if (oppgaveInput?.returnGosysOppgaveInput != null && oppgaveInput.ignoreGosysOppgave == true) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
                 sections = listOf(
@@ -155,8 +155,8 @@ class BehandlingService(
         }
 
 //        TODO: Handle other types than Klage
-        if (behandling.oppgaveId != null && behandling.type == Type.KLAGE) { //&& !(behandling.shouldBeSentToTrygderetten() || behandling.shouldCreateNewAnkebehandling())) {
-            if (oppgaveInput?.returnOppgaveInput == null && oppgaveInput?.ignoreOppgave != true) {
+        if (behandling.gosysOppgaveId != null && behandling.type == Type.KLAGE) { //&& !(behandling.shouldBeSentToTrygderetten() || behandling.shouldCreateNewAnkebehandling())) {
+            if (oppgaveInput?.returnGosysOppgaveInput == null && oppgaveInput?.ignoreGosysOppgave != true) {
                 throw SectionedValidationErrorWithDetailsException(
                     title = "Validation error",
                     sections = listOf(
@@ -172,8 +172,8 @@ class BehandlingService(
                     )
                 )
             } else {
-                if (oppgaveInput.returnOppgaveInput != null) {
-                    val gosysOppgave = oppgaveApiService.getOppgave(behandling.oppgaveId!!)
+                if (oppgaveInput.returnGosysOppgaveInput != null) {
+                    val gosysOppgave = oppgaveApiService.getGosysOppgave(behandling.gosysOppgaveId!!)
                     if (!gosysOppgave.editable) {
                         throw SectionedValidationErrorWithDetailsException(
                             title = "Validation error",
@@ -192,15 +192,15 @@ class BehandlingService(
                     }
 
                     behandling.setOppgaveReturnInfo(
-                        tildeltEnhet = oppgaveInput.returnOppgaveInput.tildeltEnhet,
-                        mappeId = oppgaveInput.returnOppgaveInput.mappeId,
-                        kommentar = oppgaveInput.returnOppgaveInput.kommentar,
+                        tildeltEnhet = oppgaveInput.returnGosysOppgaveInput.tildeltEnhet,
+                        mappeId = oppgaveInput.returnGosysOppgaveInput.mappeId,
+                        kommentar = oppgaveInput.returnGosysOppgaveInput.kommentar,
                         saksbehandlerident = innloggetIdent,
                     )
                 } else {
-                    //Her må ignoreOppgave være true
-                    behandling.setIgnoreOppgave(
-                        ignoreOppgaveNewValue = true,
+                    //Her må ignoreGosysOppgave være true
+                    behandling.setIgnoreGosysOppgave(
+                        ignoreGosysOppgaveNewValue = true,
                         saksbehandlerident = innloggetIdent,
                     )
                 }
@@ -676,9 +676,9 @@ class BehandlingService(
         return getSaksbehandlerViewWrapped(behandling)
     }
 
-    fun setOppgaveId(
+    fun setGosysOppgaveId(
         behandlingId: UUID,
-        oppgaveId: Long,
+        gosysOppgaveId: Long,
         utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
         if (!innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
@@ -689,7 +689,7 @@ class BehandlingService(
             behandlingId = behandlingId,
             ignoreCheckSkrivetilgang = true
         )
-        val event = behandling.setOppgaveId(oppgaveId, utfoerendeSaksbehandlerIdent)
+        val event = behandling.setOppgaveId(gosysOppgaveId, utfoerendeSaksbehandlerIdent)
 
         applicationEventPublisher.publishEvent(event)
         return behandling.modified
@@ -2178,12 +2178,12 @@ class BehandlingService(
 
     fun findRelevantGosysOppgaver(behandlingId: UUID): List<GosysOppgaveView> {
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-        return oppgaveApiService.getOppgaveList(
+        return oppgaveApiService.getGosysOppgaveList(
             fnr = behandling.sakenGjelder.partId.value,
             tema = behandling.ytelse.toTema(),
         ).map {
             it.copy(
-                alreadyUsed = oppgaveIsDuplicate(it.id)
+                alreadyUsed = gosysOppgaveIsDuplicate(it.id)
             )
         }
     }
@@ -2223,9 +2223,9 @@ class BehandlingService(
         )
     }
 
-    fun oppgaveIsDuplicate(oppgaveId: Long): Boolean {
-        return behandlingRepository.findByOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
-            oppgaveId = oppgaveId
+    fun gosysOppgaveIsDuplicate(gosysOppgaveId: Long): Boolean {
+        return behandlingRepository.findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
+            gosysOppgaveId = gosysOppgaveId
         ).isNotEmpty()
     }
 
@@ -2250,14 +2250,14 @@ class BehandlingService(
         )
 
         val gosysOppgave = gosysOppgaveId?.let {
-            val gosysOppgave = oppgaveApiService.getOppgave(
-                oppgaveId = it,
+            val gosysOppgave = oppgaveApiService.getGosysOppgave(
+                gosysOppgaveId = it,
                 fnrToValidate = behandling.sakenGjelder.partId.value
             ).copy(
-                alreadyUsed = oppgaveIsDuplicate(gosysOppgaveId)
+                alreadyUsed = gosysOppgaveIsDuplicate(gosysOppgaveId)
             )
 
-            if (behandling.oppgaveId == gosysOppgave.id) {
+            if (behandling.gosysOppgaveId == gosysOppgave.id) {
                 return GosysOppgaveEditedView(
                     modified = behandling.modified,
                     gosysOppgave = gosysOppgave
@@ -2302,17 +2302,17 @@ class BehandlingService(
     fun getGosysOppgave(behandlingId: UUID): GosysOppgaveView {
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
 
-        if (behandling.oppgaveId == null) {
+        if (behandling.gosysOppgaveId == null) {
             throw GosysOppgaveNotFoundException("Behandlingen har ingen gosysoppgave")
         }
 
-        val gosysOppgave = oppgaveApiService.getOppgave(
-            oppgaveId = behandling.oppgaveId!!,
+        val gosysOppgave = oppgaveApiService.getGosysOppgave(
+            gosysOppgaveId = behandling.gosysOppgaveId!!,
             fnrToValidate = behandling.sakenGjelder.partId.value
         )
 
         return gosysOppgave.copy(
-            alreadyUsed = oppgaveIsDuplicate(gosysOppgave.id)
+            alreadyUsed = gosysOppgaveIsDuplicate(gosysOppgave.id)
         )
     }
 }

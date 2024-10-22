@@ -156,7 +156,7 @@ internal class BehandlingAvslutningServiceTest {
     lateinit var kakaApiGateway: KakaApiGateway
 
     @MockkBean(relaxed = true)
-    lateinit var oppgaveApiService: OppgaveApiService
+    lateinit var oppgaveApiService: GosysOppgaveService
 
     @MockkBean(relaxed = true)
     lateinit var norg2Client: Norg2Client
@@ -200,7 +200,7 @@ internal class BehandlingAvslutningServiceTest {
         utfall = Utfall.MEDHOLD,
         extraUtfallSet = setOf(Utfall.MEDHOLD),
         previousSaksbehandlerident = "C78901",
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
 
     @Test

@@ -467,7 +467,7 @@ class BehandlingServiceTest {
 
             ferdigstilling = if (fullfoert) ferdigstilling else null,
             previousSaksbehandlerident = "C78901",
-            oppgaveId = null,
+            gosysOppgaveId = null,
         )
 
         behandlingRepository.save(behandling)
