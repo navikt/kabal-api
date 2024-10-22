@@ -441,6 +441,9 @@ class AdminService(
         Registreringshjemmel.INNKL_29,
         Registreringshjemmel.FTRL_22_17A,
         Registreringshjemmel.FTRL_4_28,
+        Registreringshjemmel.SUP_ST_L_13,
+        Registreringshjemmel.BTRL_13,
+        Registreringshjemmel.KONTSL_11,
     )
 }
 
