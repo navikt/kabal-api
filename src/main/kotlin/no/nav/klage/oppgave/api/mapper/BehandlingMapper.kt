@@ -12,7 +12,10 @@ import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.service.*
+import no.nav.klage.oppgave.service.DokDistKanalService
+import no.nav.klage.oppgave.service.KodeverkService
+import no.nav.klage.oppgave.service.RegoppslagService
+import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -32,7 +35,6 @@ class BehandlingMapper(
     private val kodeverkService: KodeverkService,
     private val regoppslagService: RegoppslagService,
     private val dokDistKanalService: DokDistKanalService,
-    private val oppgaveApiService: GosysOppgaveService,
 ) {
 
     companion object {

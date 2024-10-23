@@ -4,6 +4,7 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.EnhetView
 import no.nav.klage.oppgave.api.view.GosysOppgaveApiMappeView
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
+import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.oppgaveapi.*
@@ -20,6 +21,7 @@ class GosysOppgaveService(
     private val microsoftGraphService: DefaultAzureGateway,
     private val pdlFacade: PdlFacade,
     private val norg2Client: Norg2Client,
+    private val saksbehandlerService: SaksbehandlerService,
 ) {
 
     companion object {
@@ -143,9 +145,9 @@ class GosysOppgaveService(
             id = id,
             tildeltEnhetsnr = tildeltEnhetsnr,
             endretAvEnhetsnr = endretAvEnhetsnr,
-            endretAv = endretAv,
+            endretAv = endretAv.navIdentToSaksbehandlerView(),
             endretTidspunkt = endretTidspunkt,
-            opprettetAv = opprettetAv,
+            opprettetAv = opprettetAv.navIdentToSaksbehandlerView(),
             opprettetTidspunkt = opprettetTidspunkt,
             beskrivelse = beskrivelse,
             temaId = tema.id,
@@ -163,6 +165,15 @@ class GosysOppgaveService(
             },
             alreadyUsedBy = null,
         )
+    }
+
+    private fun String?.navIdentToSaksbehandlerView(): SaksbehandlerView? {
+        return if (this != null) {
+            SaksbehandlerView(
+                navIdent = this,
+                navn = saksbehandlerService.getNameForIdentDefaultIfNull(navIdent = this),
+            )
+        } else null
     }
 
     private fun getGjelder(behandlingstype: String?, tema: Tema): String? {
