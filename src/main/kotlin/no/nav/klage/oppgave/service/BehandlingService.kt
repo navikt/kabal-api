@@ -1102,8 +1102,13 @@ class BehandlingService(
         utfoerendeSaksbehandlerIdent: String
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(
-            behandlingId
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = true,
         )
+
+        if (behandling.ferdigstilling != null) {
+            throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
+        }
 
         val event =
             behandling.setInnsendingshjemler(
