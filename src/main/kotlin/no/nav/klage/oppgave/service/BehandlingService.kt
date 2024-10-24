@@ -1102,7 +1102,8 @@ class BehandlingService(
         utfoerendeSaksbehandlerIdent: String
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(
-            behandlingId
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = true,
         )
 
         val event =
