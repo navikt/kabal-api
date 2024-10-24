@@ -1106,6 +1106,10 @@ class BehandlingService(
             ignoreCheckSkrivetilgang = true,
         )
 
+        if (behandling.ferdigstilling != null) {
+            throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
+        }
+
         val event =
             behandling.setInnsendingshjemler(
                 hjemler.map { Hjemmel.of(it) }.toSet(),
