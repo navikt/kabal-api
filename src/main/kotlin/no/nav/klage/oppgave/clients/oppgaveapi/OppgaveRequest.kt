@@ -7,7 +7,7 @@ abstract class UpdateOppgaveRequest(
     open val endretAvEnhetsnr: String,
 )
 
-data class TildelOppgaveInput(
+data class TildelGosysOppgaveInput(
     override val versjon: Int,
     override val endretAvEnhetsnr: String,
     val tilordnetRessurs: String,
@@ -15,13 +15,13 @@ data class TildelOppgaveInput(
     val mappeId: Long?,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
-data class FradelOppgaveInput(
+data class FradelGosysOppgaveInput(
     override val versjon: Int,
     override val endretAvEnhetsnr: String,
     val tilordnetRessurs: String?,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
-data class ReturnOppgaveInput(
+data class ReturnGosysOppgaveInput(
     override val versjon: Int,
     override val endretAvEnhetsnr: String,
     val fristFerdigstillelse: LocalDate,

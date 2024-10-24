@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.TokenUtil
@@ -146,6 +147,16 @@ class DevOnlyAdminController(
             logger.warn("Failed to setSortKeyToDUA", e)
             throw e
         }
+    }
+
+    @Unprotected
+    @GetMapping("/internal/infotrygdsaker/{id}")
+    fun getInfotrygdsak(
+        @PathVariable("id") id: String
+    ): SakFromKlanke {
+        logger.debug("getInfotrygdsak is called in dev")
+
+        return adminService.getInfotrygdsak(id)
     }
 
     data class Fnr(val fnr: String)

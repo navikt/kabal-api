@@ -59,7 +59,7 @@ class AnkeITrygderettenbehandlingService(
                 sendtTilTrygderetten = input.sendtTilTrygderetten,
                 kjennelseMottatt = null,
                 previousSaksbehandlerident = input.previousSaksbehandlerident,
-                oppgaveId = input.oppgaveId,
+                gosysOppgaveId = input.gosysOppgaveId,
                 tilbakekreving = input.tilbakekreving,
             )
         )

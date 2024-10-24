@@ -62,7 +62,7 @@ class BehandlingEtterTrygderettenOpphevetService(
                 hjemler = ankeITrygderettenbehandling.hjemler,
                 sourceBehandlingId = ankeITrygderettenbehandling.id,
                 previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
-                oppgaveId = ankeITrygderettenbehandling.oppgaveId,
+                gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
                 kjennelseMottatt = ankeITrygderettenbehandling.kjennelseMottatt!!,
                 ankeBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
                 tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,

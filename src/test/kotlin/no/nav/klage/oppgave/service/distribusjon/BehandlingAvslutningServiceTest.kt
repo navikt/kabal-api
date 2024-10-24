@@ -16,6 +16,7 @@ import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFullfoerOutput
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
+import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
@@ -155,7 +156,10 @@ internal class BehandlingAvslutningServiceTest {
     lateinit var kakaApiGateway: KakaApiGateway
 
     @MockkBean(relaxed = true)
-    lateinit var oppgaveApiService: OppgaveApiService
+    lateinit var oppgaveApiService: GosysOppgaveService
+
+    @MockkBean(relaxed = true)
+    lateinit var norg2Client: Norg2Client
 
     private val mottak = Mottak(
         ytelse = Ytelse.OMS_OMP,
@@ -196,7 +200,7 @@ internal class BehandlingAvslutningServiceTest {
         utfall = Utfall.MEDHOLD,
         extraUtfallSet = setOf(Utfall.MEDHOLD),
         previousSaksbehandlerident = "C78901",
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
 
     @Test

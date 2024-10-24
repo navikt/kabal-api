@@ -63,7 +63,7 @@ class KlagebehandlingService(
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                 hjemler = createHjemmelSetFromMottak(mottak.hjemler),
                 kommentarFraFoersteinstans = mottak.kommentar,
-                oppgaveId = null,
+                gosysOppgaveId = null,
                 tilbakekreving = false,
             )
         )

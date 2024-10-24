@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*
 class SearchController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val partSearchService: PartSearchService,
-    private val oppgaveApiService: OppgaveApiService,
+    private val oppgaveApiService: GosysOppgaveService,
     private val oppgaveService: OppgaveService,
     private val enhetService: EnhetService,
 ) {
@@ -76,7 +76,7 @@ class SearchController(
     @GetMapping("/search/oppgavemapper/{enhetsnr}")
     fun searchOppgaveMapper(
         @PathVariable("enhetsnr") enhetsnr: String,
-    ): List<OppgaveApiMappeView> {
+    ): List<GosysOppgaveApiMappeView> {
         logMethodDetails(
             ::searchOppgaveMapper.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),

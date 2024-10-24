@@ -428,9 +428,9 @@ object BehandlingSetters {
         nyVerdi: Long,
         saksbehandlerident: String
     ): BehandlingEndretEvent {
-        val gammelVerdi = oppgaveId
+        val gammelVerdi = gosysOppgaveId
         val tidspunkt = LocalDateTime.now()
-        oppgaveId = nyVerdi
+        gosysOppgaveId = nyVerdi
         modified = tidspunkt
         val endringslogg =
             endringslogg(
@@ -612,6 +612,25 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
+    fun Behandling.setGosysoppgaveId(
+        nyVerdi: Long?,
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val gammelVerdi = gosysOppgaveId
+        val tidspunkt = LocalDateTime.now()
+        gosysOppgaveId = nyVerdi
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident = saksbehandlerident,
+                felt = Felt.GOSYSOPPGAVE_ID,
+                fraVerdi = gammelVerdi?.toString(),
+                tilVerdi = gosysOppgaveId?.toString(),
+                tidspunkt = tidspunkt
+            )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
     fun Behandling.setExtraUtfallSet(
         nyVerdi: Set<Utfall>,
         saksbehandlerident: String
@@ -685,7 +704,7 @@ object BehandlingSetters {
     ): BehandlingEndretEvent {
         val tidspunkt = LocalDateTime.now()
 
-        oppgaveReturned = OppgaveReturned(
+        gosysOppgaveReturned = GosysOppgaveReturned(
             oppgaveReturnedTildeltEnhetsnummer = tildeltEnhet,
             oppgaveReturnedMappeId = mappeId,
             oppgaveReturnedKommentar = kommentar
@@ -697,7 +716,27 @@ object BehandlingSetters {
                 saksbehandlerident = saksbehandlerident,
                 felt = Felt.OPPGAVE_RETURNED,
                 fraVerdi = null,
-                tilVerdi = oppgaveReturned.toString(),
+                tilVerdi = gosysOppgaveReturned.toString(),
+                tidspunkt = tidspunkt
+            )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
+    fun Behandling.setIgnoreGosysOppgave(
+        ignoreGosysOppgaveNewValue: Boolean,
+        saksbehandlerident: String,
+    ): BehandlingEndretEvent {
+        val tidspunkt = LocalDateTime.now()
+        val gammelVerdi = ignoreGosysOppgave
+        ignoreGosysOppgave = ignoreGosysOppgaveNewValue
+        modified = tidspunkt
+        modified = tidspunkt
+        val endringslogg =
+            endringslogg(
+                saksbehandlerident = saksbehandlerident,
+                felt = Felt.IGNORE_GOSYS_OPPGAVE,
+                fraVerdi = gammelVerdi.toString(),
+                tilVerdi = ignoreGosysOppgave.toString(),
                 tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))

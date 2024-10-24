@@ -499,7 +499,7 @@ class OppgaveServiceTest {
                         enhet = enhetId,
                         tidspunkt = now,
                     ),
-                    oppgaveId = null,
+                    gosysOppgaveId = null,
                 )
             }
 
@@ -534,7 +534,7 @@ class OppgaveServiceTest {
                         enhet = enhetId,
                         tidspunkt = now,
                     ),
-                    oppgaveId = null,
+                    gosysOppgaveId = null,
                 )
             }
 
@@ -564,7 +564,7 @@ class OppgaveServiceTest {
                         tidspunkt = now,
                     ),
                     sendtTilTrygderetten = LocalDateTime.now(),
-                    oppgaveId = null,
+                    gosysOppgaveId = null,
                 )
             }
 
@@ -594,7 +594,7 @@ class OppgaveServiceTest {
                         tidspunkt = now,
                     ),
                     kjennelseMottatt = LocalDateTime.now(),
-                    oppgaveId = null,
+                    gosysOppgaveId = null,
                     sourceBehandlingId = UUID.randomUUID(),
                     frist = LocalDate.now().plusWeeks(12),
                     kakaKvalitetsvurderingId = UUID.randomUUID(),

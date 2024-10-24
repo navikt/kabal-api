@@ -63,16 +63,16 @@ class KabinApiController(
     }
 
     @PostMapping("/oppgaveisduplicate")
-    fun oppgaveIsDuplicate(
-        @RequestBody input: OppgaveIsDuplicateInput
+    fun gosysOppgaveIsDuplicate(
+        @RequestBody input: GosysOppgaveIsDuplicateInput
     ): Boolean {
         logMethodDetails(
-            methodName = ::oppgaveIsDuplicate.name,
+            methodName = ::gosysOppgaveIsDuplicate.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
-        return behandlingService.oppgaveIsDuplicate(
-            oppgaveId = input.oppgaveId,
+        return behandlingService.gosysOppgaveIsDuplicate(
+            gosysOppgaveId = input.oppgaveId,
         )
     }
 

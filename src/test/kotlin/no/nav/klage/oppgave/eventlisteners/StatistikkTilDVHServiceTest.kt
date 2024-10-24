@@ -190,7 +190,7 @@ class StatistikkTilDVHServiceTest {
         saksdokumenter = mutableSetOf(),
         hjemler = setOf(),
         sattPaaVent = null,
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
 
     private val klagebehandlingHJE = Klagebehandling(
@@ -229,7 +229,7 @@ class StatistikkTilDVHServiceTest {
         saksdokumenter = mutableSetOf(),
         hjemler = setOf(),
         sattPaaVent = null,
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
 
     private val ankebehandlingOMP = Ankebehandling(
@@ -268,7 +268,7 @@ class StatistikkTilDVHServiceTest {
         klageBehandlendeEnhet = "",
         sourceBehandlingId = null,
         previousSaksbehandlerident = "C78901",
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
 
     private val ankeITrygderettenbehandlingOMP = AnkeITrygderettenbehandling(
@@ -302,6 +302,6 @@ class StatistikkTilDVHServiceTest {
         sendtTilTrygderetten = LocalDateTime.now(),
         kjennelseMottatt = null,
         previousSaksbehandlerident = "C78901",
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
 }
