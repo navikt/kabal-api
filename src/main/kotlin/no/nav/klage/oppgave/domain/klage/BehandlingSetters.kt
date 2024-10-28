@@ -696,7 +696,7 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
-    fun Behandling.setOppgaveReturnInfo(
+    fun Behandling.setGosysOppgaveUpdate(
         tildeltEnhet: String,
         mappeId: Long?,
         kommentar: String,
@@ -704,19 +704,19 @@ object BehandlingSetters {
     ): BehandlingEndretEvent {
         val tidspunkt = LocalDateTime.now()
 
-        gosysOppgaveReturned = GosysOppgaveReturned(
-            oppgaveReturnedTildeltEnhetsnummer = tildeltEnhet,
-            oppgaveReturnedMappeId = mappeId,
-            oppgaveReturnedKommentar = kommentar
+        gosysOppgaveUpdate = GosysOppgaveUpdate(
+            oppgaveUpdateTildeltEnhetsnummer = tildeltEnhet,
+            oppgaveUpdateMappeId = mappeId,
+            oppgaveUpdateKommentar = kommentar
         )
 
         modified = tidspunkt
         val endringslogg =
             endringslogg(
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.OPPGAVE_RETURNED,
+                felt = Felt.GOSYS_OPPGAVE_UPDATE,
                 fraVerdi = null,
-                tilVerdi = gosysOppgaveReturned.toString(),
+                tilVerdi = gosysOppgaveUpdate.toString(),
                 tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))

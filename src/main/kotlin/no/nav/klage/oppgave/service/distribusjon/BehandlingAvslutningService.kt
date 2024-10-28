@@ -184,15 +184,15 @@ class BehandlingAvslutningService(
                     )
                 )
             }
+        }
 
-            if (behandling.gosysOppgaveId != null && behandling.gosysOppgaveReturned != null && !behandling.ignoreGosysOppgave) {
-                oppgaveApiService.returnGosysOppgave(
-                    gosysOppgaveId = behandling.gosysOppgaveId!!,
-                    tildeltEnhetsnummer = behandling.gosysOppgaveReturned!!.oppgaveReturnedTildeltEnhetsnummer,
-                    mappeId = behandling.gosysOppgaveReturned!!.oppgaveReturnedMappeId,
-                    kommentar = behandling.gosysOppgaveReturned!!.oppgaveReturnedKommentar,
-                )
-            }
+        if (behandling.gosysOppgaveId != null && behandling.gosysOppgaveUpdate != null && !behandling.ignoreGosysOppgave) {
+            oppgaveApiService.updateGosysOppgave(
+                gosysOppgaveId = behandling.gosysOppgaveId!!,
+                tildeltEnhetsnummer = behandling.gosysOppgaveUpdate!!.oppgaveUpdateTildeltEnhetsnummer,
+                mappeId = behandling.gosysOppgaveUpdate!!.oppgaveUpdateMappeId,
+                kommentar = behandling.gosysOppgaveUpdate!!.oppgaveUpdateKommentar,
+            )
         }
 
         val event = behandling.setAvsluttet(systembrukerIdent)

@@ -78,7 +78,7 @@ class Ankebehandling(
     sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     previousSaksbehandlerident: String?,
     gosysOppgaveId: Long?,
-    oppgaveReturned: GosysOppgaveReturned? = null,
+    gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
 ) : Behandling(
@@ -117,7 +117,7 @@ class Ankebehandling(
     sattPaaVentHistorikk = sattPaaVentHistorikk,
     previousSaksbehandlerident = previousSaksbehandlerident,
     gosysOppgaveId = gosysOppgaveId,
-    gosysOppgaveReturned = oppgaveReturned,
+    gosysOppgaveUpdate = gosysOppgaveUpdate,
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
 ) {

@@ -44,6 +44,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setExtraUtfallSet
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFeilregistrering
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFrist
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFullmektig
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setGosysOppgaveUpdate
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setGosysoppgaveId
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setIgnoreGosysOppgave
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setInnsendingshjemler
@@ -52,7 +53,6 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverFlo
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverNavIdent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMottattKlageinstans
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setOppgaveId
-import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setOppgaveReturnInfo
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLFlowState
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLIdent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLReturnedDate
@@ -116,7 +116,7 @@ class BehandlingService(
         oppgaveInput: GosysOppgaveInput?,
         nyBehandlingEtterTROpphevet: Boolean,
     ): BehandlingFullfoertView {
-        if (oppgaveInput?.returnGosysOppgaveInput != null && oppgaveInput.ignoreGosysOppgave == true) {
+        if (oppgaveInput?.updateGosysOppgaveInput != null && oppgaveInput.ignoreGosysOppgave == true) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
                 sections = listOf(
@@ -124,8 +124,8 @@ class BehandlingService(
                         section = "behandling",
                         properties = listOf(
                             InvalidProperty(
-                                field = "returnOppgaveInput",
-                                reason = "Kan ikke sette både returinformasjon om Gosys-oppgaven og be om å ignorere Gosys-oppgaven."
+                                field = "updateOppgaveInput",
+                                reason = "Kan ikke både oppdatere Gosys-oppgaven og ignorere Gosys-oppgaven."
                             )
                         )
                     )
@@ -154,9 +154,8 @@ class BehandlingService(
             )
         }
 
-//        TODO: Handle other types than Klage
-        if (behandling.gosysOppgaveId != null && behandling.type == Type.KLAGE) { //&& !(behandling.shouldBeSentToTrygderetten() || behandling.shouldCreateNewAnkebehandling())) {
-            if (oppgaveInput?.returnGosysOppgaveInput == null && oppgaveInput?.ignoreGosysOppgave != true) {
+        if (behandling.gosysOppgaveId != null) {
+            if (oppgaveInput?.updateGosysOppgaveInput == null && oppgaveInput?.ignoreGosysOppgave != true) {
                 throw SectionedValidationErrorWithDetailsException(
                     title = "Validation error",
                     sections = listOf(
@@ -164,15 +163,15 @@ class BehandlingService(
                             section = "behandling",
                             properties = listOf(
                                 InvalidProperty(
-                                    field = "returnOppgaveInput",
-                                    reason = "Returinformasjon for Gosys-oppgaven må fylles ut for å avslutte behandlingen."
+                                    field = "updateOppgaveInput",
+                                    reason = "Oppdatert informasjon om Gosys-oppgaven må fylles ut for å avslutte behandlingen."
                                 )
                             )
                         )
                     )
                 )
             } else {
-                if (oppgaveInput.returnGosysOppgaveInput != null) {
+                if (oppgaveInput.updateGosysOppgaveInput != null) {
                     val gosysOppgave = oppgaveApiService.getGosysOppgave(behandling.gosysOppgaveId!!)
                     if (!gosysOppgave.editable) {
                         throw SectionedValidationErrorWithDetailsException(
@@ -182,7 +181,7 @@ class BehandlingService(
                                     section = "behandling",
                                     properties = listOf(
                                         InvalidProperty(
-                                            field = "returnOppgaveInput",
+                                            field = "updateOppgaveInput",
                                             reason = "Den valgte Gosys-oppgaven er lukket. Velg en annen oppgave."
                                         )
                                     )
@@ -191,10 +190,10 @@ class BehandlingService(
                         )
                     }
 
-                    behandling.setOppgaveReturnInfo(
-                        tildeltEnhet = oppgaveInput.returnGosysOppgaveInput.tildeltEnhet,
-                        mappeId = oppgaveInput.returnGosysOppgaveInput.mappeId,
-                        kommentar = oppgaveInput.returnGosysOppgaveInput.kommentar,
+                    behandling.setGosysOppgaveUpdate(
+                        tildeltEnhet = oppgaveInput.updateGosysOppgaveInput.tildeltEnhet,
+                        mappeId = oppgaveInput.updateGosysOppgaveInput.mappeId,
+                        kommentar = oppgaveInput.updateGosysOppgaveInput.kommentar,
                         saksbehandlerident = innloggetIdent,
                     )
                 } else {

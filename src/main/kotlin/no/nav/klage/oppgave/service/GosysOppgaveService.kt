@@ -81,7 +81,7 @@ class GosysOppgaveService(
         )
     }
 
-    fun returnGosysOppgave(
+    fun updateGosysOppgave(
         gosysOppgaveId: Long,
         tildeltEnhetsnummer: String,
         mappeId: Long?,
@@ -91,14 +91,14 @@ class GosysOppgaveService(
 
         val endretAvEnhetsnr = "9999"
 
-        val returnGosysOppgaveRequest = ReturnGosysOppgaveInput(
+        val updateGosysOppgaveRequest = UpdateGosysOppgaveInput(
             versjon = currentGosysOppgave.versjon,
             endretAvEnhetsnr = endretAvEnhetsnr,
             fristFerdigstillelse = LocalDate.now(),
             mappeId = mappeId,
             tilordnetRessurs = null,
             tildeltEnhetsnr = tildeltEnhetsnummer,
-            kommentar = ReturnGosysOppgaveInput.Kommentar(
+            kommentar = UpdateGosysOppgaveInput.Kommentar(
                 tekst = kommentar,
                 automatiskGenerert = false
             )
@@ -106,7 +106,7 @@ class GosysOppgaveService(
 
         gosysOppgaveClient.updateGosysOppgave(
             gosysOppgaveId = gosysOppgaveId,
-            updateOppgaveInput = returnGosysOppgaveRequest,
+            updateOppgaveInput = updateGosysOppgaveRequest,
             systemContext = true,
         )
     }

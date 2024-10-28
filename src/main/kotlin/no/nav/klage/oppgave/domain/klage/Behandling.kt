@@ -196,7 +196,7 @@ abstract class Behandling(
     @Column(name = "gosys_oppgave_id")
     open var gosysOppgaveId: Long?,
     @Embedded
-    open var gosysOppgaveReturned: GosysOppgaveReturned?,
+    open var gosysOppgaveUpdate: GosysOppgaveUpdate?,
     @Column(name = "ignore_gosys_oppgave")
     open var ignoreGosysOppgave: Boolean,
     @Column(name = "tilbakekreving")

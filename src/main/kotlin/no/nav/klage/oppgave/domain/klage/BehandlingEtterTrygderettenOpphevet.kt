@@ -68,7 +68,7 @@ class BehandlingEtterTrygderettenOpphevet(
     sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     previousSaksbehandlerident: String?,
     gosysOppgaveId: Long?,
-    gosysOppgaveReturned: GosysOppgaveReturned? = null,
+    gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
 ) : Behandling(
@@ -107,7 +107,7 @@ class BehandlingEtterTrygderettenOpphevet(
     sattPaaVentHistorikk = sattPaaVentHistorikk,
     previousSaksbehandlerident = previousSaksbehandlerident,
     gosysOppgaveId = gosysOppgaveId,
-    gosysOppgaveReturned = gosysOppgaveReturned,
+    gosysOppgaveUpdate = gosysOppgaveUpdate,
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
 ) {
