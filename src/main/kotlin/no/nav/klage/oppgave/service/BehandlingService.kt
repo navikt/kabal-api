@@ -124,7 +124,7 @@ class BehandlingService(
                         section = "behandling",
                         properties = listOf(
                             InvalidProperty(
-                                field = "updateOppgaveInput",
+                                field = "gosysOppgaveUpdate",
                                 reason = "Kan ikke både oppdatere Gosys-oppgaven og ignorere Gosys-oppgaven."
                             )
                         )
@@ -163,7 +163,7 @@ class BehandlingService(
                             section = "behandling",
                             properties = listOf(
                                 InvalidProperty(
-                                    field = "updateOppgaveInput",
+                                    field = "gosysOppgaveUpdate",
                                     reason = "Oppdatert informasjon om Gosys-oppgaven må fylles ut for å avslutte behandlingen."
                                 )
                             )
@@ -181,7 +181,7 @@ class BehandlingService(
                                     section = "behandling",
                                     properties = listOf(
                                         InvalidProperty(
-                                            field = "updateOppgaveInput",
+                                            field = "gosysOppgaveUpdate",
                                             reason = "Den valgte Gosys-oppgaven er lukket. Velg en annen oppgave."
                                         )
                                     )
