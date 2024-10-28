@@ -193,7 +193,7 @@ abstract class Behandling(
     open val varsletBehandlingstidHistorikk: MutableSet<VarsletBehandlingstidHistorikk> = mutableSetOf(),
     @Column(name = "previous_saksbehandlerident")
     open val previousSaksbehandlerident: String?,
-    @Column(name = "oppgave_id")
+    @Column(name = "gosys_oppgave_id")
     open var oppgaveId: Long?,
     @Embedded
     open var oppgaveReturned: OppgaveReturned?,
