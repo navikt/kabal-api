@@ -116,7 +116,7 @@ class BehandlingService(
         oppgaveInput: GosysOppgaveInput?,
         nyBehandlingEtterTROpphevet: Boolean,
     ): BehandlingFullfoertView {
-        if (oppgaveInput?.updateGosysOppgaveInput != null && oppgaveInput.ignoreGosysOppgave == true) {
+        if (oppgaveInput?.gosysOppgaveUpdate != null && oppgaveInput.ignoreGosysOppgave == true) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
                 sections = listOf(
@@ -155,7 +155,7 @@ class BehandlingService(
         }
 
         if (behandling.gosysOppgaveId != null) {
-            if (oppgaveInput?.updateGosysOppgaveInput == null && oppgaveInput?.ignoreGosysOppgave != true) {
+            if (oppgaveInput?.gosysOppgaveUpdate == null && oppgaveInput?.ignoreGosysOppgave != true) {
                 throw SectionedValidationErrorWithDetailsException(
                     title = "Validation error",
                     sections = listOf(
@@ -171,7 +171,7 @@ class BehandlingService(
                     )
                 )
             } else {
-                if (oppgaveInput.updateGosysOppgaveInput != null) {
+                if (oppgaveInput.gosysOppgaveUpdate != null) {
                     val gosysOppgave = oppgaveApiService.getGosysOppgave(behandling.gosysOppgaveId!!)
                     if (!gosysOppgave.editable) {
                         throw SectionedValidationErrorWithDetailsException(
@@ -191,9 +191,9 @@ class BehandlingService(
                     }
 
                     behandling.setGosysOppgaveUpdate(
-                        tildeltEnhet = oppgaveInput.updateGosysOppgaveInput.tildeltEnhet,
-                        mappeId = oppgaveInput.updateGosysOppgaveInput.mappeId,
-                        kommentar = oppgaveInput.updateGosysOppgaveInput.kommentar,
+                        tildeltEnhet = oppgaveInput.gosysOppgaveUpdate.tildeltEnhet,
+                        mappeId = oppgaveInput.gosysOppgaveUpdate.mappeId,
+                        kommentar = oppgaveInput.gosysOppgaveUpdate.kommentar,
                         saksbehandlerident = innloggetIdent,
                     )
                 } else {

@@ -15,13 +15,13 @@ data class SattPaaVentInput(
     val reason: String
 )
 
-data class UpdateGosysOppgaveInput(
+data class GosysOppgaveUpdateInput(
     val tildeltEnhet: String,
     val mappeId: Long?,
     val kommentar: String,
 )
 
 data class GosysOppgaveInput(
-    val updateGosysOppgaveInput: UpdateGosysOppgaveInput?,
+    val gosysOppgaveUpdate: GosysOppgaveUpdateInput?,
     val ignoreGosysOppgave: Boolean?,
 )
