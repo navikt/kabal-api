@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.EnhetView
 import no.nav.klage.oppgave.api.view.GosysOppgaveApiMappeView
@@ -9,11 +10,20 @@ import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.oppgaveapi.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
+import no.nav.klage.oppgave.domain.kafka.Employee
+import no.nav.klage.oppgave.domain.kafka.GosysoppgaveEvent
+import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
+import no.nav.klage.oppgave.domain.kafka.InternalEventType
+import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.exceptions.IllegalOperation
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 @Service
 class GosysOppgaveService(
@@ -22,12 +32,15 @@ class GosysOppgaveService(
     private val pdlFacade: PdlFacade,
     private val norg2Client: Norg2Client,
     private val saksbehandlerService: SaksbehandlerService,
+    private val kafkaInternalEventService: KafkaInternalEventService,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val securelogger = getSecureLogger()
+        private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
     fun getGosysOppgave(gosysOppgaveId: Long, fnrToValidate: String? = null): GosysOppgaveView {
@@ -43,8 +56,11 @@ class GosysOppgaveService(
     fun assignGosysOppgave(
         gosysOppgaveId: Long,
         tildeltSaksbehandlerIdent: String?,
-        systemContext: Boolean,
+        behandlingId: UUID,
+        utfoerendeSaksbehandlerIdent: String,
     ) {
+        val systemContext = utfoerendeSaksbehandlerIdent == systembrukerIdent
+
         val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
         if (!currentGosysOppgave.isEditable()) {
             logger.warn("Oppgave $gosysOppgaveId kan ikke oppdateres, returnerer")
@@ -74,20 +90,32 @@ class GosysOppgaveService(
                 )
             }
 
-        gosysOppgaveClient.updateGosysOppgave(
+        val updatedGosysOppgave = gosysOppgaveClient.updateGosysOppgave(
             gosysOppgaveId = gosysOppgaveId,
             updateOppgaveInput = updateGosysOppgaveRequest,
             systemContext = systemContext
         )
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                GosysoppgaveEvent(
+                    actor = Employee(
+                        navIdent = utfoerendeSaksbehandlerIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                    ),
+                    timestamp = LocalDateTime.now(),
+                    gosysOppgave = updatedGosysOppgave.toGosysOppgaveView(),
+                )
+            ),
+            behandlingId = behandlingId,
+            type = InternalEventType.GOSYSOPPGAVE,
+        )
     }
 
     fun updateGosysOppgave(
-        gosysOppgaveId: Long,
-        tildeltEnhetsnummer: String,
-        mappeId: Long?,
-        kommentar: String,
+        behandling: Behandling,
     ) {
-        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = true)
+        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = true)
 
         val endretAvEnhetsnr = "9999"
 
@@ -95,19 +123,36 @@ class GosysOppgaveService(
             versjon = currentGosysOppgave.versjon,
             endretAvEnhetsnr = endretAvEnhetsnr,
             fristFerdigstillelse = LocalDate.now(),
-            mappeId = mappeId,
+            mappeId = behandling.gosysOppgaveUpdate!!.oppgaveUpdateMappeId,
             tilordnetRessurs = null,
-            tildeltEnhetsnr = tildeltEnhetsnummer,
+            tildeltEnhetsnr = behandling.gosysOppgaveUpdate!!.oppgaveUpdateTildeltEnhetsnummer,
             kommentar = UpdateGosysOppgaveInput.Kommentar(
-                tekst = kommentar,
+                tekst = behandling.gosysOppgaveUpdate!!.oppgaveUpdateKommentar,
                 automatiskGenerert = false
             )
         )
 
-        gosysOppgaveClient.updateGosysOppgave(
-            gosysOppgaveId = gosysOppgaveId,
+        val updatedGosysOppgave = gosysOppgaveClient.updateGosysOppgave(
+            gosysOppgaveId = behandling.gosysOppgaveId!!,
             updateOppgaveInput = updateGosysOppgaveRequest,
             systemContext = true,
+        )
+
+        val saksbehandlerident = behandling.tildeling?.saksbehandlerident ?: systembrukerIdent
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                GosysoppgaveEvent(
+                    actor = Employee(
+                        navIdent = saksbehandlerident,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerident),
+                    ),
+                    timestamp = LocalDateTime.now(),
+                    gosysOppgave = updatedGosysOppgave.toGosysOppgaveView(),
+                )
+            ),
+            behandlingId = behandling.id,
+            type = InternalEventType.GOSYSOPPGAVE,
         )
     }
 
@@ -208,5 +253,15 @@ class GosysOppgaveService(
 
     private fun getOppgavetypeKodeverkForTema(tema: Tema): List<OppgavetypeResponse> {
         return gosysOppgaveClient.getOppgavetypeKodeverkForTema(tema = tema)
+    }
+
+    private fun publishInternalEvent(data: String, behandlingId: UUID, type: InternalEventType) {
+        kafkaInternalEventService.publishInternalBehandlingEvent(
+            InternalBehandlingEvent(
+                behandlingId = behandlingId.toString(),
+                type = type,
+                data = data,
+            )
+        )
     }
 }
