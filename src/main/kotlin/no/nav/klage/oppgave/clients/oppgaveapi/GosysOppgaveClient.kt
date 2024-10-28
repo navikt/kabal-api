@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.clients.oppgaveapi
 
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.oppgave.clients.oppgaveapi.OppgaveMapperResponse.OppgaveMappe
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
@@ -65,6 +66,7 @@ class GosysOppgaveClient(
         }
     }
 
+    @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_ENHETSMAPPER_CACHE)
     fun getMapperForEnhet(
         enhetsnr: String
     ): OppgaveMapperResponse {
@@ -83,6 +85,28 @@ class GosysOppgaveClient(
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveMapperResponse>()
+                .block() ?: throw OppgaveClientException("Could not get mapper for enhet")
+        }
+    }
+
+    @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_ENHETSMAPPE_CACHE)
+    fun getMappe(
+        id: Long
+    ): OppgaveMappe {
+        return logTimingAndWebClientResponseException(GosysOppgaveClient::getMappe.name) {
+            oppgaveApiWebClient.get()
+                .uri { uriBuilder ->
+                    uriBuilder
+                        .path("/mapper/{id}")
+                        .build(id)
+                }
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                )
+                .header("Nav-Consumer-Id", applicationName)
+                .retrieve()
+                .bodyToMono<OppgaveMappe>()
                 .block() ?: throw OppgaveClientException("Could not get mapper for enhet")
         }
     }

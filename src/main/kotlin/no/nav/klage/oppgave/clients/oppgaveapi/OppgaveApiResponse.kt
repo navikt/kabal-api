@@ -77,7 +77,7 @@ data class OppgaveMapperResponse(
     val mapper: List<OppgaveMappe>
 ) {
     data class OppgaveMappe(
-        val id: Int?,
+        val id: Long?,
         val enhetsnr: String,
         val navn: String,
         val tema: String?,

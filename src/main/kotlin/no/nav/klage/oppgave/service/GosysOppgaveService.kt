@@ -128,6 +128,21 @@ class GosysOppgaveService(
         }.sortedBy { it.navn }
     }
 
+    fun getMappe(
+        id: Long
+    ): GosysOppgaveApiMappeView {
+        val mappeResponse = gosysOppgaveClient.getMappe(id = id)
+
+        if (mappeResponse.id == null) {
+            throw OppgaveClientException("Mappe did not contain id")
+        }
+
+        return GosysOppgaveApiMappeView(
+            id = mappeResponse.id,
+            navn = mappeResponse.navn
+        )
+    }
+
     fun getGosysOppgaveList(fnr: String, tema: Tema?): List<GosysOppgaveView> {
         val aktoerId = pdlFacade.getAktorIdFromIdent(ident = fnr)
 
@@ -156,6 +171,9 @@ class GosysOppgaveService(
             fristFerdigstillelse = fristFerdigstillelse,
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
             status = GosysOppgaveView.Status.valueOf(status.name),
+            mappe = if (mappeId != null) {
+                getMappe(id = mappeId)
+            } else null,
             editable = isEditable(),
             opprettetAvEnhet = opprettetAvEnhetsnr?.let {
                 EnhetView(

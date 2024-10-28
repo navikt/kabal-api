@@ -33,6 +33,8 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
         const val DOK_DIST_KANAL = "dok-dist-kanal"
         const val GOSYSOPPGAVE_GJELDER_CACHE = "gosysoppgave-gjelder"
         const val GOSYSOPPGAVE_OPPGAVETYPE_CACHE = "gosysoppgave-oppgavetype"
+        const val GOSYSOPPGAVE_ENHETSMAPPER_CACHE = "gosysoppgave-enhetmapper"
+        const val GOSYSOPPGAVE_ENHETSMAPPE_CACHE = "gosysoppgave-enhetmappe"
 
 
         val cacheKeys =
@@ -51,6 +53,7 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
                 DOK_DIST_KANAL,
                 GOSYSOPPGAVE_GJELDER_CACHE,
                 GOSYSOPPGAVE_OPPGAVETYPE_CACHE,
+                GOSYSOPPGAVE_ENHETSMAPPER_CACHE,
             )
 
         @Suppress("JAVA_CLASS_ON_COMPANION")
