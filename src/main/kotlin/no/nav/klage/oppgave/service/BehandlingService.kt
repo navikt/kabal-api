@@ -534,8 +534,9 @@ class BehandlingService(
         fradelingReason: FradelingReason?,
         utfoerendeSaksbehandlerIdent: String,
         fradelingWithChangedHjemmelIdList: String? = null,
+        systemUserContext: Boolean = false,
     ): SaksbehandlerViewWrapped {
-        val behandling = getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true, systemUserContext = systemUserContext)
         if (tildeltSaksbehandlerIdent != null) {
             //Denne sjekken gjøres kun når det er en tildeling:
 
@@ -1737,7 +1738,8 @@ class BehandlingService(
             behandling = candidates.first(),
             navIdent = navIdent,
             reason = reason,
-            fagsystem = fagsystem
+            fagsystem = fagsystem,
+            systemUserContext = true,
         )
     }
 
@@ -1745,7 +1747,8 @@ class BehandlingService(
         behandling: Behandling,
         navIdent: String,
         reason: String,
-        fagsystem: Fagsystem
+        fagsystem: Fagsystem,
+        systemUserContext: Boolean = false,
     ): Behandling {
         val navn = saksbehandlerService.getNameForIdentDefaultIfNull(navIdent)
 
@@ -1755,7 +1758,8 @@ class BehandlingService(
             enhetId = null,
             fradelingReason = FradelingReason.ANNET,
             utfoerendeSaksbehandlerIdent = navIdent,
-            fradelingWithChangedHjemmelIdList = null
+            fradelingWithChangedHjemmelIdList = null,
+            systemUserContext = systemUserContext,
         )
 
         val event = behandling.setFeilregistrering(
