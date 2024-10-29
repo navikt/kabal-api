@@ -10,10 +10,12 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsM
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -27,6 +29,7 @@ import no.nav.klage.oppgave.eventlisteners.StatistikkTilDVHService.Companion.TR_
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.util.*
 import org.slf4j.Logger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -60,6 +63,7 @@ class AdminService(
     private val mottakRepository: MottakRepository,
     private val klageFssProxyClient: KlageFssProxyClient,
     private val tokenUtil: TokenUtil,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
     companion object {
@@ -160,6 +164,17 @@ class AdminService(
 
         //Delete in search
         behandlingEndretKafkaProducer.sendBehandlingDeleted(behandlingId)
+
+        if (behandling.fagsystem == Fagsystem.IT01) {
+            logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
+            klageFssProxyClient.setToFeilregistrertInKabal(
+                sakId = behandling.kildeReferanse,
+                input = FeilregistrertInKabalInput(
+                    saksbehandlerIdent = systembrukerIdent,
+                )
+            )
+            logger.debug("Feilregistrering av behandling ble registrert i Infotrygd.")
+        }
 
         //Delete in dokumentarkiv? Probably not necessary. They clean up when they need to.
     }
