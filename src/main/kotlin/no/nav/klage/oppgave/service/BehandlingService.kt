@@ -113,10 +113,10 @@ class BehandlingService(
     fun ferdigstillBehandling(
         behandlingId: UUID,
         innloggetIdent: String,
-        oppgaveInput: GosysOppgaveInput?,
+        gosysOppgaveInput: GosysOppgaveInput?,
         nyBehandlingEtterTROpphevet: Boolean,
     ): BehandlingFullfoertView {
-        if (oppgaveInput?.gosysOppgaveUpdate != null && oppgaveInput.ignoreGosysOppgave == true) {
+        if (gosysOppgaveInput?.gosysOppgaveUpdate != null && gosysOppgaveInput.ignoreGosysOppgave == true) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
                 sections = listOf(
@@ -137,6 +137,25 @@ class BehandlingService(
             behandlingId = behandlingId
         )
 
+        val ankeITRHenvist = behandling is AnkeITrygderettenbehandling && behandling.utfall == Utfall.HENVIST
+
+        if ((ankeITRHenvist || nyBehandlingEtterTROpphevet) && gosysOppgaveInput != null) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = "gosysOppgaveUpdate",
+                                reason = "Gosys-oppgaven kan ikke oppdateres for en ankebehandling som er henvist eller opphevet fra Trygderetten, og der det skal opprettes ny behandling i KA."
+                            )
+                        )
+                    )
+                )
+            )
+        }
+
         if (behandling.ferdigstilling != null) throw BehandlingFinalizedException("Behandlingen er avsluttet")
 
         //Forretningsmessige krav før vedtak kan ferdigstilles
@@ -154,8 +173,8 @@ class BehandlingService(
             )
         }
 
-        if (behandling.gosysOppgaveId != null) {
-            if (oppgaveInput?.gosysOppgaveUpdate == null && oppgaveInput?.ignoreGosysOppgave != true) {
+        if (behandling.gosysOppgaveId != null && !ankeITRHenvist) {
+            if (gosysOppgaveInput?.gosysOppgaveUpdate == null && gosysOppgaveInput?.ignoreGosysOppgave != true) {
                 throw SectionedValidationErrorWithDetailsException(
                     title = "Validation error",
                     sections = listOf(
@@ -171,7 +190,7 @@ class BehandlingService(
                     )
                 )
             } else {
-                if (oppgaveInput.gosysOppgaveUpdate != null) {
+                if (gosysOppgaveInput.gosysOppgaveUpdate != null) {
                     val gosysOppgave = oppgaveApiService.getGosysOppgave(behandling.gosysOppgaveId!!)
                     if (!gosysOppgave.editable) {
                         throw SectionedValidationErrorWithDetailsException(
@@ -191,9 +210,9 @@ class BehandlingService(
                     }
 
                     behandling.setGosysOppgaveUpdate(
-                        tildeltEnhet = oppgaveInput.gosysOppgaveUpdate.tildeltEnhet,
-                        mappeId = oppgaveInput.gosysOppgaveUpdate.mappeId,
-                        kommentar = oppgaveInput.gosysOppgaveUpdate.kommentar,
+                        tildeltEnhet = gosysOppgaveInput.gosysOppgaveUpdate.tildeltEnhet,
+                        mappeId = gosysOppgaveInput.gosysOppgaveUpdate.mappeId,
+                        kommentar = gosysOppgaveInput.gosysOppgaveUpdate.kommentar,
                         saksbehandlerident = innloggetIdent,
                     )
                 } else {

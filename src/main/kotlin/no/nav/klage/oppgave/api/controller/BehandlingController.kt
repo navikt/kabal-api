@@ -92,7 +92,7 @@ class BehandlingController(
         return behandlingService.ferdigstillBehandling(
             behandlingId = behandlingId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            oppgaveInput = gosysOppgaveInput,
+            gosysOppgaveInput = gosysOppgaveInput,
             nyBehandlingEtterTROpphevet = nyBehandlingEtterTROpphevet,
         )
     }
