@@ -41,6 +41,8 @@ class GosysOppgaveService(
         private val logger = getLogger(javaClass.enclosingClass)
         private val securelogger = getSecureLogger()
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
+
+        const val ENDRET_AV_ENHETSNR_SYSTEM = "9999"
     }
 
     fun getGosysOppgave(gosysOppgaveId: Long, fnrToValidate: String? = null): GosysOppgaveView {
@@ -117,21 +119,50 @@ class GosysOppgaveService(
     ) {
         val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = true)
 
-        val endretAvEnhetsnr = "9999"
-
         val updateGosysOppgaveRequest = UpdateGosysOppgaveInput(
             versjon = currentGosysOppgave.versjon,
-            endretAvEnhetsnr = endretAvEnhetsnr,
+            endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
             fristFerdigstillelse = LocalDate.now(),
             mappeId = behandling.gosysOppgaveUpdate!!.oppgaveUpdateMappeId,
             tilordnetRessurs = null,
             tildeltEnhetsnr = behandling.gosysOppgaveUpdate!!.oppgaveUpdateTildeltEnhetsnummer,
-            kommentar = UpdateGosysOppgaveInput.Kommentar(
+            kommentar = Kommentar(
                 tekst = behandling.gosysOppgaveUpdate!!.oppgaveUpdateKommentar,
                 automatiskGenerert = false
             )
         )
 
+        updateOppgaveAndPublishEvent(behandling, updateGosysOppgaveRequest)
+    }
+
+    fun addKommentar(
+        behandling: Behandling,
+        kommentar: String,
+    ) {
+        logger.debug("Adding kommentar to Gosys-oppgave ${behandling.gosysOppgaveId}")
+        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = true)
+
+        if (!currentGosysOppgave.isEditable()) {
+            logger.warn("Gosys-oppgave ${behandling.gosysOppgaveId} kan ikke oppdateres, returnerer")
+            return
+        }
+
+        val updateGosysOppgaveRequest = AddKommentarToGosysOppgaveInput(
+            versjon = currentGosysOppgave.versjon,
+            endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
+            kommentar = Kommentar(
+                tekst = kommentar,
+                automatiskGenerert = false
+            )
+        )
+
+        updateOppgaveAndPublishEvent(behandling, updateGosysOppgaveRequest)
+    }
+
+    private fun updateOppgaveAndPublishEvent(
+        behandling: Behandling,
+        updateGosysOppgaveRequest: UpdateOppgaveRequest
+    ) {
         val updatedGosysOppgave = gosysOppgaveClient.updateGosysOppgave(
             gosysOppgaveId = behandling.gosysOppgaveId!!,
             updateOppgaveInput = updateGosysOppgaveRequest,

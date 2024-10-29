@@ -201,6 +201,21 @@ class BehandlingAvslutningService(
     private fun createNewAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
         logger.debug("Creating ankebehandling based on behandling with id {}", ankeITrygderettenbehandling.id)
         ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
+
+        if (ankeITrygderettenbehandling.gosysOppgaveId != null) {
+            val kommentar = if (ankeITrygderettenbehandling.nyAnkebehandlingKA != null) {
+                "Klageinstansen har opprettet ny behandling i Kabal."
+            } else if (ankeITrygderettenbehandling.utfall == Utfall.HENVIST) {
+                "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten har henvist saken."
+            } else {
+                error("Ugyldig tilstand for å opprette ny ankebehandling fra anke i Trygderetten")
+            }
+
+            oppgaveApiService.addKommentar(
+                behandling = ankeITrygderettenbehandling,
+                kommentar = kommentar
+            )
+        }
     }
 
     private fun createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
@@ -209,6 +224,15 @@ class BehandlingAvslutningService(
             ankeITrygderettenbehandling.id
         )
         behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandling)
+
+        if (ankeITrygderettenbehandling.gosysOppgaveId != null) {
+            val kommentar = "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten opphevet saken."
+
+            oppgaveApiService.addKommentar(
+                behandling = ankeITrygderettenbehandling,
+                kommentar = kommentar
+            )
+        }
     }
 
     private fun createAnkeITrygderettenbehandling(behandling: Behandling) {

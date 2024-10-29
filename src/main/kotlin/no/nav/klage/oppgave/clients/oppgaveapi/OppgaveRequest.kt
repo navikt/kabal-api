@@ -29,10 +29,16 @@ data class UpdateGosysOppgaveInput(
     val tilordnetRessurs: String?,
     val tildeltEnhetsnr: String,
     val kommentar: Kommentar,
-) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr) {
-    data class Kommentar(
-        val tekst: String,
-        val automatiskGenerert: Boolean,
-    )
-}
+) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
+
+data class Kommentar(
+    val tekst: String,
+    val automatiskGenerert: Boolean,
+)
+
+data class AddKommentarToGosysOppgaveInput(
+    override val versjon: Int,
+    override val endretAvEnhetsnr: String,
+    val kommentar: Kommentar,
+) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
