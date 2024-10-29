@@ -124,7 +124,7 @@ class BehandlingService(
                         section = "behandling",
                         properties = listOf(
                             InvalidProperty(
-                                field = "gosysOppgaveUpdate",
+                                field = "gosysOppgaveInput",
                                 reason = "Kan ikke både oppdatere Gosys-oppgaven og ignorere Gosys-oppgaven."
                             )
                         )
@@ -174,6 +174,25 @@ class BehandlingService(
         }
 
         if (behandling.gosysOppgaveId != null && !ankeITRHenvist) {
+            val gosysOppgave = oppgaveApiService.getGosysOppgave(behandling.gosysOppgaveId!!)
+
+            if (!gosysOppgave.editable && gosysOppgaveInput?.ignoreGosysOppgave != true) {
+                throw SectionedValidationErrorWithDetailsException(
+                    title = "Validation error",
+                    sections = listOf(
+                        ValidationSection(
+                            section = "behandling",
+                            properties = listOf(
+                                InvalidProperty(
+                                    field = "gosysOppgaveInput",
+                                    reason = "Gosys-oppgaven kan ikke redigeres. Du må bekrefte at du fremdeles vil bruke denne Gosys-oppgaven, eller velge en annen."
+                                )
+                            )
+                        )
+                    )
+                )
+            }
+
             if (gosysOppgaveInput?.gosysOppgaveUpdate == null && gosysOppgaveInput?.ignoreGosysOppgave != true) {
                 throw SectionedValidationErrorWithDetailsException(
                     title = "Validation error",
@@ -191,24 +210,6 @@ class BehandlingService(
                 )
             } else {
                 if (gosysOppgaveInput.gosysOppgaveUpdate != null) {
-                    val gosysOppgave = oppgaveApiService.getGosysOppgave(behandling.gosysOppgaveId!!)
-                    if (!gosysOppgave.editable) {
-                        throw SectionedValidationErrorWithDetailsException(
-                            title = "Validation error",
-                            sections = listOf(
-                                ValidationSection(
-                                    section = "behandling",
-                                    properties = listOf(
-                                        InvalidProperty(
-                                            field = "gosysOppgaveUpdate",
-                                            reason = "Den valgte Gosys-oppgaven er lukket. Velg en annen oppgave."
-                                        )
-                                    )
-                                )
-                            )
-                        )
-                    }
-
                     behandling.setGosysOppgaveUpdate(
                         tildeltEnhet = gosysOppgaveInput.gosysOppgaveUpdate.tildeltEnhet,
                         mappeId = gosysOppgaveInput.gosysOppgaveUpdate.mappeId,
