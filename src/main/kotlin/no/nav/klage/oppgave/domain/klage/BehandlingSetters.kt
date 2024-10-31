@@ -424,7 +424,7 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
-    fun Behandling.setOppgaveId(
+    fun Behandling.setGosysOppgaveId(
         nyVerdi: Long,
         saksbehandlerident: String
     ): BehandlingEndretEvent {
@@ -435,7 +435,7 @@ object BehandlingSetters {
         val endringslogg =
             endringslogg(
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.OPPGAVE_ID,
+                felt = Felt.GOSYSOPPGAVE_ID,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
                 tidspunkt = tidspunkt

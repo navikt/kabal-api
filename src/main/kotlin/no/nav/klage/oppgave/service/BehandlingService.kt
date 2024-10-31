@@ -44,6 +44,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setExtraUtfallSet
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFeilregistrering
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFrist
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFullmektig
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setGosysOppgaveId
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setGosysOppgaveUpdate
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setGosysoppgaveId
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setIgnoreGosysOppgave
@@ -52,7 +53,6 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setKlager
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverFlowState
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMedunderskriverNavIdent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setMottattKlageinstans
-import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setOppgaveId
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLFlowState
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLIdent
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setROLReturnedDate
@@ -400,6 +400,16 @@ class BehandlingService(
                 )
             )
         }
+        //TODO
+//
+//        if (!behandling.fagsystem.modernized && behandling.gosysOppgaveId == null) {
+//            behandlingValidationErrors.add(
+//                InvalidProperty(
+//                    field = "gosysOppgaveId",
+//                    reason = "Fullmektig/organisasjon har opphørt."
+//                )
+//            )
+//        }
 
         if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
@@ -604,7 +614,11 @@ class BehandlingService(
         fradelingWithChangedHjemmelIdList: String? = null,
         systemUserContext: Boolean = false,
     ): SaksbehandlerViewWrapped {
-        val behandling = getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true, systemUserContext = systemUserContext)
+        val behandling = getBehandlingForUpdate(
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = true,
+            systemUserContext = systemUserContext
+        )
         if (tildeltSaksbehandlerIdent != null) {
             //Denne sjekken gjøres kun når det er en tildeling:
 
@@ -696,7 +710,7 @@ class BehandlingService(
         return getSaksbehandlerViewWrapped(behandling)
     }
 
-    fun setGosysOppgaveId(
+    fun setGosysOppgaveIdFromKabin(
         behandlingId: UUID,
         gosysOppgaveId: Long,
         utfoerendeSaksbehandlerIdent: String,
@@ -709,7 +723,10 @@ class BehandlingService(
             behandlingId = behandlingId,
             ignoreCheckSkrivetilgang = true
         )
-        val event = behandling.setOppgaveId(gosysOppgaveId, utfoerendeSaksbehandlerIdent)
+        val event = behandling.setGosysOppgaveId(
+            nyVerdi = gosysOppgaveId,
+            saksbehandlerident = utfoerendeSaksbehandlerIdent
+        )
 
         applicationEventPublisher.publishEvent(event)
         return behandling.modified
@@ -2282,7 +2299,7 @@ class BehandlingService(
 
     fun setGosysOppgaveId(
         behandlingId: UUID,
-        gosysOppgaveId: Long?,
+        gosysOppgaveId: Long,
         utfoerendeSaksbehandlerIdent: String
     ): GosysOppgaveEditedView {
         logger.debug("Input utfall in setGosysOppgaveId: {}", gosysOppgaveId)
@@ -2291,26 +2308,22 @@ class BehandlingService(
             behandlingId
         )
 
-        val gosysOppgave = gosysOppgaveId?.let {
-            val gosysOppgave = oppgaveApiService.getGosysOppgave(
-                gosysOppgaveId = it,
-                fnrToValidate = behandling.sakenGjelder.partId.value
-            ).copy(
-                alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(gosysOppgaveId)
+        val gosysOppgave = oppgaveApiService.getGosysOppgave(
+            gosysOppgaveId = gosysOppgaveId,
+            fnrToValidate = behandling.sakenGjelder.partId.value,
+        ).copy(
+            alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(gosysOppgaveId)
+        )
+
+        if (behandling.gosysOppgaveId == gosysOppgave.id) {
+            return GosysOppgaveEditedView(
+                modified = behandling.modified,
+                gosysOppgave = gosysOppgave
             )
+        }
 
-            if (behandling.gosysOppgaveId == gosysOppgave.id) {
-                return GosysOppgaveEditedView(
-                    modified = behandling.modified,
-                    gosysOppgave = gosysOppgave
-                )
-            }
-
-            if (gosysOppgave.alreadyUsedBy != null) {
-                throw DuplicateGosysOppgaveIdException("Gosysoppgave med id $gosysOppgaveId er allerede i bruk")
-            }
-
-            gosysOppgave
+        if (gosysOppgave.alreadyUsedBy != null) {
+            throw DuplicateGosysOppgaveIdException("Gosysoppgave med id $gosysOppgaveId er allerede i bruk")
         }
 
         val event =
