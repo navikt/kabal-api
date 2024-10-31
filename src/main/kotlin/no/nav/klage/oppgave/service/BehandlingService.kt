@@ -400,16 +400,15 @@ class BehandlingService(
                 )
             )
         }
-        //TODO
-//
-//        if (!behandling.fagsystem.modernized && behandling.gosysOppgaveId == null) {
-//            behandlingValidationErrors.add(
-//                InvalidProperty(
-//                    field = "gosysOppgaveId",
-//                    reason = "Fullmektig/organisasjon har opphørt."
-//                )
-//            )
-//        }
+
+        if (!behandling.fagsystem.modernized && behandling.gosysOppgaveId == null) {
+            behandlingValidationErrors.add(
+                InvalidProperty(
+                    field = "gosysOppgave",
+                    reason = "Velg Gosys-oppgave."
+                )
+            )
+        }
 
         if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
