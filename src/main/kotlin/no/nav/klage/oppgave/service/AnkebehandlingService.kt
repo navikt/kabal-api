@@ -71,7 +71,7 @@ class AnkebehandlingService(
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
                 sourceBehandlingId = mottak.forrigeBehandlingId,
                 previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
-                oppgaveId = null,
+                gosysOppgaveId = null,
                 tilbakekreving = false,
             )
         )
@@ -141,7 +141,7 @@ class AnkebehandlingService(
                 klageBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
                 sourceBehandlingId = ankeITrygderettenbehandling.id,
                 previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
-                oppgaveId = ankeITrygderettenbehandling.oppgaveId,
+                gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
                 tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
             )
         )

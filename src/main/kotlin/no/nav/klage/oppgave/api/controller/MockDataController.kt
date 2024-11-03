@@ -337,7 +337,7 @@ class MockDataController(
                     registreringsHjemmelSet = registreringsHjemmelSet,
                     ankebehandlingUtfall = ExternalUtfall.valueOf(utfallToTrygderetten.random().name),
                     previousSaksbehandlerident = null,
-                    oppgaveId = null,
+                    gosysOppgaveId = null,
                     tilbakekreving = false,
                 )
 

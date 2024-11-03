@@ -2,6 +2,8 @@ package no.nav.klage.oppgave.exceptions
 
 class DuplicateOversendelseException(msg: String) : RuntimeException(msg)
 
+class DuplicateGosysOppgaveIdException(msg: String) : RuntimeException(msg)
+
 class JournalpostNotFoundException(msg: String) : ValidationException(msg)
 
 class IllegalUpdateException(msg: String) : RuntimeException(msg)
@@ -9,6 +11,8 @@ class IllegalUpdateException(msg: String) : RuntimeException(msg)
 class BehandlingNotFoundException(msg: String) : RuntimeException(msg)
 
 class MeldingNotFoundException(msg: String) : RuntimeException(msg)
+
+class GosysOppgaveNotFoundException(msg: String) : RuntimeException(msg)
 
 class BehandlingFinalizedException(msg: String) : RuntimeException(msg)
 

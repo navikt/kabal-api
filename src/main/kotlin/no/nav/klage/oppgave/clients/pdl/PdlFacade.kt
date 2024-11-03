@@ -1,9 +1,6 @@
 package no.nav.klage.oppgave.clients.pdl
 
-import no.nav.klage.oppgave.clients.pdl.graphql.HentPersonMapper
-import no.nav.klage.oppgave.clients.pdl.graphql.HentPersonResponse
-import no.nav.klage.oppgave.clients.pdl.graphql.PdlClient
-import no.nav.klage.oppgave.clients.pdl.graphql.PdlPerson
+import no.nav.klage.oppgave.clients.pdl.graphql.*
 import no.nav.klage.oppgave.exceptions.PDLErrorException
 import no.nav.klage.oppgave.exceptions.PDLPersonNotFoundException
 import no.nav.klage.oppgave.util.getLogger
@@ -41,8 +38,14 @@ class PdlFacade(
         return true
     }
 
-    fun getFoedselsnummerFromSomeIdent(ident: String): String {
-        return pdlClient.getFoedselsnummerFromSomeIdent(ident = ident)
+    fun getFoedselsnummerFromIdent(ident: String): String {
+        val query = hentFolkeregisterIdentQuery(ident = ident)
+        return getIdent(query = query)
+    }
+
+    fun getAktorIdFromIdent(ident: String): String {
+        val query = hentAktorIdQuery(ident = ident)
+        return getIdent(query = query)
     }
 
     private fun HentPersonResponse.getPersonOrThrowError(fnr: String): PdlPerson =
@@ -56,4 +59,8 @@ class PdlFacade(
             }
             throw PDLErrorException("Klarte ikke å hente person fra PDL")
         }
+
+    private fun getIdent(query: PersonGraphqlQuery): String {
+        return pdlClient.getIdents(query = query).data?.hentIdenter?.identer?.firstOrNull()?.ident ?: throw PDLErrorException("Klarte ikke å hente person fra PDL")
+    }
 }

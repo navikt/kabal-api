@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.service.OppgaveApiService
+import no.nav.klage.oppgave.service.GosysOppgaveService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
@@ -18,7 +18,7 @@ import org.springframework.transaction.event.TransactionalEventListener
 @Service
 class UpdateOppgaveApiEventListener(
     private val behandlingRepository: BehandlingRepository,
-    private val oppgaveApiService: OppgaveApiService,
+    private val gosysOppgaveService: GosysOppgaveService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -35,11 +35,14 @@ class UpdateOppgaveApiEventListener(
     fun updateOppgave(behandlingEndretEvent: BehandlingEndretEvent) {
         logger.debug("updateOppgave called. Received BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
 
-        if (behandlingEndretEvent.endringslogginnslag.any { it.felt == Felt.TILDELT_SAKSBEHANDLERIDENT } && behandlingEndretEvent.behandling.oppgaveId != null) {
-            oppgaveApiService.assignOppgave(
-                oppgaveId = behandlingEndretEvent.behandling.oppgaveId!!,
+        val relevantEndringslogginnslag = behandlingEndretEvent.endringslogginnslag.find { it.felt == Felt.TILDELT_SAKSBEHANDLERIDENT }
+
+        if (relevantEndringslogginnslag != null && behandlingEndretEvent.behandling.gosysOppgaveId != null) {
+            gosysOppgaveService.assignGosysOppgave(
+                gosysOppgaveId = behandlingEndretEvent.behandling.gosysOppgaveId!!,
                 tildeltSaksbehandlerIdent = behandlingEndretEvent.behandling.tildeling?.saksbehandlerident,
-                systemContext = behandlingEndretEvent.endringslogginnslag.any { it.saksbehandlerident == systembrukerIdent }
+                utfoerendeSaksbehandlerIdent = relevantEndringslogginnslag.saksbehandlerident ?: systembrukerIdent,
+                behandlingId = behandlingEndretEvent.behandling.id
             )
         }
 
