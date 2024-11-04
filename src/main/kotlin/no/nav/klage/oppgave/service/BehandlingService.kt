@@ -2292,9 +2292,9 @@ class BehandlingService(
         includeFromInfotrygd: Boolean,
     ): List<Behandling> {
         return if (includeFromInfotrygd) {
-            behandlingRepository.getAnkemuligheterNotFromInfotrygd(partIdValue)
-        } else {
             behandlingRepository.getAnkemuligheter(partIdValue)
+        } else {
+            behandlingRepository.getAnkemuligheterNotFromInfotrygd(partIdValue)
         }
     }
 
