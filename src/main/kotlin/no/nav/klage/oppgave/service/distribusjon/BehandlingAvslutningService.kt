@@ -189,6 +189,7 @@ class BehandlingAvslutningService(
         if (behandling.gosysOppgaveId != null && behandling.gosysOppgaveUpdate != null && !behandling.ignoreGosysOppgave) {
             oppgaveApiService.updateGosysOppgave(
                 behandling = behandling,
+                systemContext = true,
             )
         }
 
@@ -213,7 +214,8 @@ class BehandlingAvslutningService(
 
             oppgaveApiService.addKommentar(
                 behandling = ankeITrygderettenbehandling,
-                kommentar = kommentar
+                kommentar = kommentar,
+                systemContext = true,
             )
         }
     }
@@ -230,7 +232,8 @@ class BehandlingAvslutningService(
 
             oppgaveApiService.addKommentar(
                 behandling = ankeITrygderettenbehandling,
-                kommentar = kommentar
+                kommentar = kommentar,
+                systemContext = true,
             )
         }
     }
