@@ -208,9 +208,10 @@ class GosysOppgaveService(
     }
 
     fun getMappe(
-        id: Long
+        id: Long,
+        systemContext: Boolean
     ): GosysOppgaveMappeView {
-        val mappeResponse = gosysOppgaveClient.getMappe(id = id)
+        val mappeResponse = gosysOppgaveClient.getMappe(id = id, systemContext = systemContext)
 
         if (mappeResponse.id == null) {
             throw OppgaveClientException("Mappe did not contain id")
@@ -251,7 +252,7 @@ class GosysOppgaveService(
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
             status = GosysOppgaveView.Status.valueOf(status.name),
             mappe = if (mappeId != null) {
-                getMappe(id = mappeId)
+                getMappe(id = mappeId, systemContext = systemContext)
             } else null,
             editable = isEditable(),
             opprettetAvEnhet = opprettetAvEnhetsnr?.let {

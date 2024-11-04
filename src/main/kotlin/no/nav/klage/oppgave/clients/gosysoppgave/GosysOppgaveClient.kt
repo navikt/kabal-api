@@ -91,7 +91,8 @@ class GosysOppgaveClient(
 
     @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_ENHETSMAPPE_CACHE)
     fun getMappe(
-        id: Long
+        id: Long,
+        systemContext: Boolean
     ): OppgaveMappe {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::getMappe.name) {
             gosysOppgaveWebClient.get()
@@ -102,7 +103,7 @@ class GosysOppgaveClient(
                 }
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
+                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                 )
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
