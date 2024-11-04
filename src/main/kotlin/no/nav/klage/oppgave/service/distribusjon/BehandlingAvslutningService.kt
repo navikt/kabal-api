@@ -75,6 +75,7 @@ class BehandlingAvslutningService(
         } catch (e: Exception) {
             logger.error("Feilet under avslutning av behandling $behandlingId. Se mer i secure log")
             secureLogger.error("Feilet under avslutning av behandling $behandlingId", e)
+            throw e
         }
     }
 
