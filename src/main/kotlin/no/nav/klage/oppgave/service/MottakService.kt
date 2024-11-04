@@ -633,8 +633,7 @@ class MottakService(
                 partId = PartId(
                     type = PartIdType.of(input.fullmektig.type.name),
                     value = input.fullmektig.value
-                ),
-                skalPartenMottaKopi = true
+                )
             )
         } else {
             null

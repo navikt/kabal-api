@@ -47,11 +47,10 @@ class BehandlingMapper(
             Type.KLAGE -> mapKlagebehandlingToBehandlingDetaljerView(behandling as Klagebehandling)
             Type.ANKE -> mapAnkebehandlingToBehandlingDetaljerView(behandling as Ankebehandling)
             Type.ANKE_I_TRYGDERETTEN -> mapAnkeITrygderettenbehandlingToBehandlingDetaljerView(behandling as AnkeITrygderettenbehandling)
-            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandling as BehandlingEtterTrygderettenOpphevet)
-            Type.OMGJOERINGSKRAV -> mapOmgjoeringskravbehandlingToBehandlingDetaljerView(behandling as Omgjoeringskravbehandling)
             Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(
                 behandling as BehandlingEtterTrygderettenOpphevet
             )
+            Type.OMGJOERINGSKRAV -> mapOmgjoeringskravbehandlingToBehandlingDetaljerView(behandling as Omgjoeringskravbehandling)
         }
     }
 
@@ -126,15 +125,18 @@ class BehandlingMapper(
     fun mapOmgjoeringskravbehandlingToBehandlingDetaljerView(omgjoeringskravbehandling: Omgjoeringskravbehandling): BehandlingDetaljerView {
         val enhetNavn = omgjoeringskravbehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
-        val oppgave = oppgaveApiService.getOppgave(omgjoeringskravbehandling.oppgaveId)
-
         return BehandlingDetaljerView(
             id = omgjoeringskravbehandling.id,
             fraNAVEnhet = omgjoeringskravbehandling.klageBehandlendeEnhet,
             fraNAVEnhetNavn = enhetNavn,
             sakenGjelder = getSakenGjelderViewWithUtsendingskanal(omgjoeringskravbehandling),
             klager = getPartViewWithUtsendingskanal(omgjoeringskravbehandling.klager.partId, omgjoeringskravbehandling),
-            prosessfullmektig = omgjoeringskravbehandling.klager.prosessfullmektig?.let { getPartViewWithUtsendingskanal(it.partId, omgjoeringskravbehandling) },
+            prosessfullmektig = omgjoeringskravbehandling.klager.prosessfullmektig?.let {
+                getPartViewWithUtsendingskanal(
+                    it.partId,
+                    omgjoeringskravbehandling
+                )
+            },
             temaId = omgjoeringskravbehandling.ytelse.toTema().id,
             ytelseId = omgjoeringskravbehandling.ytelse.id,
             typeId = omgjoeringskravbehandling.type.id,
@@ -178,11 +180,9 @@ class BehandlingMapper(
             saksbehandler = omgjoeringskravbehandling.toSaksbehandlerView(),
             previousSaksbehandler = omgjoeringskravbehandling.toPreviousSaksbehandlerView(),
             varsletFrist = omgjoeringskravbehandling.varsletFrist,
-            oppgavebeskrivelse = if (omgjoeringskravbehandling.oppgaveId != null) {
-                oppgave?.beskrivelse ?: "Klarte ikke å hente oppgavebeskrivelse"
-            } else null,
-            oppgave = getOppgaveView(oppgaveId = omgjoeringskravbehandling.oppgaveId),
+            gosysOppgaveId = omgjoeringskravbehandling.gosysOppgaveId,
             kommentarFraVedtaksinstans = null,
+            tilbakekreving = omgjoeringskravbehandling.tilbakekreving,
         )
     }
 

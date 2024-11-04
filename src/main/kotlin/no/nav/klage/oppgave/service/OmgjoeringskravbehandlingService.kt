@@ -51,6 +51,8 @@ class OmgjoeringskravbehandlingService(
                 previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                 oppgaveId = null,
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
+                gosysOppgaveId = null,
+                tilbakekreving = false,
             )
         )
         logger.debug("Created omgjoeringskravbehandling {} for mottak {}", omgjoeringskravbehandling.id, mottak.id)

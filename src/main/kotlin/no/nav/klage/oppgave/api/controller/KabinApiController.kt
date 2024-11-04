@@ -72,7 +72,7 @@ class KabinApiController(
             logger = logger
         )
         return behandlingService.gosysOppgaveIsDuplicate(
-            gosysOppgaveId = input.oppgaveId,
+            gosysOppgaveId = input.gosysOppgaveId,
         )
     }
 

@@ -9,7 +9,6 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
-import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
@@ -26,7 +25,6 @@ class KabinApiService(
     private val ankebehandlingService: AnkebehandlingService,
     private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val klageFssProxyClient: KlageFssProxyClient,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
 ) {
@@ -46,10 +44,10 @@ class KabinApiService(
     fun createAnke(input: CreateAnkeBasedOnKabinInput): CreatedBehandlingResponse {
         val behandling = mottakService.createAnkeMottakAndBehandlingFromKabinInput(input = input)
 
-        if (input.oppgaveId != null) {
+        if (input.gosysOppgaveId != null) {
             behandlingService.setGosysOppgaveIdFromKabin(
                 behandlingId = behandling.id,
-                gosysOppgaveId = input.oppgaveId,
+                gosysOppgaveId = input.gosysOppgaveId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
@@ -66,10 +64,10 @@ class KabinApiService(
     fun createBehandling(input: CreateBehandlingBasedOnKabinInput): CreatedBehandlingResponse {
         val behandling = mottakService.createMottakAndBehandlingFromKabinInput(input = input)
 
-        if (input.oppgaveId != null) {
-            behandlingService.setOppgaveId(
+        if (input.gosysOppgaveId != null) {
+            behandlingService.setGosysOppgaveId(
                 behandlingId = behandling.id,
-                oppgaveId = input.oppgaveId,
+                gosysOppgaveId = input.gosysOppgaveId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
@@ -86,10 +84,10 @@ class KabinApiService(
     fun createAnkeFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): CreatedBehandlingResponse {
         val behandling = mottakService.createAnkeMottakFromCompleteKabinInput(input = input)
 
-        if (input.oppgaveId != null) {
+        if (input.gosysOppgaveId != null) {
             behandlingService.setGosysOppgaveIdFromKabin(
                 behandlingId = behandling.id,
-                gosysOppgaveId = input.oppgaveId,
+                gosysOppgaveId = input.gosysOppgaveId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
@@ -188,10 +186,10 @@ class KabinApiService(
     ): CreatedBehandlingResponse {
         val behandling = mottakService.createKlageMottakFromKabinInput(klageInput = input)
 
-        if (input.oppgaveId != null) {
+        if (input.gosysOppgaveId != null) {
             behandlingService.setGosysOppgaveIdFromKabin(
                 behandlingId = behandling.id,
-                gosysOppgaveId = input.oppgaveId,
+                gosysOppgaveId = input.gosysOppgaveId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }

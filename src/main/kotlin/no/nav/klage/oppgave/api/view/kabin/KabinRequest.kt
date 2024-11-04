@@ -22,7 +22,7 @@ data class BehandlingIsDuplicateInput(
 )
 
 data class GosysOppgaveIsDuplicateInput(
-    val oppgaveId: Long,
+    val gosysOppgaveId: Long,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -36,7 +36,7 @@ data class CreateAnkeBasedOnKabinInput(
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
     val hjemmelIdList: List<String>,
-    val oppgaveId: Long?,
+    val gosysOppgaveId: Long?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,
@@ -58,7 +58,7 @@ data class CreateBehandlingBasedOnKabinInput(
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
     val hjemmelIdList: List<String>,
-    val oppgaveId: Long?,
+    val gosysOppgaveId: Long?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,
@@ -84,7 +84,7 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
-    val oppgaveId: Long?,
+    val gosysOppgaveId: Long?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,
@@ -118,7 +118,7 @@ data class CreateKlageBasedOnKabinInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
-    val oppgaveId: Long?,
+    val gosysOppgaveId: Long?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,
