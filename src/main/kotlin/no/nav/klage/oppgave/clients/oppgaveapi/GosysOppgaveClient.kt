@@ -163,7 +163,7 @@ class GosysOppgaveClient(
     }
 
     @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_GJELDER_CACHE)
-    fun getGjelderKodeverkForTema(tema: Tema): List<Gjelder> {
+    fun getGjelderKodeverkForTema(tema: Tema, systemContext: Boolean): List<Gjelder> {
         val gjelderResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::getGjelderKodeverkForTema.name) {
                 oppgaveApiWebClient.get()
@@ -173,7 +173,7 @@ class GosysOppgaveClient(
                     }
                     .header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                        "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithOppgaveApiScope() else tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
                     )
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
@@ -185,9 +185,9 @@ class GosysOppgaveClient(
     }
 
     @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_OPPGAVETYPE_CACHE)
-    fun getOppgavetypeKodeverkForTema(tema: Tema): List<OppgavetypeResponse> {
+    fun getOppgavetypeKodeverkForTema(tema: Tema, systemContext: Boolean): List<OppgavetypeResponse> {
         val oppgavetypeResponse =
-            logTimingAndWebClientResponseException(GosysOppgaveClient::getGjelderKodeverkForTema.name) {
+            logTimingAndWebClientResponseException(GosysOppgaveClient::getOppgavetypeKodeverkForTema.name) {
                 oppgaveApiWebClient.get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("kodeverk", "oppgavetype", "{tema}")
@@ -195,7 +195,7 @@ class GosysOppgaveClient(
                     }
                     .header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                        "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithOppgaveApiScope() else tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
                     )
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()

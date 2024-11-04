@@ -52,7 +52,7 @@ class GosysOppgaveService(
                 throw IllegalOperation("Gosys-oppgave hører ikke til angitt person")
             }
         }
-        return gosysOppgaveRecord.toGosysOppgaveView()
+        return gosysOppgaveRecord.toGosysOppgaveView(systemContext = false)
     }
 
     fun assignGosysOppgave(
@@ -106,7 +106,7 @@ class GosysOppgaveService(
                         navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
                     ),
                     timestamp = LocalDateTime.now(),
-                    gosysOppgave = updatedGosysOppgave.toGosysOppgaveView(),
+                    gosysOppgave = updatedGosysOppgave.toGosysOppgaveView(systemContext = true),
                 )
             ),
             behandlingId = behandlingId,
@@ -116,8 +116,9 @@ class GosysOppgaveService(
 
     fun updateGosysOppgave(
         behandling: Behandling,
+        systemContext: Boolean,
     ) {
-        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = true)
+        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = systemContext)
 
         val updateGosysOppgaveRequest = UpdateGosysOppgaveInput(
             versjon = currentGosysOppgave.versjon,
@@ -132,15 +133,16 @@ class GosysOppgaveService(
             )
         )
 
-        updateOppgaveAndPublishEvent(behandling, updateGosysOppgaveRequest)
+        updateOppgaveAndPublishEvent(behandling = behandling, updateGosysOppgaveRequest = updateGosysOppgaveRequest, systemContext = systemContext)
     }
 
     fun addKommentar(
         behandling: Behandling,
         kommentar: String,
+        systemContext: Boolean,
     ) {
         logger.debug("Adding kommentar to Gosys-oppgave ${behandling.gosysOppgaveId}")
-        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = true)
+        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = systemContext)
 
         if (!currentGosysOppgave.isEditable()) {
             logger.warn("Gosys-oppgave ${behandling.gosysOppgaveId} kan ikke oppdateres, returnerer")
@@ -156,17 +158,18 @@ class GosysOppgaveService(
             )
         )
 
-        updateOppgaveAndPublishEvent(behandling, updateGosysOppgaveRequest)
+        updateOppgaveAndPublishEvent(behandling = behandling, updateGosysOppgaveRequest = updateGosysOppgaveRequest, systemContext = true)
     }
 
     private fun updateOppgaveAndPublishEvent(
         behandling: Behandling,
-        updateGosysOppgaveRequest: UpdateOppgaveRequest
+        updateGosysOppgaveRequest: UpdateOppgaveRequest,
+        systemContext: Boolean,
     ) {
         val updatedGosysOppgave = gosysOppgaveClient.updateGosysOppgave(
             gosysOppgaveId = behandling.gosysOppgaveId!!,
             updateOppgaveInput = updateGosysOppgaveRequest,
-            systemContext = true,
+            systemContext = systemContext,
         )
 
         val saksbehandlerident = behandling.tildeling?.saksbehandlerident ?: systembrukerIdent
@@ -179,7 +182,7 @@ class GosysOppgaveService(
                         navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerident),
                     ),
                     timestamp = LocalDateTime.now(),
-                    gosysOppgave = updatedGosysOppgave.toGosysOppgaveView(),
+                    gosysOppgave = updatedGosysOppgave.toGosysOppgaveView(systemContext = systemContext),
                 )
             ),
             behandlingId = behandling.id,
@@ -227,10 +230,10 @@ class GosysOppgaveService(
             tema = tema,
         )
 
-        return gosysOppgaveList.map { it.toGosysOppgaveView() }
+        return gosysOppgaveList.map { it.toGosysOppgaveView(systemContext = false) }
     }
 
-    fun GosysOppgaveRecord.toGosysOppgaveView(): GosysOppgaveView {
+    fun GosysOppgaveRecord.toGosysOppgaveView(systemContext: Boolean): GosysOppgaveView {
         val tema = Tema.fromNavn(tema)
         return GosysOppgaveView(
             id = id,
@@ -242,8 +245,8 @@ class GosysOppgaveService(
             opprettetTidspunkt = opprettetTidspunkt,
             beskrivelse = beskrivelse,
             temaId = tema.id,
-            gjelder = getGjelder(behandlingstype = behandlingstype, tema = tema),
-            oppgavetype = getOppgavetype(oppgavetype = oppgavetype, tema = tema),
+            gjelder = getGjelder(behandlingstype = behandlingstype, tema = tema, systemContext = systemContext),
+            oppgavetype = getOppgavetype(oppgavetype = oppgavetype, tema = tema, systemContext = systemContext),
             fristFerdigstillelse = fristFerdigstillelse,
             ferdigstiltTidspunkt = ferdigstiltTidspunkt,
             status = GosysOppgaveView.Status.valueOf(status.name),
@@ -270,20 +273,20 @@ class GosysOppgaveService(
         } else null
     }
 
-    private fun getGjelder(behandlingstype: String?, tema: Tema): String? {
-        return getGjelderKodeverkForTema(tema = tema).firstOrNull { it.behandlingstype == behandlingstype }?.behandlingstypeTerm
+    private fun getGjelder(behandlingstype: String?, tema: Tema, systemContext: Boolean): String? {
+        return getGjelderKodeverkForTema(tema = tema, systemContext = systemContext).firstOrNull { it.behandlingstype == behandlingstype }?.behandlingstypeTerm
     }
 
-    private fun getOppgavetype(oppgavetype: String?, tema: Tema): String? {
-        return getOppgavetypeKodeverkForTema(tema = tema).firstOrNull { it.oppgavetype == oppgavetype }?.term
+    private fun getOppgavetype(oppgavetype: String?, tema: Tema, systemContext: Boolean): String? {
+        return getOppgavetypeKodeverkForTema(tema = tema, systemContext = systemContext).firstOrNull { it.oppgavetype == oppgavetype }?.term
     }
 
-    private fun getGjelderKodeverkForTema(tema: Tema): List<Gjelder> {
-        return gosysOppgaveClient.getGjelderKodeverkForTema(tema = tema)
+    private fun getGjelderKodeverkForTema(tema: Tema, systemContext: Boolean): List<Gjelder> {
+        return gosysOppgaveClient.getGjelderKodeverkForTema(tema = tema, systemContext = systemContext)
     }
 
-    private fun getOppgavetypeKodeverkForTema(tema: Tema): List<OppgavetypeResponse> {
-        return gosysOppgaveClient.getOppgavetypeKodeverkForTema(tema = tema)
+    private fun getOppgavetypeKodeverkForTema(tema: Tema, systemContext: Boolean): List<OppgavetypeResponse> {
+        return gosysOppgaveClient.getOppgavetypeKodeverkForTema(tema = tema, systemContext = systemContext)
     }
 
     private fun publishInternalEvent(data: String, behandlingId: UUID, type: InternalEventType) {
