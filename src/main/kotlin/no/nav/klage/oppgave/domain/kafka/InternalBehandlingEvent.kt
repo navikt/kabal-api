@@ -4,6 +4,7 @@ import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
+import no.nav.klage.oppgave.api.view.GosysOppgaveView
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -45,6 +46,8 @@ enum class InternalEventType {
     FERDIGSTILT,
     SATT_PAA_VENT,
     TILDELING,
+    TILBAKEKREVING,
+    GOSYSOPPGAVE,
 }
 
 data class Employee(
@@ -106,6 +109,18 @@ data class UtfallEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val utfallId: String?,
+) : BaseEvent(actor = actor, timestamp = timestamp)
+
+data class GosysoppgaveEvent(
+    override val actor: Employee,
+    override val timestamp: LocalDateTime,
+    val gosysOppgave: GosysOppgaveView?,
+) : BaseEvent(actor = actor, timestamp = timestamp)
+
+data class TilbakekrevingEvent(
+    override val actor: Employee,
+    override val timestamp: LocalDateTime,
+    val tilbakekreving: Boolean,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class ExtraUtfallEvent(

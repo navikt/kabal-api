@@ -162,7 +162,6 @@ class KlagebehandlingRepositoryTest {
             klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
             sakenGjelder = SakenGjelder(
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-                skalMottaKopi = false
             ),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
@@ -177,7 +176,7 @@ class KlagebehandlingRepositoryTest {
             modified = LocalDateTime.now(),
             frist = LocalDate.now().plusWeeks(12),
             previousSaksbehandlerident = "C78901",
-            oppgaveId = null,
+            gosysOppgaveId = null,
         )
 
         ankebehandlingRepository.save(ankebehandling)
@@ -213,7 +212,6 @@ class KlagebehandlingRepositoryTest {
         klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
         sakenGjelder = SakenGjelder(
             partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            skalMottaKopi = false
         ),
         ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,
@@ -234,6 +232,6 @@ class KlagebehandlingRepositoryTest {
         kakaKvalitetsvurderingId = UUID.randomUUID(),
         kakaKvalitetsvurderingVersion = 2,
         previousSaksbehandlerident = "C78901",
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
 }

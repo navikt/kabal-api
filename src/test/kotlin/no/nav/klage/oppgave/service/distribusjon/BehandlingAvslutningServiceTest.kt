@@ -16,6 +16,7 @@ import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFullfoerOutput
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
+import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
@@ -38,7 +39,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -155,7 +155,10 @@ internal class BehandlingAvslutningServiceTest {
     lateinit var kakaApiGateway: KakaApiGateway
 
     @MockkBean(relaxed = true)
-    lateinit var oppgaveApiService: OppgaveApiService
+    lateinit var gosysOppgaveService: GosysOppgaveService
+
+    @MockkBean(relaxed = true)
+    lateinit var norg2Client: Norg2Client
 
     private val mottak = Mottak(
         ytelse = Ytelse.OMS_OMP,
@@ -176,7 +179,6 @@ internal class BehandlingAvslutningServiceTest {
         klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
         sakenGjelder = SakenGjelder(
             partId = PartId(type = PartIdType.PERSON, value = fnr),
-            skalMottaKopi = false
         ),
         ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,
@@ -198,25 +200,8 @@ internal class BehandlingAvslutningServiceTest {
         utfall = Utfall.MEDHOLD,
         extraUtfallSet = setOf(Utfall.MEDHOLD),
         previousSaksbehandlerident = "C78901",
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
-
-    @Test
-    fun `save klagebehandling`() {
-        mottakRepository.save(mottak)
-
-        klagebehandlingRepository.save(klage.apply {
-            this.ferdigstilling = Ferdigstilling(
-                avsluttetAvSaksbehandler = LocalDateTime.now(),
-                navIdent = "navIdent",
-                navn = "navn",
-            )
-        })
-
-        behandlingAvslutningService.avsluttBehandling(klagebehandlingId)
-
-        klagebehandlingRepository.findByIdOrNull(klagebehandlingId) ?: throw NullPointerException()
-    }
 
     @Test
     fun `distribusjon av klagebehandling fører til avsluttet klagebehandling`() {

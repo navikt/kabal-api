@@ -140,6 +140,8 @@ class BehandlingServiceTest {
             partSearchService = mockk(),
             safFacade = mockk(),
             tokenUtil = mockk(),
+            gosysOppgaveService = mockk(),
+            norg2Client = mockk(),
         )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
@@ -313,7 +315,7 @@ class BehandlingServiceTest {
             behandlingService.ferdigstillBehandling(
                 behandlingId = behandling.id,
                 innloggetIdent = SAKSBEHANDLER_IDENT,
-                returnOppgaveInput = null,
+                gosysOppgaveInput = null,
                 nyBehandlingEtterTROpphevet = false,
             )
         }
@@ -432,7 +434,6 @@ class BehandlingServiceTest {
             klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
             sakenGjelder = SakenGjelder(
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-                skalMottaKopi = false
             ),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
@@ -467,7 +468,7 @@ class BehandlingServiceTest {
 
             ferdigstilling = if (fullfoert) ferdigstilling else null,
             previousSaksbehandlerident = "C78901",
-            oppgaveId = null,
+            gosysOppgaveId = null,
         )
 
         behandlingRepository.save(behandling)

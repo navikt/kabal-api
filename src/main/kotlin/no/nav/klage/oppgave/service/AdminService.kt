@@ -10,8 +10,14 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsM
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
+import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.skjermede.SkjermedeApiClient
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
@@ -21,11 +27,9 @@ import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.eventlisteners.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.repositories.*
-import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
-import no.nav.klage.oppgave.util.getSortKey
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.*
 import org.slf4j.Logger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -57,6 +61,9 @@ class AdminService(
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingService: BehandlingService,
     private val mottakRepository: MottakRepository,
+    private val klageFssProxyClient: KlageFssProxyClient,
+    private val tokenUtil: TokenUtil,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
     companion object {
@@ -160,6 +167,17 @@ class AdminService(
 
         //Delete in search
         behandlingEndretKafkaProducer.sendBehandlingDeleted(behandlingId)
+
+        if (behandling.fagsystem == Fagsystem.IT01) {
+            logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
+            klageFssProxyClient.setToFeilregistrertInKabal(
+                sakId = behandling.kildeReferanse,
+                input = FeilregistrertInKabalInput(
+                    saksbehandlerIdent = systembrukerIdent,
+                )
+            )
+            logger.debug("Feilregistrering av behandling ble registrert i Infotrygd.")
+        }
 
         //Delete in dokumentarkiv? Probably not necessary. They clean up when they need to.
     }
@@ -399,6 +417,52 @@ class AdminService(
         }
         logger.debug("setSortKeyToDUA: ${allDUAs.size} DUAs were updated with sortKeys: $keys")
     }
+
+    fun migrateTilbakekreving() {
+        val candidates = behandlingRepository.findByTilbakekrevingIsFalse()
+        logger.debug("Found ${candidates.size} candidates for tilbakekreving migration.")
+        var migrations = 0
+        candidates.forEach { candidate ->
+            if (candidate.registreringshjemler.any {
+                    it in tilbakekrevingHjemler
+                }
+            ) {
+                candidate.tilbakekreving = true
+                migrations++
+            }
+        }
+        logger.debug("Migrated $migrations candidates.")
+    }
+
+    fun getInfotrygdsak(sakId: String): SakFromKlanke {
+        return klageFssProxyClient.getSakWithAppAccess(
+            sakId = sakId,
+            input = GetSakAppAccessInput(
+                saksbehandlerIdent = tokenUtil.getIdent(),
+            )
+        )
+    }
+
+    val tilbakekrevingHjemler = listOf(
+        Registreringshjemmel.FTRL_22_15_TILBAKEKREVING,
+        Registreringshjemmel.FTRL_22_15A,
+        Registreringshjemmel.FTRL_22_15B,
+        Registreringshjemmel.FTRL_22_15C,
+        Registreringshjemmel.FTRL_22_15G,
+        Registreringshjemmel.FTRL_22_15D,
+        Registreringshjemmel.FTRL_22_15E,
+        Registreringshjemmel.FTRL_22_15F,
+        Registreringshjemmel.FORSKL_8,
+        Registreringshjemmel.INNKL_25_T,
+        Registreringshjemmel.INNKL_26A_T,
+        Registreringshjemmel.INNKL_26B_T,
+        Registreringshjemmel.INNKL_29,
+        Registreringshjemmel.FTRL_22_17A,
+        Registreringshjemmel.FTRL_4_28,
+        Registreringshjemmel.SUP_ST_L_13,
+        Registreringshjemmel.BTRL_13,
+        Registreringshjemmel.KONTSL_11,
+    )
 }
 
 fun migrateTables(fromJsonString: String?, secureLogger: Logger?): String {

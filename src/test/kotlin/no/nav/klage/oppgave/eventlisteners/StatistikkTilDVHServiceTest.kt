@@ -171,7 +171,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), skalMottaKopi = false
+            ),
         ),
         ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,
@@ -190,7 +190,7 @@ class StatistikkTilDVHServiceTest {
         saksdokumenter = mutableSetOf(),
         hjemler = setOf(),
         sattPaaVent = null,
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
 
     private val klagebehandlingHJE = Klagebehandling(
@@ -210,7 +210,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), skalMottaKopi = false
+            ),
         ),
         ytelse = Ytelse.HJE_HJE,
         type = Type.KLAGE,
@@ -229,7 +229,7 @@ class StatistikkTilDVHServiceTest {
         saksdokumenter = mutableSetOf(),
         hjemler = setOf(),
         sattPaaVent = null,
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
 
     private val ankebehandlingOMP = Ankebehandling(
@@ -245,7 +245,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), skalMottaKopi = false
+            ),
         ),
         ytelse = Ytelse.OMS_OMP,
         type = Type.ANKE,
@@ -268,7 +268,7 @@ class StatistikkTilDVHServiceTest {
         klageBehandlendeEnhet = "",
         sourceBehandlingId = null,
         previousSaksbehandlerident = "C78901",
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
 
     private val ankeITrygderettenbehandlingOMP = AnkeITrygderettenbehandling(
@@ -282,7 +282,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), skalMottaKopi = false
+            ),
         ),
         ytelse = Ytelse.OMS_OMP,
         type = Type.ANKE_I_TRYGDERETTEN,
@@ -302,6 +302,6 @@ class StatistikkTilDVHServiceTest {
         sendtTilTrygderetten = LocalDateTime.now(),
         kjennelseMottatt = null,
         previousSaksbehandlerident = "C78901",
-        oppgaveId = null,
+        gosysOppgaveId = null,
     )
 }

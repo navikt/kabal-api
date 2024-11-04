@@ -58,7 +58,8 @@ class KlagebehandlingService(
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                 hjemler = mottak.mapToBehandlingHjemler(),
                 kommentarFraFoersteinstans = mottak.kommentar,
-                oppgaveId = null,
+                gosysOppgaveId = null,
+                tilbakekreving = false,
             )
         )
         logger.debug("Created klagebehandling {} for mottak {}", klagebehandling.id, mottak.id)

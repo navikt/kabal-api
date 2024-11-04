@@ -18,8 +18,8 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         type: Type,
     ): List<Behandling>
 
-    fun findByOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
-        oppgaveId: Long,
+    fun findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
+        gosysOppgaveId: Long,
     ): List<Behandling>
 
     fun findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull(): List<Behandling>
@@ -85,5 +85,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             Type.ANKE_I_TRYGDERETTEN,
         )
     ): List<Behandling>
+
+    fun findByTilbakekrevingIsFalse(): List<Behandling>
 
 }

@@ -4,11 +4,11 @@ import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 
 @Embeddable
-data class OppgaveReturned(
+data class GosysOppgaveUpdate(
     @Column(name = "oppgave_returned_tildelt_enhetsnummer")
-    val oppgaveReturnedTildeltEnhetsnummer: String,
+    val oppgaveUpdateTildeltEnhetsnummer: String,
     @Column(name = "oppgave_returned_mappe_id")
-    val oppgaveReturnedMappeId: Long?,
+    val oppgaveUpdateMappeId: Long?,
     @Column(name = "oppgave_returned_kommentar")
-    val oppgaveReturnedKommentar: String,
+    val oppgaveUpdateKommentar: String,
 )

@@ -474,7 +474,6 @@ class OppgaveServiceTest {
                     klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
-                        skalMottaKopi = false
                     ),
                     ytelse = ytelse,
                     type = type,
@@ -501,7 +500,7 @@ class OppgaveServiceTest {
                         enhet = enhetId,
                         tidspunkt = now,
                     ),
-                    oppgaveId = null,
+                    gosysOppgaveId = null,
                 )
             }
 
@@ -510,7 +509,6 @@ class OppgaveServiceTest {
                     klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
-                        skalMottaKopi = false
                     ),
                     ytelse = ytelse,
                     type = type,
@@ -537,7 +535,7 @@ class OppgaveServiceTest {
                         enhet = enhetId,
                         tidspunkt = now,
                     ),
-                    oppgaveId = null,
+                    gosysOppgaveId = null,
                 )
             }
 
@@ -546,7 +544,6 @@ class OppgaveServiceTest {
                     klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
-                        skalMottaKopi = false
                     ),
                     ytelse = ytelse,
                     type = type,
@@ -568,7 +565,7 @@ class OppgaveServiceTest {
                         tidspunkt = now,
                     ),
                     sendtTilTrygderetten = LocalDateTime.now(),
-                    oppgaveId = null,
+                    gosysOppgaveId = null,
                 )
             }
 
@@ -577,7 +574,6 @@ class OppgaveServiceTest {
                     klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-                        skalMottaKopi = false
                     ),
                     ytelse = ytelse,
                     type = type,
@@ -599,7 +595,7 @@ class OppgaveServiceTest {
                         tidspunkt = now,
                     ),
                     kjennelseMottatt = LocalDateTime.now(),
-                    oppgaveId = null,
+                    gosysOppgaveId = null,
                     sourceBehandlingId = UUID.randomUUID(),
                     frist = LocalDate.now().plusWeeks(12),
                     kakaKvalitetsvurderingId = UUID.randomUUID(),

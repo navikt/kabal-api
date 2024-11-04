@@ -47,9 +47,9 @@ class KabinApiService(
         val behandling = mottakService.createAnkeMottakAndBehandlingFromKabinInput(input = input)
 
         if (input.oppgaveId != null) {
-            behandlingService.setOppgaveId(
+            behandlingService.setGosysOppgaveIdFromKabin(
                 behandlingId = behandling.id,
-                oppgaveId = input.oppgaveId,
+                gosysOppgaveId = input.oppgaveId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
@@ -87,9 +87,9 @@ class KabinApiService(
         val behandling = mottakService.createAnkeMottakFromCompleteKabinInput(input = input)
 
         if (input.oppgaveId != null) {
-            behandlingService.setOppgaveId(
+            behandlingService.setGosysOppgaveIdFromKabin(
                 behandlingId = behandling.id,
-                oppgaveId = input.oppgaveId,
+                gosysOppgaveId = input.oppgaveId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }
@@ -189,9 +189,9 @@ class KabinApiService(
         val behandling = mottakService.createKlageMottakFromKabinInput(klageInput = input)
 
         if (input.oppgaveId != null) {
-            behandlingService.setOppgaveId(
+            behandlingService.setGosysOppgaveIdFromKabin(
                 behandlingId = behandling.id,
-                oppgaveId = input.oppgaveId,
+                gosysOppgaveId = input.oppgaveId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )
         }

@@ -111,6 +111,7 @@ class MockDataController(
                 brukersHenvendelseMottattNavDato = dato,
                 innsendtTilNav = dato.minusDays(3),
                 kilde = Fagsystem.AO01,
+                hindreAutomatiskSvarbrev = null,
                 kommentar = """
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
                     sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
@@ -174,7 +175,8 @@ class MockDataController(
                 ),
                 brukersHenvendelseMottattNavDato = dato,
                 innsendtTilNav = dato.minusDays(3),
-                kilde = Fagsystem.AO01
+                kilde = Fagsystem.AO01,
+                hindreAutomatiskSvarbrev = null,
             )
         )
     }
@@ -300,6 +302,7 @@ class MockDataController(
                         innsendtTilNav = dato.minusDays(3),
                         kilde = Fagsystem.AO01,
                         kommentar = mockInput?.kommentar,
+                        hindreAutomatiskSvarbrev = mockInput?.hindreAutomatiskSvarbrev,
                     )
                 )
             }
@@ -334,7 +337,8 @@ class MockDataController(
                     registreringsHjemmelSet = registreringsHjemmelSet,
                     ankebehandlingUtfall = ExternalUtfall.valueOf(utfallToTrygderetten.random().name),
                     previousSaksbehandlerident = null,
-                    oppgaveId = null,
+                    gosysOppgaveId = null,
+                    tilbakekreving = false,
                 )
 
                 ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
@@ -379,6 +383,7 @@ class MockDataController(
         val forrigeBehandlendeEnhet: String?,
         val kommentar: String?,
         val sakMottattKaTidspunkt: LocalDate?,
+        val hindreAutomatiskSvarbrev: Boolean?,
     )
 
     val hjemlerHJE_HJE = listOf(

@@ -137,6 +137,20 @@ class AdminController(
         }
     }
 
+    @GetMapping("/internal/migrateTilbakekreving", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun migrateTilbakekreving() {
+        logger.debug("migrateTilbakekreving is called")
+        krevAdminTilgang()
+        try {
+            logger.info("Migrating tilbakekreving")
+            adminService.migrateTilbakekreving()
+        } catch (e: Exception) {
+            logger.warn("Failed to migrate tilbakekreving", e)
+            throw e
+        }
+    }
+
     data class Fnr(val fnr: String)
 
     private fun krevAdminTilgang() {

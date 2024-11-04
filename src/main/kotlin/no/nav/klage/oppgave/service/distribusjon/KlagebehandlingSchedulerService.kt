@@ -37,7 +37,7 @@ class KlagebehandlingSchedulerService(
     }
 
     //TODO: Hvorfor vente 4 minutter?
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 4)
+    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 2, initialDelay = 4)
     @SchedulerLock(name = "avsluttBehandling")
     fun avsluttBehandling() {
         logger.debug("avsluttBehandling is called by scheduler")

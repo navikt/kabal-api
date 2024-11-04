@@ -48,14 +48,9 @@ data class BehandlingDetaljerView(
     val saksbehandler: SaksbehandlerView?,
     val previousSaksbehandler: SaksbehandlerView?,
     val varsletFrist: LocalDate?,
-    val oppgavebeskrivelse: String?,
-    val oppgave: GosysOppgaveView?,
+    val gosysOppgaveId: Long?,
+    val tilbakekreving: Boolean,
 ) {
-    data class GosysOppgaveView(
-        val beskrivelse: String,
-        val opprettetAv: EnhetView?,
-    )
-
     data class CombinedMedunderskriverAndROLView(
         val employee: SaksbehandlerView?,
         val flowState: FlowState,

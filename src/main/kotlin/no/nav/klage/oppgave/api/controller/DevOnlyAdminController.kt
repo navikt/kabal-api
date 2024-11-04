@@ -3,12 +3,17 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
+import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.Unprotected
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -20,6 +25,8 @@ class DevOnlyAdminController(
     private val adminService: AdminService,
     private val tokenUtil: TokenUtil,
     private val behandlingService: BehandlingService,
+    private val klageFssProxyClient: KlageFssProxyClient,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
     companion object {
@@ -126,13 +133,24 @@ class DevOnlyAdminController(
         @Parameter(description = "Feilregistrering")
         @Valid @RequestBody feilregistrering: ExternalFeilregistreringInput,
     ) {
-        behandlingService.feilregistrer(
+        val behandling = behandlingService.feilregistrer(
             type = feilregistrering.type,
             reason = feilregistrering.reason,
             navIdent = feilregistrering.navIdent,
             fagsystem = feilregistrering.fagsystem,
             kildereferanse = feilregistrering.kildereferanse,
         )
+
+        if (behandling.fagsystem == Fagsystem.IT01) {
+            logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
+            klageFssProxyClient.setToFeilregistrertInKabal(
+                sakId = behandling.kildeReferanse,
+                input = FeilregistrertInKabalInput(
+                    saksbehandlerIdent = systembrukerIdent,
+                )
+            )
+            logger.debug("Feilregistrering av behandling ble registrert i Infotrygd.")
+        }
     }
 
     @Unprotected
@@ -146,6 +164,16 @@ class DevOnlyAdminController(
             logger.warn("Failed to setSortKeyToDUA", e)
             throw e
         }
+    }
+
+    @Unprotected
+    @GetMapping("/internal/infotrygdsaker/{id}")
+    fun getInfotrygdsak(
+        @PathVariable("id") id: String
+    ): SakFromKlanke {
+        logger.debug("getInfotrygdsak is called in dev")
+
+        return adminService.getInfotrygdsak(id)
     }
 
     data class Fnr(val fnr: String)

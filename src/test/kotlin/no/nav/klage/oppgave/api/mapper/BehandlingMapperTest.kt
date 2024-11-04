@@ -54,7 +54,7 @@ class BehandlingMapperTest {
     lateinit var dokDistKanalService: DokDistKanalService
 
     @MockkBean
-    lateinit var oppgaveApiService: OppgaveApiService
+    lateinit var gosysOppgaveService: GosysOppgaveService
 
     @Autowired
     lateinit var behandlingMapper: BehandlingMapper
@@ -91,7 +91,9 @@ class BehandlingMapperTest {
             fagsakId = "123",
             kildeReferanse = "abc",
             klager = Klager(PartId(PartIdType.PERSON, FNR)),
-            sakenGjelder = SakenGjelder(PartId(PartIdType.PERSON, FNR), false),
+            sakenGjelder = SakenGjelder(
+                partId = PartId(PartIdType.PERSON, FNR),
+            ),
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
@@ -102,7 +104,7 @@ class BehandlingMapperTest {
             kakaKvalitetsvurderingVersion = 2,
             frist = LocalDate.now().plusWeeks(12),
             previousSaksbehandlerident = "C78901",
-            oppgaveId = null,
+            gosysOppgaveId = null,
         )
     }
 

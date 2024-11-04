@@ -77,7 +77,7 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
-        sendSvarbrev(behandling = behandling)
+        sendSvarbrev(behandling = behandling, oversendtKlage.hindreAutomatiskSvarbrev == true)
 
         updateMetrics(
             kilde = oversendtKlage.kilde.name,
@@ -97,7 +97,7 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
-        sendSvarbrev(behandling = behandling)
+        sendSvarbrev(behandling = behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
 
         updateMetrics(
             kilde = oversendtKlageAnke.kilde.name,
@@ -107,8 +107,13 @@ class MottakService(
     }
 
     private fun sendSvarbrev(
-        behandling: Behandling
+        behandling: Behandling,
+        hindreAutomatiskSvarbrev: Boolean,
     ) {
+        if (hindreAutomatiskSvarbrev) {
+            logger.debug("hindreAutomatiskSvarbrev set to true, returning without sending svarbrev")
+            return
+        }
         if (behandling.type == Type.KLAGE) {
             try {
                 val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(ytelse = behandling.ytelse, type = behandling.type)
@@ -182,7 +187,7 @@ class MottakService(
         logger.debug("Behandling created from mottak")
 
         //For verification
-        sendSvarbrev(behandling = behandling)
+        sendSvarbrev(behandling = behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
 
         return behandling
     }
@@ -562,7 +567,6 @@ class MottakService(
                     type = PartIdType.of(input.fullmektig.type.name),
                     value = input.fullmektig.value
                 ),
-                skalPartenMottaKopi = true
             )
         } else {
             null
@@ -700,7 +704,6 @@ class MottakService(
         val prosessfullmektig = if (fullmektig != null) {
             Prosessfullmektig(
                 partId = fullmektig.toPartId(),
-                skalPartenMottaKopi = true
             )
         } else {
             null
@@ -723,8 +726,6 @@ class MottakService(
             klager = klager,
             sakenGjelder = SakenGjelder(
                 partId = sakenGjelder.toPartId(),
-                //TODO ever used?
-                skalMottaKopi = false
             ),
             innsynUrl = null,
             fagsystem = Fagsystem.of(fagsystemId),
@@ -754,7 +755,6 @@ class MottakService(
         val prosessfullmektig = if (fullmektig != null) {
             Prosessfullmektig(
                 partId = fullmektig.toPartId(),
-                skalPartenMottaKopi = true
             )
         } else {
             null
@@ -777,8 +777,6 @@ class MottakService(
             klager = klager,
             sakenGjelder = SakenGjelder(
                 partId = sakenGjelder.toPartId(),
-                //TODO ever used?
-                skalMottaKopi = false
             ),
             innsynUrl = null,
             fagsystem = Fagsystem.of(fagsystemId),

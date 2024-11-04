@@ -80,7 +80,7 @@ class BehandlingController(
         @PathVariable("behandlingId") behandlingId: UUID,
         //change value name after testing
         @RequestParam(value = "nybehandling", required = false) nyBehandlingEtterTROpphevet: Boolean = false,
-        @RequestBody(required = false) input: ReturnOppgaveInput?
+        @RequestBody(required = false) gosysOppgaveInput: GosysOppgaveInput?,
     ): BehandlingFullfoertView {
         logKlagebehandlingMethodDetails(
             ::fullfoerBehandling.name,
@@ -92,7 +92,7 @@ class BehandlingController(
         return behandlingService.ferdigstillBehandling(
             behandlingId = behandlingId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            returnOppgaveInput = input,
+            gosysOppgaveInput = gosysOppgaveInput,
             nyBehandlingEtterTROpphevet = nyBehandlingEtterTROpphevet,
         )
     }
@@ -321,6 +321,27 @@ class BehandlingController(
         return BehandlingEditedView(modified = modified)
     }
 
+    @PutMapping("/{behandlingId}/tilbakekreving")
+    fun setTilbakekreving(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @RequestBody input: TilbakekrevingInput,
+    ): BehandlingEditedView {
+        logBehandlingMethodDetails(
+            ::setTilbakekreving.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        val modified = behandlingService.setTilbakekreving(
+            behandlingId = behandlingId,
+            tilbakekreving = input.tilbakekreving,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+
+        return BehandlingEditedView(modified = modified)
+    }
+
     @GetMapping("/{behandlingId}/potentialsaksbehandlere")
     fun getPotentialSaksbehandlere(
         @PathVariable("behandlingId") behandlingId: UUID,
@@ -449,6 +470,25 @@ class BehandlingController(
         )
     }
 
+    @PutMapping("/{behandlingId}/gosysoppgaveid")
+    fun setGosysOppgaveId(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @RequestBody input: GosysOppgaveIdInput
+    ): GosysOppgaveEditedView {
+        logBehandlingMethodDetails(
+            ::setGosysOppgaveId.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        return behandlingService.setGosysOppgaveId(
+            behandlingId = behandlingId,
+            gosysOppgaveId = input.gosysOppgaveId,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+    }
+
     @PutMapping("/{behandlingId}/resultat/utfall")
     fun setUtfall(
         @PathVariable("behandlingId") behandlingId: UUID,
@@ -561,5 +601,57 @@ class BehandlingController(
             paaVentBehandlinger = behandlinger.filter { it.id != behandlingId && it.sattPaaVent != null }
                 .sortedByDescending { it.mottattKlageinstans }.map { it.id },
         )
+    }
+
+    @Operation(
+        summary = "Hent oppgaver i Gosys gjelder personen i behandlingen",
+        description = "Finner alle Gosys-oppgaver som gjelder personen behandlingen gjelder."
+    )
+    @GetMapping("/{behandlingId}/gosysoppgaver", produces = ["application/json"])
+    fun findGosysoppgaver(
+        @PathVariable("behandlingId") behandlingId: UUID,
+    ): List<GosysOppgaveView> {
+        logMethodDetails(
+            ::findGosysoppgaver.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        return behandlingService.findRelevantGosysOppgaver(
+            behandlingId = behandlingId
+        )
+    }
+
+    @Operation(
+        summary = "Hent gjeldende Gosys-oppgave for behandlingen",
+        description = "Henter en Gosys-oppgave."
+    )
+    @GetMapping("/{behandlingId}/gosysoppgave", produces = ["application/json"])
+    fun getGosysOppgave(
+        @PathVariable("behandlingId") behandlingId: UUID,
+    ): GosysOppgaveView {
+        logMethodDetails(
+            ::getGosysOppgave.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        return behandlingService.getGosysOppgave(
+            behandlingId = behandlingId,
+        )
+    }
+
+    @GetMapping("/{behandlingId}/fradelingreason")
+    fun getFradelingReason(
+        @PathVariable("behandlingId") behandlingId: UUID
+    ): WithPrevious<TildelingEvent>? {
+        logBehandlingMethodDetails(
+            ::getFradelingReason.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        return behandlingService.getFradelingReason(behandlingId)
     }
 }

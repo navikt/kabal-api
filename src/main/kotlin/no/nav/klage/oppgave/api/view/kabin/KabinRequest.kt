@@ -21,7 +21,7 @@ data class BehandlingIsDuplicateInput(
     val typeId: String
 )
 
-data class OppgaveIsDuplicateInput(
+data class GosysOppgaveIsDuplicateInput(
     val oppgaveId: Long,
 )
 
