@@ -1,7 +1,7 @@
-package no.nav.klage.oppgave.clients.oppgaveapi
+package no.nav.klage.oppgave.clients.gosysoppgave
 
 import no.nav.klage.kodeverk.Tema
-import no.nav.klage.oppgave.clients.oppgaveapi.OppgaveMapperResponse.OppgaveMappe
+import no.nav.klage.oppgave.clients.gosysoppgave.OppgaveMapperResponse.OppgaveMappe
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
@@ -16,7 +16,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 
 @Component
 class GosysOppgaveClient(
-    private val oppgaveApiWebClient: WebClient,
+    private val gosysOppgaveWebClient: WebClient,
     private val tokenUtil: TokenUtil,
     @Value("\${spring.application.name}") private val applicationName: String,
 ) {
@@ -29,13 +29,13 @@ class GosysOppgaveClient(
 
     fun getGosysOppgave(gosysOppgaveId: Long, systemContext: Boolean): GosysOppgaveRecord {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgave.name) {
-            oppgaveApiWebClient.get()
+            gosysOppgaveWebClient.get()
                 .uri { uriBuilder ->
                     uriBuilder.pathSegment("oppgaver", "{id}").build(gosysOppgaveId)
                 }
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithOppgaveApiScope() else tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                 )
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
@@ -50,14 +50,14 @@ class GosysOppgaveClient(
         systemContext: Boolean
     ): GosysOppgaveRecord {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
-            oppgaveApiWebClient.patch()
+            gosysOppgaveWebClient.patch()
                 .uri { uriBuilder ->
                     uriBuilder.pathSegment("oppgaver", "{id}").build(gosysOppgaveId)
                 }
                 .bodyValue(updateOppgaveInput)
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithOppgaveApiScope() else tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                 )
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
@@ -71,7 +71,7 @@ class GosysOppgaveClient(
         enhetsnr: String
     ): OppgaveMapperResponse {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::getMapperForEnhet.name) {
-            oppgaveApiWebClient.get()
+            gosysOppgaveWebClient.get()
                 .uri { uriBuilder ->
                     uriBuilder
                         .path("/mapper")
@@ -80,7 +80,7 @@ class GosysOppgaveClient(
                 }
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                 )
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
@@ -94,7 +94,7 @@ class GosysOppgaveClient(
         id: Long
     ): OppgaveMappe {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::getMappe.name) {
-            oppgaveApiWebClient.get()
+            gosysOppgaveWebClient.get()
                 .uri { uriBuilder ->
                     uriBuilder
                         .path("/mapper/{id}")
@@ -102,7 +102,7 @@ class GosysOppgaveClient(
                 }
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                 )
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
@@ -117,7 +117,7 @@ class GosysOppgaveClient(
     ): List<GosysOppgaveRecord> {
         val oppgaveResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::fetchGosysOppgaveForAktoerIdAndTema.name) {
-                oppgaveApiWebClient.get()
+                gosysOppgaveWebClient.get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
@@ -128,7 +128,7 @@ class GosysOppgaveClient(
                     }
                     .header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                     )
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
@@ -166,14 +166,14 @@ class GosysOppgaveClient(
     fun getGjelderKodeverkForTema(tema: Tema, systemContext: Boolean): List<Gjelder> {
         val gjelderResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::getGjelderKodeverkForTema.name) {
-                oppgaveApiWebClient.get()
+                gosysOppgaveWebClient.get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("kodeverk", "gjelder", "{tema}")
                         uriBuilder.build(tema.navn)
                     }
                     .header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithOppgaveApiScope() else tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                        "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                     )
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
@@ -188,14 +188,14 @@ class GosysOppgaveClient(
     fun getOppgavetypeKodeverkForTema(tema: Tema, systemContext: Boolean): List<OppgavetypeResponse> {
         val oppgavetypeResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::getOppgavetypeKodeverkForTema.name) {
-                oppgaveApiWebClient.get()
+                gosysOppgaveWebClient.get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("kodeverk", "oppgavetype", "{tema}")
                         uriBuilder.build(tema.navn)
                     }
                     .header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithOppgaveApiScope() else tokenUtil.getSaksbehandlerAccessTokenWithOppgaveApiScope()}"
+                        "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                     )
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()

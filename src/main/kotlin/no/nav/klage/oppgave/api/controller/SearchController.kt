@@ -76,7 +76,7 @@ class SearchController(
     @GetMapping("/search/gosysoppgavemapper/{enhetsnr}")
     fun searchGosysOppgaveMapper(
         @PathVariable("enhetsnr") enhetsnr: String,
-    ): List<GosysOppgaveApiMappeView> {
+    ): List<GosysOppgaveMappeView> {
         logMethodDetails(
             ::searchGosysOppgaveMapper.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),

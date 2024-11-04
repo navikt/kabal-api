@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.clients.oppgaveapi
+package no.nav.klage.oppgave.clients.gosysoppgave
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize

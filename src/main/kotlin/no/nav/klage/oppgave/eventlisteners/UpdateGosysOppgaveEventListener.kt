@@ -16,7 +16,7 @@ import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 
 @Service
-class UpdateOppgaveApiEventListener(
+class UpdateGosysOppgaveEventListener(
     private val behandlingRepository: BehandlingRepository,
     private val gosysOppgaveService: GosysOppgaveService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,

@@ -156,7 +156,7 @@ internal class BehandlingAvslutningServiceTest {
     lateinit var kakaApiGateway: KakaApiGateway
 
     @MockkBean(relaxed = true)
-    lateinit var oppgaveApiService: GosysOppgaveService
+    lateinit var gosysOppgaveService: GosysOppgaveService
 
     @MockkBean(relaxed = true)
     lateinit var norg2Client: Norg2Client

@@ -21,7 +21,7 @@ data class GosysOppgaveView(
     val fristFerdigstillelse: LocalDate?,
     val ferdigstiltTidspunkt: LocalDateTime?,
     val status: Status,
-    val mappe: GosysOppgaveApiMappeView?,
+    val mappe: GosysOppgaveMappeView?,
     val editable: Boolean,
     val opprettetAvEnhet: EnhetView?,
     var alreadyUsedBy: UUID?,

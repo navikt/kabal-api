@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.clients.oppgaveapi
+package no.nav.klage.oppgave.clients.gosysoppgave
 
 import java.time.LocalDate
 

@@ -3,12 +3,12 @@ package no.nav.klage.oppgave.service
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.EnhetView
-import no.nav.klage.oppgave.api.view.GosysOppgaveApiMappeView
+import no.nav.klage.oppgave.api.view.GosysOppgaveMappeView
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
+import no.nav.klage.oppgave.clients.gosysoppgave.*
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
-import no.nav.klage.oppgave.clients.oppgaveapi.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.kafka.Employee
 import no.nav.klage.oppgave.domain.kafka.GosysoppgaveEvent
@@ -192,14 +192,14 @@ class GosysOppgaveService(
 
     fun getMapperForEnhet(
         enhetsnr: String
-    ): List<GosysOppgaveApiMappeView> {
+    ): List<GosysOppgaveMappeView> {
         val output = gosysOppgaveClient.getMapperForEnhet(
             enhetsnr = enhetsnr,
         )
 
         return output.mapper.mapNotNull { mappe ->
             if (mappe.id != null) {
-                GosysOppgaveApiMappeView(
+                GosysOppgaveMappeView(
                     id = mappe.id,
                     navn = mappe.navn
                 )
@@ -209,14 +209,14 @@ class GosysOppgaveService(
 
     fun getMappe(
         id: Long
-    ): GosysOppgaveApiMappeView {
+    ): GosysOppgaveMappeView {
         val mappeResponse = gosysOppgaveClient.getMappe(id = id)
 
         if (mappeResponse.id == null) {
             throw OppgaveClientException("Mappe did not contain id")
         }
 
-        return GosysOppgaveApiMappeView(
+        return GosysOppgaveMappeView(
             id = mappeResponse.id,
             navn = mappeResponse.navn
         )

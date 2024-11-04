@@ -181,14 +181,14 @@ class TokenUtil(
         return response.accessToken!!
     }
 
-    fun getSaksbehandlerAccessTokenWithOppgaveApiScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["oppgave-api-onbehalfof"]!!
+    fun getSaksbehandlerAccessTokenWithGosysOppgaveScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["gosys-oppgave-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.accessToken!!
     }
 
-    fun getAppAccessTokenWithOppgaveApiScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["oppgave-api-maskintilmaskin"]!!
+    fun getAppAccessTokenWithGosysOppgaveScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["gosys-oppgave-maskintilmaskin"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.accessToken!!
     }
