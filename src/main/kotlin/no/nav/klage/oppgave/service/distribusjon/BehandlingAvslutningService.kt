@@ -38,7 +38,7 @@ class BehandlingAvslutningService(
     private val behandlingEtterTrygderettenOpphevetService: BehandlingEtterTrygderettenOpphevetService,
     private val ankebehandlingService: AnkebehandlingService,
     private val fssProxyClient: KlageFssProxyClient,
-    private val gosysOoppgaveService: GosysOppgaveService,
+    private val gosysOppgaveService: GosysOppgaveService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -187,7 +187,7 @@ class BehandlingAvslutningService(
         }
 
         if (behandling.gosysOppgaveId != null && behandling.gosysOppgaveUpdate != null && !behandling.ignoreGosysOppgave) {
-            gosysOoppgaveService.updateGosysOppgave(
+            gosysOppgaveService.updateGosysOppgave(
                 behandling = behandling,
                 systemContext = true,
             )
@@ -212,7 +212,7 @@ class BehandlingAvslutningService(
                 error("Ugyldig tilstand for å opprette ny ankebehandling fra anke i Trygderetten")
             }
 
-            gosysOoppgaveService.addKommentar(
+            gosysOppgaveService.addKommentar(
                 behandling = ankeITrygderettenbehandling,
                 kommentar = kommentar,
                 systemContext = true,
@@ -230,7 +230,7 @@ class BehandlingAvslutningService(
         if (ankeITrygderettenbehandling.gosysOppgaveId != null) {
             val kommentar = "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten opphevet saken."
 
-            gosysOoppgaveService.addKommentar(
+            gosysOppgaveService.addKommentar(
                 behandling = ankeITrygderettenbehandling,
                 kommentar = kommentar,
                 systemContext = true,
