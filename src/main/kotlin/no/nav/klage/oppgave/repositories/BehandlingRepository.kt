@@ -51,7 +51,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             AND b.type NOT IN :excludedTypes
         """
     )
-    fun getAnkemuligheter(
+    fun getOmgjoeringskravmuligheter(
         partIdValue: String,
         utfallWithoutAnkemulighet: List<Utfall> = listOf(
             Utfall.INNSTILLING_AVVIST,
@@ -74,7 +74,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             AND b.type NOT IN :excludedTypes
         """
     )
-    fun getAnkemuligheterNotFromInfotrygd(
+    fun getAnkemuligheter(
         partIdValue: String,
         infotrygdFagsystem: Fagsystem = Fagsystem.IT01,
         utfallWithoutAnkemulighet: List<Utfall> = listOf(

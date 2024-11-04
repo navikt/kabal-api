@@ -2289,13 +2289,14 @@ class BehandlingService(
 
     fun getAnkemuligheterByPartIdValue(
         partIdValue: String,
-        includeFromInfotrygd: Boolean,
     ): List<Behandling> {
-        return if (includeFromInfotrygd) {
-            behandlingRepository.getAnkemuligheter(partIdValue)
-        } else {
-            behandlingRepository.getAnkemuligheterNotFromInfotrygd(partIdValue)
-        }
+        return behandlingRepository.getAnkemuligheter(partIdValue)
+    }
+
+    fun getOmgjoeringskravmuligheterByPartIdValue(
+        partIdValue: String,
+    ): List<Behandling> {
+        return behandlingRepository.getOmgjoeringskravmuligheter(partIdValue)
     }
 
     private fun getUtfoerendeNavn(utfoerendeSaksbehandlerIdent: String): String {

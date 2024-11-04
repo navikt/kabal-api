@@ -184,7 +184,7 @@ class KlagebehandlingRepositoryTest {
         testEntityManager.flush()
         testEntityManager.clear()
 
-        assertThat(behandlingRepository.getAnkemuligheterNotFromInfotrygd("23452354")).containsExactlyInAnyOrder(
+        assertThat(behandlingRepository.getAnkemuligheter("23452354")).containsExactlyInAnyOrder(
             klageWithNoAnke,
             klageWithNoAnke2,
             klageWithAnke

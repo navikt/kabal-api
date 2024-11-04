@@ -96,20 +96,20 @@ class KabinApiController(
     @PostMapping("/ankemuligheter")
     fun getAnkemuligheter(
         @RequestBody input: GetCompletedBehandlingerInput
-    ): List<Ankemulighet> {
+    ): List<Mulighet> {
         logMethodDetails(
             methodName = ::getAnkemuligheter.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
 
-        return kabinApiService.getAnkemuligheterExcludingInfotrygd(partIdValue = input.idnummer)
+        return kabinApiService.getAnkemuligheter(partIdValue = input.idnummer)
     }
 
     @PostMapping("/omgjoeringskravmuligheter")
     fun getOmgjoeringskravmuligheter(
         @RequestBody input: GetCompletedBehandlingerInput
-    ): List<Ankemulighet> {
+    ): List<Mulighet> {
         logMethodDetails(
             methodName = ::getOmgjoeringskravmuligheter.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),

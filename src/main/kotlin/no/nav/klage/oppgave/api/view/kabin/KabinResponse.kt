@@ -24,8 +24,9 @@ data class CompletedBehandling(
     val tildeltSaksbehandlerNavn: String?,
 )
 
-data class Ankemulighet(
+data class Mulighet(
     val behandlingId: UUID,
+    val originalTypeId: String,
     val typeId: String,
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val ytelseId: String,
@@ -50,25 +51,6 @@ data class ExistingAnkebehandling(
 
 data class CreatedBehandlingResponse(
     val behandlingId: UUID,
-)
-
-data class CreatedAnkebehandlingStatusForKabin(
-    val typeId: String,
-    val ytelseId: String,
-    val vedtakDate: LocalDateTime,
-    val sakenGjelder: KabinPartView,
-    val klager: KabinPartView,
-    val fullmektig: KabinPartView?,
-    val mottattNav: LocalDate,
-    val frist: LocalDate,
-    val varsletFrist: LocalDate?,
-    val varsletFristUnits: Int?,
-    val varsletFristUnitTypeId: String?,
-    val fagsakId: String,
-    val fagsystemId: String,
-    val journalpost: DokumentReferanse,
-    val tildeltSaksbehandler: TildeltSaksbehandler?,
-    val svarbrev: KabinResponseSvarbrev?,
 )
 
 data class CreatedBehandlingStatusForKabin(
@@ -101,26 +83,6 @@ data class KabinResponseSvarbrev(
         val handling: HandlingEnum,
     )
 }
-
-data class CreatedKlagebehandlingStatusForKabin(
-    val typeId: String,
-    val ytelseId: String,
-    val sakenGjelder: KabinPartView,
-    val klager: KabinPartView,
-    val fullmektig: KabinPartView?,
-    val mottattVedtaksinstans: LocalDate,
-    val mottattKlageinstans: LocalDate,
-    val frist: LocalDate,
-    val varsletFrist: LocalDate?,
-    val varsletFristUnits: Int?,
-    val varsletFristUnitTypeId: String?,
-    val fagsakId: String,
-    val fagsystemId: String,
-    val journalpost: DokumentReferanse,
-    val kildereferanse: String,
-    val tildeltSaksbehandler: TildeltSaksbehandler?,
-    val svarbrev: KabinResponseSvarbrev?,
-)
 
 data class TildeltSaksbehandler(
     val navIdent: String,

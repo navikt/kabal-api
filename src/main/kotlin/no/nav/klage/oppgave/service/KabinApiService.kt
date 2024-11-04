@@ -29,16 +29,16 @@ class KabinApiService(
     private val dokumentMapper: DokumentMapper,
 ) {
 
-    fun getAnkemuligheterExcludingInfotrygd(partIdValue: String): List<Ankemulighet> {
+    fun getAnkemuligheter(partIdValue: String): List<Mulighet> {
         behandlingService.checkLesetilgangForPerson(partIdValue)
-        return behandlingService.getAnkemuligheterByPartIdValue(partIdValue = partIdValue, includeFromInfotrygd = false)
-                .map { it.toAnkemulighet() }
+        return behandlingService.getAnkemuligheterByPartIdValue(partIdValue = partIdValue)
+                .map { it.toMulighet(mulighetType = Type.ANKE) }
     }
 
-    fun getOmgjoeringskravmuligheter(partIdValue: String): List<Ankemulighet> {
+    fun getOmgjoeringskravmuligheter(partIdValue: String): List<Mulighet> {
         behandlingService.checkLesetilgangForPerson(partIdValue)
-        return behandlingService.getAnkemuligheterByPartIdValue(partIdValue = partIdValue, includeFromInfotrygd = true)
-            .map { it.toAnkemulighet() }
+        return behandlingService.getOmgjoeringskravmuligheterByPartIdValue(partIdValue = partIdValue)
+            .map { it.toMulighet(mulighetType = Type.OMGJOERINGSKRAV) }
     }
 
     fun createAnke(input: CreateAnkeBasedOnKabinInput): CreatedBehandlingResponse {
@@ -413,11 +413,11 @@ class KabinApiService(
         )
     }
 
-    private fun Behandling.toAnkemulighet(): Ankemulighet {
+    private fun Behandling.toMulighet(mulighetType: Type): Mulighet {
         val ankebehandlingerBasedOnThisBehandling =
             ankebehandlingService.getAnkebehandlingerBasedOnSourceBehandlingId(sourceBehandlingId = id)
 
-        return Ankemulighet(
+        return Mulighet(
             behandlingId = id,
             ytelseId = ytelse.id,
             hjemmelIdList = hjemler.map { it.id },
@@ -437,7 +437,8 @@ class KabinApiService(
             klageBehandlendeEnhet = tildeling!!.enhet!!,
             tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
             tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdentDefaultIfNull(tildeling!!.saksbehandlerident!!),
-            typeId = type.id,
+            originalTypeId = type.id,
+            typeId = mulighetType.id,
             sourceOfExistingAnkebehandling = ankebehandlingerBasedOnThisBehandling.map {
                 ExistingAnkebehandling(
                     id = it.id,
