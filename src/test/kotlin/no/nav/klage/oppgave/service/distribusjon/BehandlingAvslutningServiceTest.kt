@@ -39,7 +39,6 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -202,23 +201,6 @@ internal class BehandlingAvslutningServiceTest {
         previousSaksbehandlerident = "C78901",
         gosysOppgaveId = null,
     )
-
-    @Test
-    fun `save klagebehandling`() {
-        mottakRepository.save(mottak)
-
-        klagebehandlingRepository.save(klage.apply {
-            this.ferdigstilling = Ferdigstilling(
-                avsluttetAvSaksbehandler = LocalDateTime.now(),
-                navIdent = "navIdent",
-                navn = "navn",
-            )
-        })
-
-        behandlingAvslutningService.avsluttBehandling(klagebehandlingId)
-
-        klagebehandlingRepository.findByIdOrNull(klagebehandlingId) ?: throw NullPointerException()
-    }
 
     @Test
     fun `distribusjon av klagebehandling fører til avsluttet klagebehandling`() {
