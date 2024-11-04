@@ -54,6 +54,7 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
                 GOSYSOPPGAVE_GJELDER_CACHE,
                 GOSYSOPPGAVE_OPPGAVETYPE_CACHE,
                 GOSYSOPPGAVE_ENHETSMAPPER_CACHE,
+                GOSYSOPPGAVE_ENHETSMAPPE_CACHE,
             )
 
         @Suppress("JAVA_CLASS_ON_COMPANION")
