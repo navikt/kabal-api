@@ -140,7 +140,7 @@ class BehandlingServiceTest {
             partSearchService = mockk(),
             safFacade = mockk(),
             tokenUtil = mockk(),
-            oppgaveApiService = mockk(),
+            gosysOppgaveService = mockk(),
             norg2Client = mockk(),
         )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit

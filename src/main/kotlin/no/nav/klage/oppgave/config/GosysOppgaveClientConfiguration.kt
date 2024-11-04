@@ -6,14 +6,14 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
-class OppgaveApiClientConfiguration(private val webClientBuilder: WebClient.Builder) {
-    @Value("\${OPPGAVE_API_BASE_URL}")
-    private lateinit var oppgaveBaseURL: String
+class GosysOppgaveClientConfiguration(private val webClientBuilder: WebClient.Builder) {
+    @Value("\${GOSYS_OPPGAVE_BASE_URL}")
+    private lateinit var gosysOppgaveBaseURL: String
 
     @Bean
-    fun oppgaveApiWebClient(): WebClient {
+    fun gosysOppgaveWebClient(): WebClient {
         return webClientBuilder
-            .baseUrl(oppgaveBaseURL)
+            .baseUrl(gosysOppgaveBaseURL)
             .build()
     }
 

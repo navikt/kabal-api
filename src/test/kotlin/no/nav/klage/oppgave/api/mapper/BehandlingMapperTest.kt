@@ -54,7 +54,7 @@ class BehandlingMapperTest {
     lateinit var dokDistKanalService: DokDistKanalService
 
     @MockkBean
-    lateinit var oppgaveApiService: GosysOppgaveService
+    lateinit var gosysOppgaveService: GosysOppgaveService
 
     @Autowired
     lateinit var behandlingMapper: BehandlingMapper

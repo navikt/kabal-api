@@ -38,7 +38,7 @@ class BehandlingAvslutningService(
     private val behandlingEtterTrygderettenOpphevetService: BehandlingEtterTrygderettenOpphevetService,
     private val ankebehandlingService: AnkebehandlingService,
     private val fssProxyClient: KlageFssProxyClient,
-    private val oppgaveApiService: GosysOppgaveService,
+    private val gosysOppgaveService: GosysOppgaveService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -75,6 +75,7 @@ class BehandlingAvslutningService(
         } catch (e: Exception) {
             logger.error("Feilet under avslutning av behandling $behandlingId. Se mer i secure log")
             secureLogger.error("Feilet under avslutning av behandling $behandlingId", e)
+            throw e
         }
     }
 
@@ -187,7 +188,7 @@ class BehandlingAvslutningService(
         }
 
         if (behandling.gosysOppgaveId != null && behandling.gosysOppgaveUpdate != null && !behandling.ignoreGosysOppgave) {
-            oppgaveApiService.updateGosysOppgave(
+            gosysOppgaveService.updateGosysOppgave(
                 behandling = behandling,
                 systemContext = true,
             )
@@ -212,7 +213,7 @@ class BehandlingAvslutningService(
                 error("Ugyldig tilstand for å opprette ny ankebehandling fra anke i Trygderetten")
             }
 
-            oppgaveApiService.addKommentar(
+            gosysOppgaveService.addKommentar(
                 behandling = ankeITrygderettenbehandling,
                 kommentar = kommentar,
                 systemContext = true,
@@ -230,7 +231,7 @@ class BehandlingAvslutningService(
         if (ankeITrygderettenbehandling.gosysOppgaveId != null) {
             val kommentar = "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten opphevet saken."
 
-            oppgaveApiService.addKommentar(
+            gosysOppgaveService.addKommentar(
                 behandling = ankeITrygderettenbehandling,
                 kommentar = kommentar,
                 systemContext = true,

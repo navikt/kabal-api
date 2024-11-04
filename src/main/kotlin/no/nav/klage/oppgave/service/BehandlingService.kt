@@ -100,7 +100,7 @@ class BehandlingService(
     private val safFacade: SafFacade,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val tokenUtil: TokenUtil,
-    private val oppgaveApiService: GosysOppgaveService,
+    private val gosysOppgaveService: GosysOppgaveService,
     private val norg2Client: Norg2Client,
 ) {
     companion object {
@@ -174,7 +174,7 @@ class BehandlingService(
         }
 
         if (behandling.gosysOppgaveId != null && !ankeITRHenvist) {
-            val gosysOppgave = oppgaveApiService.getGosysOppgave(behandling.gosysOppgaveId!!)
+            val gosysOppgave = gosysOppgaveService.getGosysOppgave(behandling.gosysOppgaveId!!)
 
             if (!gosysOppgave.editable && gosysOppgaveInput?.ignoreGosysOppgave != true) {
                 throw SectionedValidationErrorWithDetailsException(
@@ -2222,7 +2222,7 @@ class BehandlingService(
 
     fun findRelevantGosysOppgaver(behandlingId: UUID): List<GosysOppgaveView> {
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-        return oppgaveApiService.getGosysOppgaveList(
+        return gosysOppgaveService.getGosysOppgaveList(
             fnr = behandling.sakenGjelder.partId.value,
             tema = behandling.ytelse.toTema(),
         ).map {
@@ -2307,7 +2307,7 @@ class BehandlingService(
             behandlingId
         )
 
-        val gosysOppgave = oppgaveApiService.getGosysOppgave(
+        val gosysOppgave = gosysOppgaveService.getGosysOppgave(
             gosysOppgaveId = gosysOppgaveId,
             fnrToValidate = behandling.sakenGjelder.partId.value,
         ).copy(
@@ -2360,7 +2360,7 @@ class BehandlingService(
             throw GosysOppgaveNotFoundException("Behandlingen har ingen gosysoppgave")
         }
 
-        val gosysOppgave = oppgaveApiService.getGosysOppgave(
+        val gosysOppgave = gosysOppgaveService.getGosysOppgave(
             gosysOppgaveId = behandling.gosysOppgaveId!!,
             fnrToValidate = behandling.sakenGjelder.partId.value
         )
