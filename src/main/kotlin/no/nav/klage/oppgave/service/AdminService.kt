@@ -10,7 +10,6 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsM
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
-import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
@@ -173,7 +172,7 @@ class AdminService(
         //Delete in search
         behandlingEndretKafkaProducer.sendBehandlingDeleted(behandlingId)
 
-        if (behandling.fagsystem == Fagsystem.IT01) {
+        if (behandling.shouldUpdateInfotrygd()) {
             logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
             klageFssProxyClient.setToFeilregistrertInKabal(
                 sakId = behandling.kildeReferanse,

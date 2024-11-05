@@ -87,7 +87,7 @@ class BehandlingAvslutningService(
             logger.debug("Anken sendes til trygderetten. Oppretter AnkeITrygderettenbehandling.")
             createAnkeITrygderettenbehandling(behandling)
             //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01) {
+            if (behandling.shouldUpdateInfotrygd()) {
                 logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten.")
                 fssProxyClient.setToFinishedWithAppAccess(
                     sakId = behandling.kildeReferanse,
@@ -127,13 +127,7 @@ class BehandlingAvslutningService(
                     )
                 }
 
-
-            //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01 && behandling.type !in listOf(
-                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
-                    Type.OMGJOERINGSKRAV
-                )
-            ) {
+            if (behandling.shouldUpdateInfotrygd()) {
                 logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
 
                 val sakInKlanke = fssProxyClient.getSakWithAppAccess(

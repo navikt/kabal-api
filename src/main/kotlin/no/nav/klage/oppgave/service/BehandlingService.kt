@@ -625,7 +625,7 @@ class BehandlingService(
             checkYtelseAccess(tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent, behandling = behandling)
 
             //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01) {
+            if (behandling.shouldUpdateInfotrygd()) {
                 logger.debug("Tildeling av behandling skal registreres i Infotrygd.")
                 fssProxyClient.setToAssigned(
                     sakId = behandling.kildeReferanse,
@@ -649,7 +649,7 @@ class BehandlingService(
             }
 
             //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01 && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
+            if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
                 logger.debug("Fradeling av behandling skal registreres i Infotrygd.")
                 fssProxyClient.setToHandledInKabal(
                     sakId = behandling.kildeReferanse,
@@ -811,7 +811,7 @@ class BehandlingService(
         }
 
         //if fagsystem is Infotrygd also do this.
-        if (behandling.fagsystem == Fagsystem.IT01 && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
+        if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
             logger.debug("Fradeling av behandling skal registreres i Infotrygd.")
             fssProxyClient.setToHandledInKabal(
                 sakId = behandling.kildeReferanse,
