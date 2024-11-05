@@ -63,6 +63,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setTildeling
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setVarsletBehandlingstid
+import no.nav.klage.oppgave.domain.klage.OmgjoeringskravbehandlingSetters.setVarsletBehandlingstid
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.TokenUtil
@@ -763,6 +764,19 @@ class BehandlingService(
             }
 
             is Ankebehandling -> {
+                applicationEventPublisher.publishEvent(
+                    behandling.setVarsletBehandlingstid(
+                        nyVerdiVarsletBehandlingstidUnits = behandlingstidUnits,
+                        nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,
+                        nyVerdiVarsletFrist = varsletFrist,
+                        saksbehandlerident = saksbehandlerIdent,
+                        saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
+                        mottakere = mottakere,
+                    )
+                )
+            }
+
+            is Omgjoeringskravbehandling -> {
                 applicationEventPublisher.publishEvent(
                     behandling.setVarsletBehandlingstid(
                         nyVerdiVarsletBehandlingstidUnits = behandlingstidUnits,
