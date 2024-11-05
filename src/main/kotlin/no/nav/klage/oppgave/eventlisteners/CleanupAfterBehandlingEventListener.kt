@@ -172,7 +172,7 @@ class CleanupAfterBehandlingEventListener(
             }
 
             is Omgjoeringskravbehandling -> {
-                TODO()
+                {} //Do nothing
             }
 
             is AnkeITrygderettenbehandling -> {
