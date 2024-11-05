@@ -171,12 +171,12 @@ class BehandlingAvslutningService(
                     kildeReferanse = behandling.kildeReferanse,
                     kilde = behandling.fagsystem.navn,
                     kabalReferanse = behandling.id.toString(),
-                    type = when (behandling.type) {
-                        Type.KLAGE -> KLAGEBEHANDLING_AVSLUTTET
-                        Type.ANKE -> ANKEBEHANDLING_AVSLUTTET
-                        Type.ANKE_I_TRYGDERETTEN -> ANKEBEHANDLING_AVSLUTTET
-                        Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
-                        Type.OMGJOERINGSKRAV -> OMGJOERINGSKRAVBEHANDLING_AVSLUTTET
+                    type = when (behandling) {
+                        is Klagebehandling -> KLAGEBEHANDLING_AVSLUTTET
+                        is Ankebehandling -> ANKEBEHANDLING_AVSLUTTET
+                        is AnkeITrygderettenbehandling -> ANKEBEHANDLING_AVSLUTTET
+                        is BehandlingEtterTrygderettenOpphevet -> BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
+                        is Omgjoeringskravbehandling -> OMGJOERINGSKRAVBEHANDLING_AVSLUTTET
                     },
                     detaljer = getBehandlingDetaljer(behandling, hoveddokumenter)
                 )
@@ -256,8 +256,8 @@ class BehandlingAvslutningService(
         behandling: Behandling,
         hoveddokumenter: List<DokumentUnderArbeidAsHoveddokument>
     ): BehandlingDetaljer {
-        return when (behandling.type) {
-            Type.KLAGE -> {
+        return when (behandling) {
+            is Klagebehandling -> {
                 BehandlingDetaljer(
                     klagebehandlingAvsluttet = KlagebehandlingAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -268,7 +268,7 @@ class BehandlingAvslutningService(
                 )
             }
 
-            Type.ANKE -> {
+            is Ankebehandling -> {
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -279,7 +279,7 @@ class BehandlingAvslutningService(
                 )
             }
 
-            Type.ANKE_I_TRYGDERETTEN -> {
+            is AnkeITrygderettenbehandling -> {
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -290,7 +290,7 @@ class BehandlingAvslutningService(
                 )
             }
 
-            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+            is BehandlingEtterTrygderettenOpphevet -> {
                 BehandlingDetaljer(
                     behandlingEtterTrygderettenOpphevetAvsluttet = BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -301,7 +301,7 @@ class BehandlingAvslutningService(
                 )
             }
 
-            Type.OMGJOERINGSKRAV -> {
+            is Omgjoeringskravbehandling -> {
                 BehandlingDetaljer(
                     omgjoeringskravbehandlingAvsluttet = OmgjoeringskravbehandlingAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,

@@ -25,7 +25,7 @@ import java.util.*
         ]
     ),
 )
-abstract class Behandling(
+sealed class Behandling(
     @Id
     open val id: UUID = UUID.randomUUID(),
     @Embedded

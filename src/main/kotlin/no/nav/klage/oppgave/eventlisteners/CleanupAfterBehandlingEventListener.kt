@@ -5,16 +5,12 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.domain.klage.Ankebehandling
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.Felt
-import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
@@ -154,9 +150,8 @@ class CleanupAfterBehandlingEventListener(
     }
 
     private fun deleteFromKaka(behandling: Behandling) {
-        when (behandling.type) {
-            Type.KLAGE -> {
-                behandling as Klagebehandling
+        when (behandling) {
+            is Klagebehandling -> {
                 when (behandling.kakaKvalitetsvurderingVersion) {
                     2 -> {
                         kakaApiGateway.deleteKvalitetsvurderingV2(behandling.kakaKvalitetsvurderingId!!)
@@ -166,8 +161,7 @@ class CleanupAfterBehandlingEventListener(
                 }
             }
 
-            Type.ANKE -> {
-                behandling as Ankebehandling
+            is Ankebehandling -> {
                 when (behandling.kakaKvalitetsvurderingVersion) {
                     2 -> {
                         kakaApiGateway.deleteKvalitetsvurderingV2(behandling.kakaKvalitetsvurderingId!!)
@@ -176,12 +170,18 @@ class CleanupAfterBehandlingEventListener(
                     }
                 }
             }
-            Type.OMGJOERINGSKRAV -> {
-                //TODO
+
+            is Omgjoeringskravbehandling -> {
+                TODO()
             }
 
-            Type.ANKE_I_TRYGDERETTEN -> {}//nothing
-            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {}//nothing
+            is AnkeITrygderettenbehandling -> {
+                {} //Do nothing
+            }
+
+            is BehandlingEtterTrygderettenOpphevet -> {
+                {} //Do nothing
+            }
 
         }
     }

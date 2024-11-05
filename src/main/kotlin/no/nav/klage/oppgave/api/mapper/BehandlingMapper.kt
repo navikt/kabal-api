@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.api.mapper
 
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
@@ -43,14 +42,12 @@ class BehandlingMapper(
     }
 
     fun mapBehandlingToBehandlingDetaljerView(behandling: Behandling): BehandlingDetaljerView {
-        return when (behandling.type) {
-            Type.KLAGE -> mapKlagebehandlingToBehandlingDetaljerView(behandling as Klagebehandling)
-            Type.ANKE -> mapAnkebehandlingToBehandlingDetaljerView(behandling as Ankebehandling)
-            Type.ANKE_I_TRYGDERETTEN -> mapAnkeITrygderettenbehandlingToBehandlingDetaljerView(behandling as AnkeITrygderettenbehandling)
-            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(
-                behandling as BehandlingEtterTrygderettenOpphevet
-            )
-            Type.OMGJOERINGSKRAV -> mapOmgjoeringskravbehandlingToBehandlingDetaljerView(behandling as Omgjoeringskravbehandling)
+        return when (behandling) {
+            is Klagebehandling -> mapKlagebehandlingToBehandlingDetaljerView(behandling)
+            is Ankebehandling -> mapAnkebehandlingToBehandlingDetaljerView(behandling)
+            is AnkeITrygderettenbehandling -> mapAnkeITrygderettenbehandlingToBehandlingDetaljerView(behandling)
+            is BehandlingEtterTrygderettenOpphevet -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandling)
+            is Omgjoeringskravbehandling -> mapOmgjoeringskravbehandlingToBehandlingDetaljerView(behandling)
         }
     }
 

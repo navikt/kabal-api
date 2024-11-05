@@ -209,16 +209,19 @@ class KabinApiService(
         val behandling =
             behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = behandlingId)
 
-        return when (behandling.type) {
-            Type.KLAGE -> getCreatedKlagebehandlingStatusForKabin(
-                klagebehandling = behandling as Klagebehandling,
+        return when (behandling) {
+            is Klagebehandling -> getCreatedKlagebehandlingStatusForKabin(
+                klagebehandling = behandling
             )
-            Type.ANKE -> getCreatedAnkebehandlingStatusForKabin(
-                ankebehandling = behandling as Ankebehandling
+
+            is Ankebehandling -> getCreatedAnkebehandlingStatusForKabin(
+                ankebehandling = behandling
             )
-            Type.OMGJOERINGSKRAV -> getCreatedOmgjoeringskravbehandlingStatusForKabin(
-                omgjoeringskravbehandling = behandling as Omgjoeringskravbehandling
+
+            is Omgjoeringskravbehandling -> getCreatedOmgjoeringskravbehandlingStatusForKabin(
+                omgjoeringskravbehandling = behandling
             )
+
             else -> error("Unsupported type")
         }
     }
