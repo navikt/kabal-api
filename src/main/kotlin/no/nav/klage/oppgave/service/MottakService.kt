@@ -9,7 +9,10 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
-import no.nav.klage.oppgave.api.view.kabin.*
+import no.nav.klage.oppgave.api.view.kabin.BehandlingIsDuplicateResponse
+import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnCompleteKabinInput
+import no.nav.klage.oppgave.api.view.kabin.CreateBehandlingBasedOnKabinInput
+import no.nav.klage.oppgave.api.view.kabin.CreateKlageBasedOnKabinInput
 import no.nav.klage.oppgave.api.view.toMottak
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
@@ -235,36 +238,6 @@ class MottakService(
                 Type.OMGJOERINGSKRAV -> TODO()
             }
         return mottak
-    }
-
-    @Transactional
-    fun createAnkeMottakAndBehandlingFromKabinInput(input: CreateAnkeBasedOnKabinInput): Behandling {
-        val sourceBehandlingId = input.sourceBehandlingId
-        logger.debug("Prøver å lagre anke basert på Kabin-input med sourceBehandlingId {}", sourceBehandlingId)
-        val sourceBehandling = behandlingRepository.findById(sourceBehandlingId).get()
-
-        validateBehandlingCreationBasedOnSourceBehandling(
-            sourceBehandling = sourceBehandling,
-            receivedDocumentJournalpostId = input.ankeDocumentJournalpostId
-        )
-
-        val mottak = mottakRepository.save(sourceBehandling.toAnkeMottak(input))
-
-        val behandling = createBehandlingFromMottak.createBehandling(mottak)
-
-        updateMetrics(
-            kilde = mottak.fagsystem.navn,
-            ytelse = mottak.ytelse.navn,
-            type = mottak.type.navn,
-        )
-
-        logger.debug(
-            "Har lagret mottak {}, basert på innsendt behandlingId: {} fra Kabin",
-            mottak.id,
-            sourceBehandlingId
-        )
-
-        return behandling
     }
 
     @Transactional
@@ -558,73 +531,6 @@ class MottakService(
                 }
             }
         }
-    }
-
-    private fun Behandling.toAnkeMottak(input: CreateAnkeBasedOnKabinInput): Mottak {
-        val prosessfullmektig = if (input.fullmektig != null) {
-            Prosessfullmektig(
-                partId = PartId(
-                    type = PartIdType.of(input.fullmektig.type.name),
-                    value = input.fullmektig.value
-                ),
-            )
-        } else {
-            null
-        }
-
-        val klager = if (input.klager != null) {
-            Klager(
-                partId = PartId(
-                    type = PartIdType.of(input.klager.type.name),
-                    value = input.klager.value
-                ),
-                prosessfullmektig = prosessfullmektig
-            )
-        } else {
-            Klager(
-                partId = PartId(
-                    type = PartIdType.of(sakenGjelder.partId.type.name),
-                    value = sakenGjelder.partId.value
-                ),
-                prosessfullmektig = prosessfullmektig
-            )
-        }
-
-        val innsendtDokument =
-            mutableSetOf(
-                MottakDokument(
-                    type = MottakDokumentType.BRUKERS_ANKE,
-                    journalpostId = input.ankeDocumentJournalpostId
-                )
-            )
-
-        val hjemmelCollection = input.hjemmelIdList.map { Hjemmel.of(it) }
-
-        return Mottak(
-            type = Type.ANKE,
-            klager = klager,
-            sakenGjelder = sakenGjelder,
-            fagsystem = fagsystem,
-            fagsakId = fagsakId,
-            kildeReferanse = kildeReferanse,
-            dvhReferanse = dvhReferanse,
-            //Dette er søkehjemler
-            hjemler = hjemmelCollection.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
-            forrigeSaksbehandlerident = tildeling!!.saksbehandlerident,
-            forrigeBehandlendeEnhet = tildeling!!.enhet!!,
-            mottakDokument = innsendtDokument,
-            innsendtDato = input.mottattNav,
-            brukersHenvendelseMottattNavDato = input.mottattNav,
-            sakMottattKaDato = input.mottattNav.atStartOfDay(),
-            frist = input.frist,
-            created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
-            ytelse = ytelse,
-            kommentar = null,
-            forrigeBehandlingId = id,
-            innsynUrl = null,
-            sentFrom = Mottak.Sender.KABIN,
-        )
     }
 
     private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInput): Mottak {

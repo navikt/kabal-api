@@ -26,27 +26,6 @@ data class GosysOppgaveIsDuplicateInput(
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class CreateAnkeBasedOnKabinInput(
-    val sourceBehandlingId: UUID,
-    val mottattNav: LocalDate,
-    val frist: LocalDate,
-    val klager: OversendtPartId?,
-    val fullmektig: OversendtPartId?,
-    val ankeDocumentJournalpostId: String,
-    val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
-    val hjemmelIdList: List<String>,
-    val gosysOppgaveId: Long?,
-) {
-    data class OversendtPartId(
-        val type: OversendtPartIdType,
-        val value: String
-    )
-
-    enum class OversendtPartIdType { PERSON, VIRKSOMHET }
-}
-
-@JsonIgnoreProperties(ignoreUnknown = true)
 data class CreateBehandlingBasedOnKabinInput(
     val typeId: String,
     val sourceBehandlingId: UUID,

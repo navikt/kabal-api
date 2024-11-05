@@ -134,27 +134,12 @@ class KabinApiController(
         )
     }
 
-    @PostMapping("/createanke")
-    fun createAnke(
-        @RequestBody input: CreateAnkeBasedOnKabinInput
-    ): CreatedBehandlingResponse {
-        logMethodDetails(
-            methodName = ::createAnke.name,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
-        )
-
-        return kabinApiService.createAnke(
-            input = input
-        )
-    }
-
     @PostMapping("/createbehandling")
     fun createBehandling(
         @RequestBody input: CreateBehandlingBasedOnKabinInput
     ): CreatedBehandlingResponse {
         logMethodDetails(
-            methodName = ::createAnke.name,
+            methodName = ::createBehandling.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )

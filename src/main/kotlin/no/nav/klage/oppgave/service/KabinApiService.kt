@@ -41,26 +41,6 @@ class KabinApiService(
             .map { it.toMulighet(mulighetType = Type.OMGJOERINGSKRAV) }
     }
 
-    fun createAnke(input: CreateAnkeBasedOnKabinInput): CreatedBehandlingResponse {
-        val behandling = mottakService.createAnkeMottakAndBehandlingFromKabinInput(input = input)
-
-        if (input.gosysOppgaveId != null) {
-            behandlingService.setGosysOppgaveIdFromKabin(
-                behandlingId = behandling.id,
-                gosysOppgaveId = input.gosysOppgaveId,
-                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            )
-        }
-
-        setSaksbehandlerAndCreateSvarbrev(
-            behandling = behandling,
-            saksbehandlerIdent = input.saksbehandlerIdent,
-            svarbrevInput = input.svarbrevInput,
-        )
-
-        return CreatedBehandlingResponse(behandlingId = behandling.id)
-    }
-
     fun createBehandling(input: CreateBehandlingBasedOnKabinInput): CreatedBehandlingResponse {
         val behandling = mottakService.createMottakAndBehandlingFromKabinInput(input = input)
 
