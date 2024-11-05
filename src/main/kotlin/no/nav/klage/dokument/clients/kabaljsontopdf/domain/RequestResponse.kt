@@ -1,7 +1,5 @@
 package no.nav.klage.dokument.clients.kabaljsontopdf.domain
 
-import no.nav.klage.kodeverk.TimeUnitType
-import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 import java.time.LocalDate
 
 data class DocumentValidationResponse(
@@ -53,5 +51,6 @@ data class SvarbrevRequest(
     enum class Type {
         KLAGE,
         ANKE,
+        OMGJOERINGSKRAV
     }
 }
