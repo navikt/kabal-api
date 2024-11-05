@@ -27,8 +27,8 @@ class SvarbrevPreviewService(
     fun getSvarbrevPreviewPDF(
         input: PreviewSvarbrevInput
     ): ByteArray {
-        if (Type.of(input.typeId) !in listOf(Type.KLAGE, Type.ANKE)) {
-            throw SvarbrevPreviewException("Forhåndsvisning av svarbrev er bare tilgjengelig for Klage og Anke.")
+        if (Type.of(input.typeId) !in listOf(Type.KLAGE, Type.ANKE, Type.OMGJOERINGSKRAV)) {
+            throw SvarbrevPreviewException("Forhåndsvisning av svarbrev er bare tilgjengelig for klage, anke og omgjøringskrav.")
         }
 
         val sakenGjelderName = partSearchService.searchPart(
@@ -58,8 +58,8 @@ class SvarbrevPreviewService(
     fun getAnonymousSvarbrevPreviewPDF(
         input: PreviewSvarbrevAnonymousInput
     ): ByteArray {
-        if (input.typeId !in listOf(Type.KLAGE.id, Type.ANKE.id)) {
-            throw SvarbrevPreviewException("Forhåndsvisning av svarbrev er bare tilgjengelig for Klage og Anke.")
+        if (Type.of(input.typeId) !in listOf(Type.KLAGE, Type.ANKE, Type.OMGJOERINGSKRAV)) {
+            throw SvarbrevPreviewException("Forhåndsvisning av svarbrev er bare tilgjengelig for klage, anke og omgjøringskrav.")
         }
 
         val mockName = "Navn Navnesen"
