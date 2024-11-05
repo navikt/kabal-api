@@ -4,6 +4,7 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
+import no.nav.klage.oppgave.api.view.SvarbrevSettingsConsumerView
 import no.nav.klage.oppgave.api.view.SvarbrevSettingsView
 import no.nav.klage.oppgave.api.view.UpdateSvarbrevSettingsInput
 import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
@@ -30,13 +31,16 @@ class SvarbrevSettingsService(
             .sortedWith(compareBy<SvarbrevSettings> { it.ytelse.navn }.thenBy { it.type.id }).map { it.toView() }
     }
 
-    fun getSvarbrevSettingsViewForYtelse(ytelse: Ytelse): List<SvarbrevSettingsView> {
-        return svarbrevSettingsRepository.findAll().filter { it.ytelse == ytelse }.sortedBy { it.type }
-            .map { it.toView() }
-    }
-
-    fun getSvarbrevSettingsViewForYtelseAndType(ytelse: Ytelse, type: Type): SvarbrevSettingsView {
-        return getSvarbrevSettingsForYtelseAndType(ytelse = ytelse, type = type).toView()
+    fun getSvarbrevSettingsViewForYtelseAndType(ytelse: Ytelse, type: Type): SvarbrevSettingsConsumerView {
+        val settings = svarbrevSettingsRepository.findAll().find { it.ytelse == ytelse && it.type == type }
+        return if (settings == null && type == Type.OMGJOERINGSKRAV) {
+            SvarbrevSettingsConsumerView(
+                behandlingstidUnits = 12,
+                behandlingstidUnitTypeId = TimeUnitType.WEEKS.id,
+                customText = null,
+                shouldSend = true,
+            )
+        } else settings!!.toConsumerView()
     }
 
     fun getSvarbrevSettingsForYtelseAndType(ytelse: Ytelse, type: Type): SvarbrevSettings {
@@ -86,7 +90,6 @@ class SvarbrevSettingsService(
             ytelseId = ytelse.id,
             typeId = type.id,
             behandlingstidUnits = behandlingstidUnits,
-            behandlingstidUnitType = behandlingstidUnitType,
             behandlingstidUnitTypeId = behandlingstidUnitType.id,
             customText = customText,
             shouldSend = shouldSend,
@@ -99,13 +102,21 @@ class SvarbrevSettingsService(
         )
     }
 
+    private fun SvarbrevSettings.toConsumerView(): SvarbrevSettingsConsumerView {
+        return SvarbrevSettingsConsumerView(
+            behandlingstidUnits = behandlingstidUnits,
+            behandlingstidUnitTypeId = behandlingstidUnitType.id,
+            customText = customText,
+            shouldSend = shouldSend,
+        )
+    }
+
     private fun SvarbrevSettingsHistory.toView(): SvarbrevSettingsView {
         return SvarbrevSettingsView(
             id = id,
             ytelseId = ytelse.id,
             typeId = type.id,
             behandlingstidUnits = behandlingstidUnits,
-            behandlingstidUnitType = behandlingstidUnitType,
             behandlingstidUnitTypeId = behandlingstidUnitType.id,
             customText = customText,
             shouldSend = shouldSend,
