@@ -157,6 +157,26 @@ class BehandlingService(
             )
         }
 
+        val omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling = behandling is Omgjoeringskravbehandling &&
+                behandling.utfall !in listOf(Utfall.STADFESTET_ANNEN_BEGRUNNELSE, Utfall.BESLUTNING_IKKE_OMGJOERE)
+
+        if (omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling && gosysOppgaveInput != null) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = "gosysOppgaveUpdate",
+                                reason = "Gosys-oppgaven skal ikke oppdateres da den automatisk vil bli avsluttet i Kabal ved fullføring."
+                            )
+                        )
+                    )
+                )
+            )
+        }
+
         if (behandling.ferdigstilling != null) throw BehandlingFinalizedException("Behandlingen er avsluttet")
 
         //Forretningsmessige krav før vedtak kan ferdigstilles
