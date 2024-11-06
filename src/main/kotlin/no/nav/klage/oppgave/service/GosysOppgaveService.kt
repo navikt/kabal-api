@@ -161,6 +161,25 @@ class GosysOppgaveService(
         updateOppgaveAndPublishEvent(behandling = behandling, updateGosysOppgaveRequest = updateGosysOppgaveRequest, systemContext = true)
     }
 
+    fun avsluttGosysOppgave(behandling: Behandling) {
+        logger.debug("Avslutter Gosys-oppgave ${behandling.gosysOppgaveId}")
+        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = true)
+
+        if (!currentGosysOppgave.isEditable()) {
+            logger.warn("Gosys-oppgave ${behandling.gosysOppgaveId} kan ikke oppdateres, returnerer")
+            return
+        }
+
+        val avsluttGosysOppgaveInput = AvsluttGosysOppgaveInput(
+            versjon = currentGosysOppgave.versjon,
+            endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
+            ferdigstiltTidspunkt = LocalDateTime.now(),
+            status = Status.FERDIGSTILT,
+        )
+
+        updateOppgaveAndPublishEvent(behandling = behandling, updateGosysOppgaveRequest = avsluttGosysOppgaveInput, systemContext = true)
+    }
+
     private fun updateOppgaveAndPublishEvent(
         behandling: Behandling,
         updateGosysOppgaveRequest: UpdateOppgaveRequest,

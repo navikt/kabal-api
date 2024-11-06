@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.clients.gosysoppgave
 
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 abstract class UpdateOppgaveRequest(
     open val versjon: Int,
@@ -42,3 +43,9 @@ data class AddKommentarToGosysOppgaveInput(
     val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
+data class AvsluttGosysOppgaveInput(
+    override val versjon: Int,
+    override val endretAvEnhetsnr: String,
+    val ferdigstiltTidspunkt: LocalDateTime,
+    val status: Status,
+) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)

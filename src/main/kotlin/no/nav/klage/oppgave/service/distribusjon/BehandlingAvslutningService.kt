@@ -112,9 +112,8 @@ class BehandlingAvslutningService(
         } else if (behandling is Omgjoeringskravbehandling && behandling.utfall != Utfall.MEDHOLD_ETTER_FVL_35) {
             logger.debug("Avslutter omgjøringskravbehandling med utfall som ikke skal formidles til førsteinstans.")
             if (behandling.gosysOppgaveId != null) {
-                logger.debug("Avslutter oppgave i gosys.")
-                //TODO: Finn ut hva vi skal gjøre med oppgaven i dette tilfellet.
-                //oppgaveApiService.avsluttOppgave()
+                logger.debug("Avslutter oppgave i Gosys.")
+                gosysOppgaveService.avsluttGosysOppgave(behandling)
             }
         } else {
             val hoveddokumenter =
