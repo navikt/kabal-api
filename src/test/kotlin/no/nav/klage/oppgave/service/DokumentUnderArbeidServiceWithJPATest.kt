@@ -130,7 +130,8 @@ class DokumentUnderArbeidServiceWithJPATest {
             kodeverkService = mockk(),
             dokDistKanalService = mockk(),
             kabalJsonToPdfService = mockk(),
-            tokenUtil = mockk()
+            tokenUtil = mockk(),
+            svarbrevSettingsService = mockk(),
         )
 
         val behandlingId = UUID.randomUUID()

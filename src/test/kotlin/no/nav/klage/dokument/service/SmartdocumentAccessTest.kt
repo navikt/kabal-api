@@ -63,7 +63,8 @@ class SmartdocumentAccessTest {
             kodeverkService = mockk(),
             dokDistKanalService = mockk(),
             kabalJsonToPdfService = mockk(),
-            tokenUtil = mockk()
+            tokenUtil = mockk(),
+            svarbrevSettingsService = mockk(),
         )
 
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns "navident"
