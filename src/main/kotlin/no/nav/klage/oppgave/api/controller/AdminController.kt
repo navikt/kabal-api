@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.api.controller
 
 import no.nav.klage.oppgave.config.SecurityConfiguration
+import no.nav.klage.oppgave.domain.klage.TaskListMerkantil
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.service.AdminService
@@ -149,6 +150,14 @@ class AdminController(
             logger.warn("Failed to migrate tilbakekreving", e)
             throw e
         }
+    }
+
+    @GetMapping("/internal/merkantil-tasks")
+    fun getTaskListMerkantil(): List<TaskListMerkantil> {
+        logger.debug("getTaskListMerkantil is called")
+        krevAdminTilgang()
+
+        return adminService.getTaskListMerkantil()
     }
 
     data class Fnr(val fnr: String)

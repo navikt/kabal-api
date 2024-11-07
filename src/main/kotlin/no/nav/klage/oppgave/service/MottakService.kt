@@ -67,7 +67,7 @@ class MottakService(
     }
 
     @Transactional
-    fun createMottakForKlageV2(oversendtKlage: OversendtKlageV2) {
+    fun createMottakForKlageV2(oversendtKlage: OversendtKlageV2): Behandling {
         secureLogger.debug("Prøver å lagre oversendtKlageV2: {}", oversendtKlage)
         oversendtKlage.validate()
 
@@ -78,17 +78,17 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
-        tryToSendSvarbrev(behandling = behandling, oversendtKlage.hindreAutomatiskSvarbrev == true)
-
         updateMetrics(
             kilde = oversendtKlage.kilde.name,
             ytelse = oversendtKlage.ytelse.navn,
             type = oversendtKlage.type.navn,
         )
+
+        return behandling
     }
 
     @Transactional
-    fun createMottakForKlageAnkeV3(oversendtKlageAnke: OversendtKlageAnkeV3) {
+    fun createMottakForKlageAnkeV3(oversendtKlageAnke: OversendtKlageAnkeV3): Behandling {
         secureLogger.debug("Prøver å lagre oversendtKlageAnkeV3: {}", oversendtKlageAnke)
 
         val mottak = validateAndSaveMottak(oversendtKlageAnke)
@@ -98,32 +98,27 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
-        tryToSendSvarbrev(behandling = behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
-
         updateMetrics(
             kilde = oversendtKlageAnke.kilde.name,
             ytelse = oversendtKlageAnke.ytelse.navn,
             type = oversendtKlageAnke.type.navn,
         )
+        return behandling
     }
 
-    private fun tryToSendSvarbrev(behandling: Behandling, hindreAutomatiskSvarbrev: Boolean) {
-        try {
-            dokumentUnderArbeidService.sendSvarbrev(behandling, hindreAutomatiskSvarbrev)
-        } catch (e: Exception) {
-            secureLogger.warn("Failed to send svarbrev for behandling ${behandling.id}. Will need to be looked at manually.", e)
-            taskListMerkantilRepository.save(
-                TaskListMerkantil(
-                    behandlingId = behandling.id,
-                    reason = "Svarbrev kunne ikke sendes automatisk. Teknisk årsak: ${e.message}",
-                    created = LocalDateTime.now(),
-                    dateHandled = null,
-                    handledBy = null,
-                    handledByName = null,
-                    comment = null,
-                )
+    @Transactional
+    fun createTaskForMerkantil(behandlingId: UUID, reason: String) {
+        taskListMerkantilRepository.save(
+            TaskListMerkantil(
+                behandlingId = behandlingId,
+                reason = reason,
+                created = LocalDateTime.now(),
+                dateHandled = null,
+                handledBy = null,
+                handledByName = null,
+                comment = null,
             )
-        }
+        )
     }
 
     @Transactional
@@ -145,12 +140,6 @@ class MottakService(
         logger.debug("Creating behandling from mottak")
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
         logger.debug("Behandling created from mottak")
-
-        //For verification
-        tryToSendSvarbrev(
-            behandling = behandling,
-            hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true
-        )
 
         return behandling
     }

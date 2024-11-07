@@ -14,7 +14,7 @@ import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.klage.MottakDokumentType
 import no.nav.klage.oppgave.domain.klage.utfallToTrygderetten
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
-import no.nav.klage.oppgave.service.MottakService
+import no.nav.klage.oppgave.service.ExternalMottakFacade
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Value
@@ -33,7 +33,7 @@ import kotlin.random.Random
 @RestController
 @RequestMapping("mockdata")
 class MockDataController(
-    private val mottakService: MottakService,
+    private val mottakFacade: ExternalMottakFacade,
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
     @Value("#{T(java.time.LocalDate).parse('\${KAKA_VERSION_2_DATE}')}")
     private val kakaVersion2Date: LocalDate,
@@ -75,7 +75,7 @@ class MockDataController(
     fun createKlagebehandlingForASpecificPerson(fnr: String) {
         val dato = LocalDate.of(2022, 1, 13)
 
-        mottakService.createMottakForKlageAnkeV3(
+        mottakFacade.createMottakForKlageAnkeV3(
             OversendtKlageAnkeV3(
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
@@ -124,7 +124,7 @@ class MockDataController(
 
         val dato = LocalDate.of(2020, 1, 13)
 
-        mottakService.createMottakForKlageAnkeV3(
+        mottakFacade.createMottakForKlageAnkeV3(
             OversendtKlageAnkeV3(
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
@@ -272,7 +272,7 @@ class MockDataController(
         logger.debug("Will create mottak/behandling for klage/anke of type {} for ytelse {}", type, ytelse)
         val behandling = when (type) {
             Type.KLAGE, Type.ANKE, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
-                mottakService.createMottakForKlageAnkeV3ForE2ETests(
+                mottakFacade.createMottakForKlageAnkeV3ForE2ETests(
                     OversendtKlageAnkeV3(
                         ytelse = ytelse,
                         type = type,

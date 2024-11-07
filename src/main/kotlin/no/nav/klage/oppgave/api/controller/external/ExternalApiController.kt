@@ -9,7 +9,7 @@ import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.service.BehandlingService
-import no.nav.klage.oppgave.service.MottakService
+import no.nav.klage.oppgave.service.ExternalMottakFacade
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
 @RequestMapping("api")
 class ExternalApiController(
-    private val mottakService: MottakService,
+    private val externalMottakFacade: ExternalMottakFacade,
     private val behandlingService: BehandlingService,
 ) {
 
@@ -45,7 +45,7 @@ class ExternalApiController(
         @Parameter(description = "Oversendt klage")
         @Valid @RequestBody oversendtKlage: OversendtKlageV2
     ) {
-        mottakService.createMottakForKlageV2(oversendtKlage)
+        externalMottakFacade.createMottakForKlageV2(oversendtKlage)
     }
 
     @Operation(
@@ -57,7 +57,7 @@ class ExternalApiController(
         @Parameter(description = "Oversendt sak")
         @Valid @RequestBody oversendtKlageAnke: OversendtKlageAnkeV3
     ) {
-        mottakService.createMottakForKlageAnkeV3(oversendtKlageAnke)
+        externalMottakFacade.createMottakForKlageAnkeV3(oversendtKlageAnke)
     }
 
     @Operation(
