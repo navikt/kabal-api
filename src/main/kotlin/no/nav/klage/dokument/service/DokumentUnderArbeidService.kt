@@ -3,7 +3,6 @@ package no.nav.klage.dokument.service
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
@@ -15,10 +14,7 @@ import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
-import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.kodeverk.FlowState
-import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.kodeverk.Template
+import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
@@ -47,6 +43,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
+import org.springframework.transaction.annotation.Transactional
 import java.io.BufferedReader
 import java.io.File
 import java.nio.file.Files
@@ -86,6 +84,7 @@ class DokumentUnderArbeidService(
     private val dokDistKanalService: DokDistKanalService,
     private val kabalJsonToPdfService: KabalJsonToPdfService,
     private val tokenUtil: TokenUtil,
+    private val svarbrevSettingsService: SvarbrevSettingsService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -2034,6 +2033,66 @@ class DokumentUnderArbeidService(
                 data = data,
             )
         )
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    fun sendSvarbrev(
+        behandling: Behandling,
+        hindreAutomatiskSvarbrev: Boolean,
+    ) {
+        if (hindreAutomatiskSvarbrev) {
+            logger.debug("hindreAutomatiskSvarbrev set to true, returning without sending svarbrev")
+            return
+        }
+        if (behandling.type == Type.KLAGE) {
+            val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(
+                ytelse = behandling.ytelse,
+                type = behandling.type
+            )
+
+            if (svarbrevSettings.shouldSend) {
+                logger.debug("Sender svarbrev for behandling {}", behandling.id)
+                val receiverId = if (behandling.klager.prosessfullmektig != null) {
+                    behandling.klager.prosessfullmektig!!.partId.value
+                } else {
+                    behandling.sakenGjelder.partId.value
+                }
+
+                createAndFinalizeDokumentUnderArbeidFromSvarbrev(
+                    behandling = behandling,
+                    svarbrev = Svarbrev(
+                        title = "NAV orienterer om saksbehandlingen",
+                        receivers = listOf(
+                            Svarbrev.Receiver(
+                                id = receiverId,
+                                handling = Svarbrev.Receiver.HandlingEnum.AUTO,
+                                overriddenAddress = null
+                            )
+                        ),
+                        fullmektigFritekst = null,
+                        varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
+                        varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
+                        type = behandling.type,
+                        customText = svarbrevSettings.customText,
+                    ),
+                    //Hardcode KA Oslo
+                    avsenderEnhetId = Enhet.E4291.navn,
+                    systemContext = true
+                )
+
+                behandlingService.setVarsletFrist(
+                    behandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
+                    behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
+                    behandling = behandling,
+                    systemUserContext = true,
+                    mottakere = listOf(behandling.sakenGjelder.partId)
+                )
+
+                logger.debug("Svarbrev klargjort for utsending for behandling {}", behandling.id)
+            } else {
+                logger.debug("Svarbrev skal ikke sendes for behandling {}", behandling.id)
+            }
+        }
     }
 
     fun createAndFinalizeDokumentUnderArbeidFromSvarbrev(

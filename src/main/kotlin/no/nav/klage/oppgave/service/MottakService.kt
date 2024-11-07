@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.service
 
 
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -33,7 +32,6 @@ import no.nav.klage.oppgave.util.isValidOrgnr
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -54,7 +52,6 @@ class MottakService(
     private val pdlFacade: PdlFacade,
     private val eregClient: EregClient,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
-    private val svarbrevSettingsService: SvarbrevSettingsService,
     private val behandlingService: BehandlingService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembruker: String,
     private val taskListMerkantilRepository: TaskListMerkantilRepository,
@@ -110,10 +107,9 @@ class MottakService(
         )
     }
 
-    @Transactional
-    fun tryToSendSvarbrev(behandling: Behandling, hindreAutomatiskSvarbrev: Boolean) {
+    private fun tryToSendSvarbrev(behandling: Behandling, hindreAutomatiskSvarbrev: Boolean) {
         try {
-            sendSvarbrev(behandling, hindreAutomatiskSvarbrev)
+            dokumentUnderArbeidService.sendSvarbrev(behandling, hindreAutomatiskSvarbrev)
         } catch (e: Exception) {
             secureLogger.warn("Failed to send svarbrev for behandling ${behandling.id}. Will need to be looked at manually.", e)
             taskListMerkantilRepository.save(
@@ -127,66 +123,6 @@ class MottakService(
                     comment = null,
                 )
             )
-        }
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun sendSvarbrev(
-        behandling: Behandling,
-        hindreAutomatiskSvarbrev: Boolean,
-    ) {
-        if (hindreAutomatiskSvarbrev) {
-            logger.debug("hindreAutomatiskSvarbrev set to true, returning without sending svarbrev")
-            return
-        }
-        if (behandling.type == Type.KLAGE) {
-            val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(
-                ytelse = behandling.ytelse,
-                type = behandling.type
-            )
-
-            if (svarbrevSettings.shouldSend) {
-                logger.debug("Sender svarbrev for behandling {}", behandling.id)
-                val receiverId = if (behandling.klager.prosessfullmektig != null) {
-                    behandling.klager.prosessfullmektig!!.partId.value
-                } else {
-                    behandling.sakenGjelder.partId.value
-                }
-
-                dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
-                    behandling = behandling,
-                    svarbrev = Svarbrev(
-                        title = "NAV orienterer om saksbehandlingen",
-                        receivers = listOf(
-                            Svarbrev.Receiver(
-                                id = receiverId,
-                                handling = Svarbrev.Receiver.HandlingEnum.AUTO,
-                                overriddenAddress = null
-                            )
-                        ),
-                        fullmektigFritekst = null,
-                        varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
-                        varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
-                        type = behandling.type,
-                        customText = svarbrevSettings.customText,
-                    ),
-                    //Hardcode KA Oslo
-                    avsenderEnhetId = Enhet.E4291.navn,
-                    systemContext = true
-                )
-
-                behandlingService.setVarsletFrist(
-                    behandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
-                    behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
-                    behandling = behandling,
-                    systemUserContext = true,
-                    mottakere = listOf(behandling.sakenGjelder.partId)
-                )
-
-                logger.debug("Svarbrev klargjort for utsending for behandling {}", behandling.id)
-            } else {
-                logger.debug("Svarbrev skal ikke sendes for behandling {}", behandling.id)
-            }
         }
     }
 
