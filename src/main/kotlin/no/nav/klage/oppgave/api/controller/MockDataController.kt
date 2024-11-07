@@ -73,13 +73,6 @@ class MockDataController(
     }
 
     fun createKlagebehandlingForASpecificPerson(fnr: String) {
-        val journalpostId = "510534809"
-        val journalpost = safFacade.getJournalposter(
-            journalpostIdSet = setOf(journalpostId),
-            fnr = null,
-            saksbehandlerContext = false,
-        ).first()
-
         val dato = LocalDate.of(2022, 1, 13)
 
         mottakService.createMottakForKlageAnkeV3(
@@ -90,15 +83,8 @@ class MockDataController(
                     id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
                 ),
                 fagsak = OversendtSak(
-                    fagsakId = journalpost.sak?.fagsakId ?: "UKJENT",
-                    fagsystem = journalpost.sak?.fagsaksystem?.let {
-                        try {
-                            Fagsystem.valueOf(it)
-                        } catch (e: Exception) {
-                            Fagsystem.AO01
-                        }
-                    }
-                        ?: Fagsystem.AO01
+                    fagsakId = UUID.randomUUID().toString(),
+                    fagsystem = Fagsystem.AO01
                 ),
                 kildeReferanse = UUID.randomUUID().toString(),
                 innsynUrl = "https://nav.no",
@@ -108,12 +94,7 @@ class MockDataController(
                     ).shuffled().first()
                 ),
                 forrigeBehandlendeEnhet = "0104", //NAV Moss
-                tilknyttedeJournalposter = listOf(
-                    OversendtDokumentReferanse(
-                        randomMottakDokumentType(),
-                        journalpostId
-                    )
-                ),
+                tilknyttedeJournalposter = listOf(),
                 brukersHenvendelseMottattNavDato = dato,
                 innsendtTilNav = dato.minusDays(3),
                 kilde = Fagsystem.AO01,
