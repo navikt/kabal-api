@@ -11,6 +11,8 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
+import no.nav.klage.oppgave.api.view.GosysOppgaveInput
+import no.nav.klage.oppgave.api.view.GosysOppgaveUpdateInput
 import no.nav.klage.oppgave.api.view.MedunderskriverFlowStateResponse
 import no.nav.klage.oppgave.api.view.MedunderskriverWrapped
 import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
@@ -394,6 +396,25 @@ class BehandlingServiceTest {
 
             behandlingService.validateBehandlingBeforeFinalize(
                 behandlingId = behandling.id,
+                nyBehandlingEtterTROpphevet = false,
+            )
+        }
+    }
+
+    @Test
+    fun `Ferdigstill behandling med både ignoreGosysOppgave og gosysOppgaveUpdateInput gir feil`() {
+        assertThrows<SectionedValidationErrorWithDetailsException> {
+            behandlingService.ferdigstillBehandling(
+                behandlingId = UUID.randomUUID(),
+                innloggetIdent = SAKSBEHANDLER_IDENT,
+                gosysOppgaveInput = GosysOppgaveInput(
+                    gosysOppgaveUpdate = GosysOppgaveUpdateInput(
+                        tildeltEnhet = Enhet.E0119.id,
+                        mappeId = 123,
+                        kommentar = "Kommentar"
+                    ),
+                    ignoreGosysOppgave = true,
+                ),
                 nyBehandlingEtterTROpphevet = false,
             )
         }
