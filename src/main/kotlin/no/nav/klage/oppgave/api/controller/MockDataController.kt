@@ -45,6 +45,12 @@ class MockDataController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    @Unprotected
+    @PostMapping("/doed")
+    fun createDoedPerson() {
+        createKlagebehandlingForASpecificPerson("14506507686")
+    }
+
     //https://dolly.ekstern.dev.nav.no/gruppe/6336
     @Unprotected
     @PostMapping("/kode6")
