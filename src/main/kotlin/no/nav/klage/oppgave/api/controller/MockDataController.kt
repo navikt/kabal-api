@@ -14,7 +14,7 @@ import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.klage.MottakDokumentType
 import no.nav.klage.oppgave.domain.klage.utfallToTrygderetten
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
-import no.nav.klage.oppgave.service.MottakService
+import no.nav.klage.oppgave.service.ExternalMottakFacade
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Value
@@ -33,7 +33,7 @@ import kotlin.random.Random
 @RestController
 @RequestMapping("mockdata")
 class MockDataController(
-    private val mottakService: MottakService,
+    private val mottakFacade: ExternalMottakFacade,
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
     @Value("#{T(java.time.LocalDate).parse('\${KAKA_VERSION_2_DATE}')}")
     private val kakaVersion2Date: LocalDate,
@@ -43,6 +43,12 @@ class MockDataController(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+    }
+
+    @Unprotected
+    @PostMapping("/doed")
+    fun createDoedPerson() {
+        createKlagebehandlingForASpecificPerson("14506507686")
     }
 
     //https://dolly.ekstern.dev.nav.no/gruppe/6336
@@ -67,16 +73,9 @@ class MockDataController(
     }
 
     fun createKlagebehandlingForASpecificPerson(fnr: String) {
-        val journalpostId = "510534809"
-        val journalpost = safFacade.getJournalposter(
-            journalpostIdSet = setOf(journalpostId),
-            fnr = null,
-            saksbehandlerContext = false,
-        ).first()
-
         val dato = LocalDate.of(2022, 1, 13)
 
-        mottakService.createMottakForKlageAnkeV3(
+        mottakFacade.createMottakForKlageAnkeV3(
             OversendtKlageAnkeV3(
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
@@ -84,15 +83,8 @@ class MockDataController(
                     id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
                 ),
                 fagsak = OversendtSak(
-                    fagsakId = journalpost.sak?.fagsakId ?: "UKJENT",
-                    fagsystem = journalpost.sak?.fagsaksystem?.let {
-                        try {
-                            Fagsystem.valueOf(it)
-                        } catch (e: Exception) {
-                            Fagsystem.AO01
-                        }
-                    }
-                        ?: Fagsystem.AO01
+                    fagsakId = UUID.randomUUID().toString(),
+                    fagsystem = Fagsystem.AO01
                 ),
                 kildeReferanse = UUID.randomUUID().toString(),
                 innsynUrl = "https://nav.no",
@@ -102,12 +94,7 @@ class MockDataController(
                     ).shuffled().first()
                 ),
                 forrigeBehandlendeEnhet = "0104", //NAV Moss
-                tilknyttedeJournalposter = listOf(
-                    OversendtDokumentReferanse(
-                        randomMottakDokumentType(),
-                        journalpostId
-                    )
-                ),
+                tilknyttedeJournalposter = listOf(),
                 brukersHenvendelseMottattNavDato = dato,
                 innsendtTilNav = dato.minusDays(3),
                 kilde = Fagsystem.AO01,
@@ -137,7 +124,7 @@ class MockDataController(
 
         val dato = LocalDate.of(2020, 1, 13)
 
-        mottakService.createMottakForKlageAnkeV3(
+        mottakFacade.createMottakForKlageAnkeV3(
             OversendtKlageAnkeV3(
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
@@ -285,7 +272,7 @@ class MockDataController(
         logger.debug("Will create mottak/behandling for klage/anke of type {} for ytelse {}", type, ytelse)
         val behandling = when (type) {
             Type.KLAGE, Type.ANKE, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
-                mottakService.createMottakForKlageAnkeV3ForE2ETests(
+                mottakFacade.createMottakForKlageAnkeV3ForE2ETests(
                     OversendtKlageAnkeV3(
                         ytelse = ytelse,
                         type = type,

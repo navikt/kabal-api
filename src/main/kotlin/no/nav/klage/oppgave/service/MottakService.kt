@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.service
 
 
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -25,10 +24,7 @@ import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException
 import no.nav.klage.oppgave.exceptions.PreviousBehandlingNotFinalizedException
 import no.nav.klage.oppgave.gateway.AzureGateway
-import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
-import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
-import no.nav.klage.oppgave.repositories.MottakRepository
+import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.isValidFnrOrDnr
@@ -56,9 +52,9 @@ class MottakService(
     private val pdlFacade: PdlFacade,
     private val eregClient: EregClient,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
-    private val svarbrevSettingsService: SvarbrevSettingsService,
     private val behandlingService: BehandlingService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembruker: String,
+    private val taskListMerkantilRepository: TaskListMerkantilRepository,
 ) {
 
     private val lovligeTyperIMottakV2 = LovligeTyper.lovligeTyper(environment)
@@ -71,7 +67,7 @@ class MottakService(
     }
 
     @Transactional
-    fun createMottakForKlageV2(oversendtKlage: OversendtKlageV2) {
+    fun createMottakForKlageV2(oversendtKlage: OversendtKlageV2): Behandling {
         secureLogger.debug("Prøver å lagre oversendtKlageV2: {}", oversendtKlage)
         oversendtKlage.validate()
 
@@ -82,17 +78,17 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
-        sendSvarbrev(behandling = behandling, oversendtKlage.hindreAutomatiskSvarbrev == true)
-
         updateMetrics(
             kilde = oversendtKlage.kilde.name,
             ytelse = oversendtKlage.ytelse.navn,
             type = oversendtKlage.type.navn,
         )
+
+        return behandling
     }
 
     @Transactional
-    fun createMottakForKlageAnkeV3(oversendtKlageAnke: OversendtKlageAnkeV3) {
+    fun createMottakForKlageAnkeV3(oversendtKlageAnke: OversendtKlageAnkeV3): Behandling {
         secureLogger.debug("Prøver å lagre oversendtKlageAnkeV3: {}", oversendtKlageAnke)
 
         val mottak = validateAndSaveMottak(oversendtKlageAnke)
@@ -102,73 +98,27 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
-        sendSvarbrev(behandling = behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
-
         updateMetrics(
             kilde = oversendtKlageAnke.kilde.name,
             ytelse = oversendtKlageAnke.ytelse.navn,
             type = oversendtKlageAnke.type.navn,
         )
+        return behandling
     }
 
-    private fun sendSvarbrev(
-        behandling: Behandling,
-        hindreAutomatiskSvarbrev: Boolean,
-    ) {
-        if (hindreAutomatiskSvarbrev) {
-            logger.debug("hindreAutomatiskSvarbrev set to true, returning without sending svarbrev")
-            return
-        }
-        if (behandling.type == Type.KLAGE) {
-            try {
-                val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(ytelse = behandling.ytelse, type = behandling.type)
-
-                if (svarbrevSettings.shouldSend) {
-                    logger.debug("Sender svarbrev for behandling {}", behandling.id)
-                    val receiverId = if (behandling.klager.prosessfullmektig != null) {
-                        behandling.klager.prosessfullmektig!!.partId.value
-                    } else {
-                        behandling.sakenGjelder.partId.value
-                    }
-
-                    dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
-                        behandling = behandling,
-                        svarbrev = Svarbrev(
-                            title = "NAV orienterer om saksbehandlingen",
-                            receivers = listOf(
-                                Svarbrev.Receiver(
-                                    id = receiverId,
-                                    handling = Svarbrev.Receiver.HandlingEnum.AUTO,
-                                    overriddenAddress = null
-                                )
-                            ),
-                            fullmektigFritekst = null,
-                            varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
-                            varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
-                            type = behandling.type,
-                            customText = svarbrevSettings.customText,
-                        ),
-                        //Hardcode KA Oslo
-                        avsenderEnhetId = Enhet.E4291.navn,
-                        systemContext = true
-                    )
-
-                    behandlingService.setVarsletFrist(
-                        behandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
-                        behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
-                        behandling = behandling,
-                        systemUserContext = true,
-                        mottakere = listOf(behandling.sakenGjelder.partId)
-                    )
-
-                    logger.debug("Svarbrev klargjort for utsending for behandling {}", behandling.id)
-                } else {
-                    logger.debug("Svarbrev skal ikke sendes for behandling {}", behandling.id)
-                }
-            } catch (e: Exception) {
-                logger.error("Feil ved opprettelse av svarbrev.", e)
-            }
-        }
+    @Transactional
+    fun createTaskForMerkantil(behandlingId: UUID, reason: String) {
+        taskListMerkantilRepository.save(
+            TaskListMerkantil(
+                behandlingId = behandlingId,
+                reason = reason,
+                created = LocalDateTime.now(),
+                dateHandled = null,
+                handledBy = null,
+                handledByName = null,
+                comment = null,
+            )
+        )
     }
 
     @Transactional
@@ -190,9 +140,6 @@ class MottakService(
         logger.debug("Creating behandling from mottak")
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
         logger.debug("Behandling created from mottak")
-
-        //For verification
-        sendSvarbrev(behandling = behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
 
         return behandling
     }
@@ -342,7 +289,7 @@ class MottakService(
                     Type.KLAGE -> klagebehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
                     Type.ANKE -> ankebehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
                     Type.ANKE_I_TRYGDERETTEN -> true//Ikke relevant for AnkeITrygderetten
-                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET ->  TODO() //TODO: sjekk hva vi trenger når vi får opprettelse fra Kabin
+                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> TODO() //TODO: sjekk hva vi trenger når vi får opprettelse fra Kabin
                 }
             }
             .flatMap { it.mottakDokument }

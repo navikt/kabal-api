@@ -64,6 +64,7 @@ class AdminService(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val tokenUtil: TokenUtil,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val taskListMerkantilRepository: TaskListMerkantilRepository,
 ) {
 
     companion object {
@@ -460,6 +461,10 @@ class AdminService(
         Registreringshjemmel.BTRL_13,
         Registreringshjemmel.KONTSL_11,
     )
+
+    fun getTaskListMerkantil(): List<TaskListMerkantil> {
+        return taskListMerkantilRepository.findAll().sortedByDescending { it.created }
+    }
 }
 
 fun migrateTables(fromJsonString: String?, secureLogger: Logger?): String {
