@@ -14,6 +14,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
+import no.nav.klage.oppgave.api.view.TaskListMerkantilView
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
@@ -462,10 +463,26 @@ class AdminService(
         Registreringshjemmel.KONTSL_11,
     )
 
-    fun getTaskListMerkantil(): List<TaskListMerkantil> {
-        return taskListMerkantilRepository.findAll().sortedByDescending { it.created }
+    fun getTaskListMerkantil(): List<TaskListMerkantilView> {
+        return taskListMerkantilRepository.findAll().sortedByDescending { it.created }.map { it.toTaskListMerkantilView() }
+    }
+
+    fun TaskListMerkantil.toTaskListMerkantilView(): TaskListMerkantilView {
+        return TaskListMerkantilView(
+            id = id,
+            behandlingId = behandlingId,
+            reason = reason,
+            created = created,
+            dateHandled = dateHandled,
+            handledBy = handledBy,
+            handledByName = handledByName,
+            comment = comment,
+            typeId = behandlingRepository.findByIdEager(behandlingId).type.id
+        )
     }
 }
+
+
 
 fun migrateTables(fromJsonString: String?, secureLogger: Logger?): String {
     secureLogger?.debug("fromJsonString: $fromJsonString")

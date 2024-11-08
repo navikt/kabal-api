@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.api.controller
 
+import no.nav.klage.oppgave.api.view.TaskListMerkantilView
 import no.nav.klage.oppgave.config.SecurityConfiguration
-import no.nav.klage.oppgave.domain.klage.TaskListMerkantil
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.service.AdminService
@@ -153,7 +153,7 @@ class AdminController(
     }
 
     @GetMapping("/internal/merkantil-tasks")
-    fun getTaskListMerkantil(): List<TaskListMerkantil> {
+    fun getTaskListMerkantil(): List<TaskListMerkantilView> {
         logger.debug("getTaskListMerkantil is called")
         krevAdminTilgang()
 
