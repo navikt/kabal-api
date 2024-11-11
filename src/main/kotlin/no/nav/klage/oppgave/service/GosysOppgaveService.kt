@@ -255,12 +255,12 @@ class GosysOppgaveService(
                 getMappe(id = mappeId, systemContext = systemContext)
             } else null,
             editable = isEditable(),
-            opprettetAvEnhet = opprettetAvEnhetsnr?.let {
+            opprettetAvEnhet = if (opprettetAvEnhetsnr != null && opprettetAvEnhetsnr.trim() != "0") {
                 EnhetView(
-                    enhetsnr = it,
-                    navn = norg2Client.fetchEnhet(enhetNr = it).navn,
+                    enhetsnr = opprettetAvEnhetsnr,
+                    navn = norg2Client.fetchEnhet(enhetNr = opprettetAvEnhetsnr).navn,
                 )
-            },
+            } else null,
             alreadyUsedBy = null,
         )
     }
