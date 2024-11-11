@@ -93,6 +93,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.NOT_FOUND, ex)
 
     @ExceptionHandler
+    fun handleGosysOppgaveNotEditableException(
+        ex: GosysOppgaveNotEditableException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.BAD_REQUEST, ex)
+
+    @ExceptionHandler
     fun handlePDLPersonNotFoundException(
         ex: PDLPersonNotFoundException,
         request: NativeWebRequest

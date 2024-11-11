@@ -36,7 +36,7 @@ class KlagebehandlingSchedulerService(
         cleanupAfterBehandlingEventListener.cleanupMergedDocuments()
     }
 
-    //TODO: Hvorfor vente 4 minutter?
+    //TODO: Hvorfor vente 2 minutter?
     @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 2, initialDelay = 4)
     @SchedulerLock(name = "avsluttBehandling")
     fun avsluttBehandling() {

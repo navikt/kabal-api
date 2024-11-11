@@ -113,7 +113,10 @@ class BehandlingAvslutningService(
             logger.debug("Avslutter omgjøringskravbehandling med utfall som ikke skal formidles til førsteinstans.")
             if (behandling.gosysOppgaveId != null) {
                 logger.debug("Avslutter oppgave i Gosys.")
-                gosysOppgaveService.avsluttGosysOppgave(behandling)
+                gosysOppgaveService.avsluttGosysOppgave(
+                    behandling = behandling,
+                    throwExceptionIfFerdigstilt = false,
+                )
             }
         } else {
             val hoveddokumenter =
@@ -190,6 +193,7 @@ class BehandlingAvslutningService(
             gosysOppgaveService.updateGosysOppgave(
                 behandling = behandling,
                 systemContext = true,
+                throwExceptionIfFerdigstilt = true,
             )
         }
 
@@ -216,6 +220,7 @@ class BehandlingAvslutningService(
                 behandling = ankeITrygderettenbehandling,
                 kommentar = kommentar,
                 systemContext = true,
+                throwExceptionIfFerdigstilt = false,
             )
         }
     }
@@ -234,6 +239,7 @@ class BehandlingAvslutningService(
                 behandling = ankeITrygderettenbehandling,
                 kommentar = kommentar,
                 systemContext = true,
+                throwExceptionIfFerdigstilt = false,
             )
         }
     }

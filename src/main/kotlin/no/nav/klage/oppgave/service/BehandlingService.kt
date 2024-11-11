@@ -194,58 +194,13 @@ class BehandlingService(
             )
         }
 
-        if (behandling.gosysOppgaveId != null && !ankeITRHenvist) {
-            val gosysOppgave = gosysOppgaveService.getGosysOppgave(behandling.gosysOppgaveId!!)
-
-            if (!gosysOppgave.editable && gosysOppgaveInput?.ignoreGosysOppgave != true) {
-                throw SectionedValidationErrorWithDetailsException(
-                    title = "Validation error",
-                    sections = listOf(
-                        ValidationSection(
-                            section = "behandling",
-                            properties = listOf(
-                                InvalidProperty(
-                                    field = "gosysOppgaveInput",
-                                    reason = "Gosys-oppgaven kan ikke redigeres. Du må bekrefte at du fremdeles vil bruke denne Gosys-oppgaven, eller velge en annen."
-                                )
-                            )
-                        )
-                    )
-                )
-            }
-
-            if (gosysOppgaveInput?.gosysOppgaveUpdate == null && gosysOppgaveInput?.ignoreGosysOppgave != true) {
-                throw SectionedValidationErrorWithDetailsException(
-                    title = "Validation error",
-                    sections = listOf(
-                        ValidationSection(
-                            section = "behandling",
-                            properties = listOf(
-                                InvalidProperty(
-                                    field = "gosysOppgaveUpdate",
-                                    reason = "Oppdatert informasjon om Gosys-oppgaven må fylles ut for å avslutte behandlingen."
-                                )
-                            )
-                        )
-                    )
-                )
-            } else {
-                if (gosysOppgaveInput.gosysOppgaveUpdate != null) {
-                    behandling.setGosysOppgaveUpdate(
-                        tildeltEnhet = gosysOppgaveInput.gosysOppgaveUpdate.tildeltEnhet,
-                        mappeId = gosysOppgaveInput.gosysOppgaveUpdate.mappeId,
-                        kommentar = gosysOppgaveInput.gosysOppgaveUpdate.kommentar,
-                        saksbehandlerident = innloggetIdent,
-                    )
-                } else {
-                    //Her må ignoreGosysOppgave være true
-                    behandling.setIgnoreGosysOppgave(
-                        ignoreGosysOppgaveNewValue = true,
-                        saksbehandlerident = innloggetIdent,
-                    )
-                }
-            }
-        }
+        validateAndUpdateGosysOppgaveInput(
+            behandling = behandling,
+            ankeITRHenvist = ankeITRHenvist,
+            omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling = omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling,
+            gosysOppgaveInput = gosysOppgaveInput,
+            innloggetIdent = innloggetIdent
+        )
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
         return behandlingMapper.mapToBehandlingFullfoertView(
@@ -254,6 +209,75 @@ class BehandlingService(
                 innloggetIdent
             )
         )
+    }
+
+    private fun validateAndUpdateGosysOppgaveInput(
+        behandling: Behandling,
+        ankeITRHenvist: Boolean,
+        omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling: Boolean,
+        gosysOppgaveInput: GosysOppgaveInput?,
+        innloggetIdent: String
+    ) {
+        if (behandling.gosysOppgaveId != null) {
+            if (ankeITRHenvist || omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling) {
+                //Ikke relevant å håndtere Gosys-oppgave her
+                logger.debug("Not updating Gosys oppgave, not relevant for this case. ankeITRHenvist: $ankeITRHenvist, omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling: $omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling")
+                return
+            } else {
+                val gosysOppgave = gosysOppgaveService.getGosysOppgave(behandling.gosysOppgaveId!!)
+
+                if (!gosysOppgave.editable && gosysOppgaveInput?.ignoreGosysOppgave != true) {
+                    throw SectionedValidationErrorWithDetailsException(
+                        title = "Validation error",
+                        sections = listOf(
+                            ValidationSection(
+                                section = "behandling",
+                                properties = listOf(
+                                    InvalidProperty(
+                                        field = "gosysOppgaveInput",
+                                        reason = "Gosys-oppgaven kan ikke redigeres. Du må bekrefte at du fremdeles vil bruke denne Gosys-oppgaven, eller velge en annen."
+                                    )
+                                )
+                            )
+                        )
+                    )
+                }
+
+                if (gosysOppgaveInput?.gosysOppgaveUpdate == null && gosysOppgaveInput?.ignoreGosysOppgave != true) {
+                    throw SectionedValidationErrorWithDetailsException(
+                        title = "Validation error",
+                        sections = listOf(
+                            ValidationSection(
+                                section = "behandling",
+                                properties = listOf(
+                                    InvalidProperty(
+                                        field = "gosysOppgaveUpdate",
+                                        reason = "Oppdatert informasjon om Gosys-oppgaven må fylles ut for å avslutte behandlingen."
+                                    )
+                                )
+                            )
+                        )
+                    )
+                } else {
+                    if (gosysOppgaveInput.gosysOppgaveUpdate != null) {
+                        logger.debug("Updating behandling with gosysOppgaveInput")
+                        behandling.setGosysOppgaveUpdate(
+                            tildeltEnhet = gosysOppgaveInput.gosysOppgaveUpdate.tildeltEnhet,
+                            mappeId = gosysOppgaveInput.gosysOppgaveUpdate.mappeId,
+                            kommentar = gosysOppgaveInput.gosysOppgaveUpdate.kommentar,
+                            saksbehandlerident = innloggetIdent,
+                        )
+                    } else {
+                        logger.debug("Updating behandling with ignoreGosysOppgave")
+                        //Her må ignoreGosysOppgave være true
+                        behandling.setIgnoreGosysOppgave(
+                            ignoreGosysOppgaveNewValue = true,
+                            saksbehandlerident = innloggetIdent,
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun markerBehandlingSomAvsluttetAvSaksbehandler(

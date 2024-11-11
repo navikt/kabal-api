@@ -42,7 +42,8 @@ class UpdateGosysOppgaveEventListener(
                 gosysOppgaveId = behandlingEndretEvent.behandling.gosysOppgaveId!!,
                 tildeltSaksbehandlerIdent = behandlingEndretEvent.behandling.tildeling?.saksbehandlerident,
                 utfoerendeSaksbehandlerIdent = relevantEndringslogginnslag.saksbehandlerident ?: systembrukerIdent,
-                behandlingId = behandlingEndretEvent.behandling.id
+                behandlingId = behandlingEndretEvent.behandling.id,
+                throwExceptionIfFerdigstilt = false,
             )
         }
 
