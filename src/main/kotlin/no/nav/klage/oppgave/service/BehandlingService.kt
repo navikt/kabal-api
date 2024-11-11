@@ -158,7 +158,7 @@ class BehandlingService(
         }
 
         val omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling = behandling is Omgjoeringskravbehandling &&
-                behandling.utfall !in listOf(Utfall.STADFESTET_ANNEN_BEGRUNNELSE, Utfall.BESLUTNING_IKKE_OMGJOERE)
+                behandling.utfall in listOf(Utfall.STADFESTET_ANNEN_BEGRUNNELSE, Utfall.BESLUTNING_IKKE_OMGJOERE)
 
         if (omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling && gosysOppgaveInput != null) {
             throw SectionedValidationErrorWithDetailsException(
