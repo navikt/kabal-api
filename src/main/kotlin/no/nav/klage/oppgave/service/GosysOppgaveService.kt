@@ -215,7 +215,6 @@ class GosysOppgaveService(
         val avsluttGosysOppgaveInput = AvsluttGosysOppgaveInput(
             versjon = currentGosysOppgave.versjon,
             endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
-            ferdigstiltTidspunkt = LocalDateTime.now(),
             status = Status.FERDIGSTILT,
         )
 
