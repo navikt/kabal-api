@@ -2370,12 +2370,14 @@ class BehandlingService(
     fun setGosysOppgaveId(
         behandlingId: UUID,
         gosysOppgaveId: Long,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
+        ignoreCheckSkrivetilgang: Boolean,
     ): GosysOppgaveEditedView {
         logger.debug("Input utfall in setGosysOppgaveId: {}", gosysOppgaveId)
 
         val behandling = getBehandlingForUpdate(
-            behandlingId
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = ignoreCheckSkrivetilgang,
         )
 
         val gosysOppgave = gosysOppgaveService.getGosysOppgave(

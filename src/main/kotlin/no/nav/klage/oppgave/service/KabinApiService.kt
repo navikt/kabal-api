@@ -49,6 +49,7 @@ class KabinApiService(
                 behandlingId = behandling.id,
                 gosysOppgaveId = input.gosysOppgaveId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                ignoreCheckSkrivetilgang = true,
             )
         }
 
