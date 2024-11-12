@@ -486,7 +486,6 @@ class BehandlingController(
             behandlingId = behandlingId,
             gosysOppgaveId = input.gosysOppgaveId,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            ignoreCheckSkrivetilgang = false,
         )
     }
 

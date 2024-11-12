@@ -45,11 +45,10 @@ class KabinApiService(
         val behandling = mottakService.createMottakAndBehandlingFromKabinInput(input = input)
 
         if (input.gosysOppgaveId != null) {
-            behandlingService.setGosysOppgaveId(
+            behandlingService.setGosysOppgaveIdFromKabin(
                 behandlingId = behandling.id,
                 gosysOppgaveId = input.gosysOppgaveId,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-                ignoreCheckSkrivetilgang = true,
             )
         }
 
