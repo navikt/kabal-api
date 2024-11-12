@@ -11,11 +11,8 @@ import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.*
-import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.klage.Ankebehandling
-import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttet
-import no.nav.klage.oppgave.domain.klage.createAnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.*
@@ -90,7 +87,7 @@ class BehandlingAvslutningService(
             logger.debug("Anken sendes til trygderetten. Oppretter AnkeITrygderettenbehandling.")
             createAnkeITrygderettenbehandling(behandling)
             //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01) {
+            if (behandling.shouldUpdateInfotrygd()) {
                 logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten.")
                 fssProxyClient.setToFinishedWithAppAccess(
                     sakId = behandling.kildeReferanse,
@@ -112,6 +109,15 @@ class BehandlingAvslutningService(
         } else if (behandling is AnkeITrygderettenbehandling && behandling.shouldCreateNewBehandlingEtterTROpphevet()) {
             logger.debug("Oppretter ny behandling, etter TR opphevet, basert på AnkeITrygderettenbehandling")
             createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(behandling)
+        } else if (behandling is Omgjoeringskravbehandling && behandling.utfall != Utfall.MEDHOLD_ETTER_FVL_35) {
+            logger.debug("Avslutter omgjøringskravbehandling med utfall som ikke skal formidles til førsteinstans.")
+            if (behandling.gosysOppgaveId != null) {
+                logger.debug("Avslutter oppgave i Gosys.")
+                gosysOppgaveService.avsluttGosysOppgave(
+                    behandling = behandling,
+                    throwExceptionIfFerdigstilt = false,
+                )
+            }
         } else {
             val hoveddokumenter =
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
@@ -123,12 +129,7 @@ class BehandlingAvslutningService(
                     )
                 }
 
-
-            //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01 && behandling.type !in listOf(
-                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
-                )
-            ) {
+            if (behandling.shouldUpdateInfotrygd()) {
                 logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
 
                 val sakInKlanke = fssProxyClient.getSakWithAppAccess(
@@ -166,11 +167,12 @@ class BehandlingAvslutningService(
                     kildeReferanse = behandling.kildeReferanse,
                     kilde = behandling.fagsystem.navn,
                     kabalReferanse = behandling.id.toString(),
-                    type = when (behandling.type) {
-                        Type.KLAGE -> KLAGEBEHANDLING_AVSLUTTET
-                        Type.ANKE -> ANKEBEHANDLING_AVSLUTTET
-                        Type.ANKE_I_TRYGDERETTEN -> ANKEBEHANDLING_AVSLUTTET
-                        Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
+                    type = when (behandling) {
+                        is Klagebehandling -> KLAGEBEHANDLING_AVSLUTTET
+                        is Ankebehandling -> ANKEBEHANDLING_AVSLUTTET
+                        is AnkeITrygderettenbehandling -> ANKEBEHANDLING_AVSLUTTET
+                        is BehandlingEtterTrygderettenOpphevet -> BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
+                        is Omgjoeringskravbehandling -> OMGJOERINGSKRAVBEHANDLING_AVSLUTTET
                     },
                     detaljer = getBehandlingDetaljer(behandling, hoveddokumenter)
                 )
@@ -191,6 +193,7 @@ class BehandlingAvslutningService(
             gosysOppgaveService.updateGosysOppgave(
                 behandling = behandling,
                 systemContext = true,
+                throwExceptionIfFerdigstilt = true,
             )
         }
 
@@ -217,6 +220,7 @@ class BehandlingAvslutningService(
                 behandling = ankeITrygderettenbehandling,
                 kommentar = kommentar,
                 systemContext = true,
+                throwExceptionIfFerdigstilt = false,
             )
         }
     }
@@ -235,6 +239,7 @@ class BehandlingAvslutningService(
                 behandling = ankeITrygderettenbehandling,
                 kommentar = kommentar,
                 systemContext = true,
+                throwExceptionIfFerdigstilt = false,
             )
         }
     }
@@ -250,8 +255,8 @@ class BehandlingAvslutningService(
         behandling: Behandling,
         hoveddokumenter: List<DokumentUnderArbeidAsHoveddokument>
     ): BehandlingDetaljer {
-        return when (behandling.type) {
-            Type.KLAGE -> {
+        return when (behandling) {
+            is Klagebehandling -> {
                 BehandlingDetaljer(
                     klagebehandlingAvsluttet = KlagebehandlingAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -262,7 +267,7 @@ class BehandlingAvslutningService(
                 )
             }
 
-            Type.ANKE -> {
+            is Ankebehandling -> {
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -273,7 +278,7 @@ class BehandlingAvslutningService(
                 )
             }
 
-            Type.ANKE_I_TRYGDERETTEN -> {
+            is AnkeITrygderettenbehandling -> {
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -284,9 +289,20 @@ class BehandlingAvslutningService(
                 )
             }
 
-            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+            is BehandlingEtterTrygderettenOpphevet -> {
                 BehandlingDetaljer(
                     behandlingEtterTrygderettenOpphevetAvsluttet = BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer(
+                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
+                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+                            .map { it.journalpostId }
+                    )
+                )
+            }
+
+            is Omgjoeringskravbehandling -> {
+                BehandlingDetaljer(
+                    omgjoeringskravbehandlingAvsluttet = OmgjoeringskravbehandlingAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
                         journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }

@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.repositories
 
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.domain.klage.Behandling
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
@@ -38,6 +39,52 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
     @EntityGraph("Behandling.commonProperties")
     @Query("select b from Behandling b where b.id = :id")
     fun findByIdEager(id: UUID): Behandling
+
+    @EntityGraph(attributePaths = ["hjemler"])
+    @Query(
+        """
+            SELECT b
+            FROM Behandling b
+            WHERE b.ferdigstilling.avsluttet IS NOT null
+            AND b.sakenGjelder.partId.value = :partIdValue
+            AND b.utfall NOT IN :utfallWithoutAnkemulighet
+            AND b.type NOT IN :excludedTypes
+        """
+    )
+    fun getOmgjoeringskravmuligheter(
+        partIdValue: String,
+        utfallWithoutAnkemulighet: List<Utfall> = listOf(
+            Utfall.INNSTILLING_AVVIST,
+            Utfall.INNSTILLING_STADFESTELSE,
+        ),
+        excludedTypes: List<Type> = listOf(
+            Type.ANKE_I_TRYGDERETTEN,
+        )
+    ): List<Behandling>
+
+    @EntityGraph(attributePaths = ["hjemler"])
+    @Query(
+        """
+            SELECT b
+            FROM Behandling b
+            WHERE b.ferdigstilling.avsluttet IS NOT null            
+            AND b.fagsystem != :infotrygdFagsystem
+            AND b.sakenGjelder.partId.value = :partIdValue
+            AND b.utfall NOT IN :utfallWithoutAnkemulighet
+            AND b.type NOT IN :excludedTypes
+        """
+    )
+    fun getAnkemuligheter(
+        partIdValue: String,
+        infotrygdFagsystem: Fagsystem = Fagsystem.IT01,
+        utfallWithoutAnkemulighet: List<Utfall> = listOf(
+            Utfall.INNSTILLING_AVVIST,
+            Utfall.INNSTILLING_STADFESTELSE,
+        ),
+        excludedTypes: List<Type> = listOf(
+            Type.ANKE_I_TRYGDERETTEN,
+        )
+    ): List<Behandling>
 
     fun findByTilbakekrevingIsFalse(): List<Behandling>
 

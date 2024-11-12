@@ -10,8 +10,6 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsM
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
-import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
 import no.nav.klage.oppgave.api.view.TaskListMerkantilView
@@ -83,18 +81,21 @@ class AdminService(
 
             behandlingPage.content.map { behandling ->
                 try {
-                    when (behandling.type) {
-                        Type.KLAGE ->
-                            behandlingEndretKafkaProducer.sendKlageEndret(behandling as Klagebehandling)
+                    when (behandling) {
+                        is Klagebehandling ->
+                            behandlingEndretKafkaProducer.sendKlageEndret(behandling)
 
-                        Type.ANKE ->
-                            behandlingEndretKafkaProducer.sendAnkeEndret(behandling as Ankebehandling)
+                        is Ankebehandling ->
+                            behandlingEndretKafkaProducer.sendAnkeEndret(behandling)
 
-                        Type.ANKE_I_TRYGDERETTEN ->
-                            behandlingEndretKafkaProducer.sendAnkeITrygderettenEndret(behandling as AnkeITrygderettenbehandling)
+                        is AnkeITrygderettenbehandling ->
+                            behandlingEndretKafkaProducer.sendAnkeITrygderettenEndret(behandling)
 
-                        Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET ->
-                            behandlingEndretKafkaProducer.sendBehandlingOpprettetEtterTrygderettenOpphevet(behandling as BehandlingEtterTrygderettenOpphevet)
+                        is BehandlingEtterTrygderettenOpphevet ->
+                            behandlingEndretKafkaProducer.sendBehandlingOpprettetEtterTrygderettenOpphevet(behandling)
+
+                        is Omgjoeringskravbehandling ->
+                            behandlingEndretKafkaProducer.sendOmgjoeringskravEndret(behandling)
                     }
                 } catch (e: Exception) {
                     logger.warn("Exception during send to Kafka", e)
@@ -115,6 +116,12 @@ class AdminService(
 
             is AnkeITrygderettenbehandling ->
                 behandlingEndretKafkaProducer.sendAnkeITrygderettenEndret(behandling)
+
+            is BehandlingEtterTrygderettenOpphevet ->
+                behandlingEndretKafkaProducer.sendBehandlingOpprettetEtterTrygderettenOpphevet(behandling)
+
+            is Omgjoeringskravbehandling ->
+                behandlingEndretKafkaProducer.sendOmgjoeringskravEndret(behandling)
         }
     }
 
@@ -167,7 +174,7 @@ class AdminService(
         //Delete in search
         behandlingEndretKafkaProducer.sendBehandlingDeleted(behandlingId)
 
-        if (behandling.fagsystem == Fagsystem.IT01) {
+        if (behandling.shouldUpdateInfotrygd()) {
             logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
             klageFssProxyClient.setToFeilregistrertInKabal(
                 sakId = behandling.kildeReferanse,
@@ -307,7 +314,7 @@ class AdminService(
             }
         }
 
-        secureLogger.debug("Expired, assigned saksbehandler: \n $saksbehandlerLogOutput" )
+        secureLogger.debug("Expired, assigned saksbehandler: \n $saksbehandlerLogOutput")
 
         val medunderskriverSet = unfinishedBehandlinger.mapNotNull { it.medunderskriver?.saksbehandlerident }.toSet()
         var medunderskriverLogOutput = ""
@@ -318,7 +325,7 @@ class AdminService(
             }
         }
 
-        secureLogger.debug("Expired, assigned medunderskriver: \n $medunderskriverLogOutput" )
+        secureLogger.debug("Expired, assigned medunderskriver: \n $medunderskriverLogOutput")
 
         val rolSet = unfinishedBehandlinger.mapNotNull { it.rolIdent }.toSet()
         var rolLogOutput = ""
@@ -329,7 +336,7 @@ class AdminService(
             }
         }
 
-        secureLogger.debug("Expired, assigned rol: \n $rolLogOutput" )
+        secureLogger.debug("Expired, assigned rol: \n $rolLogOutput")
     }
 
     @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo")

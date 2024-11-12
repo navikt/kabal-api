@@ -10,7 +10,7 @@ import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.api.view.kabin.BehandlingIsDuplicateResponse
 import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnCompleteKabinInput
-import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnKabinInput
+import no.nav.klage.oppgave.api.view.kabin.CreateBehandlingBasedOnKabinInput
 import no.nav.klage.oppgave.api.view.kabin.CreateKlageBasedOnKabinInput
 import no.nav.klage.oppgave.api.view.toMottak
 import no.nav.klage.oppgave.clients.ereg.EregClient
@@ -43,6 +43,7 @@ class MottakService(
     private val mottakRepository: MottakRepository,
     private val klagebehandlingRepository: KlagebehandlingRepository,
     private val ankebehandlingRepository: AnkebehandlingRepository,
+    private val omgjoeringskravbehandlingRepository: OmgjoeringskravbehandlingRepository,
     private val behandlingRepository: BehandlingRepository,
     private val dokumentService: DokumentService,
     private val norg2Client: Norg2Client,
@@ -184,22 +185,23 @@ class MottakService(
 
                 Type.ANKE_I_TRYGDERETTEN -> TODO()
                 Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> TODO()
+                Type.OMGJOERINGSKRAV -> TODO()
             }
         return mottak
     }
 
     @Transactional
-    fun createAnkeMottakAndBehandlingFromKabinInput(input: CreateAnkeBasedOnKabinInput): Behandling {
+    fun createMottakAndBehandlingFromKabinInput(input: CreateBehandlingBasedOnKabinInput): Behandling {
         val sourceBehandlingId = input.sourceBehandlingId
-        logger.debug("Prøver å lagre anke basert på Kabin-input med sourceBehandlingId {}", sourceBehandlingId)
+        logger.debug("Prøver å lagre behandling basert på Kabin-input med sourceBehandlingId {}", sourceBehandlingId)
         val sourceBehandling = behandlingRepository.findById(sourceBehandlingId).get()
 
-        validateAnkeCreationBasedOnSourceBehandling(
+        validateBehandlingCreationBasedOnSourceBehandling(
             sourceBehandling = sourceBehandling,
-            ankeJournalpostId = input.ankeDocumentJournalpostId
+            receivedDocumentJournalpostId = input.receivedDocumentJournalpostId
         )
 
-        val mottak = mottakRepository.save(sourceBehandling.toAnkeMottak(input))
+        val mottak = mottakRepository.save(sourceBehandling.toMottak(input))
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
@@ -262,14 +264,14 @@ class MottakService(
         return behandling
     }
 
-    private fun validateAnkeCreationBasedOnSourceBehandling(
+    private fun validateBehandlingCreationBasedOnSourceBehandling(
         sourceBehandling: Behandling,
-        ankeJournalpostId: String,
+        receivedDocumentJournalpostId: String,
     ) {
         if (sourceBehandling.ferdigstilling?.avsluttet == null) {
             throw PreviousBehandlingNotFinalizedException("Behandling med id ${sourceBehandling.id} er ikke fullført")
         }
-        validateDocumentNotAlreadyUsed(ankeJournalpostId, sourceBehandling.sakenGjelder.partId.value)
+        validateDocumentNotAlreadyUsed(receivedDocumentJournalpostId, sourceBehandling.sakenGjelder.partId.value)
     }
 
     private fun validateDocumentNotAlreadyUsed(journalpostId: String, sakenGjelder: String) {
@@ -289,7 +291,8 @@ class MottakService(
                     Type.KLAGE -> klagebehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
                     Type.ANKE -> ankebehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
                     Type.ANKE_I_TRYGDERETTEN -> true//Ikke relevant for AnkeITrygderetten
-                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> TODO() //TODO: sjekk hva vi trenger når vi får opprettelse fra Kabin
+                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> true//Ikke relevant for behandlingEtterTrygderettenOpphevet
+                    Type.OMGJOERINGSKRAV -> omgjoeringskravbehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
                 }
             }
             .flatMap { it.mottakDokument }
@@ -480,13 +483,13 @@ class MottakService(
         }
     }
 
-    private fun Behandling.toAnkeMottak(input: CreateAnkeBasedOnKabinInput): Mottak {
+    private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInput): Mottak {
         val prosessfullmektig = if (input.fullmektig != null) {
             Prosessfullmektig(
                 partId = PartId(
                     type = PartIdType.of(input.fullmektig.type.name),
                     value = input.fullmektig.value
-                ),
+                )
             )
         } else {
             null
@@ -510,18 +513,23 @@ class MottakService(
             )
         }
 
+        val type = Type.of(input.typeId)
         val innsendtDokument =
             mutableSetOf(
                 MottakDokument(
-                    type = MottakDokumentType.BRUKERS_ANKE,
-                    journalpostId = input.ankeDocumentJournalpostId
+                    type = when (type) {
+                        Type.ANKE -> MottakDokumentType.BRUKERS_ANKE
+                        Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
+                        else -> error("Ugyldig type $type")
+                    },
+                    journalpostId = input.receivedDocumentJournalpostId
                 )
             )
 
         val hjemmelCollection = input.hjemmelIdList.map { Hjemmel.of(it) }
 
         return Mottak(
-            type = Type.ANKE,
+            type = type,
             klager = klager,
             sakenGjelder = sakenGjelder,
             fagsystem = fagsystem,

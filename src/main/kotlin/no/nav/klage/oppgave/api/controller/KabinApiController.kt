@@ -72,7 +72,7 @@ class KabinApiController(
             logger = logger
         )
         return behandlingService.gosysOppgaveIsDuplicate(
-            gosysOppgaveId = input.oppgaveId,
+            gosysOppgaveId = input.gosysOppgaveId,
         )
     }
 
@@ -95,15 +95,28 @@ class KabinApiController(
 
     @PostMapping("/ankemuligheter")
     fun getAnkemuligheter(
-        @RequestBody input: GetCompletedKlagebehandlingerInput
-    ): List<Ankemulighet> {
+        @RequestBody input: GetCompletedBehandlingerInput
+    ): List<Mulighet> {
         logMethodDetails(
             methodName = ::getAnkemuligheter.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
 
-        return kabinApiService.getCombinedAnkemuligheter(partIdValue = input.idnummer)
+        return kabinApiService.getAnkemuligheter(partIdValue = input.idnummer)
+    }
+
+    @PostMapping("/omgjoeringskravmuligheter")
+    fun getOmgjoeringskravmuligheter(
+        @RequestBody input: GetCompletedBehandlingerInput
+    ): List<Mulighet> {
+        logMethodDetails(
+            methodName = ::getOmgjoeringskravmuligheter.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger
+        )
+
+        return kabinApiService.getOmgjoeringskravmuligheter(partIdValue = input.idnummer)
     }
 
     @GetMapping("/completedbehandlinger/{behandlingId}")
@@ -121,17 +134,17 @@ class KabinApiController(
         )
     }
 
-    @PostMapping("/createanke")
-    fun createAnke(
-        @RequestBody input: CreateAnkeBasedOnKabinInput
-    ): CreatedAnkeResponse {
+    @PostMapping("/createbehandling")
+    fun createBehandling(
+        @RequestBody input: CreateBehandlingBasedOnKabinInput
+    ): CreatedBehandlingResponse {
         logMethodDetails(
-            methodName = ::createAnke.name,
+            methodName = ::createBehandling.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
 
-        return kabinApiService.createAnke(
+        return kabinApiService.createBehandling(
             input = input
         )
     }
@@ -139,7 +152,7 @@ class KabinApiController(
     @PostMapping("/createankefromcompleteinput")
     fun createAnkeFromCompleteInput(
         @RequestBody input: CreateAnkeBasedOnCompleteKabinInput
-    ): CreatedAnkeResponse {
+    ): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createAnkeFromCompleteInput.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -148,21 +161,6 @@ class KabinApiController(
 
         return kabinApiService.createAnkeFromCompleteKabinInput(
             input = input
-        )
-    }
-
-    @GetMapping("/anker/{mottakId}/status")
-    fun getCreatedAnkebehandlingStatus(
-        @PathVariable mottakId: UUID
-    ): CreatedAnkebehandlingStatusForKabin {
-        logMethodDetails(
-            methodName = ::getCreatedAnkebehandlingStatus.name,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
-        )
-
-        return kabinApiService.getCreatedAnkebehandlingStatus(
-            behandlingId = mottakId
         )
     }
 
@@ -184,7 +182,7 @@ class KabinApiController(
     @PostMapping("/createklage")
     fun createKlage(
         @RequestBody input: CreateKlageBasedOnKabinInput
-    ): CreatedKlageResponse {
+    ): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createKlage.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -196,17 +194,17 @@ class KabinApiController(
         )
     }
 
-    @GetMapping("/klager/{behandlingId}/status")
-    fun getCreatedKlagebehandlingStatus(
+    @GetMapping("/behandlinger/{behandlingId}/status")
+    fun getCreatedBehandlingStatus(
         @PathVariable behandlingId: UUID
-    ): CreatedKlagebehandlingStatusForKabin {
+    ): CreatedBehandlingStatusForKabin {
         logMethodDetails(
-            methodName = ::getCreatedKlagebehandlingStatus.name,
+            methodName = ::CreatedBehandlingStatusForKabin.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
 
-        return kabinApiService.getCreatedKlagebehandlingStatus(
+        return kabinApiService.getCreatedBehandlingStatus(
             behandlingId = behandlingId
         )
     }

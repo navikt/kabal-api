@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
-import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
@@ -141,7 +140,7 @@ class DevOnlyAdminController(
             kildereferanse = feilregistrering.kildereferanse,
         )
 
-        if (behandling.fagsystem == Fagsystem.IT01) {
+        if (behandling.shouldUpdateInfotrygd()) {
             logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
             klageFssProxyClient.setToFeilregistrertInKabal(
                 sakId = behandling.kildeReferanse,

@@ -111,7 +111,7 @@ fun OversendtKlageV2.toMottak() = Mottak(
     fagsakId = fagsak.fagsakId,
     kildeReferanse = kildeReferanse,
     dvhReferanse = dvhReferanse,
-    hjemler = hjemler?.map { MottakHjemmel(hjemmelId = it.id) }?.toSet(),
+    hjemler = hjemler!!.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
     forrigeSaksbehandlerident = avsenderSaksbehandlerIdent,
     forrigeBehandlendeEnhet = avsenderEnhet,
     mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),

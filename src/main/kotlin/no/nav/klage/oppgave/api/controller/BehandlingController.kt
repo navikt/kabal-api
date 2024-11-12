@@ -485,7 +485,7 @@ class BehandlingController(
         return behandlingService.setGosysOppgaveId(
             behandlingId = behandlingId,
             gosysOppgaveId = input.gosysOppgaveId,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
     }
 

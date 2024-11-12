@@ -3,10 +3,7 @@ package no.nav.klage.oppgave.service
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.klage.Ankebehandling
-import no.nav.klage.oppgave.domain.klage.BehandlingEtterTrygderettenOpphevet
-import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
 import no.nav.klage.oppgave.service.mapper.mapToSkjemaV2
 import no.nav.klage.oppgave.util.getLogger
@@ -117,6 +114,31 @@ class BehandlingEndretKafkaProducer(
             logger.error(errorMessage)
             secureLogger.error(
                 "Could not send behandling etter Trygderetten opphevet ${behandlingEtterTrygderettenOpphevet.id} endret to Kafka",
+                it
+            )
+        }
+    }
+
+    fun sendOmgjoeringskravEndret(omgjoeringskrav: Omgjoeringskravbehandling) {
+        logger.debug("Sending to Kafka topic: {}", topicV2)
+        runCatching {
+            val result = aivenKafkaTemplate.send(
+                topicV2,
+                omgjoeringskrav.id.toString(),
+                omgjoeringskrav.mapToSkjemaV2().toJson()
+            ).get()
+            logger.info("Omgjoeringskrav sent to Kafka")
+            secureLogger.debug(
+                "Omgjoeringskrav endret for behandling {} sent to kafka ({})",
+                omgjoeringskrav.id,
+                result
+            )
+        }.onFailure {
+            val errorMessage =
+                "Could not send Omgjoeringskrav endret to Kafka. Need to resend Omgjoeringskrav ${omgjoeringskrav.id} manually. Check secure logs for more information."
+            logger.error(errorMessage)
+            secureLogger.error(
+                "Could not send Omgjoeringskrav ${omgjoeringskrav.id} endret to Kafka",
                 it
             )
         }

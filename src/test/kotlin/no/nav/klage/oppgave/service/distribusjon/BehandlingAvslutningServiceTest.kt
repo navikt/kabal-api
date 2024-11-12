@@ -171,6 +171,7 @@ internal class BehandlingAvslutningServiceTest {
         forrigeBehandlendeEnhet = "0101",
         brukersHenvendelseMottattNavDato = LocalDate.now(),
         kommentar = null,
+        hjemler = emptySet(),
     )
 
     private val klage = Klagebehandling(

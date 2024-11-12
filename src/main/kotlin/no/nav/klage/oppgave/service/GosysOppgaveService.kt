@@ -15,6 +15,7 @@ import no.nav.klage.oppgave.domain.kafka.GosysoppgaveEvent
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.exceptions.GosysOppgaveNotEditableException
 import no.nav.klage.oppgave.exceptions.IllegalOperation
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -60,12 +61,18 @@ class GosysOppgaveService(
         tildeltSaksbehandlerIdent: String?,
         behandlingId: UUID,
         utfoerendeSaksbehandlerIdent: String,
+        throwExceptionIfFerdigstilt: Boolean,
     ) {
         val systemContext = utfoerendeSaksbehandlerIdent == systembrukerIdent
 
-        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
-        if (!currentGosysOppgave.isEditable()) {
-            logger.warn("Oppgave $gosysOppgaveId kan ikke oppdateres, returnerer")
+        val currentGosysOppgave =
+            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
+
+        if (!shouldAttemptGosysOppgaveUpdate(
+                currentGosysOppgave = currentGosysOppgave,
+                throwExceptionIfFerdigstilt = throwExceptionIfFerdigstilt
+            )
+        ) {
             return
         }
 
@@ -117,8 +124,20 @@ class GosysOppgaveService(
     fun updateGosysOppgave(
         behandling: Behandling,
         systemContext: Boolean,
+        throwExceptionIfFerdigstilt: Boolean,
     ) {
-        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = systemContext)
+        val gosysOppgaveId = behandling.gosysOppgaveId!!
+
+        val currentGosysOppgave =
+            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
+
+        if (!shouldAttemptGosysOppgaveUpdate(
+                currentGosysOppgave = currentGosysOppgave,
+                throwExceptionIfFerdigstilt = throwExceptionIfFerdigstilt
+            )
+        ) {
+            return
+        }
 
         val updateGosysOppgaveRequest = UpdateGosysOppgaveInput(
             versjon = currentGosysOppgave.versjon,
@@ -133,19 +152,31 @@ class GosysOppgaveService(
             )
         )
 
-        updateOppgaveAndPublishEvent(behandling = behandling, updateGosysOppgaveRequest = updateGosysOppgaveRequest, systemContext = systemContext)
+        updateOppgaveAndPublishEvent(
+            behandling = behandling,
+            updateGosysOppgaveRequest = updateGosysOppgaveRequest,
+            systemContext = systemContext
+        )
     }
+
 
     fun addKommentar(
         behandling: Behandling,
         kommentar: String,
         systemContext: Boolean,
+        throwExceptionIfFerdigstilt: Boolean,
     ) {
         logger.debug("Adding kommentar to Gosys-oppgave ${behandling.gosysOppgaveId}")
-        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = systemContext)
+        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(
+            gosysOppgaveId = behandling.gosysOppgaveId!!,
+            systemContext = systemContext
+        )
 
-        if (!currentGosysOppgave.isEditable()) {
-            logger.warn("Gosys-oppgave ${behandling.gosysOppgaveId} kan ikke oppdateres, returnerer")
+        if (!shouldAttemptGosysOppgaveUpdate(
+                currentGosysOppgave = currentGosysOppgave,
+                throwExceptionIfFerdigstilt = throwExceptionIfFerdigstilt
+            )
+        ) {
             return
         }
 
@@ -158,7 +189,40 @@ class GosysOppgaveService(
             )
         )
 
-        updateOppgaveAndPublishEvent(behandling = behandling, updateGosysOppgaveRequest = updateGosysOppgaveRequest, systemContext = true)
+        updateOppgaveAndPublishEvent(
+            behandling = behandling,
+            updateGosysOppgaveRequest = updateGosysOppgaveRequest,
+            systemContext = true
+        )
+    }
+
+    fun avsluttGosysOppgave(
+        behandling: Behandling,
+        throwExceptionIfFerdigstilt: Boolean,
+    ) {
+        logger.debug("Avslutter Gosys-oppgave ${behandling.gosysOppgaveId}")
+        val currentGosysOppgave =
+            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = true)
+
+        if (!shouldAttemptGosysOppgaveUpdate(
+                currentGosysOppgave = currentGosysOppgave,
+                throwExceptionIfFerdigstilt = throwExceptionIfFerdigstilt
+            )
+        ) {
+            return
+        }
+
+        val avsluttGosysOppgaveInput = AvsluttGosysOppgaveInput(
+            versjon = currentGosysOppgave.versjon,
+            endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
+            status = Status.FERDIGSTILT,
+        )
+
+        updateOppgaveAndPublishEvent(
+            behandling = behandling,
+            updateGosysOppgaveRequest = avsluttGosysOppgaveInput,
+            systemContext = true
+        )
     }
 
     private fun updateOppgaveAndPublishEvent(
@@ -265,6 +329,7 @@ class GosysOppgaveService(
         )
     }
 
+
     private fun String?.navIdentToSaksbehandlerView(): SaksbehandlerView? {
         return if (this != null) {
             SaksbehandlerView(
@@ -275,11 +340,17 @@ class GosysOppgaveService(
     }
 
     private fun getGjelder(behandlingstype: String?, tema: Tema, systemContext: Boolean): String? {
-        return getGjelderKodeverkForTema(tema = tema, systemContext = systemContext).firstOrNull { it.behandlingstype == behandlingstype }?.behandlingstypeTerm
+        return getGjelderKodeverkForTema(
+            tema = tema,
+            systemContext = systemContext
+        ).firstOrNull { it.behandlingstype == behandlingstype }?.behandlingstypeTerm
     }
 
     private fun getOppgavetype(oppgavetype: String?, tema: Tema, systemContext: Boolean): String? {
-        return getOppgavetypeKodeverkForTema(tema = tema, systemContext = systemContext).firstOrNull { it.oppgavetype == oppgavetype }?.term
+        return getOppgavetypeKodeverkForTema(
+            tema = tema,
+            systemContext = systemContext
+        ).firstOrNull { it.oppgavetype == oppgavetype }?.term
     }
 
     private fun getGjelderKodeverkForTema(tema: Tema, systemContext: Boolean): List<Gjelder> {
@@ -298,5 +369,20 @@ class GosysOppgaveService(
                 data = data,
             )
         )
+    }
+
+    private fun shouldAttemptGosysOppgaveUpdate(
+        currentGosysOppgave: GosysOppgaveRecord,
+        throwExceptionIfFerdigstilt: Boolean
+    ): Boolean {
+        val gosysOppgaveId = currentGosysOppgave.id
+        return if (!currentGosysOppgave.isEditable()) {
+            if (throwExceptionIfFerdigstilt) {
+                throw GosysOppgaveNotEditableException("Gosys-oppgave $gosysOppgaveId kan ikke oppdateres fordi status er ${currentGosysOppgave.status}")
+            } else {
+                logger.warn("Gosys-oppgave $gosysOppgaveId kan ikke oppdateres, returnerer")
+                return false
+            }
+        } else true
     }
 }

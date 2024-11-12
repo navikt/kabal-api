@@ -7,7 +7,7 @@ import no.nav.klage.oppgave.domain.klage.PartId
 import java.time.LocalDate
 import java.util.*
 
-data class GetCompletedKlagebehandlingerInput(
+data class GetCompletedBehandlingerInput(
     val idnummer: String
 )
 
@@ -22,21 +22,22 @@ data class BehandlingIsDuplicateInput(
 )
 
 data class GosysOppgaveIsDuplicateInput(
-    val oppgaveId: Long,
+    val gosysOppgaveId: Long,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class CreateAnkeBasedOnKabinInput(
+data class CreateBehandlingBasedOnKabinInput(
+    val typeId: String,
     val sourceBehandlingId: UUID,
     val mottattNav: LocalDate,
     val frist: LocalDate,
     val klager: OversendtPartId?,
     val fullmektig: OversendtPartId?,
-    val ankeDocumentJournalpostId: String,
+    val receivedDocumentJournalpostId: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
     val hjemmelIdList: List<String>,
-    val oppgaveId: Long?,
+    val gosysOppgaveId: Long?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,
@@ -62,7 +63,7 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
-    val oppgaveId: Long?,
+    val gosysOppgaveId: Long?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,
@@ -96,7 +97,7 @@ data class CreateKlageBasedOnKabinInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
-    val oppgaveId: Long?,
+    val gosysOppgaveId: Long?,
 ) {
     data class OversendtPartId(
         val type: OversendtPartIdType,

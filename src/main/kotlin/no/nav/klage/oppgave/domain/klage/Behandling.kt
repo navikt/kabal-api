@@ -25,7 +25,7 @@ import java.util.*
         ]
     ),
 )
-abstract class Behandling(
+sealed class Behandling(
     @Id
     open val id: UUID = UUID.randomUUID(),
     @Embedded
@@ -252,6 +252,13 @@ abstract class Behandling(
     } else if (medunderskriver?.saksbehandlerident == innloggetIdent) {
         BehandlingRole.KABAL_MEDUNDERSKRIVER
     } else BehandlingRole.NONE
+
+    fun shouldUpdateInfotrygd(): Boolean {
+        return fagsystem == Fagsystem.IT01 && type !in listOf(
+            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
+            Type.OMGJOERINGSKRAV
+        )
+    }
 }
 
 enum class BehandlingRole {

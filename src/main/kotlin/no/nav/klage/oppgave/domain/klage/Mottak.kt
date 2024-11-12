@@ -5,6 +5,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
@@ -39,7 +40,7 @@ class Mottak(
     val innsynUrl: String? = null,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "mottak_id", referencedColumnName = "id", nullable = false)
-    val hjemler: Set<MottakHjemmel>? = null,
+    val hjemler: Set<MottakHjemmel>,
     @Column(name = "forrige_saksbehandlerident")
     val forrigeSaksbehandlerident: String? = null,
     @Column(name = "forrige_behandlende_enhet")
@@ -98,4 +99,11 @@ class Mottak(
     fun generateFrist(): LocalDate {
         return frist ?: (sakMottattKaDato.toLocalDate() + Period.ofWeeks(12))
     }
+
+    fun mapToBehandlingHjemler(): Set<Hjemmel> =
+        if (hjemler.isEmpty()) {
+            error("Hjemler kan ikke være tomme")
+        } else {
+            hjemler.map { Hjemmel.of(it.hjemmelId) }.toSet()
+        }
 }

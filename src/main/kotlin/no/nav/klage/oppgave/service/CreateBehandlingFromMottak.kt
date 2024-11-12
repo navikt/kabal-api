@@ -17,6 +17,7 @@ import java.util.*
 class CreateBehandlingFromMottak(
     private val klagebehandlingService: KlagebehandlingService,
     private val ankebehandlingService: AnkebehandlingService,
+    private val omgjoeringskravbehandlingService: OmgjoeringskravbehandlingService,
     private val kafkaEventRepository: KafkaEventRepository,
 ) {
 
@@ -40,6 +41,9 @@ class CreateBehandlingFromMottak(
                 val ankebehandling = ankebehandlingService.createAnkebehandlingFromMottak(mottak)
                 publishKafkaEvent(ankebehandling)
                 ankebehandling
+            }
+            Type.OMGJOERINGSKRAV -> {
+                omgjoeringskravbehandlingService.createOmgjoeringskravbehandlingFromMottak(mottak)
             }
 
             Type.ANKE_I_TRYGDERETTEN -> TODO()

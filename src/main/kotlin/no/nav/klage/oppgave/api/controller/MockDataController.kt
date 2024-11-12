@@ -271,7 +271,7 @@ class MockDataController(
 
         logger.debug("Will create mottak/behandling for klage/anke of type {} for ytelse {}", type, ytelse)
         val behandling = when (type) {
-            Type.KLAGE, Type.ANKE, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+            Type.KLAGE, Type.ANKE, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET, Type.OMGJOERINGSKRAV -> {
                 mottakFacade.createMottakForKlageAnkeV3ForE2ETests(
                     OversendtKlageAnkeV3(
                         ytelse = ytelse,

@@ -3,10 +3,7 @@ package no.nav.klage.oppgave.clients.kaka
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.oppgave.clients.kaka.model.request.SaksdataInput
 import no.nav.klage.oppgave.clients.kaka.model.response.KakaOutput
-import no.nav.klage.oppgave.domain.klage.Ankebehandling
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.BehandlingEtterTrygderettenOpphevet
-import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -92,7 +89,17 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
                 }
 
                 is BehandlingEtterTrygderettenOpphevet -> {
+                    if (Enhet.entries.none { it.navn == ankeBehandlendeEnhet }) {
+                        logger.error("ankeBehandlendeEnhet $ankeBehandlendeEnhet not found in internal kodeverk")
+                    }
                     ankeBehandlendeEnhet to kakaKvalitetsvurderingId
+                }
+
+                is Omgjoeringskravbehandling -> {
+                    if (Enhet.entries.none { it.navn == klageBehandlendeEnhet }) {
+                        logger.error("klageBehandlendeEnhet $klageBehandlendeEnhet not found in internal kodeverk")
+                    }
+                    klageBehandlendeEnhet to kakaKvalitetsvurderingId
                 }
 
                 else -> {

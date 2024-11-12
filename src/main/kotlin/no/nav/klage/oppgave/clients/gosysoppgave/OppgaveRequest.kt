@@ -42,3 +42,8 @@ data class AddKommentarToGosysOppgaveInput(
     val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
+data class AvsluttGosysOppgaveInput(
+    override val versjon: Int,
+    override val endretAvEnhetsnr: String,
+    val status: Status,
+) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)

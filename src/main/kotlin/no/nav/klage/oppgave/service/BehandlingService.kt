@@ -63,6 +63,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setTildeling
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setVarsletBehandlingstid
+import no.nav.klage.oppgave.domain.klage.OmgjoeringskravbehandlingSetters.setVarsletBehandlingstid
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.TokenUtil
@@ -156,6 +157,26 @@ class BehandlingService(
             )
         }
 
+        val omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling = behandling is Omgjoeringskravbehandling &&
+                behandling.utfall in listOf(Utfall.STADFESTET_ANNEN_BEGRUNNELSE, Utfall.BESLUTNING_IKKE_OMGJOERE)
+
+        if (omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling && gosysOppgaveInput != null) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = "gosysOppgaveUpdate",
+                                reason = "Gosys-oppgaven skal ikke oppdateres da den automatisk vil bli avsluttet i Kabal ved fullføring."
+                            )
+                        )
+                    )
+                )
+            )
+        }
+
         if (behandling.ferdigstilling != null) throw BehandlingFinalizedException("Behandlingen er avsluttet")
 
         //Forretningsmessige krav før vedtak kan ferdigstilles
@@ -173,58 +194,13 @@ class BehandlingService(
             )
         }
 
-        if (behandling.gosysOppgaveId != null && !ankeITRHenvist) {
-            val gosysOppgave = gosysOppgaveService.getGosysOppgave(behandling.gosysOppgaveId!!)
-
-            if (!gosysOppgave.editable && gosysOppgaveInput?.ignoreGosysOppgave != true) {
-                throw SectionedValidationErrorWithDetailsException(
-                    title = "Validation error",
-                    sections = listOf(
-                        ValidationSection(
-                            section = "behandling",
-                            properties = listOf(
-                                InvalidProperty(
-                                    field = "gosysOppgaveInput",
-                                    reason = "Gosys-oppgaven kan ikke redigeres. Du må bekrefte at du fremdeles vil bruke denne Gosys-oppgaven, eller velge en annen."
-                                )
-                            )
-                        )
-                    )
-                )
-            }
-
-            if (gosysOppgaveInput?.gosysOppgaveUpdate == null && gosysOppgaveInput?.ignoreGosysOppgave != true) {
-                throw SectionedValidationErrorWithDetailsException(
-                    title = "Validation error",
-                    sections = listOf(
-                        ValidationSection(
-                            section = "behandling",
-                            properties = listOf(
-                                InvalidProperty(
-                                    field = "gosysOppgaveUpdate",
-                                    reason = "Oppdatert informasjon om Gosys-oppgaven må fylles ut for å avslutte behandlingen."
-                                )
-                            )
-                        )
-                    )
-                )
-            } else {
-                if (gosysOppgaveInput.gosysOppgaveUpdate != null) {
-                    behandling.setGosysOppgaveUpdate(
-                        tildeltEnhet = gosysOppgaveInput.gosysOppgaveUpdate.tildeltEnhet,
-                        mappeId = gosysOppgaveInput.gosysOppgaveUpdate.mappeId,
-                        kommentar = gosysOppgaveInput.gosysOppgaveUpdate.kommentar,
-                        saksbehandlerident = innloggetIdent,
-                    )
-                } else {
-                    //Her må ignoreGosysOppgave være true
-                    behandling.setIgnoreGosysOppgave(
-                        ignoreGosysOppgaveNewValue = true,
-                        saksbehandlerident = innloggetIdent,
-                    )
-                }
-            }
-        }
+        validateAndUpdateGosysOppgaveInput(
+            behandling = behandling,
+            ankeITRHenvist = ankeITRHenvist,
+            omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling = omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling,
+            gosysOppgaveInput = gosysOppgaveInput,
+            innloggetIdent = innloggetIdent
+        )
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
         return behandlingMapper.mapToBehandlingFullfoertView(
@@ -233,6 +209,75 @@ class BehandlingService(
                 innloggetIdent
             )
         )
+    }
+
+    private fun validateAndUpdateGosysOppgaveInput(
+        behandling: Behandling,
+        ankeITRHenvist: Boolean,
+        omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling: Boolean,
+        gosysOppgaveInput: GosysOppgaveInput?,
+        innloggetIdent: String
+    ) {
+        if (behandling.gosysOppgaveId != null) {
+            if (ankeITRHenvist || omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling) {
+                //Ikke relevant å håndtere Gosys-oppgave her
+                logger.debug("Not updating Gosys oppgave, not relevant for this case. ankeITRHenvist: $ankeITRHenvist, omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling: $omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling")
+                return
+            } else {
+                val gosysOppgave = gosysOppgaveService.getGosysOppgave(behandling.gosysOppgaveId!!)
+
+                if (!gosysOppgave.editable && gosysOppgaveInput?.ignoreGosysOppgave != true) {
+                    throw SectionedValidationErrorWithDetailsException(
+                        title = "Validation error",
+                        sections = listOf(
+                            ValidationSection(
+                                section = "behandling",
+                                properties = listOf(
+                                    InvalidProperty(
+                                        field = "gosysOppgaveInput",
+                                        reason = "Gosys-oppgaven kan ikke redigeres. Du må bekrefte at du fremdeles vil bruke denne Gosys-oppgaven, eller velge en annen."
+                                    )
+                                )
+                            )
+                        )
+                    )
+                }
+
+                if (gosysOppgaveInput?.gosysOppgaveUpdate == null && gosysOppgaveInput?.ignoreGosysOppgave != true) {
+                    throw SectionedValidationErrorWithDetailsException(
+                        title = "Validation error",
+                        sections = listOf(
+                            ValidationSection(
+                                section = "behandling",
+                                properties = listOf(
+                                    InvalidProperty(
+                                        field = "gosysOppgaveUpdate",
+                                        reason = "Oppdatert informasjon om Gosys-oppgaven må fylles ut for å avslutte behandlingen."
+                                    )
+                                )
+                            )
+                        )
+                    )
+                } else {
+                    if (gosysOppgaveInput.gosysOppgaveUpdate != null) {
+                        logger.debug("Updating behandling with gosysOppgaveInput")
+                        behandling.setGosysOppgaveUpdate(
+                            tildeltEnhet = gosysOppgaveInput.gosysOppgaveUpdate.tildeltEnhet,
+                            mappeId = gosysOppgaveInput.gosysOppgaveUpdate.mappeId,
+                            kommentar = gosysOppgaveInput.gosysOppgaveUpdate.kommentar,
+                            saksbehandlerident = innloggetIdent,
+                        )
+                    } else {
+                        logger.debug("Updating behandling with ignoreGosysOppgave")
+                        //Her må ignoreGosysOppgave være true
+                        behandling.setIgnoreGosysOppgave(
+                            ignoreGosysOppgaveNewValue = true,
+                            saksbehandlerident = innloggetIdent,
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun markerBehandlingSomAvsluttetAvSaksbehandler(
@@ -332,7 +377,8 @@ class BehandlingService(
 
         if (behandling.type !in listOf(
                 Type.ANKE_I_TRYGDERETTEN,
-                Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET
+                Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
+                Type.OMGJOERINGSKRAV,
             ) && behandling.utfall !in noKvalitetsvurderingNeeded
         ) {
             val kvalitetsvurderingValidationErrors = kakaApiGateway.getValidationErrors(behandling)
@@ -624,7 +670,7 @@ class BehandlingService(
             checkYtelseAccess(tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent, behandling = behandling)
 
             //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01) {
+            if (behandling.shouldUpdateInfotrygd()) {
                 logger.debug("Tildeling av behandling skal registreres i Infotrygd.")
                 fssProxyClient.setToAssigned(
                     sakId = behandling.kildeReferanse,
@@ -648,7 +694,7 @@ class BehandlingService(
             }
 
             //if fagsystem is Infotrygd also do this.
-            if (behandling.fagsystem == Fagsystem.IT01 && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
+            if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
                 logger.debug("Fradeling av behandling skal registreres i Infotrygd.")
                 fssProxyClient.setToHandledInKabal(
                     sakId = behandling.kildeReferanse,
@@ -775,6 +821,19 @@ class BehandlingService(
                 )
             }
 
+            is Omgjoeringskravbehandling -> {
+                applicationEventPublisher.publishEvent(
+                    behandling.setVarsletBehandlingstid(
+                        nyVerdiVarsletBehandlingstidUnits = behandlingstidUnits,
+                        nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,
+                        nyVerdiVarsletFrist = varsletFrist,
+                        saksbehandlerident = saksbehandlerIdent,
+                        saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
+                        mottakere = mottakere,
+                    )
+                )
+            }
+
             else -> throw IllegalOperation("Dette feltet kan bare settes i klage- og ankesaker")
         }
 
@@ -797,7 +856,7 @@ class BehandlingService(
         }
 
         //if fagsystem is Infotrygd also do this.
-        if (behandling.fagsystem == Fagsystem.IT01 && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
+        if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
             logger.debug("Fradeling av behandling skal registreres i Infotrygd.")
             fssProxyClient.setToHandledInKabal(
                 sakId = behandling.kildeReferanse,
@@ -2287,6 +2346,18 @@ class BehandlingService(
         }
     }
 
+    fun getAnkemuligheterByPartIdValue(
+        partIdValue: String,
+    ): List<Behandling> {
+        return behandlingRepository.getAnkemuligheter(partIdValue)
+    }
+
+    fun getOmgjoeringskravmuligheterByPartIdValue(
+        partIdValue: String,
+    ): List<Behandling> {
+        return behandlingRepository.getOmgjoeringskravmuligheter(partIdValue)
+    }
+
     private fun getUtfoerendeNavn(utfoerendeSaksbehandlerIdent: String): String {
         val name = if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
             systembrukerIdent
@@ -2299,12 +2370,12 @@ class BehandlingService(
     fun setGosysOppgaveId(
         behandlingId: UUID,
         gosysOppgaveId: Long,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): GosysOppgaveEditedView {
         logger.debug("Input utfall in setGosysOppgaveId: {}", gosysOppgaveId)
 
         val behandling = getBehandlingForUpdate(
-            behandlingId
+            behandlingId = behandlingId,
         )
 
         val gosysOppgave = gosysOppgaveService.getGosysOppgave(

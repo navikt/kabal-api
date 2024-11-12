@@ -14,6 +14,8 @@ class MeldingNotFoundException(msg: String) : RuntimeException(msg)
 
 class GosysOppgaveNotFoundException(msg: String) : RuntimeException(msg)
 
+class GosysOppgaveNotEditableException(msg: String) : RuntimeException(msg)
+
 class BehandlingFinalizedException(msg: String) : RuntimeException(msg)
 
 open class ValidationException(msg: String) : RuntimeException(msg)

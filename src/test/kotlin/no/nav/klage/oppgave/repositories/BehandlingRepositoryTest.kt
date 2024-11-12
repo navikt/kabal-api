@@ -137,6 +137,7 @@ class BehandlingRepositoryTest {
         forrigeBehandlendeEnhet = "0101",
         brukersHenvendelseMottattNavDato = LocalDate.now(),
         kommentar = null,
+        hjemler = emptySet(),
     )
 
     fun getKlagebehandling(mottakId: UUID) = Klagebehandling(

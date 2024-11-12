@@ -39,6 +39,9 @@ class KlagebehandlingRepositoryTest {
     lateinit var ankebehandlingRepository: AnkebehandlingRepository
 
     @Autowired
+    lateinit var behandlingRepository: BehandlingRepository
+
+    @Autowired
     lateinit var mottakRepository: MottakRepository
 
     @Test
@@ -181,9 +184,7 @@ class KlagebehandlingRepositoryTest {
         testEntityManager.flush()
         testEntityManager.clear()
 
-
-
-        assertThat(klagebehandlingRepository.getCompletedKlagebehandlinger("23452354")).containsExactlyInAnyOrder(
+        assertThat(behandlingRepository.getAnkemuligheter("23452354")).containsExactlyInAnyOrder(
             klageWithNoAnke,
             klageWithNoAnke2,
             klageWithAnke
@@ -201,6 +202,7 @@ class KlagebehandlingRepositoryTest {
         forrigeBehandlendeEnhet = "0101",
         brukersHenvendelseMottattNavDato = LocalDate.now(),
         kommentar = null,
+        hjemler = emptySet(),
     )
 
     fun getKlagebehandling(

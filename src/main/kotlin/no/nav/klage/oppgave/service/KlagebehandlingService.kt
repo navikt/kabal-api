@@ -1,8 +1,9 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.domain.klage.Mottak
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -31,12 +32,6 @@ class KlagebehandlingService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun getCompletedKlagebehandlingerByPartIdValue(
-        partIdValue: String
-    ): List<Klagebehandling> {
-        return klagebehandlingRepository.getCompletedKlagebehandlinger(partIdValue)
-    }
-
     fun createKlagebehandlingFromMottak(mottak: Mottak): Klagebehandling {
         val kvalitetsvurderingVersion = getKakaVersion()
 
@@ -61,7 +56,7 @@ class KlagebehandlingService(
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                hjemler = createHjemmelSetFromMottak(mottak.hjemler),
+                hjemler = mottak.mapToBehandlingHjemler(),
                 kommentarFraFoersteinstans = mottak.kommentar,
                 gosysOppgaveId = null,
                 tilbakekreving = false,
@@ -95,11 +90,4 @@ class KlagebehandlingService(
         }
         return kvalitetsvurderingVersion
     }
-
-    private fun createHjemmelSetFromMottak(hjemler: Set<MottakHjemmel>?): MutableSet<Hjemmel> =
-        if (hjemler.isNullOrEmpty()) {
-            mutableSetOf(Hjemmel.MANGLER)
-        } else {
-            hjemler.map { Hjemmel.of(it.hjemmelId) }.toMutableSet()
-        }
 }
