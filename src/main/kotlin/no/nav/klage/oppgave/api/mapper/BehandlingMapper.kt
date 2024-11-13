@@ -784,7 +784,12 @@ class BehandlingMapper(
             saksnummer = behandling.fagsakId,
             previousSaksbehandler = behandling.toPreviousSaksbehandlerView(),
             datoSendtTilTR = if (behandling is AnkeITrygderettenbehandling) behandling.sendtTilTrygderetten.toLocalDate() else null,
-            varsletFrist = if (behandling is Klagebehandling) behandling.varsletFrist else if (behandling is Ankebehandling) behandling.varsletFrist else null,
+            varsletFrist = when (behandling) {
+                is Klagebehandling -> behandling.varsletFrist
+                is Ankebehandling -> behandling.varsletFrist
+                is Omgjoeringskravbehandling -> behandling.varsletFrist
+                else -> null
+            }
         )
     }
 
