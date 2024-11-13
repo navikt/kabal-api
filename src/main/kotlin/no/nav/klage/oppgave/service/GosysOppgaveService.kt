@@ -217,7 +217,7 @@ class GosysOppgaveService(
             endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
             status = Status.FERDIGSTILT,
             kommentar = Kommentar(
-                tekst = "Klageinstansen har ferdigstilt behandlingen i Kabal med utfall ${behandling.utfall!!.navn}.",
+                tekst = "Klageinstansen har ferdigstilt behandlingen i Kabal med utfall: ${behandling.utfall!!.navn}.",
                 automatiskGenerert = true
             )
         )
