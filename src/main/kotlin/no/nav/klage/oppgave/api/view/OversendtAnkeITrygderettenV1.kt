@@ -66,7 +66,7 @@ data class OversendtAnkeITrygderettenV1(
     @Schema(
         description = "Utfall på ankebehandlingen som førte til oversendelse til Trygderetten",
         required = true,
-        example = "STADFESTELSE"
+        example = "INNSTILLING_STADFESTELSE"
     )
     val utfall: ExternalUtfall,
 )
