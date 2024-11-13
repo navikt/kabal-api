@@ -5,9 +5,11 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
+import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.config.SecurityConfiguration
+import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.ExternalMottakFacade
 import no.nav.klage.oppgave.util.getLogger
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.RestController
 class ExternalApiController(
     private val externalMottakFacade: ExternalMottakFacade,
     private val behandlingService: BehandlingService,
+    private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
 ) {
 
     companion object {
@@ -76,5 +79,17 @@ class ExternalApiController(
             fagsystem = feilregistrering.fagsystem,
             kildereferanse = feilregistrering.kildereferanse,
         )
+    }
+
+    @Operation(
+        summary = "Send inn anker i trygderetten til Kabal",
+        description = "Endepunkt for å registrere anker som allerede har blitt oversendt til Trygderetten"
+    )
+    @PostMapping("/ankeritrygderetten")
+    fun sendInnAnkeITrygderettenV1(
+        @Valid @RequestBody oversendtAnkeITrygderetten: OversendtAnkeITrygderettenV1
+    ) {
+        secureLogger.debug("Ankeitrygderetten data $oversendtAnkeITrygderetten sent to Kabal")
+        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(oversendtAnkeITrygderetten)
     }
 }

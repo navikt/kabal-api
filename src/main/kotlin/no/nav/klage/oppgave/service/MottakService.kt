@@ -6,6 +6,7 @@ import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
+import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.api.view.kabin.BehandlingIsDuplicateResponse
@@ -122,27 +123,35 @@ class MottakService(
         )
     }
 
-    @Transactional
-    fun createMottakForKlageAnkeV3ForE2ETests(oversendtKlageAnke: OversendtKlageAnkeV3): Behandling {
-        logger.debug("Prøver å lagre oversendtKlageAnkeV3 for E2E-tests: {}", oversendtKlageAnke)
-
-        val mottak = validateAndSaveMottak(oversendtKlageAnke)
-
-        logger.debug("Har lagret følgende mottak basert på en oversendtKlageAnkeV3: {}", mottak)
-
-        logger.debug("Updating metrics")
-        meterRegistry.incrementMottattKlageAnke(
-            oversendtKlageAnke.kilde.name,
-            oversendtKlageAnke.ytelse.navn,
-            oversendtKlageAnke.type.navn
+    fun validateAnkeITrygderettenV1(input: OversendtAnkeITrygderettenV1) {
+        validateYtelseAndHjemler(input.ytelse, input.hjemler)
+        validatePartId(input.klager.id.toPartId())
+        validateJournalpostList(input.tilknyttedeJournalposter.map { it.journalpostId })
+        input.sakenGjelder?.run { validatePartId(input.sakenGjelder.id.toPartId()) }
+        validateOptionalDateTimeNotInFuture(
+            input.sakMottattKaTidspunkt,
+            OversendtAnkeITrygderettenV1::sakMottattKaTidspunkt.name
         )
-        logger.debug("Metrics updated")
+        validateOptionalDateTimeNotInFuture(
+            input.sendtTilTrygderetten,
+            OversendtAnkeITrygderettenV1::sendtTilTrygderetten.name
+        )
+        validateKildeReferanse(input.kildeReferanse)
+        if (input.dvhReferanse != null && input.dvhReferanse.isBlank()) {
+            throw OversendtKlageNotValidException("DVHReferanse kan ikke være en tom streng.")
+        }
 
-        logger.debug("Creating behandling from mottak")
-        val behandling = createBehandlingFromMottak.createBehandling(mottak)
-        logger.debug("Behandling created from mottak")
-
-        return behandling
+        if (isBehandlingDuplicate(
+                fagsystem = input.fagsak.fagsystem,
+                kildeReferanse = input.kildeReferanse,
+                type = Type.ANKE_I_TRYGDERETTEN
+            )
+        ) {
+            val message =
+                "Kunne ikke lagre oversendelse grunnet duplikat: kilde ${input.fagsak.fagsystem.name} og kildereferanse: ${input.kildeReferanse}"
+            logger.warn(message)
+            throw DuplicateOversendelseException(message)
+        }
     }
 
     private fun updateMetrics(

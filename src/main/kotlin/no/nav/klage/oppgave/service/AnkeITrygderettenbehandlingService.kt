@@ -7,6 +7,8 @@ import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
+import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
+import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
@@ -29,6 +31,8 @@ class AnkeITrygderettenbehandlingService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kafkaEventRepository: KafkaEventRepository,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val mottakService: MottakService,
+    private val dokumentService: DokumentService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -136,5 +140,14 @@ class AnkeITrygderettenbehandlingService(
         )
 
         return ankeITrygderettenbehandling
+    }
+
+    fun createAnkeITrygderettenbehandling(input: OversendtAnkeITrygderettenV1) {
+        mottakService.validateAnkeITrygderettenV1(input)
+        val inputDocuments =
+            dokumentService.createSaksdokumenterFromJournalpostIdList(input.tilknyttedeJournalposter.map { it.journalpostId })
+        createAnkeITrygderettenbehandling(
+            input.createAnkeITrygderettenbehandlingInput(inputDocuments)
+        )
     }
 }
