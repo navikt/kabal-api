@@ -335,7 +335,7 @@ class KabinApiService(
     private fun getCreatedKlagebehandlingStatusForKabin(
         klagebehandling: Klagebehandling,
     ): CreatedBehandlingStatusForKabin {
-        val mottak = mottakService.getMottak(mottakId = klagebehandling.id)
+        val mottak = mottakService.getMottak(mottakId = klagebehandling.mottakId)
 
         val dokumentUnderArbeid =
             dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = klagebehandling.id)
