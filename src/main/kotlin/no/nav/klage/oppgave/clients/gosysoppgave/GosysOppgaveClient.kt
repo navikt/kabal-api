@@ -76,6 +76,8 @@ class GosysOppgaveClient(
                     uriBuilder
                         .path("/mapper")
                         .queryParam("enhetsnr", enhetsnr)
+                        .queryParam("offset", 0)
+                        .queryParam("limit", 250)
                         .build()
                 }
                 .header(
