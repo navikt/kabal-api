@@ -48,6 +48,7 @@ dependencies {
             replacedBy("org.springframework.boot:spring-boot-starter-jetty")
         }
     }
+    implementation("org.eclipse.jetty.http2:jetty-http2-server")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
