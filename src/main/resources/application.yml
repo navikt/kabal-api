@@ -46,7 +46,7 @@ server:
   shutdown: graceful
   http2:
     enabled: true
-  tomcat:
+  jetty:
     threads:
       max: 600
 
