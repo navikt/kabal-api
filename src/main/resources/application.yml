@@ -46,9 +46,6 @@ server:
   shutdown: graceful
   http2:
     enabled: true
-  tomcat:
-    threads:
-      max: 600
 
 management:
   health:
