@@ -25,7 +25,7 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     ex: AsyncRequestNotUsableException,
     request: NativeWebRequest
     ) {
-        logger.debug("Suppressing AsyncRequestNotUsableException. This is probably due to lost client during async/SSE operations.", ex)
+        secureLogger.debug("Suppressing AsyncRequestNotUsableException. This is probably due to lost client during async/SSE operations.", ex)
     }
 
     @ExceptionHandler
