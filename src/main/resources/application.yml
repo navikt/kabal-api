@@ -46,6 +46,9 @@ server:
   shutdown: graceful
   http2:
     enabled: true
+  jetty:
+    threads:
+      max: 600
 
 management:
   health:
