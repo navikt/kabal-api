@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.config
 
 import no.nav.klage.dokument.exceptions.*
 import no.nav.klage.oppgave.exceptions.*
+import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
@@ -17,6 +18,7 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val ourLogger = getLogger(javaClass.enclosingClass)
         private val secureLogger = getSecureLogger()
     }
 
@@ -25,7 +27,8 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     ex: AsyncRequestNotUsableException,
     request: NativeWebRequest
     ) {
-        secureLogger.debug("Suppressing AsyncRequestNotUsableException. This is probably due to lost client during async/SSE operations.", ex)
+        //Log in regular logs instead of secure logs to make it easier to compare with other suppressed logs
+        ourLogger.debug("Suppressing AsyncRequestNotUsableException. This is probably due to lost client during async/SSE operations.", ex)
     }
 
     @ExceptionHandler
