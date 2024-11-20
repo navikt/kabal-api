@@ -353,7 +353,7 @@ class AdminService(
                         secureLogger.debug("Protected user in behandling with id {}", behandling.id)
                     }
                 } catch (e: Exception) {
-                    secureLogger.debug("Couldn't check person, exception: $e")
+                    secureLogger.debug("Couldn't check person", e)
                 }
             }
         }
