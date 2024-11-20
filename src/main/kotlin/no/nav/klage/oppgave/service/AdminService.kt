@@ -347,9 +347,13 @@ class AdminService(
         secureLogger.debug("Checking for protected users")
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
-                val person = pdlFacade.getPersonInfo(behandling.sakenGjelder.partId.value)
-                if (person.harBeskyttelsesbehovStrengtFortrolig()) {
-                    secureLogger.debug("Protected user in behandling with id {}", behandling.id)
+                try {
+                    val person = pdlFacade.getPersonInfo(behandling.sakenGjelder.partId.value)
+                    if (person.harBeskyttelsesbehovStrengtFortrolig()) {
+                        secureLogger.debug("Protected user in behandling with id {}", behandling.id)
+                    }
+                } catch (e: Exception) {
+                    secureLogger.debug("Couldn't check person, exception: $e")
                 }
             }
         }
