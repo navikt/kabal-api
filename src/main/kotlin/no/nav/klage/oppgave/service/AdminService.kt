@@ -10,6 +10,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsM
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
+import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
 import no.nav.klage.oppgave.api.view.TaskListMerkantilView
@@ -17,6 +18,7 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
+import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.skjermede.SkjermedeApiClient
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
@@ -64,6 +66,7 @@ class AdminService(
     private val tokenUtil: TokenUtil,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val taskListMerkantilRepository: TaskListMerkantilRepository,
+    private val pdlFacade: PdlFacade,
 ) {
 
     companion object {
@@ -338,6 +341,24 @@ class AdminService(
 
         secureLogger.debug("Expired, assigned rol: \n $rolLogOutput")
     }
+
+    fun logProtected() {
+        val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        secureLogger.debug("Checking for protected users")
+        unfinishedBehandlinger.forEach { behandling ->
+            if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
+                try {
+                    val person = pdlFacade.getPersonInfo(behandling.sakenGjelder.partId.value)
+                    if (person.harBeskyttelsesbehovStrengtFortrolig()) {
+                        secureLogger.debug("Protected user in behandling with id {}", behandling.id)
+                    }
+                } catch (e: Exception) {
+                    secureLogger.debug("Couldn't check person", e)
+                }
+            }
+        }
+    }
+
 
     @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo")
     @SchedulerLock(name = "cleanupExpiredAssignees")
