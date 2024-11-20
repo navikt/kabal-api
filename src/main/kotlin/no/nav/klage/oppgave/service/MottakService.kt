@@ -488,6 +488,10 @@ class MottakService(
                 if (!pdlFacade.personExists(partId.value)) {
                     throw OversendtKlageNotValidException("Personen fins ikke i PDL")
                 }
+
+                if (pdlFacade.getPersonInfo(partId.value).harBeskyttelsesbehovStrengtFortrolig()) {
+                    throw OversendtKlageNotValidException("Personen skal ikke håndteres i Kabal")
+                }
             }
         }
     }
