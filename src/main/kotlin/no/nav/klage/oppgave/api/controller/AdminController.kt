@@ -111,6 +111,14 @@ class AdminController(
         adminService.logExpiredUsers()
     }
 
+    @GetMapping("/internal/logprotected")
+    fun logProtected() {
+        logger.debug("logProtected is called")
+        krevAdminTilgang()
+
+        adminService.logProtected()
+    }
+
     @PostMapping("/internal/setsortkeytodua")
     fun setSortKeyToDUA() {
         logger.debug("setSortKeyToDUA is called")
