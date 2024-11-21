@@ -4,6 +4,7 @@ import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
+import org.springframework.transaction.interceptor.TransactionAspectSupport
 
 @Service
 class StatistikkTilDVHEventListener(private val statistikkTilDVHService: StatistikkTilDVHService) {
@@ -15,6 +16,7 @@ class StatistikkTilDVHEventListener(private val statistikkTilDVHService: Statist
 
     @EventListener
     fun behandlingEndretEventToDVH(behandlingEndretEvent: BehandlingEndretEvent) {
+        logger.debug("behandlingEndretEventToDVH: transactionId: " + TransactionAspectSupport.currentTransactionStatus().hashCode())
         logger.debug(
             "Received BehandlingEndretEvent for behandlingId {} in StatistikkTilDVHEventListener",
             behandlingEndretEvent.behandling.id

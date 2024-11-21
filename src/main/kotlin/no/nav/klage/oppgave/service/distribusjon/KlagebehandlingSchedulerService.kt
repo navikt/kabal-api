@@ -12,6 +12,7 @@ import no.nav.klage.oppgave.service.KafkaDispatcher
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
+import org.springframework.transaction.interceptor.TransactionAspectSupport
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -40,6 +41,7 @@ class KlagebehandlingSchedulerService(
     @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 2, initialDelay = 4)
     @SchedulerLock(name = "avsluttBehandling")
     fun avsluttBehandling() {
+        logger.debug("KlagebehandlingSchedulerService.avsluttBehandling: transactionId: " + TransactionAspectSupport.currentTransactionStatus().hashCode())
         logger.debug("avsluttBehandling is called by scheduler")
         val behandlingIdList: List<Pair<UUID, Type>> = behandlingService.findBehandlingerForAvslutning()
 

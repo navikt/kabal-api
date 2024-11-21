@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.interceptor.TransactionAspectSupport
 import java.util.*
 
 @Service
@@ -48,8 +49,8 @@ class BehandlingAvslutningService(
         )
     }
 
-    @Transactional
     fun avsluttBehandling(behandlingId: UUID) {
+        logger.debug("avsluttBehandling: transactionId: " + TransactionAspectSupport.currentTransactionStatus().hashCode())
         try {
             val hovedDokumenterIkkeFerdigstilteOnBehandling =
                 dokumentUnderArbeidCommonService.findHoveddokumenterOnBehandlingByMarkertFerdigNotNullAndFerdigstiltNull(
@@ -77,6 +78,7 @@ class BehandlingAvslutningService(
     }
 
     private fun privateAvsluttBehandling(behandlingId: UUID): Behandling {
+        logger.debug("privateAvsluttBehandling: transactionId: " + TransactionAspectSupport.currentTransactionStatus().hashCode())
         val behandling = behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
 
         if (behandling.ferdigstilling?.avsluttet != null) {

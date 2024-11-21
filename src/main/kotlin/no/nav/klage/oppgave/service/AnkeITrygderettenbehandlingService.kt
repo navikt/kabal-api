@@ -21,6 +21,7 @@ import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
+import org.springframework.transaction.interceptor.TransactionAspectSupport
 import java.util.*
 
 @Service
@@ -43,6 +44,7 @@ class AnkeITrygderettenbehandlingService(
     }
 
     fun createAnkeITrygderettenbehandling(input: AnkeITrygderettenbehandlingInput): AnkeITrygderettenbehandling {
+        logger.debug("createAnkeITrygderettenbehandling: transactionId: " + TransactionAspectSupport.currentTransactionStatus().hashCode())
         val ankeITrygderettenbehandling = ankeITrygderettenbehandlingRepository.save(
             AnkeITrygderettenbehandling(
                 klager = input.klager.copy(),
