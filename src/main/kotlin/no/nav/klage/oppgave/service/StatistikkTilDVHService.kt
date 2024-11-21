@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.eventlisteners
+package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType

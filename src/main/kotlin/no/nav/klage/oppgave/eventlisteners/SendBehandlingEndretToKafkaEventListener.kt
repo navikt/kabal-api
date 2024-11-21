@@ -26,7 +26,6 @@ class SendBehandlingEndretToKafkaEventListener(
         val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
-    /* This code needs a transaction b/c of lazy loading */
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)

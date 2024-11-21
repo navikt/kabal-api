@@ -1,18 +1,17 @@
 package no.nav.klage.oppgave.service
 
-import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
-import no.nav.klage.oppgave.repositories.BehandlingEtterTrygderettenOpphevetRepository
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.Period
 import java.util.*
@@ -21,14 +20,11 @@ import java.util.*
 @Transactional
 class AnkebehandlingService(
     private val ankebehandlingRepository: AnkebehandlingRepository,
-    private val behandlingEtterTrygderettenOpphevetRepository: BehandlingEtterTrygderettenOpphevetRepository,
     private val behandlingRepository: BehandlingRepository,
     private val kakaApiGateway: KakaApiGateway,
     private val dokumentService: DokumentService,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    @Value("#{T(java.time.LocalDate).parse('\${KAKA_VERSION_2_DATE}')}")
-    private val kakaVersion2Date: LocalDate,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
