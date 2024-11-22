@@ -2340,7 +2340,7 @@ class BehandlingService(
         return if (behandlingList.isEmpty()) {
             null
         } else if (behandlingList.size != 1) {
-            throw Exception("Found more than one behandling for gosysOppgaveId $gosysOppgaveId, investigate")
+            throw RuntimeException("Found more than one behandling for gosysOppgaveId $gosysOppgaveId, investigate")
         } else {
             behandlingList.first().id
         }

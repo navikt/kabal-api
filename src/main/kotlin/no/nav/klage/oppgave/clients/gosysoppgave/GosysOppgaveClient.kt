@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.clients.gosysoppgave
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.clients.gosysoppgave.OppgaveMapperResponse.OppgaveMappe
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
+import no.nav.klage.oppgave.exceptions.GosysOppgaveClientException
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
@@ -40,7 +41,7 @@ class GosysOppgaveClient(
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
-                .block() ?: throw OppgaveClientException("Oppgave could not be fetched")
+                .block() ?: throw RuntimeException("Oppgave could not be fetched")
         }
     }
 
@@ -62,7 +63,7 @@ class GosysOppgaveClient(
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
-                .block() ?: throw OppgaveClientException("Oppgave could not be updated")
+                .block() ?: throw RuntimeException("Oppgave could not be updated")
         }
     }
 
@@ -87,7 +88,7 @@ class GosysOppgaveClient(
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveMapperResponse>()
-                .block() ?: throw OppgaveClientException("Could not get mapper for enhet")
+                .block() ?: throw RuntimeException("Could not get mapper for enhet")
         }
     }
 
@@ -110,7 +111,7 @@ class GosysOppgaveClient(
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveMappe>()
-                .block() ?: throw OppgaveClientException("Could not get mapper for enhet")
+                .block() ?: throw RuntimeException("Could not get mapper for enhet")
         }
     }
 
@@ -136,7 +137,7 @@ class GosysOppgaveClient(
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<OppgaveListResponse>()
-                    .block() ?: throw OppgaveClientException("Oppgaver could not be fetched")
+                    .block() ?: throw RuntimeException("Oppgaver could not be fetched")
             }
 
         return oppgaveResponse.oppgaver
@@ -155,10 +156,10 @@ class GosysOppgaveClient(
                 ex.request?.uri ?: "-",
                 ex.responseBodyAsString
             )
-            throw OppgaveClientException("Caught WebClientResponseException", ex)
+            throw GosysOppgaveClientException("Caught WebClientResponseException", ex)
         } catch (rtex: RuntimeException) {
             logger.warn("Caught RuntimeException", rtex)
-            throw OppgaveClientException("Caught runtimeexception", rtex)
+            throw GosysOppgaveClientException("Caught runtimeexception", rtex)
         } finally {
             val end: Long = System.currentTimeMillis()
             logger.info("Method {} took {} millis", methodName, (end - start))
@@ -181,7 +182,7 @@ class GosysOppgaveClient(
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<Gjelder>>()
-                    .block() ?: throw OppgaveClientException("Could not fetch gjelder kodeverk for tema ${tema.navn}")
+                    .block() ?: throw RuntimeException("Could not fetch gjelder kodeverk for tema ${tema.navn}")
             }
 
         return gjelderResponse
@@ -203,7 +204,7 @@ class GosysOppgaveClient(
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<OppgavetypeResponse>>()
-                    .block() ?: throw OppgaveClientException("Could not fetch oppgavetype kodeverk for tema ${tema.navn}")
+                    .block() ?: throw RuntimeException("Could not fetch oppgavetype kodeverk for tema ${tema.navn}")
             }
 
         return oppgavetypeResponse

@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.eventlisteners
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.Felt
-import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.service.GosysOppgaveService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
@@ -17,7 +16,6 @@ import org.springframework.transaction.event.TransactionalEventListener
 
 @Service
 class UpdateGosysOppgaveEventListener(
-    private val behandlingRepository: BehandlingRepository,
     private val gosysOppgaveService: GosysOppgaveService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
@@ -28,7 +26,6 @@ class UpdateGosysOppgaveEventListener(
         val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
-    /* This code needs a transaction b/c of lazy loading */
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)

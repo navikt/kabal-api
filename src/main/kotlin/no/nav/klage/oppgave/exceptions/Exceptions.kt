@@ -48,3 +48,8 @@ class EREGOrganizationNotFoundException(msg: String) : RuntimeException(msg)
 class KodeverkNotFoundException(msg: String) : RuntimeException(msg)
 
 class AttachmentCouldNotBeConvertedException(override val message: String = "FILE_COULD_NOT_BE_CONVERTED") : RuntimeException()
+
+class GosysOppgaveClientException : RuntimeException {
+    constructor(message: String?) : super(message)
+    constructor(message: String?, cause: Throwable?) : super(message, cause)
+}
