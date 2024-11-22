@@ -15,6 +15,7 @@ import no.nav.klage.oppgave.domain.kafka.GosysoppgaveEvent
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.exceptions.GosysOppgaveClientException
 import no.nav.klage.oppgave.exceptions.GosysOppgaveNotEditableException
 import no.nav.klage.oppgave.exceptions.IllegalOperation
 import no.nav.klage.oppgave.util.getLogger
@@ -282,7 +283,7 @@ class GosysOppgaveService(
         val mappeResponse = gosysOppgaveClient.getMappe(id = id, systemContext = systemContext)
 
         if (mappeResponse.id == null) {
-            throw OppgaveClientException("Mappe did not contain id")
+            throw GosysOppgaveClientException("Mappe did not contain id")
         }
 
         return GosysOppgaveMappeView(

@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.eventlisteners
 
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.service.StatistikkTilDVHService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service

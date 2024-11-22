@@ -66,12 +66,6 @@ enum class Status(val statusId: Long) {
     }
 }
 
-class OppgaveClientException : Exception {
-    constructor(message: String?) : super(message)
-
-    constructor(message: String?, cause: Throwable?) : super(message, cause)
-}
-
 data class OppgaveMapperResponse(
     val antallTreffTotalt: Int,
     val mapper: List<OppgaveMappe>

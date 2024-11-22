@@ -2,7 +2,6 @@ package no.nav.klage.dokument.service
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import jakarta.transaction.Transactional
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentInput
@@ -31,6 +30,7 @@ import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
 

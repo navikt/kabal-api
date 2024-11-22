@@ -17,7 +17,10 @@ import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.event.TransactionPhase
+import org.springframework.transaction.event.TransactionalEventListener
 import java.time.LocalDateTime
 import java.util.*
 
@@ -50,6 +53,8 @@ class CleanupAfterBehandlingEventListener(
     }
 
     @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun cleanupAfterBehandling(behandlingEndretEvent: BehandlingEndretEvent) {
         val behandling = behandlingEndretEvent.behandling
 
