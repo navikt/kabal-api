@@ -6,7 +6,7 @@ val logstashVersion = "8.0"
 val springRetryVersion = "2.0.10"
 val springMockkVersion = "4.0.2"
 val springDocVersion = "2.6.0"
-val testContainersVersion = "1.20.3"
+val testContainersVersion = "1.20.4"
 val shedlockVersion = "5.16.0"
 val archunitVersion = "1.3.0"
 val kotlinXmlBuilderVersion = "1.9.1"
@@ -24,7 +24,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
-    id("org.springframework.boot") version "3.3.5"
+    id("org.springframework.boot") version "3.4.0"
     id("io.spring.dependency-management") version "1.1.6"
     idea
     kotlin("kapt") version kotlinVersion
@@ -69,7 +69,7 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
-    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.6.2.Final")
+    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.6.3.Final")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
 
