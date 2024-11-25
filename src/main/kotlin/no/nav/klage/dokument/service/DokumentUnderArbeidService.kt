@@ -2049,7 +2049,7 @@ class DokumentUnderArbeidService(
             )
 
             if (svarbrevSettings == null) {
-                throw Exception("Fant ikke svarbrevinnstillinger for ytelse ${behandling.ytelse} og type ${behandling.type}")
+                throw RuntimeException("Fant ikke svarbrevinnstillinger for ytelse ${behandling.ytelse} og type ${behandling.type}")
             }
 
             if (svarbrevSettings.shouldSend) {
