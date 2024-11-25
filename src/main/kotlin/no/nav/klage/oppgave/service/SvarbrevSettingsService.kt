@@ -43,8 +43,8 @@ class SvarbrevSettingsService(
         } else settings!!.toConsumerView()
     }
 
-    fun getSvarbrevSettingsForYtelseAndType(ytelse: Ytelse, type: Type): SvarbrevSettings {
-        return svarbrevSettingsRepository.findAll().find { it.ytelse == ytelse && it.type == type }!!
+    fun getSvarbrevSettingsForYtelseAndType(ytelse: Ytelse, type: Type): SvarbrevSettings? {
+        return svarbrevSettingsRepository.findAll().find { it.ytelse == ytelse && it.type == type }
     }
 
     fun updateSvarbrevSettings(

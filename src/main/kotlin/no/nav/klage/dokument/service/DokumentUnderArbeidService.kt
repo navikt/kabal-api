@@ -2048,6 +2048,10 @@ class DokumentUnderArbeidService(
                 type = behandling.type
             )
 
+            if (svarbrevSettings == null) {
+                throw Exception("Fant ikke svarbrevinnstillinger for ytelse ${behandling.ytelse} og type ${behandling.type}")
+            }
+
             if (svarbrevSettings.shouldSend) {
                 logger.debug("Sender svarbrev for behandling {}", behandling.id)
                 val receiverId = if (behandling.klager.prosessfullmektig != null) {
