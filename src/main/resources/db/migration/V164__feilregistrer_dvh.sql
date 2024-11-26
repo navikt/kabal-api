@@ -1,0 +1,5 @@
+INSERT INTO klage.kafka_event(id, behandling_id, kilde, kilde_referanse, json_payload, type, created)
+VALUES ('656d61ae-9526-456b-8114-ed45e36b2840', '9b7abf7d-cb7a-4845-89ac-e113df0c0393', 'FS36', 'da1ef770-bf67-47ed-a0ea-e30b5b97c07d',
+        '{"eventId":"656d61ae-9526-456b-8114-ed45e36b2840","ansvarligEnhetKode":"4292","ansvarligEnhetType":"NORG","avsender":"Kabal","behandlingId":"da1ef770-bf67-47ed-a0ea-e30b5b97c07d","behandlingIdKabal":"9b7abf7d-cb7a-4845-89ac-e113df0c0393","behandlingStartetKA":"2023-10-06","behandlingStatus":"AVSLUTTET","behandlingType":"ANKE","beslutter":null,"endringstid":"2023-10-06T12:33:43.035600","hjemmel":["Folketrygdloven-§ 14-10"],"klager":null,"opprinneligFagsaksystem":"FS36","opprinneligFagsakId":"149406427","overfoertKA":"2021-11-27","resultat":"Feilregistrert","sakenGjelder":null,"saksbehandler":"W161593","saksbehandlerEnhet":"4292","tekniskTid":"2024-11-26T16:42:33.962275","vedtaksdato":"2023-10-06","versjon":1,"ytelseType":"FOR_FOR"}',
+        'STATS_DVH',
+        now())
