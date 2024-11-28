@@ -13,7 +13,7 @@ data class SakView(
     val id: String, //created using fagsystemId and saksnummer
     val saksnummer: String,
     val ytelseId: String,
-    val innsendingsytelseId: String,
+    val innsendingsytelseId: String?,
     val events: List<Event>,
 ) {
     data class Event(
