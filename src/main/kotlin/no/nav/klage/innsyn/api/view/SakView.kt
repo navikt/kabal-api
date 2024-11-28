@@ -4,14 +4,14 @@ import java.time.LocalDateTime
 
 
 data class InnsynResponse(
-    val active: List<SakView>,
-    val finished: List<SakView>,
+    val saker: List<SakView>,
+//    val active: List<SakView>,
+//    val finished: List<SakView>,
 )
 
 data class SakView(
-    val id: String, //consists of typeId, fagsystemId, saksnummer
+    val id: String, //created using fagsystemId and saksnummer
     val saksnummer: String,
-    val typeId: String,
     val ytelseId: String,
     val innsendingsytelseId: String,
     val events: List<Event>,
@@ -21,10 +21,14 @@ data class SakView(
         val date: LocalDateTime,
     ) {
         enum class EventType {
-            MOTTATT_VEDTAKSINSTANS,
-            MOTTATT_KA,
-            FERDIG_KA,
-            SENDT_TR,
+            KLAGE_MOTTATT_VEDTAKSINSTANS,
+            KLAGE_MOTTATT_KLAGEINSTANS,
+            KLAGE_AVSLUTTET_I_KLAGEINSTANS,
+            ANKE_MOTTATT_KLAGEINSTANS,
+            ANKE_SENDT_TRYGDERETTEN,
+            ANKE_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
+            ANKE_AVSLUTTET_I_TRYGDERETTEN,
+            ANKE_AVSLUTTET_I_KLAGEINSTANS,
         }
     }
 }

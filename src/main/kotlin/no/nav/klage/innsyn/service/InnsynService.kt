@@ -12,59 +12,124 @@ class InnsynService(
     private val behandlingRepository: BehandlingRepository,
 ) {
 
-    fun getSakerForBruker(fnr: String): InnsynResponse {
-        val activeBehandlinger =
-            behandlingRepository.findBySakenGjelderPartIdValueAndFerdigstillingIsNullAndFeilregistreringIsNull(fnr)
+    data class GroupByKey(
+        val fagsystemId: String,
+        val fagsakId: String,
+    )
 
-        val finishedBehandlinger =
-            behandlingRepository.findBySakenGjelderPartIdValueAndFerdigstillingIsNotNullAndFeilregistreringIsNull(fnr)
-
-        return InnsynResponse(
-            active = activeBehandlinger.map { it.toSakView() },
-            finished = finishedBehandlinger.map { it.toSakView() }
+    private fun Behandling.toGroupByKey(): GroupByKey {
+        return GroupByKey(
+            fagsystemId = fagsystem.id,
+            fagsakId = fagsakId,
         )
     }
 
-    private fun Behandling.toSakView(): SakView {
+    fun getSakerForBruker(fnr: String): InnsynResponse {
+        val behandlingerGroupedBySak: Map<GroupByKey, List<Behandling>> =
+            behandlingRepository.findBySakenGjelderPartIdValueAndFeilregistreringIsNull(fnr)
+                .groupBy { it.toGroupByKey() }
+
+        return InnsynResponse(
+            saker = behandlingerGroupedBySak.values.map { behandlinger ->
+                behandlinger.toSakView()
+            },
+        )
+    }
+
+    private fun List<Behandling>.toSakView(): SakView {
+        val firstBehandling = this.first()
+
         return SakView(
-            id = "${type.id}_${fagsystem.id}_${fagsakId}",
-            typeId = type.name,
-            saksnummer = fagsakId,
-            ytelseId = ytelse.id,
+            id = "${firstBehandling.fagsystem.id}_${firstBehandling.fagsakId}",
+            saksnummer = firstBehandling.fagsakId,
+            ytelseId = firstBehandling.ytelse.id,
             innsendingsytelseId = Innsendingsytelse.FORELDREPENGER.id,//TODO
-            events = getEvents()
+            events = this.map { it.getEvents() }.flatten().sortedBy { it.date }, //Will this always be correct when we for example truncate time?
         )
     }
 
     private fun Behandling.getEvents(): List<SakView.Event> {
+        val events = mutableListOf<SakView.Event>()
         return when (this) {
             is Klagebehandling -> {
-                val events = mutableListOf<SakView.Event>()
-
                 events += SakView.Event(
-                    type = SakView.Event.EventType.MOTTATT_VEDTAKSINSTANS,
+                    type = SakView.Event.EventType.KLAGE_MOTTATT_VEDTAKSINSTANS,
                     date = mottattVedtaksinstans.atStartOfDay(),
                 )
 
                 events += SakView.Event(
-                    type = SakView.Event.EventType.MOTTATT_KA,
+                    type = SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS,
                     date = mottattKlageinstans,
                 )
 
                 if (ferdigstilling != null) {
                     events += SakView.Event(
-                        type = SakView.Event.EventType.FERDIG_KA,
+                        type = SakView.Event.EventType.KLAGE_AVSLUTTET_I_KLAGEINSTANS,
                         date = ferdigstilling!!.avsluttetAvSaksbehandler,
                     )
                 }
-
                 events
             }
 
-            is AnkeITrygderettenbehandling -> emptyList() //TODO
-            is Ankebehandling -> emptyList() //TODO
-            is BehandlingEtterTrygderettenOpphevet -> emptyList() //TODO
-            is Omgjoeringskravbehandling -> emptyList() //TODO
+            is AnkeITrygderettenbehandling -> {
+                events += SakView.Event(
+                    type = SakView.Event.EventType.ANKE_SENDT_TRYGDERETTEN,
+                    date = sendtTilTrygderetten,
+                )
+
+                if (kjennelseMottatt != null) {
+                    events += SakView.Event(
+                        type = SakView.Event.EventType.ANKE_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
+                        date = kjennelseMottatt!!,
+                    )
+                }
+
+                if (ferdigstilling != null && !shouldCreateNewBehandlingEtterTROpphevet() && !shouldCreateNewAnkebehandling()) {
+                    events += SakView.Event(
+                        type = SakView.Event.EventType.ANKE_AVSLUTTET_I_TRYGDERETTEN,
+                        date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                    )
+                }
+                events
+            }
+
+            is Ankebehandling -> {
+                //if from Kabin or created in Kabal
+                if (mottakId != null) {
+                    events += SakView.Event(
+                        type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
+                        date = mottattKlageinstans,
+                    )
+                } else {
+                    //If created in Kabal. Do we need this?
+                }
+
+                if (ferdigstilling != null && !shouldBeSentToTrygderetten() && !shouldCreateNewAnkebehandling() && !shouldCreateNewBehandlingEtterTROpphevet()) {
+                    events += SakView.Event(
+                        type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
+                        date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                    )
+                }
+                events
+            }
+            is BehandlingEtterTrygderettenOpphevet -> {
+                if (ferdigstilling != null) {
+                    events += SakView.Event(
+                        type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
+                        date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                    )
+                }
+                events
+            }
+            is Omgjoeringskravbehandling -> {
+                if (ferdigstilling != null) {
+                    events += SakView.Event(
+                        type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
+                        date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                    )
+                }
+                events
+            }
         }
     }
 }
