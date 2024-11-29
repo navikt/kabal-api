@@ -45,7 +45,8 @@ class InnsynService(
             saksnummer = firstBehandling.fagsakId,
             ytelseId = firstBehandling.ytelse.id,
             innsendingsytelseId = firstBehandling.ytelse.mapYtelseToInnsendingsytelse()?.id,
-            events = this.map { it.getEvents() }.flatten().sortedBy { it.date }, //Will this always be correct when we for example truncate time?
+            events = this.map { it.getEvents() }.flatten()
+                .sortedBy { it.date }, //Will this always be correct when we for example truncate time?
         )
     }
 
@@ -113,6 +114,7 @@ class InnsynService(
                 }
                 events
             }
+
             is BehandlingEtterTrygderettenOpphevet -> {
                 if (ferdigstilling != null) {
                     events += SakView.Event(
@@ -122,6 +124,7 @@ class InnsynService(
                 }
                 events
             }
+
             is Omgjoeringskravbehandling -> {
                 if (ferdigstilling != null) {
                     events += SakView.Event(
