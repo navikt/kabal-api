@@ -95,7 +95,7 @@ internal class InnsynServiceTest {
             mottattKlageinstans = ankeMottattKA,
             frist = ankeMottattKA.plusWeeks(12).toLocalDate(),
             hjemler = setOf(),
-            utfall = Utfall.MEDHOLD,
+            utfall = Utfall.STADFESTELSE,
             ferdigstilling = Ferdigstilling(
                 avsluttet = ankeMottattKA.plusDays(1),
                 avsluttetAvSaksbehandler = ankeMottattKA.plusDays(1),
@@ -144,7 +144,7 @@ internal class InnsynServiceTest {
         )
 
         val ankebehandling2KA = Ankebehandling(
-            mottakId = UUID.randomUUID(),
+            mottakId = null,
             innsendt = null,
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
