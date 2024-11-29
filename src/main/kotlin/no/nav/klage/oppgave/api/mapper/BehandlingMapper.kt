@@ -95,7 +95,6 @@ class BehandlingMapper(
             strengtFortrolig = klagebehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
             vergemaalEllerFremtidsfullmakt = klagebehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = klagebehandling.sakenGjelder.getDead(),
-            fullmakt = klagebehandling.sakenGjelder.isFullmakt(),
             kvalitetsvurderingReference = if (klagebehandling.feilregistrering == null && klagebehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = klagebehandling.kakaKvalitetsvurderingId!!,
@@ -158,7 +157,6 @@ class BehandlingMapper(
             strengtFortrolig = omgjoeringskravbehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
             vergemaalEllerFremtidsfullmakt = omgjoeringskravbehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = omgjoeringskravbehandling.sakenGjelder.getDead(),
-            fullmakt = omgjoeringskravbehandling.sakenGjelder.isFullmakt(),
             kvalitetsvurderingReference = if (omgjoeringskravbehandling.feilregistrering == null && omgjoeringskravbehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = omgjoeringskravbehandling.kakaKvalitetsvurderingId!!,
@@ -268,7 +266,6 @@ class BehandlingMapper(
             strengtFortrolig = ankebehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
             vergemaalEllerFremtidsfullmakt = ankebehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = ankebehandling.sakenGjelder.getDead(),
-            fullmakt = ankebehandling.sakenGjelder.isFullmakt(),
             kvalitetsvurderingReference = if (ankebehandling.feilregistrering == null && ankebehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = ankebehandling.kakaKvalitetsvurderingId!!,
@@ -334,7 +331,6 @@ class BehandlingMapper(
             strengtFortrolig = ankeITrygderettenbehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
             vergemaalEllerFremtidsfullmakt = ankeITrygderettenbehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = ankeITrygderettenbehandling.sakenGjelder.getDead(),
-            fullmakt = ankeITrygderettenbehandling.sakenGjelder.isFullmakt(),
             kvalitetsvurderingReference = null,
             sattPaaVent = ankeITrygderettenbehandling.sattPaaVent,
             sendtTilTrygderetten = ankeITrygderettenbehandling.sendtTilTrygderetten,
@@ -400,7 +396,6 @@ class BehandlingMapper(
             strengtFortrolig = behandlingEtterTrygderettenOpphevet.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
             vergemaalEllerFremtidsfullmakt = behandlingEtterTrygderettenOpphevet.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = behandlingEtterTrygderettenOpphevet.sakenGjelder.getDead(),
-            fullmakt = behandlingEtterTrygderettenOpphevet.sakenGjelder.isFullmakt(),
             kvalitetsvurderingReference = if (behandlingEtterTrygderettenOpphevet.feilregistrering == null && behandlingEtterTrygderettenOpphevet.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = behandlingEtterTrygderettenOpphevet.kakaKvalitetsvurderingId!!,
@@ -615,14 +610,6 @@ class BehandlingMapper(
         }
     }
 
-    private fun SakenGjelder.isFullmakt(): Boolean {
-        return if (erVirksomhet()) {
-            false
-        } else {
-            pdlFacade.getPersonInfo(partId.value).fullmakt
-        }
-    }
-
     fun Behandling.mapToVedtakView(): VedtakView {
         return VedtakView(
             id = id,
@@ -703,11 +690,6 @@ class BehandlingMapper(
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.DEAD,
                 date = pdlPerson.doed,
-            )
-        }
-        if (pdlPerson.fullmakt) {
-            statusList += BehandlingDetaljerView.PartStatus(
-                status = BehandlingDetaljerView.PartStatus.Status.FULLMAKT,
             )
         }
         if (pdlPerson.vergemaalEllerFremtidsfullmakt) {

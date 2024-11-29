@@ -253,5 +253,4 @@ fun getPerson(): Person = Person(
     sivilstand = null,
     vergemaalEllerFremtidsfullmakt = false,
     doed = null,
-    fullmakt = false,
 )
