@@ -75,11 +75,17 @@ class ExternalMottakFacade(
     }
 
     private fun setSaksbehandler(behandling: Behandling, saksbehandlerIdent: String) {
-        val enhet = Enhet.valueOf(
-            saksbehandlerService.getEnhetForSaksbehandler(
-                saksbehandlerIdent
-            ).enhetId
-        )
+        val enhet = try {
+             Enhet.valueOf(
+                saksbehandlerService.getEnhetForSaksbehandler(
+                    saksbehandlerIdent
+                ).enhetId
+            )
+        } catch (e: Exception) {
+            logger.error("Couldn't get enhet for saksbehandlerident {}, returning. Exception: {}", saksbehandlerIdent, e.message)
+            return
+        }
+
 
         if (enhet !in klageenheter) {
             logger.debug("Enhet {} er ikke klageenhet. BehandlingId: {}", enhet.id, behandling.id)
