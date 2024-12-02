@@ -75,7 +75,7 @@ class ExternalMottakFacade(
     }
 
     private fun setSaksbehandler(behandling: Behandling, saksbehandlerIdent: String) {
-        logger.debug("Preparing to seg saksbehandler. Getting enhet for saksbehandler $saksbehandlerIdent")
+        logger.debug("Preparing to set saksbehandler. Getting enhet for saksbehandler $saksbehandlerIdent")
         val enhetForSaksbehandler = try {
             saksbehandlerService.getEnhetForSaksbehandler(
                 saksbehandlerIdent
@@ -93,15 +93,13 @@ class ExternalMottakFacade(
             it.navn == enhetForSaksbehandler
         }
 
-        logger.debug("Found enhet {} for saksbehandlerid {}", enhet, saksbehandlerIdent)
-
         if (enhet == null) {
             logger.error("Couldn't get enhet for saksbehandlerident {}, returning.", saksbehandlerIdent)
             return
         }
 
         if (enhet !in klageenheter) {
-            logger.debug("Enhet {} er ikke klageenhet. BehandlingId: {}", enhet.id, behandling.id)
+            logger.error("Enhet {} er ikke klageenhet. BehandlingId: {}", enhet.id, behandling.id)
             return
         }
 
@@ -109,8 +107,6 @@ class ExternalMottakFacade(
 
         val saksbehandlerAccess =
             kabalInnstillingerClient.getSaksbehandlersTildelteYtelserAppAccess(navIdent = saksbehandlerIdent)
-
-        logger.debug("Found saksbehandler access {}", saksbehandlerAccess)
 
         if (saksbehandlerAccess.created == null) {
             logger.debug(
