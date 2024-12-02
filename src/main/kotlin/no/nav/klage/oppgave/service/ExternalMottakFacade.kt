@@ -76,13 +76,10 @@ class ExternalMottakFacade(
 
     private fun setSaksbehandler(behandling: Behandling, saksbehandlerIdent: String) {
         logger.debug("Preparing to seg saksbehandler. Getting enhet for saksbehandler $saksbehandlerIdent")
-        val enhet = try {
-            Enhet.entries.find {
-                it.navn ==
-                        saksbehandlerService.getEnhetForSaksbehandler(
-                            saksbehandlerIdent
-                        ).enhetId
-            }
+        val enhetForSaksbehandler = try {
+            saksbehandlerService.getEnhetForSaksbehandler(
+                saksbehandlerIdent
+            ).enhetId
         } catch (e: Exception) {
             logger.error(
                 "Couldn't get enhet for saksbehandlerident {}, returning. Exception: {}",
@@ -91,6 +88,12 @@ class ExternalMottakFacade(
             )
             return
         }
+
+        val enhet = Enhet.entries.find {
+            it.navn == enhetForSaksbehandler
+        }
+
+        logger.debug("Found enhet {} for saksbehandlerid {}", enhet, saksbehandlerIdent)
 
         if (enhet == null) {
             logger.error("Couldn't get enhet for saksbehandlerident {}, returning.", saksbehandlerIdent)
