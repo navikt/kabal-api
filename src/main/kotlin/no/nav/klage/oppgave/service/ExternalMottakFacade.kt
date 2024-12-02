@@ -76,16 +76,25 @@ class ExternalMottakFacade(
 
     private fun setSaksbehandler(behandling: Behandling, saksbehandlerIdent: String) {
         val enhet = try {
-             Enhet.valueOf(
-                saksbehandlerService.getEnhetForSaksbehandler(
-                    saksbehandlerIdent
-                ).enhetId
-            )
+            Enhet.entries.find {
+                it.navn ==
+                        saksbehandlerService.getEnhetForSaksbehandler(
+                            saksbehandlerIdent
+                        ).enhetId
+            }
         } catch (e: Exception) {
-            logger.error("Couldn't get enhet for saksbehandlerident {}, returning. Exception: {}", saksbehandlerIdent, e.message)
+            logger.error(
+                "Couldn't get enhet for saksbehandlerident {}, returning. Exception: {}",
+                saksbehandlerIdent,
+                e.message
+            )
             return
         }
 
+        if (enhet == null) {
+            logger.error("Couldn't get enhet for saksbehandlerident {}, returning.", saksbehandlerIdent)
+            return
+        }
 
         if (enhet !in klageenheter) {
             logger.debug("Enhet {} er ikke klageenhet. BehandlingId: {}", enhet.id, behandling.id)
