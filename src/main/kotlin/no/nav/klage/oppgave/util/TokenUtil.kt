@@ -121,6 +121,12 @@ class TokenUtil(
         return response.access_token!!
     }
 
+    fun getAppAccessTokenWithKabalInnstillingerScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["kabal-innstillinger-maskintilmaskin"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.access_token!!
+    }
+
     fun getSkjermedeAccessToken(): String {
         val clientProperties = clientConfigurationProperties.registration["skjermede-maskintilmaskin"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
