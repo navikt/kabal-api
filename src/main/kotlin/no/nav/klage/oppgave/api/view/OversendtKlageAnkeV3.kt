@@ -110,7 +110,12 @@ data class OversendtKlageAnkeV3(
         description = "Brukes for å hindre Kabal i å sende ut automatisk svarbrev til bruker.",
         required = false
     )
-    val hindreAutomatiskSvarbrev: Boolean?
+    val hindreAutomatiskSvarbrev: Boolean?,
+    @Schema(
+        description = "Brukes for å tildele saken i Kabal. Må være en saksbehandler som allerede fins i Kabal.",
+        required = false
+    )
+    val saksbehandlerIdent: String? = null,
 
 )
 

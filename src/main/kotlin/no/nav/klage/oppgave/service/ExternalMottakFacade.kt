@@ -1,17 +1,26 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
+import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.kodeverk.klageenheter
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
+import no.nav.klage.oppgave.clients.kabalinnstillinger.KabalInnstillingerClient
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 
 @Service
 class ExternalMottakFacade(
     private val mottakService: MottakService,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
+    private val behandlingService: BehandlingService,
+    private val saksbehandlerService: SaksbehandlerService,
+    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
+    private val kabalInnstillingerClient: KabalInnstillingerClient,
+    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
     companion object {
@@ -22,6 +31,10 @@ class ExternalMottakFacade(
 
     fun createMottakForKlageAnkeV3(oversendtKlageAnke: OversendtKlageAnkeV3) {
         val behandling = mottakService.createMottakForKlageAnkeV3(oversendtKlageAnke)
+
+        if (oversendtKlageAnke.saksbehandlerIdent != null) {
+            setSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdent)
+        }
 
         tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
     }
@@ -34,6 +47,10 @@ class ExternalMottakFacade(
 
     fun createMottakForKlageAnkeV3ForE2ETests(oversendtKlageAnke: OversendtKlageAnkeV3): Behandling {
         val behandling = mottakService.createMottakForKlageAnkeV3(oversendtKlageAnke)
+
+        if (oversendtKlageAnke.saksbehandlerIdent != null) {
+            setSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdent)
+        }
 
         tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
 
@@ -56,5 +73,46 @@ class ExternalMottakFacade(
             )
         }
     }
+
+    private fun setSaksbehandler(behandling: Behandling, saksbehandlerIdent: String) {
+        val enhet = Enhet.valueOf(
+            saksbehandlerService.getEnhetForSaksbehandler(
+                saksbehandlerIdent
+            ).enhetId
+        )
+
+        if (enhet !in klageenheter) {
+            logger.debug("Enhet {} er ikke klageenhet. BehandlingId: {}", enhet.id, behandling.id)
+            return
+        }
+
+        val saksbehandlerAccess =
+            kabalInnstillingerClient.getSaksbehandlersTildelteYtelserAppAccess(navIdent = saksbehandlerIdent)
+
+        if (saksbehandlerAccess.created == null) {
+            logger.debug(
+                "Saksbehandler {} mangler innstillinger i Kabal. BehandlingId: {}",
+                saksbehandlerIdent,
+                behandling.id
+            )
+        } else if (saksbehandlerAccess.ytelseIdList.none { it == behandling.ytelse.id }) {
+            logger.debug(
+                "Saksbehandler {} mangler tilgang til ytelse {} i Kabal. BehandlingId: {}",
+                saksbehandlerIdent,
+                behandling.ytelse.id,
+                behandling.id
+            )
+        }
+
+        behandlingService.setSaksbehandler(
+            behandlingId = behandling.id,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
+            enhetId = enhet.navn,
+            fradelingReason = null,
+            utfoerendeSaksbehandlerIdent = systembrukerIdent,
+            systemUserContext = true,
+        )
+    }
+
 
 }

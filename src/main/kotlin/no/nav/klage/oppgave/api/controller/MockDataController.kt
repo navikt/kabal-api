@@ -290,6 +290,7 @@ class MockDataController(
                         kilde = Fagsystem.AO01,
                         kommentar = mockInput?.kommentar,
                         hindreAutomatiskSvarbrev = mockInput?.hindreAutomatiskSvarbrev,
+                        saksbehandlerIdent = mockInput?.saksbehandlerIdent,
                     )
                 )
             }
@@ -371,6 +372,7 @@ class MockDataController(
         val kommentar: String?,
         val sakMottattKaTidspunkt: LocalDate?,
         val hindreAutomatiskSvarbrev: Boolean?,
+        val saksbehandlerIdent: String?,
     )
 
     val hjemlerHJE_HJE = listOf(

@@ -55,6 +55,22 @@ class KabalInnstillingerClient(
             .block() ?: throw RuntimeException("Could not get tildelte ytelser")
     }
 
+    fun getSaksbehandlersTildelteYtelserAppAccess(navIdent: String): SaksbehandlerAccess {
+        logger.debug("Getting tildelte ytelser for $navIdent in kabal-innstillinger through app access")
+        return kabalInnstillingerWebClient.get()
+            .uri { it.path("/ansatte/$navIdent/tildelteytelser").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalInnstillingerScope()}"
+            )
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getSaksbehandlersTildelteYtelser.name, secureLogger)
+            }
+            .bodyToMono<SaksbehandlerAccess>()
+            .block() ?: throw RuntimeException("Could not get tildelte ytelser")
+    }
+
     fun searchMedunderskrivere(input: MedunderskrivereInput): Medunderskrivere {
         logger.debug("Searching medunderskrivere in kabal-innstillinger")
         return kabalInnstillingerWebClient.post()
