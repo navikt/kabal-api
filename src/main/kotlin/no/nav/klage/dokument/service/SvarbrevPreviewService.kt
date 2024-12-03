@@ -79,7 +79,7 @@ class SvarbrevPreviewService(
 
     private fun PreviewSvarbrevAnonymousInput.toSvarbrev(): Svarbrev {
         return Svarbrev(
-            title = "NAV orienterer om saksbehandlingen",
+            title = "Nav klageinstans orienterer om saksbehandlingen",
             receivers = listOf(),
             fullmektigFritekst = null,
             varsletBehandlingstidUnits = behandlingstidUnits,

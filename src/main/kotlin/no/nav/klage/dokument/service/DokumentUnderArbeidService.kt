@@ -2063,7 +2063,7 @@ class DokumentUnderArbeidService(
                 createAndFinalizeDokumentUnderArbeidFromSvarbrev(
                     behandling = behandling,
                     svarbrev = Svarbrev(
-                        title = "NAV orienterer om saksbehandlingen",
+                        title = "Nav klageinstans orienterer om saksbehandlingen",
                         receivers = listOf(
                             Svarbrev.Receiver(
                                 id = receiverId,
