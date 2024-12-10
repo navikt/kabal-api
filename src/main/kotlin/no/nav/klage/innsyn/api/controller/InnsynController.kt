@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController
     description = "api for innsyn i brukeres saker"
 )
 //@ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
-@ProtectedWithClaims(issuer = SecurityConfiguration.TOKEN_X, combineWithOr = true, claimMap = ["acr=Level4", "acr=idporten-loa-high"])
+@ProtectedWithClaims(issuer = SecurityConfiguration.TOKEN_X)
 @RequestMapping("api/innsyn")
 class InnsynController(
     private val innsynService: InnsynService,
