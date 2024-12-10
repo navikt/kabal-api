@@ -84,6 +84,7 @@ class ExternalMottakFacade(
                 saksbehandlerIdent = saksbehandlerIdent,
             )
         } catch (e: Exception) {
+            logger.error("Klarte ikke å tildele behandling ${behandling.id} til saksbehandlerIdent $saksbehandlerIdent. Feil: $e")
             mottakService.createTaskForMerkantil(
                 behandlingId = behandling.id,
                 reason = "Klarte ikke å tildele behandling ${behandling.id} til saksbehandlerIdent $saksbehandlerIdent. Feilmelding: ${e.message}"
@@ -149,6 +150,4 @@ class ExternalMottakFacade(
             systemUserContext = true,
         )
     }
-
-
 }

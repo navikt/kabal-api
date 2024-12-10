@@ -667,7 +667,9 @@ class BehandlingService(
         if (tildeltSaksbehandlerIdent != null) {
             //Denne sjekken gjøres kun når det er en tildeling:
 
-            checkYtelseAccess(tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent, behandling = behandling)
+            if (!systemUserContext) {
+                checkYtelseAccess(tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent, behandling = behandling)
+            }
 
             //if fagsystem is Infotrygd also do this.
             if (behandling.shouldUpdateInfotrygd()) {
