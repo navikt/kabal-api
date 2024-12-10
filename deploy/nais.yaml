@@ -79,6 +79,8 @@ spec:
     path: /internal/prometheus
   secureLogs:
     enabled: true
+  tokenx:
+    enabled: true
   accessPolicy:
     inbound:
       rules:
