@@ -18,11 +18,13 @@ class TokenUtil(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val securelogger = getSecureLogger()
-        private val tokenXIssuerName = "tokenx"
     }
 
     fun getSubjectFromTokenXToken(): String {
-        return ctxHolder.getTokenValidationContext().getClaims(tokenXIssuerName).getStringClaim("pid")
+        val claims = ctxHolder.getTokenValidationContext().getClaims(SecurityConfiguration.TOKEN_X)
+        securelogger.debug("fant noen claims: $claims")
+        securelogger.debug("fant noen claims: ${claims.allClaims}")
+        return ctxHolder.getTokenValidationContext().getClaims(SecurityConfiguration.TOKEN_X).getStringClaim("pid")
     }
 
     fun getSaksbehandlerAccessTokenWithGraphScope(): String {
