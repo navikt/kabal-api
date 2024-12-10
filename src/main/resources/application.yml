@@ -74,10 +74,12 @@ management:
 SERVICE_USER_USERNAME: srvklage-saksbeh
 
 no.nav.security.jwt:
-  issuer:
-    aad:
+  issuer.aad:
       discoveryurl: ${AZURE_APP_WELL_KNOWN_URL}
       accepted_audience: ${AZURE_APP_CLIENT_ID}
+  issuer.tokenx:
+    discoveryurl: ${TOKEN_X_WELL_KNOWN_URL}
+    accepted_audience: ${TOKEN_X_CLIENT_ID}
   client:
     registration:
       azure-onbehalfof:

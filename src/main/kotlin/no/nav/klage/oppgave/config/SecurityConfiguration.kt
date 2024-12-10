@@ -11,5 +11,6 @@ internal class SecurityConfiguration {
 
     companion object {
         const val ISSUER_AAD = "aad"
+        const val TOKEN_X = "tokenx"
     }
 }

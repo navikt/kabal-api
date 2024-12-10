@@ -12,10 +12,10 @@ import com.tngtech.archunit.library.Architectures.layeredArchitecture
 class LayeredArchitectureTest {
 
     private fun kabalApiLayeredArchitecture(): Architectures.LayeredArchitecture = layeredArchitecture().consideringAllDependencies()
-        .layer("Controllers").definedBy("no.nav.klage.oppgave.api.controller..", "no.nav.klage.dokument.api.controller..")
+        .layer("Controllers").definedBy("no.nav.klage.oppgave.api.controller..", "no.nav.klage.dokument.api.controller..", "no.nav.klage.innsyn.api.controller..")
         .layer("ApiMappers").definedBy("no.nav.klage.oppgave.api.mapper..", "no.nav.klage.dokument.api.mapper..")
-        .layer("View").definedBy("no.nav.klage.oppgave.api.view..", "no.nav.klage.dokument.api.view..")
-        .layer("Services").definedBy("no.nav.klage.oppgave.service..", "no.nav.klage.dokument.service..")
+        .layer("View").definedBy("no.nav.klage.oppgave.api.view..", "no.nav.klage.dokument.api.view..", "no.nav.klage.innsyn.api.view..")
+        .layer("Services").definedBy("no.nav.klage.oppgave.service..", "no.nav.klage.dokument.service..", "no.nav.klage.innsyn.service..")
         .layer("Repositories").definedBy("no.nav.klage.oppgave.repositories..", "no.nav.klage.dokument.repositories..")
         .layer("Clients").definedBy("no.nav.klage.oppgave.clients..", "no.nav.klage.dokument.clients..")
         .layer("Config").definedBy("no.nav.klage.oppgave.config..", "no.nav.klage.dokument.config..")
