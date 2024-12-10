@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class TokenUtil(
+    private val ctxHolder: TokenValidationContextHolder,
     private val clientConfigurationProperties: ClientConfigurationProperties,
     private val oAuth2AccessTokenService: OAuth2AccessTokenService,
     private val tokenValidationContextHolder: TokenValidationContextHolder,
@@ -17,6 +18,11 @@ class TokenUtil(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val securelogger = getSecureLogger()
+        private val tokenXIssuerName = "tokenx"
+    }
+
+    fun getSubjectFromTokenXToken(): String {
+        return ctxHolder.getTokenValidationContext().getClaims(tokenXIssuerName).getStringClaim("pid")
     }
 
     fun getSaksbehandlerAccessTokenWithGraphScope(): String {
