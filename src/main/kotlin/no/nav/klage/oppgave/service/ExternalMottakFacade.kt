@@ -33,7 +33,7 @@ class ExternalMottakFacade(
         val behandling = mottakService.createMottakForKlageAnkeV3(oversendtKlageAnke)
 
         if (oversendtKlageAnke.saksbehandlerIdent != null) {
-            setSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdent)
+            tryToSetSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdent)
         }
 
         tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
@@ -49,7 +49,7 @@ class ExternalMottakFacade(
         val behandling = mottakService.createMottakForKlageAnkeV3(oversendtKlageAnke)
 
         if (oversendtKlageAnke.saksbehandlerIdent != null) {
-            setSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdent)
+            tryToSetSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdent)
         }
 
         tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
@@ -70,6 +70,23 @@ class ExternalMottakFacade(
             mottakService.createTaskForMerkantil(
                 behandlingId = behandling.id,
                 reason = e.message ?: "Ukjent feil"
+            )
+        }
+    }
+
+    private fun tryToSetSaksbehandler(
+        behandling: Behandling,
+        saksbehandlerIdent: String
+    ) {
+        try {
+            setSaksbehandler(
+                behandling = behandling,
+                saksbehandlerIdent = saksbehandlerIdent,
+            )
+        } catch (e: Exception) {
+            mottakService.createTaskForMerkantil(
+                behandlingId = behandling.id,
+                reason = "Klarte ikke å tildele behandling ${behandling.id} til saksbehandlerIdent $saksbehandlerIdent. Feilmelding: ${e.message}"
             )
         }
     }
