@@ -62,7 +62,7 @@ class CreateBehandlingFromMottak(
             detaljer = BehandlingDetaljer(
                 ankebehandlingOpprettet =
                 AnkebehandlingOpprettetDetaljer(
-                    mottattKlageinstans = ankebehandling.created
+                    mottattKlageinstans = ankebehandling.mottattKlageinstans
                 )
             )
         )
