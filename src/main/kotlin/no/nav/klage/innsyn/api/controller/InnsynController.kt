@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController
     name = "kabal-innsyn",
     description = "api for innsyn i brukeres saker"
 )
-@ProtectedWithClaims(issuer = "tokenx", claimMap = ["acr=Level4"])
+@ProtectedWithClaims(issuer = "tokenx", claimMap = ["acr=Level4", "acr=idporten-loa-high"])
 @RequestMapping("api/innsyn")
 class InnsynController(
     private val innsynService: InnsynService,
