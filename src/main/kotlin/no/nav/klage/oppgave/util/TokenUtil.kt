@@ -21,10 +21,11 @@ class TokenUtil(
     }
 
     fun getSubjectFromTokenXToken(): String {
-        val claims = ctxHolder.getTokenValidationContext().getClaims(SecurityConfiguration.TOKEN_X)
+        val claims = ctxHolder.getTokenValidationContext()//.getClaims(SecurityConfiguration.TOKEN_X)
         securelogger.debug("fant noen claims: $claims")
-        securelogger.debug("fant noen claims: ${claims.allClaims}")
-        return ctxHolder.getTokenValidationContext().getClaims(SecurityConfiguration.TOKEN_X).getStringClaim("pid")
+//        securelogger.debug("fant noen claims: ${claims.allClaims}")
+//        return ctxHolder.getTokenValidationContext().getClaims(SecurityConfiguration.TOKEN_X).getStringClaim("pid")
+        return "hei"
     }
 
     fun getSaksbehandlerAccessTokenWithGraphScope(): String {
