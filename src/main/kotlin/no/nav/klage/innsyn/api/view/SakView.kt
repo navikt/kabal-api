@@ -1,5 +1,6 @@
 package no.nav.klage.innsyn.api.view
 
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 
@@ -13,8 +14,9 @@ data class SakView(
     val id: String, //created using fagsystemId and saksnummer
     val saksnummer: String,
     val ytelseId: String,
-    val innsendingsytelseId: String?,
     val events: List<Event>,
+    val varsletBehandlingstid: VarsletBehandlingstid?,
+    val mottattKlageinstans: LocalDate,
 ) {
     data class Event(
         val type: EventType,
@@ -31,4 +33,10 @@ data class SakView(
             ANKE_AVSLUTTET_I_KLAGEINSTANS,
         }
     }
+
+    data class VarsletBehandlingstid(
+        val varsletBehandlingstidUnits: Int,
+        val varsletBehandlingstidUnitTypeId: String,
+        val varsletFrist: LocalDate,
+    )
 }
