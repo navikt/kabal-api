@@ -5,24 +5,34 @@ import io.mockk.mockk
 import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
+import no.nav.klage.oppgave.repositories.MottakRepository
 import org.junit.jupiter.api.Test
+import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDate
 import java.util.*
 
 internal class InnsynServiceTest {
     private val behandlingRepository = mockk<BehandlingRepository>()
-    private val innsynService: InnsynService = InnsynService(behandlingRepository = behandlingRepository)
+    private val mottakRepository = mockk<MottakRepository>()
+    private val documentService = mockk<DocumentService>()
+    private val innsynService: InnsynService =
+        InnsynService(
+            behandlingRepository = behandlingRepository,
+            mottakRepository = mottakRepository,
+            documentService = documentService,
+        )
 
     @Test
     fun test() {
         every { behandlingRepository.findBySakenGjelderPartIdValueAndFeilregistreringIsNull(any()) } returns getBehandlinger()
+        every { mottakRepository.findByIdOrNull(any()) } returns null
         val response = innsynService.getSakerForBruker("123")
         response.saker.forEach { sak ->
-           println(sak.saksnummer)
-           sak.events.forEach { event ->
-               println(event)
-           }
-           println()
+            println(sak.saksnummer)
+            sak.events.forEach { event ->
+                println(event)
+            }
+            println()
         }
     }
 
