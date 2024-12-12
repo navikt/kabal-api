@@ -66,7 +66,7 @@ class InnsynController(
     )
     @GetMapping("/documents/{journalpostId}")
     fun getDocument(
-        @PathVariable("journalpostid") journalpostId: String,
+        @PathVariable("journalpostId") journalpostId: String,
     ): ResponseEntity<Resource> {
         val identFromToken = tokenUtil.getSubjectFromTokenXToken()
         logMethodDetails(
