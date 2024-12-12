@@ -1,5 +1,9 @@
 package no.nav.klage.oppgave.config
 
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.security.SecurityScheme
 import no.nav.klage.dokument.api.controller.DokumentUnderArbeidController
 import no.nav.klage.innsyn.api.controller.InnsynController
 import no.nav.klage.oppgave.api.controller.BehandlingDetaljerController
@@ -9,6 +13,13 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@SecurityRequirement(name = "bearerAuth")
+@SecurityScheme(
+    type = SecuritySchemeType.HTTP,
+    bearerFormat = "jwt",
+    name = "bearerAuth",
+    scheme = "bearer", `in` = SecuritySchemeIn.HEADER
+)
 class OpenApiConfig {
 
     @Bean

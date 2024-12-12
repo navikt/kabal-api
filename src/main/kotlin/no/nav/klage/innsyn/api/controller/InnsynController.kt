@@ -1,9 +1,6 @@
 package no.nav.klage.innsyn.api.controller
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn
-import io.swagger.v3.oas.annotations.enums.SecuritySchemeType
-import io.swagger.v3.oas.annotations.security.SecurityScheme
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.innsyn.api.view.InnsynResponse
 import no.nav.klage.innsyn.service.InnsynService
@@ -34,8 +31,6 @@ import java.nio.file.Files
 
 @ProtectedWithClaims(issuer = SecurityConfiguration.TOKEN_X, claimMap = ["acr=Level4"])
 @RequestMapping("api/innsyn")
-@SecurityScheme(name = "bearer-auth", type = SecuritySchemeType.HTTP, scheme = "bearer",
-    `in` = SecuritySchemeIn.HEADER, bearerFormat = "JWT")
 class InnsynController(
     private val innsynService: InnsynService,
     private val tokenUtil: TokenUtil,
