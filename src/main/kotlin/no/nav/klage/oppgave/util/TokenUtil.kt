@@ -21,7 +21,14 @@ class TokenUtil(
     }
 
     fun getSubjectFromTokenXToken(): String {
+        securelogger.debug("Token til debug: ${ctxHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.TOKEN_X)}")
         return ctxHolder.getTokenValidationContext().getClaims(SecurityConfiguration.TOKEN_X).getStringClaim("pid")
+    }
+
+    fun getOnBehalfOfTokenWithSafSelvbetjeningScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["safselvbetjening-onbehalfof"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.access_token!!
     }
 
     fun getSaksbehandlerAccessTokenWithGraphScope(): String {

@@ -8,12 +8,14 @@ import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.nio.file.Path
 import java.time.LocalDate
 
 @Service
 class InnsynService(
     private val behandlingRepository: BehandlingRepository,
     private val mottakRepository: MottakRepository,
+    private val documentService: DocumentService,
 ) {
 
     data class GroupByKey(
@@ -27,6 +29,11 @@ class InnsynService(
             fagsakId = fagsakId,
         )
     }
+
+    fun getJournalpostPdf(journalpostId: String): Pair<Path, String> {
+        return documentService.getJournalpostPdf(journalpostId = journalpostId)
+    }
+
 
     fun getSakerForBruker(fnr: String): InnsynResponse {
         val behandlingerGroupedBySak: Map<GroupByKey, List<Behandling>> =
