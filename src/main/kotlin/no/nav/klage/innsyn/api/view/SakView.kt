@@ -21,6 +21,7 @@ data class SakView(
     data class Event(
         val type: EventType,
         val date: LocalDateTime,
+        val relevantJournalpostId: String?,
     ) {
         enum class EventType {
             KLAGE_MOTTATT_VEDTAKSINSTANS,
