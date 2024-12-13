@@ -29,7 +29,8 @@
         "ANKEBEHANDLING_AVSLUTTET",
         "ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET",
         "BEHANDLING_FEILREGISTRERT",
-        "BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET"
+        "BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET",
+        "OMGJOERINGSKRAVBEHANDLING_AVSLUTTET"
       ],
       "description": "Typen event som har skjedd. Matcher et av feltene i BehandlingDetaljer, typen her vil vise hvilket felt som ikke er null. Kan og vil utvides med flere verdier på sikt."
     },
@@ -67,6 +68,9 @@
         },
         "behandlingEtterTrygderettenOpphevetAvsluttet": {
           "$ref": "#/definitions/BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer"
+        },
+        "omgjoeringskravbehandlingAvsluttet": {
+          "$ref": "#/definitions/OmgjoeringskravbehandlingAvsluttetDetaljer"
         }
       }
     },
@@ -156,6 +160,31 @@
         "journalpostReferanser"
       ]
     },
+    "AnkeITrygderettenbehandlingOpprettetDetaljer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sendtTilTrygderetten": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "utfall": {
+          "type": "string",
+          "enum": [
+            "TRUKKET",
+            "OPPHEVET",
+            "MEDHOLD",
+            "DELVIS_MEDHOLD",
+            "INNSTILLING_STADFESTELSE",
+            "INNSTILLING_AVVIST"
+          ],
+          "description": "Utfallet av behandlingen."
+        }
+      },
+      "required": [
+        "sendtTilTrygderetten"
+      ]
+    },
     "BehandlingFeilregistrertDetaljer": {
       "type": "object",
       "additionalProperties": false,
@@ -210,6 +239,33 @@
             "STADFESTELSE",
             "UGUNST",
             "AVVIST"
+          ]
+        },
+        "journalpostReferanser": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "avsluttet",
+        "utfall",
+        "journalpostReferanser"
+      ]
+    },
+    "OmgjoeringskravbehandlingAvsluttetDetaljer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "avsluttet": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "utfall": {
+          "type": "string",
+          "enum": [
+            "MEDHOLD_ETTER_FVL_35",
           ]
         },
         "journalpostReferanser": {
