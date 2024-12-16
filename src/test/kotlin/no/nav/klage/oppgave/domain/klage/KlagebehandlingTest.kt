@@ -1,6 +1,10 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.FlowState
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

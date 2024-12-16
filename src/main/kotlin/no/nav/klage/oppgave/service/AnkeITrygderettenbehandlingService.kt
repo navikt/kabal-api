@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
-import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
+import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
@@ -73,7 +73,7 @@ class AnkeITrygderettenbehandlingService(
 
             //TODO: Oppdater om det kommer ny versjon
             val washedRegistreringshjemmelSet = input.registreringsHjemmelSet.filter {
-                ytelseTilRegistreringshjemlerV2[input.ytelse]?.contains(it) ?: false
+                ytelseToRegistreringshjemlerV2[input.ytelse]?.contains(it) ?: false
             }.toSet()
 
             behandlingService.setRegistreringshjemler(

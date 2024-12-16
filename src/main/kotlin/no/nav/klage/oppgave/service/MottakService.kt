@@ -3,9 +3,13 @@ package no.nav.klage.oppgave.service
 
 import io.micrometer.core.instrument.MeterRegistry
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
-import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
+import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
@@ -425,10 +429,10 @@ class MottakService(
     }
 
     private fun validateYtelseAndHjemler(ytelse: Ytelse, hjemler: Collection<Hjemmel>?) {
-        if (ytelse in ytelseTilHjemler.keys) {
+        if (ytelse in ytelseToHjemler.keys) {
             if (!hjemler.isNullOrEmpty()) {
                 hjemler.forEach {
-                    if (!ytelseTilHjemler[ytelse]!!.contains(it)) {
+                    if (!ytelseToHjemler[ytelse]!!.contains(it)) {
                         throw OversendtKlageNotValidException("Behandling med ytelse ${ytelse.navn} kan ikke registreres med hjemmel $it. Ta kontakt med team klage dersom du mener hjemmelen skal være mulig å bruke for denne ytelsen.")
                     }
                 }

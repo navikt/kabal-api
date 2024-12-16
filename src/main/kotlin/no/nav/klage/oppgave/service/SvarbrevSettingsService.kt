@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.api.view.SvarbrevSettingsConsumerView
 import no.nav.klage.oppgave.api.view.SvarbrevSettingsView

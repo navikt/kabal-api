@@ -7,7 +7,7 @@ import no.nav.klage.dokument.exceptions.SvarbrevPreviewException
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.service.PartSearchService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service

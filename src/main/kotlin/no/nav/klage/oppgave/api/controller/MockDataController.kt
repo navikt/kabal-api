@@ -2,11 +2,11 @@ package no.nav.klage.oppgave.api.controller
 
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Hjemmel.*
-import no.nav.klage.kodeverk.hjemmel.ytelseTilHjemler
-import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV1
-import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
+import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
+import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV1
+import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
@@ -248,7 +248,7 @@ class MockDataController(
             Ytelse.SYK_SYK
         } else {
             logger.debug("Mock input not null, but ytelse was, using random ytelse.")
-            mockInput.ytelse ?: ytelseTilHjemler.keys.random()
+            mockInput.ytelse ?: ytelseToHjemler.keys.random()
         }
 
         val fnrAndJournalpostId = getFnrAndJournalpostId(ytelse)
@@ -282,7 +282,7 @@ class MockDataController(
                         kildeReferanse = mockInput?.kildeReferanse ?: UUID.randomUUID().toString(),
                         dvhReferanse = mockInput?.dvhReferanse,
                         innsynUrl = "https://nav.no",
-                        hjemler = listOf(ytelseTilHjemlerForMock[ytelse]!!.random()),
+                        hjemler = listOf(ytelseToHjemlerForMock[ytelse]!!.random()),
                         forrigeBehandlendeEnhet = mockInput?.forrigeBehandlendeEnhet ?: "4295", //NAV Klageinstans nord
                         brukersHenvendelseMottattNavDato = dato,
                         sakMottattKaDato = dato,
@@ -298,11 +298,11 @@ class MockDataController(
             Type.ANKE_I_TRYGDERETTEN -> {
                 val registreringsHjemmelSet = when (getKakaVersion()) {
                     1 -> {
-                        mutableSetOf(ytelseTilRegistreringshjemlerV1[ytelse]!!.random())
+                        mutableSetOf(ytelseToRegistreringshjemlerV1[ytelse]!!.random())
                     }
 
                     2 -> {
-                        mutableSetOf(ytelseTilRegistreringshjemlerV2[ytelse]!!.random())
+                        mutableSetOf(ytelseToRegistreringshjemlerV2[ytelse]!!.random())
                     }
 
                     else ->
@@ -320,7 +320,7 @@ class MockDataController(
                     fagsakId = oversendtSak.fagsakId,
                     sakMottattKlageinstans = dato.atStartOfDay(),
                     saksdokumenter = mutableSetOf(),
-                    innsendingsHjemler = mutableSetOf(ytelseTilHjemler[ytelse]!!.random()),
+                    innsendingsHjemler = mutableSetOf(ytelseToHjemler[ytelse]!!.random()),
                     sendtTilTrygderetten = LocalDateTime.now(),
                     registreringsHjemmelSet = registreringsHjemmelSet,
                     ankebehandlingUtfall = ExternalUtfall.valueOf(utfallToTrygderetten.random().name),
@@ -405,7 +405,7 @@ class MockDataController(
         TRRL_9,
     )
 
-    val ytelseTilHjemlerForMock = mapOf(
+    val ytelseToHjemlerForMock = mapOf(
         Ytelse.YRK_YRK to hjemlerYRK_YRK,
         Ytelse.YRK_YSY to hjemlerYRK_YRK,
         Ytelse.YRK_MEN to hjemlerYRK_YRK,

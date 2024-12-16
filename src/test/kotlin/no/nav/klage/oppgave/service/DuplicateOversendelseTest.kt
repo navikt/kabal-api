@@ -6,7 +6,7 @@ import io.mockk.every
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client

@@ -1,6 +1,6 @@
 package db.migration
 
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration

@@ -2,7 +2,11 @@ package no.nav.klage.oppgave.api.mapper
 
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.FlowState
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
