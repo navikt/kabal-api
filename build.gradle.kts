@@ -1,30 +1,30 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val mockkVersion = "1.13.13"
-val tokenValidationVersion = "5.0.11"
+val tokenValidationVersion = "5.0.13"
 val logstashVersion = "8.0"
-val springRetryVersion = "2.0.10"
+val springRetryVersion = "2.0.11"
 val springMockkVersion = "4.0.2"
-val springDocVersion = "2.6.0"
-val testContainersVersion = "1.20.3"
-val shedlockVersion = "5.16.0"
+val springDocVersion = "2.7.0"
+val testContainersVersion = "1.20.4"
+val shedlockVersion = "6.0.2"
 val archunitVersion = "1.3.0"
 val kotlinXmlBuilderVersion = "1.9.1"
 val logbackSyslog4jVersion = "1.0.0"
 val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.3"
 val tikaVersion = "3.0.0"
-val verapdfVersion = "1.26.1"
-val klageKodeverkVersion = "1.8.61"
+val verapdfVersion = "1.26.2"
+val klageKodeverkVersion = "1.9.3"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
-val otelVersion = "1.44.1"
+val otelVersion = "1.45.0"
 
 plugins {
-    val kotlinVersion = "2.0.21"
+    val kotlinVersion = "2.1.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
-    id("org.springframework.boot") version "3.3.5"
+    id("org.springframework.boot") version "3.4.0"
     id("io.spring.dependency-management") version "1.1.6"
     idea
     kotlin("kapt") version kotlinVersion
@@ -69,7 +69,7 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
-    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.6.2.Final")
+    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.6.3.Final")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
 
