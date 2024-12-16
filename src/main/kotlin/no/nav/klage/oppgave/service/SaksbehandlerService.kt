@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.nom.GetAnsattResponse
 import no.nav.klage.oppgave.clients.nom.NomClient
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration

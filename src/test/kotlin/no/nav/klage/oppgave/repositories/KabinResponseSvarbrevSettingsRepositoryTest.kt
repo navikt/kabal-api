@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.repositories
 
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 import org.assertj.core.api.Assertions.assertThat

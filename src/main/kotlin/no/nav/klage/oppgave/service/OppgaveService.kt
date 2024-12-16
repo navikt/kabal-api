@@ -3,8 +3,8 @@ package no.nav.klage.oppgave.service
 import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.Root
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.kodeverk.Ytelse
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Behandling_

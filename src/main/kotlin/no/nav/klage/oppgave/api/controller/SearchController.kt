@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.api.controller
 
 
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD

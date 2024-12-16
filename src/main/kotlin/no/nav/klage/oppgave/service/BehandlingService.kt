@@ -355,7 +355,7 @@ class BehandlingService(
         }
 
         //TODO: Create test for invalid utfall when such are added
-        if (behandling.utfall != null && behandling.utfall !in typeTilUtfall[behandling.type]!!) {
+        if (behandling.utfall != null && behandling.utfall !in typeToUtfall[behandling.type]!!) {
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "utfall",

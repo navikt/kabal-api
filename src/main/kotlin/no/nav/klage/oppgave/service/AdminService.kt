@@ -12,7 +12,7 @@ import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedle
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.kodeverk.hjemmel.ytelseTilRegistreringshjemlerV2
+import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.oppgave.api.view.TaskListMerkantilView
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
@@ -403,7 +403,7 @@ class AdminService(
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNull()
         val ytelseAndHjemmelPairSet = unfinishedBehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
         val (_, invalidHjemler) = ytelseAndHjemmelPairSet.partition { pair ->
-            pair.second.any { ytelseTilRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
+            pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
         }
         val filteredInvalidHjemler = invalidHjemler.filter { it.second.isNotEmpty() }
         secureLogger.debug("Invalid registreringshjemler in unfinished behandlinger: {}", filteredInvalidHjemler)
@@ -411,7 +411,7 @@ class AdminService(
         val klagebehandlinger = klagebehandlingRepository.findByKakaKvalitetsvurderingVersionIs(2)
         val klageYtelseAndHjemmelPairSet = klagebehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
         val (_, klageinvalidHjemler) = klageYtelseAndHjemmelPairSet.partition { pair ->
-            pair.second.any { ytelseTilRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
+            pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
         }
         val filteredKlageInvalidHjemler = klageinvalidHjemler.filter { it.second.isNotEmpty() }
         secureLogger.debug("Invalid registreringshjemler in klagebehandlinger v2: {}", filteredKlageInvalidHjemler)
@@ -419,7 +419,7 @@ class AdminService(
         val ankebehandlinger = ankebehandlingRepository.findByKakaKvalitetsvurderingVersionIs(2)
         val ankeYtelseAndHjemmelPairSet = ankebehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
         val (_, ankeinvalidHjemler) = ankeYtelseAndHjemmelPairSet.partition { pair ->
-            pair.second.any { ytelseTilRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
+            pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
         }
         val filteredAnkeInvalidHjemler = ankeinvalidHjemler.filter { it.second.isNotEmpty() }
         secureLogger.debug("Invalid registreringshjemler in ankebehandlinger v2: {}", filteredAnkeInvalidHjemler)

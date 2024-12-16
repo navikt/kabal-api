@@ -3,8 +3,12 @@ package no.nav.klage.oppgave.service
 import com.ninjasquad.springmockk.MockkBean
 import io.mockk.every
 import io.mockk.verify
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.EnhetensFerdigstilteOppgaverQueryParams
 import no.nav.klage.oppgave.api.view.MineFerdigstilteOppgaverQueryParams
 import no.nav.klage.oppgave.api.view.Rekkefoelge
