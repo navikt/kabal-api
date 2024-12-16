@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.repositories
 
-import no.nav.klage.kodeverk.Ytelse
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository

@@ -5,6 +5,7 @@ import jakarta.persistence.Converter
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
+import no.nav.klage.kodeverk.ytelse.Ytelse
 
 @Converter
 class DokumentTypeConverter : AttributeConverter<DokumentType, String?> {
