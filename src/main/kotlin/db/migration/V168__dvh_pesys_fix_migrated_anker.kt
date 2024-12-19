@@ -13,6 +13,7 @@ class V168__dvh_pesys_fix_migrated_anker : BaseJavaMigration() {
             """
                 update klage.kafka_event
                     set json_payload = ?
+                    and status_id = ?
                     where id = ?
             """.trimIndent()
         )
@@ -20,7 +21,7 @@ class V168__dvh_pesys_fix_migrated_anker : BaseJavaMigration() {
         context.connection.createStatement().use { select ->
             select.executeQuery(
                 """
-                    select ke.id, ke.json_payload, ke.status_id
+                    select ke.id, ke.json_payload
                     from klage.kafka_event ke
                     where ke.type = 'STATS_DVH'
                       and ke.kilde_referanse in (
@@ -59,8 +60,8 @@ class V168__dvh_pesys_fix_migrated_anker : BaseJavaMigration() {
                         }
 
                         preparedStatement.setString(1, ourJacksonObjectMapper().writeValueAsString(modifiedVersion))
-                        preparedStatement.setObject(2, kafkaEventId)
-                        preparedStatement.setObject(3,"IKKE_SENDT")
+                        preparedStatement.setObject(2,"IKKE_SENDT")
+                        preparedStatement.setObject(3, kafkaEventId)
 
                         preparedStatement.executeUpdate()
                     }
