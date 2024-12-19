@@ -185,10 +185,14 @@ class MottakService(
                     if (previousHandledKlage != null) {
                         logger.debug("Fant tidligere behandlet klage i Kabal, med id {}", previousHandledKlage.id)
                         if (oversendtKlageAnke.dvhReferanse != previousHandledKlage.dvhReferanse) {
-                            val message =
-                                "Tidligere behandlet klage har annen dvhReferanse enn innsendt anke."
-                            logger.warn(message)
-                            throw OversendtKlageNotValidException(message)
+                            if (oversendtKlageAnke.fagsak.fagsystem != Fagsystem.PP01) {
+                                val message =
+                                    "Tidligere behandlet klage har annen dvhReferanse enn innsendt anke."
+                                logger.warn(message)
+                                throw OversendtKlageNotValidException(message)
+                            } else {
+                                logger.debug("dvhReferanse ${oversendtKlageAnke.dvhReferanse} matcher ikke med klage. Godtar, fordi det er anke fra Pesys.")
+                            }
                         }
                         mottakRepository.save(oversendtKlageAnke.toMottak(previousHandledKlage.id))
                     } else {
