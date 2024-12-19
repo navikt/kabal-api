@@ -799,6 +799,7 @@ class V172__dvh_pesys_fix_migrated_anker_part2 : BaseJavaMigration() {
                             "46722760" -> statistikkTilDVH.copy(behandlingId = "48384218", tekniskTid = LocalDateTime.now())
                             "46528912" -> statistikkTilDVH.copy(behandlingId = "48349418", tekniskTid = LocalDateTime.now())
                             "46469557" -> statistikkTilDVH.copy(behandlingId = "48387421", tekniskTid = LocalDateTime.now())
+                            "50207416" -> statistikkTilDVH.copy(behandlingId = "48387421", tekniskTid = LocalDateTime.now())
                             "46720470" -> statistikkTilDVH.copy(behandlingId = "48264729", tekniskTid = LocalDateTime.now())
                             "46564404" -> statistikkTilDVH.copy(behandlingId = "48352912", tekniskTid = LocalDateTime.now())
                             "46755697" -> statistikkTilDVH.copy(behandlingId = "48229906", tekniskTid = LocalDateTime.now())
