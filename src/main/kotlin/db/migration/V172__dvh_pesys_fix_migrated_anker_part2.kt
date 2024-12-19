@@ -218,8 +218,7 @@ class V172__dvh_pesys_fix_migrated_anker_part2 : BaseJavaMigration() {
  '65081126',
  '65081297',
  '65082878',
- '65082915',
- '65083007',
+ '65082915', 
  '65084314',
  '65084512',
  '65085044',
@@ -798,8 +797,9 @@ class V172__dvh_pesys_fix_migrated_anker_part2 : BaseJavaMigration() {
                             "46788052" -> statistikkTilDVH.copy(behandlingId = "48375286", tekniskTid = LocalDateTime.now())
                             "46722760" -> statistikkTilDVH.copy(behandlingId = "48384218", tekniskTid = LocalDateTime.now())
                             "46528912" -> statistikkTilDVH.copy(behandlingId = "48349418", tekniskTid = LocalDateTime.now())
-                            "46469557" -> statistikkTilDVH.copy(behandlingId = "48387421", tekniskTid = LocalDateTime.now())
-                            "50207416" -> statistikkTilDVH.copy(behandlingId = "48387421", tekniskTid = LocalDateTime.now())
+//Problemtilfelle knyttet til kilderef 65083007. Ta senere.
+//                            "46469557" -> statistikkTilDVH.copy(behandlingId = "48387421", tekniskTid = LocalDateTime.now())
+//                            "50207416" -> statistikkTilDVH.copy(behandlingId = "48387421", tekniskTid = LocalDateTime.now())
                             "46720470" -> statistikkTilDVH.copy(behandlingId = "48264729", tekniskTid = LocalDateTime.now())
                             "46564404" -> statistikkTilDVH.copy(behandlingId = "48352912", tekniskTid = LocalDateTime.now())
                             "46755697" -> statistikkTilDVH.copy(behandlingId = "48229906", tekniskTid = LocalDateTime.now())
