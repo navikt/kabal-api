@@ -12,8 +12,7 @@ class V168__dvh_pesys_fix_migrated_anker : BaseJavaMigration() {
         val preparedStatement = context.connection.prepareStatement(
             """
                 update klage.kafka_event
-                    set json_payload = ?
-                    and status_id = ?
+                    set json_payload = ?, status_id = ?
                     where id = ?
             """.trimIndent()
         )
