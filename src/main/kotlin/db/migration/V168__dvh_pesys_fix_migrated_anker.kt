@@ -1,7 +1,6 @@
 package db.migration
 
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
-import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
@@ -61,7 +60,7 @@ class V168__dvh_pesys_fix_migrated_anker : BaseJavaMigration() {
 
                         preparedStatement.setString(1, ourJacksonObjectMapper().writeValueAsString(modifiedVersion))
                         preparedStatement.setObject(2, kafkaEventId)
-                        preparedStatement.setObject(3, UtsendingStatus.IKKE_SENDT)
+                        preparedStatement.setObject(3,"IKKE_SENDT")
 
                         preparedStatement.executeUpdate()
                     }
