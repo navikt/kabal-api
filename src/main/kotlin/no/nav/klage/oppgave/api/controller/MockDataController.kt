@@ -203,35 +203,35 @@ class MockDataController(
     private fun getFnrAndJournalpostId(ytelse: Ytelse): Fnr {
         return when (ytelse) {
             Ytelse.ENF_ENF -> Fnr(
-                fnr = "17887799784"
+                fnr = "26457524896"
             )
 
             Ytelse.BAR_BAR -> Fnr(
-                fnr = "50884800363"
+                fnr = "06457216678"
             )
 
             Ytelse.KON_KON -> Fnr(
-                fnr = "06049939084"
+                fnr = "02507412559"
             )
 
             Ytelse.OMS_OLP, Ytelse.OMS_OMP, Ytelse.OMS_PLS, Ytelse.OMS_PSB -> Fnr(
-                fnr = "25056321171"
+                fnr = "20498222634"
             )
 
             Ytelse.SYK_SYK -> Fnr(
-                fnr = "07098330636"
+                fnr = "26417207642"
             )
 
             Ytelse.SUP_UFF -> Fnr(
-                fnr = "01046813711"
+                fnr = "02516714908"
             )
 
             Ytelse.FOR_ENG, Ytelse.FOR_FOR, Ytelse.FOR_SVA -> Fnr(
-                fnr = "14828897927"
+                fnr = "05489333998"
             )
 
             else -> Fnr(
-                fnr = "17887799784"
+                fnr = "01427637081"
             )
         }
     }
