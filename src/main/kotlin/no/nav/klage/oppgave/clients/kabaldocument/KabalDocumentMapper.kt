@@ -166,13 +166,14 @@ class KabalDocumentMapper(
                     localPrint = false,
                     forceCentralPrint = false,
                     address = null,
-                    kanal = null
+                    kanal = null,
+                    navn = null,
                 )
             )
         } else {
             avsenderMottakerInfoSet!!.map {
                 mapPartIdToBrevmottakerInput(
-                    partId = getPartIdFromIdentifikator(it.identifikator),
+                    partId = it.identifikator?.let { id -> getPartIdFromIdentifikator(id) },
                     localPrint = it.localPrint,
                     forceCentralPrint = it.forceCentralPrint,
                     address = it.address,
@@ -180,6 +181,7 @@ class KabalDocumentMapper(
                         avsenderMottakerInfo = it,
                         behandling = behandling,
                     ),
+                    navn = it.navn,
                 )
             }
         }
@@ -191,7 +193,7 @@ class KabalDocumentMapper(
     ): Kanal {
         return if (avsenderMottakerInfo.localPrint) {
             Kanal.L
-        } else if (avsenderMottakerInfo.address != null || avsenderMottakerInfo.forceCentralPrint) {
+        } else if (avsenderMottakerInfo.address != null || avsenderMottakerInfo.forceCentralPrint || avsenderMottakerInfo.identifikator == null) {
             Kanal.S
         } else {
             val distribusjonKanalCode = dokDistKanalService.getDistribusjonKanalCode(
@@ -206,22 +208,23 @@ class KabalDocumentMapper(
     }
 
     private fun mapPartIdToBrevmottakerInput(
-        partId: PartId,
+        partId: PartId?,
+        navn: String?,
         localPrint: Boolean,
         forceCentralPrint: Boolean,
-        address: DokumentUnderArbeidAdresse?,
+        address: Adresse?,
         kanal: Kanal?,
     ) =
         AvsenderMottakerInput(
-            partId = mapPartId(partId),
-            navn = getNavn(partId),
+            partId = partId?.let { mapPartId(it) },
+            navn = navn ?: getNavn(partId!!),
             localPrint = localPrint,
             tvingSentralPrint = forceCentralPrint,
             adresse = getAdresse(address),
             kanal = kanal,
         )
 
-    private fun getAdresse(address: DokumentUnderArbeidAdresse?): AvsenderMottakerInput.Address? {
+    private fun getAdresse(address: Adresse?): AvsenderMottakerInput.Address? {
         return if (address != null) {
             val adressetype =
                 if (address.landkode == "NO") AvsenderMottakerInput.Adressetype.NORSK_POSTADRESSE else AvsenderMottakerInput.Adressetype.UTENLANDSK_POSTADRESSE

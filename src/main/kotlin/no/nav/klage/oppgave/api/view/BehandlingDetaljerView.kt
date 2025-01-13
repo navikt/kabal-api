@@ -69,7 +69,7 @@ data class BehandlingDetaljerView(
     )
 
     interface PartBase {
-        val id: String
+        val id: String?
         val name: String?
         val available: Boolean
         val language: String?
@@ -116,7 +116,7 @@ data class BehandlingDetaljerView(
     ): PartBase, IdPart
 
     data class PartViewWithUtsendingskanal(
-        override val id: String,
+        override val id: String?,
         override val name: String,
         override val type: IdType,
         override val available: Boolean,

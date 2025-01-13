@@ -9,7 +9,7 @@ class DokumentUnderArbeidAvsenderMottakerInfo(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Column(name = "identifikator")
-    val identifikator: String,
+    val identifikator: String?,
     @Column(name = "local_print")
     val localPrint: Boolean,
     @Column(name = "force_central_print")
@@ -26,7 +26,9 @@ class DokumentUnderArbeidAvsenderMottakerInfo(
             AttributeOverride(name = "landkode", column = Column(name = "address_landkode")),
         ]
     )
-    val address: DokumentUnderArbeidAdresse?,
+    val address: Adresse?,
+    @Column(name = "navn")
+    val navn: String?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -34,21 +36,28 @@ class DokumentUnderArbeidAvsenderMottakerInfo(
 
         other as DokumentUnderArbeidAvsenderMottakerInfo
 
+        if (localPrint != other.localPrint) return false
+        if (forceCentralPrint != other.forceCentralPrint) return false
         if (id != other.id) return false
         if (identifikator != other.identifikator) return false
-        if (localPrint != other.localPrint) return false
+        if (address != other.address) return false
+        if (navn != other.navn) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = id.hashCode()
-        result = 31 * result + identifikator.hashCode()
-        result = 31 * result + localPrint.hashCode()
+        var result = localPrint.hashCode()
+        result = 31 * result + forceCentralPrint.hashCode()
+        result = 31 * result + id.hashCode()
+        result = 31 * result + (identifikator?.hashCode() ?: 0)
+        result = 31 * result + (address?.hashCode() ?: 0)
+        result = 31 * result + (navn?.hashCode() ?: 0)
         return result
     }
 
     override fun toString(): String {
-        return "DokumentUnderArbeidAvsenderMottakerInfo(id=$id, identifikator='$identifikator', localPrint=$localPrint)"
+        return "DokumentUnderArbeidAvsenderMottakerInfo(id=$id, identifikator=$identifikator, localPrint=$localPrint, forceCentralPrint=$forceCentralPrint, address=$address, navn=$navn)"
     }
+
 }

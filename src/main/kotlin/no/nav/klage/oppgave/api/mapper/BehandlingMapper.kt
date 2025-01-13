@@ -476,7 +476,7 @@ class BehandlingMapper(
     }
 
     fun getPartViewWithUtsendingskanal(
-        partId: PartId,
+        partId: PartId?,
         behandling: Behandling
     ): BehandlingDetaljerView.PartViewWithUtsendingskanal {
         return getPartViewWithUtsendingskanal(
@@ -514,7 +514,7 @@ class BehandlingMapper(
     }
 
     private fun getPartViewWithUtsendingskanal(
-        identifier: String,
+        identifier: String?,
         isPerson: Boolean,
         behandling: Behandling
     ): BehandlingDetaljerView.PartViewWithUtsendingskanal {

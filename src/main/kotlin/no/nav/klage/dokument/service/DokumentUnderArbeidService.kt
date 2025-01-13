@@ -928,7 +928,7 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeid
     }
 
-    private fun getDokumentUnderArbeidAdresse(overrideAddress: AddressInput?): DokumentUnderArbeidAdresse? {
+    private fun getDokumentUnderArbeidAdresse(overrideAddress: AddressInput?): Adresse? {
         return if (overrideAddress != null) {
             val poststed = if (overrideAddress.landkode == "NO") {
                 if (overrideAddress.postnummer != null) {
@@ -936,7 +936,7 @@ class DokumentUnderArbeidService(
                 } else null
             } else null
 
-            DokumentUnderArbeidAdresse(
+            Adresse(
                 adresselinje1 = overrideAddress.adresselinje1,
                 adresselinje2 = overrideAddress.adresselinje2,
                 adresselinje3 = overrideAddress.adresselinje3,

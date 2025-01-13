@@ -222,7 +222,7 @@ class DokumentMapper(
         )
     }
 
-    private fun getBehandlingDetaljerViewAddress(address: DokumentUnderArbeidAdresse?): BehandlingDetaljerView.Address? {
+    private fun getBehandlingDetaljerViewAddress(address: Adresse?): BehandlingDetaljerView.Address? {
         return if (address != null) {
             BehandlingDetaljerView.Address(
                 adresselinje1 = address.adresselinje1,

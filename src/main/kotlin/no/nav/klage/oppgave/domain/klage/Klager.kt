@@ -12,14 +12,6 @@ data class Klager(
         ]
     )
     var partId: PartId,
-    @Embedded
-    @AttributeOverrides(
-        value = [
-            AttributeOverride(name = "partId.type", column = Column(name = "klager_prosessfullmektig_type")),
-            AttributeOverride(name = "partId.value", column = Column(name = "klager_prosessfullmektig_value")),
-        ]
-    )
-    var prosessfullmektig: Prosessfullmektig? = null
 ) {
     fun toSakenGjelder() = SakenGjelder(
         partId = this.partId.copy(),
