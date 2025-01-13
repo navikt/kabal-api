@@ -118,7 +118,7 @@ class InnsynService(
                     events += SakView.Event(
                         type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
                         date = mottattKlageinstans,
-                        relevantJournalpostId = null,
+                        relevantJournalpostId = getUsersAnke(this),
                     )
                 } else {
                     //If created in Kabal. Do we need this?
@@ -146,6 +146,13 @@ class InnsynService(
             }
 
             is Omgjoeringskravbehandling -> {
+                events += SakView.Event(
+                    //TODO: Skal dette være dette eventet, eller et spesifikt for omgjøringskrav?
+                    type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
+                    date = mottattKlageinstans,
+                    relevantJournalpostId = getUsersOmgjoeringskrav(this),
+                )
+
                 if (ferdigstilling != null) {
                     events += SakView.Event(
                         type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
@@ -158,10 +165,24 @@ class InnsynService(
         }
     }
 
+    private fun getUsersOmgjoeringskrav(omgjoeringskravbehandling: Omgjoeringskravbehandling): String? {
+        val mottak = mottakRepository.findByIdOrNull(omgjoeringskravbehandling.mottakId)
+        return mottak?.let { foundMottak ->
+            foundMottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_OMGJOERINGSKRAV }?.journalpostId
+        }
+    }
+
     private fun getUsersKlage(klagebehandling: Klagebehandling): String? {
         val mottak = mottakRepository.findByIdOrNull(klagebehandling.mottakId)
-        return mottak?.let {
-            it.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_KLAGE }?.journalpostId
+        return mottak?.let { foundMottak ->
+            foundMottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_KLAGE }?.journalpostId
+        }
+    }
+
+    private fun getUsersAnke(ankebehandling: Ankebehandling): String? {
+        val mottak = mottakRepository.findByIdOrNull(ankebehandling.mottakId)
+        return mottak?.let { foundMottak ->
+            foundMottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_ANKE }?.journalpostId
         }
     }
 
