@@ -11,6 +11,7 @@ import java.time.LocalDateTime
 data class AnkeITrygderettenbehandlingInput(
     val klager: Klager,
     val sakenGjelder: SakenGjelder? = null,
+    val prosessfullmektig: Prosessfullmektig?,
     val ytelse: Ytelse,
     val type: Type,
     val kildeReferanse: String,
@@ -32,6 +33,7 @@ fun Behandling.createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehand
     return AnkeITrygderettenbehandlingInput(
         klager = klager,
         sakenGjelder = sakenGjelder,
+        prosessfullmektig = prosessfullmektig,
         ytelse = ytelse,
         type = Type.ANKE_I_TRYGDERETTEN,
         kildeReferanse = kildeReferanse,

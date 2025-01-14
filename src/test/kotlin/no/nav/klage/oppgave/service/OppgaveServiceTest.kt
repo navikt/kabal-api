@@ -488,6 +488,7 @@ class OppgaveServiceTest {
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
                     ),
+                    prosessfullmektig = null,
                     ytelse = ytelse,
                     type = type,
                     frist = frist,
@@ -523,6 +524,7 @@ class OppgaveServiceTest {
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
                     ),
+                    prosessfullmektig = null,
                     ytelse = ytelse,
                     type = type,
                     frist = frist,
@@ -558,6 +560,7 @@ class OppgaveServiceTest {
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
                     ),
+                    prosessfullmektig = null,
                     ytelse = ytelse,
                     type = type,
                     hjemler = mutableSetOf(),
@@ -588,6 +591,7 @@ class OppgaveServiceTest {
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = "23452354"),
                     ),
+                    prosessfullmektig = null,
                     ytelse = ytelse,
                     type = type,
                     hjemler = mutableSetOf(),

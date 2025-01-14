@@ -42,7 +42,7 @@ sealed class Behandling(
             AttributeOverride(name = "navn", column = Column(name = "prosessfullmektig_navn")),
         ]
     )
-    open var prosessfullmektig: Prosessfullmektig? = null,
+    open var prosessfullmektig: Prosessfullmektig?,
     @Column(name = "ytelse_id")
     @Convert(converter = YtelseConverter::class)
     open val ytelse: Ytelse,

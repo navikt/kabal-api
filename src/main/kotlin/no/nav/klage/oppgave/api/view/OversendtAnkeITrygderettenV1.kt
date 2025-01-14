@@ -75,6 +75,7 @@ fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingInput(inputDoc
     return AnkeITrygderettenbehandlingInput(
         klager = klager.toKlagepart(),
         sakenGjelder = sakenGjelder?.toSakenGjelder(),
+        prosessfullmektig = null,
         ytelse = ytelse,
         type = Type.ANKE_I_TRYGDERETTEN,
         kildeReferanse = kildeReferanse,

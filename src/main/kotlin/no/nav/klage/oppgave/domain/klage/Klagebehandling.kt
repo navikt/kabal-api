@@ -46,6 +46,7 @@ class Klagebehandling(
     id: UUID = UUID.randomUUID(),
     klager: Klager,
     sakenGjelder: SakenGjelder,
+    prosessfullmektig: Prosessfullmektig?,
     ytelse: Ytelse,
     type: Type,
     kildeReferanse: String,
@@ -84,6 +85,7 @@ class Klagebehandling(
 ) : Behandling(
     id = id,
     klager = klager,
+    prosessfullmektig = prosessfullmektig,
     sakenGjelder = sakenGjelder,
     ytelse = ytelse,
     type = type,

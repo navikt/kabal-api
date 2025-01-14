@@ -98,6 +98,7 @@ class BehandlingMapperTest {
             sakenGjelder = SakenGjelder(
                 partId = PartId(PartIdType.PERSON, FNR),
             ),
+            prosessfullmektig = null,
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,

@@ -32,6 +32,7 @@ class OmgjoeringskravbehandlingService(
             Omgjoeringskravbehandling(
                 klager = mottak.klager.copy(),
                 sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
+                prosessfullmektig = mottak.prosessfullmektig,
                 ytelse = mottak.ytelse,
                 type = mottak.type,
                 kildeReferanse = mottak.kildeReferanse,

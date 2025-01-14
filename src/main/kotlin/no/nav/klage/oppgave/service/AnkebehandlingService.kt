@@ -42,6 +42,7 @@ class AnkebehandlingService(
             Ankebehandling(
                 klager = mottak.klager.copy(),
                 sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
+                prosessfullmektig = mottak.prosessfullmektig,
                 ytelse = mottak.ytelse,
                 type = mottak.type,
                 kildeReferanse = mottak.kildeReferanse,
@@ -114,6 +115,7 @@ class AnkebehandlingService(
             Ankebehandling(
                 klager = ankeITrygderettenbehandling.klager.copy(),
                 sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.copy(),
+                prosessfullmektig = ankeITrygderettenbehandling.prosessfullmektig,
                 ytelse = ankeITrygderettenbehandling.ytelse,
                 type = Type.ANKE,
                 kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,

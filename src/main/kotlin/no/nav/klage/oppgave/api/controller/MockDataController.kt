@@ -312,6 +312,7 @@ class MockDataController(
                 val input = AnkeITrygderettenbehandlingInput(
                     klager = klager.toKlagepart(),
                     sakenGjelder = sakenGjelder?.toSakenGjelder(),
+                    prosessfullmektig = null,
                     ytelse = ytelse,
                     type = type,
                     kildeReferanse = mockInput?.kildeReferanse ?: UUID.randomUUID().toString(),
