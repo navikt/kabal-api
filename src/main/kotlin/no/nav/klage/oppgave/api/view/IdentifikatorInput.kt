@@ -1,5 +1,7 @@
 package no.nav.klage.oppgave.api.view
 
+import no.nav.klage.dokument.api.view.AddressInput
+
 data class IdentifikatorInput(
     val identifikator: String
 )
@@ -10,6 +12,8 @@ data class SearchPartWithUtsendingskanalInput(
     val ytelseId: String,
 )
 
-data class NullableIdentifikatorInput(
-    val identifikator: String?
+data class FullmektigInput(
+    val id: String?,
+    val address: AddressInput?,
+    val name: String?,
 )

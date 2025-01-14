@@ -14,7 +14,7 @@ object OmgjoeringskravbehandlingSetters {
         nyVerdiVarsletFrist: LocalDate,
         saksbehandlerident: String,
         saksbehandlernavn: String,
-        mottakere: List<PartId>
+        mottakere: List<Mottaker>
     ): BehandlingEndretEvent {
         val gammelVerdiVarsletBehandlingstidUnits = varsletBehandlingstidUnits
         val gammelVerdiVarsletBehandlingstidUnitType = varsletBehandlingstidUnitType
@@ -77,7 +77,7 @@ object OmgjoeringskravbehandlingSetters {
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
         utfoerendeNavn: String?,
-        mottakere: List<PartId>,
+        mottakere: List<Mottaker>,
     ) {
         varsletBehandlingstidHistorikk.add(
             VarsletBehandlingstidHistorikk(

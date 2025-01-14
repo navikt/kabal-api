@@ -435,16 +435,18 @@ class BehandlingService(
             }
         }
 
-        if (behandling.klager.prosessfullmektig?.partId?.isPerson() == false &&
-            !eregClient.hentNoekkelInformasjonOmOrganisasjon(behandling.klager.prosessfullmektig!!.partId.value)
-                .isActive()
-        ) {
-            behandlingValidationErrors.add(
-                InvalidProperty(
-                    field = "fullmektig",
-                    reason = "Fullmektig/organisasjon har opphørt."
+        if (behandling.prosessfullmektig?.partId != null) {
+            if (behandling.prosessfullmektig?.partId?.isPerson() == false &&
+                !eregClient.hentNoekkelInformasjonOmOrganisasjon(behandling.prosessfullmektig!!.partId!!.value)
+                    .isActive()
+            ) {
+                behandlingValidationErrors.add(
+                    InvalidProperty(
+                        field = "fullmektig",
+                        reason = "Fullmektig/organisasjon har opphørt."
+                    )
                 )
-            )
+            }
         }
 
         if (!behandling.fagsystem.modernized && behandling.gosysOppgaveId == null) {
@@ -784,7 +786,7 @@ class BehandlingService(
         behandlingstidUnits: Int,
         behandling: Behandling,
         systemUserContext: Boolean,
-        mottakere: List<PartId>,
+        mottakere: List<Mottaker>,
     ): LocalDateTime {
         val varsletFrist = when (behandlingstidUnitType) {
             TimeUnitType.WEEKS -> behandling.mottattKlageinstans.toLocalDate()
@@ -1283,32 +1285,43 @@ class BehandlingService(
 
     fun setFullmektig(
         behandlingId: UUID,
-        identifikator: String?,
+        input: FullmektigInput?,
         utfoerendeSaksbehandlerIdent: String
     ): LocalDateTime {
+
+        if (input != null) {
+            if (input.id != null && (input.address != null || input.name != null)) {
+                throw IllegalOperation("Address and name can only be set without id")
+            }
+
+            if (input.id == null && input.address == null && input.name == null) {
+                throw IllegalOperation("Both address or name must be set")
+            }
+        }
+
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
 
-        val partId: PartId? = if (identifikator == null) {
+        val partId: PartId? = if (input?.id == null) {
             null
         } else {
-            getPartIdFromIdentifikator(identifikator)
+            getPartIdFromIdentifikator(input.id)
         }
 
         val event =
             behandling.setFullmektig(
-                nyVerdi = partId,
+                partId = partId,
                 utfoerendeIdent = utfoerendeSaksbehandlerIdent,
                 utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
             )
         applicationEventPublisher.publishEvent(event)
 
-        val partView = if (behandling.klager.prosessfullmektig == null) {
+        val partView = if (behandling.prosessfullmektig == null) {
             null
         } else {
             partSearchService.searchPartWithUtsendingskanal(
-                identifikator = behandling.klager.prosessfullmektig?.partId?.value!!,
+                identifikator = behandling.prosessfullmektig?.partId?.value!!,
                 skipAccessControl = true,
                 sakenGjelderId = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),

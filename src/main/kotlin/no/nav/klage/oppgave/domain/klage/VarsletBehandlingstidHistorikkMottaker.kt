@@ -20,24 +20,20 @@ class VarsletBehandlingstidHistorikkMottaker(
     val navn: String?,
 )
 
-fun Any.toVarsletBehandlingstidHistorikkMottaker(): VarsletBehandlingstidHistorikkMottaker {
+fun Mottaker.toVarsletBehandlingstidHistorikkMottaker(): VarsletBehandlingstidHistorikkMottaker {
     return when (this) {
-        is PartId -> {
+        is MottakerPartId -> {
             VarsletBehandlingstidHistorikkMottaker(
-                partId = PartId(type = type, value = value),
+                partId = PartId(type = value.type, value = value.value),
                 navn = null
             )
         }
 
-        is String -> {
+        is MottakerNavn -> {
             VarsletBehandlingstidHistorikkMottaker(
                 partId = null,
-                navn = this,
+                navn = value,
             )
-        }
-
-        else -> {
-            throw RuntimeException("Feil type: ${this.javaClass.name}")
         }
     }
 }
