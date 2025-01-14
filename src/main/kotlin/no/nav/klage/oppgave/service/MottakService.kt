@@ -507,10 +507,13 @@ class MottakService(
     private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInput): Mottak {
         val prosessfullmektig = if (input.fullmektig != null) {
             Prosessfullmektig(
+                //TODO: Skal vi tillate denne fullmektig uten partId fra Kabin?
                 partId = PartId(
                     type = PartIdType.of(input.fullmektig.type.name),
                     value = input.fullmektig.value
-                )
+                ),
+                navn = null,
+                address = null
             )
         } else {
             null
@@ -522,7 +525,6 @@ class MottakService(
                     type = PartIdType.of(input.klager.type.name),
                     value = input.klager.value
                 ),
-                prosessfullmektig = prosessfullmektig
             )
         } else {
             Klager(
@@ -530,7 +532,6 @@ class MottakService(
                     type = PartIdType.of(sakenGjelder.partId.type.name),
                     value = sakenGjelder.partId.value
                 ),
-                prosessfullmektig = prosessfullmektig
             )
         }
 
@@ -573,13 +574,18 @@ class MottakService(
             forrigeBehandlingId = id,
             innsynUrl = null,
             sentFrom = Mottak.Sender.KABIN,
+            prosessfullmektig = prosessfullmektig,
+
         )
     }
 
     fun CreateKlageBasedOnKabinInput.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
         val prosessfullmektig = if (fullmektig != null) {
             Prosessfullmektig(
+                //TODO: Skal vi tillate denne fullmektig uten partId fra Kabin?
                 partId = fullmektig.toPartId(),
+                navn = null,
+                address = null,
             )
         } else {
             null
@@ -588,12 +594,10 @@ class MottakService(
         val klager = if (klager != null) {
             Klager(
                 partId = klager.toPartId(),
-                prosessfullmektig = prosessfullmektig
             )
         } else {
             Klager(
                 partId = sakenGjelder.toPartId(),
-                prosessfullmektig = prosessfullmektig
             )
         }
 
@@ -624,13 +628,18 @@ class MottakService(
             forrigeBehandlingId = forrigeBehandlingId,
             sentFrom = Mottak.Sender.KABIN,
             kommentar = null,
+            prosessfullmektig = prosessfullmektig,
+            forrigeSaksbehandlerident = null,
         )
     }
 
     fun CreateAnkeBasedOnCompleteKabinInput.toMottak(): Mottak {
         val prosessfullmektig = if (fullmektig != null) {
             Prosessfullmektig(
+                //TODO: Skal vi tillate denne fullmektig uten partId fra Kabin?
                 partId = fullmektig.toPartId(),
+                navn = null,
+                address = null,
             )
         } else {
             null
@@ -639,12 +648,10 @@ class MottakService(
         val klager = if (klager != null) {
             Klager(
                 partId = klager.toPartId(),
-                prosessfullmektig = prosessfullmektig
             )
         } else {
             Klager(
                 partId = sakenGjelder.toPartId(),
-                prosessfullmektig = prosessfullmektig
             )
         }
 
@@ -675,6 +682,8 @@ class MottakService(
             forrigeBehandlingId = null,
             sentFrom = Mottak.Sender.KABIN,
             kommentar = null,
+            prosessfullmektig = prosessfullmektig,
+            forrigeSaksbehandlerident = null,
         )
     }
 

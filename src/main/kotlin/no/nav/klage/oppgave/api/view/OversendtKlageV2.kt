@@ -121,4 +121,7 @@ fun OversendtKlageV2.toMottak() = Mottak(
     frist = frist,
     ytelse = ytelse,
     kommentar = kommentar,
+    prosessfullmektig = klager.toProsessfullmektig(),
+    forrigeBehandlingId = null,
+    sentFrom = Mottak.Sender.FAGSYSTEM,
 )

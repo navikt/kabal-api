@@ -166,7 +166,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), prosessfullmektig = null
+            ),
         ),
         sakenGjelder = SakenGjelder(
             partId = PartId(
@@ -205,7 +205,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), prosessfullmektig = null
+            ),
         ),
         sakenGjelder = SakenGjelder(
             partId = PartId(
@@ -240,7 +240,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), prosessfullmektig = null
+            ),
         ),
         sakenGjelder = SakenGjelder(
             partId = PartId(
@@ -277,7 +277,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), prosessfullmektig = null
+            ),
         ),
         sakenGjelder = SakenGjelder(
             partId = PartId(

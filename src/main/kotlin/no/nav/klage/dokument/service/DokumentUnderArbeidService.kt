@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
+import no.nav.klage.dokument.api.view.Mottaker
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
@@ -24,10 +25,8 @@ import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.getHistogram
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
-import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
@@ -2123,7 +2122,17 @@ class DokumentUnderArbeidService(
                     behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
                     behandling = behandling,
                     systemUserContext = true,
-                    mottakere = listOf(behandling.sakenGjelder.partId)
+                    mottakere = listOf(
+                        if (receiver.id != null) {
+                            MottakerPartId(
+                                value = getPartIdFromIdentifikator(receiver.id)
+                            )
+                        } else if (receiver.navn != null) {
+                            MottakerNavn(
+                                value = receiver.navn
+                            )
+                        } else throw IllegalArgumentException("Missing values in receiver: $receiver")
+                    )
                 )
 
                 logger.debug("Svarbrev klargjort for utsending for behandling {}", behandling.id)

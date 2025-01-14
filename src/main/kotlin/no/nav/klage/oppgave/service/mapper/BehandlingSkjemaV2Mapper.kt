@@ -20,7 +20,12 @@ private fun Klager.mapToSkjemaV2(): BehandlingSkjemaV2.PersonEllerOrganisasjon {
 }
 
 private fun Prosessfullmektig.mapToSkjemaV2(): BehandlingSkjemaV2.PersonEllerOrganisasjon {
-    return if (this.partId.isPerson()) {
+    return if (this.partId == null) {
+        BehandlingSkjemaV2.PersonEllerOrganisasjon(
+            //TODO: Finn ut om det er en bedre måte
+            BehandlingSkjemaV2.Person(fnr = null)
+        )
+    } else if (this.partId.isPerson()) {
         BehandlingSkjemaV2.PersonEllerOrganisasjon(
             BehandlingSkjemaV2.Person(fnr = this.partId.value)
         )
@@ -95,7 +100,7 @@ fun Klagebehandling.mapToSkjemaV2(): BehandlingSkjemaV2 {
     return BehandlingSkjemaV2(
         id = id.toString(),
         klager = klager.mapToSkjemaV2(),
-        klagersProsessfullmektig = klager.prosessfullmektig?.mapToSkjemaV2(),
+        klagersProsessfullmektig = prosessfullmektig?.mapToSkjemaV2(),
         sakenGjelder = sakenGjelder.mapToSkjemaV2(),
         tema = ytelse.toTema().mapToSkjemaV2(),
         ytelse = ytelse.mapToSkjemaV2(),
@@ -149,7 +154,7 @@ fun Ankebehandling.mapToSkjemaV2(): BehandlingSkjemaV2 {
     return BehandlingSkjemaV2(
         id = id.toString(),
         klager = klager.mapToSkjemaV2(),
-        klagersProsessfullmektig = klager.prosessfullmektig?.mapToSkjemaV2(),
+        klagersProsessfullmektig = prosessfullmektig?.mapToSkjemaV2(),
         sakenGjelder = sakenGjelder.mapToSkjemaV2(),
         tema = ytelse.toTema().mapToSkjemaV2(),
         ytelse = ytelse.mapToSkjemaV2(),
@@ -194,7 +199,7 @@ fun AnkeITrygderettenbehandling.mapToSkjemaV2(): BehandlingSkjemaV2 {
     return BehandlingSkjemaV2(
         id = id.toString(),
         klager = klager.mapToSkjemaV2(),
-        klagersProsessfullmektig = klager.prosessfullmektig?.mapToSkjemaV2(),
+        klagersProsessfullmektig = prosessfullmektig?.mapToSkjemaV2(),
         sakenGjelder = sakenGjelder.mapToSkjemaV2(),
         tema = ytelse.toTema().mapToSkjemaV2(),
         ytelse = ytelse.mapToSkjemaV2(),
@@ -237,7 +242,7 @@ fun BehandlingEtterTrygderettenOpphevet.mapToSkjemaV2(): BehandlingSkjemaV2 {
     return BehandlingSkjemaV2(
         id = id.toString(),
         klager = klager.mapToSkjemaV2(),
-        klagersProsessfullmektig = klager.prosessfullmektig?.mapToSkjemaV2(),
+        klagersProsessfullmektig = prosessfullmektig?.mapToSkjemaV2(),
         sakenGjelder = sakenGjelder.mapToSkjemaV2(),
         tema = ytelse.toTema().mapToSkjemaV2(),
         ytelse = ytelse.mapToSkjemaV2(),
@@ -280,7 +285,7 @@ fun Omgjoeringskravbehandling.mapToSkjemaV2(): BehandlingSkjemaV2 {
     return BehandlingSkjemaV2(
         id = id.toString(),
         klager = klager.mapToSkjemaV2(),
-        klagersProsessfullmektig = klager.prosessfullmektig?.mapToSkjemaV2(),
+        klagersProsessfullmektig = prosessfullmektig?.mapToSkjemaV2(),
         sakenGjelder = sakenGjelder.mapToSkjemaV2(),
         tema = ytelse.toTema().mapToSkjemaV2(),
         ytelse = ytelse.mapToSkjemaV2(),
@@ -372,7 +377,7 @@ data class BehandlingSkjemaV2(
     }
 
     data class Person(
-        val fnr: String,
+        val fnr: String?,
     )
 
     data class Organisasjon(

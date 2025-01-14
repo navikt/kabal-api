@@ -139,6 +139,7 @@ class DokumentUnderArbeidRepositoryTest {
                     localPrint = false,
                     forceCentralPrint = false,
                     address = null,
+                    navn = null,
                 )
             ),
             journalfoerendeEnhetId = null,

@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.*
@@ -19,7 +20,6 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
-import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
@@ -102,7 +102,7 @@ class BehandlingService(
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val tokenUtil: TokenUtil,
     private val gosysOppgaveService: GosysOppgaveService,
-    private val norg2Client: Norg2Client,
+    private val kodeverkService: KodeverkService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -1312,6 +1312,23 @@ class BehandlingService(
         val event =
             behandling.setFullmektig(
                 partId = partId,
+                name = input?.name,
+                address = input?.address?.let {
+                    val poststed = if (it.landkode == "NO") {
+                        if (it.postnummer != null) {
+                            kodeverkService.getPoststed(it.postnummer)
+                        } else null
+                    } else null
+                    Adresse(
+                        adresselinje1 = it.adresselinje1,
+                        adresselinje2 = it.adresselinje2,
+                        adresselinje3 = it.adresselinje3,
+                        postnummer = it.postnummer,
+                        poststed = poststed,
+                        landkode = it.landkode,
+                    )
+                },
+
                 utfoerendeIdent = utfoerendeSaksbehandlerIdent,
                 utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
             )
@@ -2237,16 +2254,16 @@ class BehandlingService(
         klager = behandlingMapper.getPartViewWithUtsendingskanal(
             partId = klager.partId,
             behandling = this,
-            navn = it.navn,
-            address = it.address
+            navn = null,
+            address = null,
         )
             .toKabinPartView(),
-        fullmektig = klager.prosessfullmektig?.let {
+        fullmektig = prosessfullmektig?.let {
             behandlingMapper.getPartViewWithUtsendingskanal(
                 partId = it.partId,
                 behandling = this,
                 navn = it.navn,
-                address = it.address
+                address = it.address,
             ).toKabinPartView()
         },
         fagsakId = fagsakId,

@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.dokument.api.view.AddressInput
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.FradelingReason
@@ -466,7 +465,7 @@ object BehandlingSetters {
 
     fun Behandling.setFullmektig(
         partId: PartId?,
-        address: AddressInput?,
+        address: Adresse?,
         name: String?,
         utfoerendeIdent: String,
         utfoerendeNavn: String,
@@ -527,7 +526,7 @@ object BehandlingSetters {
     ) {
         fullmektigHistorikk.add(
             FullmektigHistorikk(
-                partId = klager.prosessfullmektig?.partId,
+                partId = prosessfullmektig?.partId,
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
                 utfoerendeNavn = utfoerendeNavn

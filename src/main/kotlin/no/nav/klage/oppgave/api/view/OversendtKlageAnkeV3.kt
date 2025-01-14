@@ -142,4 +142,7 @@ fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
     ytelse = ytelse,
     forrigeBehandlingId = forrigeBehandlingId,
     kommentar = kommentar,
+    prosessfullmektig = klager.toProsessfullmektig(),
+    forrigeSaksbehandlerident = null,
+    sentFrom = Mottak.Sender.FAGSYSTEM,
 )

@@ -59,6 +59,13 @@ class MottakRepositoryTest {
             sakMottattKaDato = LocalDateTime.now(),
             brukersHenvendelseMottattNavDato = LocalDate.now(),
             kommentar = null,
+            prosessfullmektig = null,
+            sakenGjelder = null,
+            innsynUrl = null,
+            innsendtDato = null,
+            frist = null,
+            forrigeBehandlingId = null,
+            sentFrom = Mottak.Sender.FAGSYSTEM,
         )
 
         mottakRepository.save(mottak)

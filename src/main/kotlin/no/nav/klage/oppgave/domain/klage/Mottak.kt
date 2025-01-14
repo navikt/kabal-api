@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
 import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -16,17 +15,20 @@ import java.util.*
 class Mottak(
     @Id
     val id: UUID = UUID.randomUUID(),
-    //Ikke i bruk
-    @Column(name = "tema_id")
-    @Convert(converter = TemaConverter::class)
-    val tema: Tema? = null,
     @Column(name = "type_id")
     @Convert(converter = TypeConverter::class)
     val type: Type,
     @Embedded
     val klager: Klager,
     @Embedded
-    val sakenGjelder: SakenGjelder? = null,
+    @AttributeOverrides(
+        value = [
+            AttributeOverride(name = "navn", column = Column(name = "prosessfullmektig_navn")),
+        ]
+    )
+    val prosessfullmektig: Prosessfullmektig?,
+    @Embedded
+    val sakenGjelder: SakenGjelder?,
     @Column(name = "sak_fagsystem")
     @Convert(converter = FagsystemConverter::class)
     val fagsystem: Fagsystem,
@@ -35,28 +37,28 @@ class Mottak(
     @Column(name = "kilde_referanse")
     val kildeReferanse: String,
     @Column(name = "dvh_referanse")
-    val dvhReferanse: String? = null,
+    val dvhReferanse: String?,
     @Column(name = "innsyn_url")
-    val innsynUrl: String? = null,
+    val innsynUrl: String?,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "mottak_id", referencedColumnName = "id", nullable = false)
     val hjemler: Set<MottakHjemmel>,
     @Column(name = "forrige_saksbehandlerident")
-    val forrigeSaksbehandlerident: String? = null,
+    val forrigeSaksbehandlerident: String?,
     @Column(name = "forrige_behandlende_enhet")
     val forrigeBehandlendeEnhet: String,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "mottak_id", referencedColumnName = "id", nullable = false)
     val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
     @Column(name = "dato_innsendt")
-    val innsendtDato: LocalDate? = null,
+    val innsendtDato: LocalDate?,
     @Column(name = "dato_brukers_henvendelse_mottatt_nav")
     val brukersHenvendelseMottattNavDato: LocalDate,
     //Denne vil være den samme verdien som brukersHenvendelseMottattNavDato for anke, ikke for klage.
     @Column(name = "dato_sak_mottatt_klageinstans")
     val sakMottattKaDato: LocalDateTime,
     @Column(name = "dato_frist")
-    val frist: LocalDate? = null,
+    val frist: LocalDate?,
     @Column(name = "created")
     val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "modified")
@@ -67,10 +69,10 @@ class Mottak(
     @Column(name = "kommentar")
     val kommentar: String?,
     @Column(name = "forrige_behandling_id")
-    val forrigeBehandlingId: UUID? = null,
+    val forrigeBehandlingId: UUID?,
     @Column(name = "sent_from")
     @Enumerated(EnumType.STRING)
-    val sentFrom: Sender = Sender.FAGSYSTEM
+    val sentFrom: Sender
 
 ) {
 

@@ -207,6 +207,15 @@ class KlagebehandlingRepositoryTest {
         brukersHenvendelseMottattNavDato = LocalDate.now(),
         kommentar = null,
         hjemler = emptySet(),
+        prosessfullmektig = null,
+        sakenGjelder = null,
+        dvhReferanse = null,
+        innsynUrl = null,
+        forrigeSaksbehandlerident = null,
+        innsendtDato = null,
+        frist = null,
+        forrigeBehandlingId = null,
+        sentFrom = Mottak.Sender.FAGSYSTEM,
     )
 
     fun getKlagebehandling(

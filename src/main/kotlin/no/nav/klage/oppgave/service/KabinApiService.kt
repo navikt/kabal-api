@@ -116,7 +116,17 @@ class KabinApiService(
                 behandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
                 behandling = behandling,
                 systemUserContext = false,
-                mottakere = svarbrevInput.receivers.map { getPartIdFromIdentifikator(it.id) }
+                mottakere = svarbrevInput.receivers.map {
+                    if (it.id != null) {
+                        MottakerPartId(
+                            value = getPartIdFromIdentifikator(it.id)
+                        )
+                    } else if (it.navn != null) {
+                        MottakerNavn(
+                            value = it.navn
+                        )
+                    } else throw IllegalArgumentException("Missing values in receiver: $it")
+                }
             )
         }
     }
