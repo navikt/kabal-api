@@ -2221,12 +2221,19 @@ class BehandlingService(
         hjemmelIdList = hjemler.map { it.id },
         vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
         sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
-        klager = behandlingMapper.getPartViewWithUtsendingskanal(partId = klager.partId, behandling = this)
+        klager = behandlingMapper.getPartViewWithUtsendingskanal(
+            partId = klager.partId,
+            behandling = this,
+            navn = it.navn,
+            address = it.address
+        )
             .toKabinPartView(),
         fullmektig = klager.prosessfullmektig?.let {
             behandlingMapper.getPartViewWithUtsendingskanal(
                 partId = it.partId,
-                behandling = this
+                behandling = this,
+                navn = it.navn,
+                address = it.address
             ).toKabinPartView()
         },
         fagsakId = fagsakId,

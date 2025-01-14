@@ -37,7 +37,8 @@ data class OversendtKlager(
 ) {
     fun toKlagepart() = Klager(
         partId = id.toPartId(),
-        prosessfullmektig = klagersProsessfullmektig?.toProsessfullmektig()
+        //TODO: V4
+//        prosessfullmektig = klagersProsessfullmektig?.toProsessfullmektig()
     )
 }
 
@@ -55,7 +56,9 @@ data class OversendtProsessfullmektig(
     val skalKlagerMottaKopi: Boolean
 ) {
     fun toProsessfullmektig() = Prosessfullmektig(
-        partId = id.toPartId(),
+        //TODO: V4
+        partId = id.toPartId(), address = null, navn = null,
+
     )
 }
 

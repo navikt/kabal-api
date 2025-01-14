@@ -764,6 +764,7 @@ class DokumentUnderArbeidService(
                 localPrint = false,
                 forceCentralPrint = false,
                 address = null,
+                navn = null,
             )
         )
 
@@ -807,20 +808,25 @@ class DokumentUnderArbeidService(
 
         //Validate parts
         mottakerInput.mottakerList.forEach { mottaker ->
-            val part = partSearchService.searchPart(
-                identifikator = mottaker.id,
-                skipAccessControl = systemContext
-            )
+            if (mottaker.id != null) {
+                val part = partSearchService.searchPart(
+                    identifikator = mottaker.id,
+                    skipAccessControl = systemContext
+                )
 
-            when (part.type) {
-                BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
-                    throw DokumentValidationException("Mottaker ${part.name} er død, velg en annen mottaker.")
-                }
+                when (part.type) {
+                    BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
+                        throw DokumentValidationException("Mottaker ${part.name} er død, velg en annen mottaker.")
+                    }
 
-                BehandlingDetaljerView.IdType.ORGNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DELETED }) {
-                    throw DokumentValidationException("Mottaker ${part.name} er avviklet, velg en annen mottaker.")
+                    BehandlingDetaljerView.IdType.ORGNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DELETED }) {
+                        throw DokumentValidationException("Mottaker ${part.name} er avviklet, velg en annen mottaker.")
+                    }
                 }
+            } else if (mottaker.overriddenAddress == null && mottaker.navn == null) {
+                throw DokumentValidationException("Adresse og navn må oppgis når id mangler.")
             }
+
 
             if (mottaker.overriddenAddress != null) {
                 val landkoder = kodeverkService.getLandkoder()
@@ -839,7 +845,6 @@ class DokumentUnderArbeidService(
                 }
             }
         }
-
 
         if (dokumentUnderArbeid.isVedlegg()) {
             throw DokumentValidationException("Kan ikke sette mottakere på vedlegg")
@@ -866,24 +871,28 @@ class DokumentUnderArbeidService(
         mottakerInput.mottakerList.forEach {
             val (markLocalPrint, forceCentralPrint) = when (it.handling) {
                 HandlingEnum.AUTO -> {
-                    val partIdType = getPartIdFromIdentifikator(it.id).type
-                    val isDeltAnsvar =
-                        partIdType == PartIdType.VIRKSOMHET && eregClient.hentNoekkelInformasjonOmOrganisasjon(it.id)
-                            .isDeltAnsvar()
-
-                    val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
-                        mottakerId = it.id,
-                        brukerId = behandling.sakenGjelder.partId.value,
-                        tema = behandling.ytelse.toTema(),
-                        saksbehandlerContext = !systemContext,
-                    )
-
-                    if (isDeltAnsvar) {
-                        false to true
-                    } else if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && it.overriddenAddress != null) {
-                        false to true
-                    } else {
+                    if (it.id == null) {
                         false to false
+                    } else {
+                        val partIdType = getPartIdFromIdentifikator(it.id).type
+                        val isDeltAnsvar =
+                            partIdType == PartIdType.VIRKSOMHET && eregClient.hentNoekkelInformasjonOmOrganisasjon(it.id)
+                                .isDeltAnsvar()
+
+                        val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
+                            mottakerId = it.id,
+                            brukerId = behandling.sakenGjelder.partId.value,
+                            tema = behandling.ytelse.toTema(),
+                            saksbehandlerContext = !systemContext,
+                        )
+
+                        if (isDeltAnsvar) {
+                            false to true
+                        } else if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && it.overriddenAddress != null) {
+                            false to true
+                        } else {
+                            false to false
+                        }
                     }
                 }
 
@@ -896,6 +905,7 @@ class DokumentUnderArbeidService(
                     localPrint = markLocalPrint,
                     forceCentralPrint = forceCentralPrint,
                     address = getDokumentUnderArbeidAdresse(it.overriddenAddress),
+                    navn = it.navn,
                 )
             )
         }
@@ -1229,6 +1239,7 @@ class DokumentUnderArbeidService(
                     localPrint = false,
                     forceCentralPrint = false,
                     address = null,
+                    navn = null,
                 )
             )
         }
@@ -1313,32 +1324,34 @@ class DokumentUnderArbeidService(
         val errors = mutableListOf<DocumentValidationResponse>()
 
         dokumentUnderArbeid.avsenderMottakerInfoSet.forEach { mottaker ->
-            val part = partSearchService.searchPart(
-                identifikator = mottaker.identifikator,
-                skipAccessControl = true
-            )
+            if (mottaker.identifikator != null) {
+                val part = partSearchService.searchPart(
+                    identifikator = mottaker.identifikator,
+                    skipAccessControl = true
+                )
 
-            when (part.type) {
-                BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
-                    errors += DocumentValidationResponse(
-                        dokumentId = dokumentUnderArbeid.id,
-                        errors = listOf(
-                            DocumentValidationResponse.DocumentValidationError(
-                                type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.INVALID_RECIPIENT,
+                when (part.type) {
+                    BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
+                        errors += DocumentValidationResponse(
+                            dokumentId = dokumentUnderArbeid.id,
+                            errors = listOf(
+                                DocumentValidationResponse.DocumentValidationError(
+                                    type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.INVALID_RECIPIENT,
+                                )
                             )
                         )
-                    )
-                }
+                    }
 
-                BehandlingDetaljerView.IdType.ORGNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DELETED }) {
-                    errors += DocumentValidationResponse(
-                        dokumentId = dokumentUnderArbeid.id,
-                        errors = listOf(
-                            DocumentValidationResponse.DocumentValidationError(
-                                type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.INVALID_RECIPIENT,
+                    BehandlingDetaljerView.IdType.ORGNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DELETED }) {
+                        errors += DocumentValidationResponse(
+                            dokumentId = dokumentUnderArbeid.id,
+                            errors = listOf(
+                                DocumentValidationResponse.DocumentValidationError(
+                                    type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.INVALID_RECIPIENT,
+                                )
                             )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -2054,10 +2067,37 @@ class DokumentUnderArbeidService(
 
             if (svarbrevSettings.shouldSend) {
                 logger.debug("Sender svarbrev for behandling {}", behandling.id)
-                val receiverId = if (behandling.klager.prosessfullmektig != null) {
-                    behandling.klager.prosessfullmektig!!.partId.value
+
+                val receiver = if (behandling.prosessfullmektig != null) {
+                    val prosessfullmektig = behandling.prosessfullmektig!!
+                    if (prosessfullmektig.partId != null) {
+                        Svarbrev.Receiver(
+                            id = prosessfullmektig.partId.value,
+                            handling = Svarbrev.Receiver.HandlingEnum.AUTO,
+                            overriddenAddress = null,
+                            navn = null
+                        )
+                    } else {
+                        Svarbrev.Receiver(
+                            id = null,
+                            handling = Svarbrev.Receiver.HandlingEnum.AUTO,
+                            overriddenAddress = Svarbrev.Receiver.AddressInput(
+                                adresselinje1 = prosessfullmektig.address!!.adresselinje1,
+                                adresselinje2 = prosessfullmektig.address.adresselinje2,
+                                adresselinje3 = prosessfullmektig.address.adresselinje3,
+                                landkode = prosessfullmektig.address.landkode,
+                                postnummer = prosessfullmektig.address.postnummer,
+                            ),
+                            navn = prosessfullmektig.navn
+                        )
+                    }
                 } else {
-                    behandling.sakenGjelder.partId.value
+                    Svarbrev.Receiver(
+                        id = behandling.sakenGjelder.partId.value,
+                        handling = Svarbrev.Receiver.HandlingEnum.AUTO,
+                        overriddenAddress = null,
+                        navn = null
+                    )
                 }
 
                 createAndFinalizeDokumentUnderArbeidFromSvarbrev(
@@ -2065,11 +2105,7 @@ class DokumentUnderArbeidService(
                     svarbrev = Svarbrev(
                         title = "Nav klageinstans orienterer om saksbehandlingen",
                         receivers = listOf(
-                            Svarbrev.Receiver(
-                                id = receiverId,
-                                handling = Svarbrev.Receiver.HandlingEnum.AUTO,
-                                overriddenAddress = null
-                            )
+                            receiver
                         ),
                         fullmektigFritekst = null,
                         varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
@@ -2149,7 +2185,8 @@ class DokumentUnderArbeidService(
                                 landkode = address.landkode,
                                 postnummer = address.postnummer,
                             )
-                        }
+                        },
+                        navn = it.navn,
                     )
                 }
             ),

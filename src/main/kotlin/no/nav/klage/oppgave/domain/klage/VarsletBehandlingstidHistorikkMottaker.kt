@@ -15,10 +15,29 @@ class VarsletBehandlingstidHistorikkMottaker(
             AttributeOverride(name = "value", column = Column(name = "varslet_behandlingstid_historikk_mottaker_value"))
         ]
     )
-    val partId: PartId,
+    val partId: PartId?,
+    @Column(name = "varslet_behandlingstid_historikk_mottaker_navn")
+    val navn: String?,
 )
 
-fun PartId.toVarsletBehandlingstidHistorikkMottaker(): VarsletBehandlingstidHistorikkMottaker =
-    VarsletBehandlingstidHistorikkMottaker(
-        partId = PartId(type = type, value = value)
-    )
+fun Any.toVarsletBehandlingstidHistorikkMottaker(): VarsletBehandlingstidHistorikkMottaker {
+    return when (this) {
+        is PartId -> {
+            VarsletBehandlingstidHistorikkMottaker(
+                partId = PartId(type = type, value = value),
+                navn = null
+            )
+        }
+
+        is String -> {
+            VarsletBehandlingstidHistorikkMottaker(
+                partId = null,
+                navn = this,
+            )
+        }
+
+        else -> {
+            throw RuntimeException("Feil type: ${this.javaClass.name}")
+        }
+    }
+}

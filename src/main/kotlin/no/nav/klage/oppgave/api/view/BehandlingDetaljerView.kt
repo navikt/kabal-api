@@ -102,7 +102,7 @@ data class BehandlingDetaljerView(
     }
 
     interface IdPart {
-        val type: IdType
+        val type: IdType?
     }
 
     data class PartView(
@@ -118,7 +118,7 @@ data class BehandlingDetaljerView(
     data class PartViewWithUtsendingskanal(
         override val id: String?,
         override val name: String,
-        override val type: IdType,
+        override val type: IdType?,
         override val available: Boolean,
         override val language: String?,
         override val statusList: List<PartStatus>,

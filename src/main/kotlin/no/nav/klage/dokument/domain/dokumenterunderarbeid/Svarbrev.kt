@@ -14,9 +14,10 @@ data class Svarbrev(
 ) {
 
     data class Receiver(
-        val id: String,
+        val id: String?,
         val handling: HandlingEnum,
         val overriddenAddress: AddressInput?,
+        val navn: String?
     ) {
         data class AddressInput(
             val adresselinje1: String?,

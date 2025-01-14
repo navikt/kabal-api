@@ -16,3 +16,6 @@ ALTER TABLE klage.behandling
 
 ALTER TABLE klage.behandling
     RENAME COLUMN klager_prosessfullmektig_value TO prosessfullmektig_value;
+
+ALTER TABLE klage.varslet_behandlingstid_historikk_mottaker_info
+    ADD COLUMN varslet_behandlingstid_historikk_mottaker_navn TEXT;
