@@ -402,7 +402,12 @@ class MottakService(
         validateJournalpostList(tilknyttedeJournalposter.map { it.journalpostId })
         validatePartId(sakenGjelder.id.toPartId())
         klager?.run { validatePartId(klager.id.toPartId()) }
-        validateDateNotInFuture(brukersKlageMottattVedtaksinstans, ::brukersKlageMottattVedtaksinstans.name)
+        if (type == OversendtType.KLAGE) {
+            if (brukersKlageMottattVedtaksinstans == null) {
+                throw OversendtKlageNotValidException("${::brukersKlageMottattVedtaksinstans.name} må være satt for klage.")
+            }
+            validateDateNotInFuture(brukersKlageMottattVedtaksinstans, ::brukersKlageMottattVedtaksinstans.name)
+        }
         validateOptionalDateTimeNotInFuture(sakMottattKaTidspunkt, ::sakMottattKaTidspunkt.name)
         validateKildeReferanse(kildeReferanse)
         validateEnhet(forrigeBehandlendeEnhet)

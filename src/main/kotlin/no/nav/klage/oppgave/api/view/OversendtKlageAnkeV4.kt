@@ -1,13 +1,11 @@
 package no.nav.klage.oppgave.api.view
 
 import io.swagger.v3.oas.annotations.media.Schema
-import jakarta.validation.constraints.PastOrPresent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.klage.*
-import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -19,45 +17,54 @@ data class OversendtKlageAnkeV4(
         example = "KLAGE",
     )
     val type: OversendtType,
+
     @Schema(
         required = true
     )
     val sakenGjelder: OversendtPart,
+
     @Schema(
         description = "Kan settes dersom klagen er levert av annen enn den saken gjelder.",
         required = false
     )
     val klager: OversendtPart?,
+
     @Schema(
         description = "Prosessfullmektig i saken. Brukes bl.a. til automatisk svarbrev.",
         required = false
     )
     val prosessfullmektig: OversendtProsessfullmektig?,
+
     @Schema(
         description = "Fagsak brukt til journalføring.",
         required = true
     )
     val fagsak: OversendtSak,
+
     @Schema(
         description = "Teknisk id brukt i avsendersystemet som Kabal vil bruke når vi kommuniserer tilbake.",
         required = true
     )
     val kildeReferanse: String,
+
     @Schema(
         description = "Id som rapporteres på til DVH. Kabal bruker kildeReferanse hvis denne ikke er satt.",
         required = false
     )
     val dvhReferanse: String?,
+
     @Schema(
         description = "Hjemler knyttet til klagen.",
         required = true
     )
     val hjemler: List<Hjemmel>,
+
     @Schema(
         description = "Id på forrige enhet som fattet vedtak i saken. For klager er dette typisk en vedtaksenhet, men for anker er det typisk en klageenhet.",
         required = true
     )
     val forrigeBehandlendeEnhet: String,
+
     @Schema(
         description = "Liste med relevante journalposter til klagen. Listen kan være tom.",
         required = true
@@ -68,9 +75,6 @@ data class OversendtKlageAnkeV4(
         description = "Dato for når klagen ble mottatt i vedtaksinstansen. Skal ikke brukes for anker.",
         required = false
     )
-    @field:PastOrPresent(message = "Dato for mottatt vedtaksinstans må være i fortiden eller i dag.")
-    @field:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    //TODO: Valider når klage
     val brukersKlageMottattVedtaksinstans: LocalDate?,
 
     @Schema(
@@ -88,7 +92,7 @@ data class OversendtKlageAnkeV4(
 
     @Schema(
         example = "OMS_OMP",
-        description = "Ytelse",
+        description = "Sakens ytelse. Bruker KA sitt kodeverk.",
         required = true
     )
     val ytelse: Ytelse,
@@ -171,7 +175,7 @@ data class OversendtProsessfullmektig(
             )
         },
         navn = navn,
-        )
+    )
 }
 
 data class OversendtAdresse(
