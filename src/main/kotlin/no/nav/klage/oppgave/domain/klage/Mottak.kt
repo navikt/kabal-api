@@ -38,6 +38,7 @@ class Mottak(
     val kildeReferanse: String,
     @Column(name = "dvh_referanse")
     val dvhReferanse: String?,
+    //TODO: Brukes ikke videre i systemet. Ser ut til at vi mottar disse fra Enslig forsørger. Tenker den bør fjernes helt.
     @Column(name = "innsyn_url")
     val innsynUrl: String?,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
