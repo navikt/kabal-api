@@ -23,7 +23,7 @@ data class OversendtKlageV2(
     @Schema(
         required = true
     )
-    val klager: OversendtKlager,
+    val klager: OversendtKlagerLegacy,
     @Schema(
         description = "Kan settes dersom klagen gjelder en annen enn den som har levert klagen",
         required = false

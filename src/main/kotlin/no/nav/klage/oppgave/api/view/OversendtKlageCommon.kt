@@ -23,7 +23,7 @@ data class OversendtSakenGjelder(
     )
 }
 
-data class OversendtKlager(
+data class OversendtKlagerLegacy(
     @Schema(
         required = true
     )
@@ -33,7 +33,7 @@ data class OversendtKlager(
         description = "Kan settes dersom klager har en prosessfullmektig",
         required = false
     )
-    val klagersProsessfullmektig: OversendtProsessfullmektig? = null
+    val klagersProsessfullmektig: OversendtProsessfullmektigLegacy? = null
 ) {
     fun toKlagepart() = Klager(
         partId = id.toPartId(),
@@ -45,7 +45,7 @@ data class OversendtKlager(
     }
 }
 
-data class OversendtProsessfullmektig(
+data class OversendtProsessfullmektigLegacy(
     @Schema(
         required = true
     )
@@ -105,7 +105,7 @@ data class OversendtDokumentReferanse(
 
 data class OversendtSak(
     @Schema(
-        required = false,
+        required = true,
         example = "134132412"
     )
     val fagsakId: String,

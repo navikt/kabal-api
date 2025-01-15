@@ -79,7 +79,7 @@ class MockDataController(
             OversendtKlageAnkeV3(
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                klager = OversendtKlager(
+                klager = OversendtKlagerLegacy(
                     id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
                 ),
                 fagsak = OversendtSak(
@@ -128,7 +128,7 @@ class MockDataController(
             OversendtKlageAnkeV3(
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                klager = OversendtKlager(
+                klager = OversendtKlagerLegacy(
                     id = OversendtPartId(OversendtPartIdType.PERSON, fnr),
                     klagersProsessfullmektig = OversendtProsessfullmektig(
                         id = OversendtPartId(OversendtPartIdType.PERSON, "07467517958"),

@@ -103,7 +103,7 @@ internal class DuplicateOversendelseTest {
             mottattFoersteinstans = LocalDate.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            klager = OversendtKlager(
+            klager = OversendtKlagerLegacy(
                 id = OversendtPartId(
                     type = OversendtPartIdType.PERSON,
                     verdi = "01043137677"
