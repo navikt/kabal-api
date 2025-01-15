@@ -4,7 +4,7 @@ import jakarta.persistence.Column
 import jakarta.persistence.Embeddable
 
 @Embeddable
-class DokumentUnderArbeidAdresse(
+class Adresse(
     @Column(name = "adresselinje_1")
     val adresselinje1: String?,
     @Column(name = "adresselinje_2")

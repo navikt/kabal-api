@@ -42,6 +42,7 @@ class BehandlingEtterTrygderettenOpphevetService(
             BehandlingEtterTrygderettenOpphevet(
                 klager = ankeITrygderettenbehandling.klager.copy(),
                 sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.copy(),
+                prosessfullmektig = ankeITrygderettenbehandling.prosessfullmektig?.copy(),
                 ytelse = ankeITrygderettenbehandling.ytelse,
                 type = Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
                 kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,

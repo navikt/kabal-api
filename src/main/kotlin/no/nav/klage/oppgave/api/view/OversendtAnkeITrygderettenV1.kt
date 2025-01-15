@@ -14,7 +14,7 @@ data class OversendtAnkeITrygderettenV1(
     @Schema(
         required = true
     )
-    val klager: OversendtKlager,
+    val klager: OversendtKlagerLegacy,
     @Schema(
         description = "Kan settes dersom klagen gjelder en annen enn den som har levert klagen",
         required = false
@@ -75,6 +75,7 @@ fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingInput(inputDoc
     return AnkeITrygderettenbehandlingInput(
         klager = klager.toKlagepart(),
         sakenGjelder = sakenGjelder?.toSakenGjelder(),
+        prosessfullmektig = null,
         ytelse = ytelse,
         type = Type.ANKE_I_TRYGDERETTEN,
         kildeReferanse = kildeReferanse,

@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.*
@@ -19,7 +20,6 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
-import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
@@ -102,7 +102,7 @@ class BehandlingService(
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val tokenUtil: TokenUtil,
     private val gosysOppgaveService: GosysOppgaveService,
-    private val norg2Client: Norg2Client,
+    private val kodeverkService: KodeverkService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -435,16 +435,18 @@ class BehandlingService(
             }
         }
 
-        if (behandling.klager.prosessfullmektig?.partId?.isPerson() == false &&
-            !eregClient.hentNoekkelInformasjonOmOrganisasjon(behandling.klager.prosessfullmektig!!.partId.value)
-                .isActive()
-        ) {
-            behandlingValidationErrors.add(
-                InvalidProperty(
-                    field = "fullmektig",
-                    reason = "Fullmektig/organisasjon har opphørt."
+        if (behandling.prosessfullmektig?.partId != null) {
+            if (behandling.prosessfullmektig?.partId?.isPerson() == false &&
+                !eregClient.hentNoekkelInformasjonOmOrganisasjon(behandling.prosessfullmektig!!.partId!!.value)
+                    .isActive()
+            ) {
+                behandlingValidationErrors.add(
+                    InvalidProperty(
+                        field = "fullmektig",
+                        reason = "Fullmektig/organisasjon har opphørt."
+                    )
                 )
-            )
+            }
         }
 
         if (!behandling.fagsystem.modernized && behandling.gosysOppgaveId == null) {
@@ -784,7 +786,7 @@ class BehandlingService(
         behandlingstidUnits: Int,
         behandling: Behandling,
         systemUserContext: Boolean,
-        mottakere: List<PartId>,
+        mottakere: List<Mottaker>,
     ): LocalDateTime {
         val varsletFrist = when (behandlingstidUnitType) {
             TimeUnitType.WEEKS -> behandling.mottattKlageinstans.toLocalDate()
@@ -1283,32 +1285,60 @@ class BehandlingService(
 
     fun setFullmektig(
         behandlingId: UUID,
-        identifikator: String?,
+        input: FullmektigInput?,
         utfoerendeSaksbehandlerIdent: String
     ): LocalDateTime {
+
+        if (input != null) {
+            if (input.identifikator != null && (input.address != null || input.name != null)) {
+                throw IllegalOperation("Address and name can only be set without id")
+            }
+
+            if ((input.address != null && input.name == null) || (input.address == null && input.name != null) ) {
+                throw IllegalOperation("Both address or name must be set")
+            }
+        }
+
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
 
-        val partId: PartId? = if (identifikator == null) {
+        val partId: PartId? = if (input?.identifikator == null) {
             null
         } else {
-            getPartIdFromIdentifikator(identifikator)
+            getPartIdFromIdentifikator(input.identifikator)
         }
 
         val event =
             behandling.setFullmektig(
-                nyVerdi = partId,
+                partId = partId,
+                name = input?.name,
+                address = input?.address?.let {
+                    val poststed = if (it.landkode == "NO") {
+                        if (it.postnummer != null) {
+                            kodeverkService.getPoststed(it.postnummer)
+                        } else null
+                    } else null
+                    Adresse(
+                        adresselinje1 = it.adresselinje1,
+                        adresselinje2 = it.adresselinje2,
+                        adresselinje3 = it.adresselinje3,
+                        postnummer = it.postnummer,
+                        poststed = poststed,
+                        landkode = it.landkode,
+                    )
+                },
+
                 utfoerendeIdent = utfoerendeSaksbehandlerIdent,
                 utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
             )
         applicationEventPublisher.publishEvent(event)
 
-        val partView = if (behandling.klager.prosessfullmektig == null) {
+        val partView = if (behandling.prosessfullmektig == null) {
             null
         } else {
             partSearchService.searchPartWithUtsendingskanal(
-                identifikator = behandling.klager.prosessfullmektig?.partId?.value!!,
+                identifikator = behandling.prosessfullmektig?.partId?.value!!,
                 skipAccessControl = true,
                 sakenGjelderId = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
@@ -2221,12 +2251,19 @@ class BehandlingService(
         hjemmelIdList = hjemler.map { it.id },
         vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
         sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
-        klager = behandlingMapper.getPartViewWithUtsendingskanal(partId = klager.partId, behandling = this)
+        klager = behandlingMapper.getPartViewWithUtsendingskanal(
+            partId = klager.partId,
+            behandling = this,
+            navn = null,
+            address = null,
+        )
             .toKabinPartView(),
-        fullmektig = klager.prosessfullmektig?.let {
+        fullmektig = prosessfullmektig?.let {
             behandlingMapper.getPartViewWithUtsendingskanal(
                 partId = it.partId,
-                behandling = this
+                behandling = this,
+                navn = it.navn,
+                address = it.address,
             ).toKabinPartView()
         },
         fagsakId = fagsakId,

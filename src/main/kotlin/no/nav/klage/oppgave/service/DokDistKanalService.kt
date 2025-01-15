@@ -17,11 +17,15 @@ class DokDistKanalService(
 ) {
     @Cacheable(CacheWithJCacheConfiguration.DOK_DIST_KANAL)
     fun getUtsendingskanal(
-        mottakerId: String,
+        mottakerId: String?,
         brukerId: String,
         tema: Tema,
         saksbehandlerContext: Boolean
     ): BehandlingDetaljerView.Utsendingskanal {
+        if (mottakerId == null) {
+            return BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT
+        }
+
         return getDistribusjonKanalCode(
             mottakerId = mottakerId,
             brukerId = brukerId,

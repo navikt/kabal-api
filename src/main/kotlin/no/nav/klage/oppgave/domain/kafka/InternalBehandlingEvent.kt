@@ -88,8 +88,8 @@ data class FullmektigEvent(
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class Part(
-    val id: String,
-    val type: BehandlingDetaljerView.IdType,
+    val id: String?,
+    val type: BehandlingDetaljerView.IdType?,
     val name: String?,
     val statusList: List<BehandlingDetaljerView.PartStatus>,
     val available: Boolean,

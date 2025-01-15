@@ -57,9 +57,16 @@ class MeldingRepositoryTest {
             fagsystem = Fagsystem.K9,
             fagsakId = "123",
             forrigeBehandlendeEnhet = "0101",
-            brukersHenvendelseMottattNavDato = LocalDate.now(),
+            brukersKlageMottattVedtaksinstans = LocalDate.now(),
             kommentar = null,
             hjemler = emptySet(),
+            prosessfullmektig = null,
+            sakenGjelder = null,
+            dvhReferanse = null,
+            forrigeSaksbehandlerident = null,
+            frist = null,
+            forrigeBehandlingId = null,
+            sentFrom = Mottak.Sender.FAGSYSTEM,
         )
 
         mottakRepository.save(mottak)
@@ -69,6 +76,7 @@ class MeldingRepositoryTest {
             sakenGjelder = SakenGjelder(
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
             ),
+            prosessfullmektig = null,
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
             frist = LocalDate.now(),

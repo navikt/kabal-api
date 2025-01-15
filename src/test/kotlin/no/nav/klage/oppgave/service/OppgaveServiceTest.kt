@@ -458,9 +458,16 @@ class OppgaveServiceTest {
             fagsystem = fagsystem,
             fagsakId = saksId,
             forrigeBehandlendeEnhet = "0101",
-            brukersHenvendelseMottattNavDato = LocalDate.now(),
+            brukersKlageMottattVedtaksinstans = LocalDate.now(),
             kommentar = null,
             hjemler = emptySet(),
+            prosessfullmektig = null,
+            sakenGjelder = null,
+            dvhReferanse = null,
+            forrigeSaksbehandlerident = null,
+            frist = null,
+            forrigeBehandlingId = null,
+            sentFrom = Mottak.Sender.FAGSYSTEM,
         )
 
         mottakRepository.save(mottak)
@@ -479,6 +486,7 @@ class OppgaveServiceTest {
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
                     ),
+                    prosessfullmektig = null,
                     ytelse = ytelse,
                     type = type,
                     frist = frist,
@@ -514,6 +522,7 @@ class OppgaveServiceTest {
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
                     ),
+                    prosessfullmektig = null,
                     ytelse = ytelse,
                     type = type,
                     frist = frist,
@@ -549,6 +558,7 @@ class OppgaveServiceTest {
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
                     ),
+                    prosessfullmektig = null,
                     ytelse = ytelse,
                     type = type,
                     hjemler = mutableSetOf(),
@@ -579,6 +589,7 @@ class OppgaveServiceTest {
                     sakenGjelder = SakenGjelder(
                         partId = PartId(type = PartIdType.PERSON, value = "23452354"),
                     ),
+                    prosessfullmektig = null,
                     ytelse = ytelse,
                     type = type,
                     hjemler = mutableSetOf(),

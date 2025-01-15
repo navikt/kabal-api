@@ -351,12 +351,13 @@ class HistoryService(
                     event = VarsletBehandlingstidEvent(
                         mottakere = previous.mottakerList.map {
                             Part(
-                                id = it.partId.value,
-                                name = partSearchService.searchPart(it.partId.value).name
-                                    ?: "Manglende navn. Noe er feil.",
-                                type = if (it.partId.type == PartIdType.PERSON) {
-                                    BehandlingDetaljerView.IdType.FNR
-                                } else BehandlingDetaljerView.IdType.ORGNR
+                                id = it.partId?.value,
+                                name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
+                                type = if (it.partId != null) {
+                                    if (it.partId.type == PartIdType.PERSON) {
+                                        BehandlingDetaljerView.IdType.FNR
+                                    } else BehandlingDetaljerView.IdType.ORGNR
+                                } else null
                             )
                         },
                         varsletBehandlingstidUnits = previous.varsletBehandlingstidUnits,
@@ -372,12 +373,13 @@ class HistoryService(
                     event = VarsletBehandlingstidEvent(
                         mottakere = current.mottakerList.map {
                             Part(
-                                id = it.partId.value,
-                                name = partSearchService.searchPart(it.partId.value).name
-                                    ?: "Manglende navn. Noe er feil.",
-                                type = if (it.partId.type == PartIdType.PERSON) {
-                                    BehandlingDetaljerView.IdType.FNR
-                                } else BehandlingDetaljerView.IdType.ORGNR
+                                id = it.partId?.value,
+                                name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
+                                type = if (it.partId != null) {
+                                    if (it.partId.type == PartIdType.PERSON) {
+                                        BehandlingDetaljerView.IdType.FNR
+                                    } else BehandlingDetaljerView.IdType.ORGNR
+                                } else null
                             )
                         },
                         varsletBehandlingstidUnits = current.varsletBehandlingstidUnits,

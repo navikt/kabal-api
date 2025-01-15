@@ -28,8 +28,6 @@ class Klagebehandling(
     val kommentarFraFoersteinstans: String? = null,
     @Column(name = "mottak_id")
     val mottakId: UUID,
-    @Column(name = "dato_innsendt")
-    val innsendt: LocalDate? = null,
     @Column(name = "kaka_kvalitetsvurdering_id")
     var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
@@ -46,6 +44,7 @@ class Klagebehandling(
     id: UUID = UUID.randomUUID(),
     klager: Klager,
     sakenGjelder: SakenGjelder,
+    prosessfullmektig: Prosessfullmektig?,
     ytelse: Ytelse,
     type: Type,
     kildeReferanse: String,
@@ -84,6 +83,7 @@ class Klagebehandling(
 ) : Behandling(
     id = id,
     klager = klager,
+    prosessfullmektig = prosessfullmektig,
     sakenGjelder = sakenGjelder,
     ytelse = ytelse,
     type = type,
