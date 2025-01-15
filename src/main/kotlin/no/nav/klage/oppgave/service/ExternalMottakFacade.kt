@@ -4,6 +4,7 @@ import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.klageenheter
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
+import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV4
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.clients.kabalinnstillinger.KabalInnstillingerClient
 import no.nav.klage.oppgave.domain.klage.Behandling
@@ -29,6 +30,12 @@ class ExternalMottakFacade(
         private val secureLogger = getSecureLogger()
     }
 
+    fun createMottakForKlageV2(oversendtKlage: OversendtKlageV2) {
+        val behandling = mottakService.createMottakForKlageV2(oversendtKlage)
+
+        tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlage.hindreAutomatiskSvarbrev == true)
+    }
+
     fun createMottakForKlageAnkeV3(oversendtKlageAnke: OversendtKlageAnkeV3) {
         val behandling = mottakService.createMottakForKlageAnkeV3(oversendtKlageAnke)
 
@@ -39,10 +46,14 @@ class ExternalMottakFacade(
         tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
     }
 
-    fun createMottakForKlageV2(oversendtKlage: OversendtKlageV2) {
-        val behandling = mottakService.createMottakForKlageV2(oversendtKlage)
+    fun createMottakForKlageAnkeV4(oversendtKlageAnke: OversendtKlageAnkeV4) {
+        val behandling = mottakService.createMottakForKlageAnkeV4(oversendtKlageAnke)
 
-        tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlage.hindreAutomatiskSvarbrev == true)
+        if (oversendtKlageAnke.saksbehandlerIdentForTildeling != null) {
+            tryToSetSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdentForTildeling)
+        }
+
+        tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
     }
 
     fun createMottakForKlageAnkeV3ForE2ETests(oversendtKlageAnke: OversendtKlageAnkeV3): Behandling {

@@ -61,8 +61,6 @@ class MottakRepositoryTest {
             kommentar = null,
             prosessfullmektig = null,
             sakenGjelder = null,
-            innsynUrl = null,
-            innsendtDato = null,
             frist = null,
             forrigeBehandlingId = null,
             sentFrom = Mottak.Sender.FAGSYSTEM,
