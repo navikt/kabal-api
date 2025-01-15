@@ -90,8 +90,8 @@ data class TildeltSaksbehandler(
 )
 
 data class KabinPartView(
-    val id: String,
-    val type: BehandlingDetaljerView.IdType,
+    val id: String?,
+    val type: BehandlingDetaljerView.IdType?,
     val name: String,
     val available: Boolean,
     val statusList: List<BehandlingDetaljerView.PartStatus>,

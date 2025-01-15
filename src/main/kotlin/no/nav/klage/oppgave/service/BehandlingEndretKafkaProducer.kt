@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.service
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
 import no.nav.klage.oppgave.service.mapper.mapToSkjemaV2
 import no.nav.klage.oppgave.util.getLogger
@@ -29,118 +29,25 @@ class BehandlingEndretKafkaProducer(
         )
     }
 
-    fun sendKlageEndret(klagebehandling: Klagebehandling) {
+    fun sendBehandlingEndret(behandling: Behandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
 
-        val json = klagebehandling.mapToSkjemaV2().toJson()
+        val json = behandling.mapToSkjemaV2().toJson()
         secureLogger.debug("Sending to Kafka topic: {}, value: {}", topicV2, json)
 
         runCatching {
             val result = aivenKafkaTemplate.send(
                 topicV2,
-                klagebehandling.id.toString(),
+                behandling.id.toString(),
                 json
             ).get()
-            logger.info("Klage endret sent to Kafka")
-            secureLogger.debug("Klage endret for klagebehandling {} sent to kafka ({})", klagebehandling.id, result)
+            logger.info("${behandling.type.navn} endret sent to Kafka")
+            secureLogger.debug("${behandling.type.navn} endret for behandling {} sent to kafka ({})", behandling.id, result)
         }.onFailure {
             val errorMessage =
-                "Could not send klage endret to Kafka. Need to resend klagebehandling ${klagebehandling.id} manually. Check secure logs for more information."
+                "Could not send ${behandling.type.navn} endret to Kafka. Need to resend behandling ${behandling.id} manually. Check secure logs for more information."
             logger.error(errorMessage)
-            secureLogger.error("Could not send klagebehandling ${klagebehandling.id} endret to Kafka", it)
-        }
-    }
-
-    fun sendAnkeEndret(ankebehandling: Ankebehandling) {
-        logger.debug("Sending to Kafka topic: {}", topicV2)
-        runCatching {
-            val result = aivenKafkaTemplate.send(
-                topicV2,
-                ankebehandling.id.toString(),
-                ankebehandling.mapToSkjemaV2().toJson()
-            ).get()
-            logger.info("Anke endret sent to Kafka")
-            secureLogger.debug("Anke endret for ankebehandling {} sent to kafka ({})", ankebehandling.id, result)
-        }.onFailure {
-            val errorMessage =
-                "Could not send anke endret to Kafka. Need to resend ankebehandling ${ankebehandling.id} manually. Check secure logs for more information."
-            logger.error(errorMessage)
-            secureLogger.error("Could not send ankebehandling ${ankebehandling.id} endret to Kafka", it)
-        }
-    }
-
-    fun sendAnkeITrygderettenEndret(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
-        logger.debug("Sending to Kafka topic: {}", topicV2)
-        runCatching {
-            val result = aivenKafkaTemplate.send(
-                topicV2,
-                ankeITrygderettenbehandling.id.toString(),
-                ankeITrygderettenbehandling.mapToSkjemaV2().toJson()
-            ).get()
-            logger.info("Anke i trygderetten endret sent to Kafka")
-            secureLogger.debug(
-                "Anke i trygderetten endret for ankebehandling {} sent to kafka ({})",
-                ankeITrygderettenbehandling.id,
-                result
-            )
-        }.onFailure {
-            val errorMessage =
-                "Could not send anke i trygderetten endret to Kafka. Need to resend ankeITrygderettenbehandling ${ankeITrygderettenbehandling.id} manually. Check secure logs for more information."
-            logger.error(errorMessage)
-            secureLogger.error(
-                "Could not send ankeITrygderettenbehandling ${ankeITrygderettenbehandling.id} endret to Kafka",
-                it
-            )
-        }
-    }
-
-    fun sendBehandlingOpprettetEtterTrygderettenOpphevet(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet) {
-        logger.debug("Sending to Kafka topic: {}", topicV2)
-        runCatching {
-            val result = aivenKafkaTemplate.send(
-                topicV2,
-                behandlingEtterTrygderettenOpphevet.id.toString(),
-                behandlingEtterTrygderettenOpphevet.mapToSkjemaV2().toJson()
-            ).get()
-            logger.info("Behandling etter Trygderetten opphevet sent to Kafka")
-            secureLogger.debug(
-                "Behandling etter Trygderetten opphevet endret for behandling {} sent to kafka ({})",
-                behandlingEtterTrygderettenOpphevet.id,
-                result
-            )
-        }.onFailure {
-            val errorMessage =
-                "Could not send behandling etter Trygderetten opphevet endret to Kafka. Need to resend behandling etter Trygderetten opphevet ${behandlingEtterTrygderettenOpphevet.id} manually. Check secure logs for more information."
-            logger.error(errorMessage)
-            secureLogger.error(
-                "Could not send behandling etter Trygderetten opphevet ${behandlingEtterTrygderettenOpphevet.id} endret to Kafka",
-                it
-            )
-        }
-    }
-
-    fun sendOmgjoeringskravEndret(omgjoeringskrav: Omgjoeringskravbehandling) {
-        logger.debug("Sending to Kafka topic: {}", topicV2)
-        runCatching {
-            val result = aivenKafkaTemplate.send(
-                topicV2,
-                omgjoeringskrav.id.toString(),
-                omgjoeringskrav.mapToSkjemaV2().toJson()
-            ).get()
-            logger.info("Omgjoeringskrav sent to Kafka")
-            secureLogger.debug(
-                "Omgjoeringskrav endret for behandling {} sent to kafka ({})",
-                omgjoeringskrav.id,
-                result
-            )
-        }.onFailure {
-            val errorMessage =
-                "Could not send Omgjoeringskrav endret to Kafka. Need to resend Omgjoeringskrav ${omgjoeringskrav.id} manually. Check secure logs for more information."
-            logger.error(errorMessage)
-            secureLogger.error(
-                "Could not send Omgjoeringskrav ${omgjoeringskrav.id} endret to Kafka",
-                it
-            )
+            secureLogger.error("Could not send behandling ${behandling.id} endret to Kafka", it)
         }
     }
 

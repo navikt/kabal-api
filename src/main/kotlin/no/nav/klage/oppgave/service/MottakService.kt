@@ -10,14 +10,11 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
-import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
-import no.nav.klage.oppgave.api.view.OversendtKlageV2
+import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.api.view.kabin.BehandlingIsDuplicateResponse
 import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnCompleteKabinInput
 import no.nav.klage.oppgave.api.view.kabin.CreateBehandlingBasedOnKabinInput
 import no.nav.klage.oppgave.api.view.kabin.CreateKlageBasedOnKabinInput
-import no.nav.klage.oppgave.api.view.toMottak
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
@@ -113,6 +110,26 @@ class MottakService(
     }
 
     @Transactional
+    fun createMottakForKlageAnkeV4(oversendtKlageAnke: OversendtKlageAnkeV4): Behandling {
+        secureLogger.debug("Prøver å lagre oversendtKlageAnkeV4: {}", oversendtKlageAnke)
+
+        val mottak = validateAndSaveMottak(oversendtKlageAnke)
+
+        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlageAnke: {}", mottak)
+        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+
+        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+
+        updateMetrics(
+            kilde = oversendtKlageAnke.fagsak.fagsystem.name,
+            ytelse = oversendtKlageAnke.ytelse.navn,
+            type = oversendtKlageAnke.type.name.lowercase()
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+        )
+        return behandling
+    }
+
+    @Transactional
     fun createTaskForMerkantil(behandlingId: UUID, reason: String) {
         taskListMerkantilRepository.save(
             TaskListMerkantil(
@@ -203,6 +220,39 @@ class MottakService(
                 Type.ANKE_I_TRYGDERETTEN -> TODO()
                 Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> TODO()
                 Type.OMGJOERINGSKRAV -> TODO()
+            }
+        return mottak
+    }
+
+    private fun validateAndSaveMottak(oversendtKlageAnke: OversendtKlageAnkeV4): Mottak {
+        oversendtKlageAnke.validate()
+
+        val mottak =
+            when (oversendtKlageAnke.type) {
+                OversendtType.KLAGE -> mottakRepository.save(oversendtKlageAnke.toMottak())
+                OversendtType.ANKE -> {
+                    val previousHandledKlage =
+                        klagebehandlingRepository.findByKildeReferanseAndYtelseAndFeilregistreringIsNull(
+                            oversendtKlageAnke.kildeReferanse,
+                            oversendtKlageAnke.ytelse
+                        )
+                    if (previousHandledKlage != null) {
+                        logger.debug("Fant tidligere behandlet klage i Kabal, med id {}", previousHandledKlage.id)
+                        if (oversendtKlageAnke.dvhReferanse != previousHandledKlage.dvhReferanse) {
+                            if (oversendtKlageAnke.fagsak.fagsystem != Fagsystem.PP01) {
+                                val message =
+                                    "Tidligere behandlet klage har annen dvhReferanse enn innsendt anke."
+                                logger.warn(message)
+                                throw OversendtKlageNotValidException(message)
+                            } else {
+                                logger.debug("dvhReferanse ${oversendtKlageAnke.dvhReferanse} matcher ikke med klage. Godtar, fordi det er anke fra Pesys.")
+                            }
+                        }
+                        mottakRepository.save(oversendtKlageAnke.toMottak(previousHandledKlage.id))
+                    } else {
+                        mottakRepository.save(oversendtKlageAnke.toMottak())
+                    }
+                }
             }
         return mottak
     }
@@ -341,6 +391,24 @@ class MottakService(
         validateDateNotInFuture(brukersHenvendelseMottattNavDato, ::brukersHenvendelseMottattNavDato.name)
         validateDateNotInFuture(innsendtTilNav, ::innsendtTilNav.name)
         validateDateNotInFuture(sakMottattKaDato, ::sakMottattKaDato.name)
+        validateOptionalDateTimeNotInFuture(sakMottattKaTidspunkt, ::sakMottattKaTidspunkt.name)
+        validateKildeReferanse(kildeReferanse)
+        validateEnhet(forrigeBehandlendeEnhet)
+    }
+
+    fun OversendtKlageAnkeV4.validate() {
+        validateYtelseAndHjemler(ytelse, hjemler)
+        validateDuplicate(fagsak.fagsystem, kildeReferanse, Type.valueOf(type.name))
+        validateJournalpostList(tilknyttedeJournalposter.map { it.journalpostId })
+        validatePartId(sakenGjelder.id.toPartId())
+        klager?.run { validatePartId(klager.id.toPartId()) }
+        if (type == OversendtType.KLAGE) {
+            if (brukersKlageMottattVedtaksinstans == null) {
+                throw OversendtKlageNotValidException("${::brukersKlageMottattVedtaksinstans.name} må være satt for klage.")
+            }
+            validateDateNotInFuture(brukersKlageMottattVedtaksinstans, ::brukersKlageMottattVedtaksinstans.name)
+        }
+        validateOptionalDateTimeNotInFuture(sakMottattKaTidspunkt, ::sakMottattKaTidspunkt.name)
         validateKildeReferanse(kildeReferanse)
         validateEnhet(forrigeBehandlendeEnhet)
     }
@@ -507,10 +575,13 @@ class MottakService(
     private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInput): Mottak {
         val prosessfullmektig = if (input.fullmektig != null) {
             Prosessfullmektig(
+                //TODO: Skal vi tillate denne fullmektig uten partId fra Kabin?
                 partId = PartId(
                     type = PartIdType.of(input.fullmektig.type.name),
                     value = input.fullmektig.value
-                )
+                ),
+                navn = null,
+                address = null
             )
         } else {
             null
@@ -522,7 +593,6 @@ class MottakService(
                     type = PartIdType.of(input.klager.type.name),
                     value = input.klager.value
                 ),
-                prosessfullmektig = prosessfullmektig
             )
         } else {
             Klager(
@@ -530,7 +600,6 @@ class MottakService(
                     type = PartIdType.of(sakenGjelder.partId.type.name),
                     value = sakenGjelder.partId.value
                 ),
-                prosessfullmektig = prosessfullmektig
             )
         }
 
@@ -562,8 +631,7 @@ class MottakService(
             forrigeSaksbehandlerident = tildeling!!.saksbehandlerident,
             forrigeBehandlendeEnhet = tildeling!!.enhet!!,
             mottakDokument = innsendtDokument,
-            innsendtDato = input.mottattNav,
-            brukersHenvendelseMottattNavDato = input.mottattNav,
+            brukersKlageMottattVedtaksinstans = input.mottattNav,
             sakMottattKaDato = input.mottattNav.atStartOfDay(),
             frist = input.frist,
             created = LocalDateTime.now(),
@@ -571,15 +639,19 @@ class MottakService(
             ytelse = ytelse,
             kommentar = null,
             forrigeBehandlingId = id,
-            innsynUrl = null,
             sentFrom = Mottak.Sender.KABIN,
-        )
+            prosessfullmektig = prosessfullmektig,
+
+            )
     }
 
     fun CreateKlageBasedOnKabinInput.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
         val prosessfullmektig = if (fullmektig != null) {
             Prosessfullmektig(
+                //TODO: Skal vi tillate denne fullmektig uten partId fra Kabin?
                 partId = fullmektig.toPartId(),
+                navn = null,
+                address = null,
             )
         } else {
             null
@@ -588,12 +660,10 @@ class MottakService(
         val klager = if (klager != null) {
             Klager(
                 partId = klager.toPartId(),
-                prosessfullmektig = prosessfullmektig
             )
         } else {
             Klager(
                 partId = sakenGjelder.toPartId(),
-                prosessfullmektig = prosessfullmektig
             )
         }
 
@@ -603,7 +673,6 @@ class MottakService(
             sakenGjelder = SakenGjelder(
                 partId = sakenGjelder.toPartId(),
             ),
-            innsynUrl = null,
             fagsystem = Fagsystem.of(fagsystemId),
             fagsakId = fagsakId,
             kildeReferanse = kildereferanse,
@@ -616,21 +685,25 @@ class MottakService(
                     journalpostId = klageJournalpostId
                 )
             ),
-            innsendtDato = null,
-            brukersHenvendelseMottattNavDato = brukersHenvendelseMottattNav,
+            brukersKlageMottattVedtaksinstans = brukersHenvendelseMottattNav,
             sakMottattKaDato = sakMottattKa.atStartOfDay(),
             frist = frist,
             ytelse = Ytelse.of(ytelseId),
             forrigeBehandlingId = forrigeBehandlingId,
             sentFrom = Mottak.Sender.KABIN,
             kommentar = null,
+            prosessfullmektig = prosessfullmektig,
+            forrigeSaksbehandlerident = null,
         )
     }
 
     fun CreateAnkeBasedOnCompleteKabinInput.toMottak(): Mottak {
         val prosessfullmektig = if (fullmektig != null) {
             Prosessfullmektig(
+                //TODO: Skal vi tillate denne fullmektig uten partId fra Kabin?
                 partId = fullmektig.toPartId(),
+                navn = null,
+                address = null,
             )
         } else {
             null
@@ -639,12 +712,10 @@ class MottakService(
         val klager = if (klager != null) {
             Klager(
                 partId = klager.toPartId(),
-                prosessfullmektig = prosessfullmektig
             )
         } else {
             Klager(
                 partId = sakenGjelder.toPartId(),
-                prosessfullmektig = prosessfullmektig
             )
         }
 
@@ -654,7 +725,6 @@ class MottakService(
             sakenGjelder = SakenGjelder(
                 partId = sakenGjelder.toPartId(),
             ),
-            innsynUrl = null,
             fagsystem = Fagsystem.of(fagsystemId),
             fagsakId = fagsakId,
             kildeReferanse = kildereferanse,
@@ -667,14 +737,15 @@ class MottakService(
                     journalpostId = ankeJournalpostId
                 )
             ),
-            innsendtDato = mottattNav,
-            brukersHenvendelseMottattNavDato = mottattNav,
+            brukersKlageMottattVedtaksinstans = mottattNav,
             sakMottattKaDato = mottattNav.atStartOfDay(),
             frist = frist,
             ytelse = Ytelse.of(ytelseId),
             forrigeBehandlingId = null,
             sentFrom = Mottak.Sender.KABIN,
             kommentar = null,
+            prosessfullmektig = prosessfullmektig,
+            forrigeSaksbehandlerident = null,
         )
     }
 

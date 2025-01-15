@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.domain.klage
 
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.FradelingReason
 import no.nav.klage.kodeverk.Utfall
@@ -463,11 +464,13 @@ object BehandlingSetters {
     }
 
     fun Behandling.setFullmektig(
-        nyVerdi: PartId?,
+        partId: PartId?,
+        address: Adresse?,
+        name: String?,
         utfoerendeIdent: String,
         utfoerendeNavn: String,
     ): BehandlingEndretEvent {
-        val gammelVerdi = klager.prosessfullmektig
+        val gammelVerdi = prosessfullmektig
         val tidspunkt = LocalDateTime.now()
 
         //record initial state
@@ -479,11 +482,22 @@ object BehandlingSetters {
             )
         }
 
-        if (nyVerdi == null) {
-            klager.prosessfullmektig = null
+        if (partId == null && address == null && name == null) {
+            prosessfullmektig = null
         } else {
-            klager.prosessfullmektig = Prosessfullmektig(
-                partId = nyVerdi,
+            prosessfullmektig = Prosessfullmektig(
+                partId = partId,
+                address = address?.let {
+                    Adresse(
+                        adresselinje1 = it.adresselinje1,
+                        adresselinje2 = it.adresselinje2,
+                        adresselinje3 = it.adresselinje3,
+                        postnummer = it.postnummer,
+                        poststed = it.poststed,
+                        landkode = it.landkode,
+                    )
+                },
+                navn = name,
             )
         }
         modified = tidspunkt
@@ -499,7 +513,7 @@ object BehandlingSetters {
                 saksbehandlerident = utfoerendeIdent,
                 felt = Felt.FULLMEKTIG,
                 fraVerdi = gammelVerdi.toString(),
-                tilVerdi = nyVerdi.toString(),
+                tilVerdi = partId.toString(),
                 tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
@@ -512,7 +526,7 @@ object BehandlingSetters {
     ) {
         fullmektigHistorikk.add(
             FullmektigHistorikk(
-                partId = klager.prosessfullmektig?.partId,
+                partId = prosessfullmektig?.partId,
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
                 utfoerendeNavn = utfoerendeNavn

@@ -16,3 +16,14 @@ data class PartId(
     fun isPerson() = type == PartIdType.PERSON
 }
 
+sealed interface Mottaker {
+    val value: Any
+}
+
+class MottakerPartId(
+    override val value: PartId
+) : Mottaker
+
+class MottakerNavn(
+    override val value: String
+) : Mottaker

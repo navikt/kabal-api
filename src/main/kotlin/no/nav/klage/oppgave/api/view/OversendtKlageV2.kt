@@ -23,7 +23,7 @@ data class OversendtKlageV2(
     @Schema(
         required = true
     )
-    val klager: OversendtKlager,
+    val klager: OversendtKlagerLegacy,
     @Schema(
         description = "Kan settes dersom klagen gjelder en annen enn den som har levert klagen",
         required = false
@@ -44,10 +44,10 @@ data class OversendtKlageV2(
         required = false
     )
     val dvhReferanse: String? = null,
+    @Deprecated("Ikke i bruk i løsningen")
     @Schema(
-        description = "Url tilbake til kildesystem for innsyn i sak",
+        description = "Deprecated.",
         required = false,
-        example = "https://k9-sak.adeo.no/behandling/12345678"
     )
     val innsynUrl: String? = null,
     @Schema(
@@ -65,6 +65,7 @@ data class OversendtKlageV2(
     @field:PastOrPresent(message = "Dato for mottatt førsteinstans må være i fortiden eller i dag")
     @field:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     val mottattFoersteinstans: LocalDate,
+    @Deprecated("Ikke i bruk i løsningen")
     val innsendtTilNav: LocalDate,
     @Schema(
         description = "Kan settes dersom førsteinstans ønsker å overstyre frist",
@@ -106,7 +107,6 @@ fun OversendtKlageV2.toMottak() = Mottak(
     type = type,
     klager = klager.toKlagepart(),
     sakenGjelder = sakenGjelder?.toSakenGjelder(),
-    innsynUrl = innsynUrl,
     fagsystem = kilde,
     fagsakId = fagsak.fagsakId,
     kildeReferanse = kildeReferanse,
@@ -115,10 +115,12 @@ fun OversendtKlageV2.toMottak() = Mottak(
     forrigeSaksbehandlerident = avsenderSaksbehandlerIdent,
     forrigeBehandlendeEnhet = avsenderEnhet,
     mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
-    innsendtDato = innsendtTilNav,
-    brukersHenvendelseMottattNavDato = mottattFoersteinstans,
+    brukersKlageMottattVedtaksinstans = mottattFoersteinstans,
     sakMottattKaDato = oversendtKaDato ?: LocalDateTime.now(),
     frist = frist,
     ytelse = ytelse,
     kommentar = kommentar,
+    prosessfullmektig = klager.toProsessfullmektig(),
+    forrigeBehandlingId = null,
+    sentFrom = Mottak.Sender.FAGSYSTEM,
 )

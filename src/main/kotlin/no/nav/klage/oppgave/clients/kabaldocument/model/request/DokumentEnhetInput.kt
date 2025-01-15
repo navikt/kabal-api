@@ -28,7 +28,7 @@ data class DokumentEnhetWithDokumentreferanserInput(
 }
 
 data class AvsenderMottakerInput(
-    val partId: PartIdInput,
+    val partId: PartIdInput?,
     val navn: String,
     //Trenger ikke denne når kanal tas i bruk
     val localPrint: Boolean,

@@ -24,7 +24,7 @@ data class OversendtKlageAnkeV3(
     @Schema(
         required = true
     )
-    val klager: OversendtKlager,
+    val klager: OversendtKlagerLegacy,
     @Schema(
         description = "Kan settes dersom klagen gjelder en annen enn den som har levert klagen",
         required = false
@@ -45,6 +45,7 @@ data class OversendtKlageAnkeV3(
         required = false
     )
     val dvhReferanse: String? = null,
+    @Deprecated("Ikke i bruk i løsningen")
     @Schema(
         description = "Ikke i bruk",
         required = false,
@@ -67,8 +68,8 @@ data class OversendtKlageAnkeV3(
     val tilknyttedeJournalposter: List<OversendtDokumentReferanse> = emptyList(),
     @field:PastOrPresent(message = "Dato for mottatt Nav må være i fortiden eller i dag")
     @field:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    //TODO: Undersøk forskjellen på brukersHenvendelseMottattNavDato og innsendtTilNav nærmere.
     val brukersHenvendelseMottattNavDato: LocalDate,
+    @Deprecated("Ikke i bruk i løsningen")
     val innsendtTilNav: LocalDate,
     @Schema(
         description = "Kan settes for å overstyre frist.",
@@ -117,13 +118,12 @@ data class OversendtKlageAnkeV3(
     )
     val saksbehandlerIdent: String? = null,
 
-)
+    )
 
 fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
     type = type,
     klager = klager.toKlagepart(),
     sakenGjelder = sakenGjelder?.toSakenGjelder(),
-    innsynUrl = innsynUrl,
     fagsystem = kilde,
     fagsakId = fagsak.fagsakId,
     kildeReferanse = kildeReferanse,
@@ -131,8 +131,7 @@ fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
     hjemler = hjemler!!.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
     forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
     mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
-    innsendtDato = innsendtTilNav,
-    brukersHenvendelseMottattNavDato = brukersHenvendelseMottattNavDato,
+    brukersKlageMottattVedtaksinstans = brukersHenvendelseMottattNavDato,
     sakMottattKaDato = when {
         sakMottattKaTidspunkt != null -> sakMottattKaTidspunkt
         sakMottattKaDato != null -> sakMottattKaDato.atStartOfDay()
@@ -142,4 +141,7 @@ fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
     ytelse = ytelse,
     forrigeBehandlingId = forrigeBehandlingId,
     kommentar = kommentar,
+    prosessfullmektig = klager.toProsessfullmektig(),
+    forrigeSaksbehandlerident = null,
+    sentFrom = Mottak.Sender.FAGSYSTEM,
 )
