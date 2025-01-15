@@ -24,8 +24,6 @@ class Ankebehandling(
     var sourceBehandlingId: UUID?,
     @Column(name = "mottak_id")
     val mottakId: UUID? = null,
-    @Column(name = "dato_innsendt")
-    val innsendt: LocalDate? = null,
     @Column(name = "kaka_kvalitetsvurdering_id")
     var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = true)

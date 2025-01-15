@@ -38,9 +38,6 @@ class Mottak(
     val kildeReferanse: String,
     @Column(name = "dvh_referanse")
     val dvhReferanse: String?,
-    //TODO: Brukes ikke videre i systemet. Ser ut til at vi mottar disse fra Enslig forsørger. Tenker den bør fjernes helt.
-    @Column(name = "innsyn_url")
-    val innsynUrl: String?,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "mottak_id", referencedColumnName = "id", nullable = false)
     val hjemler: Set<MottakHjemmel>,
@@ -51,11 +48,8 @@ class Mottak(
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "mottak_id", referencedColumnName = "id", nullable = false)
     val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
-    @Column(name = "dato_innsendt")
-    val innsendtDato: LocalDate?,
-    @Column(name = "dato_brukers_henvendelse_mottatt_nav")
-    val brukersHenvendelseMottattNavDato: LocalDate,
-    //Denne vil være den samme verdien som brukersHenvendelseMottattNavDato for anke, ikke for klage.
+    @Column(name = "brukers_klage_mottatt_vedtaksinstans")
+    val brukersKlageMottattVedtaksinstans: LocalDate?,
     @Column(name = "dato_sak_mottatt_klageinstans")
     val sakMottattKaDato: LocalDateTime,
     @Column(name = "dato_frist")

@@ -563,8 +563,7 @@ class MottakService(
             forrigeSaksbehandlerident = tildeling!!.saksbehandlerident,
             forrigeBehandlendeEnhet = tildeling!!.enhet!!,
             mottakDokument = innsendtDokument,
-            innsendtDato = input.mottattNav,
-            brukersHenvendelseMottattNavDato = input.mottattNav,
+            brukersKlageMottattVedtaksinstans = input.mottattNav,
             sakMottattKaDato = input.mottattNav.atStartOfDay(),
             frist = input.frist,
             created = LocalDateTime.now(),
@@ -572,7 +571,6 @@ class MottakService(
             ytelse = ytelse,
             kommentar = null,
             forrigeBehandlingId = id,
-            innsynUrl = null,
             sentFrom = Mottak.Sender.KABIN,
             prosessfullmektig = prosessfullmektig,
 
@@ -607,7 +605,6 @@ class MottakService(
             sakenGjelder = SakenGjelder(
                 partId = sakenGjelder.toPartId(),
             ),
-            innsynUrl = null,
             fagsystem = Fagsystem.of(fagsystemId),
             fagsakId = fagsakId,
             kildeReferanse = kildereferanse,
@@ -620,8 +617,7 @@ class MottakService(
                     journalpostId = klageJournalpostId
                 )
             ),
-            innsendtDato = null,
-            brukersHenvendelseMottattNavDato = brukersHenvendelseMottattNav,
+            brukersKlageMottattVedtaksinstans = brukersHenvendelseMottattNav,
             sakMottattKaDato = sakMottattKa.atStartOfDay(),
             frist = frist,
             ytelse = Ytelse.of(ytelseId),
@@ -661,7 +657,6 @@ class MottakService(
             sakenGjelder = SakenGjelder(
                 partId = sakenGjelder.toPartId(),
             ),
-            innsynUrl = null,
             fagsystem = Fagsystem.of(fagsystemId),
             fagsakId = fagsakId,
             kildeReferanse = kildereferanse,
@@ -674,8 +669,7 @@ class MottakService(
                     journalpostId = ankeJournalpostId
                 )
             ),
-            innsendtDato = mottattNav,
-            brukersHenvendelseMottattNavDato = mottattNav,
+            brukersKlageMottattVedtaksinstans = mottattNav,
             sakMottattKaDato = mottattNav.atStartOfDay(),
             frist = frist,
             ytelse = Ytelse.of(ytelseId),

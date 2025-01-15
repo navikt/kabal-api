@@ -45,6 +45,7 @@ data class OversendtKlageAnkeV3(
         required = false
     )
     val dvhReferanse: String? = null,
+    @Deprecated("Ikke i bruk i løsningen")
     @Schema(
         description = "Ikke i bruk",
         required = false,
@@ -69,6 +70,7 @@ data class OversendtKlageAnkeV3(
     @field:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     //TODO: Undersøk forskjellen på brukersHenvendelseMottattNavDato og innsendtTilNav nærmere.
     val brukersHenvendelseMottattNavDato: LocalDate,
+    @Deprecated("Ikke i bruk i løsningen")
     val innsendtTilNav: LocalDate,
     @Schema(
         description = "Kan settes for å overstyre frist.",
@@ -123,7 +125,6 @@ fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
     type = type,
     klager = klager.toKlagepart(),
     sakenGjelder = sakenGjelder?.toSakenGjelder(),
-    innsynUrl = innsynUrl,
     fagsystem = kilde,
     fagsakId = fagsak.fagsakId,
     kildeReferanse = kildeReferanse,
@@ -131,8 +132,7 @@ fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
     hjemler = hjemler!!.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
     forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
     mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
-    innsendtDato = innsendtTilNav,
-    brukersHenvendelseMottattNavDato = brukersHenvendelseMottattNavDato,
+    brukersKlageMottattVedtaksinstans = brukersHenvendelseMottattNavDato,
     sakMottattKaDato = when {
         sakMottattKaTidspunkt != null -> sakMottattKaTidspunkt
         sakMottattKaDato != null -> sakMottattKaDato.atStartOfDay()

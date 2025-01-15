@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.api.view
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.PastOrPresent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
-import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.klage.*
@@ -24,10 +24,15 @@ data class OversendtKlageAnkeV4(
     )
     val sakenGjelder: OversendtPart,
     @Schema(
-        description = "Kan settes dersom klagen er levert av annen enn den saken gjelder",
+        description = "Kan settes dersom klagen er levert av annen enn den saken gjelder.",
         required = false
     )
     val klager: OversendtPart?,
+    @Schema(
+        description = "Prosessfullmektig i saken. Brukes bl.a. til automatisk svarbrev.",
+        required = false
+    )
+    val prosessfullmektig: OversendtProsessfullmektig?,
     @Schema(
         description = "Fagsak brukt til journalføring.",
         required = true
@@ -42,9 +47,9 @@ data class OversendtKlageAnkeV4(
         description = "Id som rapporteres på til DVH. Kabal bruker kildeReferanse hvis denne ikke er satt.",
         required = false
     )
-    val dvhReferanse: String? = null,
+    val dvhReferanse: String?,
     @Schema(
-        description = "Hjemler knyttet til klagen",
+        description = "Hjemler knyttet til klagen.",
         required = true
     )
     val hjemler: List<Hjemmel>,
@@ -60,79 +65,72 @@ data class OversendtKlageAnkeV4(
     val tilknyttedeJournalposter: List<OversendtDokumentReferanse>,
 
     @Schema(
-        description = "Dato for når klagen/anken ble mottat.",
+        description = "Dato for når klagen ble mottatt i vedtaksinstansen. Skal ikke brukes for anker.",
         required = false
     )
-    @field:PastOrPresent(message = "Dato for mottatt Nav må være i fortiden eller i dag")
+    @field:PastOrPresent(message = "Dato for mottatt vedtaksinstans må være i fortiden eller i dag.")
     @field:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    val brukersHenvendelseMottattNavDato: LocalDate,
-    @Schema(
-        description = "Kan settes for å overstyre frist.",
-        required = false
-    )
-    val frist: LocalDate? = null,
+    //TODO: Valider når klage
+    val brukersKlageMottattVedtaksinstans: LocalDate?,
 
     @Schema(
-        description = "Kan settes for å overstyre når KA mottok klage/anke.",
+        description = "Kan settes for å overstyre fristen i Kabal. Uten oppgitt frist settes denne til 12 uker etter sakMottattKaTidspunkt.",
+        required = false
+    )
+    val frist: LocalDate?,
+
+    @Schema(
+        description = "Kan settes for å overstyre når KA mottok klage/anke. Settes ellers til now().",
         required = false,
         example = "2020-12-20T00:00"
     )
-    val sakMottattKaTidspunkt: LocalDateTime? = null,
-    @Schema(
-        description = "Legges ved melding ut fra KA på Kafka, brukes for filtrering",
-        required = true,
-        example = "K9"
-    )
-    val kilde: Fagsystem,
+    val sakMottattKaTidspunkt: LocalDateTime?,
+
     @Schema(
         example = "OMS_OMP",
         description = "Ytelse",
         required = true
     )
     val ytelse: Ytelse,
-    @Schema(
-        description = "Kommentarer fra saksbehandler i førsteinstans som ikke er med i oversendelsesbrevet klager mottar",
-        required = false
-    )
-    val kommentar: String? = null,
 
     @Schema(
-        description = "Brukes for å hindre Kabal i å sende ut automatisk svarbrev til bruker.",
+        description = "Kommentarer fra saksbehandler i førsteinstans som ikke er med i oversendelsesbrevet klager mottar.",
+        required = false
+    )
+    val kommentar: String?,
+
+    @Schema(
+        description = "Brukes for å hindre Kabal i å sende ut automatisk svarbrev.",
         required = false
     )
     val hindreAutomatiskSvarbrev: Boolean?,
+
     @Schema(
         description = "Brukes for å tildele saken i Kabal. Må være en saksbehandler som allerede fins i Kabal.",
         required = false
     )
-    val saksbehandlerIdent: String? = null,
+    val saksbehandlerIdentForTildeling: String?,
 
     )
 
-fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
-    type = type,
-    klager = klager.toKlagepart(),
-    sakenGjelder = sakenGjelder?.toSakenGjelder(),
-    innsynUrl = innsynUrl,
-    fagsystem = kilde,
+fun OversendtKlageAnkeV4.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
+    type = Type.valueOf(type.name),
+    klager = klager?.toKlager() ?: sakenGjelder.toKlager(),
+    sakenGjelder = sakenGjelder.toSakenGjelder(),
+    fagsystem = fagsak.fagsystem,
     fagsakId = fagsak.fagsakId,
     kildeReferanse = kildeReferanse,
     dvhReferanse = dvhReferanse,
-    hjemler = hjemler!!.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
+    hjemler = hjemler.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
     forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
     mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
-    innsendtDato = innsendtTilNav,
-    brukersHenvendelseMottattNavDato = brukersHenvendelseMottattNavDato,
-    sakMottattKaDato = when {
-        sakMottattKaTidspunkt != null -> sakMottattKaTidspunkt
-        sakMottattKaDato != null -> sakMottattKaDato.atStartOfDay()
-        else -> LocalDateTime.now()
-    },
+    brukersKlageMottattVedtaksinstans = brukersKlageMottattVedtaksinstans,
+    sakMottattKaDato = sakMottattKaTidspunkt ?: LocalDateTime.now(),
     frist = frist,
     ytelse = ytelse,
     forrigeBehandlingId = forrigeBehandlingId,
     kommentar = kommentar,
-    prosessfullmektig = klager.toProsessfullmektig(),
+    prosessfullmektig = prosessfullmektig?.toProsessfullmektig(),
     forrigeSaksbehandlerident = null,
     sentFrom = Mottak.Sender.FAGSYSTEM,
 )
@@ -140,17 +138,6 @@ fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
 enum class OversendtType {
     KLAGE,
     ANKE
-}
-
-data class OversendtKlager(
-    @Schema(
-        required = true
-    )
-    val id: OversendtPartId,
-) {
-    fun toKlagepart() = Klager(
-        partId = id.toPartId(),
-    )
 }
 
 @Schema(

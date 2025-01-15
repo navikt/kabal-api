@@ -161,7 +161,6 @@ class StatistikkTilDVHServiceTest {
         avsenderEnhetFoersteinstans = "",
         kommentarFraFoersteinstans = null,
         mottakId = UUID.randomUUID(),
-        innsendt = null,
         klager = Klager(
             partId = PartId(
                 type = PartIdType.PERSON,
@@ -201,7 +200,6 @@ class StatistikkTilDVHServiceTest {
         avsenderEnhetFoersteinstans = "",
         kommentarFraFoersteinstans = null,
         mottakId = UUID.randomUUID(),
-        innsendt = null,
         klager = Klager(
             partId = PartId(
                 type = PartIdType.PERSON,
@@ -237,7 +235,6 @@ class StatistikkTilDVHServiceTest {
 
     private val ankebehandlingOMP = Ankebehandling(
         mottakId = UUID.randomUUID(),
-        innsendt = null,
         klager = Klager(
             partId = PartId(
                 type = PartIdType.PERSON,

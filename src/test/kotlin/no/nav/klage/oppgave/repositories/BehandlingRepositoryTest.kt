@@ -135,7 +135,7 @@ class BehandlingRepositoryTest {
         fagsystem = Fagsystem.K9,
         fagsakId = "123",
         forrigeBehandlendeEnhet = "0101",
-        brukersHenvendelseMottattNavDato = LocalDate.now(),
+        brukersKlageMottattVedtaksinstans = LocalDate.now(),
         kommentar = null,
         hjemler = emptySet(),
         prosessfullmektig = null,

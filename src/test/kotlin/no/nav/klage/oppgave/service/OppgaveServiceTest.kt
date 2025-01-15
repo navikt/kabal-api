@@ -458,7 +458,7 @@ class OppgaveServiceTest {
             fagsystem = fagsystem,
             fagsakId = saksId,
             forrigeBehandlendeEnhet = "0101",
-            brukersHenvendelseMottattNavDato = LocalDate.now(),
+            brukersKlageMottattVedtaksinstans = LocalDate.now(),
             kommentar = null,
             hjemler = emptySet(),
             prosessfullmektig = null,

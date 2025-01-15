@@ -38,3 +38,15 @@ ALTER TABLE klage.mottak
 
 ALTER TABLE klage.mottak
     DROP COLUMN tema_id;
+
+ALTER TABLE klage.behandling
+    DROP COLUMN dato_innsendt;
+
+ALTER TABLE klage.mottak
+    DROP COLUMN dato_innsendt;
+
+ALTER TABLE klage.mottak
+    DROP COLUMN innsyn_url;
+
+ALTER TABLE klage.mottak
+    RENAME COLUMN dato_brukers_henvendelse_mottatt_nav TO brukers_klage_mottatt_vedtaksinstans;

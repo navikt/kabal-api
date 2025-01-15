@@ -130,7 +130,7 @@ class MockDataController(
                 type = Type.KLAGE,
                 klager = OversendtKlagerLegacy(
                     id = OversendtPartId(OversendtPartIdType.PERSON, fnr),
-                    klagersProsessfullmektig = OversendtProsessfullmektig(
+                    klagersProsessfullmektig = OversendtProsessfullmektigLegacy(
                         id = OversendtPartId(OversendtPartIdType.PERSON, "07467517958"),
                         skalKlagerMottaKopi = true
                     )
@@ -258,7 +258,7 @@ class MockDataController(
         val now = LocalDate.now().toEpochDay()
         val dato = mockInput?.sakMottattKaTidspunkt ?: LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(lastMonth, now))
 
-        val klager = mockInput?.klager ?: OversendtKlager(
+        val klager = mockInput?.klager ?: OversendtKlagerLegacy(
             id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
         )
 
@@ -365,7 +365,7 @@ class MockDataController(
 
     data class MockInput(
         val ytelse: Ytelse?,
-        val klager: OversendtKlager?,
+        val klager: OversendtKlagerLegacy?,
         val sakenGjelder: OversendtSakenGjelder?,
         val kildeReferanse: String?,
         val dvhReferanse: String?,

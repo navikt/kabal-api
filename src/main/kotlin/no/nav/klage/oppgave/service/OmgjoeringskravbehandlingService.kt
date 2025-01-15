@@ -39,7 +39,6 @@ class OmgjoeringskravbehandlingService(
                 dvhReferanse = mottak.dvhReferanse,
                 fagsystem = mottak.fagsystem,
                 fagsakId = mottak.fagsakId,
-                innsendt = mottak.innsendtDato,
                 mottattKlageinstans = mottak.sakMottattKaDato,
                 tildeling = null,
                 frist = mottak.generateFrist(),
