@@ -1294,7 +1294,7 @@ class BehandlingService(
                 throw IllegalOperation("Address and name can only be set without id")
             }
 
-            if (input.identifikator == null && input.address == null && input.name == null) {
+            if ((input.address != null && input.name == null) || (input.address == null && input.name != null) ) {
                 throw IllegalOperation("Both address or name must be set")
             }
         }
