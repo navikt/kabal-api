@@ -1290,11 +1290,11 @@ class BehandlingService(
     ): LocalDateTime {
 
         if (input != null) {
-            if (input.id != null && (input.address != null || input.name != null)) {
+            if (input.identifikator != null && (input.address != null || input.name != null)) {
                 throw IllegalOperation("Address and name can only be set without id")
             }
 
-            if (input.id == null && input.address == null && input.name == null) {
+            if (input.identifikator == null && input.address == null && input.name == null) {
                 throw IllegalOperation("Both address or name must be set")
             }
         }
@@ -1303,10 +1303,10 @@ class BehandlingService(
             behandlingId
         )
 
-        val partId: PartId? = if (input?.id == null) {
+        val partId: PartId? = if (input?.identifikator == null) {
             null
         } else {
-            getPartIdFromIdentifikator(input.id)
+            getPartIdFromIdentifikator(input.identifikator)
         }
 
         val event =

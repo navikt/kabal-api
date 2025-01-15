@@ -13,7 +13,7 @@ data class SearchPartWithUtsendingskanalInput(
 )
 
 data class FullmektigInput(
-    val id: String?,
+    val identifikator: String?,
     val address: AddressInput?,
     val name: String?,
 )
