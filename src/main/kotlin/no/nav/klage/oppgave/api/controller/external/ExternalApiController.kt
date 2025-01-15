@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.api.controller.external
 
+import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -62,8 +63,9 @@ class ExternalApiController(
 
     @Operation(
         summary = "Send inn sak til klageinstans",
-        description = "Endepunkt for å registrere en klage/anke som skal behandles av klageinstans"
+        description = "Endepunkt for å registrere en klage/anke som skal behandles av klageinstans. OBS: Ikke i bruk enda."
     )
+    @Hidden
     @PostMapping("/oversendelse/v4/sak")
     fun sendInnSakV4(
         @Parameter(description = "Oversendt sak")
