@@ -100,14 +100,6 @@ data class KabinPartView(
     val language: String?,
 )
 
-data class OldKabinPartView(
-    val id: String,
-    val type: BehandlingDetaljerView.IdType,
-    val name: String,
-    val available: Boolean,
-    val statusList: List<BehandlingDetaljerView.PartStatus>,
-)
-
 fun BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
     return KabinPartView(
         id = id,
@@ -131,16 +123,6 @@ fun BehandlingDetaljerView.PartViewWithUtsendingskanal.toKabinPartView(): KabinP
         address = address,
         utsendingskanal = utsendingskanal,
         language = language,
-    )
-}
-
-fun BehandlingDetaljerView.PartView.toOldKabinPartView(): OldKabinPartView {
-    return OldKabinPartView(
-        id = id,
-        type = type,
-        name = name,
-        available = available,
-        statusList = statusList,
     )
 }
 
