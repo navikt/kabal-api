@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class TokenUtil(
+    private val ctxHolder: TokenValidationContextHolder,
     private val clientConfigurationProperties: ClientConfigurationProperties,
     private val oAuth2AccessTokenService: OAuth2AccessTokenService,
     private val tokenValidationContextHolder: TokenValidationContextHolder,
@@ -17,6 +18,17 @@ class TokenUtil(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val securelogger = getSecureLogger()
+    }
+
+    fun getSubjectFromTokenXToken(): String {
+        securelogger.debug("Token til debug: ${ctxHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.TOKEN_X)}")
+        return ctxHolder.getTokenValidationContext().getClaims(SecurityConfiguration.TOKEN_X).getStringClaim("pid")
+    }
+
+    fun getOnBehalfOfTokenWithSafSelvbetjeningScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["safselvbetjening-onbehalfof"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.access_token!!
     }
 
     fun getSaksbehandlerAccessTokenWithGraphScope(): String {
