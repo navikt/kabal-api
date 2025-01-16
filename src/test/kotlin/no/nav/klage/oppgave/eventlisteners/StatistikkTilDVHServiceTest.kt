@@ -161,12 +161,11 @@ class StatistikkTilDVHServiceTest {
         avsenderEnhetFoersteinstans = "",
         kommentarFraFoersteinstans = null,
         mottakId = UUID.randomUUID(),
-        innsendt = null,
         klager = Klager(
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), prosessfullmektig = null
+            ),
         ),
         sakenGjelder = SakenGjelder(
             partId = PartId(
@@ -174,6 +173,7 @@ class StatistikkTilDVHServiceTest {
                 value = ""
             ),
         ),
+        prosessfullmektig = null,
         ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,
         kildeReferanse = "",
@@ -200,12 +200,11 @@ class StatistikkTilDVHServiceTest {
         avsenderEnhetFoersteinstans = "",
         kommentarFraFoersteinstans = null,
         mottakId = UUID.randomUUID(),
-        innsendt = null,
         klager = Klager(
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), prosessfullmektig = null
+            ),
         ),
         sakenGjelder = SakenGjelder(
             partId = PartId(
@@ -213,6 +212,7 @@ class StatistikkTilDVHServiceTest {
                 value = ""
             ),
         ),
+        prosessfullmektig = null,
         ytelse = Ytelse.HJE_HJE,
         type = Type.KLAGE,
         kildeReferanse = "",
@@ -235,12 +235,11 @@ class StatistikkTilDVHServiceTest {
 
     private val ankebehandlingOMP = Ankebehandling(
         mottakId = UUID.randomUUID(),
-        innsendt = null,
         klager = Klager(
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), prosessfullmektig = null
+            ),
         ),
         sakenGjelder = SakenGjelder(
             partId = PartId(
@@ -248,6 +247,7 @@ class StatistikkTilDVHServiceTest {
                 value = ""
             ),
         ),
+        prosessfullmektig = null,
         ytelse = Ytelse.OMS_OMP,
         type = Type.ANKE,
         kildeReferanse = "",
@@ -277,7 +277,7 @@ class StatistikkTilDVHServiceTest {
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
-            ), prosessfullmektig = null
+            ),
         ),
         sakenGjelder = SakenGjelder(
             partId = PartId(
@@ -285,6 +285,7 @@ class StatistikkTilDVHServiceTest {
                 value = ""
             ),
         ),
+        prosessfullmektig = null,
         ytelse = Ytelse.OMS_OMP,
         type = Type.ANKE_I_TRYGDERETTEN,
         kildeReferanse = "",

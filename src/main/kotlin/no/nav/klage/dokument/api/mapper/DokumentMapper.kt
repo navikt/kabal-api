@@ -160,8 +160,10 @@ class DokumentMapper(
                     mottakerList = mottakerInfoSet.map {
                         DokumentView.Mottaker(
                             part = behandlingMapper.getPartViewWithUtsendingskanal(
-                                partId = getPartIdFromIdentifikator(it.identifikator),
-                                behandling = behandling
+                                partId = it.identifikator?.let { identifikator -> getPartIdFromIdentifikator(identifikator) },
+                                behandling = behandling,
+                                navn = it.navn,
+                                address = it.address,
                             ),
                             overriddenAddress = getBehandlingDetaljerViewAddress(it.address),
                             handling = getHandlingEnum(
@@ -222,7 +224,7 @@ class DokumentMapper(
         )
     }
 
-    private fun getBehandlingDetaljerViewAddress(address: DokumentUnderArbeidAdresse?): BehandlingDetaljerView.Address? {
+    private fun getBehandlingDetaljerViewAddress(address: Adresse?): BehandlingDetaljerView.Address? {
         return if (address != null) {
             BehandlingDetaljerView.Address(
                 adresselinje1 = address.adresselinje1,

@@ -47,6 +47,7 @@ class AnkeITrygderettenbehandlingService(
             AnkeITrygderettenbehandling(
                 klager = input.klager.copy(),
                 sakenGjelder = input.sakenGjelder?.copy() ?: input.klager.toSakenGjelder(),
+                prosessfullmektig = input.prosessfullmektig,
                 ytelse = input.ytelse,
                 type = input.type,
                 kildeReferanse = input.kildeReferanse,

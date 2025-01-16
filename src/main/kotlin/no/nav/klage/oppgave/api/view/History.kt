@@ -51,9 +51,9 @@ data class FerdigstiltEvent(
 )
 
 data class Part(
-    val id: String,
+    val id: String?,
     val name: String,
-    val type: BehandlingDetaljerView.IdType
+    val type: BehandlingDetaljerView.IdType?
 )
 
 interface WithPrevious<T>: BaseEvent<T> {

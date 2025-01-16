@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.api.mapper
 
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
@@ -62,12 +63,16 @@ class BehandlingMapper(
             sakenGjelder = getSakenGjelderViewWithUtsendingskanal(klagebehandling),
             klager = getPartViewWithUtsendingskanal(
                 partId = klagebehandling.klager.partId,
-                behandling = klagebehandling
+                behandling = klagebehandling,
+                navn = null,
+                address = null,
             ),
-            prosessfullmektig = klagebehandling.klager.prosessfullmektig?.let {
+            prosessfullmektig = klagebehandling.prosessfullmektig?.let {
                 getPartViewWithUtsendingskanal(
                     partId = it.partId,
-                    behandling = klagebehandling
+                    behandling = klagebehandling,
+                    navn = it.navn,
+                    address = it.address,
                 )
             },
             temaId = klagebehandling.ytelse.toTema().id,
@@ -126,11 +131,18 @@ class BehandlingMapper(
             fraNAVEnhet = omgjoeringskravbehandling.klageBehandlendeEnhet,
             fraNAVEnhetNavn = enhetNavn,
             sakenGjelder = getSakenGjelderViewWithUtsendingskanal(omgjoeringskravbehandling),
-            klager = getPartViewWithUtsendingskanal(omgjoeringskravbehandling.klager.partId, omgjoeringskravbehandling),
-            prosessfullmektig = omgjoeringskravbehandling.klager.prosessfullmektig?.let {
+            klager = getPartViewWithUtsendingskanal(
+                partId = omgjoeringskravbehandling.klager.partId,
+                behandling = omgjoeringskravbehandling,
+                navn = null,
+                address = null,
+            ),
+            prosessfullmektig = omgjoeringskravbehandling.prosessfullmektig?.let {
                 getPartViewWithUtsendingskanal(
-                    it.partId,
-                    omgjoeringskravbehandling
+                    partId = it.partId,
+                    behandling = omgjoeringskravbehandling,
+                    navn = it.navn,
+                    address = it.address,
                 )
             },
             temaId = omgjoeringskravbehandling.ytelse.toTema().id,
@@ -234,11 +246,18 @@ class BehandlingMapper(
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
             sakenGjelder = getSakenGjelderViewWithUtsendingskanal(ankebehandling),
-            klager = getPartViewWithUtsendingskanal(partId = ankebehandling.klager.partId, behandling = ankebehandling),
-            prosessfullmektig = ankebehandling.klager.prosessfullmektig?.let {
+            klager = getPartViewWithUtsendingskanal(
+                partId = ankebehandling.klager.partId,
+                behandling = ankebehandling,
+                navn = null,
+                address = null,
+            ),
+            prosessfullmektig = ankebehandling.prosessfullmektig?.let {
                 getPartViewWithUtsendingskanal(
                     partId = it.partId,
-                    behandling = ankebehandling
+                    behandling = ankebehandling,
+                    navn = it.navn,
+                    address = it.address,
                 )
             },
             temaId = ankebehandling.ytelse.toTema().id,
@@ -298,12 +317,16 @@ class BehandlingMapper(
             sakenGjelder = getSakenGjelderViewWithUtsendingskanal(ankeITrygderettenbehandling),
             klager = getPartViewWithUtsendingskanal(
                 partId = ankeITrygderettenbehandling.klager.partId,
-                behandling = ankeITrygderettenbehandling
+                behandling = ankeITrygderettenbehandling,
+                navn = null,
+                address = null,
             ),
-            prosessfullmektig = ankeITrygderettenbehandling.klager.prosessfullmektig?.let {
+            prosessfullmektig = ankeITrygderettenbehandling.prosessfullmektig?.let {
                 getPartViewWithUtsendingskanal(
                     partId = it.partId,
-                    behandling = ankeITrygderettenbehandling
+                    behandling = ankeITrygderettenbehandling,
+                    navn = it.navn,
+                    address = it.address,
                 )
             },
             temaId = ankeITrygderettenbehandling.ytelse.toTema().id,
@@ -363,12 +386,16 @@ class BehandlingMapper(
             sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandlingEtterTrygderettenOpphevet),
             klager = getPartViewWithUtsendingskanal(
                 partId = behandlingEtterTrygderettenOpphevet.klager.partId,
-                behandling = behandlingEtterTrygderettenOpphevet
+                behandling = behandlingEtterTrygderettenOpphevet,
+                navn = null,
+                address = null,
             ),
-            prosessfullmektig = behandlingEtterTrygderettenOpphevet.klager.prosessfullmektig?.let {
+            prosessfullmektig = behandlingEtterTrygderettenOpphevet.prosessfullmektig?.let {
                 getPartViewWithUtsendingskanal(
                     partId = it.partId,
-                    behandling = behandlingEtterTrygderettenOpphevet
+                    behandling = behandlingEtterTrygderettenOpphevet,
+                    navn = it.navn,
+                    address = it.address,
                 )
             },
             temaId = behandlingEtterTrygderettenOpphevet.ytelse.toTema().id,
@@ -475,17 +502,6 @@ class BehandlingMapper(
         )
     }
 
-    fun getPartViewWithUtsendingskanal(
-        partId: PartId,
-        behandling: Behandling
-    ): BehandlingDetaljerView.PartViewWithUtsendingskanal {
-        return getPartViewWithUtsendingskanal(
-            identifier = partId.value,
-            isPerson = partId.isPerson(),
-            behandling = behandling,
-        )
-    }
-
     private fun getPartView(identifier: String, isPerson: Boolean): BehandlingDetaljerView.PartView {
         return if (isPerson) {
             val person = pdlFacade.getPersonInfo(identifier)
@@ -513,41 +529,65 @@ class BehandlingMapper(
         }
     }
 
-    private fun getPartViewWithUtsendingskanal(
-        identifier: String,
-        isPerson: Boolean,
-        behandling: Behandling
+    fun getPartViewWithUtsendingskanal(
+        partId: PartId?,
+        behandling: Behandling,
+        navn: String?,
+        address: Adresse?
     ): BehandlingDetaljerView.PartViewWithUtsendingskanal {
         val utsendingskanal = dokDistKanalService.getUtsendingskanal(
-            mottakerId = identifier,
+            mottakerId = partId?.value,
             brukerId = behandling.sakenGjelder.partId.value,
             tema = behandling.ytelse.toTema(),
             saksbehandlerContext = true,
         )
 
-        return if (isPerson) {
-            val person = pdlFacade.getPersonInfo(identifier)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
-            BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                id = person.foedselsnr,
-                name = person.settSammenNavn(),
-                type = BehandlingDetaljerView.IdType.FNR,
-                available = person.doed == null,
-                language = krrInfo?.spraak,
-                statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
-                utsendingskanal = utsendingskanal
-            )
+        return if (partId != null) {
+            val isPerson = partId.isPerson()
+            val identifier = partId.value
+
+            if (isPerson) {
+                val person = pdlFacade.getPersonInfo(identifier)
+                val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
+                BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                    id = person.foedselsnr,
+                    name = person.settSammenNavn(),
+                    type = BehandlingDetaljerView.IdType.FNR,
+                    available = person.doed == null,
+                    language = krrInfo?.spraak,
+                    statusList = getStatusList(person, krrInfo),
+                    address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
+                    utsendingskanal = utsendingskanal
+                )
+            } else {
+                val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
+                BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                    id = identifier,
+                    name = organisasjon.navn.sammensattnavn,
+                    type = BehandlingDetaljerView.IdType.ORGNR,
+                    available = organisasjon.isActive(),
+                    language = null,
+                    statusList = getStatusList(organisasjon),
+                    address = getAddress(organisasjon),
+                    utsendingskanal = utsendingskanal,
+                )
+            }
         } else {
-            val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
             BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                id = identifier,
-                name = organisasjon.navn.sammensattnavn,
-                type = BehandlingDetaljerView.IdType.ORGNR,
-                available = organisasjon.isActive(),
+                id = null,
+                name = navn!!,
+                type = null,
+                available = true,
                 language = null,
-                statusList = getStatusList(organisasjon),
-                address = getAddress(organisasjon),
+                statusList = listOf(),
+                address = BehandlingDetaljerView.Address(
+                    adresselinje1 = address!!.adresselinje1,
+                    adresselinje2 = address.adresselinje2,
+                    adresselinje3 = address.adresselinje3,
+                    landkode = address.landkode,
+                    postnummer = address.postnummer,
+                    poststed = address.poststed,
+                ),
                 utsendingskanal = utsendingskanal,
             )
         }

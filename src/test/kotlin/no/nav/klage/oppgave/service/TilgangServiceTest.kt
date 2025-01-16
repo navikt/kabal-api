@@ -221,6 +221,7 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     sakenGjelder = SakenGjelder(
         partId = PartId(type = PartIdType.PERSON, value = "23452354"),
     ),
+    prosessfullmektig = null,
     ytelse = Ytelse.OMS_OMP,
     type = Type.KLAGE,
     frist = LocalDate.now(),

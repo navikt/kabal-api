@@ -24,8 +24,6 @@ class Ankebehandling(
     var sourceBehandlingId: UUID?,
     @Column(name = "mottak_id")
     val mottakId: UUID? = null,
-    @Column(name = "dato_innsendt")
-    val innsendt: LocalDate? = null,
     @Column(name = "kaka_kvalitetsvurdering_id")
     var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = true)
@@ -47,6 +45,7 @@ class Ankebehandling(
     id: UUID = UUID.randomUUID(),
     klager: Klager,
     sakenGjelder: SakenGjelder,
+    prosessfullmektig: Prosessfullmektig?,
     ytelse: Ytelse,
     type: Type,
     kildeReferanse: String,
@@ -86,6 +85,7 @@ class Ankebehandling(
     id = id,
     klager = klager,
     sakenGjelder = sakenGjelder,
+    prosessfullmektig = prosessfullmektig,
     ytelse = ytelse,
     type = type,
     kildeReferanse = kildeReferanse,

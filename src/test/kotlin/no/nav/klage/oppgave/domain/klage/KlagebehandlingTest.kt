@@ -25,6 +25,7 @@ internal class KlagebehandlingTest {
             sakenGjelder = SakenGjelder(
                 partId = PartId(PartIdType.PERSON, fnr),
             ),
+            prosessfullmektig = null,
             mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,

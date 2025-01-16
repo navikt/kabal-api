@@ -15,10 +15,25 @@ class VarsletBehandlingstidHistorikkMottaker(
             AttributeOverride(name = "value", column = Column(name = "varslet_behandlingstid_historikk_mottaker_value"))
         ]
     )
-    val partId: PartId,
+    val partId: PartId?,
+    @Column(name = "varslet_behandlingstid_historikk_mottaker_navn")
+    val navn: String?,
 )
 
-fun PartId.toVarsletBehandlingstidHistorikkMottaker(): VarsletBehandlingstidHistorikkMottaker =
-    VarsletBehandlingstidHistorikkMottaker(
-        partId = PartId(type = type, value = value)
-    )
+fun Mottaker.toVarsletBehandlingstidHistorikkMottaker(): VarsletBehandlingstidHistorikkMottaker {
+    return when (this) {
+        is MottakerPartId -> {
+            VarsletBehandlingstidHistorikkMottaker(
+                partId = PartId(type = value.type, value = value.value),
+                navn = null
+            )
+        }
+
+        is MottakerNavn -> {
+            VarsletBehandlingstidHistorikkMottaker(
+                partId = null,
+                navn = value,
+            )
+        }
+    }
+}

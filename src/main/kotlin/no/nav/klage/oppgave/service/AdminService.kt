@@ -84,22 +84,7 @@ class AdminService(
 
             behandlingPage.content.map { behandling ->
                 try {
-                    when (behandling) {
-                        is Klagebehandling ->
-                            behandlingEndretKafkaProducer.sendKlageEndret(behandling)
-
-                        is Ankebehandling ->
-                            behandlingEndretKafkaProducer.sendAnkeEndret(behandling)
-
-                        is AnkeITrygderettenbehandling ->
-                            behandlingEndretKafkaProducer.sendAnkeITrygderettenEndret(behandling)
-
-                        is BehandlingEtterTrygderettenOpphevet ->
-                            behandlingEndretKafkaProducer.sendBehandlingOpprettetEtterTrygderettenOpphevet(behandling)
-
-                        is Omgjoeringskravbehandling ->
-                            behandlingEndretKafkaProducer.sendOmgjoeringskravEndret(behandling)
-                    }
+                    behandlingEndretKafkaProducer.sendBehandlingEndret(behandling)
                 } catch (e: Exception) {
                     logger.warn("Exception during send to Kafka", e)
                 }
@@ -110,22 +95,9 @@ class AdminService(
     }
 
     fun reindexBehandlingInSearch(behandlingId: UUID) {
-        when (val behandling = behandlingRepository.findByIdEager(behandlingId)) {
-            is Klagebehandling ->
-                behandlingEndretKafkaProducer.sendKlageEndret(behandling)
-
-            is Ankebehandling ->
-                behandlingEndretKafkaProducer.sendAnkeEndret(behandling)
-
-            is AnkeITrygderettenbehandling ->
-                behandlingEndretKafkaProducer.sendAnkeITrygderettenEndret(behandling)
-
-            is BehandlingEtterTrygderettenOpphevet ->
-                behandlingEndretKafkaProducer.sendBehandlingOpprettetEtterTrygderettenOpphevet(behandling)
-
-            is Omgjoeringskravbehandling ->
-                behandlingEndretKafkaProducer.sendOmgjoeringskravEndret(behandling)
-        }
+        behandlingEndretKafkaProducer.sendBehandlingEndret(
+            behandlingRepository.findByIdEager(behandlingId)
+        )
     }
 
     /** only for use in dev */
@@ -492,7 +464,8 @@ class AdminService(
     )
 
     fun getTaskListMerkantil(): List<TaskListMerkantilView> {
-        return taskListMerkantilRepository.findAll().sortedByDescending { it.created }.map { it.toTaskListMerkantilView() }
+        return taskListMerkantilRepository.findAll().sortedByDescending { it.created }
+            .map { it.toTaskListMerkantilView() }
     }
 
     fun TaskListMerkantil.toTaskListMerkantilView(): TaskListMerkantilView {
@@ -509,7 +482,6 @@ class AdminService(
         )
     }
 }
-
 
 
 fun migrateTables(fromJsonString: String?, secureLogger: Logger?): String {
