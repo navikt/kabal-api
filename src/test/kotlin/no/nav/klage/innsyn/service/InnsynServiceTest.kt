@@ -50,7 +50,6 @@ internal class InnsynServiceTest {
             mottattVedtaksinstans = klageMottattVedtaksinstans,
             avsenderEnhetFoersteinstans = "1200",
             mottakId = UUID.randomUUID(),
-            innsendt = null,
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
             klager = Klager(
@@ -65,6 +64,7 @@ internal class InnsynServiceTest {
                     value = "123"
                 )
             ),
+            prosessfullmektig = null,
             ytelse = Ytelse.FOR_FOR,
             type = Type.KLAGE,
             kildeReferanse = "abc",
@@ -86,7 +86,6 @@ internal class InnsynServiceTest {
 
         val ankebehandling = Ankebehandling(
             mottakId = UUID.randomUUID(),
-            innsendt = null,
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
             klager = Klager(
@@ -101,6 +100,7 @@ internal class InnsynServiceTest {
                     value = "123"
                 )
             ),
+            prosessfullmektig = null,
             ytelse = Ytelse.FOR_FOR,
             type = Type.KLAGE,
             kildeReferanse = "abc",
@@ -135,6 +135,7 @@ internal class InnsynServiceTest {
                     value = "123"
                 )
             ),
+            prosessfullmektig = null,
             ytelse = Ytelse.FOR_FOR,
             type = Type.KLAGE,
             kildeReferanse = "abc",
@@ -159,7 +160,6 @@ internal class InnsynServiceTest {
 
         val ankebehandling2KA = Ankebehandling(
             mottakId = null,
-            innsendt = null,
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
             klager = Klager(
@@ -174,6 +174,7 @@ internal class InnsynServiceTest {
                     value = "123"
                 )
             ),
+            prosessfullmektig = null,
             ytelse = Ytelse.FOR_FOR,
             type = Type.KLAGE,
             kildeReferanse = "abc",
