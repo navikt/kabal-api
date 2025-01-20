@@ -1,7 +1,13 @@
 package no.nav.klage.innsyn.service
 
+import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
+import no.nav.klage.innsyn.api.view.SakView
 import no.nav.klage.innsyn.client.safselvbetjening.SafSelvbetjeningGraphQlClient
 import no.nav.klage.innsyn.client.safselvbetjening.SafSelvbetjeningRestClient
+import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.oppgave.domain.klage.Ankebehandling
+import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.util.getLogger
 import org.apache.pdfbox.io.MemoryUsageSetting
 import org.apache.pdfbox.io.RandomAccessStreamCache
@@ -17,6 +23,7 @@ import java.nio.file.Path
 class DocumentService(
     private val safSelvbetjeningGraphQlClient: SafSelvbetjeningGraphQlClient,
     private val safSelvbetjeningRestClient: SafSelvbetjeningRestClient,
+    private val dokumentUnderArbeidCommonService: DokumentUnderArbeidCommonService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -94,5 +101,48 @@ class DocumentService(
     @Throws(IOException::class)
     private fun getMixedMemorySettingsForPDFBox(bytes: Long): RandomAccessStreamCache.StreamCacheCreateFunction {
         return MemoryUsageSetting.setupMixed(bytes).streamCache
+    }
+
+    fun getSvarbrev(behandling: Behandling): SakView.Event.EventDocument? {
+        val svarbrev = dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+            behandling.id
+        ).filter {
+            it.dokumentType in listOf(
+                DokumentType.SVARBREV,
+            )
+        }.sortedBy { it.ferdigstilt }.firstOrNull()
+
+        if (svarbrev == null) return null
+
+        val journalpostId = if (svarbrev.avsenderMottakerInfoSet.size == 1) {
+            if (svarbrev.avsenderMottakerInfoSet.first().identifikator == behandling.sakenGjelder.partId.value) {
+                svarbrev.dokarkivReferences.first().journalpostId
+            } else null
+        } else {
+            if (svarbrev.avsenderMottakerInfoSet.any { it.identifikator == behandling.sakenGjelder.partId.value }) {
+                val journalpostIdList = svarbrev.dokarkivReferences.map { it.journalpostId }
+                var accessibleJournalpostId: String? = null
+                journalpostIdList.forEach { journalpostId ->
+                    val journalpostInfo = safSelvbetjeningGraphQlClient.getJournalpostById(journalpostId = journalpostId)
+                    if (journalpostInfo.errors.isNullOrEmpty()) {
+                        accessibleJournalpostId = journalpostInfo.data?.journalpostById?.journalpostId
+                    }
+                }
+                accessibleJournalpostId
+            } else null
+        }
+
+        return SakView.Event.EventDocument(
+            title = svarbrev.name,
+            archiveDate = svarbrev.ferdigstilt!!,
+            journalpostId = journalpostId,
+            eventDocumentType = when (behandling) {
+                is Klagebehandling -> SakView.Event.EventDocument.EventDocumentType.SVARBREV_KLAGE
+                is Ankebehandling -> SakView.Event.EventDocument.EventDocumentType.SVARBREV_ANKE
+                else -> throw RuntimeException(
+                    "Wrong behandling type"
+                )
+            }
+        )
     }
 }

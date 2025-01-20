@@ -8,7 +8,6 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.nio.file.Path
 import java.time.LocalDate
@@ -68,24 +67,23 @@ class InnsynService(
         val events = mutableListOf<SakView.Event>()
         return when (this) {
             is Klagebehandling -> {
-                val relevantJournalpostId = getUsersKlage(this)
                 events += SakView.Event(
                     type = SakView.Event.EventType.KLAGE_MOTTATT_VEDTAKSINSTANS,
                     date = mottattVedtaksinstans.atStartOfDay(),
-                    relevantJournalpostId = relevantJournalpostId,
+                    relevantDocuments = listOf(),
                 )
 
                 events += SakView.Event(
                     type = SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS,
                     date = mottattKlageinstans,
-                    relevantJournalpostId = relevantJournalpostId,
+                    relevantDocuments = getRelevantDocuments(SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS, this),
                 )
 
                 if (ferdigstilling != null) {
                     events += SakView.Event(
                         type = SakView.Event.EventType.KLAGE_AVSLUTTET_I_KLAGEINSTANS,
                         date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                        relevantJournalpostId = null,
+                        relevantDocuments = listOf(),
                     )
                 }
                 events
@@ -95,14 +93,14 @@ class InnsynService(
                 events += SakView.Event(
                     type = SakView.Event.EventType.ANKE_SENDT_TRYGDERETTEN,
                     date = sendtTilTrygderetten,
-                    relevantJournalpostId = null,
+                    relevantDocuments = listOf(),
                 )
 
                 if (kjennelseMottatt != null) {
                     events += SakView.Event(
                         type = SakView.Event.EventType.ANKE_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
                         date = kjennelseMottatt!!,
-                        relevantJournalpostId = null,
+                        relevantDocuments = listOf(),
                     )
                 }
 
@@ -110,7 +108,7 @@ class InnsynService(
                     events += SakView.Event(
                         type = SakView.Event.EventType.ANKE_AVSLUTTET_I_TRYGDERETTEN,
                         date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                        relevantJournalpostId = null,
+                        relevantDocuments = listOf(),
                     )
                 }
                 events
@@ -122,7 +120,7 @@ class InnsynService(
                     events += SakView.Event(
                         type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
                         date = mottattKlageinstans,
-                        relevantJournalpostId = getUsersAnke(this),
+                        relevantDocuments = getRelevantDocuments(SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS, this),
                     )
                 } else {
                     //If created in Kabal. Do we need this?
@@ -132,7 +130,7 @@ class InnsynService(
                     events += SakView.Event(
                         type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
                         date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                        relevantJournalpostId = null,
+                        relevantDocuments = listOf(),
                     )
                 }
                 events
@@ -143,7 +141,7 @@ class InnsynService(
                     events += SakView.Event(
                         type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
                         date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                        relevantJournalpostId = null,
+                        relevantDocuments = listOf(),
                     )
                 }
                 events
@@ -154,14 +152,14 @@ class InnsynService(
                     //TODO: Skal dette være dette eventet, eller et spesifikt for omgjøringskrav?
                     type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
                     date = mottattKlageinstans,
-                    relevantJournalpostId = getUsersOmgjoeringskrav(this),
+                    relevantDocuments = listOf(),
                 )
 
                 if (ferdigstilling != null) {
                     events += SakView.Event(
                         type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
                         date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                        relevantJournalpostId = null,
+                        relevantDocuments = listOf(),
                     )
                 }
                 events
@@ -169,25 +167,21 @@ class InnsynService(
         }
     }
 
-    private fun getUsersOmgjoeringskrav(omgjoeringskravbehandling: Omgjoeringskravbehandling): String? {
-        val mottak = mottakRepository.findByIdOrNull(omgjoeringskravbehandling.mottakId)
-        return mottak?.let { foundMottak ->
-            foundMottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_OMGJOERINGSKRAV }?.journalpostId
+    private fun getRelevantDocuments(
+        eventType: SakView.Event.EventType,
+        behandling: Behandling
+    ): List<SakView.Event.EventDocument>? {
+        return when (eventType) {
+            SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS, SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS  -> {
+                val svarbrev = getSvarbrev(behandling)
+                return if (svarbrev != null) listOf(svarbrev) else null
+            }
+            else -> listOf()
         }
     }
 
-    private fun getUsersKlage(klagebehandling: Klagebehandling): String? {
-        val mottak = mottakRepository.findByIdOrNull(klagebehandling.mottakId)
-        return mottak?.let { foundMottak ->
-            foundMottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_KLAGE }?.journalpostId
-        }
-    }
-
-    private fun getUsersAnke(ankebehandling: Ankebehandling): String? {
-        val mottak = mottakRepository.findByIdOrNull(ankebehandling.mottakId)
-        return mottak?.let { foundMottak ->
-            foundMottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_ANKE }?.journalpostId
-        }
+    private fun getSvarbrev(behandling: Behandling): SakView.Event.EventDocument? {
+        return documentService.getSvarbrev(behandling)
     }
 
     private fun getVarsletBehandlingstidView(
