@@ -6,6 +6,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -204,7 +205,17 @@ data class OversendtAdresse(
         description = "ISO 3166-1 alpha-2 kode. F.eks. NO for Norge."
     )
     val land: String,
-)
+) {
+    fun validateAddress() {
+        if (land == "NO") {
+            if (postnummer == null) {
+                throw OversendtKlageNotValidException("Trenger postnummer for norske adresser.")
+            }
+        } else if (adresselinje1 == null) {
+            throw OversendtKlageNotValidException("Trenger adresselinje1 for utenlandske adresser.")
+        }
+    }
+}
 
 data class OversendtPart(
     @Schema(

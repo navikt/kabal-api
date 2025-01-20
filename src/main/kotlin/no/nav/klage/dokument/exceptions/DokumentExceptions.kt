@@ -4,6 +4,8 @@ import no.nav.klage.dokument.api.view.DocumentValidationResponse
 
 class DokumentValidationException(msg: String) : RuntimeException(msg)
 
+class AddressValidationException(msg: String) : RuntimeException(msg)
+
 class SmartDocumentValidationException(msg: String, val errors: List<DocumentValidationResponse>) : RuntimeException(msg)
 
 class SvarbrevPreviewException(msg: String) : RuntimeException(msg)

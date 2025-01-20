@@ -173,6 +173,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
+    fun handleAddressValidationException(
+        ex: AddressValidationException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.BAD_REQUEST, ex)
+
+    @ExceptionHandler
     fun handleDocumentDoesNotExistException(
         ex: DocumentDoesNotExistException,
         request: NativeWebRequest

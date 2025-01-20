@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
-import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.api.view.Mottaker
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
@@ -833,15 +832,7 @@ class DokumentUnderArbeidService(
                     throw DokumentValidationException("Ugyldig landkode: ${mottaker.overriddenAddress.landkode}")
                 }
 
-                if (mottaker.overriddenAddress.landkode == "NO") {
-                    if (mottaker.overriddenAddress.postnummer == null) {
-                        throw DokumentValidationException("Trenger postnummer for norske adresser.")
-                    }
-                } else {
-                    if (mottaker.overriddenAddress.adresselinje1 == null) {
-                        throw DokumentValidationException("Trenger adresselinje1 for utenlandske adresser.")
-                    }
-                }
+                mottaker.overriddenAddress.validateAddress()
             }
         }
 

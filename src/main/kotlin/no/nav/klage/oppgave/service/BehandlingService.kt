@@ -1297,12 +1297,15 @@ class BehandlingService(
             if ((input.address != null && input.name == null) || (input.address == null && input.name != null) ) {
                 throw IllegalOperation("Both address or name must be set")
             }
+
+            if (input.address != null) {
+                input.address.validateAddress()
+            }
         }
 
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
-
         val partId: PartId? = if (input?.identifikator == null) {
             null
         } else {
@@ -1317,7 +1320,7 @@ class BehandlingService(
                     val poststed = if (it.landkode == "NO") {
                         if (it.postnummer != null) {
                             kodeverkService.getPoststed(it.postnummer)
-                        } else null
+                        } else throw IllegalOperation("Postnummer must be set for Norwegian address")
                     } else null
                     Adresse(
                         adresselinje1 = it.adresselinje1,

@@ -411,6 +411,27 @@ class MottakService(
         validateOptionalDateTimeNotInFuture(sakMottattKaTidspunkt, ::sakMottattKaTidspunkt.name)
         validateKildeReferanse(kildeReferanse)
         validateEnhet(forrigeBehandlendeEnhet)
+        prosessfullmektig?.let { validateProsessfullmektig(it) }
+    }
+
+    private fun validateProsessfullmektig(prosessfullmektig: OversendtProsessfullmektig) {
+        if (prosessfullmektig.id == null && prosessfullmektig.navn == null && prosessfullmektig.adresse == null) {
+            throw OversendtKlageNotValidException("Enten id eller navn og adresse må være satt.")
+        }
+
+        if (prosessfullmektig.id != null && (prosessfullmektig.adresse != null || prosessfullmektig.navn != null)) {
+            throw OversendtKlageNotValidException("Adresse og navn kan bare settes når id ikke er satt.")
+        }
+
+        if ((prosessfullmektig.adresse != null && prosessfullmektig.navn == null) || (prosessfullmektig.adresse == null && prosessfullmektig.navn != null)) {
+            throw OversendtKlageNotValidException("Både adresse og navn må være satt.")
+        }
+
+        if (prosessfullmektig.id != null) {
+            validatePartId(prosessfullmektig.id.toPartId())
+        } else {
+            prosessfullmektig.adresse!!.validateAddress()
+        }
     }
 
     fun CreateKlageBasedOnKabinInput.validate() {

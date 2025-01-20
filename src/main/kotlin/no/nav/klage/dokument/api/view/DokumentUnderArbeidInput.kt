@@ -1,6 +1,7 @@
 package no.nav.klage.dokument.api.view
 
 import com.fasterxml.jackson.databind.JsonNode
+import no.nav.klage.dokument.exceptions.AddressValidationException
 import java.time.LocalDate
 import java.util.*
 
@@ -70,4 +71,14 @@ data class AddressInput(
     val adresselinje3: String?,
     val landkode: String,
     val postnummer: String?,
-)
+) {
+    fun validateAddress() {
+        if (landkode == "NO") {
+            if (postnummer == null) {
+                throw AddressValidationException("Trenger postnummer for norske adresser.")
+            }
+        } else if (adresselinje1 == null) {
+            throw AddressValidationException("Trenger adresselinje1 for utenlandske adresser.")
+        }
+    }
+}
