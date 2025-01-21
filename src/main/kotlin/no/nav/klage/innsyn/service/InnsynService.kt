@@ -170,11 +170,11 @@ class InnsynService(
     private fun getRelevantDocuments(
         eventType: SakView.Event.EventType,
         behandling: Behandling
-    ): List<SakView.Event.EventDocument>? {
+    ): List<SakView.Event.EventDocument> {
         return when (eventType) {
             SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS, SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS  -> {
                 val svarbrev = getSvarbrev(behandling)
-                return if (svarbrev != null) listOf(svarbrev) else null
+                return if (svarbrev != null) listOf(svarbrev) else listOf()
             }
             else -> listOf()
         }
