@@ -1339,12 +1339,30 @@ class BehandlingService(
 
         val partView = if (behandling.prosessfullmektig == null) {
             null
-        } else {
+        } else if (behandling.prosessfullmektig!!.partId != null) {
             partSearchService.searchPartWithUtsendingskanal(
                 identifikator = behandling.prosessfullmektig?.partId?.value!!,
                 skipAccessControl = true,
                 sakenGjelderId = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
+            )
+        } else {
+            BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                id = null,
+                name = behandling.prosessfullmektig!!.navn!!,
+                type = null,
+                available = true,
+                language = null,
+                statusList = listOf(),
+                address = BehandlingDetaljerView.Address(
+                    adresselinje1 = behandling.prosessfullmektig!!.address!!.adresselinje1,
+                    adresselinje2 = behandling.prosessfullmektig!!.address!!.adresselinje2,
+                    adresselinje3 = behandling.prosessfullmektig!!.address!!.adresselinje3,
+                    landkode = behandling.prosessfullmektig!!.address!!.landkode,
+                    postnummer = behandling.prosessfullmektig!!.address!!.postnummer,
+                    poststed = behandling.prosessfullmektig!!.address!!.poststed,
+                ) ,
+                utsendingskanal = BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT
             )
         }
 
