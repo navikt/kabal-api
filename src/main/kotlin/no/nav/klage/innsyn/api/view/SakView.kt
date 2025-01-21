@@ -37,13 +37,12 @@ data class SakView(
 
         data class EventDocument(
             val title: String,
-            val archiveDate: LocalDateTime,
+            val archiveDate: LocalDate,
             val journalpostId: String?,
             val eventDocumentType: EventDocumentType,
         ) {
             enum class EventDocumentType {
-                SVARBREV_KLAGE,
-                SVARBREV_ANKE,
+                SVARBREV,
             }
         }
     }

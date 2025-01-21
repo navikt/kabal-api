@@ -31,7 +31,7 @@ internal class DocumentServiceTest {
     private val SAKEN_GJELDER_ID = "SAKEN_GJELDER_ID"
     private val FULLMEKTIG_ID = "FULLMEKTIG_ID"
     private val JOURNALPOST_ID = "JOURNALPOST_ID"
-    private val DATE_TIME = LocalDateTime.now()
+    private val DATE = LocalDate.now()
 
 
     @Test
@@ -44,7 +44,7 @@ internal class DocumentServiceTest {
         val output = documentService.getSvarbrev(behandling = getBehandling())
         assertThat(output!!.journalpostId).isEqualTo(SAKEN_GJELDER_ID + JOURNALPOST_ID)
         assertThat(output.title).isEqualTo(DokumentType.SVARBREV.name)
-        assertThat(output.archiveDate).isEqualTo(DATE_TIME)
+        assertThat(output.archiveDate).isEqualTo(DATE)
     }
 
     @Test
@@ -94,7 +94,7 @@ internal class DocumentServiceTest {
         val output = documentService.getSvarbrev(behandling = getBehandling())
         assertThat(output!!.journalpostId).isEqualTo(SAKEN_GJELDER_ID + JOURNALPOST_ID)
         assertThat(output.title).isEqualTo(DokumentType.SVARBREV.name)
-        assertThat(output.archiveDate).isEqualTo(DATE_TIME)
+        assertThat(output.archiveDate).isEqualTo(DATE)
     }
 
     @Test
@@ -106,7 +106,7 @@ internal class DocumentServiceTest {
         val output = documentService.getSvarbrev(behandling = getBehandling())
         assertThat(output!!.journalpostId).isEqualTo(null)
         assertThat(output.title).isEqualTo(DokumentType.SVARBREV.name)
-        assertThat(output.archiveDate).isEqualTo(DATE_TIME)
+        assertThat(output.archiveDate).isEqualTo(DATE)
     }
 
     @Test
@@ -121,7 +121,7 @@ internal class DocumentServiceTest {
         val output = documentService.getSvarbrev(behandling = getBehandling())
         assertThat(output!!.journalpostId).isEqualTo(null)
         assertThat(output.title).isEqualTo(DokumentType.SVARBREV.name)
-        assertThat(output.archiveDate).isEqualTo(DATE_TIME)
+        assertThat(output.archiveDate).isEqualTo(DATE)
     }
 
     private fun getHovedDokument(
@@ -147,7 +147,7 @@ internal class DocumentServiceTest {
             modified = LocalDateTime.now(),
             markertFerdig = null,
             markertFerdigBy = null,
-            ferdigstilt = DATE_TIME,
+            ferdigstilt = DATE.atStartOfDay(),
             creatorIdent = "",
             creatorRole = BehandlingRole.KABAL_SAKSBEHANDLING,
 

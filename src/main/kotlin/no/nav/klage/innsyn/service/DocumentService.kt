@@ -123,7 +123,8 @@ class DocumentService(
                 val journalpostIdList = svarbrev.dokarkivReferences.map { it.journalpostId }
                 var accessibleJournalpostId: String? = null
                 journalpostIdList.forEach { journalpostId ->
-                    val journalpostInfo = safSelvbetjeningGraphQlClient.getJournalpostById(journalpostId = journalpostId)
+                    val journalpostInfo =
+                        safSelvbetjeningGraphQlClient.getJournalpostById(journalpostId = journalpostId)
                     if (journalpostInfo.errors.isNullOrEmpty()) {
                         accessibleJournalpostId = journalpostInfo.data?.journalpostById?.journalpostId
                     }
@@ -134,11 +135,10 @@ class DocumentService(
 
         return SakView.Event.EventDocument(
             title = svarbrev.name,
-            archiveDate = svarbrev.ferdigstilt!!,
+            archiveDate = svarbrev.ferdigstilt!!.toLocalDate(),
             journalpostId = journalpostId,
             eventDocumentType = when (behandling) {
-                is Klagebehandling -> SakView.Event.EventDocument.EventDocumentType.SVARBREV_KLAGE
-                is Ankebehandling -> SakView.Event.EventDocument.EventDocumentType.SVARBREV_ANKE
+                is Klagebehandling, is Ankebehandling -> SakView.Event.EventDocument.EventDocumentType.SVARBREV
                 else -> throw RuntimeException(
                     "Wrong behandling type"
                 )
