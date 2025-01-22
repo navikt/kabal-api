@@ -30,6 +30,7 @@ internal class InnsynServiceTest {
     fun test() {
         every { behandlingRepository.findBySakenGjelderPartIdValueAndFeilregistreringIsNull(any()) } returns getBehandlinger()
         every { mottakRepository.findByIdOrNull(any()) } returns null
+        every { documentService.getSvarbrev(any()) } returns null
         val response = innsynService.getSakerForBruker("123")
         response.saker.forEach { sak ->
             println(sak.saksnummer)

@@ -22,7 +22,7 @@ data class SakView(
     data class Event(
         val type: EventType,
         val date: LocalDateTime,
-        val relevantJournalpostId: String?,
+        val relevantDocuments: List<EventDocument>?,
     ) {
         enum class EventType {
             KLAGE_MOTTATT_VEDTAKSINSTANS,
@@ -33,6 +33,17 @@ data class SakView(
             ANKE_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
             ANKE_AVSLUTTET_I_TRYGDERETTEN, //Do we need this, when we have ANKE_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN?
             ANKE_AVSLUTTET_I_KLAGEINSTANS,
+        }
+
+        data class EventDocument(
+            val title: String,
+            val archiveDate: LocalDate,
+            val journalpostId: String?,
+            val eventDocumentType: EventDocumentType,
+        ) {
+            enum class EventDocumentType {
+                SVARBREV,
+            }
         }
     }
 
