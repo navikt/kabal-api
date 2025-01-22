@@ -18,6 +18,7 @@ val verapdfVersion = "1.26.2"
 val klageKodeverkVersion = "1.9.10"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
 val otelVersion = "1.45.0"
+val mikrofrontendSelectorVersion = "3.0.0"
 
 plugins {
     val kotlinVersion = "2.1.0"
@@ -99,6 +100,7 @@ dependencies {
     }
     implementation("org.apache.pdfbox:pdfbox:$pdfboxVersion")
     implementation("org.apache.tika:tika-core:$tikaVersion")
+    implementation("no.nav.tms.mikrofrontend.selector:builder:$mikrofrontendSelectorVersion")
 
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
