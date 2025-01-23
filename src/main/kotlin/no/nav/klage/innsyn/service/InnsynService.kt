@@ -3,11 +3,11 @@ package no.nav.klage.innsyn.service
 import no.nav.klage.innsyn.api.view.InnsynResponse
 import no.nav.klage.innsyn.api.view.SakView
 import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.innsendingsytelse.Innsendingsytelse
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.repositories.MottakRepository
 import org.springframework.stereotype.Service
 import java.nio.file.Path
 import java.time.LocalDate
@@ -15,19 +15,20 @@ import java.time.LocalDate
 @Service
 class InnsynService(
     private val behandlingRepository: BehandlingRepository,
-    private val mottakRepository: MottakRepository,
     private val documentService: DocumentService,
 ) {
 
     data class GroupByKey(
         val fagsystemId: String,
         val fagsakId: String,
+        val type: Type,
     )
 
     private fun Behandling.toGroupByKey(): GroupByKey {
         return GroupByKey(
             fagsystemId = fagsystem.id,
             fagsakId = fagsakId,
+            type = toBasicType(),
         )
     }
 
@@ -35,6 +36,15 @@ class InnsynService(
         return documentService.getJournalpostPdf(journalpostId = journalpostId)
     }
 
+    private fun Behandling.toBasicType(): Type {
+        return when (this) {
+            is Klagebehandling -> Type.KLAGE
+            is AnkeITrygderettenbehandling -> Type.ANKE
+            is Ankebehandling -> Type.ANKE
+            is BehandlingEtterTrygderettenOpphevet -> Type.ANKE
+            is Omgjoeringskravbehandling -> Type.OMGJOERINGSKRAV
+        }
+    }
 
     fun getSakerForBruker(fnr: String): InnsynResponse {
         val behandlingerGroupedBySak: Map<GroupByKey, List<Behandling>> =
@@ -56,115 +66,131 @@ class InnsynService(
             saksnummer = firstBehandling.fagsakId,
             ytelseId = firstBehandling.ytelse.id,
             innsendingsytelseId = firstBehandling.ytelse.mapYtelseToInnsendingsytelse()?.id ?: "ukjent",
-            events = this.map { it.getEvents() }.flatten()
+            events = this.map {
+                when (it) {
+                    is Klagebehandling -> it.getEvents()
+                    is AnkeITrygderettenbehandling -> it.getEvents()
+                    is Ankebehandling -> it.getEvents()
+                    is BehandlingEtterTrygderettenOpphevet -> it.getEvents()
+                    is Omgjoeringskravbehandling -> it.getEvents()
+                }
+            }.flatten()
                 .sortedBy { it.date }, //Will this always be correct when we for example truncate time?
             varsletBehandlingstid = firstBehandling.getVarsletBehandlingstid(),
             mottattKlageinstans = firstBehandling.mottattKlageinstans.toLocalDate(),
+            typeId = firstBehandling.toBasicType().id,
+            finishedDate = if (this.none { it.ferdigstilling == null }) {
+                this.mapNotNull { it.ferdigstilling?.avsluttetAvSaksbehandler }.maxOrNull()?.toLocalDate()
+            } else {
+                null
+            },
         )
     }
 
-    private fun Behandling.getEvents(): List<SakView.Event> {
+    private fun Klagebehandling.getEvents(): List<SakView.Event> {
         val events = mutableListOf<SakView.Event>()
-        return when (this) {
-            is Klagebehandling -> {
-                events += SakView.Event(
-                    type = SakView.Event.EventType.KLAGE_MOTTATT_VEDTAKSINSTANS,
-                    date = mottattVedtaksinstans.atStartOfDay(),
-                    relevantDocuments = listOf(),
-                )
+        events += SakView.Event(
+            type = SakView.Event.EventType.KLAGE_MOTTATT_VEDTAKSINSTANS,
+            date = mottattVedtaksinstans.atStartOfDay(),
+            relevantDocuments = listOf(),
+        )
 
-                events += SakView.Event(
-                    type = SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS,
-                    date = mottattKlageinstans,
-                    relevantDocuments = getRelevantDocuments(SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS, this),
-                )
+        events += SakView.Event(
+            type = SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS,
+            date = mottattKlageinstans,
+            relevantDocuments = getRelevantDocuments(SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS, this),
+        )
 
-                if (ferdigstilling != null) {
-                    events += SakView.Event(
-                        type = SakView.Event.EventType.KLAGE_AVSLUTTET_I_KLAGEINSTANS,
-                        date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                        relevantDocuments = listOf(),
-                    )
-                }
-                events
-            }
-
-            is AnkeITrygderettenbehandling -> {
-                events += SakView.Event(
-                    type = SakView.Event.EventType.ANKE_SENDT_TRYGDERETTEN,
-                    date = sendtTilTrygderetten,
-                    relevantDocuments = listOf(),
-                )
-
-                if (kjennelseMottatt != null) {
-                    events += SakView.Event(
-                        type = SakView.Event.EventType.ANKE_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
-                        date = kjennelseMottatt!!,
-                        relevantDocuments = listOf(),
-                    )
-                }
-
-                if (ferdigstilling != null && !shouldCreateNewBehandlingEtterTROpphevet() && !shouldCreateNewAnkebehandling()) {
-                    events += SakView.Event(
-                        type = SakView.Event.EventType.ANKE_AVSLUTTET_I_TRYGDERETTEN,
-                        date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                        relevantDocuments = listOf(),
-                    )
-                }
-                events
-            }
-
-            is Ankebehandling -> {
-                //if from Kabin or created in Kabal
-                if (mottakId != null) {
-                    events += SakView.Event(
-                        type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
-                        date = mottattKlageinstans,
-                        relevantDocuments = getRelevantDocuments(SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS, this),
-                    )
-                } else {
-                    //If created in Kabal. Do we need this?
-                }
-
-                if (ferdigstilling != null && !shouldBeSentToTrygderetten() && !shouldCreateNewAnkebehandling() && !shouldCreateNewBehandlingEtterTROpphevet()) {
-                    events += SakView.Event(
-                        type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
-                        date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                        relevantDocuments = listOf(),
-                    )
-                }
-                events
-            }
-
-            is BehandlingEtterTrygderettenOpphevet -> {
-                if (ferdigstilling != null) {
-                    events += SakView.Event(
-                        type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
-                        date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                        relevantDocuments = listOf(),
-                    )
-                }
-                events
-            }
-
-            is Omgjoeringskravbehandling -> {
-                events += SakView.Event(
-                    //TODO: Skal dette være dette eventet, eller et spesifikt for omgjøringskrav?
-                    type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
-                    date = mottattKlageinstans,
-                    relevantDocuments = listOf(),
-                )
-
-                if (ferdigstilling != null) {
-                    events += SakView.Event(
-                        type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
-                        date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                        relevantDocuments = listOf(),
-                    )
-                }
-                events
-            }
+        if (ferdigstilling != null) {
+            events += SakView.Event(
+                type = SakView.Event.EventType.KLAGE_AVSLUTTET_I_KLAGEINSTANS,
+                date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                relevantDocuments = listOf(),
+            )
         }
+
+        return events
+    }
+
+    private fun Omgjoeringskravbehandling.getEvents(): List<SakView.Event> {
+        val events = mutableListOf<SakView.Event>()
+        events += SakView.Event(
+            type = SakView.Event.EventType.OMGJOERINGSKRAV_MOTTATT_KLAGEINSTANS,
+            date = mottattKlageinstans,
+            relevantDocuments = listOf(),
+        )
+
+        if (ferdigstilling != null) {
+            events += SakView.Event(
+                type = SakView.Event.EventType.OMGJOERINGSKRAV_AVSLUTTET_I_KLAGEINSTANS,
+                date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                relevantDocuments = listOf(),
+            )
+        }
+
+        return events
+    }
+
+    private fun AnkeITrygderettenbehandling.getEvents(): List<SakView.Event> {
+        val events = mutableListOf<SakView.Event>()
+        events += SakView.Event(
+            type = SakView.Event.EventType.ANKE_SENDT_TRYGDERETTEN,
+            date = sendtTilTrygderetten,
+            relevantDocuments = listOf(),
+        )
+
+        if (kjennelseMottatt != null) {
+            events += SakView.Event(
+                type = SakView.Event.EventType.ANKE_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
+                date = kjennelseMottatt!!,
+                relevantDocuments = listOf(),
+            )
+        }
+
+        if (ferdigstilling != null && !shouldCreateNewBehandlingEtterTROpphevet() && !shouldCreateNewAnkebehandling()) {
+            events += SakView.Event(
+                type = SakView.Event.EventType.ANKE_AVSLUTTET_I_TRYGDERETTEN,
+                date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                relevantDocuments = listOf(),
+            )
+        }
+        return events
+    }
+
+    private fun Ankebehandling.getEvents(): List<SakView.Event> {
+        val events = mutableListOf<SakView.Event>()
+
+        //if from Kabin or created in Kabal
+        if (mottakId != null) {
+            events += SakView.Event(
+                type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
+                date = mottattKlageinstans,
+                relevantDocuments = getRelevantDocuments(SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS, this),
+            )
+        } else {
+            //If created in Kabal, don't show to user.
+        }
+
+        if (ferdigstilling != null && !shouldBeSentToTrygderetten() && !shouldCreateNewAnkebehandling() && !shouldCreateNewBehandlingEtterTROpphevet()) {
+            events += SakView.Event(
+                type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
+                date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                relevantDocuments = listOf(),
+            )
+        }
+        return events
+    }
+
+    private fun BehandlingEtterTrygderettenOpphevet.getEvents(): List<SakView.Event> {
+        val events = mutableListOf<SakView.Event>()
+        if (ferdigstilling != null) {
+            events += SakView.Event(
+                type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
+                date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                relevantDocuments = listOf(),
+            )
+        }
+        return events
     }
 
     private fun getRelevantDocuments(

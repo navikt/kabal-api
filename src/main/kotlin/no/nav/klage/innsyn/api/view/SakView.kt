@@ -6,8 +6,6 @@ import java.time.LocalDateTime
 
 data class InnsynResponse(
     val saker: List<SakView>,
-//    val active: List<SakView>,
-//    val finished: List<SakView>,
 )
 
 data class SakView(
@@ -18,6 +16,8 @@ data class SakView(
     val events: List<Event>,
     val varsletBehandlingstid: VarsletBehandlingstid?,
     val mottattKlageinstans: LocalDate,
+    val finishedDate: LocalDate?,
+    val typeId: String,
 ) {
     data class Event(
         val type: EventType,
@@ -28,6 +28,8 @@ data class SakView(
             KLAGE_MOTTATT_VEDTAKSINSTANS,
             KLAGE_MOTTATT_KLAGEINSTANS,
             KLAGE_AVSLUTTET_I_KLAGEINSTANS,
+            OMGJOERINGSKRAV_MOTTATT_KLAGEINSTANS,
+            OMGJOERINGSKRAV_AVSLUTTET_I_KLAGEINSTANS,
             ANKE_MOTTATT_KLAGEINSTANS,
             ANKE_SENDT_TRYGDERETTEN,
             ANKE_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
