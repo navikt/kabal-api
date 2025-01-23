@@ -117,7 +117,7 @@ class InnsynService(
         events += SakView.Event(
             type = SakView.Event.EventType.OMGJOERINGSKRAV_MOTTATT_KLAGEINSTANS,
             date = mottattKlageinstans,
-            relevantDocuments = listOf(),
+            relevantDocuments = getRelevantDocuments(SakView.Event.EventType.OMGJOERINGSKRAV_MOTTATT_KLAGEINSTANS, this),
         )
 
         if (ferdigstilling != null) {
@@ -198,7 +198,7 @@ class InnsynService(
         behandling: Behandling
     ): List<SakView.Event.EventDocument> {
         return when (eventType) {
-            SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS, SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS  -> {
+            SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS, SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS, SakView.Event.EventType.OMGJOERINGSKRAV_MOTTATT_KLAGEINSTANS  -> {
                 val svarbrev = getSvarbrev(behandling)
                 return if (svarbrev != null) listOf(svarbrev) else listOf()
             }
