@@ -62,7 +62,7 @@ class InnsynService(
         val firstBehandling = this.first()
 
         return SakView(
-            id = "${firstBehandling.fagsystem.id}_${firstBehandling.fagsakId}",
+            id = "${firstBehandling.fagsystem.id}_${firstBehandling.fagsakId}_${firstBehandling.toBasicType().id}",
             saksnummer = firstBehandling.fagsakId,
             ytelseId = firstBehandling.ytelse.id,
             innsendingsytelseId = firstBehandling.ytelse.mapYtelseToInnsendingsytelse()?.id ?: "ukjent",
