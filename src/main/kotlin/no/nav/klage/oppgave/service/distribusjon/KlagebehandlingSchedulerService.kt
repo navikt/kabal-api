@@ -85,7 +85,7 @@ class KlagebehandlingSchedulerService(
         )
     }
 
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 10)
+    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 2)
     @SchedulerLock(name = "dispatchUnsentMinsideMicrofrontendEventsToKafka")
     fun dispatchUnsentMinsideMicrofrontendEventsToKafka() {
         logSchedulerMessage(functionName = ::dispatchUnsentMinsideMicrofrontendEventsToKafka.name)
