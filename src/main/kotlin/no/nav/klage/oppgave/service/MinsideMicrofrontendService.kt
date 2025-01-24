@@ -25,7 +25,7 @@ class MinsideMicrofrontendService(
     lateinit var applicationName: String
 
     //TODO: Get correct microfrontendId
-    private val microfrontendName = "klage-minside"
+    private val microfrontendName = "mine-klager-microfrontend"
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
