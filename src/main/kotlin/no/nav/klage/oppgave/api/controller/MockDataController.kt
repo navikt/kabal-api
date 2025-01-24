@@ -282,7 +282,7 @@ class MockDataController(
                         kildeReferanse = mockInput?.kildeReferanse ?: UUID.randomUUID().toString(),
                         dvhReferanse = mockInput?.dvhReferanse,
                         innsynUrl = "https://nav.no",
-                        hjemler = listOf(ytelseToHjemlerForMock[ytelse]!!.random()),
+                        hjemler = listOf(ytelseToHjemler[ytelse]!!.random()),
                         forrigeBehandlendeEnhet = mockInput?.forrigeBehandlendeEnhet ?: "4295", //NAV Klageinstans nord
                         brukersHenvendelseMottattNavDato = dato,
                         sakMottattKaDato = dato,
