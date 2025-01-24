@@ -9,27 +9,22 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.repositories.MottakRepository
 import org.junit.jupiter.api.Test
-import org.springframework.data.repository.findByIdOrNull
 import java.time.LocalDate
 import java.util.*
 
 internal class InnsynServiceTest {
     private val behandlingRepository = mockk<BehandlingRepository>()
-    private val mottakRepository = mockk<MottakRepository>()
     private val documentService = mockk<DocumentService>()
     private val innsynService: InnsynService =
         InnsynService(
             behandlingRepository = behandlingRepository,
-            mottakRepository = mottakRepository,
             documentService = documentService,
         )
 
     @Test
     fun test() {
         every { behandlingRepository.findBySakenGjelderPartIdValueAndFeilregistreringIsNull(any()) } returns getBehandlinger()
-        every { mottakRepository.findByIdOrNull(any()) } returns null
         every { documentService.getSvarbrev(any()) } returns null
         val response = innsynService.getSakerForBruker("123")
         response.saker.forEach { sak ->
