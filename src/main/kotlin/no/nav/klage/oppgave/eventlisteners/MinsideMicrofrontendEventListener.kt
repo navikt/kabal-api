@@ -21,7 +21,7 @@ class MinsideMicrofrontendEventListener(
         logger.debug(
             "Received BehandlingEndretEvent for behandlingId {} in {}",
             behandlingEndretEvent.behandling.id,
-            javaClass.enclosingClass.simpleName
+            ::MinsideMicrofrontendEventListener.name
         )
         minsideMicrofrontendService.process(behandlingEndretEvent)
         logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)

@@ -36,7 +36,7 @@ class MinsideMicrofrontendService(
         logger.debug(
             "Received BehandlingEndretEvent for behandlingId {} in {}",
             behandlingEndretEvent.behandling.id,
-            javaClass.simpleName,
+            ::MinsideMicrofrontendService.name
         )
         val payload = if (behandlingEndretEvent.endringslogginnslag.any {
                 it.felt in listOf(
