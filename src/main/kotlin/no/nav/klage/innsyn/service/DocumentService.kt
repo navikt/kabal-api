@@ -8,6 +8,7 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.klage.Ankebehandling
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.domain.klage.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.util.getLogger
 import org.apache.pdfbox.io.MemoryUsageSetting
 import org.apache.pdfbox.io.RandomAccessStreamCache
@@ -138,7 +139,7 @@ class DocumentService(
             archiveDate = svarbrev.ferdigstilt!!.toLocalDate(),
             journalpostId = journalpostId,
             eventDocumentType = when (behandling) {
-                is Klagebehandling, is Ankebehandling -> SakView.Event.EventDocument.EventDocumentType.SVARBREV
+                is Klagebehandling, is Ankebehandling, is Omgjoeringskravbehandling -> SakView.Event.EventDocument.EventDocumentType.SVARBREV
                 else -> throw RuntimeException(
                     "Wrong behandling type"
                 )

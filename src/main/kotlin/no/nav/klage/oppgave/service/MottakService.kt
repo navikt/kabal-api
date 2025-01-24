@@ -372,6 +372,7 @@ class MottakService(
         validateYtelseAndHjemler(ytelse, hjemler)
         validateJournalpostList(tilknyttedeJournalposter.map { it.journalpostId })
         validatePartId(klager.id.toPartId())
+        klager.klagersProsessfullmektig?.id?.let { validatePartId(it.toPartId()) }
         sakenGjelder?.run { validatePartId(sakenGjelder.id.toPartId()) }
         validateType(type)
         validateEnhet(avsenderEnhet)
@@ -387,6 +388,7 @@ class MottakService(
         validateDuplicate(kilde, kildeReferanse, type)
         validateJournalpostList(tilknyttedeJournalposter.map { it.journalpostId })
         validatePartId(klager.id.toPartId())
+        klager.klagersProsessfullmektig?.id?.let { validatePartId(it.toPartId()) }
         sakenGjelder?.run { validatePartId(sakenGjelder.id.toPartId()) }
         validateDateNotInFuture(brukersHenvendelseMottattNavDato, ::brukersHenvendelseMottattNavDato.name)
         validateDateNotInFuture(innsendtTilNav, ::innsendtTilNav.name)
