@@ -278,7 +278,7 @@ fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
         Ytelse.BID_BBF -> Innsendingsytelse.BARNEBIDRAG
         Ytelse.BID_BII -> Innsendingsytelse.BARNEBIDRAG
         Ytelse.DAG_DAG -> Innsendingsytelse.DAGPENGER
-        Ytelse.ENF_ENF -> Innsendingsytelse.OVERGANGSSTONAD_TIL_ENSLIG_MOR_ELLER_FAR
+        Ytelse.ENF_ENF -> null //don't know which to choose
         Ytelse.GEN_GEN -> Innsendingsytelse.LONNSGARANTI
         Ytelse.GRA_GRA -> Innsendingsytelse.GRAVFERDSSTONAD
         Ytelse.GRU_HJE -> Innsendingsytelse.HJELPESTONAD
