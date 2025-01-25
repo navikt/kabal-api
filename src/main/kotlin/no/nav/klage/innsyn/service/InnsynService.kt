@@ -256,6 +256,9 @@ class InnsynService(
     }
 }
 
+/**
+ * Used when providing link to ettersendelse. If no matching innsendingsytelse, go to nav.no/klage instead.
+ */
 fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
     return when (this) {
         Ytelse.FOR_FOR -> Innsendingsytelse.FORELDREPENGER
@@ -282,10 +285,10 @@ fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
         Ytelse.GRU_GRU -> Innsendingsytelse.GRUNNSTONAD
         Ytelse.HJE_HJE -> Innsendingsytelse.HJELPEMIDLER
         Ytelse.KON_KON -> Innsendingsytelse.KONTANTSTOTTE
-        Ytelse.MED_MED -> null //don't know which to choose, go to nav.no/klage instead
+        Ytelse.MED_MED -> null //don't know which to choose
         Ytelse.PEN_ALD -> Innsendingsytelse.ALDERSPENSJON
         Ytelse.PEN_BAR -> Innsendingsytelse.BARNEPENSJON
-        Ytelse.PEN_AFP -> null //don't know which to choose, go to nav.no/klage instead
+        Ytelse.PEN_AFP -> null //don't know which to choose
         Ytelse.PEN_KRI -> Innsendingsytelse.KRIGSPENSJON
         Ytelse.PEN_GJE -> Innsendingsytelse.GJENLEVENDE
         Ytelse.PEN_EYO -> Innsendingsytelse.OMSTILLINGSSTONAD
@@ -306,7 +309,7 @@ fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
         Ytelse.FAR_FAR -> null //no matching innsendingsytelse/tema
         Ytelse.DAG_LKP -> Innsendingsytelse.DAGPENGER
         Ytelse.DAG_FDP -> Innsendingsytelse.DAGPENGER
-        Ytelse.BIL_BIL -> Innsendingsytelse.BILSTONAD//
+        Ytelse.BIL_BIL -> Innsendingsytelse.BILSTONAD
         Ytelse.HEL_HEL -> null //no matching innsendingsytelse/tema
         Ytelse.FOS_FOS -> null //no matching innsendingsytelse/tema
     }
