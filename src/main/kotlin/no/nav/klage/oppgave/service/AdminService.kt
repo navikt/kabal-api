@@ -481,6 +481,10 @@ class AdminService(
             typeId = behandlingRepository.findByIdEager(behandlingId).type.id
         )
     }
+
+    fun sendMissingEnableMinsieMicrofrontendMessages() {
+
+    }
 }
 
 

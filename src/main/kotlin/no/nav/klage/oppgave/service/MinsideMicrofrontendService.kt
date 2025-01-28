@@ -24,7 +24,6 @@ class MinsideMicrofrontendService(
     @Value("\${spring.application.name}")
     lateinit var applicationName: String
 
-    //TODO: Get correct microfrontendId
     private val microfrontendName = "mine-klager-microfrontend"
 
     companion object {
@@ -47,22 +46,14 @@ class MinsideMicrofrontendService(
                 )
             }) {
             val behandling = behandlingEndretEvent.behandling
-            val allBehandlinger =
-                behandlingRepository.findBySakenGjelderPartIdValueAndFeilregistreringIsNull(behandling.sakenGjelder.partId.value)
-            if (allBehandlinger.any {
-                    it.id != behandling.id
-                }
-            ) {
-                logger.debug("User has existing behandling. Assuming Minside microfrontend already is enabled. Returning.")
-                null
-            } else {
-                logger.debug("User has no previous existing behandling. Sending enable.")
-                MicrofrontendMessageBuilder.enable {
-                    ident = behandling.sakenGjelder.partId.value
-                    microfrontendId = microfrontendName
-                    initiatedBy = applicationName
-                }.text()
-            }
+
+            logger.debug("User has no previous existing behandling. Sending enable.")
+            MicrofrontendMessageBuilder.enable {
+                ident = behandling.sakenGjelder.partId.value
+                microfrontendId = microfrontendName
+                initiatedBy = applicationName
+            }.text()
+
         } else if (behandlingEndretEvent.endringslogginnslag.any {
                 it.felt in listOf(
                     Felt.FEILREGISTRERING
