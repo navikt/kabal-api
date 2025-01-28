@@ -175,5 +175,18 @@ class DevOnlyAdminController(
         return adminService.getInfotrygdsak(id)
     }
 
+    @Unprotected
+    @GetMapping("/internal/minsidemicrofrontend")
+    fun sendMissingEnableMinsideMicrofrontent() {
+        logger.debug("sendMissingEnableMinsideMicrofrontent is called in dev")
+
+        try {
+            adminService.sendMissingEnableMinsideMicrofrontendMessages()
+        } catch (e: Exception) {
+            logger.warn("Failed to sendMissingEnableMinsideMicrofrontent", e)
+            throw e
+        }
+    }
+
     data class Fnr(val fnr: String)
 }

@@ -482,8 +482,12 @@ class AdminService(
         )
     }
 
-    fun sendMissingEnableMinsieMicrofrontendMessages() {
-
+    fun sendMissingEnableMinsideMicrofrontendMessages() {
+        logger.debug("Getting all minside microfrontend candidates")
+        val behandlinger = behandlingRepository.findByFeilregistreringIsNull()
+        val candidates = behandlinger.map { it.sakenGjelder.partId.value }.toSet()
+        logger.debug("Found ${candidates.size} candidates")
+        //TODO: Implement rest of the function
     }
 }
 

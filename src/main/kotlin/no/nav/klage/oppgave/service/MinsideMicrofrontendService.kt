@@ -37,7 +37,7 @@ class MinsideMicrofrontendService(
             behandlingEndretEvent.behandling.id,
             "MinsideMicrofrontendService"
         )
-        val payload = if (behandlingEndretEvent.endringslogginnslag.any {
+        if (behandlingEndretEvent.endringslogginnslag.any {
                 it.felt in listOf(
                     Felt.KLAGEBEHANDLING_MOTTATT,
                     Felt.ANKEBEHANDLING_MOTTATT,
@@ -45,15 +45,7 @@ class MinsideMicrofrontendService(
                     Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
                 )
             }) {
-            val behandling = behandlingEndretEvent.behandling
-
-            logger.debug("User has no previous existing behandling. Sending enable.")
-            MicrofrontendMessageBuilder.enable {
-                ident = behandling.sakenGjelder.partId.value
-                microfrontendId = microfrontendName
-                initiatedBy = applicationName
-            }.text()
-
+            enableMinsideMicrofrontend(behandlingEndretEvent = behandlingEndretEvent)
         } else if (behandlingEndretEvent.endringslogginnslag.any {
                 it.felt in listOf(
                     Felt.FEILREGISTRERING
@@ -67,31 +59,56 @@ class MinsideMicrofrontendService(
                 }
             ) {
                 logger.debug("User has other existing behandling. Disabling not needed. Returning.")
-                null
             } else {
                 logger.debug("User has no other existing behandling. Sending disable.")
-                MicrofrontendMessageBuilder.disable {
-                    ident = behandling.sakenGjelder.partId.value
-                    microfrontendId = microfrontendName
-                    initiatedBy = applicationName
-                }.text()
-            }
-        } else null
-
-        if (payload != null) {
-            logger.debug("Sending payload to Minside microfrontend: $payload")
-            val eventId = UUID.randomUUID()
-            kafkaEventRepository.save(
-                KafkaEvent(
-                    id = eventId,
-                    behandlingId = behandlingEndretEvent.behandling.id,
-                    kilde = behandlingEndretEvent.behandling.fagsystem.navn,
-                    kildeReferanse = behandlingEndretEvent.behandling.kildeReferanse,
-                    status = UtsendingStatus.IKKE_SENDT,
-                    jsonPayload = payload,
-                    type = EventType.MINSIDE_MICROFRONTEND_EVENT
+                disableMinsideMicrofronten(
+                    behandlingEndretEvent = behandlingEndretEvent
                 )
-            )
+            }
         }
+    }
+
+    fun enableMinsideMicrofrontend(behandlingEndretEvent: BehandlingEndretEvent) {
+        val behandling = behandlingEndretEvent.behandling
+        val payload = MicrofrontendMessageBuilder.enable {
+            ident = behandling.sakenGjelder.partId.value
+            microfrontendId = microfrontendName
+            initiatedBy = applicationName
+        }.text()
+        saveKafkaEventPayload(
+            behandlingEndretEvent = behandlingEndretEvent,
+            payload = payload
+        )
+    }
+
+    fun disableMinsideMicrofronten(behandlingEndretEvent: BehandlingEndretEvent) {
+        val behandling = behandlingEndretEvent.behandling
+        val payload = MicrofrontendMessageBuilder.disable {
+            ident = behandling.sakenGjelder.partId.value
+            microfrontendId = microfrontendName
+            initiatedBy = applicationName
+        }.text()
+        saveKafkaEventPayload(
+            behandlingEndretEvent = behandlingEndretEvent,
+            payload = payload
+        )
+    }
+
+    fun saveKafkaEventPayload(
+        behandlingEndretEvent: BehandlingEndretEvent,
+        payload: String
+    ) {
+        val eventId = UUID.randomUUID()
+        kafkaEventRepository.save(
+            KafkaEvent(
+                id = eventId,
+                behandlingId = behandlingEndretEvent.behandling.id,
+                kilde = behandlingEndretEvent.behandling.fagsystem.navn,
+                kildeReferanse = behandlingEndretEvent.behandling.kildeReferanse,
+                status = UtsendingStatus.IKKE_SENDT,
+                jsonPayload = payload,
+                type = EventType.MINSIDE_MICROFRONTEND_EVENT
+            )
+        )
     }
 }
