@@ -256,12 +256,15 @@ class InnsynService(
     }
 }
 
+/**
+ * Used when providing link to ettersendelse. If no matching innsendingsytelse, go to nav.no/klage instead.
+ */
 fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
     return when (this) {
         Ytelse.FOR_FOR -> Innsendingsytelse.FORELDREPENGER
         Ytelse.FOR_SVA -> Innsendingsytelse.SVANGERSKAPSPENGER
         Ytelse.FOR_ENG -> Innsendingsytelse.ENGANGSSTONAD
-        Ytelse.OMS_OMP -> Innsendingsytelse.SYKDOM_I_FAMILIEN
+        Ytelse.OMS_OMP -> Innsendingsytelse.OMSORGSPENGER_HJEMME_MED_SYKT_BARN_DAGER
         Ytelse.OMS_OLP -> Innsendingsytelse.OPPLARINGSPENGER
         Ytelse.OMS_PSB -> Innsendingsytelse.PLEIEPENGER_FOR_SYKT_BARN
         Ytelse.OMS_PLS -> Innsendingsytelse.PLEIEPENGER_I_LIVETS_SLUTTFASE
@@ -272,7 +275,8 @@ fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
         Ytelse.BID_BIF -> Innsendingsytelse.BIDRAGSFORSKUDD
         Ytelse.BID_OPI -> Innsendingsytelse.OPPFOSTRINGSBIDRAG
         Ytelse.BID_EKB -> Innsendingsytelse.EKTEFELLEBIDRAG
-        Ytelse.BID_BII -> null
+        Ytelse.BID_BBF -> Innsendingsytelse.BARNEBIDRAG
+        Ytelse.BID_BII -> Innsendingsytelse.BARNEBIDRAG
         Ytelse.DAG_DAG -> Innsendingsytelse.DAGPENGER
         Ytelse.ENF_ENF -> Innsendingsytelse.ENSLIG_MOR_ELLER_FAR
         Ytelse.GEN_GEN -> Innsendingsytelse.LONNSGARANTI
@@ -281,33 +285,32 @@ fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
         Ytelse.GRU_GRU -> Innsendingsytelse.GRUNNSTONAD
         Ytelse.HJE_HJE -> Innsendingsytelse.HJELPEMIDLER
         Ytelse.KON_KON -> Innsendingsytelse.KONTANTSTOTTE
-        Ytelse.MED_MED -> null
+        Ytelse.MED_MED -> Innsendingsytelse.MEDLEMSKAP
         Ytelse.PEN_ALD -> Innsendingsytelse.ALDERSPENSJON
         Ytelse.PEN_BAR -> Innsendingsytelse.BARNEPENSJON
-        Ytelse.PEN_AFP -> null
+        Ytelse.PEN_AFP -> null //don't know which to choose
         Ytelse.PEN_KRI -> Innsendingsytelse.KRIGSPENSJON
         Ytelse.PEN_GJE -> Innsendingsytelse.GJENLEVENDE
         Ytelse.PEN_EYO -> Innsendingsytelse.OMSTILLINGSSTONAD
         Ytelse.SUP_PEN -> Innsendingsytelse.SUPPLERENDE_STONAD
-        Ytelse.SUP_UFF -> Innsendingsytelse.SUPPLERENDE_STONAD_UFORE_FLYKTNINGER
-        Ytelse.TIL_TIP -> Innsendingsytelse.TILTAKSPENGER
-        Ytelse.TIL_TIL -> null
+        Ytelse.SUP_UFF -> Innsendingsytelse.SUPPLERENDE_STONAD_UFORE_FLYKTNINGER//
+        Ytelse.TIL_TIP -> null //? In Klang, tema is IND. Tema TIL is not used.
+        Ytelse.TIL_TIL -> null //? In Klang, tema is IND. Tema TIL is not used.
         Ytelse.UFO_UFO -> Innsendingsytelse.UFORETRYGD
         Ytelse.YRK_YRK -> Innsendingsytelse.YRKESSKADE
         Ytelse.YRK_MEN -> Innsendingsytelse.MENERSTATNING_VED_YRKESSKADE_ELLER_YRKESSYKDOM
         Ytelse.YRK_YSY -> Innsendingsytelse.MENERSTATNING_VED_YRKESSKADE_ELLER_YRKESSYKDOM
-        Ytelse.UFO_TVF -> null
-        Ytelse.OPP_OPP -> null
-        Ytelse.AAR_AAR -> null
-        Ytelse.TSR_TSR -> Innsendingsytelse.STOTTE_TIL_ARBEIDS_OG_UTDANNINGSREISER
-        Ytelse.FRI_FRI -> null
+        Ytelse.UFO_TVF -> Innsendingsytelse.UFORETRYGD
+        Ytelse.OPP_OPP -> Innsendingsytelse.OPPFOLGING
+        Ytelse.AAR_AAR -> null //no matching innsendingsytelse
+        Ytelse.TSR_TSR -> null //could be Innsendingsytelse.STOTTE_TIL_ARBEIDS_OG_UTDANNINGSREISER, but tema does not match with Klang.
+        Ytelse.FRI_FRI -> null //no matching innsendingsytelse/tema
         Ytelse.TSO_TSO -> Innsendingsytelse.TILLEGGSSTONADER
-        Ytelse.FAR_FAR -> null
-        Ytelse.BID_BBF -> null
-        Ytelse.DAG_LKP -> null
-        Ytelse.DAG_FDP -> null
-        Ytelse.BIL_BIL -> null
-        Ytelse.HEL_HEL -> null
-        Ytelse.FOS_FOS -> null
+        Ytelse.FAR_FAR -> null //no matching innsendingsytelse/tema
+        Ytelse.DAG_LKP -> Innsendingsytelse.DAGPENGER
+        Ytelse.DAG_FDP -> Innsendingsytelse.DAGPENGER
+        Ytelse.BIL_BIL -> Innsendingsytelse.BILSTONAD
+        Ytelse.HEL_HEL -> Innsendingsytelse.HJELPEMIDLER_ORTOPEDISKE
+        Ytelse.FOS_FOS -> Innsendingsytelse.FORSIKRING
     }
 }
