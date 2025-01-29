@@ -189,11 +189,11 @@ class StatistikkTilDVHService(
             beslutter = behandling.medunderskriver?.saksbehandlerident,
             endringstid = getFunksjoneltEndringstidspunkt(behandling, behandlingState),
             hjemmel = behandling.registreringshjemler.map { it.toSearchableString() },
-            klager = getPart(behandling.klager.partId.type, behandling.klager.partId.value),
+            klager = getDVHPart(behandling.klager.partId.type, behandling.klager.partId.value),
             opprinneligFagsaksystem = behandling.fagsystem.navn,
             overfoertKA = behandling.mottattKlageinstans.toLocalDate(),
             resultat = getResultat(behandling),
-            sakenGjelder = getPart(behandling.sakenGjelder.partId.type, behandling.sakenGjelder.partId.value),
+            sakenGjelder = getDVHPart(behandling.sakenGjelder.partId.type, behandling.sakenGjelder.partId.value),
             saksbehandler = behandling.tildeling?.saksbehandlerident,
             saksbehandlerEnhet = behandling.tildeling?.enhet,
             tekniskTid = behandling.modified,
@@ -271,24 +271,24 @@ class StatistikkTilDVHService(
         }
     }
 
-    private fun getPart(type: PartIdType, value: String) =
-        when (type) {
-            PartIdType.PERSON -> {
-                StatistikkTilDVH.Part(
-                    verdi = value,
-                    type = StatistikkTilDVH.PartIdType.PERSON
-                )
-            }
-
-            PartIdType.VIRKSOMHET -> {
-                StatistikkTilDVH.Part(
-                    verdi = value,
-                    type = StatistikkTilDVH.PartIdType.VIRKSOMHET
-                )
-            }
-        }
-
     private fun Registreringshjemmel.toSearchableString(): String {
         return "${lovKilde.navn}-${spesifikasjon}"
     }
 }
+
+fun getDVHPart(type: PartIdType, value: String) =
+    when (type) {
+        PartIdType.PERSON -> {
+            StatistikkTilDVH.Part(
+                verdi = value,
+                type = StatistikkTilDVH.PartIdType.PERSON
+            )
+        }
+
+        PartIdType.VIRKSOMHET -> {
+            StatistikkTilDVH.Part(
+                verdi = value,
+                type = StatistikkTilDVH.PartIdType.VIRKSOMHET
+            )
+        }
+    }
