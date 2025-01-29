@@ -173,7 +173,7 @@ class AdminController(
     fun enableMinsideMicrofrontends(
         @PathVariable("behandlingId") behandlingId: UUID?
     ) {
-        logger.debug("{} is called in dev. BehandlingId: {}", ::enableMinsideMicrofrontends.name, behandlingId)
+        logger.debug("{} is called. BehandlingId: {}", ::enableMinsideMicrofrontends.name, behandlingId)
         krevAdminTilgang()
         try {
             if (behandlingId != null) {
@@ -191,7 +191,7 @@ class AdminController(
     fun disableMinsideMicrofrontends(
         @PathVariable("behandlingId") behandlingId: UUID?
     ) {
-        logger.debug("{} is called in dev. BehandlingId: {}", ::disableMinsideMicrofrontends.name, behandlingId)
+        logger.debug("{} is called. BehandlingId: {}", ::disableMinsideMicrofrontends.name, behandlingId)
         krevAdminTilgang()
         try {
             if (behandlingId != null) {
