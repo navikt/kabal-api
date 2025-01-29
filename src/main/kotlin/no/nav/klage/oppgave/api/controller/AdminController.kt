@@ -169,7 +169,7 @@ class AdminController(
         return adminService.getTaskListMerkantil()
     }
 
-    @GetMapping("/enableminsidemicrofrontend/{behandlingId}")
+    @GetMapping(value = ["/enableminsidemicrofrontend/{behandlingId}", "/enableminsidemicrofrontend"])
     fun enableMinsideMicrofrontends(
         @PathVariable("behandlingId") behandlingId: UUID?
     ) {
@@ -187,7 +187,7 @@ class AdminController(
         }
     }
 
-    @GetMapping("/disableeminsidemicrofrontend/{behandlingId}")
+    @GetMapping(value = ["/disableeminsidemicrofrontend/{behandlingId}", "/disableeminsidemicrofrontend"])
     fun disableMinsideMicrofrontends(
         @PathVariable("behandlingId") behandlingId: UUID?
     ) {
