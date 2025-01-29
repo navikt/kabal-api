@@ -5,10 +5,6 @@ import no.nav.klage.oppgave.service.MinsideMicrofrontendService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Propagation
-import org.springframework.transaction.annotation.Transactional
-import org.springframework.transaction.event.TransactionPhase
-import org.springframework.transaction.event.TransactionalEventListener
 
 @Service
 class MinsideMicrofrontendEventListener(
@@ -21,8 +17,6 @@ class MinsideMicrofrontendEventListener(
     }
 
     @EventListener
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     fun handleMinsideMicrofrontendEvent(behandlingEndretEvent: BehandlingEndretEvent) {
         logger.debug(
             "Received BehandlingEndretEvent for behandlingId {} in {}",

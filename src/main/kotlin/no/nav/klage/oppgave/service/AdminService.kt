@@ -492,10 +492,12 @@ class AdminService(
     }
 
     fun enableAllMinsideMicrofrontends() {
+        logger.debug("Enabling all minside microfrontends")
         val behandlinger = behandlingRepository.findByFeilregistreringIsNull()
         behandlinger.forEach {
             minsideMicrofrontendService.enableMinsideMicrofrontend(behandling = it)
         }
+        logger.debug("Finished enabling all minside microfrontends")
     }
 
     fun disableMinsideMicrofrontend(behandlingId: UUID) {
@@ -504,10 +506,12 @@ class AdminService(
     }
 
     fun disableAllMinsideMicrofrontends() {
+        logger.debug("Disabling all minside microfrontends")
         val behandlinger = behandlingRepository.findAll()
         behandlinger.forEach {
             minsideMicrofrontendService.disableMinsideMicrofrontend(behandling = it)
         }
+        logger.debug("Finished disabling all minside microfrontends")
     }
 }
 
