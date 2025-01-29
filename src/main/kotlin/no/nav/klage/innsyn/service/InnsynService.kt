@@ -278,14 +278,14 @@ fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
         Ytelse.BID_BBF -> Innsendingsytelse.BARNEBIDRAG
         Ytelse.BID_BII -> Innsendingsytelse.BARNEBIDRAG
         Ytelse.DAG_DAG -> Innsendingsytelse.DAGPENGER
-        Ytelse.ENF_ENF -> null //don't know which to choose
+        Ytelse.ENF_ENF -> Innsendingsytelse.ENSLIG_MOR_ELLER_FAR
         Ytelse.GEN_GEN -> Innsendingsytelse.LONNSGARANTI
         Ytelse.GRA_GRA -> Innsendingsytelse.GRAVFERDSSTONAD
         Ytelse.GRU_HJE -> Innsendingsytelse.HJELPESTONAD
         Ytelse.GRU_GRU -> Innsendingsytelse.GRUNNSTONAD
         Ytelse.HJE_HJE -> Innsendingsytelse.HJELPEMIDLER
         Ytelse.KON_KON -> Innsendingsytelse.KONTANTSTOTTE
-        Ytelse.MED_MED -> null //don't know which to choose
+        Ytelse.MED_MED -> Innsendingsytelse.MEDLEMSKAP
         Ytelse.PEN_ALD -> Innsendingsytelse.ALDERSPENSJON
         Ytelse.PEN_BAR -> Innsendingsytelse.BARNEPENSJON
         Ytelse.PEN_AFP -> null //don't know which to choose
@@ -310,7 +310,7 @@ fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
         Ytelse.DAG_LKP -> Innsendingsytelse.DAGPENGER
         Ytelse.DAG_FDP -> Innsendingsytelse.DAGPENGER
         Ytelse.BIL_BIL -> Innsendingsytelse.BILSTONAD
-        Ytelse.HEL_HEL -> null //no matching innsendingsytelse/tema
-        Ytelse.FOS_FOS -> null //no matching innsendingsytelse/tema
+        Ytelse.HEL_HEL -> Innsendingsytelse.HJELPEMIDLER_ORTOPEDISKE
+        Ytelse.FOS_FOS -> Innsendingsytelse.FORSIKRING
     }
 }
