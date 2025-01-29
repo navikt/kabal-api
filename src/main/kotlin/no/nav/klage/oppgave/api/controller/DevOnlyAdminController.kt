@@ -177,7 +177,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping("/enableminsidemicrofrontend/{behandlingId}")
+    @GetMapping(value = ["/enableminsidemicrofrontend/{behandlingId}", "/enableminsidemicrofrontend"])
     fun enableMinsideMicrofrontends(
         @PathVariable(required = false, name = "behandlingId") behandlingId: UUID?
     ) {
@@ -196,7 +196,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping("/disableeminsidemicrofrontend/{behandlingId}")
+    @GetMapping(value = ["/disableeminsidemicrofrontend/{behandlingId}", "/disableeminsidemicrofrontend"])
     fun disableMinsideMicrofrontends(
         @PathVariable(required = false, name = "behandlingId") behandlingId: UUID?
     ) {
