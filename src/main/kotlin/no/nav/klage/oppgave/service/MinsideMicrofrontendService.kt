@@ -5,6 +5,7 @@ import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.KafkaEvent
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
+import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
@@ -45,7 +46,7 @@ class MinsideMicrofrontendService(
                     Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
                 )
             }) {
-            enableMinsideMicrofrontend(behandlingEndretEvent = behandlingEndretEvent)
+            enableMinsideMicrofrontend(behandling = behandlingEndretEvent.behandling)
         } else if (behandlingEndretEvent.endringslogginnslag.any {
                 it.felt in listOf(
                     Felt.FEILREGISTRERING
@@ -61,50 +62,50 @@ class MinsideMicrofrontendService(
                 logger.debug("User has other existing behandling. Disabling not needed. Returning.")
             } else {
                 logger.debug("User has no other existing behandling. Sending disable.")
-                disableMinsideMicrofronten(
-                    behandlingEndretEvent = behandlingEndretEvent
+                disableMinsideMicrofrontend(
+                    behandling = behandling
                 )
             }
         }
     }
 
-    fun enableMinsideMicrofrontend(behandlingEndretEvent: BehandlingEndretEvent) {
-        val behandling = behandlingEndretEvent.behandling
+    fun enableMinsideMicrofrontend(behandling: Behandling) {
+        logger.debug("Enabling minside microfrontend for behandling with id {}", behandling.id)
         val payload = MicrofrontendMessageBuilder.enable {
             ident = behandling.sakenGjelder.partId.value
             microfrontendId = microfrontendName
             initiatedBy = applicationName
         }.text()
         saveKafkaEventPayload(
-            behandlingEndretEvent = behandlingEndretEvent,
+            behandling = behandling,
             payload = payload
         )
     }
 
-    fun disableMinsideMicrofronten(behandlingEndretEvent: BehandlingEndretEvent) {
-        val behandling = behandlingEndretEvent.behandling
+    fun disableMinsideMicrofrontend(behandling: Behandling) {
+        logger.debug("Disabling minside microfrontend for behandling with id {}", behandling.id)
         val payload = MicrofrontendMessageBuilder.disable {
             ident = behandling.sakenGjelder.partId.value
             microfrontendId = microfrontendName
             initiatedBy = applicationName
         }.text()
         saveKafkaEventPayload(
-            behandlingEndretEvent = behandlingEndretEvent,
+            behandling = behandling,
             payload = payload
         )
     }
 
     fun saveKafkaEventPayload(
-        behandlingEndretEvent: BehandlingEndretEvent,
+        behandling: Behandling,
         payload: String
     ) {
         val eventId = UUID.randomUUID()
         kafkaEventRepository.save(
             KafkaEvent(
                 id = eventId,
-                behandlingId = behandlingEndretEvent.behandling.id,
-                kilde = behandlingEndretEvent.behandling.fagsystem.navn,
-                kildeReferanse = behandlingEndretEvent.behandling.kildeReferanse,
+                behandlingId = behandling.id,
+                kilde = behandling.fagsystem.navn,
+                kildeReferanse = behandling.kildeReferanse,
                 status = UtsendingStatus.IKKE_SENDT,
                 jsonPayload = payload,
                 type = EventType.MINSIDE_MICROFRONTEND_EVENT

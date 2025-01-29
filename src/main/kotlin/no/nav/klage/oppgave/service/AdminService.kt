@@ -67,6 +67,7 @@ class AdminService(
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val taskListMerkantilRepository: TaskListMerkantilRepository,
     private val pdlFacade: PdlFacade,
+    private val minsideMicrofrontendService: MinsideMicrofrontendService,
 ) {
 
     companion object {
@@ -482,12 +483,31 @@ class AdminService(
         )
     }
 
-    fun sendMissingEnableMinsideMicrofrontendMessages() {
-        logger.debug("Getting all minside microfrontend candidates")
+    fun enableMinsideMicrofrontend(behandlingId: UUID) {
+        val behandling = behandlingRepository.findByIdEager(behandlingId)
+        if (behandling.feilregistrering != null) {
+            logger.debug("Behandling has feilregistrering. Disabling not needed. Returning.")
+        }
+        minsideMicrofrontendService.enableMinsideMicrofrontend(behandling = behandling)
+    }
+
+    fun enableAllMinsideMicrofrontends() {
         val behandlinger = behandlingRepository.findByFeilregistreringIsNull()
-        val candidates = behandlinger.map { it.sakenGjelder.partId.value }.toSet()
-        logger.debug("Found ${candidates.size} candidates")
-        //TODO: Implement rest of the function
+        behandlinger.forEach {
+            minsideMicrofrontendService.enableMinsideMicrofrontend(behandling = it)
+        }
+    }
+
+    fun disableMinsideMicrofrontend(behandlingId: UUID) {
+        val behandling = behandlingRepository.findByIdEager(behandlingId)
+        minsideMicrofrontendService.disableMinsideMicrofrontend(behandling = behandling)
+    }
+
+    fun disableAllMinsideMicrofrontends() {
+        val behandlinger = behandlingRepository.findAll()
+        behandlinger.forEach {
+            minsideMicrofrontendService.disableMinsideMicrofrontend(behandling = it)
+        }
     }
 }
 

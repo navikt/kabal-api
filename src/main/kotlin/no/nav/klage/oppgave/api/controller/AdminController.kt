@@ -14,6 +14,7 @@ import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
+@RequestMapping("/internal")
 class AdminController(
     private val adminService: AdminService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
@@ -25,7 +26,7 @@ class AdminController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @PostMapping("/internal/kafkaadmin/refill", produces = ["application/json"])
+    @PostMapping("/kafkaadmin/refill", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun refillKafka() {
         azureGateway.getDataOmInnloggetSaksbehandler()
@@ -43,7 +44,7 @@ class AdminController(
         }
     }
 
-    @PostMapping("/internal/dvh/resend", produces = ["application/json"])
+    @PostMapping("/dvh/resend", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun resendStatsToDVH() {
         logger.debug("resendStatsToDVH is called")
@@ -57,7 +58,7 @@ class AdminController(
         }
     }
 
-    @PostMapping("/internal/generatemissingankeitrygderetten", produces = ["application/json"])
+    @PostMapping("/generatemissingankeitrygderetten", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun generateMissingAnkeITrygderetten() {
         logger.debug("generateMissingAnkeITrygderetten is called")
@@ -71,7 +72,7 @@ class AdminController(
         }
     }
 
-    @PostMapping("/internal/isskjermet")
+    @PostMapping("/isskjermet")
     @ResponseStatus(HttpStatus.OK)
     fun isSkjermet(
         @RequestBody input: Fnr
@@ -82,7 +83,7 @@ class AdminController(
         adminService.isSkjermet(input.fnr)
     }
 
-    @PostMapping("/internal/migratedvhevents")
+    @PostMapping("/migratedvhevents")
     fun migrateDvhEvents() {
         logger.debug("migrateDvhEvents is called")
         krevAdminTilgang()
@@ -95,7 +96,7 @@ class AdminController(
         }
     }
 
-    @GetMapping("/internal/invalidregistreringshjemler")
+    @GetMapping("/invalidregistreringshjemler")
     fun getInvalidRegistreringshjemler() {
         logger.debug("getInvalidRegistreringshjemler is called")
         krevAdminTilgang()
@@ -103,7 +104,7 @@ class AdminController(
         adminService.logInvalidRegistreringshjemler()
     }
 
-    @GetMapping("/internal/logexpiredusers")
+    @GetMapping("/logexpiredusers")
     fun logExpiredUsers() {
         logger.debug("logExpiredUsers is called")
         krevAdminTilgang()
@@ -111,7 +112,7 @@ class AdminController(
         adminService.logExpiredUsers()
     }
 
-    @GetMapping("/internal/logprotected")
+    @GetMapping("/logprotected")
     fun logProtected() {
         logger.debug("logProtected is called")
         krevAdminTilgang()
@@ -119,7 +120,7 @@ class AdminController(
         adminService.logProtected()
     }
 
-    @PostMapping("/internal/setsortkeytodua")
+    @PostMapping("/setsortkeytodua")
     fun setSortKeyToDUA() {
         logger.debug("setSortKeyToDUA is called")
         krevAdminTilgang()
@@ -132,7 +133,7 @@ class AdminController(
         }
     }
 
-    @GetMapping("/internal/behandlinger/{id}/reindex", produces = ["application/json"])
+    @GetMapping("/behandlinger/{id}/reindex", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun reindexBehandling(@PathVariable("id") behandlingId: UUID) {
         logger.debug("reindexBehandling is called")
@@ -146,7 +147,7 @@ class AdminController(
         }
     }
 
-    @GetMapping("/internal/migrateTilbakekreving", produces = ["application/json"])
+    @GetMapping("/migrateTilbakekreving", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun migrateTilbakekreving() {
         logger.debug("migrateTilbakekreving is called")
@@ -160,12 +161,48 @@ class AdminController(
         }
     }
 
-    @GetMapping("/internal/merkantil-tasks")
+    @GetMapping("/merkantil-tasks")
     fun getTaskListMerkantil(): List<TaskListMerkantilView> {
         logger.debug("getTaskListMerkantil is called")
         krevAdminTilgang()
 
         return adminService.getTaskListMerkantil()
+    }
+
+    @GetMapping("/enableminsidemicrofrontend/{behandlingId}")
+    fun enableMinsideMicrofrontends(
+        @PathVariable("behandlingId") behandlingId: UUID?
+    ) {
+        logger.debug("{} is called in dev. BehandlingId: {}", ::enableMinsideMicrofrontends.name, behandlingId)
+        krevAdminTilgang()
+        try {
+            if (behandlingId != null) {
+                adminService.enableMinsideMicrofrontend(behandlingId)
+            } else {
+                adminService.enableAllMinsideMicrofrontends()
+            }
+        } catch (e: Exception) {
+            logger.warn("Failed in ${::enableMinsideMicrofrontends.name}", e)
+            throw e
+        }
+    }
+
+    @GetMapping("/disableeminsidemicrofrontend/{behandlingId}")
+    fun disableMinsideMicrofrontends(
+        @PathVariable("behandlingId") behandlingId: UUID?
+    ) {
+        logger.debug("{} is called in dev. BehandlingId: {}", ::disableMinsideMicrofrontends.name, behandlingId)
+        krevAdminTilgang()
+        try {
+            if (behandlingId != null) {
+                adminService.disableMinsideMicrofrontend(behandlingId)
+            } else {
+                adminService.disableAllMinsideMicrofrontends()
+            }
+        } catch (e: Exception) {
+            logger.warn("Failed in ${::disableMinsideMicrofrontends.name}", e)
+            throw e
+        }
     }
 
     data class Fnr(val fnr: String)
