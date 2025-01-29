@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.service
 
-import jakarta.transaction.Transactional
+
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.KafkaEvent
@@ -13,6 +13,7 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.tms.microfrontend.MicrofrontendMessageBuilder
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 @Service
@@ -25,7 +26,8 @@ class MinsideMicrofrontendService(
     @Value("\${spring.application.name}")
     lateinit var applicationName: String
 
-    private val microfrontendName = "mine-klager-microfrontend"
+    @Value("\${MINE_KLAGER_MICROFRONTEND_ID}")
+    lateinit var mineKlagerMicrofrontendId: String
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -73,7 +75,7 @@ class MinsideMicrofrontendService(
         logger.debug("Enabling minside microfrontend for behandling with id {}", behandling.id)
         val payload = MicrofrontendMessageBuilder.enable {
             ident = behandling.sakenGjelder.partId.value
-            microfrontendId = microfrontendName
+            microfrontendId = mineKlagerMicrofrontendId
             initiatedBy = applicationName
         }.text()
         saveKafkaEventPayload(
@@ -86,7 +88,7 @@ class MinsideMicrofrontendService(
         logger.debug("Disabling minside microfrontend for behandling with id {}", behandling.id)
         val payload = MicrofrontendMessageBuilder.disable {
             ident = behandling.sakenGjelder.partId.value
-            microfrontendId = microfrontendName
+            microfrontendId = mineKlagerMicrofrontendId
             initiatedBy = applicationName
         }.text()
         saveKafkaEventPayload(
