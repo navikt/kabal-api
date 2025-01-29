@@ -102,7 +102,7 @@ class V181__dvh_tr_migrations : BaseJavaMigration() {
                         preparedStatement.setString(5, UtsendingStatus.IKKE_SENDT.name)
                         preparedStatement.setString(6, ourJacksonObjectMapper().writeValueAsString(statistikkTilDVH))
                         preparedStatement.setString(7, EventType.STATS_DVH.name)
-                        preparedStatement.setObject(8, LocalDateTime.now())
+                        preparedStatement.setObject(8, now)
                         preparedStatement.setObject(9, null)
 
                         preparedStatement.executeUpdate()
