@@ -196,7 +196,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping(value = ["/disableeminsidemicrofrontend/{behandlingId}", "/disableeminsidemicrofrontend"])
+    @GetMapping(value = ["/disableminsidemicrofrontend/{behandlingId}", "/disableminsidemicrofrontend"])
     fun disableMinsideMicrofrontends(
         @PathVariable(required = false, name = "behandlingId") behandlingId: UUID?
     ) {

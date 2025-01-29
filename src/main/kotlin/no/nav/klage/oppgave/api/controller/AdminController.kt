@@ -187,7 +187,7 @@ class AdminController(
         }
     }
 
-    @GetMapping(value = ["/disableeminsidemicrofrontend/{behandlingId}", "/disableeminsidemicrofrontend"])
+    @GetMapping(value = ["/disableminsidemicrofrontend/{behandlingId}", "/disableminsidemicrofrontend"])
     fun disableMinsideMicrofrontends(
         @PathVariable("behandlingId") behandlingId: UUID?
     ) {
