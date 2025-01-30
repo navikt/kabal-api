@@ -20,9 +20,9 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
 
         const val ENHET_CACHE = "enhet"
         const val ENHETER_CACHE = "enheter"
-        private const val TILGANGER_CACHE = "tilganger"
-        private const val ROLLER_CACHE = "roller"
-        private const val SAKSBEHANDLERE_I_ENHET_CACHE = "saksbehandlereienhet"
+        const val TILGANGER_CACHE = "tilganger"
+        const val ROLLER_CACHE = "roller"
+        const val SAKSBEHANDLERE_I_ENHET_CACHE = "saksbehandlereienhet"
         const val POSTSTEDER_CACHE = "poststeder"
         const val LANDKODER_CACHE = "landkoder"
         const val ANSATTE_I_ENHET_CACHE = "ansatteienhet"
