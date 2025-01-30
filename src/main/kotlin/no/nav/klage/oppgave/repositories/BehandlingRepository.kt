@@ -24,6 +24,8 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
 
     fun findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull(): List<Behandling>
 
+    fun findByFeilregistreringIsNull(): List<Behandling>
+
     fun findByFerdigstillingIsNull(): List<Behandling>
 
     fun findByFerdigstillingIsNullAndFeilregistreringIsNull(): List<Behandling>

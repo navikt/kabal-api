@@ -32,7 +32,7 @@ class KlagebehandlingSchedulerService(
     @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 60, initialDelay = 6)
     @SchedulerLock(name = "cleanupMergedDocuments")
     fun cleanupMergedDocuments() {
-        logger.debug("cleanupMergedDocuments is called by scheduler")
+        logSchedulerMessage(functionName = ::cleanupMergedDocuments.name)
         cleanupAfterBehandlingEventListener.cleanupMergedDocuments()
     }
 
@@ -40,7 +40,7 @@ class KlagebehandlingSchedulerService(
     @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 2, initialDelay = 4)
     @SchedulerLock(name = "avsluttBehandling")
     fun avsluttBehandling() {
-        logger.debug("avsluttBehandling is called by scheduler")
+        logSchedulerMessage(functionName = ::avsluttBehandling.name)
         val behandlingIdList: List<Pair<UUID, Type>> = behandlingService.findBehandlingerForAvslutning()
 
         behandlingIdList.forEach { (id, type) ->
@@ -58,7 +58,7 @@ class KlagebehandlingSchedulerService(
     @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 3)
     @SchedulerLock(name = "dispatchUnsentVedtakToKafka")
     fun dispatchUnsentVedtakToKafka() {
-        logger.debug("dispatchUnsentVedtakToKafka is called by scheduler")
+        logSchedulerMessage(functionName = ::dispatchUnsentVedtakToKafka.name)
         kafkaDispatcher.dispatchEventsToKafka(
             type = EventType.KLAGE_VEDTAK,
             utsendingStatusList = listOf(IKKE_SENDT, FEILET)
@@ -68,7 +68,7 @@ class KlagebehandlingSchedulerService(
     @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 7)
     @SchedulerLock(name = "dispatchUnsentDVHStatsToKafka")
     fun dispatchUnsentDVHStatsToKafka() {
-        logger.debug("dispatchUnsentDVHStatsToKafka is called by scheduler")
+        logSchedulerMessage(functionName = ::dispatchUnsentDVHStatsToKafka.name)
         kafkaDispatcher.dispatchEventsToKafka(
             type = EventType.STATS_DVH,
             utsendingStatusList = listOf(IKKE_SENDT, FEILET)
@@ -77,11 +77,25 @@ class KlagebehandlingSchedulerService(
 
     @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 10)
     @SchedulerLock(name = "dispatchUnsentBehandlingEventsToKafka")
-    fun dispatchUnsentBehandlingEventToKafka() {
-        logger.debug("dispatchUnsentBehandlingEventToKafka is called by scheduler")
+    fun dispatchUnsentBehandlingEventsToKafka() {
+        logSchedulerMessage(functionName = ::dispatchUnsentBehandlingEventsToKafka.name)
         kafkaDispatcher.dispatchEventsToKafka(
             type = EventType.BEHANDLING_EVENT,
             utsendingStatusList = listOf(IKKE_SENDT, FEILET)
         )
+    }
+
+    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 3)
+    @SchedulerLock(name = "dispatchUnsentMinsideMicrofrontendEventsToKafka")
+    fun dispatchUnsentMinsideMicrofrontendEventsToKafka() {
+        logSchedulerMessage(functionName = ::dispatchUnsentMinsideMicrofrontendEventsToKafka.name)
+        kafkaDispatcher.dispatchEventsToKafka(
+            type = EventType.MINSIDE_MICROFRONTEND_EVENT,
+            utsendingStatusList = listOf(IKKE_SENDT, FEILET)
+        )
+    }
+
+    private fun logSchedulerMessage(functionName: String) {
+        logger.debug("$functionName is called by scheduler")
     }
 }

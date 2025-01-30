@@ -20,6 +20,7 @@ import java.util.*
 
 @Profile("dev-gcp")
 @RestController
+@RequestMapping("/internal/dev")
 class DevOnlyAdminController(
     private val adminService: AdminService,
     private val tokenUtil: TokenUtil,
@@ -34,7 +35,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping("/internal/kafkaadmin/refill", produces = ["application/json"])
+    @GetMapping("/kafkaadmin/refill", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun resetElasticIndex() {
         try {
@@ -47,7 +48,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @DeleteMapping("/internal/behandlinger/{id}", produces = ["application/json"])
+    @DeleteMapping("/behandlinger/{id}", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun deleteBehandling(@PathVariable("id") behandlingId: UUID) {
         try {
@@ -60,7 +61,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping("/internal/behandlinger/{id}/reindexdev", produces = ["application/json"])
+    @GetMapping("/behandlinger/{id}/reindexdev", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun reindexBehandling(@PathVariable("id") behandlingId: UUID) {
         try {
@@ -73,7 +74,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @PostMapping("/internal/generatemissingankeitrygderettendev", produces = ["application/json"])
+    @PostMapping("/generatemissingankeitrygderettendev", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun generateMissingAnkeITrygderetten() {
         logger.debug("generateMissingAnkeITrygderetten is called in dev")
@@ -87,7 +88,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @PostMapping("/internal/isskjermetdev")
+    @PostMapping("/isskjermetdev")
     @ResponseStatus(HttpStatus.OK)
     fun isSkjermet(
         @RequestBody input: Fnr
@@ -98,7 +99,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @PostMapping("/internal/migratedvh")
+    @PostMapping("/migratedvh")
     fun migrateDvhEvents() {
         logger.debug("migrateDvhEvents is called")
 
@@ -111,7 +112,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping("/internal/mytokens")
+    @GetMapping("/mytokens")
     fun getTokens(): Map<String, String> {
         return mapOf(
             "\ngetAccessTokenFrontendSent\n" to tokenUtil.getAccessTokenFrontendSent(),
@@ -127,7 +128,7 @@ class DevOnlyAdminController(
         summary = "Feilregistrer sak",
         description = "Endepunkt for å feilregistrere en klage/anke som ikke skal behandles av klageinstans. Fungerer kun hvis sak ikke er tildelt saksbehandler. Ellers må KA kontaktes."
     )
-    @PostMapping("/internal/feilregistrering")
+    @PostMapping("/feilregistrering")
     fun feilregistrer(
         @Parameter(description = "Feilregistrering")
         @Valid @RequestBody feilregistrering: ExternalFeilregistreringInput,
@@ -153,7 +154,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping("/internal/setsortkeytodua")
+    @GetMapping("/setsortkeytodua")
     fun setSortKeyToDUA() {
         logger.debug("setSortKeyToDUA is called in dev")
 
@@ -166,7 +167,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping("/internal/infotrygdsaker/{id}")
+    @GetMapping("/infotrygdsaker/{id}")
     fun getInfotrygdsak(
         @PathVariable("id") id: String
     ): SakFromKlanke {
@@ -176,7 +177,45 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping("/internal/dev/evictallcaches", produces = ["application/json"])
+    @GetMapping(value = ["/enableminsidemicrofrontend/{behandlingId}", "/enableminsidemicrofrontend"])
+    fun enableMinsideMicrofrontends(
+        @PathVariable(required = false, name = "behandlingId") behandlingId: UUID?
+    ) {
+        logger.debug("{} is called in dev. BehandlingId: {}", ::enableMinsideMicrofrontends.name, behandlingId)
+
+        try {
+            if (behandlingId != null) {
+                adminService.enableMinsideMicrofrontend(behandlingId)
+            } else {
+                adminService.enableAllMinsideMicrofrontends()
+            }
+        } catch (e: Exception) {
+            logger.warn("Failed in ${::enableMinsideMicrofrontends.name}", e)
+            throw e
+        }
+    }
+
+    @Unprotected
+    @GetMapping(value = ["/disableminsidemicrofrontend/{behandlingId}", "/disableminsidemicrofrontend"])
+    fun disableMinsideMicrofrontends(
+        @PathVariable(required = false, name = "behandlingId") behandlingId: UUID?
+    ) {
+        logger.debug("{} is called in dev. BehandlingId: {}", ::disableMinsideMicrofrontends.name, behandlingId)
+
+        try {
+            if (behandlingId != null) {
+                adminService.disableMinsideMicrofrontend(behandlingId)
+            } else {
+                adminService.disableAllMinsideMicrofrontends()
+            }
+        } catch (e: Exception) {
+            logger.warn("Failed in ${::disableMinsideMicrofrontends.name}", e)
+            throw e
+        }
+    }
+
+    @Unprotected
+    @GetMapping("/evictallcaches", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun evictAllCAches() {
         logger.debug("${::evictAllCAches.name} is called")
