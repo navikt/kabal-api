@@ -21,6 +21,22 @@ import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.skjermede.SkjermedeApiClient
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.DOK_DIST_KANAL
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHETER_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHET_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.GOSYSOPPGAVE_ENHETSMAPPER_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.GOSYSOPPGAVE_ENHETSMAPPE_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.GOSYSOPPGAVE_GJELDER_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.GOSYSOPPGAVE_OPPGAVETYPE_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.GROUPMEMBERS_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.KRR_INFO_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.LANDKODER_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.PERSON_ADDRESS
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.POSTSTEDER_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ROLLER_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLERE_I_ENHET_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.TILGANGER_CACHE
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
@@ -31,6 +47,7 @@ import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.util.*
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -512,6 +529,31 @@ class AdminService(
             minsideMicrofrontendService.disableMinsideMicrofrontend(behandling = it)
         }
         logger.debug("Finished disabling all minside microfrontends")
+    }
+
+    @CacheEvict(
+        cacheNames = [
+            ENHET_CACHE,
+            ENHETER_CACHE,
+            TILGANGER_CACHE,
+            ROLLER_CACHE,
+            SAKSBEHANDLERE_I_ENHET_CACHE,
+            GROUPMEMBERS_CACHE,
+            KRR_INFO_CACHE,
+            SAKSBEHANDLER_NAME_CACHE,
+            POSTSTEDER_CACHE,
+            LANDKODER_CACHE,
+            PERSON_ADDRESS,
+            DOK_DIST_KANAL,
+            GOSYSOPPGAVE_GJELDER_CACHE,
+            GOSYSOPPGAVE_OPPGAVETYPE_CACHE,
+            GOSYSOPPGAVE_ENHETSMAPPER_CACHE,
+            GOSYSOPPGAVE_ENHETSMAPPE_CACHE,
+        ],
+        allEntries = true
+    )
+    fun evictAllCaches() {
+        logger.debug("Evicted all caches")
     }
 }
 

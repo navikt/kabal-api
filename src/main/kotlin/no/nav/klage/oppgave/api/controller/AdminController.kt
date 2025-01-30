@@ -205,6 +205,20 @@ class AdminController(
         }
     }
 
+    @GetMapping("/internal/evictallcaches", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun evictAllCAches() {
+        logger.debug("${::evictAllCAches.name} is called")
+        krevAdminTilgang()
+        try {
+            logger.info("Evicting all caches")
+            adminService.evictAllCaches()
+        } catch (e: Exception) {
+            logger.warn("Failed to evict all caches", e)
+            throw e
+        }
+    }
+
     data class Fnr(val fnr: String)
 
     private fun krevAdminTilgang() {
