@@ -117,7 +117,7 @@ class BehandlingMapper(
             medunderskriver = klagebehandling.toMedunderskriverView(),
             saksbehandler = klagebehandling.toSaksbehandlerView(),
             previousSaksbehandler = klagebehandling.toPreviousSaksbehandlerView(),
-            varsletFrist = klagebehandling.varsletFrist,
+            varsletFrist = klagebehandling.varsletBehandlingstid,
             gosysOppgaveId = klagebehandling.gosysOppgaveId,
             tilbakekreving = klagebehandling.tilbakekreving,
         )
@@ -186,7 +186,7 @@ class BehandlingMapper(
             medunderskriver = omgjoeringskravbehandling.toMedunderskriverView(),
             saksbehandler = omgjoeringskravbehandling.toSaksbehandlerView(),
             previousSaksbehandler = omgjoeringskravbehandling.toPreviousSaksbehandlerView(),
-            varsletFrist = omgjoeringskravbehandling.varsletFrist,
+            varsletFrist = omgjoeringskravbehandling.varsletBehandlingstid,
             gosysOppgaveId = omgjoeringskravbehandling.gosysOppgaveId,
             kommentarFraVedtaksinstans = null,
             tilbakekreving = omgjoeringskravbehandling.tilbakekreving,
@@ -302,7 +302,7 @@ class BehandlingMapper(
             medunderskriver = ankebehandling.toMedunderskriverView(),
             saksbehandler = ankebehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankebehandling.toPreviousSaksbehandlerView(),
-            varsletFrist = ankebehandling.varsletFrist,
+            varsletFrist = ankebehandling.varsletBehandlingstid,
             gosysOppgaveId = ankebehandling.gosysOppgaveId,
             tilbakekreving = ankebehandling.tilbakekreving,
         )
@@ -440,7 +440,7 @@ class BehandlingMapper(
             medunderskriver = behandlingEtterTrygderettenOpphevet.toMedunderskriverView(),
             saksbehandler = behandlingEtterTrygderettenOpphevet.toSaksbehandlerView(),
             previousSaksbehandler = behandlingEtterTrygderettenOpphevet.toPreviousSaksbehandlerView(),
-            varsletFrist = behandlingEtterTrygderettenOpphevet.varsletFrist,
+            varsletFrist = behandlingEtterTrygderettenOpphevet.varsletBehandlingstid,
             kjennelseMottatt = behandlingEtterTrygderettenOpphevet.kjennelseMottatt,
             gosysOppgaveId = behandlingEtterTrygderettenOpphevet.gosysOppgaveId,
             tilbakekreving = behandlingEtterTrygderettenOpphevet.tilbakekreving,
@@ -807,9 +807,9 @@ class BehandlingMapper(
             previousSaksbehandler = behandling.toPreviousSaksbehandlerView(),
             datoSendtTilTR = if (behandling is AnkeITrygderettenbehandling) behandling.sendtTilTrygderetten.toLocalDate() else null,
             varsletFrist = when (behandling) {
-                is Klagebehandling -> behandling.varsletFrist
-                is Ankebehandling -> behandling.varsletFrist
-                is Omgjoeringskravbehandling -> behandling.varsletFrist
+                is Klagebehandling -> behandling.varsletBehandlingstid
+                is Ankebehandling -> behandling.varsletBehandlingstid
+                is Omgjoeringskravbehandling -> behandling.varsletBehandlingstid
                 else -> null
             }
         )

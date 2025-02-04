@@ -814,6 +814,7 @@ class BehandlingService(
 
             is Ankebehandling -> {
                 applicationEventPublisher.publishEvent(
+
                     behandling.setVarsletBehandlingstid(
                         nyVerdiVarsletBehandlingstidUnits = behandlingstidUnits,
                         nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,

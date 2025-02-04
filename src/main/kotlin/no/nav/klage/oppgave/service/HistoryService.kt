@@ -335,7 +335,7 @@ class HistoryService(
                     utfoerendeIdent = null,
                     utfoerendeNavn = null,
                     mottakerList = listOf(),
-                    varsletFrist = null,
+                    varsletBehandlingstid = null,
                     varsletBehandlingstidUnits = null,
                     varsletBehandlingstidUnitType = null,
                 )
@@ -362,7 +362,7 @@ class HistoryService(
                         },
                         varsletBehandlingstidUnits = previous.varsletBehandlingstidUnits,
                         varsletBehandlingstidUnitTypeId = previous.varsletBehandlingstidUnitType?.id,
-                        varsletFrist = previous.varsletFrist,
+                        varsletFrist = previous.varsletBehandlingstid,
                     )
                 )
 
@@ -384,7 +384,7 @@ class HistoryService(
                         },
                         varsletBehandlingstidUnits = current.varsletBehandlingstidUnits,
                         varsletBehandlingstidUnitTypeId = current.varsletBehandlingstidUnitType?.id,
-                        varsletFrist = current.varsletFrist,
+                        varsletFrist = current.varsletBehandlingstid,
                     ),
                     previous = previousEvent,
                 )

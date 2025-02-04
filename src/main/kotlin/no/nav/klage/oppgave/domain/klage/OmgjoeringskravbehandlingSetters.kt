@@ -18,7 +18,7 @@ object OmgjoeringskravbehandlingSetters {
     ): BehandlingEndretEvent {
         val gammelVerdiVarsletBehandlingstidUnits = varsletBehandlingstidUnits
         val gammelVerdiVarsletBehandlingstidUnitType = varsletBehandlingstidUnitType
-        val gammelVerdiVarsletFrist = varsletFrist
+        val gammelVerdiVarsletFrist = varsletBehandlingstid
         val tidspunkt = LocalDateTime.now()
 
         if (varsletBehandlingstidHistorikk.isEmpty()) {
@@ -32,7 +32,7 @@ object OmgjoeringskravbehandlingSetters {
 
         varsletBehandlingstidUnits = nyVerdiVarsletBehandlingstidUnits
         varsletBehandlingstidUnitType = nyVerdiVarsletBehandlingstidUnitType
-        varsletFrist = nyVerdiVarsletFrist
+        varsletBehandlingstid = nyVerdiVarsletFrist
 
         recordVarsletBehandlingstidHistory(
             tidspunkt = tidspunkt,
@@ -85,7 +85,7 @@ object OmgjoeringskravbehandlingSetters {
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
                 utfoerendeNavn = utfoerendeNavn,
-                varsletFrist = varsletFrist,
+                varsletBehandlingstid = varsletBehandlingstid,
                 varsletBehandlingstidUnits = varsletBehandlingstidUnits,
                 varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
             )

@@ -230,25 +230,25 @@ class InnsynService(
         return when (this) {
             is AnkeITrygderettenbehandling -> null
             is Klagebehandling -> getVarsletBehandlingstidView(
-                this.varsletFrist,
+                this.varsletBehandlingstid,
                 this.varsletBehandlingstidUnits,
                 this.varsletBehandlingstidUnitType
             )
 
             is Ankebehandling -> getVarsletBehandlingstidView(
-                this.varsletFrist,
+                this.varsletBehandlingstid,
                 this.varsletBehandlingstidUnits,
                 this.varsletBehandlingstidUnitType
             )
 
             is BehandlingEtterTrygderettenOpphevet -> getVarsletBehandlingstidView(
-                this.varsletFrist,
+                this.varsletBehandlingstid,
                 this.varsletBehandlingstidUnits,
                 this.varsletBehandlingstidUnitType
             )
 
             is Omgjoeringskravbehandling -> getVarsletBehandlingstidView(
-                this.varsletFrist,
+                this.varsletBehandlingstid,
                 this.varsletBehandlingstidUnits,
                 this.varsletBehandlingstidUnitType
             )

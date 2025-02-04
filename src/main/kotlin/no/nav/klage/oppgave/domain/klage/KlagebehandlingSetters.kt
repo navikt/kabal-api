@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.Endringslogginnslag.Companion.endringslogg
 import java.time.LocalDate
@@ -29,32 +28,26 @@ object KlagebehandlingSetters {
     }
 
     fun Klagebehandling.setVarsletBehandlingstid(
-        nyVerdiVarsletBehandlingstidUnits: Int,
-        nyVerdiVarsletBehandlingstidUnitType: TimeUnitType,
-        nyVerdiVarsletFrist: LocalDate,
+        varsletBehandlingstid: VarsletBehandlingstid,
         saksbehandlerident: String,
         saksbehandlernavn: String,
         mottakere: List<Mottaker>,
     ): BehandlingEndretEvent {
-        val gammelVerdiVarsletBehandlingstidUnits = varsletBehandlingstidUnits
-        val gammelVerdiVarsletBehandlingstidUnitType = varsletBehandlingstidUnitType
-        val gammelVerdiVarsletFrist = varsletFrist
+        val gammelVerdi = this.varsletBehandlingstid
+
         val tidspunkt = LocalDateTime.now()
 
         if (varsletBehandlingstidHistorikk.isEmpty()) {
-            recordVarsletFristHistory(
+            recordVarsletBehandlingstidHistory(
                 tidspunkt = created,
                 utfoerendeIdent = null,
                 utfoerendeNavn = null,
                 mottakere = listOf(),
             )
         }
+        this.varsletBehandlingstid = varsletBehandlingstid
 
-        varsletBehandlingstidUnits = nyVerdiVarsletBehandlingstidUnits
-        varsletBehandlingstidUnitType = nyVerdiVarsletBehandlingstidUnitType
-        varsletFrist = nyVerdiVarsletFrist
-
-        recordVarsletFristHistory(
+        recordVarsletBehandlingstidHistory(
             tidspunkt = tidspunkt,
             utfoerendeIdent = saksbehandlerident,
             utfoerendeNavn = saksbehandlernavn,
@@ -66,26 +59,8 @@ object KlagebehandlingSetters {
         endringslogg(
             saksbehandlerident = saksbehandlerident,
             felt = Felt.VARSLET_FRIST,
-            fraVerdi = gammelVerdiVarsletFrist.toString(),
-            tilVerdi = nyVerdiVarsletFrist.toString(),
-            behandlingId = this.id,
-            tidspunkt = tidspunkt
-        )?.let { endringslogginnslag.add(it) }
-
-        endringslogg(
-            saksbehandlerident = saksbehandlerident,
-            felt = Felt.VARSLET_BEHANDLINGSTID_UNITS,
-            fraVerdi = gammelVerdiVarsletBehandlingstidUnits.toString(),
-            tilVerdi = nyVerdiVarsletBehandlingstidUnits.toString(),
-            behandlingId = this.id,
-            tidspunkt = tidspunkt
-        )?.let { endringslogginnslag.add(it) }
-
-        endringslogg(
-            saksbehandlerident = saksbehandlerident,
-            felt = Felt.VARSLET_BEHANDLINGSTID_UNIT_TYPE,
-            fraVerdi = gammelVerdiVarsletBehandlingstidUnitType.toString(),
-            tilVerdi = nyVerdiVarsletBehandlingstidUnitType.toString(),
+            fraVerdi = gammelVerdi.toString(),
+            tilVerdi = varsletBehandlingstid.toString(),
             behandlingId = this.id,
             tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
@@ -93,7 +68,7 @@ object KlagebehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
     }
 
-    private fun Klagebehandling.recordVarsletFristHistory(
+    private fun Klagebehandling.recordVarsletBehandlingstidHistory(
         tidspunkt: LocalDateTime,
         utfoerendeIdent: String?,
         utfoerendeNavn: String?,
@@ -105,9 +80,7 @@ object KlagebehandlingSetters {
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
                 utfoerendeNavn = utfoerendeNavn,
-                varsletFrist = varsletFrist,
-                varsletBehandlingstidUnits = varsletBehandlingstidUnits,
-                varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
+                varsletBehandlingstid = varsletBehandlingstid,
             )
         )
     }

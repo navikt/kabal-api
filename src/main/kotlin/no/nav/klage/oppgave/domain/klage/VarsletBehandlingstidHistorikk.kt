@@ -1,12 +1,9 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
-import no.nav.klage.kodeverk.TimeUnitType
-import no.nav.klage.kodeverk.TimeUnitTypeConverter
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -26,13 +23,8 @@ class VarsletBehandlingstidHistorikk(
     val utfoerendeIdent: String?,
     @Column(name = "utfoerende_navn")
     val utfoerendeNavn: String?,
-    @Column(name = "varslet_frist")
-    val varsletFrist: LocalDate?,
-    @Column(name = "varslet_behandlingstid_units")
-    val varsletBehandlingstidUnits: Int?,
-    @Column(name = "varslet_behandlingstid_unit_type_id")
-    @Convert(converter = TimeUnitTypeConverter::class)
-    val varsletBehandlingstidUnitType: TimeUnitType?,
+    @Embedded
+    var varsletBehandlingstid: VarsletBehandlingstid?,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -48,6 +40,6 @@ class VarsletBehandlingstidHistorikk(
     }
 
     override fun toString(): String {
-        return "VarsletBehandlingstidHistorikk(id=$id, mottakerList=$mottakerList, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn, varsletFrist=$varsletFrist, varsletBehandlingstidUnits=$varsletBehandlingstidUnits, varsletBehandlingstidUnitType=$varsletBehandlingstidUnitType)"
+        return "VarsletBehandlingstidHistorikk(id=$id, mottakerList=$mottakerList, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn, varsletFrist=$varsletBehandlingstid, varsletBehandlingstidUnits=$varsletBehandlingstidUnits, varsletBehandlingstidUnitType=$varsletBehandlingstidUnitType)"
     }
 }
