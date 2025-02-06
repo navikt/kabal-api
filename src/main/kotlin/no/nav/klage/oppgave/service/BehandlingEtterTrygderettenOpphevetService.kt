@@ -61,6 +61,7 @@ class BehandlingEtterTrygderettenOpphevetService(
                 kjennelseMottatt = ankeITrygderettenbehandling.kjennelseMottatt!!,
                 ankeBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
                 tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
+                varsletBehandlingstid = null,
             )
         )
         logger.debug(

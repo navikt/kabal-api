@@ -336,8 +336,6 @@ class HistoryService(
                     utfoerendeNavn = null,
                     mottakerList = listOf(),
                     varsletBehandlingstid = null,
-                    varsletBehandlingstidUnits = null,
-                    varsletBehandlingstidUnitType = null,
                 )
             ) + varsletBehandlingstidHistorikk.sortedBy { it.tidspunkt }
         } else varsletBehandlingstidHistorikk.sortedBy { it.tidspunkt }
@@ -360,9 +358,9 @@ class HistoryService(
                                 } else null
                             )
                         },
-                        varsletBehandlingstidUnits = previous.varsletBehandlingstidUnits,
-                        varsletBehandlingstidUnitTypeId = previous.varsletBehandlingstidUnitType?.id,
-                        varsletFrist = previous.varsletBehandlingstid,
+                        varsletBehandlingstidUnits = previous.varsletBehandlingstid?.varsletBehandlingstidUnits,
+                        varsletBehandlingstidUnitTypeId = previous.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
+                        varsletFrist = previous.varsletBehandlingstid?.varsletFrist,
                     )
                 )
 
@@ -382,9 +380,9 @@ class HistoryService(
                                 } else null
                             )
                         },
-                        varsletBehandlingstidUnits = current.varsletBehandlingstidUnits,
-                        varsletBehandlingstidUnitTypeId = current.varsletBehandlingstidUnitType?.id,
-                        varsletFrist = current.varsletBehandlingstid,
+                        varsletBehandlingstidUnits = current.varsletBehandlingstid?.varsletBehandlingstidUnits,
+                        varsletBehandlingstidUnitTypeId = current.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
+                        varsletFrist = current.varsletBehandlingstid?.varsletFrist,
                     ),
                     previous = previousEvent,
                 )

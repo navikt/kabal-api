@@ -40,6 +40,6 @@ class VarsletBehandlingstidHistorikk(
     }
 
     override fun toString(): String {
-        return "VarsletBehandlingstidHistorikk(id=$id, mottakerList=$mottakerList, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn, varsletFrist=$varsletBehandlingstid, varsletBehandlingstidUnits=$varsletBehandlingstidUnits, varsletBehandlingstidUnitType=$varsletBehandlingstidUnitType)"
+        return "VarsletBehandlingstidHistorikk(id=$id, mottakerList=$mottakerList, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn, varsletBehandlingstid=$varsletBehandlingstid)"
     }
 }

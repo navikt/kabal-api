@@ -36,7 +36,7 @@ class Klagebehandling(
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
     val kakaKvalitetsvurderingVersion: Int,
     @Embedded
-    var varsletBehandlingstid: VarsletBehandlingstid?,
+    override var varsletBehandlingstid: VarsletBehandlingstid?,
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),
@@ -78,7 +78,7 @@ class Klagebehandling(
     gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
-) : Behandling(
+) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
     klager = klager,
     prosessfullmektig = prosessfullmektig,

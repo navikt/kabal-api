@@ -23,7 +23,7 @@ class BehandlingEtterTrygderettenOpphevet(
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
     val kakaKvalitetsvurderingVersion: Int,
     @Embedded
-    var varsletBehandlingstid: VarsletBehandlingstid?,
+    override var varsletBehandlingstid: VarsletBehandlingstid?,
     @Column(name = "source_behandling_id")
     var sourceBehandlingId: UUID?,
     @Column(name = "kjennelse_mottatt")
@@ -71,7 +71,7 @@ class BehandlingEtterTrygderettenOpphevet(
     gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
-) : Behandling(
+) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
     klager = klager,
     sakenGjelder = sakenGjelder,

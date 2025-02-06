@@ -32,7 +32,7 @@ class Ankebehandling(
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = true)
     val kakaKvalitetsvurderingVersion: Int,
     @Embedded
-    var varsletBehandlingstid: VarsletBehandlingstid?,
+    override var varsletBehandlingstid: VarsletBehandlingstid?,
 
 //    Finn ut hvordan dette skal fungere i anker etter hvert
 //    @Column(name = "dato_behandling_avsluttet_av_saksbehandler")
