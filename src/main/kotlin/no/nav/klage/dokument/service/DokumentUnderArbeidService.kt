@@ -2038,9 +2038,11 @@ class DokumentUnderArbeidService(
     }
 
     fun sendSvarbrev(
-        behandling: Behandling,
+        behandlingId: UUID,
         hindreAutomatiskSvarbrev: Boolean,
     ) {
+        val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId)
+
         if (hindreAutomatiskSvarbrev) {
             logger.debug("hindreAutomatiskSvarbrev set to true, returning without sending svarbrev")
             return
