@@ -94,7 +94,14 @@ class Mottak(
     }
 
     fun generateFrist(): LocalDate {
-        return frist ?: (sakMottattKaDato.toLocalDate() + Period.ofWeeks(12))
+        return frist ?: getDefaultFristForType(sakMottattKaDato = sakMottattKaDato, type = type)
+    }
+
+    private fun getDefaultFristForType(sakMottattKaDato: LocalDateTime, type: Type): LocalDate {
+        return when(type) {
+            Type.ANKE -> (sakMottattKaDato.toLocalDate() + Period.ofWeeks(11))
+            else -> (sakMottattKaDato.toLocalDate() + Period.ofWeeks(12))
+        }
     }
 
     fun mapToBehandlingHjemler(): Set<Hjemmel> =
