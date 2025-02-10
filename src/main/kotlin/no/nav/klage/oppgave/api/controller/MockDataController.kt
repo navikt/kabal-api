@@ -27,7 +27,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
-import kotlin.random.Random
 
 @Profile("dev-gcp")
 @RestController
@@ -219,7 +218,7 @@ class MockDataController(
             )
 
             Ytelse.SYK_SYK -> Fnr(
-                fnr = "26417207642"
+                fnr = "08509328251"
             )
 
             Ytelse.SUP_UFF -> Fnr(
@@ -264,8 +263,8 @@ class MockDataController(
 
         val sakenGjelder = mockInput?.sakenGjelder
 
-        val oversendtSak = OversendtSak(
-            fagsakId = Random.nextInt(from = 1, until = 9999).toString(),
+        val oversendtSak = mockInput?.fagsak ?: OversendtSak(
+            fagsakId = "1234",
             fagsystem = Fagsystem.AO01
         )
 
@@ -374,5 +373,6 @@ class MockDataController(
         val sakMottattKaTidspunkt: LocalDate?,
         val hindreAutomatiskSvarbrev: Boolean?,
         val saksbehandlerIdent: String?,
+        val fagsak: OversendtSak?,
     )
 }
