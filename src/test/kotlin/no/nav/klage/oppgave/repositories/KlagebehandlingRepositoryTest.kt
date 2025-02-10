@@ -182,6 +182,7 @@ class KlagebehandlingRepositoryTest {
             frist = LocalDate.now().plusWeeks(12),
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
+            varsletBehandlingstid = null,
         )
 
         ankebehandlingRepository.save(ankebehandling)
@@ -246,5 +247,6 @@ class KlagebehandlingRepositoryTest {
         kakaKvalitetsvurderingVersion = 2,
         previousSaksbehandlerident = "C78901",
         gosysOppgaveId = null,
+        varsletBehandlingstid = null,
     )
 }

@@ -293,3 +293,10 @@ val utfallToTrygderetten = setOf(
 
 val noRegistringshjemmelNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR)
 val noKvalitetsvurderingNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR, Utfall.UGUNST)
+
+interface BehandlingWithVarsletBehandlingstid {
+    val id: UUID
+    val created: LocalDateTime
+    var varsletBehandlingstid: VarsletBehandlingstid?
+    val varsletBehandlingstidHistorikk: MutableSet<VarsletBehandlingstidHistorikk>
+}

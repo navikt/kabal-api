@@ -213,6 +213,7 @@ internal class BehandlingAvslutningServiceTest {
         extraUtfallSet = setOf(Utfall.MEDHOLD),
         previousSaksbehandlerident = "C78901",
         gosysOppgaveId = null,
+        varsletBehandlingstid = null,
     )
 
     @Test
