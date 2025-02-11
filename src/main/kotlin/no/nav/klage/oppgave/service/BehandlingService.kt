@@ -46,7 +46,6 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFrist
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFullmektig
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setGosysOppgaveId
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setGosysOppgaveUpdate
-import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setGosysoppgaveId
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setIgnoreGosysOppgave
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setInnsendingshjemler
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setKlager
@@ -2457,7 +2456,7 @@ class BehandlingService(
         }
 
         val event =
-            behandling.setGosysoppgaveId(
+            behandling.setGosysOppgaveId(
                 nyVerdi = gosysOppgaveId,
                 saksbehandlerident = utfoerendeSaksbehandlerIdent
             )

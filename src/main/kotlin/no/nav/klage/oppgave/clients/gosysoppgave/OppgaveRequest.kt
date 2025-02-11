@@ -21,7 +21,7 @@ data class FradelGosysOppgaveInput(
     val tilordnetRessurs: String?,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
-data class UpdateGosysOppgaveInput(
+data class UpdateGosysOppgaveOnCompletedBehandlingInput(
     override val versjon: Int,
     override val endretAvEnhetsnr: String,
     val fristFerdigstillelse: LocalDate,
