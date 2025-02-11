@@ -241,6 +241,7 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     kakaKvalitetsvurderingVersion = 2,
     previousSaksbehandlerident = "C78901",
     gosysOppgaveId = null,
+    varsletBehandlingstid = null,
 )
 
 fun getPerson(): Person = Person(

@@ -110,6 +110,7 @@ class BehandlingMapperTest {
             frist = LocalDate.now().plusWeeks(12),
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
+            varsletBehandlingstid = null,
         )
     }
 

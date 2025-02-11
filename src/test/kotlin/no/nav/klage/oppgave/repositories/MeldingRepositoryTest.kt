@@ -96,6 +96,7 @@ class MeldingRepositoryTest {
             kakaKvalitetsvurderingVersion = 2,
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
+            varsletBehandlingstid = null,
         )
 
         klagebehandlingRepository.save(klage)
