@@ -19,7 +19,6 @@ class ExternalMottakFacade(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val behandlingService: BehandlingService,
     private val saksbehandlerService: SaksbehandlerService,
-    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val kabalInnstillingerClient: KabalInnstillingerClient,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
@@ -50,7 +49,10 @@ class ExternalMottakFacade(
         val behandling = mottakService.createMottakForKlageAnkeV4(oversendtKlageAnke)
 
         if (oversendtKlageAnke.saksbehandlerIdentForTildeling != null) {
-            tryToSetSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdentForTildeling)
+            tryToSetSaksbehandler(
+                behandling = behandling,
+                saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdentForTildeling
+            )
         }
 
         tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
@@ -74,7 +76,7 @@ class ExternalMottakFacade(
     ) {
         try {
             dokumentUnderArbeidService.sendSvarbrev(
-                behandling = behandling,
+                behandlingId = behandling.id,
                 hindreAutomatiskSvarbrev = hindreAutomatiskSvarbrev,
             )
         } catch (e: Exception) {

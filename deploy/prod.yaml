@@ -79,8 +79,7 @@ adRoles:
   - name: KABAL_KROL_ROLE_ID
     value: a478bf9a-fb73-4dee-bd84-411ca4749cb9
   - name: KABAL_SVARBREVINNSTILLINGER_ROLE_ID
-    #    Replace when role in place.
-    value: 90f4f8df-8dde-4001-a925-3e8e393c09e8
+    value: e11eac72-43dc-48bc-b9cb-383b600fd03b
 
 envs:
   - name: JAVA_OPTS
