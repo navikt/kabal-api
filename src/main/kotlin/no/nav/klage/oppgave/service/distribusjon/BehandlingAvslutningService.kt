@@ -190,7 +190,7 @@ class BehandlingAvslutningService(
         }
 
         if (behandling.gosysOppgaveId != null && behandling.gosysOppgaveUpdate != null && !behandling.ignoreGosysOppgave) {
-            gosysOppgaveService.updateGosysOppgave(
+            gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                 behandling = behandling,
                 systemContext = true,
                 throwExceptionIfFerdigstilt = true,

@@ -626,25 +626,6 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
-    fun Behandling.setGosysoppgaveId(
-        nyVerdi: Long?,
-        saksbehandlerident: String
-    ): BehandlingEndretEvent {
-        val gammelVerdi = gosysOppgaveId
-        val tidspunkt = LocalDateTime.now()
-        gosysOppgaveId = nyVerdi
-        modified = tidspunkt
-        val endringslogg =
-            endringslogg(
-                saksbehandlerident = saksbehandlerident,
-                felt = Felt.GOSYSOPPGAVE_ID,
-                fraVerdi = gammelVerdi?.toString(),
-                tilVerdi = gosysOppgaveId?.toString(),
-                tidspunkt = tidspunkt
-            )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
-    }
-
     fun Behandling.setExtraUtfallSet(
         nyVerdi: Set<Utfall>,
         saksbehandlerident: String

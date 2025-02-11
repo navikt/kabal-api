@@ -122,7 +122,7 @@ class GosysOppgaveService(
         )
     }
 
-    fun updateGosysOppgave(
+    fun updateGosysOppgaveOnCompletedBehandling(
         behandling: Behandling,
         systemContext: Boolean,
         throwExceptionIfFerdigstilt: Boolean,
@@ -140,7 +140,7 @@ class GosysOppgaveService(
             return
         }
 
-        val updateGosysOppgaveRequest = UpdateGosysOppgaveInput(
+        val updateGosysOppgaveRequest = UpdateGosysOppgaveOnCompletedBehandlingInput(
             versjon = currentGosysOppgave.versjon,
             endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
             fristFerdigstillelse = LocalDate.now(),
