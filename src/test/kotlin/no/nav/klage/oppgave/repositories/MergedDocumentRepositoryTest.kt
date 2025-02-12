@@ -1,7 +1,10 @@
 package no.nav.klage.oppgave.repositories
 
+import com.ninjasquad.springmockk.MockkBean
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.klage.DocumentToMerge
+import no.nav.klage.oppgave.domain.klage.MergedDocument
+import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,6 +36,10 @@ class MergedDocumentRepositoryTest {
 
     @Autowired
     lateinit var mergedDocumentRepository: MergedDocumentRepository
+
+    //Because of Hibernate Envers and our setup for audit logs.
+    @MockkBean
+    lateinit var tokenUtil: TokenUtil
 
     @Test
     fun `delete old merged documents works`() {
