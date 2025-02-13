@@ -8,6 +8,7 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import org.hibernate.envers.Audited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -16,6 +17,7 @@ import java.util.*
 
 @Entity
 @DiscriminatorValue("omgjoeringskrav")
+@Audited
 class Omgjoeringskravbehandling(
     @Column(name = "klage_behandlende_enhet")
     val klageBehandlendeEnhet: String,

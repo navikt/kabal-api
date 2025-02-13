@@ -5,6 +5,7 @@ import no.nav.klage.oppgave.eventlisteners.OurRevisionListener
 import org.hibernate.envers.RevisionEntity
 import org.hibernate.envers.RevisionNumber
 import org.hibernate.envers.RevisionTimestamp
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "revision", schema = "klage")
@@ -16,7 +17,7 @@ class OurRevision(
     @RevisionNumber
     var id: Long?,
     @RevisionTimestamp
-    var timestamp: Long?,
+    var timestamp: LocalDateTime?,
     var actor: String,
     var request: String?,
 )
