@@ -7,6 +7,8 @@ create table klage.revision
     primary key (id)
 );
 
+create sequence klage.revision_seq start with 1 increment by 50;
+
 create table klage.behandling_aud
 (
     id                                         uuid      not null,
@@ -117,17 +119,22 @@ create table klage.behandling_registreringshjemmel_aud
 
 create table klage.saksdokument_aud
 (
-    id               uuid not null,
-    behandling_id    uuid not null,
+    id               uuid    not null,
+    behandling_id    uuid    not null,
     journalpost_id   text,
     dokument_info_id text,
-    rev           integer not null,
-    revtype       integer,
+    rev              integer not null,
+    revtype          integer,
     primary key (rev, id, behandling_id)
 );
 
-alter table klage.behandling_aud add constraint fk_behandling_aud foreign key (rev) references revision;
-alter table klage.behandling_extra_utfall_aud add constraint fk_behandling_extra_utfall_aud foreign key (rev) references revision;
-alter table klage.behandling_hjemmel_aud add constraint fk_behandling_hjemmel_aud foreign key (rev) references revision;
-alter table klage.behandling_registreringshjemmel_aud add constraint fk_behandling_registreringshjemmel_aud foreign key (rev) references revision;
-alter table klage.saksdokument_aud add constraint fk_saksdokument_aud foreign key (rev) references revision;
+alter table klage.behandling_aud
+    add constraint fk_behandling_aud foreign key (rev) references klage.revision;
+alter table klage.behandling_extra_utfall_aud
+    add constraint fk_behandling_extra_utfall_aud foreign key (rev) references klage.revision;
+alter table klage.behandling_hjemmel_aud
+    add constraint fk_behandling_hjemmel_aud foreign key (rev) references klage.revision;
+alter table klage.behandling_registreringshjemmel_aud
+    add constraint fk_behandling_registreringshjemmel_aud foreign key (rev) references klage.revision;
+alter table klage.saksdokument_aud
+    add constraint fk_saksdokument_aud foreign key (rev) references klage.revision;
