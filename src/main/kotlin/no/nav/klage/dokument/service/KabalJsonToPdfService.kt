@@ -44,7 +44,7 @@ class KabalJsonToPdfService(
                         fnr = klagerIdentifikator,
                     )
                 } else null,
-                ytelsenavn = ytelse.navn,
+                ytelseId = ytelse.id,
                 fullmektigFritekst = svarbrev.fullmektigFritekst,
                 receivedDate = mottattKlageinstans,
                 behandlingstidUnits = svarbrev.varsletBehandlingstidUnits,
