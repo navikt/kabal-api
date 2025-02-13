@@ -3,6 +3,7 @@ create table klage.revision
     id        bigint not null,
     actor     text,
     request   text,
+    trace_id  text,
     timestamp timestamp,
     primary key (id)
 );

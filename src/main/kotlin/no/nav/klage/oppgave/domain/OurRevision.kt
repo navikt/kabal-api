@@ -20,4 +20,6 @@ class OurRevision(
     var timestamp: LocalDateTime?,
     var actor: String,
     var request: String?,
+    @Column(name = "trace_id")
+    var traceId: String?,
 )

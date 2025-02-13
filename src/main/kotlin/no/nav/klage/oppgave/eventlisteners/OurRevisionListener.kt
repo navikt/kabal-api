@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.eventlisteners
 
+import io.opentelemetry.api.trace.Span
 import no.nav.klage.oppgave.domain.OurRevision
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
@@ -34,6 +35,7 @@ class OurRevisionListener(
             } else {
                 revisionEntity.actor = systembrukerIdent
             }
+            revisionEntity.traceId = Span.current().spanContext.traceId
         } catch (e: Exception) {
             logger.warn("Failed to set correct actor and/or request on revision entity. Setting 'unknown'.", e)
             revisionEntity.actor = "unknown"
