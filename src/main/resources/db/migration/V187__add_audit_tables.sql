@@ -1,6 +1,6 @@
 create table klage.revision
 (
-    id        integer not null,
+    id        bigint not null,
     timestamp bigint  not null,
     actor     text,
     request   text,
@@ -85,7 +85,7 @@ create table klage.behandling_aud
     prosessfullmektig_address_postnummer       text,
     prosessfullmektig_address_poststed         text,
     prosessfullmektig_address_landkode         text,
-    rev                                        integer   not null,
+    rev                                        bigint   not null,
     revtype                                    integer,
     primary key (rev, id)
 );
@@ -94,7 +94,7 @@ create table klage.behandling_extra_utfall_aud
 (
     id            text    not null,
     behandling_id uuid    not null,
-    rev           integer not null,
+    rev           bigint not null,
     revtype       integer,
     primary key (rev, id, behandling_id)
 );
@@ -103,7 +103,7 @@ create table klage.behandling_hjemmel_aud
 (
     id            text    not null,
     behandling_id uuid    not null,
-    rev           integer not null,
+    rev           bigint not null,
     revtype       integer,
     primary key (rev, id, behandling_id)
 );
@@ -112,7 +112,7 @@ create table klage.behandling_registreringshjemmel_aud
 (
     id            text    not null,
     behandling_id uuid    not null,
-    rev           integer not null,
+    rev           bigint not null,
     revtype       integer,
     primary key (rev, id, behandling_id)
 );
@@ -123,9 +123,18 @@ create table klage.saksdokument_aud
     behandling_id    uuid    not null,
     journalpost_id   text,
     dokument_info_id text,
-    rev              integer not null,
+    rev              bigint not null,
     revtype          integer,
     primary key (rev, id, behandling_id)
+);
+
+create table klage.behandling_saksdokument_aud
+(
+    rev           bigint not null,
+    behandling_id uuid   not null,
+    id            uuid   not null,
+    revtype       smallint,
+    primary key (behandling_id, rev, id)
 );
 
 alter table klage.behandling_aud
@@ -138,3 +147,5 @@ alter table klage.behandling_registreringshjemmel_aud
     add constraint fk_behandling_registreringshjemmel_aud foreign key (rev) references klage.revision;
 alter table klage.saksdokument_aud
     add constraint fk_saksdokument_aud foreign key (rev) references klage.revision;
+alter table if exists klage.behandling_saksdokument_aud
+    add constraint fk_behandling_saksdokument_aud foreign key (rev) references klage.revision;
