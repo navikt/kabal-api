@@ -52,14 +52,14 @@ inboundApplications:
     cluster: dev-gcp
 springProfile: dev-gcp
 tenant: trygdeetaten.no
-db_tier: db-f1-micro
+db_tier: db-custom-1-3840
 db_size: 10
 db_ha: false
 db_type: POSTGRES_15
 kafka_pool: nav-dev
 
 replicasMin: 2
-replicasMax: 2
+replicasMax: 4
 
 adRoles:
   - name: KABAL_OPPGAVESTYRING_ALLE_ENHETER_ROLE_ID
