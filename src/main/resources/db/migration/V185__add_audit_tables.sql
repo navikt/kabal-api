@@ -1,4 +1,4 @@
-create table revision
+create table klage.revision
 (
     id        integer not null,
     timestamp bigint  not null,
