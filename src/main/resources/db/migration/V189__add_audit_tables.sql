@@ -3,7 +3,7 @@ create table klage.revision
     id        bigint not null,
     actor     text,
     request   text,
-    timestamp bigint,
+    timestamp timestamp,
     primary key (id)
 );
 
@@ -67,6 +67,23 @@ create table klage.behandling_aud
     type_id                                    text,
     utfall_id                                  text,
     ytelse_id                                  text,
+    anke_behandlende_enhet                     text,
+    kaka_kvalitetsvurdering_id                 uuid,
+    kaka_kvalitetsvurdering_version            integer,
+    kjennelse_mottatt                          timestamp,
+    source_behandling_id                       uuid,
+    varslet_behandlingstid_unit_type_id        text,
+    varslet_behandlingstid_units               integer,
+    varslet_frist                              date,
+    klage_behandlende_enhet                    text,
+    klage_vedtaks_dato                         date,
+    mottak_id                                  uuid,
+    ny_ankebehandling_ka                       timestamp,
+    ny_behandling_etter_tr_opphevet            timestamp,
+    sendt_til_trygderetten                     timestamp,
+    avsender_enhet_foersteinstans              text,
+    kommentar_fra_foersteinstans               text,
+    dato_mottatt_foersteinstans                date,
     primary key (rev, id)
 );
 
