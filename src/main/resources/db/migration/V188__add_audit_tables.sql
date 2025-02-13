@@ -79,15 +79,6 @@ create table klage.behandling_extra_utfall_aud
     primary key (behandling_id, rev, id)
 );
 
-create table klage.behandling_extra_utfall_aud
-(
-    rev           bigint not null,
-    behandling_id uuid   not null,
-    id            text   not null,
-    revtype       smallint,
-    primary key (behandling_id, rev, id)
-);
-
 create table klage.behandling_hjemmel_aud
 (
     rev           bigint not null,
