@@ -7,7 +7,7 @@ create table klage.revision
     primary key (id)
 );
 
-create sequence klage.revision_seq start with 1 increment by 50;
+create sequence klage.revision_seq start with 1 increment by 1;
 
 create table klage.behandling_aud
 (
