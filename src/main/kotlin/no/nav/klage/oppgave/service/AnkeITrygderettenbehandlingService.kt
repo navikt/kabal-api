@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
@@ -155,49 +156,52 @@ class AnkeITrygderettenbehandlingService(
             input.createAnkeITrygderettenbehandlingInput(inputDocuments)
         )
 
-        val statistikkTilDVH = StatistikkTilDVH(
-            eventId = UUID.randomUUID(),
-            behandlingId = ankeITrygderettenbehandling.dvhReferanse,
-            behandlingIdKabal = ankeITrygderettenbehandling.toString(),
-            //Means enhetTildeltDato
-            behandlingStartetKA = null,
-            ansvarligEnhetKode = "TR0000",
-            behandlingStatus = BehandlingState.SENDT_TIL_TR,
-            behandlingType = Type.ANKE.name,
-            //Means medunderskriver
-            beslutter = null,
-            endringstid = ankeITrygderettenbehandling.sendtTilTrygderetten,
-            hjemmel = emptyList(),
-            klager = getDVHPart(
-                type = ankeITrygderettenbehandling.klager.partId.type,
-                value = ankeITrygderettenbehandling.klager.partId.value
-            ),
-            opprinneligFagsaksystem = ankeITrygderettenbehandling.fagsystem.navn,
-            overfoertKA = ankeITrygderettenbehandling.mottattKlageinstans.toLocalDate(),
-            resultat = null,
-            sakenGjelder = getDVHPart(
-                type = ankeITrygderettenbehandling.sakenGjelder.partId.type,
-                value = ankeITrygderettenbehandling.sakenGjelder.partId.value
-            ),
-            saksbehandler = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
-            saksbehandlerEnhet =  ankeITrygderettenbehandling.tildeling?.enhet,
-            tekniskTid = LocalDateTime.now(),
-            vedtaksdato = null,
-            ytelseType = ankeITrygderettenbehandling.ytelse.name,
-            opprinneligFagsakId = ankeITrygderettenbehandling.fagsakId,
-        )
-
-        kafkaEventRepository.save(
-            KafkaEvent(
-                id = UUID.randomUUID(),
-                behandlingId = ankeITrygderettenbehandling.id,
-                kilde = ankeITrygderettenbehandling.fagsystem.navn,
-                kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-                status = UtsendingStatus.IKKE_SENDT,
-                jsonPayload = statistikkTilDVH.toJson(),
-                type = EventType.STATS_DVH
+        //Custom handling for Pesys:
+        if (ankeITrygderettenbehandling.fagsystem == Fagsystem.PP01) {
+            val statistikkTilDVH = StatistikkTilDVH(
+                eventId = UUID.randomUUID(),
+                behandlingId = ankeITrygderettenbehandling.dvhReferanse,
+                behandlingIdKabal = ankeITrygderettenbehandling.toString(),
+                //Means enhetTildeltDato
+                behandlingStartetKA = null,
+                ansvarligEnhetKode = "TR0000",
+                behandlingStatus = BehandlingState.SENDT_TIL_TR,
+                behandlingType = Type.ANKE.name,
+                //Means medunderskriver
+                beslutter = null,
+                endringstid = ankeITrygderettenbehandling.sendtTilTrygderetten,
+                hjemmel = emptyList(),
+                klager = getDVHPart(
+                    type = ankeITrygderettenbehandling.klager.partId.type,
+                    value = ankeITrygderettenbehandling.klager.partId.value
+                ),
+                opprinneligFagsaksystem = ankeITrygderettenbehandling.fagsystem.navn,
+                overfoertKA = ankeITrygderettenbehandling.mottattKlageinstans.toLocalDate(),
+                resultat = null,
+                sakenGjelder = getDVHPart(
+                    type = ankeITrygderettenbehandling.sakenGjelder.partId.type,
+                    value = ankeITrygderettenbehandling.sakenGjelder.partId.value
+                ),
+                saksbehandler = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
+                saksbehandlerEnhet = ankeITrygderettenbehandling.tildeling?.enhet,
+                tekniskTid = LocalDateTime.now(),
+                vedtaksdato = null,
+                ytelseType = ankeITrygderettenbehandling.ytelse.name,
+                opprinneligFagsakId = ankeITrygderettenbehandling.fagsakId,
             )
-        )
+
+            kafkaEventRepository.save(
+                KafkaEvent(
+                    id = UUID.randomUUID(),
+                    behandlingId = ankeITrygderettenbehandling.id,
+                    kilde = ankeITrygderettenbehandling.fagsystem.navn,
+                    kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
+                    status = UtsendingStatus.IKKE_SENDT,
+                    jsonPayload = statistikkTilDVH.toJson(),
+                    type = EventType.STATS_DVH
+                )
+            )
+        }
     }
 
     private fun StatistikkTilDVH.toJson(): String = objectMapper.writeValueAsString(this)
