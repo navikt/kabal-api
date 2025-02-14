@@ -90,6 +90,9 @@
 
         <logger name="org.hibernate.SQL_SLOW" level="debug"/>
 
+        <logger name="com.zaxxer.hikari.HikariConfig" level="debug"/>
+        <logger name="com.zaxxer.hikari" level="trace"/>
+
     </springProfile>
 
     <logger name="no.nav.klage" level="debug"/>
