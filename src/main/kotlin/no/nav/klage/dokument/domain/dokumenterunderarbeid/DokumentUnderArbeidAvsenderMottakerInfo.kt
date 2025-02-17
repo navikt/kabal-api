@@ -1,10 +1,12 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
 import jakarta.persistence.*
+import org.hibernate.envers.Audited
 import java.util.*
 
 @Entity
 @Table(name = "dokument_under_arbeid_avsender_mottaker_info", schema = "klage")
+@Audited
 class DokumentUnderArbeidAvsenderMottakerInfo(
     @Id
     val id: UUID = UUID.randomUUID(),

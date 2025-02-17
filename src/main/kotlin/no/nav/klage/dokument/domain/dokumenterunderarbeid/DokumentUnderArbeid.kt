@@ -7,6 +7,8 @@ import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
+import org.hibernate.envers.AuditJoinTable
+import org.hibernate.envers.Audited
 import java.time.LocalDateTime
 import java.util.*
 
@@ -15,6 +17,7 @@ import java.util.*
 @Table(name = "dokument_under_arbeid", schema = "klage")
 @DynamicUpdate
 @DiscriminatorColumn(name = "dokument_under_arbeid_type")
+@Audited
 abstract class DokumentUnderArbeid(
     @Id
     open val id: UUID = UUID.randomUUID(),
@@ -41,6 +44,7 @@ abstract class DokumentUnderArbeid(
     @JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 5)
+    @AuditJoinTable(name = "dua_dokument_under_arbeid_dokarkiv_reference_aud")
     open var dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
 ) : Comparable<DokumentUnderArbeid> {
 
