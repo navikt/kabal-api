@@ -8,6 +8,7 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import org.hibernate.envers.Audited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -16,6 +17,7 @@ const val KLAGEENHET_PREFIX = "42"
 
 @Entity
 @DiscriminatorValue("klage")
+@Audited
 class Klagebehandling(
     //Brukes ikke i anke
     @Column(name = "dato_mottatt_foersteinstans")

@@ -3,13 +3,14 @@ package no.nav.klage.dokument.domain.dokumenterunderarbeid
 import jakarta.persistence.Column
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
-import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import org.hibernate.envers.Audited
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
 @DiscriminatorValue("journalfoertdokument")
+@Audited
 class JournalfoertDokumentUnderArbeidAsVedlegg (
     @Column(name = "opprettet")
     var opprettet: LocalDateTime,

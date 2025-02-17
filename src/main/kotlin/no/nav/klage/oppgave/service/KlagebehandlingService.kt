@@ -75,7 +75,6 @@ class KlagebehandlingService(
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = klagebehandling.id,
-                        tidspunkt = klagebehandling.created,
                     )
                 )
             )

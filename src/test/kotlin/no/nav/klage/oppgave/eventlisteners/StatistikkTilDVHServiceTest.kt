@@ -34,13 +34,8 @@ class StatistikkTilDVHServiceTest {
             endringslogginnslag = listOf(
                 Endringslogginnslag(
                     saksbehandlerident = null,
-                    kilde = KildeSystem.KABAL,
-                    handling = Handling.NY,
                     felt = Felt.KLAGEBEHANDLING_MOTTATT,
                     behandlingId = UUID.randomUUID(),
-                    tidspunkt = LocalDateTime.now(),
-                    fraVerdi = null,
-                    tilVerdi = null,
                 )
             )
         )
@@ -50,13 +45,8 @@ class StatistikkTilDVHServiceTest {
             endringslogginnslag = listOf(
                 Endringslogginnslag(
                     saksbehandlerident = null,
-                    kilde = KildeSystem.KABAL,
-                    handling = Handling.NY,
                     felt = Felt.ANKEBEHANDLING_MOTTATT,
                     behandlingId = UUID.randomUUID(),
-                    tidspunkt = LocalDateTime.now(),
-                    fraVerdi = null,
-                    tilVerdi = null,
                 )
             )
         )
@@ -66,13 +56,8 @@ class StatistikkTilDVHServiceTest {
             endringslogginnslag = listOf(
                 Endringslogginnslag(
                     saksbehandlerident = null,
-                    kilde = KildeSystem.KABAL,
-                    handling = Handling.NY,
                     felt = Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
                     behandlingId = UUID.randomUUID(),
-                    tidspunkt = LocalDateTime.now(),
-                    fraVerdi = null,
-                    tilVerdi = null,
                 )
             )
         )
@@ -90,13 +75,8 @@ class StatistikkTilDVHServiceTest {
             endringslogginnslag = listOf(
                 Endringslogginnslag(
                     saksbehandlerident = null,
-                    kilde = KildeSystem.KABAL,
-                    handling = Handling.ENDRING,
                     felt = Felt.TILDELT_SAKSBEHANDLERIDENT,
                     behandlingId = UUID.randomUUID(),
-                    tidspunkt = LocalDateTime.now(),
-                    fraVerdi = null,
-                    tilVerdi = null,
                 )
             )
         )
@@ -106,13 +86,8 @@ class StatistikkTilDVHServiceTest {
             endringslogginnslag = listOf(
                 Endringslogginnslag(
                     saksbehandlerident = null,
-                    kilde = KildeSystem.KABAL,
-                    handling = Handling.ENDRING,
                     felt = Felt.TILDELT_SAKSBEHANDLERIDENT,
                     behandlingId = UUID.randomUUID(),
-                    tidspunkt = LocalDateTime.now(),
-                    fraVerdi = null,
-                    tilVerdi = null,
                 )
             )
         )
@@ -122,13 +97,8 @@ class StatistikkTilDVHServiceTest {
             endringslogginnslag = listOf(
                 Endringslogginnslag(
                     saksbehandlerident = null,
-                    kilde = KildeSystem.KABAL,
-                    handling = Handling.ENDRING,
                     felt = Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT,
                     behandlingId = UUID.randomUUID(),
-                    tidspunkt = LocalDateTime.now(),
-                    fraVerdi = null,
-                    tilVerdi = null,
                 )
             )
         )
@@ -138,13 +108,8 @@ class StatistikkTilDVHServiceTest {
             endringslogginnslag = listOf(
                 Endringslogginnslag(
                     saksbehandlerident = null,
-                    kilde = KildeSystem.KABAL,
-                    handling = Handling.ENDRING,
                     felt = Felt.AVSLUTTET_TIDSPUNKT,
                     behandlingId = UUID.randomUUID(),
-                    tidspunkt = LocalDateTime.now(),
-                    fraVerdi = null,
-                    tilVerdi = null,
                 )
             )
         )

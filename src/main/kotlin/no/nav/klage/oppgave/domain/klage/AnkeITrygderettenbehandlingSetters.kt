@@ -21,7 +21,6 @@ object AnkeITrygderettenbehandlingSetters {
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
                 behandlingId = this.id,
-                tidspunkt = tidspunkt,
             )
         return BehandlingEndretEvent(
             behandling = this,
@@ -44,7 +43,6 @@ object AnkeITrygderettenbehandlingSetters {
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
                 behandlingId = this.id,
-                tidspunkt = tidspunkt,
             )
         return BehandlingEndretEvent(
             behandling = this,
@@ -67,7 +65,6 @@ object AnkeITrygderettenbehandlingSetters {
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
                 behandlingId = this.id,
-                tidspunkt = tidspunkt,
             )
         return BehandlingEndretEvent(
             behandling = this,
@@ -90,7 +87,6 @@ object AnkeITrygderettenbehandlingSetters {
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
                 behandlingId = this.id,
-                tidspunkt = tidspunkt,
             )
         return BehandlingEndretEvent(
             behandling = this,

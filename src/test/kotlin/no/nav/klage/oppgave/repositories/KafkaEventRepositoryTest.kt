@@ -1,9 +1,11 @@
 package no.nav.klage.oppgave.repositories
 
+import com.ninjasquad.springmockk.MockkBean
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.KafkaEvent
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus.*
+import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,6 +35,10 @@ class KafkaEventRepositoryTest {
 
     @Autowired
     lateinit var kafkaEventRepository: KafkaEventRepository
+
+    //Because of Hibernate Envers and our setup for audit logs.
+    @MockkBean
+    lateinit var tokenUtil: TokenUtil
 
     @Test
     fun `store event works`() {

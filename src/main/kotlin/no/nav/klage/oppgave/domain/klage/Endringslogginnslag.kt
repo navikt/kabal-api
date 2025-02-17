@@ -1,34 +1,12 @@
 package no.nav.klage.oppgave.domain.klage
 
-import jakarta.persistence.*
 import no.nav.klage.oppgave.util.getLogger
-import java.time.LocalDateTime
 import java.util.*
 
-@Entity
-@Table(name = "endringslogginnslag", schema = "klage")
 class Endringslogginnslag(
-    @Column(name = "saksbehandlerident")
     val saksbehandlerident: String?, //subjekt?
-    @Enumerated(EnumType.STRING)
-    @Column(name = "kilde")
-    val kilde: KildeSystem,
-    @Enumerated(EnumType.STRING)
-    @Column(name = "handling")
-    val handling: Handling,
-    @Enumerated(EnumType.STRING)
-    @Column(name = "felt")
     val felt: Felt,
-    @Column(name = "fraverdi")
-    val fraVerdi: String?,
-    @Column(name = "tilverdi")
-    val tilVerdi: String?,
-    @Column(name = "behandling_id")
     val behandlingId: UUID,
-    @Id
-    val id: UUID = UUID.randomUUID(),
-    @Column(name = "tidspunkt")
-    val tidspunkt: LocalDateTime = LocalDateTime.now()
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -40,7 +18,6 @@ class Endringslogginnslag(
             fraVerdi: String?,
             tilVerdi: String?,
             behandlingId: UUID,
-            tidspunkt: LocalDateTime
         ): Endringslogginnslag? {
             if ((fraVerdi == null && tilVerdi == null) || fraVerdi == tilVerdi) {
                 logger.debug(
@@ -52,32 +29,14 @@ class Endringslogginnslag(
                 )
                 return null
             } else {
-                val handling = when {
-                    fraVerdi == null && tilVerdi != null -> Handling.NY
-                    fraVerdi != null && tilVerdi == null -> Handling.SLETTING
-                    else -> Handling.ENDRING
-                }
                 return Endringslogginnslag(
                     saksbehandlerident = saksbehandlerident,
-                    kilde = KildeSystem.KABAL,
-                    handling = handling,
                     felt = felt,
-                    fraVerdi = fraVerdi,
-                    tilVerdi = tilVerdi,
                     behandlingId = behandlingId,
-                    tidspunkt = tidspunkt
                 )
             }
         }
     }
-}
-
-enum class Handling {
-    NY, ENDRING, SLETTING
-}
-
-enum class KildeSystem {
-    KABAL, ADMIN
 }
 
 enum class Felt {
@@ -96,7 +55,6 @@ enum class Felt {
     MEDUNDERSKRIVER_FLOW_STATE_ID,
     SATT_PAA_VENT,
     MOTTATT_KLAGEINSTANS_TIDSPUNKT,
-    SMARTDOKUMENT_OPPRETTET,
     SENDT_TIL_TRYGDERETTEN_TIDSPUNKT,
     KJENNELSE_MOTTATT_TIDSPUNKT,
     FRIST_DATO,

@@ -11,6 +11,8 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
+import org.hibernate.envers.Audited
+import org.hibernate.envers.NotAudited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -29,6 +31,7 @@ import java.util.*
         ]
     ),
 )
+@Audited
 sealed class Behandling(
     @Id
     open val id: UUID = UUID.randomUUID(),
@@ -61,6 +64,7 @@ sealed class Behandling(
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
+    @NotAudited
     open val tildelingHistorikk: MutableSet<TildelingHistorikk> = mutableSetOf(),
     @Embedded
     @AttributeOverrides(
@@ -156,6 +160,7 @@ sealed class Behandling(
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
+    @NotAudited
     open val medunderskriverHistorikk: MutableSet<MedunderskriverHistorikk> = mutableSetOf(),
     @Embedded
     @AttributeOverrides(
@@ -181,26 +186,31 @@ sealed class Behandling(
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
+    @NotAudited
     open val rolHistorikk: MutableSet<RolHistorikk> = mutableSetOf(),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
+    @NotAudited
     open val klagerHistorikk: MutableSet<KlagerHistorikk> = mutableSetOf(),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
+    @NotAudited
     open val fullmektigHistorikk: MutableSet<FullmektigHistorikk> = mutableSetOf(),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
+    @NotAudited
     open val sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
+    @NotAudited
     open val varsletBehandlingstidHistorikk: MutableSet<VarsletBehandlingstidHistorikk> = mutableSetOf(),
     @Column(name = "previous_saksbehandlerident")
     open val previousSaksbehandlerident: String?,

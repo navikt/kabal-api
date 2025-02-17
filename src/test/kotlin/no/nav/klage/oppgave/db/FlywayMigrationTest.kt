@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.db
 
+import com.ninjasquad.springmockk.MockkBean
 import no.nav.klage.oppgave.domain.klage.Saksdokument
+import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,6 +29,10 @@ class FlywayMigrationTest {
 
     @Autowired
     lateinit var jdbcTemplate: JdbcTemplate
+
+    //Because of Hibernate Envers and our setup for audit logs.
+    @MockkBean
+    lateinit var tokenUtil: TokenUtil
 
     @Test
     fun flyway_should_run() {

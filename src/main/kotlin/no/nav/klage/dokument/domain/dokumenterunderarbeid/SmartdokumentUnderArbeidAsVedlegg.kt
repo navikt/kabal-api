@@ -3,12 +3,14 @@ package no.nav.klage.dokument.domain.dokumenterunderarbeid
 import jakarta.persistence.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import org.hibernate.envers.Audited
 import java.time.LocalDateTime
 import java.util.*
 
 
 @Entity
 @DiscriminatorValue("smartdokument_vedlegg")
+@Audited
 class SmartdokumentUnderArbeidAsVedlegg(
     @Column(name = "size")
     override var size: Long?,

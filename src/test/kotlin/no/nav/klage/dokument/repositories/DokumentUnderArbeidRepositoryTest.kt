@@ -1,11 +1,13 @@
 package no.nav.klage.dokument.repositories
 
+import com.ninjasquad.springmockk.MockkBean
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAvsenderMottakerInfo
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsVedlegg
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.BehandlingRole.KABAL_SAKSBEHANDLING
+import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,6 +43,10 @@ class DokumentUnderArbeidRepositoryTest {
 
     @Autowired
     lateinit var opplastetDokumentUnderArbeidAsVedleggRepository: OpplastetDokumentUnderArbeidAsVedleggRepository
+
+    //Because of Hibernate Envers and our setup for audit logs.
+    @MockkBean
+    lateinit var tokenUtil: TokenUtil
 
     @Test
     fun `persist opplastet hoveddokument works`() {

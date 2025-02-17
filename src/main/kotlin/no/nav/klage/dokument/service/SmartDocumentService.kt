@@ -16,7 +16,6 @@ import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumentRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Endringslogginnslag
@@ -28,7 +27,6 @@ import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -44,7 +42,6 @@ class SmartDocumentService(
     private val smartDokumentUnderArbeidAsHoveddokumentRepository: SmartdokumentUnderArbeidAsHoveddokumentRepository,
     private val smartDokumentUnderArbeidAsVedleggRepository: SmartdokumentUnderArbeidAsVedleggRepository,
     private val behandlingService: BehandlingService,
-    private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokumentMapper: DokumentMapper,
     private val saksbehandlerService: SaksbehandlerService,
 ) {
@@ -127,13 +124,6 @@ class SmartDocumentService(
                 )
             )
         }
-        behandling.publishEndringsloggEvent(
-            saksbehandlerident = innloggetIdent,
-            felt = Felt.SMARTDOKUMENT_OPPRETTET,
-            fraVerdi = null,
-            tilVerdi = document.created.toString(),
-            tidspunkt = document.created,
-        )
 
         val smartEditorDocument =
             kabalSmartEditorApiGateway.getSmartDocumentResponse(smartEditorId = document.smartEditorId)
@@ -486,7 +476,6 @@ class SmartDocumentService(
         felt: Felt,
         fraVerdi: String?,
         tilVerdi: String?,
-        tidspunkt: LocalDateTime
     ): Endringslogginnslag? {
         return Endringslogginnslag.endringslogg(
             saksbehandlerident = saksbehandlerident,
@@ -494,33 +483,7 @@ class SmartDocumentService(
             fraVerdi = fraVerdi,
             tilVerdi = tilVerdi,
             behandlingId = this.id,
-            tidspunkt = tidspunkt
         )
-    }
-
-    private fun Behandling.publishEndringsloggEvent(
-        saksbehandlerident: String,
-        felt: Felt,
-        fraVerdi: String?,
-        tilVerdi: String?,
-        tidspunkt: LocalDateTime,
-    ) {
-        listOfNotNull(
-            this.endringslogg(
-                saksbehandlerident = saksbehandlerident,
-                felt = felt,
-                fraVerdi = fraVerdi,
-                tilVerdi = tilVerdi,
-                tidspunkt = tidspunkt,
-            )
-        ).let {
-            applicationEventPublisher.publishEvent(
-                BehandlingEndretEvent(
-                    behandling = this,
-                    endringslogginnslag = it
-                )
-            )
-        }
     }
 
     private fun getSmartEditorId(dokumentId: UUID, readOnly: Boolean): UUID {

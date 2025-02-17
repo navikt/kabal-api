@@ -5,12 +5,14 @@ import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import org.hibernate.envers.Audited
 import java.time.LocalDateTime
 import java.util.*
 
 
 @Entity
 @DiscriminatorValue("opplastetdokument_vedlegg")
+@Audited
 class OpplastetDokumentUnderArbeidAsVedlegg(
     @Column(name = "size")
     var size: Long?,

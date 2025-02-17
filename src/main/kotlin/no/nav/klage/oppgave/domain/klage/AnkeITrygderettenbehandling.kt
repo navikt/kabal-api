@@ -10,12 +10,14 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import org.hibernate.envers.Audited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
 @DiscriminatorValue("anke_i_trygderetten")
+@Audited
 class AnkeITrygderettenbehandling(
     @Column(name = "sendt_til_trygderetten")
     var sendtTilTrygderetten: LocalDateTime,

@@ -8,12 +8,14 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import org.hibernate.envers.Audited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
 @DiscriminatorValue("behandling_etter_tr_opphevet")
+@Audited
 class BehandlingEtterTrygderettenOpphevet(
     @Column(name = "kaka_kvalitetsvurdering_id")
     var kakaKvalitetsvurderingId: UUID?,
