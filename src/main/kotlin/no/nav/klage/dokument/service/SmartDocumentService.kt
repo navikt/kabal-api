@@ -486,7 +486,6 @@ class SmartDocumentService(
         felt: Felt,
         fraVerdi: String?,
         tilVerdi: String?,
-        tidspunkt: LocalDateTime
     ): Endringslogginnslag? {
         return Endringslogginnslag.endringslogg(
             saksbehandlerident = saksbehandlerident,
@@ -494,7 +493,6 @@ class SmartDocumentService(
             fraVerdi = fraVerdi,
             tilVerdi = tilVerdi,
             behandlingId = this.id,
-            tidspunkt = tidspunkt
         )
     }
 
@@ -511,7 +509,6 @@ class SmartDocumentService(
                 felt = felt,
                 fraVerdi = fraVerdi,
                 tilVerdi = tilVerdi,
-                tidspunkt = tidspunkt,
             )
         ).let {
             applicationEventPublisher.publishEvent(

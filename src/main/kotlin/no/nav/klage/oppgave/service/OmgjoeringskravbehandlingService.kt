@@ -91,7 +91,6 @@ class OmgjoeringskravbehandlingService(
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = omgjoeringskravbehandling.id,
-                        tidspunkt = omgjoeringskravbehandling.created,
                     )
                 )
             )

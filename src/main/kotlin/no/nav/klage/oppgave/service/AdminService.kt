@@ -72,7 +72,6 @@ class AdminService(
     private val kafkaEventRepository: KafkaEventRepository,
     private val fileApiClient: FileApiClient,
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
-    private val endringsloggRepository: EndringsloggRepository,
     private val skjermedeApiClient: SkjermedeApiClient,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val safFacade: SafFacade,
@@ -147,8 +146,6 @@ class AdminService(
         dokumentUnderArbeidRepository.deleteAll(vedlegg)
 
         dokumentUnderArbeidRepository.deleteAll(hoveddokumenter)
-
-        endringsloggRepository.deleteAll(endringsloggRepository.findByBehandlingIdOrderByTidspunktDesc(behandlingId))
 
         //delete mottak also
         val behandling = behandlingRepository.findById(behandlingId).get()

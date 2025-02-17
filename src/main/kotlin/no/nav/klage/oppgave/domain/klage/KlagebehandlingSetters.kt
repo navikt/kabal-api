@@ -23,7 +23,6 @@ object KlagebehandlingSetters {
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
                 behandlingId = this.id,
-                tidspunkt = tidspunkt,
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -69,7 +68,6 @@ object KlagebehandlingSetters {
             fraVerdi = gammelVerdiVarsletFrist.toString(),
             tilVerdi = nyVerdiVarsletFrist.toString(),
             behandlingId = this.id,
-            tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
         endringslogg(
@@ -78,7 +76,6 @@ object KlagebehandlingSetters {
             fraVerdi = gammelVerdiVarsletBehandlingstidUnits.toString(),
             tilVerdi = nyVerdiVarsletBehandlingstidUnits.toString(),
             behandlingId = this.id,
-            tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
         endringslogg(
@@ -87,7 +84,6 @@ object KlagebehandlingSetters {
             fraVerdi = gammelVerdiVarsletBehandlingstidUnitType.toString(),
             tilVerdi = nyVerdiVarsletBehandlingstidUnitType.toString(),
             behandlingId = this.id,
-            tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)

@@ -49,7 +49,6 @@ object OmgjoeringskravbehandlingSetters {
             fraVerdi = gammelVerdiVarsletFrist.toString(),
             tilVerdi = nyVerdiVarsletFrist.toString(),
             behandlingId = this.id,
-            tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
         endringslogg(
@@ -58,7 +57,6 @@ object OmgjoeringskravbehandlingSetters {
             fraVerdi = gammelVerdiVarsletBehandlingstidUnits.toString(),
             tilVerdi = nyVerdiVarsletBehandlingstidUnits.toString(),
             behandlingId = this.id,
-            tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
         endringslogg(
@@ -67,7 +65,6 @@ object OmgjoeringskravbehandlingSetters {
             fraVerdi = gammelVerdiVarsletBehandlingstidUnitType.toString(),
             tilVerdi = nyVerdiVarsletBehandlingstidUnitType.toString(),
             behandlingId = this.id,
-            tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)

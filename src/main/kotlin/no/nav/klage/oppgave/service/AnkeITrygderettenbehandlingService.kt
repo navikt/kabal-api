@@ -108,7 +108,6 @@ class AnkeITrygderettenbehandlingService(
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = ankeITrygderettenbehandling.id,
-                        tidspunkt = ankeITrygderettenbehandling.created,
                     )
                 )
             )
