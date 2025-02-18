@@ -41,7 +41,35 @@ data class SvarbrevRequest(
     val behandlingstidUnitTypeId: String,
     val avsenderEnhetId: String,
     val type: Type,
+    val initialCustomText: String?,
     val customText: String?,
+) {
+    data class Part(
+        val name: String,
+        val fnr: String,
+    )
+
+    enum class Type {
+        KLAGE,
+        ANKE,
+        OMGJOERINGSKRAV
+    }
+}
+
+data class ForlengetBehandlingstidRequest(
+    val title: String,
+    val sakenGjelder: Part,
+    val klager: Part?,
+    val fullmektigFritekst: String?,
+    val ytelseId: String,
+    val mottattKlageinstans: LocalDate,
+    val previousBehandlingstidInfo: String?,
+    val reason: String?,
+    val behandlingstidUnits: Int?,
+    val behandlingstidUnitTypeId: String?,
+    val behandlingstidDate: String?,
+    val avsenderEnhetId: String,
+    val type: Type,
 ) {
     data class Part(
         val name: String,
