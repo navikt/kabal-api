@@ -26,19 +26,50 @@ class OurRevisionListener(
     override fun newRevision(revisionEntity: Any?) {
         revisionEntity as OurRevision
 
-        try {
+        var actor: String? = null
+
+        val request = try {
             val requestAttributes = RequestContextHolder.getRequestAttributes()
             if (requestAttributes != null) {
                 val request = (requestAttributes as ServletRequestAttributes).request
-                revisionEntity.actor = tokenUtil.getIdent()
-                revisionEntity.request = request.method + " " + request.requestURI
+                request.method + " " + request.requestURI
             } else {
-                revisionEntity.actor = systembrukerIdent
+                //no exception occurred, we just don't have a request
+                actor = systembrukerIdent
+                null
             }
-            revisionEntity.traceId = Span.current().spanContext.traceId
         } catch (e: Exception) {
-            logger.warn("Failed to set correct actor and/or request on revision entity. Setting 'unknown'.", e)
-            revisionEntity.actor = "unknown"
+            logger.debug("No request found to set on revision entity. Setting to null.", e)
+            null
         }
+
+        val navIdentFromToken = try {
+            tokenUtil.getIdent()
+        } catch (e: Exception) {
+            logger.debug("No NAVIdent found in token.", e)
+            null
+        }
+
+        val callingApplication = try {
+            tokenUtil.getCallingApplication()
+        } catch (e: Exception) {
+            logger.warn("Failed to get calling application from token.", e)
+            null
+        }
+
+        if (navIdentFromToken != null || callingApplication != null) {
+            actor = navIdentFromToken ?: callingApplication
+        }
+
+        val traceId = try {
+            Span.current().spanContext.traceId
+        } catch (e: Exception) {
+            logger.warn("Failed to set traceId on revision entity. Setting 'unknown'.", e)
+            "unknown"
+        }
+
+        revisionEntity.request = request
+        revisionEntity.actor = actor ?: "unknown"
+        revisionEntity.traceId = traceId
     }
 }
