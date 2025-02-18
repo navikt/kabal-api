@@ -26,12 +26,16 @@ class OurRevisionListener(
     override fun newRevision(revisionEntity: Any?) {
         revisionEntity as OurRevision
 
+        var actor: String? = null
+
         val request = try {
             val requestAttributes = RequestContextHolder.getRequestAttributes()
             if (requestAttributes != null) {
                 val request = (requestAttributes as ServletRequestAttributes).request
                 request.method + " " + request.requestURI
             } else {
+                //no exception occurred, we just don't have a request
+                actor = systembrukerIdent
                 null
             }
         } catch (e: Exception) {
@@ -39,27 +43,22 @@ class OurRevisionListener(
             null
         }
 
-        val actor = if (request == null) {
-            systembrukerIdent
-        } else {
-            val navIdentFromToken = try {
-                tokenUtil.getIdent()
-            } catch (e: Exception) {
-                logger.debug("No NAVIdent found in token.", e)
-                null
-            }
-            val callingApplication = try {
-                tokenUtil.getCallingApplication()
-            } catch (e: Exception) {
-                logger.warn("Failed to get calling application from token.", e)
-                null
-            }
+        val navIdentFromToken = try {
+            tokenUtil.getIdent()
+        } catch (e: Exception) {
+            logger.debug("No NAVIdent found in token.", e)
+            null
+        }
 
-            if (navIdentFromToken == null && callingApplication == null) {
-                logger.warn("Neither NAVIdent nor calling application could be found from token. Setting 'unknown'.")
-            }
+        val callingApplication = try {
+            tokenUtil.getCallingApplication()
+        } catch (e: Exception) {
+            logger.warn("Failed to get calling application from token.", e)
+            null
+        }
 
-            navIdentFromToken ?: callingApplication ?: "unknown"
+        if (navIdentFromToken != null || callingApplication != null) {
+            actor = navIdentFromToken ?: callingApplication
         }
 
         val traceId = try {
@@ -70,7 +69,7 @@ class OurRevisionListener(
         }
 
         revisionEntity.request = request
-        revisionEntity.actor = actor
+        revisionEntity.actor = actor ?: "unknown"
         revisionEntity.traceId = traceId
     }
 }
