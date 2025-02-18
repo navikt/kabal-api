@@ -88,7 +88,7 @@ class PreviewService(
         val type = behandling.type
 
         if (type !in listOf(Type.KLAGE, Type.ANKE, Type.OMGJOERINGSKRAV)) {
-            throw SvarbrevPreviewException("Forhåndsvisning av forlenget behandlignstid er bare tilgjengelig for klage, anke og omgjøringskrav.")
+            throw SvarbrevPreviewException("Forhåndsvisning av forlenget behandlingstid er bare tilgjengelig for klage, anke og omgjøringskrav.")
         }
 
         val sakenGjelderName = partSearchService.searchPart(
