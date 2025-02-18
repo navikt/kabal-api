@@ -119,8 +119,8 @@ class PreviewService(
             previousBehandlingstidInfo = input.previousBehandlingstidInfo,
             reason = input.reason,
             behandlingstidDate = input.behandlingstidDate,
-
-            )
+            customText = input.customText,
+        )
     }
 
     private fun PreviewSvarbrevAnonymousInput.toSvarbrev(): Svarbrev {
