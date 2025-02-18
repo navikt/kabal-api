@@ -218,4 +218,9 @@ class TokenUtil(
         tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)
             ?.jwtTokenClaims?.get("NAVident")?.toString()
             ?: throw RuntimeException("Ident not found in token")
+
+    fun getCallingApplication(): String =
+        tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)
+            ?.jwtTokenClaims?.get("azp_name")?.toString()
+            ?: throw RuntimeException("Application not found in token")
 }
