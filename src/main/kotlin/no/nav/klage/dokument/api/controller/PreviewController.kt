@@ -82,7 +82,7 @@ class PreviewController(
         ).let {
             val responseHeaders = HttpHeaders()
             responseHeaders.contentType = MediaType.APPLICATION_PDF
-            responseHeaders.add("Content-Disposition", "inline; filename=svarbrev-preview.pdf")
+            responseHeaders.add("Content-Disposition", "inline; filename=forlenget-behandlingstid-preview.pdf")
             return ResponseEntity(
                 it,
                 responseHeaders,
