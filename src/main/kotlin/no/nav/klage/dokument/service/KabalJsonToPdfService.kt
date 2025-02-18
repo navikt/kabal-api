@@ -79,6 +79,7 @@ class KabalJsonToPdfService(
         previousBehandlingstidInfo: String?,
         reason: String?,
         behandlingstidDate: String?,
+        customText: String?,
     ): ByteArray {
         val bytes = kabalJsonToPdfClient.getForlengetBehandlingstidPDF(
             forlengetBehandlingstidRequest = ForlengetBehandlingstidRequest(
@@ -105,6 +106,7 @@ class KabalJsonToPdfService(
                 previousBehandlingstidInfo = previousBehandlingstidInfo,
                 reason = reason,
                 behandlingstidDate = behandlingstidDate,
+                customText = customText,
             )
         )
         return bytes

@@ -42,4 +42,5 @@ data class PreviewForlengetBehandlingstidInput(
     val behandlingstidUnits: Int?,
     val behandlingstidUnitTypeId: String?,
     val behandlingstidDate: String?,
+    val customText: String?,
 )
