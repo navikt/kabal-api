@@ -2102,6 +2102,7 @@ class DokumentUnderArbeidService(
                         varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
                         varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
                         type = behandling.type,
+                        initialCustomText = null,
                         customText = svarbrevSettings.customText,
                     ),
                     //Hardcode KA Oslo

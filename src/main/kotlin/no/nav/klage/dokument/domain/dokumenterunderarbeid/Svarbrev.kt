@@ -10,6 +10,7 @@ data class Svarbrev(
     val varsletBehandlingstidUnits: Int,
     val varsletBehandlingstidUnitType: TimeUnitType,
     val type: Type,
+    val initialCustomText: String?,
     val customText: String?
 ) {
 
