@@ -325,10 +325,15 @@ class GosysOppgaveService(
             } else null,
             editable = isEditable(),
             opprettetAvEnhet = if (opprettetAvEnhetsnr != null && opprettetAvEnhetsnr.trim() != "0") {
-                EnhetView(
-                    enhetsnr = opprettetAvEnhetsnr,
-                    navn = norg2Client.fetchEnhet(enhetNr = opprettetAvEnhetsnr).navn,
-                )
+                try {
+                    EnhetView(
+                        enhetsnr = opprettetAvEnhetsnr,
+                        navn = norg2Client.fetchEnhet(enhetNr = opprettetAvEnhetsnr).navn,
+                    )
+                } catch (exception: Exception) {
+                    logger.warn("Could not fetch enhet for enhetsnr $opprettetAvEnhetsnr")
+                    null
+                }
             } else null,
             alreadyUsedBy = null,
         )
