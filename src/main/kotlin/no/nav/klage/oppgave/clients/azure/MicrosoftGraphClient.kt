@@ -181,6 +181,7 @@ class MicrosoftGraphClient(
             .uri { uriBuilder ->
                 uriBuilder
                     .path("/users/{userPrincipalName}/memberOf")
+                    .queryParam("\$top", 500)
                     .build(userPrincipalName)
             }
             .header("Authorization", "Bearer ${tokenUtil.getAppAccessTokenWithGraphScope()}")
