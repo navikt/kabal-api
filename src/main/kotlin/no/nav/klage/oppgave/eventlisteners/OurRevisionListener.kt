@@ -53,7 +53,7 @@ class OurRevisionListener(
         val callingApplication = try {
             tokenUtil.getCallingApplication()
         } catch (e: Exception) {
-            logger.warn("Failed to get calling application from token.", e)
+            logger.debug("Failed to get calling application from token.", e)
             null
         }
 
