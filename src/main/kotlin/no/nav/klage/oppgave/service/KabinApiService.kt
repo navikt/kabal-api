@@ -157,6 +157,7 @@ class KabinApiService(
                 varsletBehandlingstidUnitType = varsletBehandlingstidUnitType
             ),
             type = behandling.type,
+            initialCustomText = initialCustomText,
             customText = customText,
         )
     }

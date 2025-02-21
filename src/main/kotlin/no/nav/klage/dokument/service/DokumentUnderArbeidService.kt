@@ -1694,7 +1694,6 @@ class DokumentUnderArbeidService(
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
             behandlingId = dokument.behandlingId,
         )
-        //TODO: Skal det lages endringslogg på dette??
 
         if (dokument is DokumentUnderArbeidAsHoveddokument) {
             throw DokumentValidationException("Dokumentet er allerede hoveddokument.")
@@ -2103,6 +2102,7 @@ class DokumentUnderArbeidService(
                         varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
                         varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
                         type = behandling.type,
+                        initialCustomText = null,
                         customText = svarbrevSettings.customText,
                     ),
                     //Hardcode KA Oslo

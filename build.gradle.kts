@@ -15,7 +15,7 @@ val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.3"
 val tikaVersion = "3.0.0"
 val verapdfVersion = "1.26.2"
-val klageKodeverkVersion = "1.9.16"
+val klageKodeverkVersion = "1.9.18"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
 val otelVersion = "1.45.0"
 val mikrofrontendSelectorVersion = "3.0.0"
@@ -62,6 +62,8 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.data:spring-data-envers")
+
     implementation("org.springframework.kafka:spring-kafka")
     implementation("io.projectreactor.kafka:reactor-kafka")
     implementation("org.flywaydb:flyway-core")

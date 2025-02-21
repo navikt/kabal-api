@@ -67,7 +67,6 @@ object BehandlingSetters {
             felt = Felt.TILDELT_TIDSPUNKT,
             fraVerdi = gammelVerdiTidspunkt?.format(DateTimeFormatter.ISO_LOCAL_DATE),
             tilVerdi = tidspunkt.format(DateTimeFormatter.ISO_LOCAL_DATE),
-            tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
         endringslogg(
@@ -75,7 +74,6 @@ object BehandlingSetters {
             felt = Felt.TILDELT_SAKSBEHANDLERIDENT,
             fraVerdi = gammelVerdiSaksbehandlerident,
             tilVerdi = nyVerdiSaksbehandlerident,
-            tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
         endringslogg(
@@ -83,7 +81,6 @@ object BehandlingSetters {
             felt = Felt.TILDELT_ENHET,
             fraVerdi = gammelVerdiEnhet,
             tilVerdi = nyVerdiEnhet,
-            tidspunkt = tidspunkt
         )
             ?.let { endringslogginnslag.add(it) }
 
@@ -143,7 +140,6 @@ object BehandlingSetters {
             felt = Felt.MEDUNDERSKRIVER_FLOW_STATE_ID,
             fraVerdi = gammelVerdiMedunderskriverFlowState.id,
             tilVerdi = nyMedunderskriverFlowState.id,
-            tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
@@ -190,7 +186,6 @@ object BehandlingSetters {
             felt = Felt.MEDUNDERSKRIVERIDENT,
             fraVerdi = gammelVerdiMedunderskriverNavIdent,
             tilVerdi = nyMedunderskriverNavIdent,
-            tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
@@ -245,7 +240,6 @@ object BehandlingSetters {
             felt = Felt.ROL_FLOW_STATE_ID,
             fraVerdi = oldValue.id,
             tilVerdi = rolFlowState.id,
-            tidspunkt = now
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
@@ -268,7 +262,6 @@ object BehandlingSetters {
             felt = Felt.ROL_RETURNED_TIDSPUNKT,
             fraVerdi = oldValue.toString(),
             tilVerdi = rolReturnedDate.toString(),
-            tidspunkt = now
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
@@ -311,7 +304,6 @@ object BehandlingSetters {
             felt = Felt.ROL_IDENT,
             fraVerdi = oldValue,
             tilVerdi = rolIdent,
-            tidspunkt = now
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
@@ -366,7 +358,6 @@ object BehandlingSetters {
             felt = Felt.SATT_PAA_VENT,
             fraVerdi = gammelSattPaaVent.toString(),
             tilVerdi = nyVerdi.toString(),
-            tidspunkt = tidspunkt
         )?.let { endringslogginnslag.add(it) }
 
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
@@ -401,7 +392,6 @@ object BehandlingSetters {
                 felt = Felt.MOTTATT_KLAGEINSTANS_TIDSPUNKT,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -420,7 +410,6 @@ object BehandlingSetters {
                 felt = Felt.FRIST_DATO,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -439,7 +428,6 @@ object BehandlingSetters {
                 felt = Felt.GOSYSOPPGAVE_ID,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -458,7 +446,6 @@ object BehandlingSetters {
                 felt = Felt.INNSENDINGSHJEMLER_ID_LIST,
                 fraVerdi = gammelVerdi.joinToString { it.id },
                 tilVerdi = nyVerdi.joinToString { it.id },
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -514,7 +501,6 @@ object BehandlingSetters {
                 felt = Felt.FULLMEKTIG,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = partId.toString(),
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -566,7 +552,6 @@ object BehandlingSetters {
                 felt = Felt.KLAGER,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = klager.toString(),
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -601,7 +586,6 @@ object BehandlingSetters {
                 felt = Felt.REGISTRERINGSHJEMLER_ID_LIST,
                 fraVerdi = gammelVerdi.joinToString { it.id },
                 tilVerdi = nyVerdi.joinToString { it.id },
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -621,26 +605,6 @@ object BehandlingSetters {
                 felt = Felt.UTFALL_ID,
                 fraVerdi = gammelVerdi?.id,
                 tilVerdi = utfall?.id,
-                tidspunkt = tidspunkt
-            )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
-    }
-
-    fun Behandling.setGosysoppgaveId(
-        nyVerdi: Long?,
-        saksbehandlerident: String
-    ): BehandlingEndretEvent {
-        val gammelVerdi = gosysOppgaveId
-        val tidspunkt = LocalDateTime.now()
-        gosysOppgaveId = nyVerdi
-        modified = tidspunkt
-        val endringslogg =
-            endringslogg(
-                saksbehandlerident = saksbehandlerident,
-                felt = Felt.GOSYSOPPGAVE_ID,
-                fraVerdi = gammelVerdi?.toString(),
-                tilVerdi = gosysOppgaveId?.toString(),
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -660,7 +624,6 @@ object BehandlingSetters {
                 felt = Felt.EXTRA_UTFALL_SET,
                 fraVerdi = gammelVerdi.joinToString { it.id },
                 tilVerdi = extraUtfallSet.joinToString { it.id },
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -679,7 +642,6 @@ object BehandlingSetters {
                 felt = Felt.TILBAKEKREVING,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = tilbakekreving.toString(),
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -705,7 +667,6 @@ object BehandlingSetters {
                 felt = Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = tidspunkt.toString(),
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -731,7 +692,6 @@ object BehandlingSetters {
                 felt = Felt.GOSYS_OPPGAVE_UPDATE,
                 fraVerdi = null,
                 tilVerdi = gosysOppgaveUpdate.toString(),
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -751,7 +711,6 @@ object BehandlingSetters {
                 felt = Felt.IGNORE_GOSYS_OPPGAVE,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = ignoreGosysOppgave.toString(),
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -769,7 +728,6 @@ object BehandlingSetters {
                 felt = Felt.AVSLUTTET_TIDSPUNKT,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = tidspunkt.toString(),
-                tidspunkt = tidspunkt
             )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -788,7 +746,6 @@ object BehandlingSetters {
                 fraVerdi = null,
                 tilVerdi = saksdokument.toString(),
                 behandlingId = id,
-                tidspunkt = tidspunkt
             )
             return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
         }
@@ -809,7 +766,6 @@ object BehandlingSetters {
             fraVerdi = existingSaksdokumenter,
             tilVerdi = saksdokumenter.joinToString(),
             behandlingId = id,
-            tidspunkt = tidspunkt
         )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -827,7 +783,6 @@ object BehandlingSetters {
             fraVerdi = saksdokument.toString(),
             tilVerdi = null,
             behandlingId = id,
-            tidspunkt = tidspunkt
         )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -845,7 +800,6 @@ object BehandlingSetters {
             fraVerdi = null,
             tilVerdi = feilregistrering.toString(),
             behandlingId = id,
-            tidspunkt = tidspunkt
         )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
@@ -855,7 +809,6 @@ object BehandlingSetters {
         felt: Felt,
         fraVerdi: String?,
         tilVerdi: String?,
-        tidspunkt: LocalDateTime
     ): Endringslogginnslag? {
         return Endringslogginnslag.endringslogg(
             saksbehandlerident = saksbehandlerident,
@@ -863,7 +816,6 @@ object BehandlingSetters {
             fraVerdi = fraVerdi,
             tilVerdi = tilVerdi,
             behandlingId = this.id,
-            tidspunkt = tidspunkt
         )
     }
 

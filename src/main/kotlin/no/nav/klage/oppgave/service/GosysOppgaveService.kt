@@ -122,7 +122,7 @@ class GosysOppgaveService(
         )
     }
 
-    fun updateGosysOppgave(
+    fun updateGosysOppgaveOnCompletedBehandling(
         behandling: Behandling,
         systemContext: Boolean,
         throwExceptionIfFerdigstilt: Boolean,
@@ -140,7 +140,7 @@ class GosysOppgaveService(
             return
         }
 
-        val updateGosysOppgaveRequest = UpdateGosysOppgaveInput(
+        val updateGosysOppgaveRequest = UpdateGosysOppgaveOnCompletedBehandlingInput(
             versjon = currentGosysOppgave.versjon,
             endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
             fristFerdigstillelse = LocalDate.now(),
@@ -325,10 +325,15 @@ class GosysOppgaveService(
             } else null,
             editable = isEditable(),
             opprettetAvEnhet = if (opprettetAvEnhetsnr != null && opprettetAvEnhetsnr.trim() != "0") {
-                EnhetView(
-                    enhetsnr = opprettetAvEnhetsnr,
-                    navn = norg2Client.fetchEnhet(enhetNr = opprettetAvEnhetsnr).navn,
-                )
+                try {
+                    EnhetView(
+                        enhetsnr = opprettetAvEnhetsnr,
+                        navn = norg2Client.fetchEnhet(enhetNr = opprettetAvEnhetsnr).navn,
+                    )
+                } catch (exception: Exception) {
+                    logger.warn("Could not fetch enhet for enhetsnr $opprettetAvEnhetsnr")
+                    null
+                }
             } else null,
             alreadyUsedBy = null,
         )

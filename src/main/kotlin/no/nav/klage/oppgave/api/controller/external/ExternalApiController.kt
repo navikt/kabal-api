@@ -90,6 +90,6 @@ class ExternalApiController(
         @Valid @RequestBody oversendtAnkeITrygderetten: OversendtAnkeITrygderettenV1
     ) {
         secureLogger.debug("Ankeitrygderetten data $oversendtAnkeITrygderetten sent to Kabal")
-        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(oversendtAnkeITrygderetten)
+        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFromExternalApi(oversendtAnkeITrygderetten)
     }
 }

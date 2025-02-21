@@ -1,6 +1,7 @@
 package no.nav.klage.dokument.clients.kabaljsontopdf
 
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.DocumentValidationResponse
+import no.nav.klage.dokument.clients.kabaljsontopdf.domain.ForlengetBehandlingstidRequest
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.SvarbrevRequest
 import no.nav.klage.dokument.domain.PDFDocument
@@ -82,11 +83,22 @@ class KabalJsonToPdfClient(
     }
 
     fun getSvarbrevPDF(svarbrevRequest: SvarbrevRequest): ByteArray {
-        logger.debug("Getting pdf document from kabalJsontoPdf.")
+        logger.debug("Getting svarbrev pdf document from kabalJsontoPdf.")
         return kabalJsonToPdfWebClient.post()
             .uri { it.path("/svarbrev").build() }
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(svarbrevRequest)
+            .retrieve()
+            .bodyToMono<ByteArray>()
+            .block() ?: throw RuntimeException("PDF response was null")
+    }
+
+    fun getForlengetBehandlingstidPDF(forlengetBehandlingstidRequest: ForlengetBehandlingstidRequest): ByteArray {
+        logger.debug("Getting forlenget behandlingstid pdf document from kabalJsontoPdf.")
+        return kabalJsonToPdfWebClient.post()
+            .uri { it.path("/forlengetbehandlingstid").build() }
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(forlengetBehandlingstidRequest)
             .retrieve()
             .bodyToMono<ByteArray>()
             .block() ?: throw RuntimeException("PDF response was null")

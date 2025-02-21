@@ -364,7 +364,7 @@ class BehandlingMapper(
                 it.dokumentInfoId
             }.toSet(),
             saksnummer = ankeITrygderettenbehandling.fagsakId,
-            rol = null,
+            rol = ankeITrygderettenbehandling.toROLView(),
             medunderskriver = ankeITrygderettenbehandling.toMedunderskriverView(),
             saksbehandler = ankeITrygderettenbehandling.toSaksbehandlerView(),
             previousSaksbehandler = ankeITrygderettenbehandling.toPreviousSaksbehandlerView(),

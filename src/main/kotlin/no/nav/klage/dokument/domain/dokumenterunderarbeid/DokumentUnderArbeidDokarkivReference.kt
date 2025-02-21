@@ -4,10 +4,12 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import org.hibernate.envers.Audited
 import java.util.*
 
 @Entity
 @Table(name = "dokument_under_arbeid_dokarkiv_reference", schema = "klage")
+@Audited
 class DokumentUnderArbeidDokarkivReference(
     @Id
     val id: UUID = UUID.randomUUID(),

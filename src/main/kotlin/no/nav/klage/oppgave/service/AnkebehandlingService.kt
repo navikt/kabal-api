@@ -101,7 +101,6 @@ class AnkebehandlingService(
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = ankebehandling.id,
-                        tidspunkt = ankebehandling.created,
                     )
                 )
             )
@@ -165,7 +164,6 @@ class AnkebehandlingService(
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = ankebehandling.id,
-                        tidspunkt = ankebehandling.created,
                     )
                 )
             )

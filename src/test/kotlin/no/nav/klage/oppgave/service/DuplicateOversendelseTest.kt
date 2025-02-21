@@ -16,6 +16,7 @@ import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
 import no.nav.klage.oppgave.gateway.AzureGateway
+import no.nav.klage.oppgave.util.TokenUtil
 import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
@@ -77,6 +78,10 @@ internal class DuplicateOversendelseTest {
 
     @Autowired
     lateinit var mottakService: MottakService
+
+    //Because of Hibernate Envers and our setup for audit logs.
+    @MockkBean
+    lateinit var tokenUtil: TokenUtil
 
     @Test
     @Disabled

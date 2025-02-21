@@ -9,10 +9,13 @@ import no.nav.klage.oppgave.util.isUtgaaende
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
+import org.hibernate.envers.AuditJoinTable
+import org.hibernate.envers.Audited
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
+@Audited
 abstract class DokumentUnderArbeidAsHoveddokument(
     @Column(name = "dokument_enhet_id")
     open var dokumentEnhetId: UUID? = null,
@@ -20,6 +23,7 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     @JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 5)
+    @AuditJoinTable(name = "dua_dokument_under_arbeid_avsender_mottaker_info_aud")
     open val avsenderMottakerInfoSet: MutableSet<DokumentUnderArbeidAvsenderMottakerInfo> = mutableSetOf(),
     @Column(name = "journalfoerende_enhet_id")
     open var journalfoerendeEnhetId: String?,

@@ -18,6 +18,7 @@ import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
+import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -61,6 +62,10 @@ class OppgaveServiceTest {
 
     @MockkBean
     lateinit var saksbehandlerService: SaksbehandlerService
+
+    //Because of Hibernate Envers and our setup for audit logs.
+    @MockkBean
+    lateinit var tokenUtil: TokenUtil
 
     lateinit var oppgaveService: OppgaveService
 

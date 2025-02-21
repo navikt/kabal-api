@@ -93,7 +93,6 @@ class BehandlingEtterTrygderettenOpphevetService(
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = behandlingEtterTrygderettenOpphevet.id,
-                        tidspunkt = behandlingEtterTrygderettenOpphevet.created,
                     )
                 )
             )

@@ -11,12 +11,14 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import org.hibernate.envers.Audited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
 @DiscriminatorValue("anke")
+@Audited
 class Ankebehandling(
     @Column(name = "klage_vedtaks_dato")
     val klageVedtaksDato: LocalDate? = null,
