@@ -85,7 +85,7 @@ fun Behandling.mapToSkjemaV2(): BehandlingSkjemaV2 {
         sakMottattKaDato = mottattKlageinstans,
         avsluttetAvSaksbehandlerTidspunkt = ferdigstilling?.avsluttetAvSaksbehandler,
         fristDato = frist,
-        varsletFristDato = null,
+        varsletFristDato = if (this is BehandlingWithVarsletBehandlingstid) varsletBehandlingstid?.varsletFrist else null,
         gjeldendeTildeling = tildeling?.mapToSkjemaV2(),
         medunderskriver = medunderskriver?.mapToSkjemaV2(),
         medunderskriverFlowStateId = medunderskriverFlowState.id,
