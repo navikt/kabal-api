@@ -36,7 +36,6 @@ import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setK
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyBehandlingEtterTROpphevet
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setSendtTilTrygderetten
-import no.nav.klage.oppgave.domain.klage.AnkebehandlingSetters.setVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokumenter
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.removeSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttetAvSaksbehandler
@@ -61,8 +60,6 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setTilbakekreving
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setTildeling
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtaksinstans
-import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setVarsletBehandlingstid
-import no.nav.klage.oppgave.domain.klage.OmgjoeringskravbehandlingSetters.setVarsletBehandlingstid
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.TokenUtil
@@ -787,6 +784,7 @@ class BehandlingService(
         systemUserContext: Boolean,
         mottakere: List<Mottaker>,
     ): LocalDateTime {
+        //TODO differentiate between mottatt and now.
         val varsletFrist = when (behandlingstidUnitType) {
             TimeUnitType.WEEKS -> behandling.mottattKlageinstans.toLocalDate()
                 .plusWeeks(behandlingstidUnits.toLong())
@@ -797,47 +795,23 @@ class BehandlingService(
 
         val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
 
-        when (behandling) {
-            is Klagebehandling -> {
-                applicationEventPublisher.publishEvent(
-                    behandling.setVarsletBehandlingstid(
-                        nyVerdiVarsletBehandlingstidUnits = behandlingstidUnits,
-                        nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,
-                        nyVerdiVarsletFrist = varsletFrist,
-                        saksbehandlerident = saksbehandlerIdent,
-                        saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
-                        mottakere = mottakere,
-                    )
-                )
-            }
+        val varsletBehandlingstid = VarsletBehandlingstid(
+            varsletFrist = varsletFrist,
+            varsletBehandlingstidUnits = behandlingstidUnits,
+            varsletBehandlingstidUnitType = behandlingstidUnitType,
+        )
 
-            is Ankebehandling -> {
-                applicationEventPublisher.publishEvent(
-                    behandling.setVarsletBehandlingstid(
-                        nyVerdiVarsletBehandlingstidUnits = behandlingstidUnits,
-                        nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,
-                        nyVerdiVarsletFrist = varsletFrist,
-                        saksbehandlerident = saksbehandlerIdent,
-                        saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
-                        mottakere = mottakere,
-                    )
+        if (behandling is BehandlingWithVarsletBehandlingstid) {
+            applicationEventPublisher.publishEvent(
+                behandling.setVarsletBehandlingstid(
+                    varsletBehandlingstid = varsletBehandlingstid,
+                    saksbehandlerident = saksbehandlerIdent,
+                    saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
+                    mottakere = mottakere,
                 )
-            }
-
-            is Omgjoeringskravbehandling -> {
-                applicationEventPublisher.publishEvent(
-                    behandling.setVarsletBehandlingstid(
-                        nyVerdiVarsletBehandlingstidUnits = behandlingstidUnits,
-                        nyVerdiVarsletBehandlingstidUnitType = behandlingstidUnitType,
-                        nyVerdiVarsletFrist = varsletFrist,
-                        saksbehandlerident = saksbehandlerIdent,
-                        saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
-                        mottakere = mottakere,
-                    )
-                )
-            }
-
-            else -> throw IllegalOperation("Dette feltet kan bare settes i klage- og ankesaker")
+            )
+        } else {
+            throw IllegalOperation("Behandlingstid kan ikke endres for denne behandlingstypen: ${behandling.javaClass.name}.")
         }
 
         return behandling.modified

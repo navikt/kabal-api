@@ -228,30 +228,12 @@ class InnsynService(
 
     fun Behandling.getVarsletBehandlingstid(): SakView.VarsletBehandlingstid? {
         return when (this) {
-            is AnkeITrygderettenbehandling -> null
-            is Klagebehandling -> getVarsletBehandlingstidView(
-                this.varsletFrist,
-                this.varsletBehandlingstidUnits,
-                this.varsletBehandlingstidUnitType
+            is BehandlingWithVarsletBehandlingstid -> getVarsletBehandlingstidView(
+                this.varsletBehandlingstid?.varsletFrist,
+                this.varsletBehandlingstid?.varsletBehandlingstidUnits,
+                this.varsletBehandlingstid?.varsletBehandlingstidUnitType,
             )
-
-            is Ankebehandling -> getVarsletBehandlingstidView(
-                this.varsletFrist,
-                this.varsletBehandlingstidUnits,
-                this.varsletBehandlingstidUnitType
-            )
-
-            is BehandlingEtterTrygderettenOpphevet -> getVarsletBehandlingstidView(
-                this.varsletFrist,
-                this.varsletBehandlingstidUnits,
-                this.varsletBehandlingstidUnitType
-            )
-
-            is Omgjoeringskravbehandling -> getVarsletBehandlingstidView(
-                this.varsletFrist,
-                this.varsletBehandlingstidUnits,
-                this.varsletBehandlingstidUnitType
-            )
+            else -> null
         }
     }
 }

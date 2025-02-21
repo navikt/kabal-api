@@ -176,9 +176,7 @@ internal class DocumentServiceTest {
             mottakId = UUID.randomUUID(),
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
-            varsletFrist = null,
-            varsletBehandlingstidUnits = null,
-            varsletBehandlingstidUnitType = TimeUnitType.WEEKS,
+            varsletBehandlingstid = null,
             klager = Klager(
                 partId = PartId(
                     type = PartIdType.PERSON,

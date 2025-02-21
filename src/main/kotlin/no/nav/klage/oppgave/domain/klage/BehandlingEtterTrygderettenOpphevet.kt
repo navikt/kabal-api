@@ -1,10 +1,13 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.Column
-import jakarta.persistence.Convert
 import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.Embedded
 import jakarta.persistence.Entity
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.FlowState
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -21,13 +24,8 @@ class BehandlingEtterTrygderettenOpphevet(
     var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
     val kakaKvalitetsvurderingVersion: Int,
-    @Column(name = "varslet_frist")
-    var varsletFrist: LocalDate? = null,
-    @Column(name = "varslet_behandlingstid_units")
-    var varsletBehandlingstidUnits: Int? = null,
-    @Column(name = "varslet_behandlingstid_unit_type_id")
-    @Convert(converter = TimeUnitTypeConverter::class)
-    var varsletBehandlingstidUnitType: TimeUnitType? = null,
+    @Embedded
+    override var varsletBehandlingstid: VarsletBehandlingstid?,
     @Column(name = "source_behandling_id")
     var sourceBehandlingId: UUID?,
     @Column(name = "kjennelse_mottatt")
@@ -75,7 +73,7 @@ class BehandlingEtterTrygderettenOpphevet(
     gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
-) : Behandling(
+) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
     klager = klager,
     sakenGjelder = sakenGjelder,

@@ -157,6 +157,7 @@ class StatistikkTilDVHServiceTest {
         hjemler = setOf(),
         sattPaaVent = null,
         gosysOppgaveId = null,
+        varsletBehandlingstid = null,
     )
 
     private val klagebehandlingHJE = Klagebehandling(
@@ -196,6 +197,7 @@ class StatistikkTilDVHServiceTest {
         hjemler = setOf(),
         sattPaaVent = null,
         gosysOppgaveId = null,
+        varsletBehandlingstid = null,
     )
 
     private val ankebehandlingOMP = Ankebehandling(
@@ -235,6 +237,7 @@ class StatistikkTilDVHServiceTest {
         sourceBehandlingId = null,
         previousSaksbehandlerident = "C78901",
         gosysOppgaveId = null,
+        varsletBehandlingstid = null,
     )
 
     private val ankeITrygderettenbehandlingOMP = AnkeITrygderettenbehandling(

@@ -504,6 +504,7 @@ class BehandlingServiceTest {
             ferdigstilling = if (fullfoert) ferdigstilling else null,
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
+            varsletBehandlingstid = null,
         )
 
         behandlingRepository.save(behandling)

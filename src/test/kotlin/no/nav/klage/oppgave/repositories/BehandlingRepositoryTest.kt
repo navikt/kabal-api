@@ -179,6 +179,7 @@ class BehandlingRepositoryTest {
         kakaKvalitetsvurderingId = UUID.randomUUID(),
         previousSaksbehandlerident = "C78901",
         gosysOppgaveId = null,
+        varsletBehandlingstid = null,
     )
 
 }

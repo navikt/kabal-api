@@ -518,6 +518,7 @@ class OppgaveServiceTest {
                         tidspunkt = now,
                     ),
                     gosysOppgaveId = null,
+                    varsletBehandlingstid = null,
                 )
             }
 
@@ -554,6 +555,7 @@ class OppgaveServiceTest {
                         tidspunkt = now,
                     ),
                     gosysOppgaveId = null,
+                    varsletBehandlingstid = null,
                 )
             }
 
@@ -621,6 +623,7 @@ class OppgaveServiceTest {
                     kakaKvalitetsvurderingId = UUID.randomUUID(),
                     kakaKvalitetsvurderingVersion = 2,
                     ankeBehandlendeEnhet = "4291",
+                    varsletBehandlingstid = null,
                 )
             }
 

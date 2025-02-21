@@ -61,6 +61,7 @@ class KlagebehandlingService(
                 kommentarFraFoersteinstans = mottak.kommentar,
                 gosysOppgaveId = null,
                 tilbakekreving = false,
+                varsletBehandlingstid = null,
             )
         )
         logger.debug("Created klagebehandling {} for mottak {}", klagebehandling.id, mottak.id)
