@@ -39,7 +39,6 @@ fun BehandlingWithVarsletBehandlingstid.setVarsletBehandlingstid(
         fraVerdi = gammelVerdi.toString(),
         tilVerdi = varsletBehandlingstid.toString(),
         behandlingId = this.id,
-        tidspunkt = tidspunkt
     )?.let { endringslogginnslag.add(it) }
 
     return endringslogginnslag
