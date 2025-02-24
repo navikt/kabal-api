@@ -83,6 +83,8 @@ class PreviewService(
     fun getForlengetBehandlingstidPreviewPDF(
         input: PreviewForlengetBehandlingstidInput
     ): ByteArray {
+        validateForlengetBehandlingstidInput(input = input)
+
         val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(input.behandlingId)
 
         val type = behandling.type
@@ -163,6 +165,16 @@ class PreviewService(
             TimeUnitType.of(varsletBehandlingstidUnitTypeId)
         } else {
             varsletBehandlingstidUnitType!!
+        }
+    }
+
+    private fun validateForlengetBehandlingstidInput(input: PreviewForlengetBehandlingstidInput) {
+        if (input.behandlingstidUnits == null && input.behandlingstidUnitTypeId == null && input.behandlingstidDate == null) {
+            throw SvarbrevPreviewException("Trenger enten behandlingstidDate eller kombinasjonen av behandlingstidUnits og behandlingstidUnitTypeId.")
+        }
+
+        if (input.behandlingstidDate == null && (input.behandlingstidUnits == null || input.behandlingstidUnitTypeId == null)) {
+            throw SvarbrevPreviewException("Trenger både behandlingstidUnits og behandlingstidUnitTypeId.")
         }
     }
 }
