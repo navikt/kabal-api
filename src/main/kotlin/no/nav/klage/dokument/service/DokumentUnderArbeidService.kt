@@ -122,7 +122,7 @@ class DokumentUnderArbeidService(
                 validateCanCreateDocuments(
                     behandlingRole = behandlingRole,
                     parentDocument = if (parentId != null) getDokumentUnderArbeid(parentId)
-                         as DokumentUnderArbeidAsHoveddokument else null
+                            as DokumentUnderArbeidAsHoveddokument else null
                 )
             }
         }
@@ -356,7 +356,7 @@ class DokumentUnderArbeidService(
             validateCanCreateDocuments(
                 behandlingRole = behandlingRole,
                 parentDocument = if (parentId != null) getDokumentUnderArbeid(parentId)
-                     as DokumentUnderArbeidAsHoveddokument else null
+                        as DokumentUnderArbeidAsHoveddokument else null
             )
         }
 
@@ -372,7 +372,7 @@ class DokumentUnderArbeidService(
 
         val parentDocument =
             getDokumentUnderArbeid(journalfoerteDokumenterInput.parentId)
-                 as DokumentUnderArbeidAsHoveddokument
+                    as DokumentUnderArbeidAsHoveddokument
 
         if (parentDocument.isInngaaende()) {
             throw DokumentValidationException("Kan ikke sette journalførte dokumenter som vedlegg til ${parentDocument.dokumentType.navn}.")
@@ -547,9 +547,10 @@ class DokumentUnderArbeidService(
         }
     }
 
-    fun getDokumentUnderArbeid(dokumentId: UUID): DokumentUnderArbeid = dokumentUnderArbeidRepository.findById(dokumentId).orElseThrow {
-        throw DocumentDoesNotExistException("Dokumentet med id $dokumentId finnes ikke.")
-    }
+    fun getDokumentUnderArbeid(dokumentId: UUID): DokumentUnderArbeid =
+        dokumentUnderArbeidRepository.findById(dokumentId).orElseThrow {
+            throw DocumentDoesNotExistException("Dokumentet med id $dokumentId finnes ikke.")
+        }
 
     fun updateDokumentType(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
@@ -1305,20 +1306,39 @@ class DokumentUnderArbeidService(
 
     fun validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeidId: UUID): List<DocumentValidationResponse> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId)
-             as DokumentUnderArbeidAsHoveddokument
+                as DokumentUnderArbeidAsHoveddokument
         return validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeid = dokumentUnderArbeid)
     }
 
     private fun validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeid: DokumentUnderArbeidAsHoveddokument): List<DocumentValidationResponse> {
 
+        val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(
+            behandlingId = dokumentUnderArbeid.behandlingId
+        )
+
         val errors = mutableListOf<DocumentValidationResponse>()
 
         dokumentUnderArbeid.avsenderMottakerInfoSet.forEach { mottaker ->
             if (mottaker.identifikator != null) {
-                val part = partSearchService.searchPart(
+                val part = partSearchService.searchPartWithUtsendingskanal(
                     identifikator = mottaker.identifikator,
-                    skipAccessControl = true
+                    skipAccessControl = true,
+                    sakenGjelderId = behandling.sakenGjelder.partId.value,
+                    tema = behandling.ytelse.toTema(),
                 )
+
+                if (documentWillGoToCentralPrint(mottaker, part)) {
+                    if (mottaker.address == null && part.address == null) {
+                        errors += DocumentValidationResponse(
+                            dokumentId = dokumentUnderArbeid.id,
+                            errors = listOf(
+                                DocumentValidationResponse.DocumentValidationError(
+                                    type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.INVALID_RECIPIENT,
+                                )
+                            )
+                        )
+                    }
+                }
 
                 when (part.type) {
                     BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
@@ -1341,6 +1361,10 @@ class DokumentUnderArbeidService(
                                 )
                             )
                         )
+                    }
+
+                    else -> {
+                        error("Missing type in part")
                     }
                 }
             }
@@ -1382,6 +1406,14 @@ class DokumentUnderArbeidService(
             )
         }
 
+    }
+
+    private fun documentWillGoToCentralPrint(
+        mottaker: DokumentUnderArbeidAvsenderMottakerInfo,
+        part: BehandlingDetaljerView.PartViewWithUtsendingskanal
+    ): Boolean {
+        return mottaker.forceCentralPrint ||
+                (!mottaker.localPrint && part.utsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT)
     }
 
     private fun validateDocumentBeforeFerdig(
@@ -1474,8 +1506,14 @@ class DokumentUnderArbeidService(
 
                 is DokumentUnderArbeidAsSmartdokument -> {
                     if (dokumentUnderArbeid.isPDFGenerationNeeded()) {
-                        dokumentUnderArbeid.name to ByteArrayResource(mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(dokumentUnderArbeid).bytes)
-                    } else dokumentUnderArbeid.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!)
+                        dokumentUnderArbeid.name to ByteArrayResource(
+                            mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(
+                                dokumentUnderArbeid
+                            ).bytes
+                        )
+                    } else dokumentUnderArbeid.name to mellomlagerService.getUploadedDocumentAsSignedURL(
+                        dokumentUnderArbeid.mellomlagerId!!
+                    )
                 }
 
                 is JournalfoertDokumentUnderArbeidAsVedlegg -> {
