@@ -11,6 +11,7 @@ import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import no.nav.klage.oppgave.util.getSecureLogger
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
 
 @Service
@@ -73,6 +74,7 @@ class PartSearchService(
             }
         }
 
+    @Retryable
     fun searchPartWithUtsendingskanal(
         identifikator: String,
         skipAccessControl: Boolean = false,
