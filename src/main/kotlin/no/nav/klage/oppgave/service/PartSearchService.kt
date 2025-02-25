@@ -80,6 +80,7 @@ class PartSearchService(
         skipAccessControl: Boolean = false,
         sakenGjelderId: String,
         tema: Tema,
+        systemContext: Boolean,
     ): BehandlingDetaljerView.PartViewWithUtsendingskanal =
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
@@ -98,7 +99,7 @@ class PartSearchService(
                             mottakerId = identifikator,
                             brukerId = sakenGjelderId,
                             tema = tema,
-                            saksbehandlerContext = true,
+                            saksbehandlerContext = !systemContext,
                         )
                     )
                 } else {

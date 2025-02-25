@@ -56,7 +56,8 @@ class SearchController(
             identifikator = input.identifikator,
             skipAccessControl = false,
             sakenGjelderId = input.sakenGjelderId,
-            tema = Ytelse.of(input.ytelseId).toTema()
+            tema = Ytelse.of(input.ytelseId).toTema(),
+            systemContext = false
         )
     }
 

@@ -1237,6 +1237,7 @@ class DokumentUnderArbeidService(
 
         validateDocumentBeforeFerdig(
             hovedDokument = hovedDokument,
+            systemContext = systemContext,
         )
 
         val vedlegg = getVedlegg(hovedDokument.id)
@@ -1307,10 +1308,16 @@ class DokumentUnderArbeidService(
     fun validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeidId: UUID): List<DocumentValidationResponse> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId)
                 as DokumentUnderArbeidAsHoveddokument
-        return validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeid = dokumentUnderArbeid)
+        return validateDokumentUnderArbeidAndVedlegg(
+            dokumentUnderArbeid = dokumentUnderArbeid,
+            systemContext = false
+        )
     }
 
-    private fun validateDokumentUnderArbeidAndVedlegg(dokumentUnderArbeid: DokumentUnderArbeidAsHoveddokument): List<DocumentValidationResponse> {
+    private fun validateDokumentUnderArbeidAndVedlegg(
+        dokumentUnderArbeid: DokumentUnderArbeidAsHoveddokument,
+        systemContext: Boolean
+    ): List<DocumentValidationResponse> {
 
         val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(
             behandlingId = dokumentUnderArbeid.behandlingId
@@ -1325,6 +1332,7 @@ class DokumentUnderArbeidService(
                     skipAccessControl = true,
                     sakenGjelderId = behandling.sakenGjelder.partId.value,
                     tema = behandling.ytelse.toTema(),
+                    systemContext = systemContext,
                 )
 
                 if (documentWillGoToCentralPrint(mottaker, part)) {
@@ -1418,13 +1426,15 @@ class DokumentUnderArbeidService(
 
     private fun validateDocumentBeforeFerdig(
         hovedDokument: DokumentUnderArbeidAsHoveddokument,
+        systemContext: Boolean,
     ) {
         if (hovedDokument.erMarkertFerdig() || hovedDokument.erFerdigstilt()) {
             throw DokumentValidationException("Kan ikke markere et dokument som allerede er ferdigstilt som ferdigstilt")
         }
 
         val errors = validateDokumentUnderArbeidAndVedlegg(
-            hovedDokument
+            dokumentUnderArbeid = hovedDokument,
+            systemContext = systemContext,
         )
         if (errors.any { it.errors.isNotEmpty() }) {
             throw SmartDocumentValidationException(

@@ -1318,6 +1318,7 @@ class BehandlingService(
                 skipAccessControl = true,
                 sakenGjelderId = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
+                systemContext = false,
             )
         } else {
             BehandlingDetaljerView.PartViewWithUtsendingskanal(
@@ -1391,6 +1392,7 @@ class BehandlingService(
                 skipAccessControl = true,
                 sakenGjelderId = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
+                systemContext = false,
             )
 
         publishInternalEvent(
