@@ -80,7 +80,7 @@ class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
                         preparedStatement.setString(5, null)
                         preparedStatement.setString(6, null)
                         preparedStatement.setString(7, null)
-                        preparedStatement.setObject(8, null)
+                        preparedStatement.setString(8, null)
 
                         preparedStatement.executeUpdate()
 
@@ -92,7 +92,7 @@ class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
                         preparedStatement.setString(5, "Kristin Åsene Buskerud")
                         preparedStatement.setObject(6, varsletFrist)
                         preparedStatement.setInt(7, varsletBehandlingstidUnits)
-                        preparedStatement.setObject(8, varsletBehandlingstidTypeId)
+                        preparedStatement.setString(8, varsletBehandlingstidTypeId)
 
                         preparedStatement.executeUpdate()
                     }
