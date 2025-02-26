@@ -80,6 +80,7 @@ class ExternalMottakFacade(
                 hindreAutomatiskSvarbrev = hindreAutomatiskSvarbrev,
             )
         } catch (e: Exception) {
+            secureLogger.error("Klarte ikke å sende svarbrev for behandling ${behandling.id}.", e)
             mottakService.createTaskForMerkantil(
                 behandlingId = behandling.id,
                 reason = e.message ?: "Ukjent feil"
