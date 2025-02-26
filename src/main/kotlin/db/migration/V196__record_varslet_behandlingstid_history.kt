@@ -8,6 +8,14 @@ import java.util.*
 
 class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
     override fun migrate(context: Context) {
+
+        val preparedInitialStatement = context.connection.prepareStatement(
+            """
+                insert into klage.varslet_behandlingstid_historikk (id, behandling_id, tidspunkt)
+                    values (?, ?, ?)
+            """.trimIndent()
+        )
+
         val preparedStatement = context.connection.prepareStatement(
             """
                 insert into klage.varslet_behandlingstid_historikk (id, behandling_id, tidspunkt, utfoerende_ident, utfoerende_navn, varslet_frist, varslet_behandlingstid_units, varslet_behandlingstid_unit_type_id)
@@ -75,16 +83,11 @@ class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
                         val varsletBehandlingstidTypeId = rows.getString(5)
 
                         //Null case
-                        preparedStatement.setObject(1, UUID.randomUUID())
-                        preparedStatement.setObject(2, behandlingId)
-                        preparedStatement.setObject(3, created)
-                        preparedStatement.setString(4, null)
-                        preparedStatement.setString(5, null)
-                        preparedStatement.setDate(6, null)
-                        preparedStatement.setString(7, null)
-                        preparedStatement.setString(8, null)
+                        preparedInitialStatement.setObject(1, UUID.randomUUID())
+                        preparedInitialStatement.setObject(2, behandlingId)
+                        preparedInitialStatement.setObject(3, created)
 
-                        preparedStatement.executeUpdate()
+                        preparedInitialStatement.executeUpdate()
 
                         //First entry
                         preparedStatement.setObject(1, UUID.randomUUID())
