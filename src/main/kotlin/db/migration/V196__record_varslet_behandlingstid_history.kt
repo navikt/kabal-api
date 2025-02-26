@@ -80,7 +80,7 @@ class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
                         preparedStatement.setObject(3, created)
                         preparedStatement.setString(4, null)
                         preparedStatement.setString(5, null)
-                        preparedStatement.setString(6, null)
+                        preparedStatement.setDate(6, null)
                         preparedStatement.setString(7, null)
                         preparedStatement.setString(8, null)
 
