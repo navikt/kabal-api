@@ -8,6 +8,14 @@ import java.util.*
 
 class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
     override fun migrate(context: Context) {
+
+        val preparedInitialStatement = context.connection.prepareStatement(
+            """
+                insert into klage.varslet_behandlingstid_historikk (id, behandling_id, tidspunkt)
+                    values (?, ?, ?)
+            """.trimIndent()
+        )
+
         val preparedStatement = context.connection.prepareStatement(
             """
                 insert into klage.varslet_behandlingstid_historikk (id, behandling_id, tidspunkt, utfoerende_ident, utfoerende_navn, varslet_frist, varslet_behandlingstid_units, varslet_behandlingstid_unit_type_id)
@@ -60,7 +68,9 @@ class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
                         '7ac59784-c955-45c1-abd4-7c2da8bdee12',
                         '7748f7b9-1f4f-4bf8-a8da-7c1daa7ccd6f',
                         'a02f2f96-9d13-4f08-bb5b-f6a30a73d4ad',
-                        '29334dd2-dbd9-44a2-813c-a56f5a900bdb'
+                        '29334dd2-dbd9-44a2-813c-a56f5a900bdb',
+                        --Verification in dev
+                        'd32f1462-26f0-4697-93ae-603aaaef3e1d'
     )                     
                     """
             )
@@ -73,16 +83,11 @@ class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
                         val varsletBehandlingstidTypeId = rows.getString(5)
 
                         //Null case
-                        preparedStatement.setObject(1, UUID.randomUUID())
-                        preparedStatement.setObject(2, behandlingId)
-                        preparedStatement.setObject(3, created)
-                        preparedStatement.setString(4, null)
-                        preparedStatement.setString(5, null)
-                        preparedStatement.setString(6, null)
-                        preparedStatement.setString(7, null)
-                        preparedStatement.setString(8, null)
+                        preparedInitialStatement.setObject(1, UUID.randomUUID())
+                        preparedInitialStatement.setObject(2, behandlingId)
+                        preparedInitialStatement.setObject(3, created)
 
-                        preparedStatement.executeUpdate()
+                        preparedInitialStatement.executeUpdate()
 
                         //First entry
                         preparedStatement.setObject(1, UUID.randomUUID())
@@ -90,7 +95,7 @@ class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
                         preparedStatement.setObject(3, LocalDateTime.now())
                         preparedStatement.setString(4, "B126820")
                         preparedStatement.setString(5, "Kristin Åsene Buskerud")
-                        preparedStatement.setObject(6, varsletFrist)
+                        preparedStatement.setDate(6, varsletFrist)
                         preparedStatement.setInt(7, varsletBehandlingstidUnits)
                         preparedStatement.setString(8, varsletBehandlingstidTypeId)
 
