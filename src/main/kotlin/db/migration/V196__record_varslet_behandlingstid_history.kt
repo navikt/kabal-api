@@ -60,7 +60,9 @@ class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
                         '7ac59784-c955-45c1-abd4-7c2da8bdee12',
                         '7748f7b9-1f4f-4bf8-a8da-7c1daa7ccd6f',
                         'a02f2f96-9d13-4f08-bb5b-f6a30a73d4ad',
-                        '29334dd2-dbd9-44a2-813c-a56f5a900bdb'
+                        '29334dd2-dbd9-44a2-813c-a56f5a900bdb',
+                        --Verification in dev
+                        'd32f1462-26f0-4697-93ae-603aaaef3e1d'
     )                     
                     """
             )
@@ -90,7 +92,7 @@ class V196__record_varslet_behandlingstid_history : BaseJavaMigration() {
                         preparedStatement.setObject(3, LocalDateTime.now())
                         preparedStatement.setString(4, "B126820")
                         preparedStatement.setString(5, "Kristin Åsene Buskerud")
-                        preparedStatement.setObject(6, varsletFrist)
+                        preparedStatement.setDate(6, varsletFrist)
                         preparedStatement.setInt(7, varsletBehandlingstidUnits)
                         preparedStatement.setString(8, varsletBehandlingstidTypeId)
 
