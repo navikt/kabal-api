@@ -276,7 +276,6 @@ sealed class Behandling(
 
     fun shouldUpdateInfotrygd(): Boolean {
         return fagsystem == Fagsystem.IT01 && type !in listOf(
-            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
             Type.OMGJOERINGSKRAV
         )
     }
