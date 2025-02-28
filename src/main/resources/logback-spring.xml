@@ -48,7 +48,7 @@
                 <maxHistory>30</maxHistory>
                 <minIndex>1</minIndex>
                 <maxIndex>4</maxIndex>
-                <maxFileSize>50MB</maxFileSize>
+                <maxFileSize>30MB</maxFileSize>
                 <totalSizeCap>115MB</totalSizeCap>
             </rollingPolicy>
             <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
