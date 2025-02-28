@@ -43,14 +43,14 @@
 
         <appender name="secureJson" class="ch.qos.logback.core.rolling.RollingFileAppender">
             <file>/secure-logs/secure.log</file>
-            <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-                <fileNamePattern>/secure-logs/secure.log.%i</fileNamePattern>
+            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+                <fileNamePattern>/secure-logs/secure.log.%d{yyyy-MM-dd}.%i</fileNamePattern>
+                <maxHistory>30</maxHistory>
                 <minIndex>1</minIndex>
-                <maxIndex>1</maxIndex>
-            </rollingPolicy>
-            <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                <maxIndex>4</maxIndex>
                 <maxFileSize>50MB</maxFileSize>
-            </triggeringPolicy>
+                <totalSizeCap>115MB</totalSizeCap>
+            </rollingPolicy>
             <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
         </appender>
 
