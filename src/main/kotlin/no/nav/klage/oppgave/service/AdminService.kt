@@ -14,6 +14,7 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.oppgave.api.view.TaskListMerkantilView
+import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
@@ -84,6 +85,7 @@ class AdminService(
     private val taskListMerkantilRepository: TaskListMerkantilRepository,
     private val pdlFacade: PdlFacade,
     private val minsideMicrofrontendService: MinsideMicrofrontendService,
+    private val kakaApiGateway: KakaApiGateway,
 ) {
 
     companion object {
@@ -446,6 +448,14 @@ class AdminService(
             }
         }
         logger.debug("Migrated $migrations candidates.")
+    }
+
+    fun fixMissingInKaka() {
+        kakaApiGateway.finalizeBehandling(
+            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
+                UUID.fromString("7acb07e4-8b71-4ccf-9cca-f9a72a441812")
+            )
+        )
     }
 
     fun getInfotrygdsak(sakId: String): SakFromKlanke {

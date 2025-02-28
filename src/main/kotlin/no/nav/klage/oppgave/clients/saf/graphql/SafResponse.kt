@@ -157,6 +157,7 @@ enum class Tema {
     EYO, //Omstillingsstønad
     FAR, //Farskap
     FEI, //Feilutbetaling
+    FIP, //Fiskerpensjon
     FOR, //Foreldre- og svangerskapspenger
     FOS, //Forsikring
     FRI, //Kompensasjon for selvstendig næringsdrivende/frilansere
