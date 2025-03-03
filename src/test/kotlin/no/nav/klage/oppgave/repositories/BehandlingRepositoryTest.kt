@@ -58,6 +58,9 @@ class BehandlingRepositoryTest {
 
         val klage = getKlagebehandling(mottak.id)
 
+        klage.forlengetBehandlingstid = ForlengetBehandlingstid()
+        klage.forlengetBehandlingstid!!.title = "title"
+
         behandlingRepository.save(klage)
 
         testEntityManager.flush()

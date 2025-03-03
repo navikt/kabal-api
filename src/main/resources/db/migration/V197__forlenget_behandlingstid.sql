@@ -1,7 +1,6 @@
 CREATE TABLE klage.forlenget_behandlingstid_work_area
 (
     id                          UUID PRIMARY KEY NOT NULL,
-    behandling_id               UUID REFERENCES klage.behandling (id) ON DELETE CASCADE,
     created                     TIMESTAMP        NOT NULL,
     title                       TEXT,
     fullmektig_fritekst         TEXT,
@@ -29,5 +28,8 @@ CREATE TABLE klage.forlenget_behandlingstid_work_area_receiver
     address_landkode                      TEXT,
     navn                                  TEXT
 );
+
+ALTER TABLE klage.behandling
+    ADD COLUMN IF NOT EXISTS forlenget_behandlingstid_work_area_id UUID REFERENCES klage.forlenget_behandlingstid_work_area (id);
 
 --TODO update audit tables as well if needed

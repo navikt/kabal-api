@@ -37,8 +37,8 @@ class Klagebehandling(
     val kakaKvalitetsvurderingVersion: Int,
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
-    @OneToOne(optional = true)
-    @JoinColumn(name = "id", unique = true, nullable = false)
+    @OneToOne
+    @MapsId
     @NotAudited
     override var forlengetBehandlingstid: ForlengetBehandlingstid?,
 

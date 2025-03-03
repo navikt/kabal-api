@@ -36,4 +36,5 @@ class ForlengetBehandlingstid(
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 10)
     val receivers: MutableSet<ForlengetBehandlingstidReceiver> = mutableSetOf(),
+
 )
