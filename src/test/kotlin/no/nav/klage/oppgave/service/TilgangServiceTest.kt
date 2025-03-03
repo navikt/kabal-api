@@ -242,6 +242,7 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     previousSaksbehandlerident = "C78901",
     gosysOppgaveId = null,
     varsletBehandlingstid = null,
+    forlengetBehandlingstid = null,
 )
 
 fun getPerson(): Person = Person(

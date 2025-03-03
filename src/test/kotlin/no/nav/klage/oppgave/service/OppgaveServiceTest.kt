@@ -519,6 +519,7 @@ class OppgaveServiceTest {
                     ),
                     gosysOppgaveId = null,
                     varsletBehandlingstid = null,
+                    forlengetBehandlingstid = null,
                 )
             }
 
@@ -556,6 +557,7 @@ class OppgaveServiceTest {
                     ),
                     gosysOppgaveId = null,
                     varsletBehandlingstid = null,
+                    forlengetBehandlingstid = null,
                 )
             }
 
@@ -624,6 +626,7 @@ class OppgaveServiceTest {
                     kakaKvalitetsvurderingVersion = 2,
                     ankeBehandlendeEnhet = "4291",
                     varsletBehandlingstid = null,
+                    forlengetBehandlingstid = null,
                 )
             }
 

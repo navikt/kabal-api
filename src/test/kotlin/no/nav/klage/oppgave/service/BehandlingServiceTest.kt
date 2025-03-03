@@ -505,6 +505,7 @@ class BehandlingServiceTest {
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
             varsletBehandlingstid = null,
+            forlengetBehandlingstid = null,
         )
 
         behandlingRepository.save(behandling)

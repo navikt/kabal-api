@@ -224,7 +224,8 @@ internal class DocumentServiceTest {
             gosysOppgaveId = null,
             gosysOppgaveUpdate = null,
             tilbakekreving = false,
-            ignoreGosysOppgave = false
+            ignoreGosysOppgave = false,
+            forlengetBehandlingstid = null,
         )
     }
 }

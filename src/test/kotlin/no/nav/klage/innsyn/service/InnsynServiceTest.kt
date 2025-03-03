@@ -79,7 +79,9 @@ internal class InnsynServiceTest {
             previousSaksbehandlerident = null,
             gosysOppgaveId = null,
             varsletBehandlingstid = null,
-        )
+            forlengetBehandlingstid = null,
+
+            )
 
         val ankebehandling = Ankebehandling(
             mottakId = UUID.randomUUID(),
@@ -118,6 +120,7 @@ internal class InnsynServiceTest {
             klageBehandlendeEnhet = "4295",
             sourceBehandlingId = null,
             varsletBehandlingstid = null,
+            forlengetBehandlingstid = null,
         )
 
         val ankeITRBehandling = AnkeITrygderettenbehandling(
@@ -193,6 +196,7 @@ internal class InnsynServiceTest {
             klageBehandlendeEnhet = "4295",
             sourceBehandlingId = null,
             varsletBehandlingstid = null,
+            forlengetBehandlingstid = null,
         )
 
         return listOf(

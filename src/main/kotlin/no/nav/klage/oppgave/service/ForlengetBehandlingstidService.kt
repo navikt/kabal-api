@@ -1,16 +1,28 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.domain.klage.BehandlingWithVarsletBehandlingstid
+import no.nav.klage.oppgave.domain.klage.ForlengetBehandlingstid
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
 
 @Service
 @Transactional
-class ForlengetBehandlingstidService {
+class ForlengetBehandlingstidService(
+    private val behandlingService: BehandlingService,
+) {
 
     fun setTitle(behandlingId: UUID, input: ForlengetBehandlingstidTitleInput) {
-        TODO("Not yet implemented")
+        val behandling = behandlingService.getBehandlingForUpdate(behandlingId = behandlingId)
+        if (behandling is BehandlingWithVarsletBehandlingstid) {
+            if (behandling.forlengetBehandlingstid == null) {
+                behandling.forlengetBehandlingstid = ForlengetBehandlingstid()
+            }
+            behandling.forlengetBehandlingstid!!.title = input.title
+        } else {
+            error("Behandling har ikke varslet behandlingstid")
+        }
     }
 
     fun setFullmektigFritekst(behandlingId: UUID, input: ForlengetBehandlingstidFullmektigFritekstInput) {
