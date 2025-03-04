@@ -15,5 +15,5 @@ data class VarsletBehandlingstid(
     var varsletBehandlingstidUnits: Int? = null,
     @Column(name = "varslet_behandlingstid_unit_type_id")
     @Convert(converter = TimeUnitTypeConverter::class)
-    var varsletBehandlingstidUnitType: TimeUnitType? = null,
+    var varsletBehandlingstidUnitType: TimeUnitType = TimeUnitType.WEEKS,
 )

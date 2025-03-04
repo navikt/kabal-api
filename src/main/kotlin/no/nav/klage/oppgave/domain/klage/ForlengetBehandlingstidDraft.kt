@@ -11,7 +11,7 @@ import java.util.*
 @Table(name = "forlenget_behandlingstid_draft", schema = "klage")
 class ForlengetBehandlingstidDraft(
     @Id
-        val id: UUID = UUID.randomUUID(),
+    val id: UUID = UUID.randomUUID(),
     @Column(name = "created")
     val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "title")
@@ -29,10 +29,13 @@ class ForlengetBehandlingstidDraft(
         value = [
             AttributeOverride(name = "varsletFrist", column = Column(name = "behandlingstid_date")),
             AttributeOverride(name = "varsletBehandlingstidUnits", column = Column(name = "behandlingstid_units")),
-            AttributeOverride(name = "varsletBehandlingstidUnitType", column = Column(name = "behandlingstid_unit_type_id")),
+            AttributeOverride(
+                name = "varsletBehandlingstidUnitType",
+                column = Column(name = "behandlingstid_unit_type_id")
+            ),
         ]
     )
-    var behandlingstid: VarsletBehandlingstid? = null,
+    var behandlingstid: VarsletBehandlingstid = VarsletBehandlingstid(),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
