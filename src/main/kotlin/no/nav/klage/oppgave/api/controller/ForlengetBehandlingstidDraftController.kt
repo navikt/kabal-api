@@ -7,6 +7,10 @@ import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.*
 
@@ -22,14 +26,37 @@ class ForlengetBehandlingstidDraftController(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @GetMapping
-    fun getForlengetBehandlingstidDraft(@PathVariable behandlingId: UUID): ForlengetBehandlingstidDraftView {
+    @PostMapping
+    fun getOrCreateForlengetBehandlingstidDraft(@PathVariable behandlingId: UUID): ForlengetBehandlingstidDraftView {
         logMethodDetails(
-            methodName = ::getForlengetBehandlingstidDraft.name,
+            methodName = ::getOrCreateForlengetBehandlingstidDraft.name,
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return forlengetBehandlingstidDraftService.getForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        return forlengetBehandlingstidDraftService.getOrCreateForlengetBehandlingstidDraft(behandlingId = behandlingId)
+    }
+
+    @ResponseBody
+    @GetMapping("/pdf")
+    fun getPdf(@PathVariable behandlingId: UUID): ResponseEntity<ByteArray> {
+        logMethodDetails(
+            methodName = ::getPdf.name,
+            innloggetIdent = tokenUtil.getIdent(),
+            logger = logger,
+        )
+
+        forlengetBehandlingstidDraftService.getPdf(
+            behandlingId = behandlingId
+        ).let {
+            val responseHeaders = HttpHeaders()
+            responseHeaders.contentType = MediaType.APPLICATION_PDF
+            responseHeaders.add("Content-Disposition", "inline; filename=forlenget-behandlingstid-preview.pdf")
+            return ResponseEntity(
+                it,
+                responseHeaders,
+                HttpStatus.OK
+            )
+        }
     }
 
     @PutMapping("/title")
@@ -122,6 +149,19 @@ class ForlengetBehandlingstidDraftController(
             logger = logger,
         )
         return forlengetBehandlingstidDraftService.setBehandlingstidDate(behandlingId = behandlingId, input = input)
+    }
+
+    @PutMapping("/previous-behandlingstid-info")
+    fun setPreviousBehandlingstidInfo(
+        @PathVariable behandlingId: UUID,
+        @RequestBody input: ForlengetBehandlingstidPreviousBehandlingstidInfoInput
+    ): ForlengetBehandlingstidDraftView {
+        logMethodDetails(
+            methodName = ::setPreviousBehandlingstidInfo.name,
+            innloggetIdent = tokenUtil.getIdent(),
+            logger = logger,
+        )
+        return forlengetBehandlingstidDraftService.setPreviousBehandlingstidInfo(behandlingId = behandlingId, input = input)
     }
 
     @PutMapping("/receivers")

@@ -1,5 +1,7 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.dokument.service.KabalJsonToPdfService
+import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.BehandlingWithVarsletBehandlingstid
@@ -14,19 +16,39 @@ import java.util.*
 @Transactional
 class ForlengetBehandlingstidDraftService(
     private val behandlingService: BehandlingService,
+    private val partSearchService: PartSearchService,
+    private val kabalJsonToPdfService: KabalJsonToPdfService,
 ) {
 
-    fun getForlengetBehandlingstidDraft(behandlingId: UUID): ForlengetBehandlingstidDraftView {
+    fun getOrCreateForlengetBehandlingstidDraft(behandlingId: UUID): ForlengetBehandlingstidDraftView {
         val behandling = behandlingService.getBehandlingForUpdate(behandlingId = behandlingId)
+
         if (behandling is BehandlingWithVarsletBehandlingstid) {
-            return if (behandling.forlengetBehandlingstidDraft == null) {
-                ForlengetBehandlingstidDraft(behandlingstid = VarsletBehandlingstid()).toView()
-            } else {
-                behandling.forlengetBehandlingstidDraft!!.toView()
+            if (behandling.forlengetBehandlingstidDraft == null) {
+                behandling.forlengetBehandlingstidDraft =
+                    ForlengetBehandlingstidDraft(behandlingstid = VarsletBehandlingstid())
             }
         } else {
             error("Behandling har ikke varslet behandlingstid")
         }
+
+        behandling.forlengetBehandlingstidDraft!!.title = "Nav klageinstans orienterer om forlenget behandlingstid"
+
+        if (behandling.varsletBehandlingstid != null) {
+            val lastVarsletBehandlingstid = behandling.varsletBehandlingstidHistorikk.maxByOrNull { it.tidspunkt }
+
+            if (lastVarsletBehandlingstid?.varsletBehandlingstid != null &&
+                lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null &&
+                lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType != null
+                ) {
+                //TODO format
+//        "I brev fra Nav sendt 16. januar 2025 fikk du informasjon om at forventet behandlingstid var 6 uker."
+                behandling.forlengetBehandlingstidDraft!!.previousBehandlingstidInfo =
+                    "I brev fra Nav sendt ${lastVarsletBehandlingstid.tidspunkt} fikk du informasjon om at forventet behandlingstid var ${lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits} ${lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType}"
+            }
+        }
+
+        return behandling.forlengetBehandlingstidDraft!!.toView()
     }
 
     fun setTitle(behandlingId: UUID, input: ForlengetBehandlingstidTitleInput): ForlengetBehandlingstidDraftView {
@@ -35,13 +57,19 @@ class ForlengetBehandlingstidDraftService(
         return behandling.forlengetBehandlingstidDraft!!.toView()
     }
 
-    fun setFullmektigFritekst(behandlingId: UUID, input: ForlengetBehandlingstidFullmektigFritekstInput): ForlengetBehandlingstidDraftView {
+    fun setFullmektigFritekst(
+        behandlingId: UUID,
+        input: ForlengetBehandlingstidFullmektigFritekstInput
+    ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
         behandling.forlengetBehandlingstidDraft!!.fullmektigFritekst = input.fullmektigFritekst
         return behandling.forlengetBehandlingstidDraft!!.toView()
     }
 
-    fun setCustomText(behandlingId: UUID, input: ForlengetBehandlingstidCustomTextInput): ForlengetBehandlingstidDraftView {
+    fun setCustomText(
+        behandlingId: UUID,
+        input: ForlengetBehandlingstidCustomTextInput
+    ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
         behandling.forlengetBehandlingstidDraft!!.customText = input.customText
         return behandling.forlengetBehandlingstidDraft!!.toView()
@@ -53,9 +81,13 @@ class ForlengetBehandlingstidDraftService(
         return behandling.forlengetBehandlingstidDraft!!.toView()
     }
 
-    fun setBehandlingstidUnits(behandlingId: UUID, input: ForlengetBehandlingstidVarsletBehandlingstidUnitsInput): ForlengetBehandlingstidDraftView {
+    fun setBehandlingstidUnits(
+        behandlingId: UUID,
+        input: ForlengetBehandlingstidVarsletBehandlingstidUnitsInput
+    ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
-        behandling.forlengetBehandlingstidDraft!!.behandlingstid!!.varsletBehandlingstidUnits = input.varsletBehandlingstidUnits
+        behandling.forlengetBehandlingstidDraft!!.behandlingstid!!.varsletBehandlingstidUnits =
+            input.varsletBehandlingstidUnits
         setVarsletFristBasedOnUnits(behandling.varsletBehandlingstid!!)
         return behandling.forlengetBehandlingstidDraft!!.toView()
     }
@@ -65,12 +97,16 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidVarsletBehandlingstidUnitTypeIdInput
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
-        behandling.forlengetBehandlingstidDraft!!.behandlingstid!!.varsletBehandlingstidUnitType = TimeUnitType.of(input.varsletBehandlingstidUnitTypeId)
+        behandling.forlengetBehandlingstidDraft!!.behandlingstid!!.varsletBehandlingstidUnitType =
+            TimeUnitType.of(input.varsletBehandlingstidUnitTypeId)
         setVarsletFristBasedOnUnits(behandling.varsletBehandlingstid!!)
         return behandling.forlengetBehandlingstidDraft!!.toView()
     }
 
-    fun setBehandlingstidDate(behandlingId: UUID, input: ForlengetBehandlingstidBehandlingstidDateInput): ForlengetBehandlingstidDraftView {
+    fun setBehandlingstidDate(
+        behandlingId: UUID,
+        input: ForlengetBehandlingstidBehandlingstidDateInput
+    ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
         behandling.forlengetBehandlingstidDraft!!.behandlingstid!!.varsletFrist = input.behandlingstidDate
         behandling.forlengetBehandlingstidDraft!!.behandlingstid!!.varsletBehandlingstidUnits = null
@@ -78,7 +114,19 @@ class ForlengetBehandlingstidDraftService(
         return behandling.forlengetBehandlingstidDraft!!.toView()
     }
 
-    fun setReceivers(behandlingId: UUID, input: ForlengetBehandlingstidReceiversInput): ForlengetBehandlingstidDraftView {
+    fun setPreviousBehandlingstidInfo(
+        behandlingId: UUID,
+        input: ForlengetBehandlingstidPreviousBehandlingstidInfoInput
+    ): ForlengetBehandlingstidDraftView {
+        val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        behandling.forlengetBehandlingstidDraft!!.previousBehandlingstidInfo = input.previousBehandlingstidInfo
+        return behandling.forlengetBehandlingstidDraft!!.toView()
+    }
+
+    fun setReceivers(
+        behandlingId: UUID,
+        input: ForlengetBehandlingstidReceiversInput
+    ): ForlengetBehandlingstidDraftView {
         TODO("Not yet implemented")
     }
 
@@ -86,20 +134,23 @@ class ForlengetBehandlingstidDraftService(
         if (varsletBehandlingstid.varsletBehandlingstidUnits != null && varsletBehandlingstid.varsletBehandlingstidUnitType != null) {
             //Her velger vi å ta utgangspunkt i dagens dato. Ta det opp med funksjonell når vi har en demo.
             varsletBehandlingstid.varsletFrist = when (varsletBehandlingstid.varsletBehandlingstidUnitType!!) {
-                TimeUnitType.WEEKS -> LocalDate.now().plusWeeks(varsletBehandlingstid.varsletBehandlingstidUnits!!.toLong())
-                TimeUnitType.MONTHS -> LocalDate.now().plusMonths(varsletBehandlingstid.varsletBehandlingstidUnits!!.toLong())
+                TimeUnitType.WEEKS -> LocalDate.now()
+                    .plusWeeks(varsletBehandlingstid.varsletBehandlingstidUnits!!.toLong())
+
+                TimeUnitType.MONTHS -> LocalDate.now()
+                    .plusMonths(varsletBehandlingstid.varsletBehandlingstidUnits!!.toLong())
             }
         }
     }
 
     private fun getBehandlingWithForlengetBehandlingstidDraft(behandlingId: UUID): BehandlingWithVarsletBehandlingstid {
         val behandling = behandlingService.getBehandlingForUpdate(behandlingId = behandlingId)
-        if (behandling is BehandlingWithVarsletBehandlingstid) {
-            if (behandling.forlengetBehandlingstidDraft == null) {
-                behandling.forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft(behandlingstid = VarsletBehandlingstid())
-            }
-        } else {
+        if (behandling !is BehandlingWithVarsletBehandlingstid) {
             error("Behandling har ikke varslet behandlingstid")
+        }
+
+        if (behandling.forlengetBehandlingstidDraft == null) {
+            error("Forlenget behandlingstidutkast mangler")
         }
         return behandling
     }
@@ -110,6 +161,7 @@ class ForlengetBehandlingstidDraftService(
             fullmektigFritekst = fullmektigFritekst,
             customText = customText,
             reason = reason,
+            previousBehandlingstidInfo = previousBehandlingstidInfo,
             behandlingstid = behandlingstid!!.toView(),
         )
     }
@@ -119,6 +171,51 @@ class ForlengetBehandlingstidDraftService(
             varsletBehandlingstidUnits = varsletBehandlingstidUnits,
             varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitType?.id,
             varsletFrist = varsletFrist,
+        )
+    }
+
+    fun getPdf(behandlingId: UUID): ByteArray {
+        val behandling = behandlingService.getBehandlingForUpdate(behandlingId = behandlingId)
+
+        if (behandling !is BehandlingWithVarsletBehandlingstid) {
+            error("Behandling har ikke varslet behandlingstid")
+        }
+
+        if (behandling.forlengetBehandlingstidDraft == null) {
+            error("Forlenget behandlingstidutkast mangler")
+        }
+
+        val sakenGjelderName = partSearchService.searchPart(
+            identifikator = behandling.sakenGjelder.partId.value,
+            skipAccessControl = true
+        ).name
+
+        val forlengetBehandlingstidDraft = behandling.forlengetBehandlingstidDraft
+
+        return kabalJsonToPdfService.getForlengetBehandlingstidPDF(
+            title = forlengetBehandlingstidDraft?.title!!,
+            sakenGjelderName = sakenGjelderName,
+            sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
+            klagerIdentifikator = behandling.klager.partId.value,
+            klagerName = if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
+                partSearchService.searchPart(
+                    identifikator = behandling.klager.partId.value,
+                    skipAccessControl = true
+                ).name
+            } else {
+                sakenGjelderName
+            },
+            ytelse = behandling.ytelse,
+            fullmektigFritekst = forlengetBehandlingstidDraft.fullmektigFritekst,
+            behandlingstidUnits = forlengetBehandlingstidDraft.behandlingstid!!.varsletBehandlingstidUnits,
+            behandlingstidUnitType = forlengetBehandlingstidDraft.behandlingstid!!.varsletBehandlingstidUnitType,
+            behandlingstidDate = forlengetBehandlingstidDraft.behandlingstid!!.varsletFrist.toString(),
+            avsenderEnhetId = Enhet.E4291.navn,
+            type = behandling.type,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            previousBehandlingstidInfo = forlengetBehandlingstidDraft.previousBehandlingstidInfo,
+            reason = forlengetBehandlingstidDraft.reason,
+            customText = forlengetBehandlingstidDraft.customText,
         )
     }
 }

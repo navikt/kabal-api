@@ -22,6 +22,8 @@ class ForlengetBehandlingstidDraft(
     var customText: String? = null,
     @Column(name = "reason")
     var reason: String? = null,
+    @Column(name = "previous_behandlingstid_info")
+    var previousBehandlingstidInfo: String? = null,
     @Embedded
     @AttributeOverrides(
         value = [
