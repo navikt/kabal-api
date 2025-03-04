@@ -61,6 +61,16 @@ class BehandlingRepositoryTest {
         val forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft()
         forlengetBehandlingstidDraft.title = "title"
 
+        val receiver = ForlengetBehandlingstidDraftReceiver(
+            identifikator = "abc",
+            localPrint = false,
+            forceCentralPrint = false,
+            address = null,
+            navn = "Test Navn"
+        )
+
+        forlengetBehandlingstidDraft.receivers.add(receiver)
+
         klage.forlengetBehandlingstidDraft = forlengetBehandlingstidDraft
 
         behandlingRepository.save(klage)
