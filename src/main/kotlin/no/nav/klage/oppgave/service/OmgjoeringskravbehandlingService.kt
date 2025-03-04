@@ -54,7 +54,7 @@ class OmgjoeringskravbehandlingService(
                 gosysOppgaveId = null,
                 tilbakekreving = false,
                 varsletBehandlingstid = null,
-                forlengetBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
             )
         )
         logger.debug("Created omgjoeringskravbehandling {} for mottak {}", omgjoeringskravbehandling.id, mottak.id)

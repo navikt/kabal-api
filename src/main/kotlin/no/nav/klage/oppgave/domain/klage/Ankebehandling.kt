@@ -36,7 +36,7 @@ class Ankebehandling(
     @OneToOne(cascade = [CascadeType.ALL], optional = true)
     @JoinColumn(name = "forlenget_behandlingstid_work_area_id", referencedColumnName = "id")
     @NotAudited
-    override var forlengetBehandlingstid: ForlengetBehandlingstid?,
+    override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
 
 //    Finn ut hvordan dette skal fungere i anker etter hvert
 //    @Column(name = "dato_behandling_avsluttet_av_saksbehandler")

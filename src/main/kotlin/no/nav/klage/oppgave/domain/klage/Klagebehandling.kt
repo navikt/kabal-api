@@ -40,7 +40,7 @@ class Klagebehandling(
     @OneToOne(cascade = [CascadeType.ALL], optional = true)
     @JoinColumn(name = "forlenget_behandlingstid_work_area_id", referencedColumnName = "id")
     @NotAudited
-    override var forlengetBehandlingstid: ForlengetBehandlingstid?,
+    override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),

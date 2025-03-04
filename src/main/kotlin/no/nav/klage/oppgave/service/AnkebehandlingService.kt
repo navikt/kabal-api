@@ -63,7 +63,7 @@ class AnkebehandlingService(
                 gosysOppgaveId = null,
                 tilbakekreving = false,
                 varsletBehandlingstid = null,
-                forlengetBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
             )
         )
         logger.debug("Created ankebehandling {} for mottak {}", ankebehandling.id, mottak.id)
@@ -134,7 +134,7 @@ class AnkebehandlingService(
                 gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
                 tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
                 varsletBehandlingstid = null,
-                forlengetBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
             )
         )
         logger.debug(

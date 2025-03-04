@@ -6,9 +6,9 @@ import org.hibernate.envers.Audited
 import java.util.*
 
 @Entity
-@Table(name = "forlenget_behandlingstid_work_area_receiver", schema = "klage")
+@Table(name = "forlenget_behandlingstid_draft_receiver", schema = "klage")
 @Audited
-class ForlengetBehandlingstidReceiver(
+class ForlengetBehandlingstidDraftReceiver(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Column(name = "identifikator")

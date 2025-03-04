@@ -58,10 +58,10 @@ class BehandlingRepositoryTest {
 
         val klage = getKlagebehandling(mottak.id)
 
-        val forlengetBehandlingstid = ForlengetBehandlingstid()
-        forlengetBehandlingstid.title = "title"
+        val forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft()
+        forlengetBehandlingstidDraft.title = "title"
 
-        klage.forlengetBehandlingstid = forlengetBehandlingstid
+        klage.forlengetBehandlingstidDraft = forlengetBehandlingstidDraft
 
         behandlingRepository.save(klage)
 
@@ -185,7 +185,7 @@ class BehandlingRepositoryTest {
         previousSaksbehandlerident = "C78901",
         gosysOppgaveId = null,
         varsletBehandlingstid = null,
-        forlengetBehandlingstid = null,
+        forlengetBehandlingstidDraft = null,
     )
 
 }

@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.BehandlingWithVarsletBehandlingstid
-import no.nav.klage.oppgave.domain.klage.ForlengetBehandlingstid
+import no.nav.klage.oppgave.domain.klage.ForlengetBehandlingstidDraft
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
@@ -16,10 +16,10 @@ class ForlengetBehandlingstidService(
     fun setTitle(behandlingId: UUID, input: ForlengetBehandlingstidTitleInput) {
         val behandling = behandlingService.getBehandlingForUpdate(behandlingId = behandlingId)
         if (behandling is BehandlingWithVarsletBehandlingstid) {
-            if (behandling.forlengetBehandlingstid == null) {
-                behandling.forlengetBehandlingstid = ForlengetBehandlingstid()
+            if (behandling.forlengetBehandlingstidDraft == null) {
+                behandling.forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft()
             }
-            behandling.forlengetBehandlingstid!!.title = input.title
+            behandling.forlengetBehandlingstidDraft!!.title = input.title
         } else {
             error("Behandling har ikke varslet behandlingstid")
         }

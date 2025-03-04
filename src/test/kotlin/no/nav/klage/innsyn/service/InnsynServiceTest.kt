@@ -79,7 +79,7 @@ internal class InnsynServiceTest {
             previousSaksbehandlerident = null,
             gosysOppgaveId = null,
             varsletBehandlingstid = null,
-            forlengetBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
 
             )
 
@@ -120,7 +120,7 @@ internal class InnsynServiceTest {
             klageBehandlendeEnhet = "4295",
             sourceBehandlingId = null,
             varsletBehandlingstid = null,
-            forlengetBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
         )
 
         val ankeITRBehandling = AnkeITrygderettenbehandling(
@@ -196,7 +196,7 @@ internal class InnsynServiceTest {
             klageBehandlendeEnhet = "4295",
             sourceBehandlingId = null,
             varsletBehandlingstid = null,
-            forlengetBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
         )
 
         return listOf(

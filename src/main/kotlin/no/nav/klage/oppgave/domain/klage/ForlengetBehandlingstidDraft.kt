@@ -8,8 +8,8 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Entity
-@Table(name = "forlenget_behandlingstid_work_area", schema = "klage")
-class ForlengetBehandlingstid(
+@Table(name = "forlenget_behandlingstid_draft", schema = "klage")
+class ForlengetBehandlingstidDraft(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Column(name = "created")
@@ -32,9 +32,9 @@ class ForlengetBehandlingstid(
     )
     var behandlingstid: VarsletBehandlingstid? = null,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "forlenget_behandlingstid_work_area_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 10)
-    val receivers: MutableSet<ForlengetBehandlingstidReceiver> = mutableSetOf(),
+    val receivers: MutableSet<ForlengetBehandlingstidDraftReceiver> = mutableSetOf(),
 
-)
+    )

@@ -309,5 +309,5 @@ interface BehandlingWithVarsletBehandlingstid {
     var varsletBehandlingstid: VarsletBehandlingstid?
     val varsletBehandlingstidHistorikk: MutableSet<VarsletBehandlingstidHistorikk>
     //TODO: Trengs den her?
-    var forlengetBehandlingstid: ForlengetBehandlingstid?
+    var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?
 }

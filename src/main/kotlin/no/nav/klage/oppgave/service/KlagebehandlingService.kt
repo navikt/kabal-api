@@ -62,7 +62,7 @@ class KlagebehandlingService(
                 gosysOppgaveId = null,
                 tilbakekreving = false,
                 varsletBehandlingstid = null,
-                forlengetBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
             )
         )
         logger.debug("Created klagebehandling {} for mottak {}", klagebehandling.id, mottak.id)

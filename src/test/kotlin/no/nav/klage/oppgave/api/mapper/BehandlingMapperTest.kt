@@ -111,7 +111,7 @@ class BehandlingMapperTest {
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
             varsletBehandlingstid = null,
-            forlengetBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
         )
     }
 

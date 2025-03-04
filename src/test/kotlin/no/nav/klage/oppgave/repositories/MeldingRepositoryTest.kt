@@ -103,7 +103,7 @@ class MeldingRepositoryTest {
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
             varsletBehandlingstid = null,
-            forlengetBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
         )
 
         klagebehandlingRepository.save(klage)

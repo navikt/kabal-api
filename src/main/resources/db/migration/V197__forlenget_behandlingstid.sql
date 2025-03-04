@@ -1,4 +1,4 @@
-CREATE TABLE klage.forlenget_behandlingstid_work_area
+CREATE TABLE klage.forlenget_behandlingstid_draft
 (
     id                          UUID PRIMARY KEY NOT NULL,
     created                     TIMESTAMP        NOT NULL,
@@ -11,13 +11,13 @@ CREATE TABLE klage.forlenget_behandlingstid_work_area
     behandlingstid_date         DATE
 );
 
-CREATE TABLE klage.forlenget_behandlingstid_work_area_receiver
+CREATE TABLE klage.forlenget_behandlingstid_draft_receiver
 (
     id                                    UUID PRIMARY KEY NOT NULL,
     identifikator                         TEXT             NOT NULL,
     forlenget_behandlingstid_work_area_id UUID             NOT NULL
-        CONSTRAINT fk_fbwa_receiver
-            REFERENCES klage.forlenget_behandlingstid_work_area,
+        CONSTRAINT fk_fbd_receiver
+            REFERENCES klage.forlenget_behandlingstid_draft,
     local_print                           BOOLEAN DEFAULT FALSE,
     force_central_print                   BOOLEAN DEFAULT FALSE,
     address_adresselinje_1                TEXT,
@@ -30,6 +30,7 @@ CREATE TABLE klage.forlenget_behandlingstid_work_area_receiver
 );
 
 ALTER TABLE klage.behandling
-    ADD COLUMN IF NOT EXISTS forlenget_behandlingstid_work_area_id UUID REFERENCES klage.forlenget_behandlingstid_work_area (id);
+    ADD COLUMN forlenget_behandlingstid_draft_id UUID REFERENCES klage.forlenget_behandlingstid_draft (id);
 
---TODO update audit tables as well if needed
+ALTER TABLE klage.behandling_aud
+    ADD COLUMN forlenget_behandlingstid_draft_id UUID;
