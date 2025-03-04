@@ -31,7 +31,7 @@ class BehandlingEtterTrygderettenOpphevet(
     @Column(name = "anke_behandlende_enhet")
     val ankeBehandlendeEnhet: String,
     @OneToOne(cascade = [CascadeType.ALL], optional = true)
-    @JoinColumn(name = "forlenget_behandlingstid_work_area_id", referencedColumnName = "id")
+    @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
 

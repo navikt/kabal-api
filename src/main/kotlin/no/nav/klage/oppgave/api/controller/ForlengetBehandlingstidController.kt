@@ -26,7 +26,7 @@ class ForlengetBehandlingstidController(
     fun setTitle(
         @PathVariable behandlingId: UUID,
         @RequestBody input: ForlengetBehandlingstidTitleInput
-    ) {
+    ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setTitle.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -40,7 +40,7 @@ class ForlengetBehandlingstidController(
     fun setFullmektigFritekst(
         @PathVariable behandlingId: UUID,
         @RequestBody input: ForlengetBehandlingstidFullmektigFritekstInput
-    ) {
+    ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setFullmektigFritekst.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -53,7 +53,7 @@ class ForlengetBehandlingstidController(
     fun setCustomText(
         @PathVariable behandlingId: UUID,
         @RequestBody input: ForlengetBehandlingstidCustomTextInput
-    ) {
+    ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setCustomText.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -65,8 +65,8 @@ class ForlengetBehandlingstidController(
     @PutMapping("/reason")
     fun setReason(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidCustomTextInput
-    ) {
+        @RequestBody input: ForlengetBehandlingstidReasonInput
+    ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setReason.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -79,7 +79,7 @@ class ForlengetBehandlingstidController(
     fun setBehandlingstidUnits(
         @PathVariable behandlingId: UUID,
         @RequestBody input: ForlengetBehandlingstidVarsletBehandlingstidUnitsInput
-    ) {
+    ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setBehandlingstidUnits.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -92,7 +92,7 @@ class ForlengetBehandlingstidController(
     fun setBehandlingstidUnitTypeId(
         @PathVariable behandlingId: UUID,
         @RequestBody input: ForlengetBehandlingstidVarsletBehandlingstidUnitTypeIdInput
-    ) {
+    ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setBehandlingstidUnitTypeId.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -105,7 +105,7 @@ class ForlengetBehandlingstidController(
     fun setBehandlingstidDate(
         @PathVariable behandlingId: UUID,
         @RequestBody input: ForlengetBehandlingstidBehandlingstidDateInput
-    ) {
+    ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setBehandlingstidDate.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -118,7 +118,7 @@ class ForlengetBehandlingstidController(
     fun setReceivers(
         @PathVariable behandlingId: UUID,
         @RequestBody input: ForlengetBehandlingstidReceiversInput
-    ) {
+    ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setReceivers.name,
             innloggetIdent = tokenUtil.getIdent(),

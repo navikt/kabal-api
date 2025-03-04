@@ -34,7 +34,7 @@ class Ankebehandling(
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
     @OneToOne(cascade = [CascadeType.ALL], optional = true)
-    @JoinColumn(name = "forlenget_behandlingstid_work_area_id", referencedColumnName = "id")
+    @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
 

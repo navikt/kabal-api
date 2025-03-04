@@ -11,7 +11,7 @@ import java.util.*
 @Table(name = "forlenget_behandlingstid_draft", schema = "klage")
 class ForlengetBehandlingstidDraft(
     @Id
-    val id: UUID = UUID.randomUUID(),
+        val id: UUID = UUID.randomUUID(),
     @Column(name = "created")
     val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "title")

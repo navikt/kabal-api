@@ -33,7 +33,7 @@ class Omgjoeringskravbehandling(
     @Column(name = "source_behandling_id")
     var sourceBehandlingId: UUID?,
     @OneToOne(cascade = [CascadeType.ALL], optional = true)
-    @JoinColumn(name = "forlenget_behandlingstid_work_area_id", referencedColumnName = "id")
+    @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
 

@@ -15,7 +15,7 @@ CREATE TABLE klage.forlenget_behandlingstid_draft_receiver
 (
     id                                    UUID PRIMARY KEY NOT NULL,
     identifikator                         TEXT             NOT NULL,
-    forlenget_behandlingstid_work_area_id UUID             NOT NULL
+    forlenget_behandlingstid_draft_id UUID             NOT NULL
         CONSTRAINT fk_fbd_receiver
             REFERENCES klage.forlenget_behandlingstid_draft,
     local_print                           BOOLEAN DEFAULT FALSE,
