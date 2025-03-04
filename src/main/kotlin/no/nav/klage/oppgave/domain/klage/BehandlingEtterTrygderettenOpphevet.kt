@@ -30,8 +30,8 @@ class BehandlingEtterTrygderettenOpphevet(
     val kjennelseMottatt: LocalDateTime,
     @Column(name = "anke_behandlende_enhet")
     val ankeBehandlendeEnhet: String,
-    @OneToOne
-    @MapsId("forlenget_behandlingstid_work_area_id")
+    @OneToOne(cascade = [CascadeType.ALL], optional = true)
+    @JoinColumn(name = "forlenget_behandlingstid_work_area_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstid: ForlengetBehandlingstid?,
 

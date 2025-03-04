@@ -33,8 +33,8 @@ class Ankebehandling(
     val kakaKvalitetsvurderingVersion: Int,
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
-    @OneToOne
-    @MapsId
+    @OneToOne(cascade = [CascadeType.ALL], optional = true)
+    @JoinColumn(name = "forlenget_behandlingstid_work_area_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstid: ForlengetBehandlingstid?,
 

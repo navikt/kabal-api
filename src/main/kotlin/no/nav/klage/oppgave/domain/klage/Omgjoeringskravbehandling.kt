@@ -32,8 +32,8 @@ class Omgjoeringskravbehandling(
     override var varsletBehandlingstid: VarsletBehandlingstid?,
     @Column(name = "source_behandling_id")
     var sourceBehandlingId: UUID?,
-    @OneToOne
-    @MapsId
+    @OneToOne(cascade = [CascadeType.ALL], optional = true)
+    @JoinColumn(name = "forlenget_behandlingstid_work_area_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstid: ForlengetBehandlingstid?,
 

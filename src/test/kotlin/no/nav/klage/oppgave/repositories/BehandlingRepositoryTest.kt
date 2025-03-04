@@ -58,8 +58,10 @@ class BehandlingRepositoryTest {
 
         val klage = getKlagebehandling(mottak.id)
 
-        klage.forlengetBehandlingstid = ForlengetBehandlingstid()
-        klage.forlengetBehandlingstid!!.title = "title"
+        val forlengetBehandlingstid = ForlengetBehandlingstid()
+        forlengetBehandlingstid.title = "title"
+
+        klage.forlengetBehandlingstid = forlengetBehandlingstid
 
         behandlingRepository.save(klage)
 
