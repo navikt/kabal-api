@@ -19,8 +19,8 @@ CREATE TABLE klage.forlenget_behandlingstid_draft_receiver
     forlenget_behandlingstid_draft_id UUID             NOT NULL
         CONSTRAINT fk_fbd_receiver
             REFERENCES klage.forlenget_behandlingstid_draft,
-    local_print                       BOOLEAN DEFAULT FALSE,
-    force_central_print               BOOLEAN DEFAULT FALSE,
+    local_print                       BOOLEAN,
+    force_central_print               BOOLEAN,
     address_adresselinje_1            TEXT,
     address_adresselinje_2            TEXT,
     address_adresselinje_3            TEXT,
@@ -29,6 +29,8 @@ CREATE TABLE klage.forlenget_behandlingstid_draft_receiver
     address_landkode                  TEXT,
     navn                              TEXT
 );
+
+CREATE INDEX fbd_receiver_fbd_fk_ix ON klage.forlenget_behandlingstid_draft_receiver (forlenget_behandlingstid_draft_id);
 
 ALTER TABLE klage.behandling
     ADD COLUMN forlenget_behandlingstid_draft_id UUID REFERENCES klage.forlenget_behandlingstid_draft (id);
