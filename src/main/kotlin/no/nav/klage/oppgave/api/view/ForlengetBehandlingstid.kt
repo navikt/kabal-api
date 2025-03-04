@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.api.view
 
-import no.nav.klage.dokument.api.view.HandlingEnum
 import java.time.LocalDate
 
 data class ForlengetBehandlingstidTitleInput(val title: String)
@@ -19,24 +18,16 @@ data class ForlengetBehandlingstidVarsletBehandlingstidUnitTypeIdInput(val varsl
 
 data class ForlengetBehandlingstidBehandlingstidDateInput(val behandlingstidDate: LocalDate?)
 
-data class ForlengetBehandlingstidReceiversInput(
-    val receivers: List<ForlengetBehandlingstidReceiverInput>,
-)
+//data class ForlengetBehandlingstidReceiversInput(
+//    val receivers: List<ForlengetBehandlingstidReceiverInput>,
+//)
 
-data class ForlengetBehandlingstidReceiverInput(
-    val id: String?,
-    val handling: HandlingEnum,
-    val overriddenAddress: ForlengetBehandlingstidAddressInput?,
-    val navn: String?,
-) {
-    data class ForlengetBehandlingstidAddressInput(
-        val adresselinje1: String?,
-        val adresselinje2: String?,
-        val adresselinje3: String?,
-        val landkode: String,
-        val postnummer: String?,
-    )
-}
+//data class ForlengetBehandlingstidReceiverInput(
+//    val identifikator: String?,
+//    val handling: HandlingEnum,
+//    val overriddenAddress: AddressInput?,
+//    val navn: String?,
+//)
 
 data class ForlengetBehandlingstidDraftView(
     val title: String?,

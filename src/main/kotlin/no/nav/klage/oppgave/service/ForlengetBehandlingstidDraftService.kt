@@ -1,11 +1,14 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.dokument.api.view.MottakerInput
+import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.dokument.service.KabalJsonToPdfService
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.klage.ForlengetBehandlingstidDraft
+import no.nav.klage.oppgave.domain.klage.ForlengetBehandlingstidDraftReceiver
 import no.nav.klage.oppgave.domain.klage.VarsletBehandlingstid
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -18,6 +21,7 @@ class ForlengetBehandlingstidDraftService(
     private val behandlingService: BehandlingService,
     private val partSearchService: PartSearchService,
     private val kabalJsonToPdfService: KabalJsonToPdfService,
+    private val dokumentUnderArbeidService: DokumentUnderArbeidService,
 ) {
 
     fun getOrCreateForlengetBehandlingstidDraft(behandlingId: UUID): ForlengetBehandlingstidDraftView {
@@ -125,9 +129,46 @@ class ForlengetBehandlingstidDraftService(
 
     fun setReceivers(
         behandlingId: UUID,
-        input: ForlengetBehandlingstidReceiversInput
+        input: MottakerInput
     ): ForlengetBehandlingstidDraftView {
-        TODO("Not yet implemented")
+        val behandling = behandlingService.getBehandlingForUpdate(behandlingId = behandlingId)
+
+        if (behandling !is BehandlingWithVarsletBehandlingstid) {
+            error("Behandling har ikke varslet behandlingstid")
+        }
+
+        if (behandling.forlengetBehandlingstidDraft == null) {
+            error("Forlenget behandlingstidutkast mangler")
+        }
+
+        dokumentUnderArbeidService.validateMottakerList(
+            mottakerInput = input,
+            systemContext = false,
+        )
+
+        behandling.forlengetBehandlingstidDraft!!.receivers.clear()
+
+        input.mottakerList.forEach {
+            val (markLocalPrint, forceCentralPrint) = dokumentUnderArbeidService.getPreferredHandling(
+                identifikator = it.id,
+                handling = it.handling,
+                isAddressOverridden = it.overriddenAddress != null,
+                sakenGjelderFnr = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema(),
+                systemContext = false,
+            )
+
+            behandling.forlengetBehandlingstidDraft!!.receivers.add(
+                ForlengetBehandlingstidDraftReceiver(
+                    navn = it.navn,
+                    identifikator = it.id,
+                    localPrint = markLocalPrint,
+                    forceCentralPrint = forceCentralPrint,
+                    address = dokumentUnderArbeidService.getDokumentUnderArbeidAdresse(it.overriddenAddress),
+                )
+            )
+        }
+        return behandling.forlengetBehandlingstidDraft!!.toView()
     }
 
     private fun setVarsletFristBasedOnUnits(varsletBehandlingstid: VarsletBehandlingstid) {

@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.api.controller
 
+import no.nav.klage.dokument.api.view.MottakerInput
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.service.ForlengetBehandlingstidDraftService
@@ -167,7 +168,7 @@ class ForlengetBehandlingstidDraftController(
     @PutMapping("/receivers")
     fun setReceivers(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidReceiversInput
+        @RequestBody input: MottakerInput,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setReceivers.name,

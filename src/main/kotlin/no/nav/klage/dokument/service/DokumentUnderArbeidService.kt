@@ -805,37 +805,10 @@ class DokumentUnderArbeidService(
     ): DokumentUnderArbeidAsHoveddokument {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
-        //Validate parts
-        mottakerInput.mottakerList.forEach { mottaker ->
-            if (mottaker.id != null) {
-                val part = partSearchService.searchPart(
-                    identifikator = mottaker.id,
-                    skipAccessControl = systemContext
-                )
-
-                when (part.type) {
-                    BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
-                        throw DokumentValidationException("Mottaker ${part.name} er død, velg en annen mottaker.")
-                    }
-
-                    BehandlingDetaljerView.IdType.ORGNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DELETED }) {
-                        throw DokumentValidationException("Mottaker ${part.name} er avviklet, velg en annen mottaker.")
-                    }
-                }
-            } else if (mottaker.overriddenAddress == null && mottaker.navn == null) {
-                throw DokumentValidationException("Adresse og navn må oppgis når id mangler.")
-            }
-
-
-            if (mottaker.overriddenAddress != null) {
-                val landkoder = kodeverkService.getLandkoder()
-                if (landkoder.find { it.landkode == mottaker.overriddenAddress.landkode } == null) {
-                    throw DokumentValidationException("Ugyldig landkode: ${mottaker.overriddenAddress.landkode}")
-                }
-
-                mottaker.overriddenAddress.validateAddress()
-            }
-        }
+        validateMottakerList(
+            mottakerInput = mottakerInput,
+            systemContext = systemContext
+        )
 
         if (dokumentUnderArbeid.isVedlegg()) {
             throw DokumentValidationException("Kan ikke sette mottakere på vedlegg")
@@ -860,36 +833,14 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
 
         mottakerInput.mottakerList.forEach {
-            val (markLocalPrint, forceCentralPrint) = when (it.handling) {
-                HandlingEnum.AUTO -> {
-                    if (it.id == null) {
-                        false to false
-                    } else {
-                        val partIdType = getPartIdFromIdentifikator(it.id).type
-                        val isDeltAnsvar =
-                            partIdType == PartIdType.VIRKSOMHET && eregClient.hentNoekkelInformasjonOmOrganisasjon(it.id)
-                                .isDeltAnsvar()
-
-                        val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
-                            mottakerId = it.id,
-                            brukerId = behandling.sakenGjelder.partId.value,
-                            tema = behandling.ytelse.toTema(),
-                            saksbehandlerContext = !systemContext,
-                        )
-
-                        if (isDeltAnsvar) {
-                            false to true
-                        } else if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && it.overriddenAddress != null) {
-                            false to true
-                        } else {
-                            false to false
-                        }
-                    }
-                }
-
-                HandlingEnum.LOCAL_PRINT -> true to false
-                HandlingEnum.CENTRAL_PRINT -> false to true
-            }
+            val (markLocalPrint, forceCentralPrint) = getPreferredHandling(
+                identifikator = it.id,
+                handling = it.handling,
+                isAddressOverridden = it.overriddenAddress != null,
+                sakenGjelderFnr = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema(),
+                systemContext = systemContext,
+            )
             dokumentUnderArbeid.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
                     identifikator = it.id,
@@ -929,7 +880,81 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeid
     }
 
-    private fun getDokumentUnderArbeidAdresse(overrideAddress: AddressInput?): Adresse? {
+    fun validateMottakerList(
+        mottakerInput: MottakerInput,
+        systemContext: Boolean,
+    ) {
+        mottakerInput.mottakerList.forEach { mottaker ->
+            if (mottaker.id != null) {
+                val part = partSearchService.searchPart(
+                    identifikator = mottaker.id,
+                    skipAccessControl = systemContext
+                )
+
+                when (part.type) {
+                    BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
+                        throw DokumentValidationException("Mottaker ${part.name} er død, velg en annen mottaker.")
+                    }
+
+                    BehandlingDetaljerView.IdType.ORGNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DELETED }) {
+                        throw DokumentValidationException("Mottaker ${part.name} er avviklet, velg en annen mottaker.")
+                    }
+                }
+            } else if (mottaker.overriddenAddress == null && mottaker.navn == null) {
+                throw DokumentValidationException("Adresse og navn må oppgis når id mangler.")
+            }
+
+
+            if (mottaker.overriddenAddress != null) {
+                val landkoder = kodeverkService.getLandkoder()
+                if (landkoder.find { it.landkode == mottaker.overriddenAddress.landkode } == null) {
+                    throw DokumentValidationException("Ugyldig landkode: ${mottaker.overriddenAddress.landkode}")
+                }
+
+                mottaker.overriddenAddress.validateAddress()
+            }
+        }
+    }
+
+    fun getPreferredHandling(
+        identifikator: String?,
+        handling: HandlingEnum,
+        isAddressOverridden: Boolean,
+        sakenGjelderFnr: String,
+        tema: Tema,
+        systemContext: Boolean
+    ) = when (handling) {
+        HandlingEnum.AUTO -> {
+            if (identifikator == null) {
+                false to false
+            } else {
+                val partIdType = getPartIdFromIdentifikator(identifikator).type
+                val isDeltAnsvar =
+                    partIdType == PartIdType.VIRKSOMHET && eregClient.hentNoekkelInformasjonOmOrganisasjon(identifikator)
+                        .isDeltAnsvar()
+
+                val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
+                    mottakerId = identifikator,
+                    brukerId = sakenGjelderFnr,
+                    tema = tema,
+                    saksbehandlerContext = !systemContext,
+                )
+
+                if (isDeltAnsvar) {
+                    false to true
+                } else if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && isAddressOverridden) {
+                    false to true
+                } else {
+                    false to false
+                }
+            }
+        }
+
+        HandlingEnum.LOCAL_PRINT -> true to false
+        HandlingEnum.CENTRAL_PRINT -> false to true
+    }
+
+    fun getDokumentUnderArbeidAdresse(overrideAddress: AddressInput?): Adresse? {
         return if (overrideAddress != null) {
             val poststed = if (overrideAddress.landkode == "NO") {
                 if (overrideAddress.postnummer != null) {
