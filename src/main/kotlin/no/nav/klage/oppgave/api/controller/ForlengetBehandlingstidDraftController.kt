@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.api.controller
 
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.config.SecurityConfiguration
-import no.nav.klage.oppgave.service.ForlengetBehandlingstidService
+import no.nav.klage.oppgave.service.ForlengetBehandlingstidDraftService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
@@ -12,14 +12,24 @@ import java.util.*
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
-@RequestMapping("/behandlinger/{behandlingId}/forlengetbehandlingstid")
-class ForlengetBehandlingstidController(
-    private val forlengetBehandlingstidService: ForlengetBehandlingstidService,
+@RequestMapping("/behandlinger/{behandlingId}/forlenget-behandlingstid-draft")
+class ForlengetBehandlingstidDraftController(
+    private val forlengetBehandlingstidDraftService: ForlengetBehandlingstidDraftService,
     private val tokenUtil: TokenUtil,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+    }
+
+    @GetMapping
+    fun getForlengetBehandlingstidDraft(@PathVariable behandlingId: UUID): ForlengetBehandlingstidDraftView {
+        logMethodDetails(
+            methodName = ::getForlengetBehandlingstidDraft.name,
+            innloggetIdent = tokenUtil.getIdent(),
+            logger = logger,
+        )
+        return forlengetBehandlingstidDraftService.getForlengetBehandlingstidDraft(behandlingId = behandlingId)
     }
 
     @PutMapping("/title")
@@ -33,7 +43,7 @@ class ForlengetBehandlingstidController(
             logger = logger,
         )
 
-        return forlengetBehandlingstidService.setTitle(behandlingId = behandlingId, input = input)
+        return forlengetBehandlingstidDraftService.setTitle(behandlingId = behandlingId, input = input)
     }
 
     @PutMapping("/fullmektig-fritekst")
@@ -46,7 +56,7 @@ class ForlengetBehandlingstidController(
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return forlengetBehandlingstidService.setFullmektigFritekst(behandlingId = behandlingId, input = input)
+        return forlengetBehandlingstidDraftService.setFullmektigFritekst(behandlingId = behandlingId, input = input)
     }
 
     @PutMapping("/custom-text")
@@ -59,7 +69,7 @@ class ForlengetBehandlingstidController(
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return forlengetBehandlingstidService.setCustomText(behandlingId = behandlingId, input = input)
+        return forlengetBehandlingstidDraftService.setCustomText(behandlingId = behandlingId, input = input)
     }
 
     @PutMapping("/reason")
@@ -72,7 +82,7 @@ class ForlengetBehandlingstidController(
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return forlengetBehandlingstidService.setReason(behandlingId = behandlingId, input = input)
+        return forlengetBehandlingstidDraftService.setReason(behandlingId = behandlingId, input = input)
     }
 
     @PutMapping("/behandlingstid-units")
@@ -85,7 +95,7 @@ class ForlengetBehandlingstidController(
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return forlengetBehandlingstidService.setBehandlingstidUnits(behandlingId = behandlingId, input = input)
+        return forlengetBehandlingstidDraftService.setBehandlingstidUnits(behandlingId = behandlingId, input = input)
     }
 
     @PutMapping("/behandlingstid-unit-type-id")
@@ -98,7 +108,7 @@ class ForlengetBehandlingstidController(
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return forlengetBehandlingstidService.setBehandlingstidUnitTypeId(behandlingId = behandlingId, input = input)
+        return forlengetBehandlingstidDraftService.setBehandlingstidUnitTypeId(behandlingId = behandlingId, input = input)
     }
 
     @PutMapping("/behandlingstid-date")
@@ -111,7 +121,7 @@ class ForlengetBehandlingstidController(
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return forlengetBehandlingstidService.setBehandlingstidDate(behandlingId = behandlingId, input = input)
+        return forlengetBehandlingstidDraftService.setBehandlingstidDate(behandlingId = behandlingId, input = input)
     }
 
     @PutMapping("/receivers")
@@ -124,7 +134,7 @@ class ForlengetBehandlingstidController(
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return forlengetBehandlingstidService.setReceivers(behandlingId = behandlingId, input = input)
+        return forlengetBehandlingstidDraftService.setReceivers(behandlingId = behandlingId, input = input)
     }
 
 }

@@ -12,16 +12,28 @@ import java.util.*
 
 @Service
 @Transactional
-class ForlengetBehandlingstidService(
+class ForlengetBehandlingstidDraftService(
     private val behandlingService: BehandlingService,
 ) {
+
+    fun getForlengetBehandlingstidDraft(behandlingId: UUID): ForlengetBehandlingstidDraftView {
+        val behandling = behandlingService.getBehandlingForUpdate(behandlingId = behandlingId)
+        if (behandling is BehandlingWithVarsletBehandlingstid) {
+            return if (behandling.forlengetBehandlingstidDraft == null) {
+                ForlengetBehandlingstidDraft(behandlingstid = VarsletBehandlingstid()).toView()
+            } else {
+                behandling.forlengetBehandlingstidDraft!!.toView()
+            }
+        } else {
+            error("Behandling har ikke varslet behandlingstid")
+        }
+    }
 
     fun setTitle(behandlingId: UUID, input: ForlengetBehandlingstidTitleInput): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
         behandling.forlengetBehandlingstidDraft!!.title = input.title
         return behandling.forlengetBehandlingstidDraft!!.toView()
     }
-
 
     fun setFullmektigFritekst(behandlingId: UUID, input: ForlengetBehandlingstidFullmektigFritekstInput): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
