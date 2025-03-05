@@ -2,12 +2,10 @@ package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
-import org.hibernate.envers.Audited
 import java.util.*
 
 @Entity
 @Table(name = "forlenget_behandlingstid_draft_receiver", schema = "klage")
-@Audited
 class ForlengetBehandlingstidDraftReceiver(
     @Id
     val id: UUID = UUID.randomUUID(),
