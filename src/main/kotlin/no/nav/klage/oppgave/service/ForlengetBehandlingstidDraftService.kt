@@ -192,14 +192,14 @@ class ForlengetBehandlingstidDraftService(
         return behandling
     }
 
-    private fun ForlengetBehandlingstidDraft.toView(behandling: Behandling): ForlengetBehandlingstidDraftView {
+    fun ForlengetBehandlingstidDraft.toView(behandling: Behandling): ForlengetBehandlingstidDraftView {
         return ForlengetBehandlingstidDraftView(
             title = title,
             fullmektigFritekst = fullmektigFritekst,
             customText = customText,
             reason = reason,
             previousBehandlingstidInfo = previousBehandlingstidInfo,
-            behandlingstid = behandlingstid.toView(),
+            behandlingstid = getBehandlingstidView(behandlingstid),
             receivers = receivers.map {
                 dokumentMapper.toDokumentViewMottaker(
                     identifikator = it.identifikator,
@@ -210,6 +210,14 @@ class ForlengetBehandlingstidDraftService(
                     behandling = behandling
                 )
             }
+        )
+    }
+
+    private fun getBehandlingstidView(varsletBehandlingstid: VarsletBehandlingstid): ForlengetBehandlingstidVarsletBehandlingstidView {
+        return ForlengetBehandlingstidVarsletBehandlingstidView(
+            varsletBehandlingstidUnits = varsletBehandlingstid.varsletBehandlingstidUnits,
+            varsletBehandlingstidUnitTypeId = varsletBehandlingstid.varsletBehandlingstidUnitType.id,
+            varsletFrist = varsletBehandlingstid.varsletFrist,
         )
     }
 
