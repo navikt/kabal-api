@@ -129,7 +129,7 @@ class ForlengetBehandlingstidDraftService(
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
         behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits =
             input.varsletBehandlingstidUnits
-        setVarsletFristBasedOnUnits(behandling.varsletBehandlingstid!!)
+        setVarsletFristBasedOnUnits(behandling.forlengetBehandlingstidDraft!!.behandlingstid)
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
 
@@ -140,7 +140,7 @@ class ForlengetBehandlingstidDraftService(
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
         behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnitType =
             TimeUnitType.of(input.varsletBehandlingstidUnitTypeId)
-        setVarsletFristBasedOnUnits(behandling.varsletBehandlingstid!!)
+        setVarsletFristBasedOnUnits(behandling.forlengetBehandlingstidDraft!!.behandlingstid)
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
 
