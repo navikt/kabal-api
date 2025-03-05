@@ -35,7 +35,7 @@ class ForlengetBehandlingstidDraft(
             ),
         ]
     )
-    val behandlingstid: VarsletBehandlingstid = VarsletBehandlingstid(),
+    val behandlingstid: VarsletBehandlingstid,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)

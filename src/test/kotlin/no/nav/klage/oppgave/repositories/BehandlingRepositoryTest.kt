@@ -58,7 +58,7 @@ class BehandlingRepositoryTest {
 
         val klage = getKlagebehandling(mottak.id)
 
-        val forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft()
+        val forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft(behandlingstid = VarsletBehandlingstid())
         forlengetBehandlingstidDraft.title = "title"
 
         val receiver = ForlengetBehandlingstidDraftReceiver(
@@ -72,6 +72,7 @@ class BehandlingRepositoryTest {
         forlengetBehandlingstidDraft.receivers.add(receiver)
 
         klage.forlengetBehandlingstidDraft = forlengetBehandlingstidDraft
+
 
         behandlingRepository.save(klage)
 

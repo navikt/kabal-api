@@ -28,7 +28,7 @@ class ForlengetBehandlingstidDraftService(
 
         if (behandling is BehandlingWithVarsletBehandlingstid) {
             if (behandling.forlengetBehandlingstidDraft == null) {
-                behandling.forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft()
+                behandling.forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft(behandlingstid = VarsletBehandlingstid())
             }
         } else {
             error("Behandling har ikke varslet behandlingstid")
