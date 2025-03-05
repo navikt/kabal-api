@@ -4,6 +4,7 @@ import jakarta.persistence.*
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
+import org.hibernate.envers.NotAudited
 import java.time.LocalDateTime
 import java.util.*
 
@@ -35,11 +36,12 @@ class ForlengetBehandlingstidDraft(
             ),
         ]
     )
-    val behandlingstid: VarsletBehandlingstid,
+    val behandlingstid: VarsletBehandlingstid = VarsletBehandlingstid(),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 10)
+    @NotAudited
     val receivers: MutableSet<ForlengetBehandlingstidDraftReceiver> = mutableSetOf(),
 
     )
