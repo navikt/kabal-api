@@ -2278,6 +2278,82 @@ class DokumentUnderArbeidService(
 
         return hovedDokument
     }
+
+    fun createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid(
+        forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft,
+        behandling: Behandling,
+        avsenderEnhetId: String,
+        systemContext: Boolean,
+    ): DokumentUnderArbeidAsHoveddokument {
+        val sakenGjelderName = partSearchService.searchPart(
+            identifikator = behandling.sakenGjelder.partId.value,
+            skipAccessControl = true
+        ).name
+
+        val bytes = kabalJsonToPdfService.getForlengetBehandlingstidPDF(
+            title = forlengetBehandlingstidDraft.title!!,
+            sakenGjelderName = sakenGjelderName,
+            sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
+            klagerIdentifikator = behandling.klager.partId.value,
+            klagerName = if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
+                partSearchService.searchPart(
+                    identifikator = behandling.klager.partId.value,
+                    skipAccessControl = true
+                ).name
+            } else {
+                sakenGjelderName
+            },
+            ytelse = behandling.ytelse,
+            fullmektigFritekst = forlengetBehandlingstidDraft.fullmektigFritekst,
+            behandlingstidUnits = forlengetBehandlingstidDraft.behandlingstid.varsletBehandlingstidUnits,
+            behandlingstidUnitType = forlengetBehandlingstidDraft.behandlingstid.varsletBehandlingstidUnitType,
+            behandlingstidDate = forlengetBehandlingstidDraft.behandlingstid.varsletFrist?.toString(),
+            avsenderEnhetId = Enhet.E4291.navn,
+            type = behandling.type,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            previousBehandlingstidInfo = forlengetBehandlingstidDraft.previousBehandlingstidInfo,
+            reason = forlengetBehandlingstidDraft.reason,
+            customText = forlengetBehandlingstidDraft.customText,
+        )
+
+        val tmpFile = Files.createTempFile(null, null).toFile()
+        tmpFile.writeBytes(bytes)
+
+        val documentView = createOpplastetDokumentUnderArbeid(
+            behandlingId = behandling.id,
+            dokumentTypeId = DokumentType.FORLENGET_BEHANDLINGSTIDSBREV.id,
+            parentId = null,
+            file = tmpFile,
+            filename = forlengetBehandlingstidDraft.title,
+            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
+            systemContext = systemContext
+        )
+
+        val document = getDokumentUnderArbeid(documentView.id) as DokumentUnderArbeidAsHoveddokument
+
+        document.avsenderMottakerInfoSet.clear()
+
+        forlengetBehandlingstidDraft.receivers.forEach {
+            document.avsenderMottakerInfoSet.add(
+                DokumentUnderArbeidAvsenderMottakerInfo(
+                    identifikator = it.identifikator,
+                    localPrint = it.localPrint,
+                    forceCentralPrint = it.forceCentralPrint,
+                    address = it.address,
+                    navn = it.navn,
+                )
+            )
+        }
+
+        val hovedDokument = finnOgMarkerFerdigHovedDokument(
+            behandlingId = behandling.id,
+            dokumentId = documentView.id,
+            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
+            systemContext = systemContext
+        )
+
+        return hovedDokument
+    }
 }
 
 

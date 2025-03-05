@@ -22,10 +22,11 @@ class ForlengetBehandlingstidDraftService(
     private val kabalJsonToPdfService: KabalJsonToPdfService,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
+    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
 
     fun getOrCreateForlengetBehandlingstidDraft(behandlingId: UUID): ForlengetBehandlingstidDraftView {
-        val behandling = behandlingService.getBehandlingForUpdate(behandlingId = behandlingId)
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
         if (behandling is BehandlingWithVarsletBehandlingstid) {
             if (behandling.forlengetBehandlingstidDraft == null) {
@@ -51,7 +52,6 @@ class ForlengetBehandlingstidDraftService(
         varsletBehandlingstid: VarsletBehandlingstid?,
         varsletBehandlingstidHistorikk: MutableSet<VarsletBehandlingstidHistorikk>
     ): String? {
-
         return if (varsletBehandlingstid != null) {
             val lastVarsletBehandlingstid = varsletBehandlingstidHistorikk.maxByOrNull { it.tidspunkt }
 
@@ -63,11 +63,9 @@ class ForlengetBehandlingstidDraftService(
                 val varsletBehandlingstidText =
                     getvarsletBehandlingstidText(lastVarsletBehandlingstid.varsletBehandlingstid!!)
 
-                "I brev fra Nav sendt $previousDate fikk du informasjon om at forventet behandlingstid var $varsletBehandlingstidText"
+                "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingstid var $varsletBehandlingstidText"
             } else null
         } else null
-
-
     }
 
     private fun getvarsletBehandlingstidText(varsletBehandlingstid: VarsletBehandlingstid): String {
@@ -167,7 +165,7 @@ class ForlengetBehandlingstidDraftService(
         behandlingId: UUID,
         input: MottakerInput
     ): ForlengetBehandlingstidDraftView {
-        val behandling = behandlingService.getBehandlingForUpdate(behandlingId = behandlingId)
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
         if (behandling !is BehandlingWithVarsletBehandlingstid) {
             error("Behandling har ikke varslet behandlingstid")
@@ -221,7 +219,7 @@ class ForlengetBehandlingstidDraftService(
     }
 
     private fun getBehandlingWithForlengetBehandlingstidDraft(behandlingId: UUID): BehandlingWithVarsletBehandlingstid {
-        val behandling = behandlingService.getBehandlingForUpdate(behandlingId = behandlingId)
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
         if (behandling !is BehandlingWithVarsletBehandlingstid) {
             error("Behandling har ikke varslet behandlingstid")
         }
@@ -262,7 +260,7 @@ class ForlengetBehandlingstidDraftService(
     }
 
     fun getPdf(behandlingId: UUID): ByteArray {
-        val behandling = behandlingService.getBehandlingForUpdate(behandlingId = behandlingId)
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
         if (behandling !is BehandlingWithVarsletBehandlingstid) {
             error("Behandling har ikke varslet behandlingstid")
@@ -309,5 +307,35 @@ class ForlengetBehandlingstidDraftService(
     private fun getFormattedDate(localDate: LocalDate): String {
         val formatter = DateTimeFormatter.ofPattern("d. MMMM yyyy", Locale.forLanguageTag("no"))
         return localDate.format(formatter)
+    }
+
+    fun completeDraft(behandlingId: UUID) {
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
+
+        if (behandling !is BehandlingWithVarsletBehandlingstid) {
+            error("Behandling har ikke varslet behandlingstid")
+        }
+
+        if (behandling.forlengetBehandlingstidDraft == null) {
+            error("Forlenget behandlingstidutkast mangler")
+        }
+
+//        dokumentUnderArbeidService.createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid()
+
+        //Send brev, sjekk at det lykkes
+        //Oppdater varslet frist i behandlingen
+        //Fjern draft
+        TODO("Not yet implemented")
+    }
+
+    private fun getBehandlingForUpdate(behandlingId: UUID): Behandling {
+        return if (innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+            behandlingService.getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                ignoreCheckSkrivetilgang = true,
+            )
+        } else {
+            behandlingService.getBehandlingForUpdate(behandlingId)
+        }
     }
 }

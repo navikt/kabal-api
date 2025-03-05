@@ -15,5 +15,6 @@ fun DokumentType.isUtgaaende(): Boolean {
         DokumentType.BREV,
         DokumentType.VEDTAK,
         DokumentType.SVARBREV,
+        DokumentType.FORLENGET_BEHANDLINGSTIDSBREV,
     )
 }

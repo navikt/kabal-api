@@ -178,4 +178,16 @@ class ForlengetBehandlingstidDraftController(
         return forlengetBehandlingstidDraftService.setReceivers(behandlingId = behandlingId, input = input)
     }
 
+    @PostMapping("/complete")
+    fun completeDraft(
+        @PathVariable behandlingId: UUID
+    ) {
+        logMethodDetails(
+            methodName = ::completeDraft.name,
+            innloggetIdent = tokenUtil.getIdent(),
+            logger = logger,
+        )
+        forlengetBehandlingstidDraftService.completeDraft(behandlingId = behandlingId)
+    }
+
 }
