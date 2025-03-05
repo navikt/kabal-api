@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
+import no.nav.klage.kodeverk.TimeUnitType
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
@@ -36,7 +37,10 @@ class ForlengetBehandlingstidDraft(
             ),
         ]
     )
-    val behandlingstid: VarsletBehandlingstid = VarsletBehandlingstid(),
+    val behandlingstid: VarsletBehandlingstid = VarsletBehandlingstid(
+        varsletBehandlingstidUnits = 12,
+        varsletBehandlingstidUnitType = TimeUnitType.WEEKS,
+    ),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)

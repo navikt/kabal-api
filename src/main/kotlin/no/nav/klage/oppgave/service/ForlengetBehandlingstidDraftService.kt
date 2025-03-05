@@ -11,6 +11,7 @@ import no.nav.klage.oppgave.domain.klage.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 @Service
@@ -36,20 +37,59 @@ class ForlengetBehandlingstidDraftService(
 
         behandling.forlengetBehandlingstidDraft!!.title = "Nav klageinstans orienterer om forlenget behandlingstid"
 
-        if (behandling.varsletBehandlingstid != null) {
-            val lastVarsletBehandlingstid = behandling.varsletBehandlingstidHistorikk.maxByOrNull { it.tidspunkt }
+        val previousBehandlingstidInfo = getvarsletBehandlingstidInfo(
+            varsletBehandlingstid = behandling.varsletBehandlingstid,
+            behandling.varsletBehandlingstidHistorikk
+        )
 
-            if (lastVarsletBehandlingstid?.varsletBehandlingstid != null &&
-                lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null
-            ) {
-                //TODO format
-//        "I brev fra Nav sendt 16. januar 2025 fikk du informasjon om at forventet behandlingstid var 6 uker."
-                behandling.forlengetBehandlingstidDraft!!.previousBehandlingstidInfo =
-                    "I brev fra Nav sendt ${lastVarsletBehandlingstid.tidspunkt} fikk du informasjon om at forventet behandlingstid var ${lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits} ${lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType}"
-            }
-        }
+        behandling.forlengetBehandlingstidDraft!!.previousBehandlingstidInfo = previousBehandlingstidInfo
 
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling)
+    }
+
+    private fun getvarsletBehandlingstidInfo(
+        varsletBehandlingstid: VarsletBehandlingstid?,
+        varsletBehandlingstidHistorikk: MutableSet<VarsletBehandlingstidHistorikk>
+    ): String? {
+
+        return if (varsletBehandlingstid != null) {
+            val lastVarsletBehandlingstid = varsletBehandlingstidHistorikk.maxByOrNull { it.tidspunkt }
+
+            if (lastVarsletBehandlingstid?.varsletBehandlingstid != null &&
+                lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null &&
+                lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType != null
+            ) {
+                val previousDate = getFormattedDate(lastVarsletBehandlingstid.tidspunkt.toLocalDate())
+                val varsletBehandlingstidText =
+                    getvarsletBehandlingstidText(lastVarsletBehandlingstid.varsletBehandlingstid!!)
+
+                "I brev fra Nav sendt $previousDate fikk du informasjon om at forventet behandlingstid var $varsletBehandlingstidText"
+            } else null
+        } else null
+
+
+    }
+
+    private fun getvarsletBehandlingstidText(varsletBehandlingstid: VarsletBehandlingstid): String {
+        return varsletBehandlingstid.varsletBehandlingstidUnits.toString() + when (
+            varsletBehandlingstid.varsletBehandlingstidUnitType!!
+        ) {
+            TimeUnitType.WEEKS -> {
+                if (varsletBehandlingstid.varsletBehandlingstidUnits == 1) {
+                    " uke"
+                } else {
+                    " uker"
+                }
+            }
+
+            TimeUnitType.MONTHS -> {
+                if (varsletBehandlingstid.varsletBehandlingstidUnits == 1) {
+                    " måned"
+                } else {
+                    " måneder"
+                }
+            }
+        }
     }
 
     fun setTitle(behandlingId: UUID, input: ForlengetBehandlingstidTitleInput): ForlengetBehandlingstidDraftView {
@@ -168,9 +208,9 @@ class ForlengetBehandlingstidDraftService(
     }
 
     private fun setVarsletFristBasedOnUnits(varsletBehandlingstid: VarsletBehandlingstid) {
-        if (varsletBehandlingstid.varsletBehandlingstidUnits != null) {
+        if (varsletBehandlingstid.varsletBehandlingstidUnits != null && varsletBehandlingstid.varsletBehandlingstidUnitType != null) {
             //Her velger vi å ta utgangspunkt i dagens dato. Ta det opp med funksjonell når vi har en demo.
-            varsletBehandlingstid.varsletFrist = when (varsletBehandlingstid.varsletBehandlingstidUnitType) {
+            varsletBehandlingstid.varsletFrist = when (varsletBehandlingstid.varsletBehandlingstidUnitType!!) {
                 TimeUnitType.WEEKS -> LocalDate.now()
                     .plusWeeks(varsletBehandlingstid.varsletBehandlingstidUnits!!.toLong())
 
@@ -199,7 +239,7 @@ class ForlengetBehandlingstidDraftService(
             customText = customText,
             reason = reason,
             previousBehandlingstidInfo = previousBehandlingstidInfo,
-            behandlingstid = getBehandlingstidView(behandlingstid),
+            behandlingstid = behandlingstid.toView(),
             receivers = receivers.map {
                 dokumentMapper.toDokumentViewMottaker(
                     identifikator = it.identifikator,
@@ -213,18 +253,10 @@ class ForlengetBehandlingstidDraftService(
         )
     }
 
-    private fun getBehandlingstidView(varsletBehandlingstid: VarsletBehandlingstid): ForlengetBehandlingstidVarsletBehandlingstidView {
-        return ForlengetBehandlingstidVarsletBehandlingstidView(
-            varsletBehandlingstidUnits = varsletBehandlingstid.varsletBehandlingstidUnits,
-            varsletBehandlingstidUnitTypeId = varsletBehandlingstid.varsletBehandlingstidUnitType.id,
-            varsletFrist = varsletBehandlingstid.varsletFrist,
-        )
-    }
-
     private fun VarsletBehandlingstid.toView(): ForlengetBehandlingstidVarsletBehandlingstidView {
         return ForlengetBehandlingstidVarsletBehandlingstidView(
             varsletBehandlingstidUnits = varsletBehandlingstidUnits,
-            varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitType.id,
+            varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitType!!.id,
             varsletFrist = varsletFrist,
         )
     }
@@ -272,5 +304,10 @@ class ForlengetBehandlingstidDraftService(
             reason = forlengetBehandlingstidDraft.reason,
             customText = forlengetBehandlingstidDraft.customText,
         )
+    }
+
+    private fun getFormattedDate(localDate: LocalDate): String {
+        val formatter = DateTimeFormatter.ofPattern("d. MMMM yyyy", Locale.forLanguageTag("no"))
+        return localDate.format(formatter)
     }
 }
