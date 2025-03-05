@@ -286,7 +286,7 @@ class MockDataController(
                         brukersHenvendelseMottattNavDato = dato,
                         sakMottattKaDato = dato,
                         innsendtTilNav = dato.minusDays(3),
-                        kilde = Fagsystem.AO01,
+                        kilde = oversendtSak.fagsystem,
                         kommentar = mockInput?.kommentar,
                         hindreAutomatiskSvarbrev = mockInput?.hindreAutomatiskSvarbrev,
                         saksbehandlerIdent = mockInput?.saksbehandlerIdent,
