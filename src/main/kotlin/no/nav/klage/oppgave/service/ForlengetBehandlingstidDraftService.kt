@@ -45,6 +45,10 @@ class ForlengetBehandlingstidDraftService(
 
         behandling.forlengetBehandlingstidDraft!!.previousBehandlingstidInfo = previousBehandlingstidInfo
 
+        if (behandling.prosessfullmektig != null) {
+            behandling.forlengetBehandlingstidDraft!!.fullmektigFritekst = behandling.prosessfullmektig?.navn
+        }
+
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling)
     }
 
