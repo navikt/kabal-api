@@ -38,7 +38,6 @@ class ForlengetBehandlingstidDraft(
         ]
     )
     val behandlingstid: VarsletBehandlingstid = VarsletBehandlingstid(
-        varsletBehandlingstidUnits = 12,
         varsletBehandlingstidUnitType = TimeUnitType.WEEKS,
     ),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
