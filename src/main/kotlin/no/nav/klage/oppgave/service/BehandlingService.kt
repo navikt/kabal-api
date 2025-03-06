@@ -815,6 +815,21 @@ class BehandlingService(
             throw IllegalOperation("Behandlingstid kan ikke endres for denne behandlingstypen: ${behandling.javaClass.name}.")
         }
 
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                VarsletFristEvent(
+                    actor = Employee(
+                        navIdent = saksbehandlerIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    varsletFrist = varsletFrist,
+                )
+            ),
+            behandlingId = behandling.id,
+            type = InternalEventType.VARSLET_FRIST,
+        )
+
         return behandling.modified
     }
 
@@ -837,7 +852,7 @@ class BehandlingService(
 
                     else -> error("Invalid input")
             }
-        }
+        }!!
 
         val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
 
@@ -859,6 +874,21 @@ class BehandlingService(
         } else {
             throw IllegalOperation("Behandlingstid kan ikke endres for denne behandlingstypen: ${behandling.javaClass.name}.")
         }
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                VarsletFristEvent(
+                    actor = Employee(
+                        navIdent = saksbehandlerIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    varsletFrist = varsletFrist,
+                )
+            ),
+            behandlingId = behandling.id,
+            type = InternalEventType.VARSLET_FRIST,
+        )
 
         return behandling.modified
     }
