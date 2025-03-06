@@ -150,7 +150,6 @@ class BehandlingServiceTest {
             tokenUtil = mockk(),
             gosysOppgaveService = mockk(),
             kodeverkService = mockk(),
-            forlengetBehandlingstidDraftService = mockk(),
         )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT

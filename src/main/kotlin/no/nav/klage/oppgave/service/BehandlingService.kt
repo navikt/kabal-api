@@ -99,7 +99,6 @@ class BehandlingService(
     private val tokenUtil: TokenUtil,
     private val gosysOppgaveService: GosysOppgaveService,
     private val kodeverkService: KodeverkService,
-    private val forlengetBehandlingstidDraftService: ForlengetBehandlingstidDraftService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -1417,10 +1416,7 @@ class BehandlingService(
         }
 
         if (behandling is BehandlingWithVarsletBehandlingstid && behandling.forlengetBehandlingstidDraft != null) {
-            forlengetBehandlingstidDraftService.setFullmektigFritekst(
-                behandlingId = behandlingId,
-                input = ForlengetBehandlingstidFullmektigFritekstInput(fullmektigFritekst = partView?.name)
-            )
+            behandling.forlengetBehandlingstidDraft!!.fullmektigFritekst = partView?.name
         }
 
         publishInternalEvent(
