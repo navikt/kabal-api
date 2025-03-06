@@ -112,6 +112,9 @@ internal class BehandlingAvslutningServiceTest {
 
         @MockkBean(relaxed = true)
         lateinit var safFacade: SafFacade
+
+        @MockkBean(relaxed = true)
+        lateinit var forlengetBehandlingstidDraftService: ForlengetBehandlingstidDraftService
     }
 
     @Autowired
