@@ -237,7 +237,25 @@ class ForlengetBehandlingstidDraftService(
         if (behandling.forlengetBehandlingstidDraft == null) {
             error("Forlenget behandlingstidutkast mangler")
         }
+
+        updateFullmektigFritekst(behandling)
+
         return behandling
+    }
+
+    private fun updateFullmektigFritekst(behandling: Behandling) {
+        behandling as BehandlingWithVarsletBehandlingstid
+        val fullmektigInBehandling = behandling.prosessfullmektig
+        val fullmektigFritekstInDraft = behandling.forlengetBehandlingstidDraft?.fullmektigFritekst
+        if (fullmektigFritekstInDraft == null && fullmektigInBehandling != null) {
+            val name = fullmektigInBehandling.partId?.value?.let {
+                partSearchService.searchPart(
+                    identifikator = it,
+                    skipAccessControl = true
+                ).name
+            } ?: fullmektigInBehandling.navn
+            behandling.forlengetBehandlingstidDraft?.fullmektigFritekst = name
+        }
     }
 
     fun ForlengetBehandlingstidDraft.toView(behandling: Behandling): ForlengetBehandlingstidDraftView {
