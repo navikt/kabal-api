@@ -8,6 +8,7 @@ import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -260,12 +261,40 @@ class ForlengetBehandlingstidDraftService(
             error("Forlenget behandlingstidutkast mangler")
         }
 
-//        dokumentUnderArbeidService.createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid()
+        if (behandling.forlengetBehandlingstidDraft!!.receivers.isEmpty()) {
+            error("Mangler mottakere")
+        }
 
-        //Send brev, sjekk at det lykkes
-        //Oppdater varslet frist i behandlingen
-        //Fjern draft
-        TODO("Not yet implemented")
+        if (behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletFrist == null ||
+            (behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnitType == null &&
+                    behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits == null)) {
+            error("Trenger enten dato eller antall uker/måneder")
+        }
+
+        dokumentUnderArbeidService.createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid(
+            behandling = behandling,
+            forlengetBehandlingstidDraft = behandling.forlengetBehandlingstidDraft!!,
+            systemContext = false,
+        )
+
+        behandlingService.setForlengetBehandlingstid(
+            newVarsletBehandlingstid = behandling.forlengetBehandlingstidDraft!!.behandlingstid,
+            behandling = behandling,
+            systemUserContext = false,
+            mottakere = behandling.forlengetBehandlingstidDraft!!.receivers.map {
+                if (it.identifikator != null) {
+                    MottakerPartId(
+                        value = getPartIdFromIdentifikator(it.identifikator)
+                    )
+                } else if (it.navn != null) {
+                    MottakerNavn(
+                        value = it.navn
+                    )
+                } else throw IllegalArgumentException("Missing values in receiver: $it")
+            }
+        )
+
+        behandling.forlengetBehandlingstidDraft = null
     }
 
     private fun getBehandlingForUpdate(behandlingId: UUID): Behandling {

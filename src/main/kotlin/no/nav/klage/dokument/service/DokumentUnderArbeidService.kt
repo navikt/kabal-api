@@ -2282,7 +2282,6 @@ class DokumentUnderArbeidService(
     fun createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid(
         forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft,
         behandling: Behandling,
-        avsenderEnhetId: String,
         systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
         val sakenGjelderName = partSearchService.searchPart(

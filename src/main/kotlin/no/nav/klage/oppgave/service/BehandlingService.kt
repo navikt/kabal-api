@@ -817,6 +817,51 @@ class BehandlingService(
         return behandling.modified
     }
 
+    fun setForlengetBehandlingstid(
+        newVarsletBehandlingstid: VarsletBehandlingstid,
+        behandling: Behandling,
+        systemUserContext: Boolean,
+        mottakere: List<Mottaker>,
+    ): LocalDateTime {
+        val varsletFrist =
+            if (newVarsletBehandlingstid.varsletFrist != null) {
+                newVarsletBehandlingstid.varsletFrist
+            } else {
+                when (newVarsletBehandlingstid.varsletBehandlingstidUnitType) {
+                    TimeUnitType.WEEKS -> LocalDate.now()
+                        .plusWeeks(newVarsletBehandlingstid.varsletBehandlingstidUnits!!.toLong())
+
+                    TimeUnitType.MONTHS -> LocalDate.now()
+                        .plusMonths(newVarsletBehandlingstid.varsletBehandlingstidUnits!!.toLong())
+
+                    else -> error("Invalid input")
+            }
+        }
+
+        val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
+
+        val varsletBehandlingstid = VarsletBehandlingstid(
+            varsletFrist = varsletFrist,
+            varsletBehandlingstidUnits = newVarsletBehandlingstid.varsletBehandlingstidUnits,
+            varsletBehandlingstidUnitType = newVarsletBehandlingstid.varsletBehandlingstidUnitType,
+        )
+
+        if (behandling is BehandlingWithVarsletBehandlingstid) {
+            applicationEventPublisher.publishEvent(
+                behandling.setVarsletBehandlingstid(
+                    varsletBehandlingstid = varsletBehandlingstid,
+                    saksbehandlerident = saksbehandlerIdent,
+                    saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
+                    mottakere = mottakere,
+                )
+            )
+        } else {
+            throw IllegalOperation("Behandlingstid kan ikke endres for denne behandlingstypen: ${behandling.javaClass.name}.")
+        }
+
+        return behandling.modified
+    }
+
     fun setExpiredTildeltSaksbehandlerToNullInSystemContext(
         behandlingId: UUID,
     ) {
