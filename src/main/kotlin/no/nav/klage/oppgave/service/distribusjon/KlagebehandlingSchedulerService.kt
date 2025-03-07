@@ -41,7 +41,7 @@ class KlagebehandlingSchedulerService(
     @SchedulerLock(name = "avsluttBehandling")
     fun avsluttBehandling() {
         logSchedulerMessage(functionName = ::avsluttBehandling.name)
-        val behandlingIdList: List<Pair<UUID, Type>> = behandlingService.findBehandlingerForAvslutning().reversed()
+        val behandlingIdList: List<Pair<UUID, Type>> = behandlingService.findBehandlingerForAvslutning()
 
         behandlingIdList.forEach { (id, type) ->
             if (type != Type.ANKE_I_TRYGDERETTEN) {
