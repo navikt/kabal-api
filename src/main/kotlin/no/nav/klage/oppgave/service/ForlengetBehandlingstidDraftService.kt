@@ -325,15 +325,21 @@ class ForlengetBehandlingstidDraftService(
         return if (varsletBehandlingstid != null) {
             val lastVarsletBehandlingstid = varsletBehandlingstidHistorikk.maxByOrNull { it.tidspunkt }
 
-            if (lastVarsletBehandlingstid?.varsletBehandlingstid != null &&
-                lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null &&
-                lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType != null
-            ) {
-                val previousDate = getFormattedDate(lastVarsletBehandlingstid.tidspunkt.toLocalDate())
-                val varsletBehandlingstidText =
-                    getvarsletBehandlingstidText(lastVarsletBehandlingstid.varsletBehandlingstid!!)
-
-                "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingstid var $varsletBehandlingstidText"
+            if (lastVarsletBehandlingstid?.varsletBehandlingstid != null &&) {
+                if (
+                    lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null &&
+                    lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType != null
+                ) {
+                    val previousDate = getFormattedDate(lastVarsletBehandlingstid.tidspunkt.toLocalDate())
+                    val varsletBehandlingstidText =
+                        getvarsletBehandlingstidText(lastVarsletBehandlingstid.varsletBehandlingstid!!)
+                    "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingstid var $varsletBehandlingstidText"
+                } else if (lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletFrist != null) {
+                    val previousDate = getFormattedDate(lastVarsletBehandlingstid.tidspunkt.toLocalDate())
+                    val varsletFristDate =
+                        getFormattedDate(lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletFrist!!)
+                    "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingsfrist var $varsletFristDate"
+                } else null
             } else null
         } else null
     }
