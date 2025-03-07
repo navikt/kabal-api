@@ -2155,6 +2155,13 @@ class DokumentUnderArbeidService(
                             navn = prosessfullmektig.navn
                         )
                     }
+                } else if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
+                    Svarbrev.Receiver(
+                        id = behandling.klager.partId.value,
+                        handling = Svarbrev.Receiver.HandlingEnum.AUTO,
+                        overriddenAddress = null,
+                        navn = null
+                    )
                 } else {
                     Svarbrev.Receiver(
                         id = behandling.sakenGjelder.partId.value,
