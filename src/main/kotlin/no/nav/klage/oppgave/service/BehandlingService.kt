@@ -62,10 +62,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.util.TokenUtil
-import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -785,13 +782,11 @@ class BehandlingService(
         mottakere: List<Mottaker>,
     ): LocalDateTime {
         //TODO differentiate between mottatt and now.
-        val varsletFrist = when (behandlingstidUnitType) {
-            TimeUnitType.WEEKS -> behandling.mottattKlageinstans.toLocalDate()
-                .plusWeeks(behandlingstidUnits.toLong())
-
-            TimeUnitType.MONTHS -> behandling.mottattKlageinstans.toLocalDate()
-                .plusMonths(behandlingstidUnits.toLong())
-        }
+        val varsletFrist = findDateBasedOnTimeUnitTypeAndUnits(
+            timeUnitType = behandlingstidUnitType,
+            units = behandlingstidUnits.toLong(),
+            fromDate = behandling.mottattKlageinstans.toLocalDate()
+        )
 
         val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
 
@@ -842,16 +837,12 @@ class BehandlingService(
             if (newVarsletBehandlingstid.varsletFrist != null) {
                 newVarsletBehandlingstid.varsletFrist
             } else {
-                when (newVarsletBehandlingstid.varsletBehandlingstidUnitType) {
-                    TimeUnitType.WEEKS -> LocalDate.now()
-                        .plusWeeks(newVarsletBehandlingstid.varsletBehandlingstidUnits!!.toLong())
-
-                    TimeUnitType.MONTHS -> LocalDate.now()
-                        .plusMonths(newVarsletBehandlingstid.varsletBehandlingstidUnits!!.toLong())
-
-                    else -> error("Invalid input")
-            }
-        }!!
+                findDateBasedOnTimeUnitTypeAndUnits(
+                    timeUnitType = newVarsletBehandlingstid.varsletBehandlingstidUnitType!!,
+                    units = newVarsletBehandlingstid.varsletBehandlingstidUnits!!.toLong(),
+                    fromDate = LocalDate.now(),
+                )
+            }!!
 
         val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
 

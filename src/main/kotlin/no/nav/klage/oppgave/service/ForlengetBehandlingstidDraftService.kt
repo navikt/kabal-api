@@ -9,6 +9,7 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.ForlengetBehandlingstidDraftRepository
+import no.nav.klage.oppgave.util.findDateBasedOnTimeUnitTypeAndUnits
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -96,6 +97,16 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidVarsletBehandlingstidUnitsInput
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+
+        validateNewFrist(
+            newFrist = findDateBasedOnTimeUnitTypeAndUnits(
+                timeUnitType = behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnitType!!,
+                units = input.varsletBehandlingstidUnits.toLong(),
+                fromDate = LocalDate.now(),
+            ),
+            oldFrist = behandling.varsletBehandlingstid?.varsletFrist,
+        )
+
         behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits =
             input.varsletBehandlingstidUnits
         deleteVarsletFristIfNeeded(behandling.forlengetBehandlingstidDraft!!.behandlingstid)
@@ -107,6 +118,16 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidVarsletBehandlingstidUnitTypeIdInput
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        if (behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits != null) {
+            validateNewFrist(
+                newFrist = findDateBasedOnTimeUnitTypeAndUnits(
+                    timeUnitType = TimeUnitType.of(input.varsletBehandlingstidUnitTypeId),
+                    units = behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits!!.toLong(),
+                    fromDate = LocalDate.now(),
+                ),
+                oldFrist = behandling.varsletBehandlingstid?.varsletFrist,
+            )
+        }
         behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnitType =
             TimeUnitType.of(input.varsletBehandlingstidUnitTypeId)
         deleteVarsletFristIfNeeded(behandling.forlengetBehandlingstidDraft!!.behandlingstid)
@@ -118,6 +139,7 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidBehandlingstidDateInput
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        validateNewFrist(newFrist = input.behandlingstidDate, oldFrist = behandling.varsletBehandlingstid?.varsletFrist)
         behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletFrist = input.behandlingstidDate
         behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits = null
         behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnitType = TimeUnitType.WEEKS
@@ -399,5 +421,11 @@ class ForlengetBehandlingstidDraftService(
             varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitType!!.id,
             varsletFrist = varsletFrist,
         )
+    }
+
+    private fun validateNewFrist(newFrist: LocalDate?, oldFrist: LocalDate?) {
+        if (newFrist != null && oldFrist != null && newFrist.isBefore(oldFrist)) {
+            error("Ny frist er tidligere enn tidligere angitt frist")
+        }
     }
 }
