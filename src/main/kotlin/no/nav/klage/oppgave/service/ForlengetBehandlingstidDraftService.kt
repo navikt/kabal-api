@@ -325,7 +325,7 @@ class ForlengetBehandlingstidDraftService(
         return if (varsletBehandlingstid != null) {
             val lastVarsletBehandlingstid = varsletBehandlingstidHistorikk.maxByOrNull { it.tidspunkt }
 
-            if (lastVarsletBehandlingstid?.varsletBehandlingstid != null &&) {
+            if (lastVarsletBehandlingstid?.varsletBehandlingstid != null) {
                 if (
                     lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null &&
                     lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType != null
