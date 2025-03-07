@@ -62,10 +62,7 @@ import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.klage.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.util.TokenUtil
-import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -785,13 +782,11 @@ class BehandlingService(
         mottakere: List<Mottaker>,
     ): LocalDateTime {
         //TODO differentiate between mottatt and now.
-        val varsletFrist = when (behandlingstidUnitType) {
-            TimeUnitType.WEEKS -> behandling.mottattKlageinstans.toLocalDate()
-                .plusWeeks(behandlingstidUnits.toLong())
-
-            TimeUnitType.MONTHS -> behandling.mottattKlageinstans.toLocalDate()
-                .plusMonths(behandlingstidUnits.toLong())
-        }
+        val varsletFrist = findDateBasedOnTimeUnitTypeAndUnits(
+            timeUnitType = behandlingstidUnitType,
+            units = behandlingstidUnits.toLong(),
+            fromDate = behandling.mottattKlageinstans.toLocalDate()
+        )
 
         val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
 
@@ -813,6 +808,77 @@ class BehandlingService(
         } else {
             throw IllegalOperation("Behandlingstid kan ikke endres for denne behandlingstypen: ${behandling.javaClass.name}.")
         }
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                VarsletFristEvent(
+                    actor = Employee(
+                        navIdent = saksbehandlerIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    varsletFrist = varsletFrist,
+                )
+            ),
+            behandlingId = behandling.id,
+            type = InternalEventType.VARSLET_FRIST,
+        )
+
+        return behandling.modified
+    }
+
+    fun setForlengetBehandlingstid(
+        newVarsletBehandlingstid: VarsletBehandlingstid,
+        behandling: Behandling,
+        systemUserContext: Boolean,
+        mottakere: List<Mottaker>,
+    ): LocalDateTime {
+        val varsletFrist =
+            if (newVarsletBehandlingstid.varsletFrist != null) {
+                newVarsletBehandlingstid.varsletFrist
+            } else {
+                findDateBasedOnTimeUnitTypeAndUnits(
+                    timeUnitType = newVarsletBehandlingstid.varsletBehandlingstidUnitType!!,
+                    units = newVarsletBehandlingstid.varsletBehandlingstidUnits!!.toLong(),
+                    fromDate = LocalDate.now(),
+                )
+            }!!
+
+        val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
+
+        val varsletBehandlingstid = VarsletBehandlingstid(
+            varsletFrist = varsletFrist,
+            varsletBehandlingstidUnits = newVarsletBehandlingstid.varsletBehandlingstidUnits,
+            varsletBehandlingstidUnitType = newVarsletBehandlingstid.varsletBehandlingstidUnitType,
+        )
+
+        if (behandling is BehandlingWithVarsletBehandlingstid) {
+            applicationEventPublisher.publishEvent(
+                behandling.setVarsletBehandlingstid(
+                    varsletBehandlingstid = varsletBehandlingstid,
+                    saksbehandlerident = saksbehandlerIdent,
+                    saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
+                    mottakere = mottakere,
+                )
+            )
+        } else {
+            throw IllegalOperation("Behandlingstid kan ikke endres for denne behandlingstypen: ${behandling.javaClass.name}.")
+        }
+
+        publishInternalEvent(
+            data = objectMapper.writeValueAsString(
+                VarsletFristEvent(
+                    actor = Employee(
+                        navIdent = saksbehandlerIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                    ),
+                    timestamp = behandling.modified,
+                    varsletFrist = varsletFrist,
+                )
+            ),
+            behandlingId = behandling.id,
+            type = InternalEventType.VARSLET_FRIST,
+        )
 
         return behandling.modified
     }
@@ -1338,6 +1404,10 @@ class BehandlingService(
                 ) ,
                 utsendingskanal = BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT
             )
+        }
+
+        if (behandling is BehandlingWithVarsletBehandlingstid && behandling.forlengetBehandlingstidDraft != null) {
+            behandling.forlengetBehandlingstidDraft!!.fullmektigFritekst = partView?.name
         }
 
         publishInternalEvent(
