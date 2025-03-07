@@ -8,6 +8,7 @@ import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.repositories.ForlengetBehandlingstidDraftRepository
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -24,6 +25,7 @@ class ForlengetBehandlingstidDraftService(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
+    private val forlengetBehandlingstidDraftRepository: ForlengetBehandlingstidDraftRepository,
 ) {
 
     fun getOrCreateForlengetBehandlingstidDraft(behandlingId: UUID): ForlengetBehandlingstidDraftView {
@@ -294,8 +296,9 @@ class ForlengetBehandlingstidDraftService(
                 } else throw IllegalArgumentException("Missing values in receiver: $it")
             }
         )
-
+        val idForDeletion = behandling.forlengetBehandlingstidDraft!!.id
         behandling.forlengetBehandlingstidDraft = null
+        forlengetBehandlingstidDraftRepository.deleteById(idForDeletion)
     }
 
     private fun getBehandlingForUpdate(behandlingId: UUID): Behandling {
