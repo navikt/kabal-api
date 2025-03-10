@@ -3,6 +3,7 @@
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
     <turboFilter class="no.nav.klage.oppgave.config.SseBrokenPipeLogFilter" />
+    <turboFilter class="no.nav.klage.oppgave.config.InternalLogFilter" />
 
     <springProfile name="local">
         <appender name="text" class="ch.qos.logback.core.ConsoleAppender">
