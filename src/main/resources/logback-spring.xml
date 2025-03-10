@@ -69,15 +69,7 @@
             <appender-ref ref="secureJson"/>
         </logger>
 
-        <logger name="org.springframework.web.servlet.DispatcherServlet" level="trace" additivity="false">
-            <appender-ref ref="secureJson"/>
-        </logger>
-
         <logger name="reactor.netty.http.client" level="debug" additivity="false">
-            <appender-ref ref="secureJson"/>
-        </logger>
-
-        <logger name="org.springframework.data.elasticsearch.client" level="trace" additivity="false">
             <appender-ref ref="secureJson"/>
         </logger>
 
