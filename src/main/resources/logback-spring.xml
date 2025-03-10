@@ -46,10 +46,8 @@
             <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
                 <fileNamePattern>/secure-logs/secure.log.%d{yyyy-MM-dd}.%i</fileNamePattern>
                 <maxHistory>30</maxHistory>
-                <minIndex>1</minIndex>
-                <maxIndex>4</maxIndex>
-                <maxFileSize>30MB</maxFileSize>
-                <totalSizeCap>115MB</totalSizeCap>
+                <maxFileSize>26MB</maxFileSize>
+                <totalSizeCap>100MB</totalSizeCap>
             </rollingPolicy>
             <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
         </appender>
