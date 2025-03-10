@@ -44,7 +44,7 @@ class ForlengetBehandlingstidDraftService(
 
         val previousBehandlingstidInfo = getvarsletBehandlingstidInfo(
             varsletBehandlingstid = behandling.varsletBehandlingstid,
-            behandling.varsletBehandlingstidHistorikk
+            varsletBehandlingstidHistorikk = behandling.varsletBehandlingstidHistorikk,
         )
 
         behandling.forlengetBehandlingstidDraft!!.previousBehandlingstidInfo = previousBehandlingstidInfo
@@ -318,6 +318,7 @@ class ForlengetBehandlingstidDraftService(
                 } else throw IllegalArgumentException("Missing values in receiver: $it")
             }
         )
+        //TODO: Possible to do in single operation?
         val idForDeletion = behandling.forlengetBehandlingstidDraft!!.id
         behandling.forlengetBehandlingstidDraft = null
         forlengetBehandlingstidDraftRepository.deleteById(idForDeletion)

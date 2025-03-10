@@ -788,12 +788,30 @@ class BehandlingService(
             fromDate = behandling.mottattKlageinstans.toLocalDate()
         )
 
+        return privateSetVarsletFrist(
+            systemUserContext = systemUserContext,
+            varsletFrist = varsletFrist,
+            behandlingstidUnits = behandlingstidUnits,
+            behandlingstidUnitType = behandlingstidUnitType,
+            behandling = behandling,
+            mottakere = mottakere
+        )
+    }
+
+    private fun privateSetVarsletFrist(
+        systemUserContext: Boolean,
+        varsletFrist: LocalDate,
+        behandlingstidUnits: Int?,
+        behandlingstidUnitType: TimeUnitType?,
+        behandling: Behandling,
+        mottakere: List<Mottaker>
+    ): LocalDateTime {
         val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
 
         val varsletBehandlingstid = VarsletBehandlingstid(
             varsletFrist = varsletFrist,
-            varsletBehandlingstidUnits = behandlingstidUnits,
-            varsletBehandlingstidUnitType = behandlingstidUnitType,
+            varsletBehandlingstidUnits = if (behandlingstidUnitType != null) behandlingstidUnits else null,
+            varsletBehandlingstidUnitType = if (behandlingstidUnits != null) behandlingstidUnitType else null,
         )
 
         if (behandling is BehandlingWithVarsletBehandlingstid) {
@@ -844,43 +862,14 @@ class BehandlingService(
                 )
             }!!
 
-        val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
-
-        val varsletBehandlingstid = VarsletBehandlingstid(
+        return privateSetVarsletFrist(
+            systemUserContext = systemUserContext,
             varsletFrist = varsletFrist,
-            varsletBehandlingstidUnits = newVarsletBehandlingstid.varsletBehandlingstidUnits,
-            varsletBehandlingstidUnitType = newVarsletBehandlingstid.varsletBehandlingstidUnitType,
+            behandlingstidUnits = newVarsletBehandlingstid.varsletBehandlingstidUnits,
+            behandlingstidUnitType = newVarsletBehandlingstid.varsletBehandlingstidUnitType,
+            behandling = behandling,
+            mottakere = mottakere
         )
-
-        if (behandling is BehandlingWithVarsletBehandlingstid) {
-            applicationEventPublisher.publishEvent(
-                behandling.setVarsletBehandlingstid(
-                    varsletBehandlingstid = varsletBehandlingstid,
-                    saksbehandlerident = saksbehandlerIdent,
-                    saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
-                    mottakere = mottakere,
-                )
-            )
-        } else {
-            throw IllegalOperation("Behandlingstid kan ikke endres for denne behandlingstypen: ${behandling.javaClass.name}.")
-        }
-
-        publishInternalEvent(
-            data = objectMapper.writeValueAsString(
-                VarsletFristEvent(
-                    actor = Employee(
-                        navIdent = saksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
-                    ),
-                    timestamp = behandling.modified,
-                    varsletFrist = varsletFrist,
-                )
-            ),
-            behandlingId = behandling.id,
-            type = InternalEventType.VARSLET_FRIST,
-        )
-
-        return behandling.modified
     }
 
     fun setExpiredTildeltSaksbehandlerToNullInSystemContext(

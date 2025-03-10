@@ -2,7 +2,6 @@ package no.nav.klage.dokument.api.controller
 
 
 import io.swagger.v3.oas.annotations.tags.Tag
-import no.nav.klage.dokument.api.view.PreviewForlengetBehandlingstidInput
 import no.nav.klage.dokument.api.view.PreviewSvarbrevAnonymousInput
 import no.nav.klage.dokument.api.view.PreviewSvarbrevInput
 import no.nav.klage.dokument.service.PreviewService
@@ -62,27 +61,6 @@ class PreviewController(
             val responseHeaders = HttpHeaders()
             responseHeaders.contentType = MediaType.APPLICATION_PDF
             responseHeaders.add("Content-Disposition", "inline; filename=svarbrev-preview.pdf")
-            return ResponseEntity(
-                it,
-                responseHeaders,
-                HttpStatus.OK
-            )
-        }
-    }
-
-    @ResponseBody
-    @PostMapping("/preview/forlenget-behandlingstid")
-    fun getForlengetBehandlingstidPreview(
-        @RequestBody input: PreviewForlengetBehandlingstidInput,
-    ): ResponseEntity<ByteArray> {
-        logger.debug("Kall mottatt på getForlengetBehandlingstidPreview")
-
-        previewService.getForlengetBehandlingstidPreviewPDF(
-            input = input
-        ).let {
-            val responseHeaders = HttpHeaders()
-            responseHeaders.contentType = MediaType.APPLICATION_PDF
-            responseHeaders.add("Content-Disposition", "inline; filename=forlenget-behandlingstid-preview.pdf")
             return ResponseEntity(
                 it,
                 responseHeaders,

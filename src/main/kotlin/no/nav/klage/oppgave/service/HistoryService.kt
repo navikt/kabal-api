@@ -342,9 +342,6 @@ class HistoryService(
 
         return historySorted.zipWithNext()
             .map { (previous, current) ->
-                val previousEventContainsUnits = previous.varsletBehandlingstid?.varsletBehandlingstidUnits != null
-                val currentEventContainsUnits = current.varsletBehandlingstid?.varsletBehandlingstidUnits != null
-
                 val previousEvent: HistoryEvent<VarsletBehandlingstidEvent> = HistoryEvent(
                     type = HistoryEventType.VARSLET_BEHANDLINGSTID,
                     timestamp = previous.tidspunkt,
@@ -362,7 +359,7 @@ class HistoryService(
                             )
                         },
                         varsletBehandlingstidUnits = previous.varsletBehandlingstid?.varsletBehandlingstidUnits,
-                        varsletBehandlingstidUnitTypeId = if (previousEventContainsUnits) previous.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id else null,
+                        varsletBehandlingstidUnitTypeId = previous.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
                         varsletFrist = previous.varsletBehandlingstid?.varsletFrist,
                     )
                 )
@@ -384,7 +381,7 @@ class HistoryService(
                             )
                         },
                         varsletBehandlingstidUnits = current.varsletBehandlingstid?.varsletBehandlingstidUnits,
-                        varsletBehandlingstidUnitTypeId = if (currentEventContainsUnits) current.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id else null,
+                        varsletBehandlingstidUnitTypeId = current.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
                         varsletFrist = current.varsletBehandlingstid?.varsletFrist,
                     ),
                     previous = previousEvent,
