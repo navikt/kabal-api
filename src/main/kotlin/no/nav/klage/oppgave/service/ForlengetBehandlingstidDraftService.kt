@@ -209,24 +209,7 @@ class ForlengetBehandlingstidDraftService(
             error("Forlenget behandlingstidutkast mangler")
         }
 
-        updateFullmektigFritekst(behandling)
-
         return behandling
-    }
-
-    private fun updateFullmektigFritekst(behandling: Behandling) {
-        behandling as BehandlingWithVarsletBehandlingstid
-        val fullmektigInBehandling = behandling.prosessfullmektig
-        val fullmektigFritekstInDraft = behandling.forlengetBehandlingstidDraft?.fullmektigFritekst
-        if (fullmektigFritekstInDraft == null && fullmektigInBehandling != null) {
-            val name = fullmektigInBehandling.partId?.value?.let {
-                partSearchService.searchPart(
-                    identifikator = it,
-                    skipAccessControl = true
-                ).name
-            } ?: fullmektigInBehandling.navn
-            behandling.forlengetBehandlingstidDraft?.fullmektigFritekst = name
-        }
     }
 
     fun getPdf(behandlingId: UUID): ByteArray {
@@ -264,7 +247,7 @@ class ForlengetBehandlingstidDraftService(
             fullmektigFritekst = forlengetBehandlingstidDraft.fullmektigFritekst,
             behandlingstidUnits = forlengetBehandlingstidDraft.behandlingstid.varsletBehandlingstidUnits,
             behandlingstidUnitType = forlengetBehandlingstidDraft.behandlingstid.varsletBehandlingstidUnitType,
-            behandlingstidDate = forlengetBehandlingstidDraft.behandlingstid.varsletFrist?.toString(),
+            behandlingstidDate = forlengetBehandlingstidDraft.behandlingstid.varsletFrist,
             avsenderEnhetId = Enhet.E4291.navn,
             type = behandling.type,
             mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),

@@ -2313,7 +2313,7 @@ class DokumentUnderArbeidService(
             fullmektigFritekst = forlengetBehandlingstidDraft.fullmektigFritekst,
             behandlingstidUnits = forlengetBehandlingstidDraft.behandlingstid.varsletBehandlingstidUnits,
             behandlingstidUnitType = forlengetBehandlingstidDraft.behandlingstid.varsletBehandlingstidUnitType,
-            behandlingstidDate = forlengetBehandlingstidDraft.behandlingstid.varsletFrist?.toString(),
+            behandlingstidDate = forlengetBehandlingstidDraft.behandlingstid.varsletFrist,
             avsenderEnhetId = Enhet.E4291.navn,
             type = behandling.type,
             mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
