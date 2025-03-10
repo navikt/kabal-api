@@ -2337,8 +2337,6 @@ class DokumentUnderArbeidService(
 
         val document = getDokumentUnderArbeid(documentView.id) as DokumentUnderArbeidAsHoveddokument
 
-        document.avsenderMottakerInfoSet.clear()
-
         forlengetBehandlingstidDraft.receivers.forEach {
             document.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
