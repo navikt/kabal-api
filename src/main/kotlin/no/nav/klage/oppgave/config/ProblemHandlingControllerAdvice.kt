@@ -201,6 +201,13 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
+    fun handleIllegalStateException(
+        ex: IllegalStateException,
+        request: NativeWebRequest
+    ): ProblemDetail =
+        create(HttpStatus.BAD_REQUEST, ex)
+
+    @ExceptionHandler
     fun handleSmartDocumentValidationException(
         ex: SmartDocumentValidationException,
         request: NativeWebRequest

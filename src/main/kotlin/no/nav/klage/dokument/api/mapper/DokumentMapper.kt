@@ -158,24 +158,13 @@ class DokumentMapper(
                 if (mottakerInfoSet.isNotEmpty()) {
 
                     mottakerList = mottakerInfoSet.map {
-                        DokumentView.Mottaker(
-                            part = behandlingMapper.getPartViewWithUtsendingskanal(
-                                partId = it.identifikator?.let { identifikator -> getPartIdFromIdentifikator(identifikator) },
-                                behandling = behandling,
-                                navn = it.navn,
-                                address = it.address,
-                            ),
-                            overriddenAddress = getBehandlingDetaljerViewAddress(it.address),
-                            handling = getHandlingEnum(
-                                markLocalPrint = it.localPrint,
-                                forceCentralPrint = it.forceCentralPrint,
-                                utsendingskanal = dokDistKanalService.getUtsendingskanal(
-                                    mottakerId = it.identifikator,
-                                    brukerId = behandling.sakenGjelder.partId.value,
-                                    tema = behandling.ytelse.toTema(),
-                                    saksbehandlerContext = true,
-                                )
-                            ),
+                        toDokumentViewMottaker(
+                            identifikator = it.identifikator,
+                            navn = it.navn,
+                            address = it.address,
+                            localPrint = it.localPrint,
+                            forceCentralPrint = it.forceCentralPrint,
+                            behandling = behandling,
                         )
                     }
                 }
@@ -223,6 +212,33 @@ class DokumentMapper(
             } else null,
         )
     }
+
+    fun toDokumentViewMottaker(
+        identifikator: String?,
+        navn: String?,
+        address: Adresse?,
+        localPrint: Boolean,
+        forceCentralPrint: Boolean,
+        behandling: Behandling
+    ) = DokumentView.Mottaker(
+        part = behandlingMapper.getPartViewWithUtsendingskanal(
+            partId = identifikator?.let { getPartIdFromIdentifikator(identifikator) },
+            behandling = behandling,
+            navn = navn,
+            address = address,
+        ),
+        overriddenAddress = getBehandlingDetaljerViewAddress(address),
+        handling = getHandlingEnum(
+            markLocalPrint = localPrint,
+            forceCentralPrint = forceCentralPrint,
+            utsendingskanal = dokDistKanalService.getUtsendingskanal(
+                mottakerId = identifikator,
+                brukerId = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema(),
+                saksbehandlerContext = true,
+            )
+        ),
+    )
 
     private fun getBehandlingDetaljerViewAddress(address: Adresse?): BehandlingDetaljerView.Address? {
         return if (address != null) {

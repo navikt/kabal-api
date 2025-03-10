@@ -308,4 +308,5 @@ interface BehandlingWithVarsletBehandlingstid {
     val created: LocalDateTime
     var varsletBehandlingstid: VarsletBehandlingstid?
     val varsletBehandlingstidHistorikk: MutableSet<VarsletBehandlingstidHistorikk>
+    var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?
 }

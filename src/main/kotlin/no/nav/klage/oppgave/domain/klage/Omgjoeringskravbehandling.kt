@@ -1,9 +1,6 @@
 package no.nav.klage.oppgave.domain.klage
 
-import jakarta.persistence.Column
-import jakarta.persistence.DiscriminatorValue
-import jakarta.persistence.Embedded
-import jakarta.persistence.Entity
+import jakarta.persistence.*
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.Type
@@ -12,6 +9,7 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import org.hibernate.envers.Audited
+import org.hibernate.envers.NotAudited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -34,6 +32,10 @@ class Omgjoeringskravbehandling(
     override var varsletBehandlingstid: VarsletBehandlingstid?,
     @Column(name = "source_behandling_id")
     var sourceBehandlingId: UUID?,
+    @OneToOne(cascade = [CascadeType.ALL], optional = true)
+    @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
+    @NotAudited
+    override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),

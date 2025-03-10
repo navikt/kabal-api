@@ -58,6 +58,22 @@ class BehandlingRepositoryTest {
 
         val klage = getKlagebehandling(mottak.id)
 
+        val forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft(behandlingstid = VarsletBehandlingstid())
+        forlengetBehandlingstidDraft.title = "title"
+
+        val receiver = ForlengetBehandlingstidDraftReceiver(
+            identifikator = "abc",
+            localPrint = false,
+            forceCentralPrint = false,
+            address = null,
+            navn = "Test Navn"
+        )
+
+        forlengetBehandlingstidDraft.receivers.add(receiver)
+
+        klage.forlengetBehandlingstidDraft = forlengetBehandlingstidDraft
+
+
         behandlingRepository.save(klage)
 
         testEntityManager.flush()
@@ -180,6 +196,7 @@ class BehandlingRepositoryTest {
         previousSaksbehandlerident = "C78901",
         gosysOppgaveId = null,
         varsletBehandlingstid = null,
+        forlengetBehandlingstidDraft = null,
     )
 
 }

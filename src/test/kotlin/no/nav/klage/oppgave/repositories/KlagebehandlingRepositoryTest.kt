@@ -189,6 +189,7 @@ class KlagebehandlingRepositoryTest {
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
             varsletBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
         )
 
         ankebehandlingRepository.save(ankebehandling)
@@ -254,5 +255,6 @@ class KlagebehandlingRepositoryTest {
         previousSaksbehandlerident = "C78901",
         gosysOppgaveId = null,
         varsletBehandlingstid = null,
+        forlengetBehandlingstidDraft = null,
     )
 }

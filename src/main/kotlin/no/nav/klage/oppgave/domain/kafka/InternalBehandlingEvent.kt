@@ -48,6 +48,7 @@ enum class InternalEventType {
     TILDELING,
     TILBAKEKREVING,
     GOSYSOPPGAVE,
+    VARSLET_FRIST,
 }
 
 data class Employee(
@@ -145,6 +146,12 @@ data class MottattVedtaksinstansEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val mottattVedtaksinstans: LocalDate,
+) : BaseEvent(actor = actor, timestamp = timestamp)
+
+data class VarsletFristEvent(
+    override val actor: Employee,
+    override val timestamp: LocalDateTime,
+    val varsletFrist: LocalDate,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class DocumentsChangedEvent(

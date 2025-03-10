@@ -67,7 +67,7 @@ data class ForlengetBehandlingstidRequest(
     val reason: String?,
     val behandlingstidUnits: Int?,
     val behandlingstidUnitTypeId: String?,
-    val behandlingstidDate: String?,
+    val behandlingstidDate: LocalDate?,
     val avsenderEnhetId: String,
     val type: Type,
     val customText: String?,
