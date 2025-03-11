@@ -774,7 +774,7 @@ class BehandlingService(
         return behandling.modified
     }
 
-    fun setVarsletFrist(
+    fun setOpprinneligVarsletFrist(
         behandlingstidUnitType: TimeUnitType,
         behandlingstidUnits: Int,
         behandling: Behandling,
@@ -784,7 +784,7 @@ class BehandlingService(
         //TODO differentiate between mottatt and now.
         val varsletFrist = findDateBasedOnTimeUnitTypeAndUnits(
             timeUnitType = behandlingstidUnitType,
-            units = behandlingstidUnits.toLong(),
+            units = behandlingstidUnits,
             fromDate = behandling.mottattKlageinstans.toLocalDate()
         )
 
@@ -794,7 +794,8 @@ class BehandlingService(
             behandlingstidUnits = behandlingstidUnits,
             behandlingstidUnitType = behandlingstidUnitType,
             behandling = behandling,
-            mottakere = mottakere
+            mottakere = mottakere,
+            varselType = VarsletBehandlingstid.VarselType.OPPRINNELIG,
         )
     }
 
@@ -804,7 +805,8 @@ class BehandlingService(
         behandlingstidUnits: Int?,
         behandlingstidUnitType: TimeUnitType?,
         behandling: Behandling,
-        mottakere: List<Mottaker>
+        mottakere: List<Mottaker>,
+        varselType: VarsletBehandlingstid.VarselType,
     ): LocalDateTime {
         val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
 
@@ -812,6 +814,7 @@ class BehandlingService(
             varsletFrist = varsletFrist,
             varsletBehandlingstidUnits = if (behandlingstidUnitType != null) behandlingstidUnits else null,
             varsletBehandlingstidUnitType = if (behandlingstidUnits != null) behandlingstidUnitType else null,
+            varselType = varselType,
         )
 
         if (behandling is BehandlingWithVarsletBehandlingstid) {
@@ -846,29 +849,29 @@ class BehandlingService(
     }
 
     fun setForlengetBehandlingstid(
-        newVarsletBehandlingstid: VarsletBehandlingstid,
+        varsletFrist: LocalDate?,
+        varsletBehandlingstidUnits: Int?,
+        varsletBehandlingstidUnitType: TimeUnitType,
         behandling: Behandling,
         systemUserContext: Boolean,
         mottakere: List<Mottaker>,
     ): LocalDateTime {
-        val varsletFrist =
-            if (newVarsletBehandlingstid.varsletFrist != null) {
-                newVarsletBehandlingstid.varsletFrist
-            } else {
-                findDateBasedOnTimeUnitTypeAndUnits(
-                    timeUnitType = newVarsletBehandlingstid.varsletBehandlingstidUnitType!!,
-                    units = newVarsletBehandlingstid.varsletBehandlingstidUnits!!.toLong(),
+        val newVarsletFrist =
+            (varsletFrist
+                ?: findDateBasedOnTimeUnitTypeAndUnits(
+                    timeUnitType = varsletBehandlingstidUnitType,
+                    units = varsletBehandlingstidUnits!!,
                     fromDate = LocalDate.now(),
-                )
-            }!!
+                ))
 
         return privateSetVarsletFrist(
             systemUserContext = systemUserContext,
-            varsletFrist = varsletFrist,
-            behandlingstidUnits = newVarsletBehandlingstid.varsletBehandlingstidUnits,
-            behandlingstidUnitType = newVarsletBehandlingstid.varsletBehandlingstidUnitType,
+            varsletFrist = newVarsletFrist,
+            behandlingstidUnits = varsletBehandlingstidUnits,
+            behandlingstidUnitType = varsletBehandlingstidUnitType,
             behandling = behandling,
-            mottakere = mottakere
+            mottakere = mottakere,
+            varselType = VarsletBehandlingstid.VarselType.FORLENGET,
         )
     }
 

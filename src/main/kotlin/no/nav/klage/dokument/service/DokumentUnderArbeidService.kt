@@ -2190,7 +2190,7 @@ class DokumentUnderArbeidService(
                     systemContext = true
                 )
 
-                behandlingService.setVarsletFrist(
+                behandlingService.setOpprinneligVarsletFrist(
                     behandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
                     behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
                     behandling = behandling,
@@ -2311,9 +2311,9 @@ class DokumentUnderArbeidService(
             },
             ytelse = behandling.ytelse,
             fullmektigFritekst = forlengetBehandlingstidDraft.fullmektigFritekst,
-            behandlingstidUnits = forlengetBehandlingstidDraft.behandlingstid.varsletBehandlingstidUnits,
-            behandlingstidUnitType = forlengetBehandlingstidDraft.behandlingstid.varsletBehandlingstidUnitType,
-            behandlingstidDate = forlengetBehandlingstidDraft.behandlingstid.varsletFrist,
+            behandlingstidUnits = forlengetBehandlingstidDraft.varsletBehandlingstidUnits,
+            behandlingstidUnitType = forlengetBehandlingstidDraft.varsletBehandlingstidUnitType,
+            behandlingstidDate = forlengetBehandlingstidDraft.varsletFrist,
             avsenderEnhetId = Enhet.E4291.navn,
             type = behandling.type,
             mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
