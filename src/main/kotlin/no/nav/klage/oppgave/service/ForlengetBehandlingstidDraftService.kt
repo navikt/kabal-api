@@ -273,8 +273,7 @@ class ForlengetBehandlingstidDraftService(
         }
 
         if (behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletFrist == null &&
-            (behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnitType == null &&
-                    behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits == null)
+            behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits == null
         ) {
             error("Trenger enten dato eller antall uker/måneder")
         }
