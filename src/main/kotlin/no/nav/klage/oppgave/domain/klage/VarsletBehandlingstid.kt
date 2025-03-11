@@ -14,11 +14,13 @@ data class VarsletBehandlingstid(
     @Column(name = "varslet_behandlingstid_unit_type_id")
     @Convert(converter = TimeUnitTypeConverter::class)
     var varsletBehandlingstidUnitType: TimeUnitType? = null,
-    @Column(name = "begrunnelse")
-    var begrunnelse: String? = null,
-    @Column(name = "varsel_type")
+    @Column(name = "varslet_begrunnelse")
+    var begrunnelse: String?,
+    @Column(name = "varslet_varsel_type")
     @Enumerated(EnumType.STRING)
     val varselType: VarselType,
+    @Column(name = "varslet_do_not_send_letter")
+    var doNotSendLetter: Boolean,
 ) {
     enum class VarselType {
         OPPRINNELIG,

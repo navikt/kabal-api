@@ -301,7 +301,9 @@ class ForlengetBehandlingstidDraftService(
                         value = it.navn
                     )
                 } else throw IllegalArgumentException("Missing values in receiver: $it")
-            }
+            },
+            doNotSendLetter = behandling.forlengetBehandlingstidDraft!!.doNotSendLetter,
+            begrunnelse = behandling.forlengetBehandlingstidDraft!!.begrunnelse,
         )
         //TODO: Possible to do in single operation?
         val idForDeletion = behandling.forlengetBehandlingstidDraft!!.id

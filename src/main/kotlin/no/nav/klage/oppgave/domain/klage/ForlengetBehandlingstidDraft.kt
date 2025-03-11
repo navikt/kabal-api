@@ -37,6 +37,8 @@ class ForlengetBehandlingstidDraft(
     var varsletBehandlingstidUnitType: TimeUnitType = TimeUnitType.WEEKS,
     @Column(name = "begrunnelse")
     var begrunnelse: String? = null,
+    @Column(name = "do_not_send_letter")
+    var doNotSendLetter: Boolean = false,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
