@@ -33,6 +33,7 @@ data class ForlengetBehandlingstidDraftView(
     val reasonNoLetter: String?,
     val doNotSendLetter: Boolean,
     val receivers: List<DokumentView.Mottaker>,
+    val timesPreviouslyExtended: Int,
 )
 
 data class ForlengetBehandlingstidVarsletBehandlingstidView(

@@ -808,7 +808,8 @@ class BehandlingMapper(
             datoSendtTilTR = if (behandling is AnkeITrygderettenbehandling) behandling.sendtTilTrygderetten.toLocalDate() else null,
             varsletFrist = if (behandling is BehandlingWithVarsletBehandlingstid) {
                 behandling.varsletBehandlingstid?.varsletFrist
-            } else null
+            } else null,
+            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
         )
     }
 

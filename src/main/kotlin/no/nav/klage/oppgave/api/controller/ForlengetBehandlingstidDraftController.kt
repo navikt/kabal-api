@@ -34,7 +34,7 @@ class ForlengetBehandlingstidDraftController(
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return forlengetBehandlingstidDraftService.getOrCreateForlengetBehandlingstidDraftWithDefaultValues(behandlingId = behandlingId)
+        return forlengetBehandlingstidDraftService.getOrCreateForlengetBehandlingstidDraft(behandlingId = behandlingId)
     }
 
     @ResponseBody

@@ -29,18 +29,18 @@ class ForlengetBehandlingstidDraftService(
     private val forlengetBehandlingstidDraftRepository: ForlengetBehandlingstidDraftRepository,
 ) {
 
-    fun getOrCreateForlengetBehandlingstidDraftWithDefaultValues(behandlingId: UUID): ForlengetBehandlingstidDraftView {
+    fun getOrCreateForlengetBehandlingstidDraft(behandlingId: UUID): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
         if (behandling is BehandlingWithVarsletBehandlingstid) {
             if (behandling.forlengetBehandlingstidDraft == null) {
                 behandling.forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft()
+                setDefaultForlengetbehandlingstidDraftValues(behandling)
             }
         } else {
             error("Behandling har ikke varslet behandlingstid")
         }
 
-        setDefaultForlengetbehandlingstidDraftValues(behandling)
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling)
     }
 
@@ -464,7 +464,8 @@ class ForlengetBehandlingstidDraftService(
                     forceCentralPrint = it.forceCentralPrint,
                     behandling = behandling
                 )
-            }
+            },
+            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
         )
     }
 
