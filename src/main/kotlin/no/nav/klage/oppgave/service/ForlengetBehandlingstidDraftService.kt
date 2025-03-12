@@ -8,6 +8,9 @@ import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.exceptions.InvalidProperty
+import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.oppgave.exceptions.ValidationSection
 import no.nav.klage.oppgave.repositories.ForlengetBehandlingstidDraftRepository
 import no.nav.klage.oppgave.util.findDateBasedOnTimeUnitTypeAndUnits
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
@@ -272,22 +275,68 @@ class ForlengetBehandlingstidDraftService(
     fun getPdf(behandlingId: UUID): ByteArray {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
+        val validationErrors = mutableListOf<InvalidProperty>()
+
         if (behandling !is BehandlingWithVarsletBehandlingstid) {
-            error("Behandling har ikke varslet behandlingstid")
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = "behandling",
+                                reason = "Behandling har ikke varslet behandlingstid"
+                            )
+                        )
+                    )
+                )
+            )
         }
 
         if (behandling.forlengetBehandlingstidDraft == null) {
-            error("Forlenget behandlingstidutkast mangler")
-        }
-
-        if (behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
-            error("Kan ikke hente pdf når brev ikke skal sendes ut")
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = "forlengetBehandlingstidDraft",
+                                reason = "Forlenget behandlingstidutkast mangler"
+                            )
+                        )
+                    )
+                )
+            )
         }
 
         if (behandling.forlengetBehandlingstidDraft!!.varsletFrist == null &&
             behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits == null
         ) {
-            error("Trenger enten dato eller antall uker/måneder")
+            validationErrors += InvalidProperty(
+                field = "behandlingstid",
+                reason = "Trenger enten dato eller antall uker/måneder"
+            )
+        }
+
+        if (behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            validationErrors += InvalidProperty(
+                field = "doNotSendLetter",
+                reason = "Kan ikke hente pdf når brev ikke skal sendes ut"
+            )
+        }
+
+        if (validationErrors.isNotEmpty()) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "forlengetBehandlingstidDraft",
+                        properties = validationErrors,
+                    )
+                )
+            )
         }
 
         val sakenGjelderName = partSearchService.searchPart(
@@ -327,25 +376,73 @@ class ForlengetBehandlingstidDraftService(
     fun completeDraft(behandlingId: UUID) {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
+        val validationErrors = mutableListOf<InvalidProperty>()
+
         if (behandling !is BehandlingWithVarsletBehandlingstid) {
-            error("Behandling har ikke varslet behandlingstid")
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = "behandling",
+                                reason = "Behandling har ikke varslet behandlingstid"
+                            )
+                        )
+                    )
+                )
+            )
         }
 
         if (behandling.forlengetBehandlingstidDraft == null) {
-            error("Forlenget behandlingstidutkast mangler")
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = "forlengetBehandlingstidDraft",
+                                reason = "Forlenget behandlingstidutkast mangler"
+                            )
+                        )
+                    )
+                )
+            )
         }
 
         if (behandling.forlengetBehandlingstidDraft!!.varsletFrist == null &&
             behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits == null
         ) {
-            error("Trenger enten dato eller antall uker/måneder")
+            validationErrors += InvalidProperty(
+                field = "behandlingstid",
+                reason = "Trenger enten dato eller antall uker/måneder"
+            )
         }
 
         if (!behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
             if (behandling.forlengetBehandlingstidDraft!!.receivers.isEmpty()) {
-                error("Mangler mottakere")
+                validationErrors += InvalidProperty(
+                    field = "mottakere",
+                    reason = "Mangler mottakere"
+                )
             }
+        }
 
+        if (validationErrors.isNotEmpty()) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "forlengetBehandlingstidDraft",
+                        properties = validationErrors,
+                    )
+                )
+            )
+        }
+
+        if (!behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
             behandling.forlengetBehandlingstidDraft!!.reasonNoLetter = null
 
             dokumentUnderArbeidService.createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid(
