@@ -284,6 +284,12 @@ class ForlengetBehandlingstidDraftService(
             error("Kan ikke hente pdf når brev ikke skal sendes ut")
         }
 
+        if (behandling.forlengetBehandlingstidDraft!!.varsletFrist == null &&
+            behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits == null
+        ) {
+            error("Trenger enten dato eller antall uker/måneder")
+        }
+
         val sakenGjelderName = partSearchService.searchPart(
             identifikator = behandling.sakenGjelder.partId.value,
             skipAccessControl = true
