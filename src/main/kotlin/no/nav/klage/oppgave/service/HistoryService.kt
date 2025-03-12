@@ -440,7 +440,7 @@ class HistoryService(
                 )
 
                 HistoryEventWithPrevious(
-                    type = HistoryEventType.VARSLET_BEHANDLINGSTID,
+                    type = HistoryEventType.FORLENGET_BEHANDLINGSTID,
                     timestamp = current.tidspunkt,
                     actor = getSaksbehandlerView(current.utfoerendeIdent, current.utfoerendeNavn),
                     event = ForlengetBehandlingstidEvent(
