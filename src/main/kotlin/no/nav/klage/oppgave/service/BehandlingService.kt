@@ -2376,7 +2376,11 @@ class BehandlingService(
             varsletBehandlingstid = historyService.createVarsletBehandlingstidHistory(
                 varsletBehandlingstidHistorikk = behandling.varsletBehandlingstidHistorikk,
                 behandlingCreated = behandling.created,
-            )
+            ),
+            forlengetBehandlingstid = historyService.createForlengetBehandlingstidHistory(
+                varsletBehandlingstidHistorikk = behandling.varsletBehandlingstidHistorikk,
+                behandlingCreated = behandling.created,
+            ),
         )
     }
 
