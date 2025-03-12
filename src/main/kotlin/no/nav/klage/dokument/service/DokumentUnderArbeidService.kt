@@ -214,8 +214,8 @@ class DokumentUnderArbeidService(
             contentLength
         )
 
-        //257 MB
-        if (contentLength > 269484032) {
+        //500 MiB
+        if (contentLength > 524288000) {
             throw AttachmentTooLargeException()
         }
 
