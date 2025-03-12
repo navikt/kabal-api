@@ -35,8 +35,8 @@ class ForlengetBehandlingstidDraft(
     @Column(name = "behandlingstid_unit_type_id")
     @Convert(converter = TimeUnitTypeConverter::class)
     var varsletBehandlingstidUnitType: TimeUnitType = TimeUnitType.WEEKS,
-    @Column(name = "begrunnelse")
-    var begrunnelse: String? = null,
+    @Column(name = "reason_no_letter")
+    var reasonNoLetter: String? = null,
     @Column(name = "do_not_send_letter")
     var doNotSendLetter: Boolean = false,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)

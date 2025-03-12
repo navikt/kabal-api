@@ -797,7 +797,7 @@ class BehandlingService(
             mottakere = mottakere,
             varselType = VarsletBehandlingstid.VarselType.OPPRINNELIG,
             doNotSendLetter = false,
-            begrunnelse = null,
+            reasonNoLetter = null,
         )
     }
 
@@ -810,7 +810,7 @@ class BehandlingService(
         mottakere: List<Mottaker>,
         varselType: VarsletBehandlingstid.VarselType,
         doNotSendLetter: Boolean,
-        begrunnelse: String?,
+        reasonNoLetter: String?,
     ): LocalDateTime {
         val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
 
@@ -820,7 +820,7 @@ class BehandlingService(
             varsletBehandlingstidUnitType = if (behandlingstidUnits != null) behandlingstidUnitType else null,
             varselType = varselType,
             doNotSendLetter = doNotSendLetter,
-            begrunnelse = begrunnelse,
+            reasonNoLetter = reasonNoLetter,
         )
 
         if (behandling is BehandlingWithVarsletBehandlingstid) {
@@ -862,7 +862,7 @@ class BehandlingService(
         systemUserContext: Boolean,
         mottakere: List<Mottaker>,
         doNotSendLetter: Boolean,
-        begrunnelse: String?,
+        reasonNoLetter: String?,
     ): LocalDateTime {
         val newVarsletFrist =
             (varsletFrist
@@ -881,7 +881,7 @@ class BehandlingService(
             mottakere = mottakere,
             varselType = VarsletBehandlingstid.VarselType.FORLENGET,
             doNotSendLetter = doNotSendLetter,
-            begrunnelse = begrunnelse,
+            reasonNoLetter = reasonNoLetter,
         )
     }
 

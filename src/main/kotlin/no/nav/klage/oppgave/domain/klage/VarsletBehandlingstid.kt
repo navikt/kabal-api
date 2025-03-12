@@ -14,8 +14,8 @@ data class VarsletBehandlingstid(
     @Column(name = "varslet_behandlingstid_unit_type_id")
     @Convert(converter = TimeUnitTypeConverter::class)
     var varsletBehandlingstidUnitType: TimeUnitType? = null,
-    @Column(name = "varslet_begrunnelse")
-    var begrunnelse: String?,
+    @Column(name = "varslet_reason_no_letter")
+    var reasonNoLetter: String?,
     @Column(name = "varslet_varsel_type")
     @Enumerated(EnumType.STRING)
     val varselType: VarselType,

@@ -34,7 +34,7 @@ class ForlengetBehandlingstidDraftController(
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
-        return forlengetBehandlingstidDraftService.getOrCreateForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        return forlengetBehandlingstidDraftService.getOrCreateForlengetBehandlingstidDraftWithDefaultValues(behandlingId = behandlingId)
     }
 
     @ResponseBody
@@ -163,6 +163,32 @@ class ForlengetBehandlingstidDraftController(
             logger = logger,
         )
         return forlengetBehandlingstidDraftService.setPreviousBehandlingstidInfo(behandlingId = behandlingId, input = input)
+    }
+
+    @PutMapping("/reason-no-letter")
+    fun setReasonNoLetter(
+        @PathVariable behandlingId: UUID,
+        @RequestBody input: ForlengetBehandlingstidReasonNoLetterInput
+    ): ForlengetBehandlingstidDraftView {
+        logMethodDetails(
+            methodName = ::setReasonNoLetter.name,
+            innloggetIdent = tokenUtil.getIdent(),
+            logger = logger,
+        )
+        return forlengetBehandlingstidDraftService.setReasonNoLetter(behandlingId = behandlingId, input = input)
+    }
+
+    @PutMapping("/do-not-send-letter")
+    fun setDoNotSendLetter(
+        @PathVariable behandlingId: UUID,
+        @RequestBody input: ForlengetBehandlingstidDoNotSendLetterInput
+    ): ForlengetBehandlingstidDraftView {
+        logMethodDetails(
+            methodName = ::setDoNotSendLetter.name,
+            innloggetIdent = tokenUtil.getIdent(),
+            logger = logger,
+        )
+        return forlengetBehandlingstidDraftService.setDoNotSendLetter(behandlingId = behandlingId, input = input)
     }
 
     @PutMapping("/receivers")
