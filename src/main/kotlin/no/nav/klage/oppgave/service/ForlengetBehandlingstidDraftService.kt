@@ -121,7 +121,6 @@ class ForlengetBehandlingstidDraftService(
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
         behandling.forlengetBehandlingstidDraft!!.varsletFrist = input.behandlingstidDate
         behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits = null
-        behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnitType = TimeUnitType.WEEKS
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
 
