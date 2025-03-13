@@ -421,7 +421,14 @@ class ForlengetBehandlingstidDraftService(
             )
         }
 
-        if (!behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+        if (behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            if (behandling.forlengetBehandlingstidDraft!!.reasonNoLetter.isNullOrBlank()) {
+                validationErrors += InvalidProperty(
+                    field = "reasonNoLetter",
+                    reason = "Mangler mottakere"
+                )
+            }
+        } else {
             if (behandling.forlengetBehandlingstidDraft!!.receivers.isEmpty()) {
                 validationErrors += InvalidProperty(
                     field = "mottakere",
