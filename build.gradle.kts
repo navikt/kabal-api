@@ -1,12 +1,12 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val mockkVersion = "1.13.16"
-val tokenValidationVersion = "5.0.17"
+val mockkVersion = "1.13.17"
+val tokenValidationVersion = "5.0.19"
 val logstashVersion = "8.0"
 val springRetryVersion = "2.0.11"
 val springMockkVersion = "4.0.2"
 val springDocVersion = "2.8.5"
-val testContainersVersion = "1.20.5"
+val testContainersVersion = "1.20.6"
 val shedlockVersion = "6.3.0"
 val archunitVersion = "1.4.0"
 val kotlinXmlBuilderVersion = "1.9.1"
@@ -17,7 +17,7 @@ val tikaVersion = "3.1.0"
 val verapdfVersion = "1.26.5"
 val klageKodeverkVersion = "1.9.22"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
-val otelVersion = "1.47.0"
+val otelVersion = "1.48.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 
 plugins {
@@ -72,7 +72,7 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
-    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.6.9.Final")
+    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.6.10.Final")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
 
