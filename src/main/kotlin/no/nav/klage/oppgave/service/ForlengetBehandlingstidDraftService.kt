@@ -359,21 +359,21 @@ class ForlengetBehandlingstidDraftService(
                 field = "behandlingstid",
                 reason = "Trenger enten dato eller antall uker/måneder"
             )
+        } else {
+            val currentFrist =
+                behandling.forlengetBehandlingstidDraft!!.varsletFrist ?: findDateBasedOnTimeUnitTypeAndUnits(
+                    timeUnitType = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnitType,
+                    units = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits!!,
+                    fromDate = LocalDate.now(),
+                )
+
+            validationErrors.addAll(
+                validateNewFrist(
+                    newFrist = currentFrist,
+                    oldFrist = behandling.varsletBehandlingstid?.varsletFrist,
+                )
+            )
         }
-
-        val currentFrist =
-            behandling.forlengetBehandlingstidDraft!!.varsletFrist ?: findDateBasedOnTimeUnitTypeAndUnits(
-                timeUnitType = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnitType,
-                units = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits!!,
-                fromDate = LocalDate.now(),
-            )
-
-        validationErrors.addAll(
-            validateNewFrist(
-                newFrist = currentFrist,
-                oldFrist = behandling.varsletBehandlingstid?.varsletFrist,
-            )
-        )
 
         return validationErrors
     }
