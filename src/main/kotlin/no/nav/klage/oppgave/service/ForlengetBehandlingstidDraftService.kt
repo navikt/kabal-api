@@ -582,6 +582,8 @@ class ForlengetBehandlingstidDraftService(
     private fun validateNewFrist(newFrist: LocalDate?, oldFrist: LocalDate?) {
         if (newFrist != null && oldFrist != null && newFrist.isBefore(oldFrist)) {
             error("Ny frist er tidligere enn tidligere angitt frist")
+        } else if (newFrist != null && newFrist.isAfter(LocalDate.now().plusMonths(4))) {
+            error("Fristen kan ikke settes mer enn fire måneder frem i tid")
         }
     }
 }
