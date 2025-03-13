@@ -425,7 +425,7 @@ class ForlengetBehandlingstidDraftService(
             if (behandling.forlengetBehandlingstidDraft!!.reasonNoLetter.isNullOrBlank()) {
                 validationErrors += InvalidProperty(
                     field = "reasonNoLetter",
-                    reason = "Mangler mottakere"
+                    reason = "Trenger oppgitt begrunnelse for å ikke sende brev"
                 )
             }
         } else {
