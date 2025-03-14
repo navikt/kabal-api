@@ -26,6 +26,7 @@ data class OppgaveView(
     val previousSaksbehandler: SaksbehandlerView?,
     val datoSendtTilTR: LocalDate?,
     val varsletFrist: LocalDate?,
+    val timesPreviouslyExtended: Int,
 ) {
 
     data class SattPaaVent(

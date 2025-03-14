@@ -1,8 +1,6 @@
 package no.nav.klage.oppgave.domain.klage
 
-import jakarta.persistence.Column
-import jakarta.persistence.Convert
-import jakarta.persistence.Embeddable
+import jakarta.persistence.*
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.TimeUnitTypeConverter
 import java.time.LocalDate
@@ -16,4 +14,16 @@ data class VarsletBehandlingstid(
     @Column(name = "varslet_behandlingstid_unit_type_id")
     @Convert(converter = TimeUnitTypeConverter::class)
     var varsletBehandlingstidUnitType: TimeUnitType? = null,
-)
+    @Column(name = "varslet_reason_no_letter")
+    var reasonNoLetter: String?,
+    @Column(name = "varslet_varsel_type")
+    @Enumerated(EnumType.STRING)
+    val varselType: VarselType,
+    @Column(name = "varslet_do_not_send_letter")
+    var doNotSendLetter: Boolean,
+) {
+    enum class VarselType {
+        OPPRINNELIG,
+        FORLENGET,
+    }
+}

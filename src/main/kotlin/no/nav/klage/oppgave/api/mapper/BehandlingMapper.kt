@@ -120,6 +120,7 @@ class BehandlingMapper(
             varsletFrist = klagebehandling.varsletBehandlingstid?.varsletFrist,
             gosysOppgaveId = klagebehandling.gosysOppgaveId,
             tilbakekreving = klagebehandling.tilbakekreving,
+            timesPreviouslyExtended = klagebehandling.getTimesPreviouslyExtended(),
         )
     }
 
@@ -190,6 +191,7 @@ class BehandlingMapper(
             gosysOppgaveId = omgjoeringskravbehandling.gosysOppgaveId,
             kommentarFraVedtaksinstans = null,
             tilbakekreving = omgjoeringskravbehandling.tilbakekreving,
+            timesPreviouslyExtended = omgjoeringskravbehandling.getTimesPreviouslyExtended(),
         )
     }
 
@@ -305,6 +307,7 @@ class BehandlingMapper(
             varsletFrist = ankebehandling.varsletBehandlingstid?.varsletFrist,
             gosysOppgaveId = ankebehandling.gosysOppgaveId,
             tilbakekreving = ankebehandling.tilbakekreving,
+            timesPreviouslyExtended = ankebehandling.getTimesPreviouslyExtended(),
         )
     }
 
@@ -371,6 +374,7 @@ class BehandlingMapper(
             varsletFrist = null,
             gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
             tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
+            timesPreviouslyExtended = ankeITrygderettenbehandling.getTimesPreviouslyExtended(),
         )
     }
 
@@ -444,6 +448,7 @@ class BehandlingMapper(
             kjennelseMottatt = behandlingEtterTrygderettenOpphevet.kjennelseMottatt,
             gosysOppgaveId = behandlingEtterTrygderettenOpphevet.gosysOppgaveId,
             tilbakekreving = behandlingEtterTrygderettenOpphevet.tilbakekreving,
+            timesPreviouslyExtended = behandlingEtterTrygderettenOpphevet.getTimesPreviouslyExtended(),
         )
     }
 
@@ -808,7 +813,8 @@ class BehandlingMapper(
             datoSendtTilTR = if (behandling is AnkeITrygderettenbehandling) behandling.sendtTilTrygderetten.toLocalDate() else null,
             varsletFrist = if (behandling is BehandlingWithVarsletBehandlingstid) {
                 behandling.varsletBehandlingstid?.varsletFrist
-            } else null
+            } else null,
+            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
         )
     }
 
