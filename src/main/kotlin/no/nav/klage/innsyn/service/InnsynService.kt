@@ -215,14 +215,14 @@ class InnsynService(
         varsletBehandlingstidUnits: Int?,
         varsletBehandlingstidUnitType: TimeUnitType?
     ): SakView.VarsletBehandlingstid? {
-        if (varsletFrist == null && varsletBehandlingstidUnits == null && varsletBehandlingstidUnitType == null) {
+        if (varsletFrist == null) {
             return null
         }
 
         return SakView.VarsletBehandlingstid(
-            varsletBehandlingstidUnits = varsletBehandlingstidUnits!!,
-            varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitType!!.id,
-            varsletFrist = varsletFrist!!
+            varsletBehandlingstidUnits = varsletBehandlingstidUnits,
+            varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitType?.id,
+            varsletFrist = varsletFrist
         )
     }
 
