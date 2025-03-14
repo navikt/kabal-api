@@ -50,8 +50,8 @@ data class SakView(
     }
 
     data class VarsletBehandlingstid(
-        val varsletBehandlingstidUnits: Int,
-        val varsletBehandlingstidUnitTypeId: String,
+        val varsletBehandlingstidUnits: Int?,
+        val varsletBehandlingstidUnitTypeId: String?,
         val varsletFrist: LocalDate,
     )
 }
