@@ -13,7 +13,9 @@ import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsExcept
 import no.nav.klage.oppgave.exceptions.ValidationSection
 import no.nav.klage.oppgave.repositories.ForlengetBehandlingstidDraftRepository
 import no.nav.klage.oppgave.util.findDateBasedOnTimeUnitTypeAndUnits
+import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
+import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -31,6 +33,11 @@ class ForlengetBehandlingstidDraftService(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val forlengetBehandlingstidDraftRepository: ForlengetBehandlingstidDraftRepository,
 ) {
+    companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+        private val secureLogger = getSecureLogger()
+    }
 
     fun getOrCreateForlengetBehandlingstidDraft(behandlingId: UUID): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
@@ -476,22 +483,33 @@ class ForlengetBehandlingstidDraftService(
     ): String? {
         return if (varsletBehandlingstid != null) {
             val lastVarsletBehandlingstid = varsletBehandlingstidHistorikk.maxByOrNull { it.tidspunkt }
-
             if (lastVarsletBehandlingstid?.varsletBehandlingstid != null) {
-                if (
-                    lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null &&
-                    lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType != null
-                ) {
-                    val previousDate = getFormattedDate(lastVarsletBehandlingstid.tidspunkt.toLocalDate())
-                    val varsletBehandlingstidText =
-                        getvarsletBehandlingstidText(lastVarsletBehandlingstid.varsletBehandlingstid!!)
-                    "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingstid var $varsletBehandlingstidText"
-                } else if (lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletFrist != null) {
-                    val previousDate = getFormattedDate(lastVarsletBehandlingstid.tidspunkt.toLocalDate())
-                    val varsletFristDate =
-                        getFormattedDate(lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletFrist!!)
-                    "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingsfrist var $varsletFristDate"
-                } else null
+                val lastBehandlingstidHadLetter = !lastVarsletBehandlingstid.varsletBehandlingstid!!.doNotSendLetter
+
+                val lastBehandlingstidHadUnitsAndType = (lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null &&
+                        lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType != null)
+
+                val lastBehandlingstidHadFrist = lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletFrist != null
+
+                val previousDate = getFormattedDate(lastVarsletBehandlingstid.tidspunkt.toLocalDate())
+
+                val lastVarsletBehandlingstidText = if (lastBehandlingstidHadUnitsAndType) {
+                    getvarsletBehandlingstidText(lastVarsletBehandlingstid.varsletBehandlingstid!!)
+                } else if (lastBehandlingstidHadFrist) {
+                    getFormattedDate(lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletFrist!!)
+                } else {
+                    //Should not happen
+                    logger.error(
+                        "Varslet behandlingstid har verken units og type eller frist. Skal ikke skje. VarsletBehandlingstid: $lastVarsletBehandlingstid"
+                    )
+                    return null
+                }
+
+                if (lastBehandlingstidHadLetter) {
+                    "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingstid var $lastVarsletBehandlingstidText"
+                } else {
+                    "Den $previousDate ble forventet saksbehandlingstid endret til $lastVarsletBehandlingstidText"
+                }
             } else null
         } else null
     }
