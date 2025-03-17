@@ -295,9 +295,18 @@ class GosysOppgaveService(
     fun getGosysOppgaveList(fnr: String, tema: Tema?): List<GosysOppgaveView> {
         val aktoerId = pdlFacade.getAktorIdFromIdent(ident = fnr)
 
+        val temaList = if (tema != null) {
+            if (tema == Tema.MED) {
+                //Legger til TRY når vi søker på MED.
+                listOf(tema, Tema.TRY)
+            } else {
+                listOf(tema)
+            }
+        } else null
+
         val gosysOppgaveList = gosysOppgaveClient.fetchGosysOppgaveForAktoerIdAndTema(
             aktoerId = aktoerId,
-            tema = tema,
+            temaList = temaList,
         )
 
         return gosysOppgaveList.map { it.toGosysOppgaveView(systemContext = false) }
