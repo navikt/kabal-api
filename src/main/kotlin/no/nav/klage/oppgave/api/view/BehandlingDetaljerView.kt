@@ -49,6 +49,7 @@ data class BehandlingDetaljerView(
     val varsletFrist: LocalDate?,
     val gosysOppgaveId: Long?,
     val tilbakekreving: Boolean,
+    val timesPreviouslyExtended: Int,
 ) {
     data class CombinedMedunderskriverAndROLView(
         val employee: SaksbehandlerView?,

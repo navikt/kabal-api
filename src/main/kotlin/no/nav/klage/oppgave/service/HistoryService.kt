@@ -328,7 +328,10 @@ class HistoryService(
         varsletBehandlingstidHistorikk: Set<VarsletBehandlingstidHistorikk>,
         behandlingCreated: LocalDateTime
     ): List<WithPrevious<VarsletBehandlingstidEvent>> {
-        val historySorted = if (varsletBehandlingstidHistorikk.size == 1) {
+        val varsletBehandlingstidFilterered =
+            varsletBehandlingstidHistorikk.filter { it.varsletBehandlingstid?.varselType == VarsletBehandlingstid.VarselType.OPPRINNELIG }
+                .toSet()
+        val historySorted = if (varsletBehandlingstidFilterered.size == 1) {
             listOf(
                 VarsletBehandlingstidHistorikk(
                     tidspunkt = behandlingCreated,
@@ -337,8 +340,8 @@ class HistoryService(
                     mottakerList = listOf(),
                     varsletBehandlingstid = null,
                 )
-            ) + varsletBehandlingstidHistorikk.sortedBy { it.tidspunkt }
-        } else varsletBehandlingstidHistorikk.sortedBy { it.tidspunkt }
+            ) + varsletBehandlingstidFilterered.sortedBy { it.tidspunkt }
+        } else varsletBehandlingstidFilterered.sortedBy { it.tidspunkt }
 
         return historySorted.zipWithNext()
             .map { (previous, current) ->
@@ -383,6 +386,80 @@ class HistoryService(
                         varsletBehandlingstidUnits = current.varsletBehandlingstid?.varsletBehandlingstidUnits,
                         varsletBehandlingstidUnitTypeId = current.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
                         varsletFrist = current.varsletBehandlingstid?.varsletFrist,
+                    ),
+                    previous = previousEvent,
+                )
+            }
+    }
+
+    fun createForlengetBehandlingstidHistory(
+        varsletBehandlingstidHistorikk: Set<VarsletBehandlingstidHistorikk>,
+        behandlingCreated: LocalDateTime
+    ): List<WithPrevious<ForlengetBehandlingstidEvent>> {
+
+        val forlengetBehandlingstidHistorikk =
+            varsletBehandlingstidHistorikk.filter { it.varsletBehandlingstid?.varselType == VarsletBehandlingstid.VarselType.FORLENGET }
+                .toSet()
+
+        val historySorted = if (forlengetBehandlingstidHistorikk.size == 1) {
+            listOf(
+                VarsletBehandlingstidHistorikk(
+                    tidspunkt = behandlingCreated,
+                    utfoerendeIdent = null,
+                    utfoerendeNavn = null,
+                    mottakerList = listOf(),
+                    varsletBehandlingstid = null,
+                )
+            ) + forlengetBehandlingstidHistorikk.sortedBy { it.tidspunkt }
+        } else forlengetBehandlingstidHistorikk.sortedBy { it.tidspunkt }
+
+        return historySorted.zipWithNext()
+            .map { (previous, current) ->
+                val previousEvent: HistoryEvent<ForlengetBehandlingstidEvent> = HistoryEvent(
+                    type = HistoryEventType.FORLENGET_BEHANDLINGSTID,
+                    timestamp = previous.tidspunkt,
+                    actor = getSaksbehandlerView(previous.utfoerendeIdent, previous.utfoerendeNavn),
+                    event = ForlengetBehandlingstidEvent(
+                        mottakere = previous.mottakerList.map {
+                            Part(
+                                id = it.partId?.value,
+                                name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
+                                type = if (it.partId != null) {
+                                    if (it.partId.type == PartIdType.PERSON) {
+                                        BehandlingDetaljerView.IdType.FNR
+                                    } else BehandlingDetaljerView.IdType.ORGNR
+                                } else null
+                            )
+                        },
+                        varsletBehandlingstidUnits = previous.varsletBehandlingstid?.varsletBehandlingstidUnits,
+                        varsletBehandlingstidUnitTypeId = previous.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
+                        varsletFrist = previous.varsletBehandlingstid?.varsletFrist,
+                        doNotSendLetter = previous.varsletBehandlingstid?.doNotSendLetter ?: false,
+                        reasonNoLetter = previous.varsletBehandlingstid?.reasonNoLetter,
+                    )
+                )
+
+                HistoryEventWithPrevious(
+                    type = HistoryEventType.FORLENGET_BEHANDLINGSTID,
+                    timestamp = current.tidspunkt,
+                    actor = getSaksbehandlerView(current.utfoerendeIdent, current.utfoerendeNavn),
+                    event = ForlengetBehandlingstidEvent(
+                        mottakere = current.mottakerList.map {
+                            Part(
+                                id = it.partId?.value,
+                                name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
+                                type = if (it.partId != null) {
+                                    if (it.partId.type == PartIdType.PERSON) {
+                                        BehandlingDetaljerView.IdType.FNR
+                                    } else BehandlingDetaljerView.IdType.ORGNR
+                                } else null
+                            )
+                        },
+                        varsletBehandlingstidUnits = current.varsletBehandlingstid?.varsletBehandlingstidUnits,
+                        varsletBehandlingstidUnitTypeId = current.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
+                        varsletFrist = current.varsletBehandlingstid?.varsletFrist,
+                        doNotSendLetter = current.varsletBehandlingstid?.doNotSendLetter ?: false,
+                        reasonNoLetter = current.varsletBehandlingstid?.reasonNoLetter,
                     ),
                     previous = previousEvent,
                 )

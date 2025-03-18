@@ -17,6 +17,15 @@ data class VarsletBehandlingstidEvent(
     val varsletFrist: LocalDate?,
 )
 
+data class ForlengetBehandlingstidEvent(
+    val mottakere: List<Part>?,
+    val varsletBehandlingstidUnits: Int?,
+    val varsletBehandlingstidUnitTypeId: String?,
+    val varsletFrist: LocalDate?,
+    val doNotSendLetter: Boolean,
+    val reasonNoLetter: String?,
+)
+
 data class MedunderskriverEvent(
     val medunderskriver: SaksbehandlerView?,
     //nullable b/c possible missing history initially
@@ -92,6 +101,7 @@ data class HistoryResponse(
     val ferdigstilt: List<WithPrevious<FerdigstiltEvent>>,
     val feilregistrert: List<WithPrevious<FeilregistrertEvent>>,
     val varsletBehandlingstid: List<WithPrevious<VarsletBehandlingstidEvent>>,
+    val forlengetBehandlingstid: List<WithPrevious<ForlengetBehandlingstidEvent>>,
 )
 
 enum class HistoryEventType {
@@ -103,5 +113,6 @@ enum class HistoryEventType {
     SATT_PAA_VENT,
     FERDIGSTILT,
     FEILREGISTRERT,
-    VARSLET_BEHANDLINGSTID
+    VARSLET_BEHANDLINGSTID,
+    FORLENGET_BEHANDLINGSTID,
 }

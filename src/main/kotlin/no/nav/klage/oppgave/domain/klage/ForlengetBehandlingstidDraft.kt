@@ -2,10 +2,12 @@ package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
 import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.TimeUnitTypeConverter
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.hibernate.envers.NotAudited
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -26,20 +28,17 @@ class ForlengetBehandlingstidDraft(
     var reason: String? = null,
     @Column(name = "previous_behandlingstid_info")
     var previousBehandlingstidInfo: String? = null,
-    @Embedded
-    @AttributeOverrides(
-        value = [
-            AttributeOverride(name = "varsletFrist", column = Column(name = "behandlingstid_date")),
-            AttributeOverride(name = "varsletBehandlingstidUnits", column = Column(name = "behandlingstid_units")),
-            AttributeOverride(
-                name = "varsletBehandlingstidUnitType",
-                column = Column(name = "behandlingstid_unit_type_id")
-            ),
-        ]
-    )
-    val behandlingstid: VarsletBehandlingstid = VarsletBehandlingstid(
-        varsletBehandlingstidUnitType = TimeUnitType.WEEKS,
-    ),
+    @Column(name = "behandlingstid_date")
+    var varsletFrist: LocalDate? = null,
+    @Column(name = "behandlingstid_units")
+    var varsletBehandlingstidUnits: Int? = null,
+    @Column(name = "behandlingstid_unit_type_id")
+    @Convert(converter = TimeUnitTypeConverter::class)
+    var varsletBehandlingstidUnitType: TimeUnitType = TimeUnitType.WEEKS,
+    @Column(name = "reason_no_letter")
+    var reasonNoLetter: String? = null,
+    @Column(name = "do_not_send_letter")
+    var doNotSendLetter: Boolean = false,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)

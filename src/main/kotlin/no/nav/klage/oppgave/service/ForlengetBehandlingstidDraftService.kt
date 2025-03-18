@@ -8,9 +8,14 @@ import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.exceptions.InvalidProperty
+import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.oppgave.exceptions.ValidationSection
 import no.nav.klage.oppgave.repositories.ForlengetBehandlingstidDraftRepository
 import no.nav.klage.oppgave.util.findDateBasedOnTimeUnitTypeAndUnits
+import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
+import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -28,6 +33,11 @@ class ForlengetBehandlingstidDraftService(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val forlengetBehandlingstidDraftRepository: ForlengetBehandlingstidDraftRepository,
 ) {
+    companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+        private val secureLogger = getSecureLogger()
+    }
 
     fun getOrCreateForlengetBehandlingstidDraft(behandlingId: UUID): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
@@ -35,28 +45,10 @@ class ForlengetBehandlingstidDraftService(
         if (behandling is BehandlingWithVarsletBehandlingstid) {
             if (behandling.forlengetBehandlingstidDraft == null) {
                 behandling.forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft()
+                setDefaultForlengetbehandlingstidDraftValues(behandling)
             }
         } else {
             error("Behandling har ikke varslet behandlingstid")
-        }
-
-        behandling.forlengetBehandlingstidDraft!!.title = "Nav klageinstans orienterer om forlenget behandlingstid"
-
-        val previousBehandlingstidInfo = getvarsletBehandlingstidInfo(
-            varsletBehandlingstid = behandling.varsletBehandlingstid,
-            varsletBehandlingstidHistorikk = behandling.varsletBehandlingstidHistorikk,
-        )
-
-        behandling.forlengetBehandlingstidDraft!!.previousBehandlingstidInfo = previousBehandlingstidInfo
-
-        if (behandling.prosessfullmektig != null) {
-            val name = behandling.prosessfullmektig!!.partId?.value?.let {
-                partSearchService.searchPart(
-                    identifikator = it,
-                    skipAccessControl = true
-                ).name
-            } ?: behandling.prosessfullmektig?.navn
-            behandling.forlengetBehandlingstidDraft!!.fullmektigFritekst = name
         }
 
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling)
@@ -64,6 +56,9 @@ class ForlengetBehandlingstidDraftService(
 
     fun setTitle(behandlingId: UUID, input: ForlengetBehandlingstidTitleInput): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        if (behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            error("Kan ikke legge til tittel når brev ikke skal sendes ut")
+        }
         behandling.forlengetBehandlingstidDraft!!.title = input.title
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
@@ -73,6 +68,9 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidFullmektigFritekstInput
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        if (behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            error("Kan ikke legge til navn på fullmektig i brevet når brev ikke skal sendes ut")
+        }
         behandling.forlengetBehandlingstidDraft!!.fullmektigFritekst = input.fullmektigFritekst
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
@@ -82,12 +80,18 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidCustomTextInput
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        if (behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            error("Kan ikke legge til fritekst når brev ikke skal sendes ut")
+        }
         behandling.forlengetBehandlingstidDraft!!.customText = input.customText
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
 
     fun setReason(behandlingId: UUID, input: ForlengetBehandlingstidReasonInput): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        if (behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            error("Kan ikke legge til årsak til lengre saksbehandlingstid når brev ikke skal sendes ut")
+        }
         behandling.forlengetBehandlingstidDraft!!.reason = input.reason
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
@@ -98,18 +102,10 @@ class ForlengetBehandlingstidDraftService(
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
 
-        validateNewFrist(
-            newFrist = findDateBasedOnTimeUnitTypeAndUnits(
-                timeUnitType = behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnitType!!,
-                units = input.varsletBehandlingstidUnits.toLong(),
-                fromDate = LocalDate.now(),
-            ),
-            oldFrist = behandling.varsletBehandlingstid?.varsletFrist,
-        )
-
-        behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits =
+        behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits =
             input.varsletBehandlingstidUnits
-        deleteVarsletFristIfNeeded(behandling.forlengetBehandlingstidDraft!!.behandlingstid)
+        behandling.forlengetBehandlingstidDraft!!.varsletFrist = null
+
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
 
@@ -118,19 +114,10 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidVarsletBehandlingstidUnitTypeIdInput
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
-        if (behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits != null) {
-            validateNewFrist(
-                newFrist = findDateBasedOnTimeUnitTypeAndUnits(
-                    timeUnitType = TimeUnitType.of(input.varsletBehandlingstidUnitTypeId),
-                    units = behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits!!.toLong(),
-                    fromDate = LocalDate.now(),
-                ),
-                oldFrist = behandling.varsletBehandlingstid?.varsletFrist,
-            )
-        }
-        behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnitType =
+
+        behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnitType =
             TimeUnitType.of(input.varsletBehandlingstidUnitTypeId)
-        deleteVarsletFristIfNeeded(behandling.forlengetBehandlingstidDraft!!.behandlingstid)
+
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
 
@@ -139,10 +126,8 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidBehandlingstidDateInput
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
-        validateNewFrist(newFrist = input.behandlingstidDate, oldFrist = behandling.varsletBehandlingstid?.varsletFrist)
-        behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletFrist = input.behandlingstidDate
-        behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits = null
-        behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnitType = TimeUnitType.WEEKS
+        behandling.forlengetBehandlingstidDraft!!.varsletFrist = input.behandlingstidDate
+        behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits = null
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
 
@@ -151,8 +136,41 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidPreviousBehandlingstidInfoInput
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        if (behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            error("Kan ikke legge til info om forrige behandlingstid når brev ikke skal sendes ut")
+        }
         behandling.forlengetBehandlingstidDraft!!.previousBehandlingstidInfo = input.previousBehandlingstidInfo
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
+    }
+
+    fun setReasonNoLetter(
+        behandlingId: UUID,
+        input: ForlengetBehandlingstidReasonNoLetterInput
+    ): ForlengetBehandlingstidDraftView {
+        val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        if (!behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            error("Kan ikke legge til begrunnelse for å ikke sende brev når brev skal sendes ut")
+        }
+        behandling.forlengetBehandlingstidDraft!!.reasonNoLetter = input.reasonNoLetter
+        return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
+    }
+
+    fun setDoNotSendLetter(
+        behandlingId: UUID,
+        input: ForlengetBehandlingstidDoNotSendLetterInput
+    ): ForlengetBehandlingstidDraftView {
+        val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        behandling.forlengetBehandlingstidDraft!!.doNotSendLetter = input.doNotSendLetter
+        return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
+    }
+
+    private fun removeLetterValues(behandling: BehandlingWithVarsletBehandlingstid) {
+        behandling.forlengetBehandlingstidDraft!!.title = null
+        behandling.forlengetBehandlingstidDraft!!.receivers.clear()
+        behandling.forlengetBehandlingstidDraft!!.fullmektigFritekst = null
+        behandling.forlengetBehandlingstidDraft!!.customText = null
+        behandling.forlengetBehandlingstidDraft!!.reason = null
+        behandling.forlengetBehandlingstidDraft!!.previousBehandlingstidInfo = null
     }
 
     fun setReceivers(
@@ -167,6 +185,10 @@ class ForlengetBehandlingstidDraftService(
 
         if (behandling.forlengetBehandlingstidDraft == null) {
             error("Forlenget behandlingstidutkast mangler")
+        }
+
+        if (behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            error("Kan ikke legge til mottakere når brev ikke skal sendes ut")
         }
 
         dokumentUnderArbeidService.validateMottakerList(
@@ -199,6 +221,31 @@ class ForlengetBehandlingstidDraftService(
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling)
     }
 
+    private fun setDefaultForlengetbehandlingstidDraftValues(behandling: Behandling) {
+        val fullmektigFritekst = if (behandling.prosessfullmektig != null) {
+            val name = behandling.prosessfullmektig!!.partId?.value?.let {
+                partSearchService.searchPart(
+                    identifikator = it,
+                    skipAccessControl = true
+                ).name
+            } ?: behandling.prosessfullmektig?.navn
+            name
+        } else null
+
+        behandling as BehandlingWithVarsletBehandlingstid
+
+        behandling.forlengetBehandlingstidDraft!!.title = "Nav klageinstans orienterer om forlenget behandlingstid"
+
+        val previousBehandlingstidInfo = getVarsletBehandlingstidInfo(
+            varsletBehandlingstid = behandling.varsletBehandlingstid,
+            varsletBehandlingstidHistorikk = behandling.varsletBehandlingstidHistorikk,
+        )
+
+        behandling.forlengetBehandlingstidDraft!!.previousBehandlingstidInfo = previousBehandlingstidInfo
+
+        behandling.forlengetBehandlingstidDraft!!.fullmektigFritekst = fullmektigFritekst
+    }
+
     private fun getBehandlingWithForlengetBehandlingstidDraft(behandlingId: UUID): BehandlingWithVarsletBehandlingstid {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
         if (behandling !is BehandlingWithVarsletBehandlingstid) {
@@ -215,12 +262,29 @@ class ForlengetBehandlingstidDraftService(
     fun getPdf(behandlingId: UUID): ByteArray {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
-        if (behandling !is BehandlingWithVarsletBehandlingstid) {
-            error("Behandling har ikke varslet behandlingstid")
+        val validationErrors = mutableListOf<InvalidProperty>()
+
+        validationErrors.addAll(getCommonValidationErrors(behandling))
+
+        behandling as BehandlingWithVarsletBehandlingstid
+
+        if (behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            validationErrors += InvalidProperty(
+                field = "doNotSendLetter",
+                reason = "Kan ikke hente pdf når brev ikke skal sendes ut"
+            )
         }
 
-        if (behandling.forlengetBehandlingstidDraft == null) {
-            error("Forlenget behandlingstidutkast mangler")
+        if (validationErrors.isNotEmpty()) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "forlengetBehandlingstidDraft",
+                        properties = validationErrors,
+                    )
+                )
+            )
         }
 
         val sakenGjelderName = partSearchService.searchPart(
@@ -245,9 +309,9 @@ class ForlengetBehandlingstidDraftService(
             },
             ytelse = behandling.ytelse,
             fullmektigFritekst = forlengetBehandlingstidDraft.fullmektigFritekst,
-            behandlingstidUnits = forlengetBehandlingstidDraft.behandlingstid.varsletBehandlingstidUnits,
-            behandlingstidUnitType = forlengetBehandlingstidDraft.behandlingstid.varsletBehandlingstidUnitType,
-            behandlingstidDate = forlengetBehandlingstidDraft.behandlingstid.varsletFrist,
+            behandlingstidUnits = forlengetBehandlingstidDraft.varsletBehandlingstidUnits,
+            behandlingstidUnitType = forlengetBehandlingstidDraft.varsletBehandlingstidUnitType,
+            behandlingstidDate = forlengetBehandlingstidDraft.varsletFrist,
             avsenderEnhetId = Enhet.E4291.navn,
             type = behandling.type,
             mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
@@ -257,35 +321,129 @@ class ForlengetBehandlingstidDraftService(
         )
     }
 
-    fun completeDraft(behandlingId: UUID) {
-        val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
-
+    private fun getCommonValidationErrors(
+        behandling: Behandling,
+    ): List<InvalidProperty> {
+        val validationErrors = mutableListOf<InvalidProperty>()
         if (behandling !is BehandlingWithVarsletBehandlingstid) {
-            error("Behandling har ikke varslet behandlingstid")
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = "behandling",
+                                reason = "Behandling har ikke varslet behandlingstid"
+                            )
+                        )
+                    )
+                )
+            )
         }
 
         if (behandling.forlengetBehandlingstidDraft == null) {
-            error("Forlenget behandlingstidutkast mangler")
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = "forlengetBehandlingstidDraft",
+                                reason = "Forlenget behandlingstidutkast mangler"
+                            )
+                        )
+                    )
+                )
+            )
         }
 
-        if (behandling.forlengetBehandlingstidDraft!!.receivers.isEmpty()) {
-            error("Mangler mottakere")
-        }
-
-        if (behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletFrist == null &&
-            behandling.forlengetBehandlingstidDraft!!.behandlingstid.varsletBehandlingstidUnits == null
+        if (behandling.forlengetBehandlingstidDraft!!.varsletFrist == null &&
+            behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits == null
         ) {
-            error("Trenger enten dato eller antall uker/måneder")
+            validationErrors += InvalidProperty(
+                field = "behandlingstid",
+                reason = "Trenger enten dato eller antall uker/måneder"
+            )
+        } else {
+            val currentFrist =
+                behandling.forlengetBehandlingstidDraft!!.varsletFrist ?: findDateBasedOnTimeUnitTypeAndUnits(
+                    timeUnitType = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnitType,
+                    units = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits!!,
+                    fromDate = LocalDate.now(),
+                )
+
+            validationErrors.addAll(
+                validateNewFrist(
+                    newFrist = currentFrist,
+                    oldFrist = behandling.varsletBehandlingstid?.varsletFrist,
+                )
+            )
         }
 
-        dokumentUnderArbeidService.createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid(
-            behandling = behandling,
-            forlengetBehandlingstidDraft = behandling.forlengetBehandlingstidDraft!!,
-            systemContext = false,
-        )
+        return validationErrors
+    }
+
+    fun completeDraft(behandlingId: UUID) {
+        val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
+
+        val validationErrors = mutableListOf<InvalidProperty>()
+
+        validationErrors.addAll(getCommonValidationErrors(behandling))
+
+        behandling as BehandlingWithVarsletBehandlingstid
+
+        if (behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            if (behandling.forlengetBehandlingstidDraft!!.reasonNoLetter.isNullOrBlank()) {
+                validationErrors += InvalidProperty(
+                    field = "reasonNoLetter",
+                    reason = "Trenger oppgitt begrunnelse for å ikke sende brev"
+                )
+            }
+        } else {
+            if (behandling.forlengetBehandlingstidDraft!!.receivers.isEmpty()) {
+                validationErrors += InvalidProperty(
+                    field = "mottakere",
+                    reason = "Mangler mottakere"
+                )
+            }
+            if (behandling.forlengetBehandlingstidDraft!!.title.isNullOrBlank()) {
+                validationErrors += InvalidProperty(
+                    field = "title",
+                    reason = "Trenger tittel på brevet"
+                )
+            }
+        }
+
+        if (validationErrors.isNotEmpty()) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "forlengetBehandlingstidDraft",
+                        properties = validationErrors,
+                    )
+                )
+            )
+        }
+
+        if (!behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            behandling.forlengetBehandlingstidDraft!!.reasonNoLetter = null
+
+            dokumentUnderArbeidService.createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid(
+                behandling = behandling,
+                forlengetBehandlingstidDraft = behandling.forlengetBehandlingstidDraft!!,
+                systemContext = false,
+            )
+        } else {
+            removeLetterValues(behandling)
+        }
 
         behandlingService.setForlengetBehandlingstid(
-            newVarsletBehandlingstid = behandling.forlengetBehandlingstidDraft!!.behandlingstid,
+            varsletFrist = behandling.forlengetBehandlingstidDraft!!.varsletFrist,
+            varsletBehandlingstidUnits = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits,
+            varsletBehandlingstidUnitType = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnitType,
             behandling = behandling,
             systemUserContext = false,
             mottakere = behandling.forlengetBehandlingstidDraft!!.receivers.map {
@@ -298,7 +456,9 @@ class ForlengetBehandlingstidDraftService(
                         value = it.navn
                     )
                 } else throw IllegalArgumentException("Missing values in receiver: $it")
-            }
+            },
+            doNotSendLetter = behandling.forlengetBehandlingstidDraft!!.doNotSendLetter,
+            reasonNoLetter = behandling.forlengetBehandlingstidDraft!!.reasonNoLetter,
         )
         //TODO: Possible to do in single operation?
         val idForDeletion = behandling.forlengetBehandlingstidDraft!!.id
@@ -317,34 +477,39 @@ class ForlengetBehandlingstidDraftService(
         }
     }
 
-    private fun deleteVarsletFristIfNeeded(behandlingstid: VarsletBehandlingstid) {
-        if (behandlingstid.varsletBehandlingstidUnitType != null && behandlingstid.varsletBehandlingstidUnits != null) {
-            behandlingstid.varsletFrist = null
-        }
-    }
-
-    private fun getvarsletBehandlingstidInfo(
+    private fun getVarsletBehandlingstidInfo(
         varsletBehandlingstid: VarsletBehandlingstid?,
         varsletBehandlingstidHistorikk: MutableSet<VarsletBehandlingstidHistorikk>
     ): String? {
         return if (varsletBehandlingstid != null) {
             val lastVarsletBehandlingstid = varsletBehandlingstidHistorikk.maxByOrNull { it.tidspunkt }
-
             if (lastVarsletBehandlingstid?.varsletBehandlingstid != null) {
-                if (
-                    lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null &&
-                    lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType != null
-                ) {
-                    val previousDate = getFormattedDate(lastVarsletBehandlingstid.tidspunkt.toLocalDate())
-                    val varsletBehandlingstidText =
-                        getvarsletBehandlingstidText(lastVarsletBehandlingstid.varsletBehandlingstid!!)
-                    "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingstid var $varsletBehandlingstidText"
-                } else if (lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletFrist != null) {
-                    val previousDate = getFormattedDate(lastVarsletBehandlingstid.tidspunkt.toLocalDate())
-                    val varsletFristDate =
-                        getFormattedDate(lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletFrist!!)
-                    "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingsfrist var $varsletFristDate"
-                } else null
+                val lastBehandlingstidHadLetter = !lastVarsletBehandlingstid.varsletBehandlingstid!!.doNotSendLetter
+
+                val lastBehandlingstidHadUnitsAndType = (lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null &&
+                        lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType != null)
+
+                val lastBehandlingstidHadFrist = lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletFrist != null
+
+                val previousDate = getFormattedDate(lastVarsletBehandlingstid.tidspunkt.toLocalDate())
+
+                val lastVarsletBehandlingstidText = if (lastBehandlingstidHadUnitsAndType) {
+                    getvarsletBehandlingstidText(lastVarsletBehandlingstid.varsletBehandlingstid!!)
+                } else if (lastBehandlingstidHadFrist) {
+                    getFormattedDate(lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletFrist!!)
+                } else {
+                    //Should not happen
+                    logger.error(
+                        "Varslet behandlingstid har verken units og type eller frist. Skal ikke skje. VarsletBehandlingstid: $lastVarsletBehandlingstid"
+                    )
+                    return null
+                }
+
+                if (lastBehandlingstidHadLetter) {
+                    "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingstid var $lastVarsletBehandlingstidText"
+                } else {
+                    "Den $previousDate ble forventet saksbehandlingstid endret til $lastVarsletBehandlingstidText"
+                }
             } else null
         } else null
     }
@@ -383,7 +548,13 @@ class ForlengetBehandlingstidDraftService(
             customText = customText,
             reason = reason,
             previousBehandlingstidInfo = previousBehandlingstidInfo,
-            behandlingstid = behandlingstid.toView(),
+            behandlingstid = ForlengetBehandlingstidVarsletBehandlingstidView(
+                varsletBehandlingstidUnits = varsletBehandlingstidUnits,
+                varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitType.id,
+                varsletFrist = varsletFrist,
+            ),
+            reasonNoLetter = reasonNoLetter,
+            doNotSendLetter = doNotSendLetter,
             receivers = receivers.map {
                 dokumentMapper.toDokumentViewMottaker(
                     identifikator = it.identifikator,
@@ -393,22 +564,34 @@ class ForlengetBehandlingstidDraftService(
                     forceCentralPrint = it.forceCentralPrint,
                     behandling = behandling
                 )
-            }
+            },
+            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
         )
     }
 
+    private fun validateNewFrist(newFrist: LocalDate, oldFrist: LocalDate?): List<InvalidProperty> {
+        val validationErrors = mutableListOf<InvalidProperty>()
 
-    private fun VarsletBehandlingstid.toView(): ForlengetBehandlingstidVarsletBehandlingstidView {
-        return ForlengetBehandlingstidVarsletBehandlingstidView(
-            varsletBehandlingstidUnits = varsletBehandlingstidUnits,
-            varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitType!!.id,
-            varsletFrist = varsletFrist,
-        )
-    }
-
-    private fun validateNewFrist(newFrist: LocalDate?, oldFrist: LocalDate?) {
-        if (newFrist != null && oldFrist != null && newFrist.isBefore(oldFrist)) {
-            error("Ny frist er tidligere enn tidligere angitt frist")
+        if (newFrist.isAfter(LocalDate.now().plusMonths(4))) {
+            validationErrors += InvalidProperty(
+                field = "behandlingstid",
+                reason = "Ny frist er lengre frem i tid enn 4 måneder"
+            )
         }
+
+        if (oldFrist != null) {
+            if (newFrist.isBefore(oldFrist)) {
+                validationErrors += InvalidProperty(
+                    field = "behandlingstid",
+                    reason = "Ny frist er tidligere enn tidligere angitt frist"
+                )
+            } else if (newFrist == oldFrist) {
+                validationErrors += InvalidProperty(
+                    field = "behandlingstid",
+                    reason = "Ny frist er den samme som tidligere angitt frist"
+                )
+            }
+        }
+        return validationErrors
     }
 }

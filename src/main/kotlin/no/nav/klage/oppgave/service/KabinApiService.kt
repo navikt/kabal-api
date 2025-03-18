@@ -108,7 +108,7 @@ class KabinApiService(
                 systemContext = false,
             )
 
-            behandlingService.setVarsletFrist(
+            behandlingService.setOpprinneligVarsletFrist(
                 behandlingstidUnitType = getTimeUnitType(
                     varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId,
                     varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType

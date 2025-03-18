@@ -152,6 +152,7 @@ data class VarsletFristEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val varsletFrist: LocalDate,
+    val timesPreviouslyExtended: Int,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class DocumentsChangedEvent(

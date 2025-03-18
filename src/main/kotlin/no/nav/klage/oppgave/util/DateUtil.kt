@@ -5,11 +5,11 @@ import java.time.LocalDate
 
 fun findDateBasedOnTimeUnitTypeAndUnits(
     timeUnitType: TimeUnitType,
-    units: Long,
+    units: Int,
     fromDate: LocalDate
 ): LocalDate {
     return when (timeUnitType) {
-        TimeUnitType.WEEKS -> fromDate.plusWeeks(units)
-        TimeUnitType.MONTHS -> fromDate.plusMonths(units)
+        TimeUnitType.WEEKS -> fromDate.plusWeeks(units.toLong())
+        TimeUnitType.MONTHS -> fromDate.plusMonths(units.toLong())
     }
 }

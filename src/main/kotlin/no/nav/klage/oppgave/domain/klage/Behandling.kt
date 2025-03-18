@@ -279,6 +279,12 @@ sealed class Behandling(
             Type.OMGJOERINGSKRAV
         )
     }
+
+    fun getTimesPreviouslyExtended(): Int {
+        return varsletBehandlingstidHistorikk.count {
+            it.varsletBehandlingstid?.varselType == VarsletBehandlingstid.VarselType.FORLENGET
+        }
+    }
 }
 
 enum class BehandlingRole {
