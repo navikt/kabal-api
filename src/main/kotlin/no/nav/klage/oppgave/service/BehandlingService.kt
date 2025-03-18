@@ -845,6 +845,7 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     varsletFrist = varsletFrist,
+                    timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
                 )
             ),
             behandlingId = behandling.id,
