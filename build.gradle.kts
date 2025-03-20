@@ -21,7 +21,7 @@ val otelVersion = "1.48.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 
 plugins {
-    val kotlinVersion = "2.1.10"
+    val kotlinVersion = "2.1.20"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
