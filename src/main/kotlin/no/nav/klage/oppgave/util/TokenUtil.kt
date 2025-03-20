@@ -21,7 +21,6 @@ class TokenUtil(
     }
 
     fun getSubjectFromTokenXToken(): String {
-        securelogger.debug("Token til debug: ${ctxHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.TOKEN_X)}")
         return ctxHolder.getTokenValidationContext().getClaims(SecurityConfiguration.TOKEN_X).getStringClaim("pid")
     }
 
