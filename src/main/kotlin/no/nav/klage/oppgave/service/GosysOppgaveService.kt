@@ -150,6 +150,10 @@ class GosysOppgaveService(
             versjon = currentGosysOppgave.versjon,
             endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
             fristFerdigstillelse = behandling.varsletBehandlingstid!!.varsletFrist!!,
+            kommentar = Kommentar(
+                tekst = "Frist satt på bakgrunn av varslet behandlingstid.",
+                automatiskGenerert = true
+            )
         )
 
         updateOppgaveAndPublishEvent(
