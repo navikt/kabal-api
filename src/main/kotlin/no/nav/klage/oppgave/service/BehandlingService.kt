@@ -852,11 +852,13 @@ class BehandlingService(
             type = InternalEventType.VARSLET_FRIST,
         )
 
-        gosysOppgaveService.updateFristInGosysOppgave(
-            behandling = behandling,
-            systemContext = systemUserContext,
-            throwExceptionIfFerdigstilt = false
-        )
+        if (behandling.gosysOppgaveId != null) {
+            gosysOppgaveService.updateFristInGosysOppgave(
+                behandling = behandling,
+                systemContext = systemUserContext,
+                throwExceptionIfFerdigstilt = false
+            )
+        }
 
         return behandling.modified
     }
