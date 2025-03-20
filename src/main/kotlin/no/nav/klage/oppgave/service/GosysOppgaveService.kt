@@ -15,6 +15,7 @@ import no.nav.klage.oppgave.domain.kafka.GosysoppgaveEvent
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.klage.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.exceptions.GosysOppgaveClientException
 import no.nav.klage.oppgave.exceptions.GosysOppgaveNotEditableException
 import no.nav.klage.oppgave.exceptions.IllegalOperation
@@ -119,6 +120,46 @@ class GosysOppgaveService(
             ),
             behandlingId = behandlingId,
             type = InternalEventType.GOSYSOPPGAVE,
+        )
+    }
+
+    fun updateFristInGosysOppgave(
+        behandling: Behandling,
+        systemContext: Boolean,
+        throwExceptionIfFerdigstilt: Boolean,
+    ) {
+        if (behandling !is BehandlingWithVarsletBehandlingstid) {
+            logger.error("Behandling is not BehandlingWithVarsletBehandlingstid. Cannot update frist in Gosys-oppgave.")
+            return
+        }
+
+        val gosysOppgaveId = behandling.gosysOppgaveId!!
+
+        val currentGosysOppgave =
+            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
+
+        if (!shouldAttemptGosysOppgaveUpdate(
+                currentGosysOppgave = currentGosysOppgave,
+                throwExceptionIfFerdigstilt = throwExceptionIfFerdigstilt
+            )
+        ) {
+            return
+        }
+
+        val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveInput(
+            versjon = currentGosysOppgave.versjon,
+            endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
+            fristFerdigstillelse = behandling.varsletBehandlingstid!!.varsletFrist!!,
+            kommentar = Kommentar(
+                tekst = "Frist satt på bakgrunn av varslet behandlingstid.",
+                automatiskGenerert = true
+            )
+        )
+
+        updateOppgaveAndPublishEvent(
+            behandling = behandling,
+            updateGosysOppgaveRequest = updateGosysOppgaveRequest,
+            systemContext = systemContext
         )
     }
 

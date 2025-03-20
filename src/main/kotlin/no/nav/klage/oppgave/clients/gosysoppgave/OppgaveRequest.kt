@@ -31,6 +31,13 @@ data class UpdateGosysOppgaveOnCompletedBehandlingInput(
     val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
+data class UpdateFristInGosysOppgaveInput(
+    override val versjon: Int,
+    override val endretAvEnhetsnr: String,
+    val fristFerdigstillelse: LocalDate,
+    val kommentar: Kommentar,
+) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
+
 data class Kommentar(
     val tekst: String,
     val automatiskGenerert: Boolean,

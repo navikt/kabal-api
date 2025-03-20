@@ -852,6 +852,14 @@ class BehandlingService(
             type = InternalEventType.VARSLET_FRIST,
         )
 
+        if (behandling.gosysOppgaveId != null) {
+            gosysOppgaveService.updateFristInGosysOppgave(
+                behandling = behandling,
+                systemContext = systemUserContext,
+                throwExceptionIfFerdigstilt = false
+            )
+        }
+
         return behandling.modified
     }
 
