@@ -189,7 +189,7 @@ class MicrosoftGraphClient(
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(response, ::getGroupsByUserPrincipalName.name, secureLogger)
             }
-            .bodyToMono<AzureGroupList>().block()?.value?.map { secureLogger.debug("AD Gruppe by navident: {}", it); it }
+            .bodyToMono<AzureGroupList>().block()?.value?.map { it }
             ?: throw RuntimeException("AzureAD data about groups by user principal name could not be fetched")
         return aadAzureGroups
     }
