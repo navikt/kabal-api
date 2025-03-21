@@ -130,9 +130,9 @@ class CleanupAfterBehandlingEventListener(
 
     private fun deleteForlengetBehandlingstidDraftIfNeeded(behandling: Behandling) {
         if (behandling is BehandlingWithVarsletBehandlingstid && behandling.forlengetBehandlingstidDraft != null) {
-            val idForDeletion = behandling.forlengetBehandlingstidDraft!!.id
+//            val idForDeletion = behandling.forlengetBehandlingstidDraft!!.id
             behandling.forlengetBehandlingstidDraft = null
-            forlengetBehandlingstidDraftRepository.deleteById(idForDeletion)
+//            forlengetBehandlingstidDraftRepository.deleteById(idForDeletion)
         }
     }
 
