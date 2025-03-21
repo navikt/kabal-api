@@ -27,12 +27,13 @@ class KabinApiService(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
+    private val gosysOppgaveService: GosysOppgaveService,
 ) {
 
     fun getAnkemuligheter(partIdValue: String): List<Mulighet> {
         behandlingService.checkLesetilgangForPerson(partIdValue)
         return behandlingService.getAnkemuligheterByPartIdValue(partIdValue = partIdValue)
-                .map { it.toMulighet(mulighetType = Type.ANKE) }
+            .map { it.toMulighet(mulighetType = Type.ANKE) }
     }
 
     fun getOmgjoeringskravmuligheter(partIdValue: String): List<Mulighet> {
@@ -127,6 +128,12 @@ class KabinApiService(
                         )
                     } else throw IllegalArgumentException("Missing values in receiver: $it")
                 }
+            )
+        } else if (behandling.gosysOppgaveId != null) {
+            gosysOppgaveService.updateInternalFristInGosysOppgave(
+                behandling = behandling,
+                systemContext = false,
+                throwExceptionIfFerdigstilt = false,
             )
         }
     }

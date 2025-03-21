@@ -123,7 +123,47 @@ class GosysOppgaveService(
         )
     }
 
-    fun updateFristInGosysOppgave(
+    fun updateInternalFristInGosysOppgave(
+        behandling: Behandling,
+        systemContext: Boolean,
+        throwExceptionIfFerdigstilt: Boolean,
+    ) {
+        val gosysOppgaveId = behandling.gosysOppgaveId!!
+
+        val currentGosysOppgave =
+            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
+
+        if (!shouldAttemptGosysOppgaveUpdate(
+                currentGosysOppgave = currentGosysOppgave,
+                throwExceptionIfFerdigstilt = throwExceptionIfFerdigstilt
+            )
+        ) {
+            return
+        }
+
+        if (behandling.frist == null) {
+            logger.warn("Behandling has no frist. Cannot update frist in Gosys-oppgave.")
+            return
+        }
+
+        val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveInput(
+            versjon = currentGosysOppgave.versjon,
+            endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
+            fristFerdigstillelse = behandling.frist!!,
+            kommentar = Kommentar(
+                tekst = "Frist satt på bakgrunn av intern frist i Kabal.",
+                automatiskGenerert = true
+            )
+        )
+
+        updateOppgaveAndPublishEvent(
+            behandling = behandling,
+            updateGosysOppgaveRequest = updateGosysOppgaveRequest,
+            systemContext = systemContext
+        )
+    }
+
+    fun updateVarsletFristInGosysOppgave(
         behandling: Behandling,
         systemContext: Boolean,
         throwExceptionIfFerdigstilt: Boolean,
