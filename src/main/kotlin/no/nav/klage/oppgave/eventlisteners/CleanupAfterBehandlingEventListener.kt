@@ -36,6 +36,7 @@ class CleanupAfterBehandlingEventListener(
     private val behandlingService: BehandlingService,
     private val mergedDocumentRepository: MergedDocumentRepository,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val forlengetBehandlingstidDraftRepository: ForlengetBehandlingstidDraftRepository,
 ) {
 
     companion object {
@@ -82,6 +83,8 @@ class CleanupAfterBehandlingEventListener(
                         secureLogger.error("Could not delete melding with id ${melding.id}", exception)
                     }
                 }
+
+            deleteForlengetBehandlingstidDraftIfNeeded(behandling = behandling)
         } else if (behandlingEndretEvent.endringslogginnslag.any { it.felt == Felt.FEILREGISTRERING } && behandling.feilregistrering != null) {
             logger.debug(
                 "Cleanup and notifying vedtaksinstans after feilregistrering. Behandling.id: {}",
@@ -102,6 +105,7 @@ class CleanupAfterBehandlingEventListener(
             }
 
             notifyVedtaksinstans(behandling)
+            deleteForlengetBehandlingstidDraftIfNeeded(behandling = behandling)
         }
     }
 
@@ -121,6 +125,14 @@ class CleanupAfterBehandlingEventListener(
                 //best effort
                 logger.warn("Couldn't clean up dokumenter under arbeid", e)
             }
+        }
+    }
+
+    private fun deleteForlengetBehandlingstidDraftIfNeeded(behandling: Behandling) {
+        if (behandling is BehandlingWithVarsletBehandlingstid && behandling.forlengetBehandlingstidDraft != null) {
+            val idForDeletion = behandling.forlengetBehandlingstidDraft!!.id
+            behandling.forlengetBehandlingstidDraft = null
+            forlengetBehandlingstidDraftRepository.deleteById(idForDeletion)
         }
     }
 
