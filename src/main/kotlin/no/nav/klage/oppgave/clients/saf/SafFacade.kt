@@ -84,7 +84,7 @@ class SafFacade(
     fun <T> runWithTimingAndLogging(block: () -> T, method: String): T {
         val start = System.currentTimeMillis()
         try {
-            return block.invoke().let { secureLogger.debug("Received response: {}", it); it }
+            return block.invoke()
         } finally {
             val end = System.currentTimeMillis()
             logger.debug("Time it took to call saf using $method: ${end - start} millis")
