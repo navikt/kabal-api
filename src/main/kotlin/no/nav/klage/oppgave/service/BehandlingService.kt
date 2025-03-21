@@ -853,7 +853,7 @@ class BehandlingService(
         )
 
         if (behandling.gosysOppgaveId != null) {
-            gosysOppgaveService.updateFristInGosysOppgave(
+            gosysOppgaveService.updateVarsletFristInGosysOppgave(
                 behandling = behandling,
                 systemContext = systemUserContext,
                 throwExceptionIfFerdigstilt = false
