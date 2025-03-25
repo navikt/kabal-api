@@ -1618,7 +1618,7 @@ class BehandlingService(
                 )
             }
 
-        if (behandling.tildeling?.saksbehandlerident == navIdent) {
+        if (navIdent != null && behandling.tildeling?.saksbehandlerident == navIdent) {
             throw IllegalOperation("Medunderskriver kan ikke være lik saksbehandler")
         }
 
