@@ -678,6 +678,19 @@ class BehandlingService(
                 )
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
             }
+
+            if (tildeltSaksbehandlerIdent == behandling.medunderskriver?.saksbehandlerident) {
+                setMedunderskriverFlowState(
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                    flowState = FlowState.NOT_SENT,
+                )
+                setMedunderskriverNavIdent(
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                    navIdent = null,
+                )
+            }
         } else {
             if (fradelingReason == null &&
                 !innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole() &&
@@ -748,19 +761,6 @@ class BehandlingService(
             behandlingId = behandlingId,
             type = InternalEventType.TILDELING,
         )
-
-        if (tildeltSaksbehandlerIdent == behandling.medunderskriver?.saksbehandlerident) {
-            setMedunderskriverFlowState(
-                behandlingId = behandlingId,
-                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-                flowState = FlowState.NOT_SENT,
-            )
-            setMedunderskriverNavIdent(
-                behandlingId = behandlingId,
-                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-                navIdent = null,
-            )
-        }
 
         return getSaksbehandlerViewWrapped(behandling)
     }
