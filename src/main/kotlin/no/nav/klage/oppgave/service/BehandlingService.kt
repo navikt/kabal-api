@@ -678,6 +678,19 @@ class BehandlingService(
                 )
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
             }
+
+            if (tildeltSaksbehandlerIdent == behandling.medunderskriver?.saksbehandlerident) {
+                setMedunderskriverFlowState(
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                    flowState = FlowState.NOT_SENT,
+                )
+                setMedunderskriverNavIdent(
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                    navIdent = null,
+                )
+            }
         } else {
             if (fradelingReason == null &&
                 !innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole() &&
@@ -1344,7 +1357,7 @@ class BehandlingService(
                 throw IllegalOperation("Address and name can only be set without id")
             }
 
-            if ((input.address != null && input.name == null) || (input.address == null && input.name != null) ) {
+            if ((input.address != null && input.name == null) || (input.address == null && input.name != null)) {
                 throw IllegalOperation("Both address or name must be set")
             }
 
@@ -1412,7 +1425,7 @@ class BehandlingService(
                     landkode = behandling.prosessfullmektig!!.address!!.landkode,
                     postnummer = behandling.prosessfullmektig!!.address!!.postnummer,
                     poststed = behandling.prosessfullmektig!!.address!!.poststed,
-                ) ,
+                ),
                 utsendingskanal = BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT
             )
         }
@@ -1604,6 +1617,10 @@ class BehandlingService(
                     utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent
                 )
             }
+
+        if (navIdent != null && behandling.tildeling?.saksbehandlerident == navIdent) {
+            throw IllegalOperation("Medunderskriver kan ikke være lik saksbehandler")
+        }
 
         val event =
             behandling.setMedunderskriverNavIdent(
