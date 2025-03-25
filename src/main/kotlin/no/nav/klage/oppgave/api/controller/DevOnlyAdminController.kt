@@ -115,12 +115,13 @@ class DevOnlyAdminController(
     @GetMapping("/mytokens")
     fun getTokens(): Map<String, String> {
         return mapOf(
-            "\ngetAccessTokenFrontendSent\n" to tokenUtil.getAccessTokenFrontendSent(),
-            "\ngetSaksbehandlerAccessTokenWithGraphScope\n" to tokenUtil.getSaksbehandlerAccessTokenWithGraphScope(),
-            "\ngetSaksbehandlerAccessTokenWithSafScope\n" to tokenUtil.getSaksbehandlerAccessTokenWithSafScope(),
-            "\ngetSaksbehandlerAccessTokenWithPdlScope\n" to tokenUtil.getSaksbehandlerAccessTokenWithPdlScope(),
-            "\ngetAppAccessTokenWithGraphScope\n" to tokenUtil.getAppAccessTokenWithGraphScope(),
-            "\ngetSaksbehandlerAccessTokenWithDokarkivScope\n" to tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope(),
+            "getAccessTokenFrontendSent" to tokenUtil.getAccessTokenFrontendSent(),
+            "getSaksbehandlerAccessTokenWithGraphScope" to tokenUtil.getSaksbehandlerAccessTokenWithGraphScope(),
+            "getSaksbehandlerAccessTokenWithSafScope" to tokenUtil.getSaksbehandlerAccessTokenWithSafScope(),
+            "getSaksbehandlerAccessTokenWithPdlScope" to tokenUtil.getSaksbehandlerAccessTokenWithPdlScope(),
+            "getAppAccessTokenWithGraphScope" to tokenUtil.getAppAccessTokenWithGraphScope(),
+            "getSaksbehandlerAccessTokenWithDokarkivScope" to tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope(),
+            "getSaksbehandlerAccessTokenWithKodeverkScope" to tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope(),
         )
     }
 
