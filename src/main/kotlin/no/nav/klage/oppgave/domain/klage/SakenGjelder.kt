@@ -2,9 +2,12 @@ package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
 import no.nav.klage.kodeverk.PartIdType
+import java.util.*
 
 @Embeddable
 data class SakenGjelder(
+    @Column(name = "saken_gjelder_id")
+    val id: UUID,// = UUID.randomUUID(),
     @Embedded
     @AttributeOverrides(
         value = [

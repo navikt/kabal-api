@@ -2,9 +2,12 @@ package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
+import java.util.*
 
 @Embeddable
 data class Prosessfullmektig(
+    @Column(name = "prosessfullmektig_id")
+    val id: UUID,
     @Embedded
     @AttributeOverrides(
         value = [

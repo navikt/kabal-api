@@ -1338,24 +1338,32 @@ class BehandlingService(
         input: FullmektigInput?,
         utfoerendeSaksbehandlerIdent: String
     ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId
+        )
 
         if (input != null) {
             if (input.identifikator != null && (input.address != null || input.name != null)) {
                 throw IllegalOperation("Address and name can only be set without id")
             }
 
-            if ((input.address != null && input.name == null) || (input.address == null && input.name != null) ) {
+            if ((input.address != null && input.name == null) || (input.address == null && input.name != null)) {
                 throw IllegalOperation("Both address or name must be set")
             }
 
             if (input.address != null) {
                 input.address.validateAddress()
             }
+
+            if (input.identifikator != null && input.identifikator in listOf(
+                    behandling.sakenGjelder.partId.value,
+                    behandling.klager.partId.value,
+                )
+            ) {
+                throw IllegalOperation("Fullmektig can not be the same as sakenGjelder or klager")
+            }
         }
 
-        val behandling = getBehandlingForUpdate(
-            behandlingId
-        )
         val partId: PartId? = if (input?.identifikator == null) {
             null
         } else {
@@ -1399,7 +1407,8 @@ class BehandlingService(
             )
         } else {
             BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                id = null,
+                id = behandling.prosessfullmektig!!.id,
+                identifikator = null,
                 name = behandling.prosessfullmektig!!.navn!!,
                 type = null,
                 available = true,
@@ -1412,7 +1421,7 @@ class BehandlingService(
                     landkode = behandling.prosessfullmektig!!.address!!.landkode,
                     postnummer = behandling.prosessfullmektig!!.address!!.postnummer,
                     poststed = behandling.prosessfullmektig!!.address!!.poststed,
-                ) ,
+                ),
                 utsendingskanal = BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT
             )
         }
@@ -1432,6 +1441,7 @@ class BehandlingService(
                     part = partView?.let {
                         Part(
                             id = partView.id,
+                            identifikator = partView.identifikator,
                             type = partView.type,
                             name = partView.name,
                             statusList = partView.statusList,
@@ -1459,6 +1469,14 @@ class BehandlingService(
             behandlingId
         )
 
+        if (behandling.sakenGjelder.partId.value == identifikator) {
+            throw IllegalOperation("Klager kan ikke være samme som saken gjelder")
+        }
+
+        if (behandling.klager.partId.value == identifikator) {
+            throw IllegalOperation("Denne klageparten er allerede satt")
+        }
+
         val event =
             behandling.setKlager(
                 nyVerdi = getPartIdFromIdentifikator(identifikator),
@@ -1485,7 +1503,7 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     part = Part(
-                        id = partView.id,
+                        identifikator = partView.id,
                         type = partView.type,
                         name = partView.name,
                         statusList = partView.statusList,

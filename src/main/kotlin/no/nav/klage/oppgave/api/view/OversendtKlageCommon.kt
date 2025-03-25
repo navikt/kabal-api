@@ -3,7 +3,11 @@ package no.nav.klage.oppgave.api.view
 import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.klage.MottakDokument
+import no.nav.klage.oppgave.domain.klage.MottakDokumentType
+import no.nav.klage.oppgave.domain.klage.PartId
+import no.nav.klage.oppgave.domain.klage.Prosessfullmektig
+import java.util.*
 
 data class OversendtSakenGjelder(
     @Schema(
@@ -17,11 +21,7 @@ data class OversendtSakenGjelder(
         deprecated = true,
     )
     val skalMottaKopi: Boolean
-) {
-    fun toSakenGjelder() = SakenGjelder(
-        partId = id.toPartId(),
-    )
-}
+)
 
 data class OversendtKlagerLegacy(
     @Schema(
@@ -35,9 +35,6 @@ data class OversendtKlagerLegacy(
     )
     val klagersProsessfullmektig: OversendtProsessfullmektigLegacy? = null
 ) {
-    fun toKlagepart() = Klager(
-        partId = id.toPartId(),
-    )
 
     fun toProsessfullmektig(): Prosessfullmektig? {
         if (klagersProsessfullmektig == null) return null
@@ -59,9 +56,11 @@ data class OversendtProsessfullmektigLegacy(
     val skalKlagerMottaKopi: Boolean
 ) {
     fun toProsessfullmektig() = Prosessfullmektig(
-        partId = id.toPartId(), address = null, navn = null,
-
-    )
+        id = UUID.randomUUID(),
+        partId = id.toPartId(),
+        address = null,
+        navn = null,
+        )
 }
 
 data class OversendtPartId(

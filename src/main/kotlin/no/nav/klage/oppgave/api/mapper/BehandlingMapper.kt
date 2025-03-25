@@ -457,7 +457,8 @@ class BehandlingMapper(
             val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
             val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(sakenGjelder.partId.value)
             return BehandlingDetaljerView.SakenGjelderView(
-                id = person.foedselsnr,
+                id = sakenGjelder.id,
+                identifikator = person.foedselsnr,
                 name = person.settSammenNavn(),
                 sex = person.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }
                     ?: BehandlingDetaljerView.Sex.UKJENT,
@@ -484,7 +485,8 @@ class BehandlingMapper(
                 saksbehandlerContext = true
             )
             return BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal(
-                id = person.foedselsnr,
+                id = sakenGjelder.id,
+                identifikator = person.foedselsnr,
                 name = person.settSammenNavn(),
                 sex = person.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }
                     ?: BehandlingDetaljerView.Sex.UKJENT,
@@ -512,7 +514,7 @@ class BehandlingMapper(
             val person = pdlFacade.getPersonInfo(identifier)
             val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
             BehandlingDetaljerView.PartView(
-                id = person.foedselsnr,
+                identifikator = person.foedselsnr,
                 name = person.settSammenNavn(),
                 type = BehandlingDetaljerView.IdType.FNR,
                 available = person.doed == null,
@@ -523,7 +525,7 @@ class BehandlingMapper(
         } else {
             val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
             BehandlingDetaljerView.PartView(
-                id = identifier,
+                identifikator = identifier,
                 name = organisasjon.navn.sammensattnavn,
                 type = BehandlingDetaljerView.IdType.ORGNR,
                 available = organisasjon.isActive(),
@@ -555,7 +557,7 @@ class BehandlingMapper(
                 val person = pdlFacade.getPersonInfo(identifier)
                 val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
                 BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                    id = person.foedselsnr,
+                    identifikator = person.foedselsnr,
                     name = person.settSammenNavn(),
                     type = BehandlingDetaljerView.IdType.FNR,
                     available = person.doed == null,
@@ -567,7 +569,7 @@ class BehandlingMapper(
             } else {
                 val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
                 BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                    id = identifier,
+                    identifikator = identifier,
                     name = organisasjon.navn.sammensattnavn,
                     type = BehandlingDetaljerView.IdType.ORGNR,
                     available = organisasjon.isActive(),
@@ -579,7 +581,7 @@ class BehandlingMapper(
             }
         } else {
             BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                id = null,
+                identifikator = null,
                 name = navn!!,
                 type = null,
                 available = true,

@@ -70,7 +70,8 @@ data class BehandlingDetaljerView(
     )
 
     interface PartBase {
-        val id: String?
+        val id: UUID?
+        val identifikator: String?
         val name: String?
         val available: Boolean
         val language: String?
@@ -107,7 +108,8 @@ data class BehandlingDetaljerView(
     }
 
     data class PartView(
-        override val id: String,
+        override val id: UUID,
+        override val identifikator: String,
         override val name: String,
         override val type: IdType,
         override val available: Boolean,
@@ -117,7 +119,8 @@ data class BehandlingDetaljerView(
     ): PartBase, IdPart
 
     data class PartViewWithUtsendingskanal(
-        override val id: String?,
+        override val id: UUID,
+        override val identifikator: String?,
         override val name: String,
         override val type: IdType?,
         override val available: Boolean,
@@ -137,7 +140,8 @@ data class BehandlingDetaljerView(
     )
 
     data class SakenGjelderView(
-        override val id: String,
+        override val id: UUID,
+        override val identifikator: String,
         override val name: String,
         override val type: IdType,
         override val available: Boolean,
@@ -148,7 +152,8 @@ data class BehandlingDetaljerView(
     ): PartBase, IdPart
 
     data class SakenGjelderViewWithUtsendingskanal(
-        override val id: String,
+        override val id: UUID,
+        override val identifikator: String,
         override val name: String,
         override val type: IdType,
         override val available: Boolean,

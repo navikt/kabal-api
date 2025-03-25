@@ -732,11 +732,13 @@ class DokumentUnderArbeidService(
         innloggetIdent: String
     ): OpplastetDokumentUnderArbeidAsHoveddokument {
 
-        //Validate part
-        partSearchService.searchPart(
-            identifikator = avsenderInput.id,
-            skipAccessControl = true
-        )
+        if (avsenderInput.identifikator != null) {
+            //Validate part
+            partSearchService.searchPart(
+                identifikator = avsenderInput.identifikator,
+                skipAccessControl = true
+            )
+        }
 
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
@@ -759,7 +761,8 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
         dokumentUnderArbeid.avsenderMottakerInfoSet.add(
             DokumentUnderArbeidAvsenderMottakerInfo(
-                identifikator = avsenderInput.id,
+                technicalPartid = avsenderInput.id,
+                identifikator = avsenderInput.identifikator,
                 localPrint = false,
                 forceCentralPrint = false,
                 address = null,
@@ -834,7 +837,7 @@ class DokumentUnderArbeidService(
 
         mottakerInput.mottakerList.forEach {
             val (markLocalPrint, forceCentralPrint) = getPreferredHandling(
-                identifikator = it.id,
+                identifikator = it.identifikator,
                 handling = it.handling,
                 isAddressOverridden = it.overriddenAddress != null,
                 sakenGjelderFnr = behandling.sakenGjelder.partId.value,
@@ -843,7 +846,8 @@ class DokumentUnderArbeidService(
             )
             dokumentUnderArbeid.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
-                    identifikator = it.id,
+                    technicalPartid = it.id,
+                    identifikator = it.identifikator,
                     localPrint = markLocalPrint,
                     forceCentralPrint = forceCentralPrint,
                     address = getDokumentUnderArbeidAdresse(it.overriddenAddress),
@@ -885,9 +889,9 @@ class DokumentUnderArbeidService(
         systemContext: Boolean,
     ) {
         mottakerInput.mottakerList.forEach { mottaker ->
-            if (mottaker.id != null) {
+            if (mottaker.identifikator != null) {
                 val part = partSearchService.searchPart(
-                    identifikator = mottaker.id,
+                    identifikator = mottaker.identifikator,
                     skipAccessControl = systemContext
                 )
 
@@ -1251,6 +1255,7 @@ class DokumentUnderArbeidService(
             hovedDokument.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
                     //Hardkoder Trygderetten
+                    technicalPartid = UUID.randomUUID(),
                     identifikator = "974761084",
                     localPrint = false,
                     forceCentralPrint = false,
@@ -2257,7 +2262,8 @@ class DokumentUnderArbeidService(
             mottakerInput = MottakerInput(
                 svarbrev.receivers.map {
                     Mottaker(
-                        id = it.id,
+                        id = UUID.randomUUID(),
+                        identifikator = it.id,
                         handling = HandlingEnum.valueOf(it.handling.name),
                         overriddenAddress = it.overriddenAddress?.let { address ->
                             AddressInput(
@@ -2340,6 +2346,7 @@ class DokumentUnderArbeidService(
         forlengetBehandlingstidDraft.receivers.forEach {
             document.avsenderMottakerInfoSet.add(
                 DokumentUnderArbeidAvsenderMottakerInfo(
+                    technicalPartid = it.id,
                     identifikator = it.identifikator,
                     localPrint = it.localPrint,
                     forceCentralPrint = it.forceCentralPrint,

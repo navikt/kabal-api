@@ -10,6 +10,8 @@ import java.util.*
 class DokumentUnderArbeidAvsenderMottakerInfo(
     @Id
     val id: UUID = UUID.randomUUID(),
+    @Column(name = "technical_part_id")
+    val technicalPartid: UUID,
     @Column(name = "identifikator")
     val identifikator: String?,
     @Column(name = "local_print")
@@ -41,6 +43,7 @@ class DokumentUnderArbeidAvsenderMottakerInfo(
         if (localPrint != other.localPrint) return false
         if (forceCentralPrint != other.forceCentralPrint) return false
         if (id != other.id) return false
+        if (technicalPartid != other.technicalPartid) return false
         if (identifikator != other.identifikator) return false
         if (address != other.address) return false
         if (navn != other.navn) return false
@@ -53,13 +56,14 @@ class DokumentUnderArbeidAvsenderMottakerInfo(
         result = 31 * result + forceCentralPrint.hashCode()
         result = 31 * result + id.hashCode()
         result = 31 * result + (identifikator?.hashCode() ?: 0)
+        result = 31 * result + (technicalPartid?.hashCode() ?: 0)
         result = 31 * result + (address?.hashCode() ?: 0)
         result = 31 * result + (navn?.hashCode() ?: 0)
         return result
     }
 
     override fun toString(): String {
-        return "DokumentUnderArbeidAvsenderMottakerInfo(id=$id, identifikator=$identifikator, localPrint=$localPrint, forceCentralPrint=$forceCentralPrint, address=$address, navn=$navn)"
+        return "DokumentUnderArbeidAvsenderMottakerInfo(id=$id, technicalPartid=$technicalPartid, identifikator=$identifikator, localPrint=$localPrint, forceCentralPrint=$forceCentralPrint, address=$address, navn=$navn)"
     }
 
 }
