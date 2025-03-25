@@ -1618,6 +1618,10 @@ class BehandlingService(
                 )
             }
 
+        if (behandling.tildeling?.saksbehandlerident == navIdent) {
+            throw IllegalOperation("Medunderskriver kan ikke være lik saksbehandler")
+        }
+
         val event =
             behandling.setMedunderskriverNavIdent(
                 nyMedunderskriverNavIdent = navIdent,
