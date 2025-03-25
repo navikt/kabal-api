@@ -749,6 +749,19 @@ class BehandlingService(
             type = InternalEventType.TILDELING,
         )
 
+        if (tildeltSaksbehandlerIdent == behandling.medunderskriver?.saksbehandlerident) {
+            setMedunderskriverFlowState(
+                behandlingId = behandlingId,
+                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                flowState = FlowState.NOT_SENT,
+            )
+            setMedunderskriverNavIdent(
+                behandlingId = behandlingId,
+                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                navIdent = null,
+            )
+        }
+
         return getSaksbehandlerViewWrapped(behandling)
     }
 
@@ -1344,7 +1357,7 @@ class BehandlingService(
                 throw IllegalOperation("Address and name can only be set without id")
             }
 
-            if ((input.address != null && input.name == null) || (input.address == null && input.name != null) ) {
+            if ((input.address != null && input.name == null) || (input.address == null && input.name != null)) {
                 throw IllegalOperation("Both address or name must be set")
             }
 
@@ -1412,7 +1425,7 @@ class BehandlingService(
                     landkode = behandling.prosessfullmektig!!.address!!.landkode,
                     postnummer = behandling.prosessfullmektig!!.address!!.postnummer,
                     poststed = behandling.prosessfullmektig!!.address!!.poststed,
-                ) ,
+                ),
                 utsendingskanal = BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT
             )
         }
