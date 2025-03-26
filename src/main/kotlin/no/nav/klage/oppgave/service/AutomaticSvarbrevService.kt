@@ -22,6 +22,7 @@ import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
 import no.nav.klage.oppgave.repositories.AutomaticSvarbrevEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
+import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.Scheduled
@@ -171,6 +172,7 @@ class AutomaticSvarbrevService(
             }
 
             if (!automaticSvarbrevEvent.varsletFristIsSetInBehandling) {
+                Hibernate.initialize(behandling.varsletBehandlingstidHistorikk)
                 behandlingService.setOpprinneligVarsletFrist(
                     behandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
                     behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
