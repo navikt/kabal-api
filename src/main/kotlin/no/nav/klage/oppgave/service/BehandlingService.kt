@@ -790,10 +790,15 @@ class BehandlingService(
     fun setOpprinneligVarsletFrist(
         behandlingstidUnitType: TimeUnitType,
         behandlingstidUnits: Int,
-        behandling: Behandling,
+        behandlingId: UUID,
         systemUserContext: Boolean,
         mottakere: List<Mottaker>,
     ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = systemUserContext,
+            systemUserContext = systemUserContext
+        )
         //TODO differentiate between mottatt and now.
         val varsletFrist = findDateBasedOnTimeUnitTypeAndUnits(
             timeUnitType = behandlingstidUnitType,

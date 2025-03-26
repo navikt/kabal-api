@@ -115,7 +115,7 @@ class KabinApiService(
                     varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType
                 ),
                 behandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
-                behandling = behandling,
+                behandlingId = behandling.id,
                 systemUserContext = false,
                 mottakere = svarbrevInput.receivers.map {
                     if (it.id != null) {
