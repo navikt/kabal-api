@@ -37,7 +37,7 @@ class ExternalMottakFacade(
     fun createMottakForKlageV2(oversendtKlage: OversendtKlageV2) {
         val behandling = mottakService.createMottakForKlageV2(oversendtKlage)
 
-        tryToSendSvarbrev(behandling.id, hindreAutomatiskSvarbrev = oversendtKlage.hindreAutomatiskSvarbrev == true)
+        tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlage.hindreAutomatiskSvarbrev == true)
     }
 
     fun createMottakForKlageAnkeV3(oversendtKlageAnke: OversendtKlageAnkeV3) {
@@ -47,7 +47,7 @@ class ExternalMottakFacade(
             tryToSetSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdent)
         }
 
-        tryToSendSvarbrev(behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
+        tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
     }
 
     fun createMottakForKlageAnkeV4(oversendtKlageAnke: OversendtKlageAnkeV4) {
@@ -60,7 +60,7 @@ class ExternalMottakFacade(
             )
         }
 
-        tryToSendSvarbrev(behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
+        tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
     }
 
     fun createMottakForKlageAnkeV3ForE2ETests(oversendtKlageAnke: OversendtKlageAnkeV3): Behandling {
@@ -70,7 +70,7 @@ class ExternalMottakFacade(
             tryToSetSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdent)
         }
 
-        tryToSendSvarbrev(behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
+        tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
 
         return behandling
     }

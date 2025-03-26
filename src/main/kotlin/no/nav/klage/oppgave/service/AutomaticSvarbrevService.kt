@@ -6,6 +6,7 @@ import no.nav.klage.dokument.api.view.HandlingEnum
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAvsenderMottakerInfo
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
+import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.dokument.service.KabalJsonToPdfService
 import no.nav.klage.kodeverk.DokumentType
@@ -22,6 +23,7 @@ import no.nav.klage.oppgave.repositories.AutomaticSvarbrevEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.nio.file.Files
@@ -38,6 +40,8 @@ class AutomaticSvarbrevService(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val mottakService: MottakService,
+    private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
+    private val environment: Environment
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -58,8 +62,18 @@ class AutomaticSvarbrevService(
     }
 
     private fun handleAutomaticSvarbrevEvent(automaticSvarbrevEvent: AutomaticSvarbrevEvent) {
-        val behandling =
+        val behandling = try {
             behandlingService.getBehandlingForReadWithoutCheckForAccess(automaticSvarbrevEvent.behandlingId)
+        } catch (ex: Exception) {
+            if (environment.activeProfiles.contains("dev-gcp")) {
+                logger.debug("Missing behandling with id ${automaticSvarbrevEvent.behandlingId} in dev, skipping")
+                automaticSvarbrevEvent.status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.HANDLED
+                return
+            } else {
+                throw ex
+            }
+        }
+
         if (behandling.type != Type.KLAGE) {
             logger.debug(
                 "Automatisk svarbrev sendes bare for klage. Markerer event med id {} og behandling med id {} som fullført.",
@@ -221,6 +235,7 @@ class AutomaticSvarbrevService(
             )
         )
         dokumentUnderArbeid.modified = LocalDateTime.now()
+        dokumentUnderArbeidRepository.save(dokumentUnderArbeid)
     }
 
     private fun validateReceiver(
