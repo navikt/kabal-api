@@ -2,6 +2,7 @@ CREATE TABLE klage.automatic_svarbrev_event
 (
     id                                 UUID PRIMARY KEY NOT NULL,
     created                            TIMESTAMP        NOT NULL,
+    modified                           TIMESTAMP        NOT NULL,
     status                             TEXT,
     behandling_id                      UUID,
     dokument_under_arbeid_id           UUID,

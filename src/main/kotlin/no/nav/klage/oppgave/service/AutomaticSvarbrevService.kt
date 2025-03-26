@@ -130,6 +130,8 @@ class AutomaticSvarbrevService(
                     dokumentView.id
                 )
                 automaticSvarbrevEvent.dokumentUnderArbeidId = dokumentView.id
+                automaticSvarbrevEvent.modified = LocalDateTime.now()
+                automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
             }
 
             val dokumentUnderArbeid =
@@ -138,6 +140,8 @@ class AutomaticSvarbrevService(
             if (!automaticSvarbrevEvent.receiversAreSet) {
                 setReceiversInDokumentUnderArbeid(dokumentUnderArbeid, receiver, behandling)
                 automaticSvarbrevEvent.receiversAreSet = true
+                automaticSvarbrevEvent.modified = LocalDateTime.now()
+                automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
             }
 
             if (!automaticSvarbrevEvent.documentIsMarkedAsFinished) {
@@ -147,6 +151,9 @@ class AutomaticSvarbrevService(
                     utfoerendeIdent = systembrukerIdent,
                     systemContext = true
                 )
+                automaticSvarbrevEvent.documentIsMarkedAsFinished = true
+                automaticSvarbrevEvent.modified = LocalDateTime.now()
+                automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
             }
 
             if (!automaticSvarbrevEvent.varsletFristIsSetInBehandling) {
@@ -168,6 +175,8 @@ class AutomaticSvarbrevService(
                     )
                 )
                 automaticSvarbrevEvent.varsletFristIsSetInBehandling = true
+                automaticSvarbrevEvent.modified = LocalDateTime.now()
+                automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
             }
 
             logger.debug("Svarbrev klargjort for utsending for behandling {}", behandling.id)

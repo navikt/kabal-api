@@ -15,6 +15,8 @@ class AutomaticSvarbrevEvent (
     var status: AutomaticSvarbrevStatus,
     @Column(name = "created")
     val created: LocalDateTime,
+    @Column(name = "modified")
+    var modified: LocalDateTime,
     @Column(name = "behandling_id")
     val behandlingId: UUID,
     @Column(name = "dokument_under_arbeid_id")
