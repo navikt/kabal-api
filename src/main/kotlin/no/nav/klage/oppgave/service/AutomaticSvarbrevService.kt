@@ -62,7 +62,7 @@ class AutomaticSvarbrevService(
 
 
     private fun handleAutomaticSvarbrevEvent(automaticSvarbrevEvent: AutomaticSvarbrevEvent) {
-        logger.debug("AutomaticSvarbrevEvent: {}", automaticSvarbrevEvent)
+        logger.debug("AutomaticSvarbrevEvent: {}", automaticSvarbrevEvent.toString())
         val behandling = try {
             behandlingService.getBehandlingForReadWithoutCheckForAccess(automaticSvarbrevEvent.behandlingId)
         } catch (ex: Exception) {

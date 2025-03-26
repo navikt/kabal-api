@@ -32,4 +32,8 @@ class AutomaticSvarbrevEvent (
         NOT_HANDLED,
         HANDLED
     }
+
+    override fun toString(): String {
+        return "AutomaticSvarbrevEvent(id=$id, status=$status, created=$created, modified=$modified, behandlingId=$behandlingId, dokumentUnderArbeidId=$dokumentUnderArbeidId, receiversAreSet=$receiversAreSet, documentIsMarkedAsFinished=$documentIsMarkedAsFinished, varsletFristIsSetInBehandling=$varsletFristIsSetInBehandling)"
+    }
 }
