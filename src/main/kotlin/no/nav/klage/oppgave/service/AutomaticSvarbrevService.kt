@@ -62,6 +62,7 @@ class AutomaticSvarbrevService(
 
 
     private fun handleAutomaticSvarbrevEvent(automaticSvarbrevEvent: AutomaticSvarbrevEvent) {
+        logger.debug("AutomaticSvarbrevEvent: {}", automaticSvarbrevEvent)
         val behandling = try {
             behandlingService.getBehandlingForReadWithoutCheckForAccess(automaticSvarbrevEvent.behandlingId)
         } catch (ex: Exception) {
@@ -200,6 +201,11 @@ class AutomaticSvarbrevService(
             }
 
             logger.debug("Svarbrev klargjort for utsending for behandling {}", behandling.id)
+            automaticSvarbrevEvent.status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.HANDLED
+            automaticSvarbrevEvent.modified = LocalDateTime.now()
+            automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
+        } else {
+            logger.debug("Svarbrev skal ikke sendes for behandling {}", behandling.id)
             automaticSvarbrevEvent.status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.HANDLED
             automaticSvarbrevEvent.modified = LocalDateTime.now()
             automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
