@@ -206,7 +206,7 @@ sealed class Behandling(
     @BatchSize(size = 100)
     @NotAudited
     open val sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)

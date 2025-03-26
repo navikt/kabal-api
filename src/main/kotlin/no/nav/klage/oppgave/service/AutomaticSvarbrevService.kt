@@ -25,13 +25,11 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.nio.file.Files
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
 @Service
-@Transactional
 class AutomaticSvarbrevService(
     private val automaticSvarbrevEventRepository: AutomaticSvarbrevEventRepository,
     private val behandlingService: BehandlingService,
@@ -68,10 +66,8 @@ class AutomaticSvarbrevService(
             behandlingService.getBehandlingForReadWithoutCheckForAccess(automaticSvarbrevEvent.behandlingId)
         } catch (ex: Exception) {
             if (environment.activeProfiles.contains("dev-gcp")) {
-                logger.debug("Missing behandling with id ${automaticSvarbrevEvent.behandlingId} in dev, skipping")
-                automaticSvarbrevEvent.status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.HANDLED
-                automaticSvarbrevEvent.modified = LocalDateTime.now()
-                automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
+                logger.debug("Missing behandling with id {} in dev, skipping", automaticSvarbrevEvent.behandlingId)
+                automaticSvarbrevEventRepository.delete(automaticSvarbrevEvent)
                 return
             } else {
                 throw ex
@@ -79,7 +75,7 @@ class AutomaticSvarbrevService(
         }
 
         if (behandling.type != Type.KLAGE) {
-            logger.debug(
+            logger.error(
                 "Automatisk svarbrev sendes bare for klage. Markerer event med id {} og behandling med id {} som fullført.",
                 automaticSvarbrevEvent.id,
                 behandling.id
@@ -112,13 +108,13 @@ class AutomaticSvarbrevService(
             logger.debug("Sender svarbrev for behandling {} i event {}", behandling.id, automaticSvarbrevEvent.id)
 
             val receiver = getReceiver(behandling = behandling)
-            val receiverValidationError = validateReceiver(receiver)
-            if (receiverValidationError != null) {
+            val receiverValidationErrorMessage = getPotentialErrorMessage(receiver)
+            if (receiverValidationErrorMessage != null) {
                 //Dette gir de godkjente feilene vi kjenner til, og skal sendes videre til merkantil.
-                logger.error(receiverValidationError)
+                logger.error(receiverValidationErrorMessage)
                 mottakService.createTaskForMerkantil(
                     behandlingId = behandling.id,
-                    reason = receiverValidationError
+                    reason = receiverValidationErrorMessage
                 )
                 automaticSvarbrevEvent.status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.HANDLED
                 automaticSvarbrevEvent.modified = LocalDateTime.now()
@@ -184,7 +180,7 @@ class AutomaticSvarbrevService(
                 behandlingService.setOpprinneligVarsletFrist(
                     behandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
                     behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
-                    behandling = behandling,
+                    behandlingId = behandling.id,
                     systemUserContext = true,
                     mottakere = listOf(
                         if (receiver.id != null) {
@@ -250,7 +246,7 @@ class AutomaticSvarbrevService(
         dokumentUnderArbeidRepository.save(dokumentUnderArbeid)
     }
 
-    private fun validateReceiver(
+    private fun getPotentialErrorMessage(
         receiver: Svarbrev.Receiver,
     ): String? {
         if (receiver.id != null) {
