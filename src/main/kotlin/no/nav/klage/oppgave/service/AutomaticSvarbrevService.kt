@@ -69,6 +69,8 @@ class AutomaticSvarbrevService(
             if (environment.activeProfiles.contains("dev-gcp")) {
                 logger.debug("Missing behandling with id ${automaticSvarbrevEvent.behandlingId} in dev, skipping")
                 automaticSvarbrevEvent.status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.HANDLED
+                automaticSvarbrevEvent.modified = LocalDateTime.now()
+                automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
                 return
             } else {
                 throw ex
@@ -82,6 +84,8 @@ class AutomaticSvarbrevService(
                 behandling.id
             )
             automaticSvarbrevEvent.status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.HANDLED
+            automaticSvarbrevEvent.modified = LocalDateTime.now()
+            automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
             return
         }
 
@@ -98,6 +102,8 @@ class AutomaticSvarbrevService(
                 reason = "Fant ikke svarbrevinnstillinger for ytelse ${behandling.ytelse} og type ${behandling.type}"
             )
             automaticSvarbrevEvent.status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.HANDLED
+            automaticSvarbrevEvent.modified = LocalDateTime.now()
+            automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
             return
         }
 
@@ -114,6 +120,8 @@ class AutomaticSvarbrevService(
                     reason = receiverValidationError
                 )
                 automaticSvarbrevEvent.status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.HANDLED
+                automaticSvarbrevEvent.modified = LocalDateTime.now()
+                automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
                 return
             }
 
@@ -197,6 +205,8 @@ class AutomaticSvarbrevService(
 
             logger.debug("Svarbrev klargjort for utsending for behandling {}", behandling.id)
             automaticSvarbrevEvent.status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.HANDLED
+            automaticSvarbrevEvent.modified = LocalDateTime.now()
+            automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
         }
     }
 
