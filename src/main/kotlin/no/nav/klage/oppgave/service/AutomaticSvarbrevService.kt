@@ -217,6 +217,9 @@ class AutomaticSvarbrevService(
         receiver: Svarbrev.Receiver,
         behandling: Behandling
     ) {
+        if (true) {
+            error("Alltid feil, for test")
+        }
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
 
         val (markLocalPrint, forceCentralPrint) = dokumentUnderArbeidService.getPreferredHandling(
