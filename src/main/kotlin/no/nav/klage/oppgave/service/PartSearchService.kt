@@ -122,7 +122,7 @@ class PartSearchService(
                         mottakerId = identifikator,
                         brukerId = sakenGjelderId,
                         tema = tema,
-                        saksbehandlerContext = true,
+                        saksbehandlerContext = !systemContext,
                     )
                 )
             }
