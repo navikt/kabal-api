@@ -796,7 +796,7 @@ class BehandlingService(
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = systemUserContext,
+            ignoreCheckSkrivetilgang = true,
             systemUserContext = systemUserContext
         )
         //TODO differentiate between mottatt and now.
