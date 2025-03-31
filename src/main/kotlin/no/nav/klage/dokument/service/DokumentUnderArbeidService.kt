@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
-import no.nav.klage.dokument.api.view.Mottaker
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
@@ -24,8 +23,11 @@ import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.getHistogram
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.klage.BehandlingRole
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
+import no.nav.klage.oppgave.domain.klage.ForlengetBehandlingstidDraft
+import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
@@ -95,7 +97,7 @@ class DokumentUnderArbeidService(
         baseUnit = "versions",
     )
 
-    private fun createOpplastetDokumentUnderArbeid(
+    fun createOpplastetDokumentUnderArbeid(
         behandlingId: UUID,
         dokumentTypeId: String,
         parentId: UUID?,
@@ -2112,112 +2114,6 @@ class DokumentUnderArbeidService(
                 data = data,
             )
         )
-    }
-
-    fun sendSvarbrev(
-        behandlingId: UUID,
-        hindreAutomatiskSvarbrev: Boolean,
-    ) {
-        val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId)
-
-        if (hindreAutomatiskSvarbrev) {
-            logger.debug("hindreAutomatiskSvarbrev set to true, returning without sending svarbrev")
-            return
-        }
-        if (behandling.type == Type.KLAGE) {
-            val svarbrevSettings = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(
-                ytelse = behandling.ytelse,
-                type = behandling.type
-            )
-
-            if (svarbrevSettings == null) {
-                throw RuntimeException("Fant ikke svarbrevinnstillinger for ytelse ${behandling.ytelse} og type ${behandling.type}")
-            }
-
-            if (svarbrevSettings.shouldSend) {
-                logger.debug("Sender svarbrev for behandling {}", behandling.id)
-
-                val receiver = if (behandling.prosessfullmektig != null) {
-                    val prosessfullmektig = behandling.prosessfullmektig!!
-                    if (prosessfullmektig.partId != null) {
-                        Svarbrev.Receiver(
-                            id = prosessfullmektig.partId.value,
-                            handling = Svarbrev.Receiver.HandlingEnum.AUTO,
-                            overriddenAddress = null,
-                            navn = null
-                        )
-                    } else {
-                        Svarbrev.Receiver(
-                            id = null,
-                            handling = Svarbrev.Receiver.HandlingEnum.AUTO,
-                            overriddenAddress = Svarbrev.Receiver.AddressInput(
-                                adresselinje1 = prosessfullmektig.address!!.adresselinje1,
-                                adresselinje2 = prosessfullmektig.address.adresselinje2,
-                                adresselinje3 = prosessfullmektig.address.adresselinje3,
-                                landkode = prosessfullmektig.address.landkode,
-                                postnummer = prosessfullmektig.address.postnummer,
-                            ),
-                            navn = prosessfullmektig.navn
-                        )
-                    }
-                } else if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
-                    Svarbrev.Receiver(
-                        id = behandling.klager.partId.value,
-                        handling = Svarbrev.Receiver.HandlingEnum.AUTO,
-                        overriddenAddress = null,
-                        navn = null
-                    )
-                } else {
-                    Svarbrev.Receiver(
-                        id = behandling.sakenGjelder.partId.value,
-                        handling = Svarbrev.Receiver.HandlingEnum.AUTO,
-                        overriddenAddress = null,
-                        navn = null
-                    )
-                }
-
-                createAndFinalizeDokumentUnderArbeidFromSvarbrev(
-                    behandling = behandling,
-                    svarbrev = Svarbrev(
-                        title = "Nav klageinstans orienterer om saksbehandlingen",
-                        receivers = listOf(
-                            receiver
-                        ),
-                        fullmektigFritekst = null,
-                        varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
-                        varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
-                        type = behandling.type,
-                        initialCustomText = null,
-                        customText = svarbrevSettings.customText,
-                    ),
-                    //Hardcode KA Oslo
-                    avsenderEnhetId = Enhet.E4291.navn,
-                    systemContext = true
-                )
-
-                behandlingService.setOpprinneligVarsletFrist(
-                    behandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
-                    behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
-                    behandling = behandling,
-                    systemUserContext = true,
-                    mottakere = listOf(
-                        if (receiver.id != null) {
-                            MottakerPartId(
-                                value = getPartIdFromIdentifikator(receiver.id)
-                            )
-                        } else if (receiver.navn != null) {
-                            MottakerNavn(
-                                value = receiver.navn
-                            )
-                        } else throw IllegalArgumentException("Missing values in receiver: $receiver")
-                    )
-                )
-
-                logger.debug("Svarbrev klargjort for utsending for behandling {}", behandling.id)
-            } else {
-                logger.debug("Svarbrev skal ikke sendes for behandling {}", behandling.id)
-            }
-        }
     }
 
     fun createAndFinalizeDokumentUnderArbeidFromSvarbrev(

@@ -7,11 +7,15 @@ import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV4
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.clients.kabalinnstillinger.KabalInnstillingerClient
+import no.nav.klage.oppgave.domain.events.AutomaticSvarbrevEvent
 import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.repositories.AutomaticSvarbrevEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
+import java.util.*
 
 @Service
 class ExternalMottakFacade(
@@ -21,6 +25,7 @@ class ExternalMottakFacade(
     private val saksbehandlerService: SaksbehandlerService,
     private val kabalInnstillingerClient: KabalInnstillingerClient,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val automaticSvarbrevEventRepository: AutomaticSvarbrevEventRepository,
 ) {
 
     companion object {
@@ -32,7 +37,7 @@ class ExternalMottakFacade(
     fun createMottakForKlageV2(oversendtKlage: OversendtKlageV2) {
         val behandling = mottakService.createMottakForKlageV2(oversendtKlage)
 
-        tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlage.hindreAutomatiskSvarbrev == true)
+        tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlage.hindreAutomatiskSvarbrev == true)
     }
 
     fun createMottakForKlageAnkeV3(oversendtKlageAnke: OversendtKlageAnkeV3) {
@@ -42,10 +47,10 @@ class ExternalMottakFacade(
             tryToSetSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdent)
         }
 
-        tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
+        tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
     }
 
-    fun createMottakForKlageAnkeV4(oversendtKlageAnke: OversendtKlageAnkeV4): Behandling {
+    fun createMottakForKlageAnkeV4(oversendtKlageAnke: OversendtKlageAnkeV4) {
         val behandling = mottakService.createMottakForKlageAnkeV4(oversendtKlageAnke)
 
         if (oversendtKlageAnke.saksbehandlerIdentForTildeling != null) {
@@ -55,27 +60,30 @@ class ExternalMottakFacade(
             )
         }
 
-        tryToSendSvarbrev(behandling, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
-
-        return behandling
+        tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
     }
 
     private fun tryToSendSvarbrev(
-        behandling: Behandling,
+        behandlingId: UUID,
         hindreAutomatiskSvarbrev: Boolean
     ) {
-        try {
-            dokumentUnderArbeidService.sendSvarbrev(
-                behandlingId = behandling.id,
-                hindreAutomatiskSvarbrev = hindreAutomatiskSvarbrev,
-            )
-        } catch (e: Exception) {
-            secureLogger.error("Klarte ikke å sende svarbrev for behandling ${behandling.id}.", e)
-            mottakService.createTaskForMerkantil(
-                behandlingId = behandling.id,
-                reason = e.message ?: "Ukjent feil"
-            )
+        if (hindreAutomatiskSvarbrev) {
+            logger.debug("hindreAutomatiskSvarbrev set to true, returning without sending svarbrev")
+            return
         }
+
+        automaticSvarbrevEventRepository.save(
+            AutomaticSvarbrevEvent(
+                status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.NOT_HANDLED,
+                created = LocalDateTime.now(),
+                modified = LocalDateTime.now(),
+                behandlingId = behandlingId,
+                dokumentUnderArbeidId = null,
+                receiversAreSet = false,
+                documentIsMarkedAsFinished = false,
+                varsletFristIsSetInBehandling = false
+            )
+        )
     }
 
     private fun tryToSetSaksbehandler(

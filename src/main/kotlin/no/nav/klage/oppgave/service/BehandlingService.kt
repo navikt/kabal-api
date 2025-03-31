@@ -678,6 +678,19 @@ class BehandlingService(
                 )
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
             }
+
+            if (tildeltSaksbehandlerIdent == behandling.medunderskriver?.saksbehandlerident) {
+                setMedunderskriverFlowState(
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                    flowState = FlowState.NOT_SENT,
+                )
+                setMedunderskriverNavIdent(
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                    navIdent = null,
+                )
+            }
         } else {
             if (fradelingReason == null &&
                 !innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole() &&
@@ -777,10 +790,15 @@ class BehandlingService(
     fun setOpprinneligVarsletFrist(
         behandlingstidUnitType: TimeUnitType,
         behandlingstidUnits: Int,
-        behandling: Behandling,
+        behandlingId: UUID,
         systemUserContext: Boolean,
         mottakere: List<Mottaker>,
     ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = true,
+            systemUserContext = systemUserContext
+        )
         //TODO differentiate between mottatt and now.
         val varsletFrist = findDateBasedOnTimeUnitTypeAndUnits(
             timeUnitType = behandlingstidUnitType,
@@ -1622,6 +1640,10 @@ class BehandlingService(
                     utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent
                 )
             }
+
+        if (navIdent != null && behandling.tildeling?.saksbehandlerident == navIdent) {
+            throw IllegalOperation("Medunderskriver kan ikke være lik saksbehandler")
+        }
 
         val event =
             behandling.setMedunderskriverNavIdent(
