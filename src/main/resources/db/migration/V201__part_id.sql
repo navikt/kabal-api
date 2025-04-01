@@ -4,15 +4,17 @@ ALTER TABLE klage.dokument_under_arbeid_avsender_mottaker_info
 ALTER TABLE klage.dokument_under_arbeid_avsender_mottaker_info_aud
     RENAME TO brevmottaker_aud;
 
-
 ALTER TABLE klage.dua_dokument_under_arbeid_avsender_mottaker_info_aud
     RENAME TO dua_brevmottaker_aud;
 
 --delete table varslet_behandlingstid_historikk_mottaker_info
 --copy data first?
 
-ALTER TABLE klage.brevmottaker
+ALTER TABLE klage.brevmottaker_aud
     ALTER COLUMN identifikator drop not null;
+
+ALTER TABLE klage.brevmottaker
+    ALTER COLUMN dokument_under_arbeid_id drop not null;
 
 ALTER TABLE klage.brevmottaker_aud
     ALTER COLUMN identifikator drop not null;
@@ -32,17 +34,26 @@ ALTER TABLE klage.brevmottaker_aud
 ALTER TABLE klage.behandling
     ADD COLUMN saken_gjelder_id UUID DEFAULT gen_random_uuid();
 
+ALTER TABLE klage.behandling_aud
+    ADD COLUMN saken_gjelder_id UUID;
+
 ALTER TABLE klage.behandling
     ADD COLUMN klager_id UUID;
+
+ALTER TABLE klage.behandling_aud
+    ADD COLUMN klager_id UUID;
+
+ALTER TABLE klage.behandling
+    ADD COLUMN prosessfullmektig_id UUID;
+
+ALTER TABLE klage.behandling_aud
+    ADD COLUMN prosessfullmektig_id UUID;
 
 ALTER TABLE klage.mottak
     ADD COLUMN saken_gjelder_id UUID;
 
 ALTER TABLE klage.mottak
     ADD COLUMN klager_id UUID;
-
-ALTER TABLE klage.behandling
-    ADD COLUMN prosessfullmektig_id UUID;
 
 ALTER TABLE klage.mottak
     ADD COLUMN prosessfullmektig_id UUID;

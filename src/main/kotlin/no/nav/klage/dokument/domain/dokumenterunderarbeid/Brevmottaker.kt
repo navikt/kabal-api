@@ -63,7 +63,7 @@ class Brevmottaker(
     }
 
     override fun toString(): String {
-        return "Brevmottaker(id=$id, technicalPartid=$technicalPartId, identifikator=$identifikator, localPrint=$localPrint, forceCentralPrint=$forceCentralPrint, address=$address, navn=$navn)"
+        return "Brevmottaker(id=$id, technicalPartId=$technicalPartId, identifikator=$identifikator, localPrint=$localPrint, forceCentralPrint=$forceCentralPrint, address=$address, navn=$navn)"
     }
 
 }
