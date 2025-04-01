@@ -23,8 +23,8 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     @JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 5)
-    @AuditJoinTable(name = "dua_dokument_under_arbeid_avsender_mottaker_info_aud")
-    open val avsenderMottakerInfoSet: MutableSet<DokumentUnderArbeidAvsenderMottakerInfo> = mutableSetOf(),
+    @AuditJoinTable(name = "dua_brevmottaker_aud")
+    open val avsenderMottakerInfoSet: MutableSet<Brevmottaker> = mutableSetOf(),
     @Column(name = "journalfoerende_enhet_id")
     open var journalfoerendeEnhetId: String?,
     @Column(name = "dokument_type_id")

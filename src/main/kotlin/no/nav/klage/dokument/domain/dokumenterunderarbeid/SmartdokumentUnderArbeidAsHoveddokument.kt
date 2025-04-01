@@ -41,7 +41,7 @@ class SmartdokumentUnderArbeidAsHoveddokument(
     creatorRole: BehandlingRole,
     dokumentType: DokumentType,
     dokumentEnhetId: UUID? = null,
-    avsenderMottakerInfoSet: MutableSet<DokumentUnderArbeidAvsenderMottakerInfo> = mutableSetOf(),
+    avsenderMottakerInfoSet: MutableSet<Brevmottaker> = mutableSetOf(),
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
     journalfoerendeEnhetId: String?,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsSmartdokument, DokumentUnderArbeidAsHoveddokument(

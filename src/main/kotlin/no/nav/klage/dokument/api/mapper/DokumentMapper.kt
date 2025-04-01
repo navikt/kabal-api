@@ -26,6 +26,7 @@ import no.nav.klage.oppgave.util.getSortKey
 import org.hibernate.Hibernate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
+import java.util.*
 
 @Component
 class DokumentMapper(
@@ -149,9 +150,12 @@ class DokumentMapper(
                 unproxiedDUA as OpplastetDokumentUnderArbeidAsHoveddokument
                 inngaaendeKanal =
                     if (unproxiedDUA.inngaaendeKanal != null) unproxiedDUA.inngaaendeKanal!! else null
-                val avsenderIdentifikator = unproxiedDUA.avsenderMottakerInfoSet.firstOrNull()?.identifikator
-                if (avsenderIdentifikator != null) {
-                    avsender = behandlingMapper.getPartView(getPartIdFromIdentifikator(avsenderIdentifikator))
+                val avsenderIdentifikator = unproxiedDUA.avsenderMottakerInfoSet.firstOrNull()
+                if (avsenderIdentifikator?.identifikator != null) {
+                    avsender = behandlingMapper.getAvsenderPartView(
+                        partId = getPartIdFromIdentifikator(identifikator = avsenderIdentifikator.identifikator),
+                        technicalPartId = avsenderIdentifikator.id,
+                    )
                 }
             } else if (unproxiedDUA.isUtgaaende()) {
                 val mottakerInfoSet = unproxiedDUA.avsenderMottakerInfoSet
@@ -159,6 +163,7 @@ class DokumentMapper(
 
                     mottakerList = mottakerInfoSet.map {
                         toDokumentViewMottaker(
+                            technicalPartId = it.id,
                             identifikator = it.identifikator,
                             navn = it.navn,
                             address = it.address,
@@ -214,6 +219,7 @@ class DokumentMapper(
     }
 
     fun toDokumentViewMottaker(
+        technicalPartId: UUID,
         identifikator: String?,
         navn: String?,
         address: Adresse?,
@@ -222,6 +228,7 @@ class DokumentMapper(
         behandling: Behandling
     ) = DokumentView.Mottaker(
         part = behandlingMapper.getPartViewWithUtsendingskanal(
+            technicalPartId = technicalPartId,
             partId = identifikator?.let { getPartIdFromIdentifikator(identifikator) },
             behandling = behandling,
             navn = navn,

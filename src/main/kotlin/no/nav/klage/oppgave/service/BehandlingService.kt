@@ -1424,8 +1424,7 @@ class BehandlingService(
                 systemContext = false,
             )
         } else {
-            BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                id = behandling.prosessfullmektig!!.id,
+            BehandlingDetaljerView.SearchPartViewWithUtsendingskanal(
                 identifikator = null,
                 name = behandling.prosessfullmektig!!.navn!!,
                 type = null,
@@ -1458,7 +1457,7 @@ class BehandlingService(
                     timestamp = behandling.modified,
                     part = partView?.let {
                         Part(
-                            id = partView.id,
+                            id = behandling.prosessfullmektig?.id!!,
                             identifikator = partView.identifikator,
                             type = partView.type,
                             name = partView.name,
@@ -1521,7 +1520,8 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     part = Part(
-                        identifikator = partView.id,
+                        id = behandling.klager.id,
+                        identifikator = partView.identifikator,
                         type = partView.type,
                         name = partView.name,
                         statusList = partView.statusList,
@@ -2370,6 +2370,7 @@ class BehandlingService(
         vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
         sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
         klager = behandlingMapper.getPartViewWithUtsendingskanal(
+            technicalPartId = klager.id,
             partId = klager.partId,
             behandling = this,
             navn = null,
@@ -2378,6 +2379,7 @@ class BehandlingService(
             .toKabinPartView(),
         fullmektig = prosessfullmektig?.let {
             behandlingMapper.getPartViewWithUtsendingskanal(
+                technicalPartId = it.id,
                 partId = it.partId,
                 behandling = this,
                 navn = it.navn,

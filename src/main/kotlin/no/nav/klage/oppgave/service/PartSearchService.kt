@@ -31,7 +31,7 @@ class PartSearchService(
         private val secureLogger = getSecureLogger()
     }
 
-    fun searchPart(identifikator: String, skipAccessControl: Boolean = false): BehandlingDetaljerView.PartView =
+    fun searchPart(identifikator: String, skipAccessControl: Boolean = false): BehandlingDetaljerView.SearchPartView =
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (skipAccessControl || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator)) {
@@ -41,8 +41,8 @@ class PartSearchService(
                     } else {
                         krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
                     }
-                    BehandlingDetaljerView.PartView(
-                        id = person.foedselsnr,
+                    BehandlingDetaljerView.SearchPartView(
+                        identifikator = person.foedselsnr,
                         name = person.settSammenNavn(),
                         type = BehandlingDetaljerView.IdType.FNR,
                         available = person.doed == null,
@@ -62,8 +62,8 @@ class PartSearchService(
 
             PartIdType.VIRKSOMHET -> {
                 val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifikator)
-                BehandlingDetaljerView.PartView(
-                    id = organisasjon.organisasjonsnummer,
+                BehandlingDetaljerView.SearchPartView(
+                    identifikator = organisasjon.organisasjonsnummer,
                     name = organisasjon.navn.sammensattnavn,
                     type = BehandlingDetaljerView.IdType.ORGNR,
                     available = organisasjon.isActive(),
@@ -81,14 +81,14 @@ class PartSearchService(
         sakenGjelderId: String,
         tema: Tema,
         systemContext: Boolean,
-    ): BehandlingDetaljerView.PartViewWithUtsendingskanal =
+    ): BehandlingDetaljerView.SearchPartViewWithUtsendingskanal =
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (skipAccessControl || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator)) {
                     val person = pdlFacade.getPersonInfo(identifikator)
                     val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
-                    BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                        id = person.foedselsnr,
+                    BehandlingDetaljerView.SearchPartViewWithUtsendingskanal(
+                        identifikator = person.foedselsnr,
                         name = person.settSammenNavn(),
                         type = BehandlingDetaljerView.IdType.FNR,
                         available = person.doed == null,
@@ -110,8 +110,8 @@ class PartSearchService(
 
             PartIdType.VIRKSOMHET -> {
                 val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifikator)
-                BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                    id = organisasjon.organisasjonsnummer,
+                BehandlingDetaljerView.SearchPartViewWithUtsendingskanal(
+                    identifikator = organisasjon.organisasjonsnummer,
                     name = organisasjon.navn.sammensattnavn,
                     type = BehandlingDetaljerView.IdType.ORGNR,
                     available = organisasjon.isActive(),
@@ -131,14 +131,14 @@ class PartSearchService(
     fun searchPerson(
         identifikator: String,
         skipAccessControl: Boolean = false
-    ): BehandlingDetaljerView.SakenGjelderView =
+    ): BehandlingDetaljerView.SearchPersonView =
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (skipAccessControl || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator)) {
                     val person = pdlFacade.getPersonInfo(identifikator)
                     val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
-                    BehandlingDetaljerView.SakenGjelderView(
-                        id = person.foedselsnr,
+                    BehandlingDetaljerView.SearchPersonView(
+                        identifikator = person.foedselsnr,
                         name = person.settSammenNavn(),
                         type = BehandlingDetaljerView.IdType.FNR,
                         available = person.doed == null,

@@ -70,12 +70,16 @@ data class BehandlingDetaljerView(
     )
 
     interface PartBase {
-        val id: UUID?
         val identifikator: String?
         val name: String?
         val available: Boolean
         val language: String?
         val statusList: List<PartStatus>
+    }
+
+    interface TechnicalPartId {
+        //TODO should not be nullable?
+        val id: UUID?
     }
 
     data class PartStatus(
@@ -107,6 +111,16 @@ data class BehandlingDetaljerView(
         val type: IdType?
     }
 
+    data class SearchPartView(
+        override val identifikator: String,
+        override val name: String,
+        override val type: IdType,
+        override val available: Boolean,
+        override val language: String?,
+        override val statusList: List<PartStatus>,
+        val address: Address?,
+    ): PartBase, IdPart
+
     data class PartView(
         override val id: UUID,
         override val identifikator: String,
@@ -116,6 +130,17 @@ data class BehandlingDetaljerView(
         override val language: String?,
         override val statusList: List<PartStatus>,
         val address: Address?,
+    ): PartBase, IdPart, TechnicalPartId
+
+    data class SearchPartViewWithUtsendingskanal(
+        override val identifikator: String?,
+        override val name: String,
+        override val type: IdType?,
+        override val available: Boolean,
+        override val language: String?,
+        override val statusList: List<PartStatus>,
+        val address: Address?,
+        val utsendingskanal: Utsendingskanal,
     ): PartBase, IdPart
 
     data class PartViewWithUtsendingskanal(
@@ -128,7 +153,7 @@ data class BehandlingDetaljerView(
         override val statusList: List<PartStatus>,
         val address: Address?,
         val utsendingskanal: Utsendingskanal,
-    ): PartBase, IdPart
+    ): PartBase, IdPart, TechnicalPartId
 
     data class Address(
         val adresselinje1: String?,
@@ -138,6 +163,17 @@ data class BehandlingDetaljerView(
         val postnummer: String?,
         val poststed: String?,
     )
+
+    data class SearchPersonView(
+        override val identifikator: String,
+        override val name: String,
+        override val type: IdType,
+        override val available: Boolean,
+        override val language: String?,
+        override val statusList: List<PartStatus>,
+        val sex: Sex,
+        val address: Address?,
+    ): PartBase, IdPart
 
     data class SakenGjelderView(
         override val id: UUID,
@@ -149,7 +185,7 @@ data class BehandlingDetaljerView(
         override val statusList: List<PartStatus>,
         val sex: Sex,
         val address: Address?,
-    ): PartBase, IdPart
+    ): PartBase, IdPart, TechnicalPartId
 
     data class SakenGjelderViewWithUtsendingskanal(
         override val id: UUID,
@@ -162,7 +198,7 @@ data class BehandlingDetaljerView(
         val sex: Sex,
         val address: Address?,
         val utsendingskanal: Utsendingskanal,
-    ): PartBase, IdPart
+    ): PartBase, IdPart, TechnicalPartId
 
     enum class Utsendingskanal(val navn: String) {
         SENTRAL_UTSKRIFT("Sentral utskrift"),

@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.TimeUnitTypeConverter
 import org.hibernate.annotations.BatchSize
@@ -44,6 +45,5 @@ class ForlengetBehandlingstidDraft(
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 10)
     @NotAudited
-    val receivers: MutableSet<ForlengetBehandlingstidDraftReceiver> = mutableSetOf(),
-
+    val receivers: MutableSet<Brevmottaker> = mutableSetOf(),
     )

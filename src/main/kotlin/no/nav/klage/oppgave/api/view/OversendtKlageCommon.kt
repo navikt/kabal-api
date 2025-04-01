@@ -3,10 +3,7 @@ package no.nav.klage.oppgave.api.view
 import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.oppgave.domain.klage.MottakDokument
-import no.nav.klage.oppgave.domain.klage.MottakDokumentType
-import no.nav.klage.oppgave.domain.klage.PartId
-import no.nav.klage.oppgave.domain.klage.Prosessfullmektig
+import no.nav.klage.oppgave.domain.klage.*
 import java.util.*
 
 data class OversendtSakenGjelder(
@@ -120,3 +117,24 @@ fun OversendtPartIdType.toPartIdType(): PartIdType =
         OversendtPartIdType.PERSON -> PartIdType.PERSON
         OversendtPartIdType.VIRKSOMHET -> PartIdType.VIRKSOMHET
     }
+
+fun getParts(sakenGjelder: OversendtSakenGjelder?, klager: OversendtKlagerLegacy): Pair<SakenGjelder, Klager> {
+    val klagePart = Klager(
+        id = UUID.randomUUID(),
+        partId = klager.id.toPartId(),
+    )
+
+    val sakenGjelderPart = if (sakenGjelder?.id?.verdi == klager.id.verdi || sakenGjelder == null) {
+        SakenGjelder(
+            id = klagePart.id,
+            partId = klagePart.partId,
+        )
+    } else {
+        SakenGjelder(
+            id = UUID.randomUUID(),
+            partId = sakenGjelder.id.toPartId(),
+        )
+    }
+
+    return sakenGjelderPart to klagePart
+}

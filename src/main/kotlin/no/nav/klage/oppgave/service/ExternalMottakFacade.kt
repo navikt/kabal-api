@@ -50,7 +50,7 @@ class ExternalMottakFacade(
         tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
     }
 
-    fun createMottakForKlageAnkeV4(oversendtKlageAnke: OversendtKlageAnkeV4) {
+    fun createMottakForKlageAnkeV4(oversendtKlageAnke: OversendtKlageAnkeV4): Behandling {
         val behandling = mottakService.createMottakForKlageAnkeV4(oversendtKlageAnke)
 
         if (oversendtKlageAnke.saksbehandlerIdentForTildeling != null) {
@@ -61,6 +61,8 @@ class ExternalMottakFacade(
         }
 
         tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
+
+        return behandling
     }
 
     private fun tryToSendSvarbrev(

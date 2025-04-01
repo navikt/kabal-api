@@ -120,28 +120,31 @@ data class OversendtKlageAnkeV3(
 
     )
 
-fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
-    type = type,
-    klager = klager.toKlagepart(),
-    sakenGjelder = sakenGjelder?.toSakenGjelder(),
-    fagsystem = kilde,
-    fagsakId = fagsak.fagsakId,
-    kildeReferanse = kildeReferanse,
-    dvhReferanse = dvhReferanse,
-    hjemler = hjemler!!.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
-    forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
-    mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
-    brukersKlageMottattVedtaksinstans = brukersHenvendelseMottattNavDato,
-    sakMottattKaDato = when {
-        sakMottattKaTidspunkt != null -> sakMottattKaTidspunkt
-        sakMottattKaDato != null -> sakMottattKaDato.atStartOfDay()
-        else -> LocalDateTime.now()
-    },
-    frist = frist,
-    ytelse = ytelse,
-    forrigeBehandlingId = forrigeBehandlingId,
-    kommentar = kommentar,
-    prosessfullmektig = klager.toProsessfullmektig(),
-    forrigeSaksbehandlerident = null,
-    sentFrom = Mottak.Sender.FAGSYSTEM,
-)
+fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
+    val (sakenGjelderPart, klagePart) = getParts(sakenGjelder, klager)
+    return Mottak(
+        type = type,
+        klager = klagePart,
+        sakenGjelder = sakenGjelderPart,
+        fagsystem = kilde,
+        fagsakId = fagsak.fagsakId,
+        kildeReferanse = kildeReferanse,
+        dvhReferanse = dvhReferanse,
+        hjemler = hjemler!!.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
+        forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
+        mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
+        brukersKlageMottattVedtaksinstans = brukersHenvendelseMottattNavDato,
+        sakMottattKaDato = when {
+            sakMottattKaTidspunkt != null -> sakMottattKaTidspunkt
+            sakMottattKaDato != null -> sakMottattKaDato.atStartOfDay()
+            else -> LocalDateTime.now()
+        },
+        frist = frist,
+        ytelse = ytelse,
+        forrigeBehandlingId = forrigeBehandlingId,
+        kommentar = kommentar,
+        prosessfullmektig = klager.toProsessfullmektig(),
+        forrigeSaksbehandlerident = null,
+        sentFrom = Mottak.Sender.FAGSYSTEM,
+    )
+}

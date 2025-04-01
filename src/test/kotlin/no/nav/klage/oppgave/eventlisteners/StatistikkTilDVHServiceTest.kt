@@ -127,12 +127,14 @@ class StatistikkTilDVHServiceTest {
         kommentarFraFoersteinstans = null,
         mottakId = UUID.randomUUID(),
         klager = Klager(
+            id = UUID.randomUUID(),
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
             ),
         ),
         sakenGjelder = SakenGjelder(
+            id = UUID.randomUUID(),
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
@@ -168,12 +170,14 @@ class StatistikkTilDVHServiceTest {
         kommentarFraFoersteinstans = null,
         mottakId = UUID.randomUUID(),
         klager = Klager(
+            id = UUID.randomUUID(),
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
             ),
         ),
         sakenGjelder = SakenGjelder(
+            id = UUID.randomUUID(),
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
@@ -205,12 +209,14 @@ class StatistikkTilDVHServiceTest {
     private val ankebehandlingOMP = Ankebehandling(
         mottakId = UUID.randomUUID(),
         klager = Klager(
+            id = UUID.randomUUID(),
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
             ),
         ),
         sakenGjelder = SakenGjelder(
+            id = UUID.randomUUID(),
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
@@ -245,12 +251,14 @@ class StatistikkTilDVHServiceTest {
 
     private val ankeITrygderettenbehandlingOMP = AnkeITrygderettenbehandling(
         klager = Klager(
+            id = UUID.randomUUID(),
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""
             ),
         ),
         sakenGjelder = SakenGjelder(
+            id = UUID.randomUUID(),
             partId = PartId(
                 type = PartIdType.PERSON,
                 value = ""

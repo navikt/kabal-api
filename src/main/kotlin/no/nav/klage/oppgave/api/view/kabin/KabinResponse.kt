@@ -90,6 +90,7 @@ data class TildeltSaksbehandler(
 )
 
 data class KabinPartView(
+    //TODO. Rename id to identifikator?
     val id: String?,
     val type: BehandlingDetaljerView.IdType?,
     val name: String,
@@ -101,6 +102,7 @@ data class KabinPartView(
 )
 
 data class OldKabinPartView(
+    //TODO. In use? Rename id?
     val id: String,
     val type: BehandlingDetaljerView.IdType,
     val name: String,
@@ -110,7 +112,7 @@ data class OldKabinPartView(
 
 fun BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
     return KabinPartView(
-        id = id,
+        id = identifikator,
         type = type,
         name = name,
         available = available,
@@ -123,7 +125,7 @@ fun BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal.toKabinPartView()
 
 fun BehandlingDetaljerView.PartViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
     return KabinPartView(
-        id = id,
+        id = identifikator,
         type = type,
         name = name,
         available = available,
@@ -134,9 +136,9 @@ fun BehandlingDetaljerView.PartViewWithUtsendingskanal.toKabinPartView(): KabinP
     )
 }
 
-fun BehandlingDetaljerView.PartView.toOldKabinPartView(): OldKabinPartView {
+fun BehandlingDetaljerView.SearchPartView.toOldKabinPartView(): OldKabinPartView {
     return OldKabinPartView(
-        id = id,
+        id = identifikator,
         type = type,
         name = name,
         available = available,

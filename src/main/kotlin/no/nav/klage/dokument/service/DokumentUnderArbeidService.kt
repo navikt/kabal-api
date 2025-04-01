@@ -762,8 +762,8 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
         dokumentUnderArbeid.avsenderMottakerInfoSet.add(
-            DokumentUnderArbeidAvsenderMottakerInfo(
-                technicalPartid = avsenderInput.id,
+            Brevmottaker(
+                technicalPartId = avsenderInput.id,
                 identifikator = avsenderInput.identifikator,
                 localPrint = false,
                 forceCentralPrint = false,
@@ -847,8 +847,8 @@ class DokumentUnderArbeidService(
                 systemContext = systemContext,
             )
             dokumentUnderArbeid.avsenderMottakerInfoSet.add(
-                DokumentUnderArbeidAvsenderMottakerInfo(
-                    technicalPartid = it.id,
+                Brevmottaker(
+                    technicalPartId = it.id,
                     identifikator = it.identifikator,
                     localPrint = markLocalPrint,
                     forceCentralPrint = forceCentralPrint,
@@ -1255,9 +1255,9 @@ class DokumentUnderArbeidService(
         if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
             hovedDokument.avsenderMottakerInfoSet.clear()
             hovedDokument.avsenderMottakerInfoSet.add(
-                DokumentUnderArbeidAvsenderMottakerInfo(
+                Brevmottaker(
                     //Hardkoder Trygderetten
-                    technicalPartid = UUID.randomUUID(),
+                    technicalPartId = UUID.randomUUID(),
                     identifikator = "974761084",
                     localPrint = false,
                     forceCentralPrint = false,
@@ -1449,8 +1449,8 @@ class DokumentUnderArbeidService(
     }
 
     private fun documentWillGoToCentralPrint(
-        mottaker: DokumentUnderArbeidAvsenderMottakerInfo,
-        part: BehandlingDetaljerView.PartViewWithUtsendingskanal
+        mottaker: Brevmottaker,
+        part: BehandlingDetaljerView.SearchPartViewWithUtsendingskanal
     ): Boolean {
         return mottaker.forceCentralPrint ||
                 (!mottaker.localPrint && part.utsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT)
@@ -2241,8 +2241,8 @@ class DokumentUnderArbeidService(
 
         forlengetBehandlingstidDraft.receivers.forEach {
             document.avsenderMottakerInfoSet.add(
-                DokumentUnderArbeidAvsenderMottakerInfo(
-                    technicalPartid = it.id,
+                Brevmottaker(
+                    technicalPartId = it.id,
                     identifikator = it.identifikator,
                     localPrint = it.localPrint,
                     forceCentralPrint = it.forceCentralPrint,
