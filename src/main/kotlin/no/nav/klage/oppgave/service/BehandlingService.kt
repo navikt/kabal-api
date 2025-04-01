@@ -1118,7 +1118,10 @@ class BehandlingService(
 
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId,
-            systemUserContext = systemUserContext
+            systemUserContext = systemUserContext ||
+                    saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(
+                        utfoerendeSaksbehandlerIdent
+                    )
         )
         val event =
             behandling.setSattPaaVent(
