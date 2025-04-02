@@ -100,6 +100,7 @@ class FerdigstillDokumentService(
                             //small hack for now, until we fetch data from SAF on consumer side of event.
                             it.copy(
                                 harTilgangTilArkivvariant = true,
+                                hasAccess = true,
                                 vedlegg = it.vedlegg.map { vedlegg ->
                                     vedlegg.copy(harTilgangTilArkivvariant = true)
                                 }.toMutableList()

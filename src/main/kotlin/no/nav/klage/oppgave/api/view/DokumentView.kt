@@ -24,6 +24,7 @@ data class DokumentReferanse(
     val tema: String?,
     val temaId: String?,
     val harTilgangTilArkivvariant: Boolean,
+    val hasAccess: Boolean,
     val valgt: Boolean,
     val logiskeVedlegg: List<LogiskVedlegg>?,
     val vedlegg: MutableList<VedleggReferanse> = mutableListOf(),

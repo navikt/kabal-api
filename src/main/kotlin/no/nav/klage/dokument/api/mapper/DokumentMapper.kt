@@ -304,6 +304,7 @@ class DokumentMapper(
             dokumentInfoId = hoveddokument.dokumentInfoId,
             journalpostId = journalpost.journalpostId,
             harTilgangTilArkivvariant = harTilgangTilArkivvariant(hoveddokument),
+            hasAccess = harTilgangTilArkivvariant(hoveddokument),
             valgt = saksdokumenter.containsDokument(
                 journalpost.journalpostId,
                 hoveddokument.dokumentInfoId
