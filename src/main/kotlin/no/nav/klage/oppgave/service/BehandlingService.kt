@@ -1760,6 +1760,24 @@ class BehandlingService(
         return behandling.modified
     }
 
+    fun disconnectAllDokumenterFromBehandling(
+        behandlingId: UUID,
+        saksbehandlerIdent: String
+    ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(behandlingId)
+        val saksdokumenter =
+            behandling.saksdokumenter
+
+        saksdokumenter.forEach { saksdokument ->
+            removeDokument(
+                behandling = behandling,
+                saksdokument = saksdokument,
+                saksbehandlerIdent = saksbehandlerIdent
+            )
+        }
+        return behandling.modified
+    }
+
     fun getBehandlingForUpdate(
         behandlingId: UUID,
         ignoreCheckSkrivetilgang: Boolean = false,

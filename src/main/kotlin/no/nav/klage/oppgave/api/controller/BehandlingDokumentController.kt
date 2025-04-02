@@ -77,6 +77,23 @@ class BehandlingDokumentController(
         return BehandlingEditedView(modified = modified)
     }
 
+    @DeleteMapping("/{id}/dokumenttilknytninger")
+    fun removeAllTilknyttetDokument(
+        @PathVariable("id") behandlingId: UUID,
+    ): BehandlingEditedView {
+        logBehandlingMethodDetails(
+            ::removeAllTilknyttetDokument.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+        val modified = behandlingService.disconnectAllDokumenterFromBehandling(
+            behandlingId = behandlingId,
+            saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+        return BehandlingEditedView(modified)
+    }
+
     @DeleteMapping("/{id}/dokumenttilknytninger/{journalpostId}/{dokumentInfoId}")
     fun removeTilknyttetDokument(
         @PathVariable("id") behandlingId: UUID,
