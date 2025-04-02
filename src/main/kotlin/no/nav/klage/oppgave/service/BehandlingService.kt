@@ -37,6 +37,7 @@ import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setN
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyBehandlingEtterTROpphevet
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setSendtTilTrygderetten
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokumenter
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.clearSaksdokumenter
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.removeSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttetAvSaksbehandler
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setExtraUtfallSet
@@ -1765,16 +1766,19 @@ class BehandlingService(
         saksbehandlerIdent: String
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(behandlingId)
-        val saksdokumenter = behandling.saksdokumenter
 
-        saksdokumenter.forEach { saksdokument ->
-            removeDokument(
-                behandling = behandling,
-                saksdokument = saksdokument,
-                saksbehandlerIdent = saksbehandlerIdent
-            )
+        try {
+            val event =
+                behandling.clearSaksdokumenter(
+                    saksbehandlerIdent
+                )
+            event.let { applicationEventPublisher.publishEvent(it) }
+
+            return behandling.modified
+        } catch (e: Exception) {
+            logger.error("Error disconnecting all documents from behandling ${behandling.id}", e)
+            throw e
         }
-        return behandling.modified
     }
 
     fun getBehandlingForUpdate(
