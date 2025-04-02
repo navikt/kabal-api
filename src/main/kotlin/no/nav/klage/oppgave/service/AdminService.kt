@@ -562,6 +562,53 @@ class AdminService(
     fun evictAllCaches() {
         logger.debug("Evicted all caches")
     }
+
+    fun setIdOnParter() {
+        logger.debug("setIdOnParter is called")
+        val behandlinger = behandlingRepository.findAll()
+        behandlinger.forEach { behandling ->
+            try {
+                //Id for sakenGjelder is already set from Flyway-script.
+
+                //then for klager. Set to same as sakenGjelder if klager is same person, (else keep what Flyway-script set)
+                if (behandling.klager.partId.value == behandling.sakenGjelder.partId.value) {
+                    behandling.klager.id = behandling.sakenGjelder.id
+                }
+
+                //prosessfullmektig already has id set from Flyway-script
+
+                //these ids should then be set for brevmottakere also. Both from DUA-relation and from "forlenget behandlingstid"-relation
+                if (behandling is BehandlingWithVarsletBehandlingstid) {
+                    if (behandling.forlengetBehandlingstidDraft != null) {
+                        behandling.forlengetBehandlingstidDraft!!.receivers.forEach { receiver ->
+                            if (receiver.identifikator == behandling.sakenGjelder.partId.value) {
+                                receiver.technicalPartId = behandling.sakenGjelder.id
+                            } else if (receiver.identifikator == behandling.klager.partId.value) {
+                                receiver.technicalPartId = behandling.klager.id
+                            }
+                        }
+                    }
+
+                    val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
+                    duaList.forEach { dokumentUnderArbeid ->
+                        if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
+                            dokumentUnderArbeid.brevmottakere.forEach { receiver ->
+                                if (receiver.identifikator == behandling.sakenGjelder.partId.value) {
+                                    receiver.technicalPartId = behandling.sakenGjelder.id
+                                } else if (receiver.identifikator == behandling.klager.partId.value) {
+                                    receiver.technicalPartId = behandling.klager.id
+                                } else if (behandling.prosessfullmektig != null && receiver.identifikator == behandling.prosessfullmektig?.partId?.value) {
+                                    receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                logger.debug("Couldn't set id to part", e)
+            }
+        }
+    }
 }
 
 

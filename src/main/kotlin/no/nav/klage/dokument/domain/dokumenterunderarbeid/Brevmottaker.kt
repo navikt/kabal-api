@@ -11,7 +11,7 @@ class Brevmottaker(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Column(name = "technical_part_id")
-    val technicalPartId: UUID,
+    var technicalPartId: UUID,
     @Column(name = "identifikator")
     val identifikator: String?,
     @Column(name = "local_print")

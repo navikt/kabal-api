@@ -150,7 +150,7 @@ class DokumentMapper(
                 unproxiedDUA as OpplastetDokumentUnderArbeidAsHoveddokument
                 inngaaendeKanal =
                     if (unproxiedDUA.inngaaendeKanal != null) unproxiedDUA.inngaaendeKanal!! else null
-                val avsenderIdentifikator = unproxiedDUA.avsenderMottakerInfoSet.firstOrNull()
+                val avsenderIdentifikator = unproxiedDUA.brevmottakere.firstOrNull()
                 if (avsenderIdentifikator?.identifikator != null) {
                     avsender = behandlingMapper.getAvsenderPartView(
                         partId = getPartIdFromIdentifikator(identifikator = avsenderIdentifikator.identifikator),
@@ -158,7 +158,7 @@ class DokumentMapper(
                     )
                 }
             } else if (unproxiedDUA.isUtgaaende()) {
-                val mottakerInfoSet = unproxiedDUA.avsenderMottakerInfoSet
+                val mottakerInfoSet = unproxiedDUA.brevmottakere
                 if (mottakerInfoSet.isNotEmpty()) {
 
                     mottakerList = mottakerInfoSet.map {

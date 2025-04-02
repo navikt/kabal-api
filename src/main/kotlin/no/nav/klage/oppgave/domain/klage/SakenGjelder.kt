@@ -7,7 +7,7 @@ import java.util.*
 @Embeddable
 data class SakenGjelder(
     @Column(name = "saken_gjelder_id")
-    val id: UUID,
+    var id: UUID,
     @Embedded
     @AttributeOverrides(
         value = [

@@ -93,7 +93,7 @@ class KabalDocumentMapper(
         return DokumentEnhetWithDokumentreferanserInput(
             avsenderMottakerList = mapAvsenderMottakerInfoSetToAvsenderMottakerInput(
                 behandling = behandling,
-                avsenderMottakerInfoSet = hovedDokument.avsenderMottakerInfoSet,
+                avsenderMottakerInfoSet = hovedDokument.brevmottakere,
                 dokumentType = hovedDokument.dokumentType
             ),
             journalfoeringData = JournalfoeringDataInput(

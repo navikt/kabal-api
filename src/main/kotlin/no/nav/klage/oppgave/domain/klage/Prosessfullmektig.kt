@@ -7,7 +7,7 @@ import java.util.*
 @Embeddable
 data class Prosessfullmektig(
     @Column(name = "prosessfullmektig_id")
-    val id: UUID,
+    var id: UUID,
     @Embedded
     @AttributeOverrides(
         value = [

@@ -760,8 +760,8 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan bare sette avsender på inngående dokument")
         }
 
-        dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
-        dokumentUnderArbeid.avsenderMottakerInfoSet.add(
+        dokumentUnderArbeid.brevmottakere.clear()
+        dokumentUnderArbeid.brevmottakere.add(
             Brevmottaker(
                 technicalPartId = avsenderInput.id,
                 identifikator = avsenderInput.identifikator,
@@ -835,7 +835,7 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan bare sette mottakere på utgående dokument")
         }
 
-        dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
+        dokumentUnderArbeid.brevmottakere.clear()
 
         mottakerInput.mottakerList.forEach {
             val (markLocalPrint, forceCentralPrint) = getPreferredHandling(
@@ -846,7 +846,7 @@ class DokumentUnderArbeidService(
                 tema = behandling.ytelse.toTema(),
                 systemContext = systemContext,
             )
-            dokumentUnderArbeid.avsenderMottakerInfoSet.add(
+            dokumentUnderArbeid.brevmottakere.add(
                 Brevmottaker(
                     technicalPartId = it.id,
                     identifikator = it.identifikator,
@@ -1253,8 +1253,8 @@ class DokumentUnderArbeidService(
         }
 
         if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
-            hovedDokument.avsenderMottakerInfoSet.clear()
-            hovedDokument.avsenderMottakerInfoSet.add(
+            hovedDokument.brevmottakere.clear()
+            hovedDokument.brevmottakere.add(
                 Brevmottaker(
                     //Hardkoder Trygderetten
                     technicalPartId = UUID.randomUUID(),
@@ -1357,7 +1357,7 @@ class DokumentUnderArbeidService(
 
         val errors = mutableListOf<DocumentValidationResponse>()
 
-        dokumentUnderArbeid.avsenderMottakerInfoSet.forEach { mottaker ->
+        dokumentUnderArbeid.brevmottakere.forEach { mottaker ->
             if (mottaker.identifikator != null) {
                 val part = partSearchService.searchPartWithUtsendingskanal(
                     identifikator = mottaker.identifikator,
@@ -1475,7 +1475,7 @@ class DokumentUnderArbeidService(
             )
         }
 
-        val avsenderMottakerInfoSet = hovedDokument.avsenderMottakerInfoSet
+        val avsenderMottakerInfoSet = hovedDokument.brevmottakere
 
         if (hovedDokument.dokumentType != DokumentType.NOTAT && avsenderMottakerInfoSet.isEmpty()) {
             throw DokumentValidationException("Avsender/mottakere må være satt")
@@ -2240,7 +2240,7 @@ class DokumentUnderArbeidService(
         val document = getDokumentUnderArbeid(documentView.id) as DokumentUnderArbeidAsHoveddokument
 
         forlengetBehandlingstidDraft.receivers.forEach {
-            document.avsenderMottakerInfoSet.add(
+            document.brevmottakere.add(
                 Brevmottaker(
                     technicalPartId = it.id,
                     identifikator = it.identifikator,

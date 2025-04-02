@@ -223,7 +223,7 @@ class AutomaticSvarbrevService(
         technicalPartId: UUID,
         behandling: Behandling,
     ) {
-        dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
+        dokumentUnderArbeid.brevmottakere.clear()
 
         val (markLocalPrint, forceCentralPrint) = dokumentUnderArbeidService.getPreferredHandling(
             identifikator = receiver.id,
@@ -234,7 +234,7 @@ class AutomaticSvarbrevService(
             systemContext = true,
         )
 
-        dokumentUnderArbeid.avsenderMottakerInfoSet.add(
+        dokumentUnderArbeid.brevmottakere.add(
             Brevmottaker(
                 technicalPartId = technicalPartId,
                 identifikator = receiver.id,

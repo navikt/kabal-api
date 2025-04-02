@@ -55,7 +55,7 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     creatorRole = creatorRole,
     dokumentType = dokumentType,
     dokumentEnhetId = dokumentEnhetId,
-    avsenderMottakerInfoSet = avsenderMottakerInfoSet,
+    brevmottakere = avsenderMottakerInfoSet,
     dokarkivReferences = dokarkivReferences,
     journalfoerendeEnhetId = journalfoerendeEnhetId,
 ){
