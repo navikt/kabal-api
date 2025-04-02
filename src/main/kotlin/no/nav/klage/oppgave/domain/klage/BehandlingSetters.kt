@@ -790,6 +790,23 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
+    fun Behandling.clearSaksdokumenter(
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val tidspunkt = LocalDateTime.now()
+        val oldValue = saksdokumenter.joinToString()
+        saksdokumenter.clear()
+        modified = tidspunkt
+        val endringslogg = Endringslogginnslag.endringslogg(
+            saksbehandlerident = saksbehandlerident,
+            felt = Felt.SAKSDOKUMENT,
+            fraVerdi = oldValue,
+            tilVerdi = null,
+            behandlingId = id,
+        )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
     fun Behandling.setFeilregistrering(
         feilregistrering: Feilregistrering,
         saksbehandlerident: String

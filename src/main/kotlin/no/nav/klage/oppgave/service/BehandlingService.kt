@@ -37,6 +37,7 @@ import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setN
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setNyBehandlingEtterTROpphevet
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setSendtTilTrygderetten
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokumenter
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.clearSaksdokumenter
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.removeSaksdokument
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttetAvSaksbehandler
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setExtraUtfallSet
@@ -1118,7 +1119,10 @@ class BehandlingService(
 
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId,
-            systemUserContext = systemUserContext
+            systemUserContext = systemUserContext ||
+                    saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(
+                        utfoerendeSaksbehandlerIdent
+                    )
         )
         val event =
             behandling.setSattPaaVent(
@@ -1773,6 +1777,26 @@ class BehandlingService(
             )
         }
         return behandling.modified
+    }
+
+    fun disconnectAllDokumenterFromBehandling(
+        behandlingId: UUID,
+        saksbehandlerIdent: String
+    ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(behandlingId)
+
+        try {
+            val event =
+                behandling.clearSaksdokumenter(
+                    saksbehandlerIdent
+                )
+            event.let { applicationEventPublisher.publishEvent(it) }
+
+            return behandling.modified
+        } catch (e: Exception) {
+            logger.error("Error disconnecting all documents from behandling ${behandling.id}", e)
+            throw e
+        }
     }
 
     fun getBehandlingForUpdate(
