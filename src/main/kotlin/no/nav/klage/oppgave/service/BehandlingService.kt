@@ -1765,8 +1765,7 @@ class BehandlingService(
         saksbehandlerIdent: String
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(behandlingId)
-        val saksdokumenter =
-            behandling.saksdokumenter
+        val saksdokumenter = behandling.saksdokumenter
 
         saksdokumenter.forEach { saksdokument ->
             removeDokument(
