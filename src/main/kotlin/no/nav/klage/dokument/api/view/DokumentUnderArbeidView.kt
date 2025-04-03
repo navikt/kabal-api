@@ -62,6 +62,7 @@ data class DokumentView(
         val journalpostId: String,
         val dokumentInfoId: String,
         val harTilgangTilArkivvariant: Boolean,
+        val hasAccess: Boolean,
         val datoOpprettet: LocalDateTime,
         val sortKey: String,
     )

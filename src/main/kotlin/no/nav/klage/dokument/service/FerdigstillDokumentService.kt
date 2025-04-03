@@ -102,7 +102,10 @@ class FerdigstillDokumentService(
                                 harTilgangTilArkivvariant = true,
                                 hasAccess = true,
                                 vedlegg = it.vedlegg.map { vedlegg ->
-                                    vedlegg.copy(harTilgangTilArkivvariant = true)
+                                    vedlegg.copy(
+                                        harTilgangTilArkivvariant = true,
+                                        hasAccess = true,
+                                    )
                                 }.toMutableList()
                             )
                         },
