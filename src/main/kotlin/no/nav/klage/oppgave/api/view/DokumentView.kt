@@ -113,6 +113,7 @@ data class DokumentReferanse(
         val dokumentInfoId: String,
         val tittel: String?,
         val harTilgangTilArkivvariant: Boolean,
+        val hasAccess: Boolean,
         val valgt: Boolean,
         val originalJournalpostId: String?,
         val sortKey: String,
@@ -197,6 +198,7 @@ data class JournalfoertDokumentMetadata(
     val dokumentInfoId: String,
     val title: String,
     val harTilgangTilArkivvariant: Boolean,
+    val hasAccess: Boolean,
 )
 
 data class DokumentUnderArbeidMetadata(
