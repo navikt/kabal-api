@@ -133,6 +133,7 @@ class DokumentMapper(
                 journalpostId = unproxiedDUA.journalpostId,
                 dokumentInfoId = unproxiedDUA.dokumentInfoId,
                 harTilgangTilArkivvariant = harTilgangTilArkivvariant(dokument),
+                hasAccess = harTilgangTilArkivvariant(dokument),
                 datoOpprettet = unproxiedDUA.opprettet,
                 sortKey = unproxiedDUA.sortKey!!
             )
@@ -444,6 +445,7 @@ class DokumentMapper(
                     tittel = vedlegg.tittel,
                     dokumentInfoId = vedlegg.dokumentInfoId,
                     harTilgangTilArkivvariant = harTilgangTilArkivvariant(vedlegg),
+                    hasAccess = harTilgangTilArkivvariant(vedlegg),
                     valgt = saksdokumenter.containsDokument(
                         journalpost.journalpostId,
                         vedlegg.dokumentInfoId
