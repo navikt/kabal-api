@@ -7,7 +7,7 @@ ALTER TABLE klage.dokument_under_arbeid_avsender_mottaker_info_aud
 ALTER TABLE klage.dua_dokument_under_arbeid_avsender_mottaker_info_aud
     RENAME TO dua_brevmottaker_aud;
 
-ALTER TABLE klage.brevmottaker_aud
+ALTER TABLE klage.brevmottaker
     ALTER COLUMN identifikator DROP NOT NULL;
 
 ALTER TABLE klage.brevmottaker
@@ -18,7 +18,7 @@ ALTER TABLE klage.brevmottaker_aud
 
 ALTER TABLE klage.brevmottaker
     ADD COLUMN forlenget_behandlingstid_draft_id UUID,
-    ADD COLUMN technical_part_id UUID NOT NULL DEFAULT gen_random_uuid();
+    ADD COLUMN technical_part_id                 UUID NOT NULL DEFAULT gen_random_uuid();
 
 ALTER TABLE klage.brevmottaker
     ADD CONSTRAINT fk_forlenget_behandlingstid_draft FOREIGN KEY (forlenget_behandlingstid_draft_id) REFERENCES klage.forlenget_behandlingstid_draft;
@@ -41,7 +41,7 @@ ALTER TABLE klage.behandling_aud
     ADD COLUMN klager_id UUID;
 
 ALTER TABLE klage.behandling
-    ADD COLUMN prosessfullmektig_id UUID DEFAULT gen_random_uuid();
+    ADD COLUMN prosessfullmektig_id UUID;
 
 ALTER TABLE klage.behandling_aud
     ADD COLUMN prosessfullmektig_id UUID;
@@ -87,3 +87,7 @@ SELECT gen_random_uuid(),
 FROM klage.forlenget_behandlingstid_draft_receiver;
 
 DROP TABLE klage.forlenget_behandlingstid_draft_receiver;
+
+UPDATE klage.behandling
+SET prosessfullmektig_id = gen_random_uuid()
+WHERE prosessfullmektig_value IS NOT NULL;
