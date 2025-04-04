@@ -217,8 +217,12 @@ class TilgangServiceTest {
 
 
 fun getKlagebehandling(): Klagebehandling = Klagebehandling(
-    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+    klager = Klager(
+        id = UUID.randomUUID(),
+        partId = PartId(type = PartIdType.PERSON, value = "23452354")
+    ),
     sakenGjelder = SakenGjelder(
+        id = UUID.randomUUID(),
         partId = PartId(type = PartIdType.PERSON, value = "23452354"),
     ),
     prosessfullmektig = null,

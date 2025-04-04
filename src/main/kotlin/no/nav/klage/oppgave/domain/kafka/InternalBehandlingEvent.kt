@@ -7,6 +7,7 @@ import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
 data class InternalBehandlingEvent(
     val behandlingId: String,
@@ -89,7 +90,8 @@ data class FullmektigEvent(
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class Part(
-    val id: String?,
+    val id: UUID,
+    val identifikator: String?,
     val type: BehandlingDetaljerView.IdType?,
     val name: String?,
     val statusList: List<BehandlingDetaljerView.PartStatus>,

@@ -233,6 +233,19 @@ class AdminController(
         }
     }
 
+    @GetMapping("/set-id-on-parter")
+    @ResponseStatus(HttpStatus.OK)
+    fun setIdOnParter() {
+        logger.debug("setIdOnParter is called")
+        krevAdminTilgang()
+        try {
+            adminService.setIdOnParter()
+        } catch (e: Exception) {
+            logger.warn("Failed to set id on parter", e)
+            throw e
+        }
+    }
+
     data class Fnr(val fnr: String)
 
     private fun krevAdminTilgang() {

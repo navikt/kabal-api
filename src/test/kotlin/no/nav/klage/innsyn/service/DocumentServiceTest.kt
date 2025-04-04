@@ -2,7 +2,7 @@ package no.nav.klage.innsyn.service
 
 import io.mockk.every
 import io.mockk.mockk
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAvsenderMottakerInfo
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidDokarkivReference
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
@@ -131,7 +131,8 @@ internal class DocumentServiceTest {
         return SmartdokumentUnderArbeidAsHoveddokument(
             dokumentEnhetId = null,
             avsenderMottakerInfoSet = mottagerList.map {
-                DokumentUnderArbeidAvsenderMottakerInfo(
+                Brevmottaker(
+                    technicalPartId = UUID.randomUUID(),
                     identifikator = it,
                     localPrint = false,
                     forceCentralPrint = false,
@@ -178,12 +179,14 @@ internal class DocumentServiceTest {
             kakaKvalitetsvurderingVersion = 0,
             varsletBehandlingstid = null,
             klager = Klager(
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.PERSON,
                     value = SAKEN_GJELDER_ID,
                 )
             ),
             sakenGjelder = SakenGjelder(
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.PERSON,
                     value = SAKEN_GJELDER_ID,

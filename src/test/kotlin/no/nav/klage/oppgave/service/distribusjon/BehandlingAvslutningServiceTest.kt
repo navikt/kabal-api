@@ -167,7 +167,10 @@ internal class BehandlingAvslutningServiceTest {
     private val mottak = Mottak(
         ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,
-        klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
+        klager = Klager(
+            id = UUID.randomUUID(),
+            partId = PartId(type = PartIdType.PERSON, value = fnr)
+        ),
         kildeReferanse = UUID.randomUUID().toString(),
         sakMottattKaDato = LocalDateTime.now(),
         fagsystem = Fagsystem.K9,
@@ -187,8 +190,12 @@ internal class BehandlingAvslutningServiceTest {
 
     private val klage = Klagebehandling(
         id = klagebehandlingId,
-        klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
+        klager = Klager(
+            id = UUID.randomUUID(),
+            partId = PartId(type = PartIdType.PERSON, value = fnr)
+        ),
         sakenGjelder = SakenGjelder(
+            id = UUID.randomUUID(),
             partId = PartId(type = PartIdType.PERSON, value = fnr),
         ),
         prosessfullmektig = null,

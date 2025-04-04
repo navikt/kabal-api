@@ -178,7 +178,7 @@ class EventController(
         val flux = aivenKafkaClientCreator.getNewKafkaInternalIdentityEventReceiver().receive()
             .mapNotNull { consumerRecord ->
                 val internalIdentityEvent = jsonToInternalIdentityEvent(consumerRecord.value())
-                if (internalIdentityEvent.identifikator == behandlingView.sakenGjelder.id) {
+                if (internalIdentityEvent.identifikator == behandlingView.sakenGjelder.identifikator) {
                     ServerSentEvent.builder<JsonNode>()
                         .id(consumerRecord.offset().toString())
                         .event(internalIdentityEvent.type.name)

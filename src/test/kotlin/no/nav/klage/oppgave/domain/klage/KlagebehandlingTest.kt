@@ -21,8 +21,12 @@ internal class KlagebehandlingTest {
             fagsystem = Fagsystem.AO01,
             fagsakId = "123",
             kildeReferanse = "abc",
-            klager = Klager(PartId(PartIdType.PERSON, fnr)),
+            klager = Klager(
+                id = UUID.randomUUID(),
+                partId = PartId(PartIdType.PERSON, fnr)
+            ),
             sakenGjelder = SakenGjelder(
+                id = UUID.randomUUID(),
                 partId = PartId(PartIdType.PERSON, fnr),
             ),
             prosessfullmektig = null,

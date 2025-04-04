@@ -94,8 +94,12 @@ class BehandlingMapperTest {
             fagsystem = Fagsystem.AO01,
             fagsakId = "123",
             kildeReferanse = "abc",
-            klager = Klager(PartId(PartIdType.PERSON, FNR)),
+            klager = Klager(
+                id = UUID.randomUUID(),
+                partId = PartId(PartIdType.PERSON, FNR)
+            ),
             sakenGjelder = SakenGjelder(
+                id = UUID.randomUUID(),
                 partId = PartId(PartIdType.PERSON, FNR),
             ),
             prosessfullmektig = null,

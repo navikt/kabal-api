@@ -115,12 +115,12 @@ class DocumentService(
 
         if (svarbrev == null) return null
 
-        val journalpostId = if (svarbrev.avsenderMottakerInfoSet.size == 1) {
-            if (svarbrev.avsenderMottakerInfoSet.first().identifikator == behandling.sakenGjelder.partId.value) {
+        val journalpostId = if (svarbrev.brevmottakere.size == 1) {
+            if (svarbrev.brevmottakere.first().identifikator == behandling.sakenGjelder.partId.value) {
                 svarbrev.dokarkivReferences.first().journalpostId
             } else null
         } else {
-            if (svarbrev.avsenderMottakerInfoSet.any { it.identifikator == behandling.sakenGjelder.partId.value }) {
+            if (svarbrev.brevmottakere.any { it.identifikator == behandling.sakenGjelder.partId.value }) {
                 val journalpostIdList = svarbrev.dokarkivReferences.map { it.journalpostId }
                 var accessibleJournalpostId: String? = null
                 journalpostIdList.forEach { journalpostId ->
