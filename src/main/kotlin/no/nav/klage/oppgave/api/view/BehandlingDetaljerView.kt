@@ -133,7 +133,7 @@ data class BehandlingDetaljerView(
     ): PartBase, IdPart, TechnicalPartId
 
     data class SearchPartViewWithUtsendingskanal(
-        override val identifikator: String?,
+        override val identifikator: String,
         override val name: String,
         override val type: IdType?,
         override val available: Boolean,

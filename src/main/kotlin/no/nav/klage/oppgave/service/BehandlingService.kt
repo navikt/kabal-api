@@ -1420,15 +1420,28 @@ class BehandlingService(
         val partView = if (behandling.prosessfullmektig == null) {
             null
         } else if (behandling.prosessfullmektig!!.partId != null) {
-            partSearchService.searchPartWithUtsendingskanal(
+            val searchPartViewWithUtsendingskanal = partSearchService.searchPartWithUtsendingskanal(
                 identifikator = behandling.prosessfullmektig?.partId?.value!!,
                 skipAccessControl = true,
                 sakenGjelderId = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
                 systemContext = false,
             )
+
+            BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                id = behandling.prosessfullmektig!!.id,
+                identifikator = searchPartViewWithUtsendingskanal.identifikator,
+                name = searchPartViewWithUtsendingskanal.name,
+                type = searchPartViewWithUtsendingskanal.type,
+                available = searchPartViewWithUtsendingskanal.available,
+                language = searchPartViewWithUtsendingskanal.language,
+                statusList = searchPartViewWithUtsendingskanal.statusList,
+                address = searchPartViewWithUtsendingskanal.address,
+                utsendingskanal = searchPartViewWithUtsendingskanal.utsendingskanal,
+            )
         } else {
-            BehandlingDetaljerView.SearchPartViewWithUtsendingskanal(
+            BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                id = behandling.prosessfullmektig!!.id,
                 identifikator = null,
                 name = behandling.prosessfullmektig!!.navn!!,
                 type = null,
