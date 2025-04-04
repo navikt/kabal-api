@@ -77,7 +77,7 @@ class KabinApiController(
     }
 
     /**
-     * Should not be used anymore. Kabin should use kabal-api directly instead.
+     * Used by `kabin-api`.
      */
     @PostMapping("/searchpart")
     fun searchPart(
