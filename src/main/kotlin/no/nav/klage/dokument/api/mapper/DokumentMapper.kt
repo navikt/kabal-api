@@ -329,7 +329,9 @@ class DokumentMapper(
                     fagsystemId = journalpost.sak.fagsaksystem?.let { Fagsystem.fromNavn(it).id }
                 )
             } else null,
-            avsenderMottaker = if (journalpost.avsenderMottaker == null) {
+            avsenderMottaker = if (journalpost.avsenderMottaker == null ||
+                (journalpost.avsenderMottaker.id == null && journalpost.avsenderMottaker.navn == null)
+            ) {
                 null
             } else {
                 DokumentReferanse.AvsenderMottaker(
@@ -382,10 +384,12 @@ class DokumentMapper(
             }
         } ?: emptyList())
 
-        return listOf(DokumentReferanse.TimelineItem(
-            timestamp = this.datoOpprettet,
-            type = DokumentReferanse.TimelineItem.TimelineType.OPPRETTET
-        )) + relevantDates.sortedBy { it.timestamp }
+        return listOf(
+            DokumentReferanse.TimelineItem(
+                timestamp = this.datoOpprettet,
+                type = DokumentReferanse.TimelineItem.TimelineType.OPPRETTET
+            )
+        ) + relevantDates.sortedBy { it.timestamp }
     }
 
     private fun String.toTimelineType(): DokumentReferanse.TimelineItem.TimelineType {
