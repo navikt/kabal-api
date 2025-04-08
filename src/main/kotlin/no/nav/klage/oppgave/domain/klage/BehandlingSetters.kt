@@ -517,7 +517,8 @@ object BehandlingSetters {
                 partId = prosessfullmektig?.partId,
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
-                utfoerendeNavn = utfoerendeNavn
+                utfoerendeNavn = utfoerendeNavn,
+                name = prosessfullmektig?.navn
             )
         )
     }

@@ -175,13 +175,19 @@ class HistoryService(
                     timestamp = previous.tidspunkt,
                     actor = getSaksbehandlerView(previous.utfoerendeIdent, previous.utfoerendeNavn),
                     event = FullmektigEvent(
-                        part = previous.partId?.let {
+                        part = if (previous.partId != null) {
                             Part(
-                                id = it.value,
-                                name = partSearchService.searchPart(it.value).name ?: "Manglende navn. Noe er feil.",
-                                type = if (it.type == PartIdType.PERSON) {
+                                identifikator = previous.partId!!.value,
+                                name = partSearchService.searchPart(previous.partId!!.value).name,
+                                type = if (previous.partId!!.type == PartIdType.PERSON) {
                                     BehandlingDetaljerView.IdType.FNR
                                 } else BehandlingDetaljerView.IdType.ORGNR
+                            )
+                        } else {
+                            Part(
+                                identifikator = null,
+                                name = previous.name ?: "Manglende navn. Noe er feil.",
+                                type = null
                             )
                         }
                     )
@@ -192,13 +198,19 @@ class HistoryService(
                     timestamp = current.tidspunkt,
                     actor = getSaksbehandlerView(current.utfoerendeIdent, current.utfoerendeNavn),
                     event = FullmektigEvent(
-                        part = current.partId?.let {
+                        part = if (current.partId != null) {
                             Part(
-                                id = it.value,
-                                name = partSearchService.searchPart(it.value).name ?: "Manglende navn. Noe er feil.",
-                                type = if (it.type == PartIdType.PERSON) {
+                                identifikator = current.partId!!.value,
+                                name = partSearchService.searchPart(current.partId!!.value).name,
+                                type = if (current.partId!!.type == PartIdType.PERSON) {
                                     BehandlingDetaljerView.IdType.FNR
                                 } else BehandlingDetaljerView.IdType.ORGNR
+                            )
+                        } else {
+                            Part(
+                                identifikator = null,
+                                name = current.name ?: "Manglende navn. Noe er feil.",
+                                type = null
                             )
                         }
                     ),
@@ -221,8 +233,8 @@ class HistoryService(
                     event = KlagerEvent(
                         part = previous.partId.let {
                             Part(
-                                id = it.value,
-                                name = partSearchService.searchPart(it.value).name ?: "Manglende navn. Noe er feil.",
+                                identifikator = it.value,
+                                name = partSearchService.searchPart(it.value).name,
                                 type = if (it.type == PartIdType.PERSON) {
                                     BehandlingDetaljerView.IdType.FNR
                                 } else BehandlingDetaljerView.IdType.ORGNR
@@ -238,8 +250,8 @@ class HistoryService(
                     event = KlagerEvent(
                         part = current.partId.let {
                             Part(
-                                id = it.value,
-                                name = partSearchService.searchPart(it.value).name ?: "Manglende navn. Noe er feil.",
+                                identifikator = it.value,
+                                name = partSearchService.searchPart(it.value).name,
                                 type = if (it.type == PartIdType.PERSON) {
                                     BehandlingDetaljerView.IdType.FNR
                                 } else BehandlingDetaljerView.IdType.ORGNR
@@ -352,7 +364,7 @@ class HistoryService(
                     event = VarsletBehandlingstidEvent(
                         mottakere = previous.mottakerList.map {
                             Part(
-                                id = it.partId?.value,
+                                identifikator = it.partId?.value,
                                 name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
                                 type = if (it.partId != null) {
                                     if (it.partId.type == PartIdType.PERSON) {
@@ -374,7 +386,7 @@ class HistoryService(
                     event = VarsletBehandlingstidEvent(
                         mottakere = current.mottakerList.map {
                             Part(
-                                id = it.partId?.value,
+                                identifikator = it.partId?.value,
                                 name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
                                 type = if (it.partId != null) {
                                     if (it.partId.type == PartIdType.PERSON) {
@@ -422,7 +434,7 @@ class HistoryService(
                     event = ForlengetBehandlingstidEvent(
                         mottakere = previous.mottakerList.map {
                             Part(
-                                id = it.partId?.value,
+                                identifikator = it.partId?.value,
                                 name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
                                 type = if (it.partId != null) {
                                     if (it.partId.type == PartIdType.PERSON) {
@@ -446,7 +458,7 @@ class HistoryService(
                     event = ForlengetBehandlingstidEvent(
                         mottakere = current.mottakerList.map {
                             Part(
-                                id = it.partId?.value,
+                                identifikator = it.partId?.value,
                                 name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
                                 type = if (it.partId != null) {
                                     if (it.partId.type == PartIdType.PERSON) {
