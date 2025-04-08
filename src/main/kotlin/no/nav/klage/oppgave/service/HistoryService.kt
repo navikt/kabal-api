@@ -183,13 +183,13 @@ class HistoryService(
                                     BehandlingDetaljerView.IdType.FNR
                                 } else BehandlingDetaljerView.IdType.ORGNR
                             )
-                        } else {
+                        } else if (previous.name != null) {
                             Part(
                                 identifikator = null,
-                                name = previous.name ?: "Manglende navn. Noe er feil.",
+                                name = previous.name,
                                 type = null
                             )
-                        }
+                        } else null
                     )
                 )
 
@@ -206,13 +206,13 @@ class HistoryService(
                                     BehandlingDetaljerView.IdType.FNR
                                 } else BehandlingDetaljerView.IdType.ORGNR
                             )
-                        } else {
+                        } else if (current.name != null) {
                             Part(
                                 identifikator = null,
-                                name = current.name ?: "Manglende navn. Noe er feil.",
+                                name = current.name,
                                 type = null
                             )
-                        }
+                        } else null
                     ),
                     previous = previousEvent,
                 )
