@@ -100,15 +100,6 @@ data class KabinPartView(
     val language: String?,
 )
 
-data class OldKabinPartView(
-    //TODO. In use? Rename id?
-    val id: String,
-    val type: IdType,
-    val name: String,
-    val available: Boolean,
-    val statusList: List<PartStatus>,
-)
-
 fun SakenGjelderViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
     return KabinPartView(
         identifikator = identifikator,
