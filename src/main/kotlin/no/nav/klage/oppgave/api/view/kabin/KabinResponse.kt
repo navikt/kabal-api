@@ -90,8 +90,7 @@ data class TildeltSaksbehandler(
 )
 
 data class KabinPartView(
-    //TODO. Rename id to identifikator?
-    val id: String?,
+    val identifikator: String,
     val type: IdType?,
     val name: String,
     val available: Boolean,
@@ -112,7 +111,7 @@ data class OldKabinPartView(
 
 fun SakenGjelderViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
     return KabinPartView(
-        id = identifikator,
+        identifikator = identifikator,
         type = type,
         name = name,
         available = available,
@@ -125,7 +124,7 @@ fun SakenGjelderViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
 
 fun PartViewWithUtsendingskanal.toKabinPartView(): KabinPartView {
     return KabinPartView(
-        id = identifikator,
+        identifikator = identifikator!!, //if we come here, we know it is not null
         type = type,
         name = name,
         available = available,

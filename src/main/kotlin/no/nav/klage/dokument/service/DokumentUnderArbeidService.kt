@@ -2159,7 +2159,7 @@ class DokumentUnderArbeidService(
                 svarbrev.receivers.map {
                     Mottaker(
                         id = UUID.randomUUID(),
-                        identifikator = it.id,
+                        identifikator = it.identifikator,
                         handling = HandlingEnum.valueOf(it.handling.name),
                         overriddenAddress = it.overriddenAddress?.let { address ->
                             AddressInput(

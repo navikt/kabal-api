@@ -189,9 +189,9 @@ class AutomaticSvarbrevService(
                     behandlingId = behandling.id,
                     systemUserContext = true,
                     mottakere = listOf(
-                        if (receiver.id != null) {
+                        if (receiver.identifikator != null) {
                             MottakerPartId(
-                                value = getPartIdFromIdentifikator(receiver.id)
+                                value = getPartIdFromIdentifikator(receiver.identifikator)
                             )
                         } else if (receiver.navn != null) {
                             MottakerNavn(
@@ -226,7 +226,7 @@ class AutomaticSvarbrevService(
         dokumentUnderArbeid.brevmottakere.clear()
 
         val (markLocalPrint, forceCentralPrint) = dokumentUnderArbeidService.getPreferredHandling(
-            identifikator = receiver.id,
+            identifikator = receiver.identifikator,
             handling = HandlingEnum.valueOf(receiver.handling.name),
             isAddressOverridden = receiver.overriddenAddress != null,
             sakenGjelderFnr = behandling.sakenGjelder.partId.value,
@@ -237,7 +237,7 @@ class AutomaticSvarbrevService(
         dokumentUnderArbeid.brevmottakere.add(
             Brevmottaker(
                 technicalPartId = technicalPartId,
-                identifikator = receiver.id,
+                identifikator = receiver.identifikator,
                 localPrint = markLocalPrint,
                 forceCentralPrint = forceCentralPrint,
                 address = receiver.overriddenAddress?.let {
@@ -261,9 +261,9 @@ class AutomaticSvarbrevService(
     private fun getPotentialErrorMessage(
         receiver: Svarbrev.Receiver,
     ): String? {
-        if (receiver.id != null) {
+        if (receiver.identifikator != null) {
             val part = partSearchService.searchPart(
-                identifikator = receiver.id,
+                identifikator = receiver.identifikator,
                 skipAccessControl = true
             )
 
@@ -320,14 +320,14 @@ class AutomaticSvarbrevService(
             val prosessfullmektig = behandling.prosessfullmektig!!
             if (prosessfullmektig.partId != null) {
                 Svarbrev.Receiver(
-                    id = prosessfullmektig.partId.value,
+                    identifikator = prosessfullmektig.partId.value,
                     handling = Svarbrev.Receiver.HandlingEnum.AUTO,
                     overriddenAddress = null,
                     navn = null
                 )
             } else {
                 Svarbrev.Receiver(
-                    id = null,
+                    identifikator = null,
                     handling = Svarbrev.Receiver.HandlingEnum.AUTO,
                     overriddenAddress = Svarbrev.Receiver.AddressInput(
                         adresselinje1 = prosessfullmektig.address!!.adresselinje1,
@@ -341,7 +341,7 @@ class AutomaticSvarbrevService(
             } to prosessfullmektig.id
         } else {
             Svarbrev.Receiver(
-                id = behandling.klager.partId.value,
+                identifikator = behandling.klager.partId.value,
                 handling = Svarbrev.Receiver.HandlingEnum.AUTO,
                 overriddenAddress = null,
                 navn = null

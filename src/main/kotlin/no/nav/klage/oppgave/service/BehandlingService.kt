@@ -2412,17 +2412,16 @@ class BehandlingService(
             behandling = this,
             navn = null,
             address = null,
-        )
-            .toKabinPartView(),
-        fullmektig = prosessfullmektig?.let {
+        ).toKabinPartView(),
+        fullmektig = if (prosessfullmektig?.partId != null) {
             behandlingMapper.getPartViewWithUtsendingskanal(
-                technicalPartId = it.id,
-                partId = it.partId,
+                technicalPartId = prosessfullmektig!!.id,
+                partId = prosessfullmektig!!.partId,
                 behandling = this,
-                navn = it.navn,
-                address = it.address,
+                navn = prosessfullmektig!!.navn,
+                address = prosessfullmektig!!.address,
             ).toKabinPartView()
-        },
+        } else null,
         fagsakId = fagsakId,
         fagsystem = fagsystem,
         fagsystemId = fagsystem.id,

@@ -5,7 +5,10 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
-import no.nav.klage.oppgave.service.*
+import no.nav.klage.oppgave.service.BehandlingService
+import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
+import no.nav.klage.oppgave.service.KabinApiService
+import no.nav.klage.oppgave.service.MottakService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -20,7 +23,6 @@ class KabinApiController(
     private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val mottakService: MottakService,
-    private val partSearchService: PartSearchService,
     private val kabinApiService: KabinApiService
 ) {
 
