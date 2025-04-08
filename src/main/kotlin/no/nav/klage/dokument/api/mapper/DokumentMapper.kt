@@ -164,7 +164,7 @@ class DokumentMapper(
 
                     mottakerList = mottakerInfoSet.map {
                         toDokumentViewMottaker(
-                            technicalPartId = it.id,
+                            technicalPartId = it.technicalPartId,
                             identifikator = it.identifikator,
                             navn = it.navn,
                             address = it.address,
