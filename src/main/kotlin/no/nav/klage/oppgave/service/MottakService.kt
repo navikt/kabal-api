@@ -129,21 +129,6 @@ class MottakService(
         return behandling
     }
 
-    @Transactional
-    fun createTaskForMerkantil(behandlingId: UUID, reason: String) {
-        taskListMerkantilRepository.save(
-            TaskListMerkantil(
-                behandlingId = behandlingId,
-                reason = reason,
-                created = LocalDateTime.now(),
-                dateHandled = null,
-                handledBy = null,
-                handledByName = null,
-                comment = null,
-            )
-        )
-    }
-
     fun validateAnkeITrygderettenV1(input: OversendtAnkeITrygderettenV1) {
         validateYtelseAndHjemler(input.ytelse, input.hjemler)
         validatePartId(input.klager.id.toPartId())
