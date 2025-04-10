@@ -37,11 +37,10 @@ class TaskListMerkantilService(
         val innloggetName = saksbehandlerService.getNameForIdentDefaultIfNull(
             navIdent = innloggetIdent
         )
-        task.apply {
-            dateHandled = LocalDateTime.now()
-            handledBy = innloggetIdent
-            handledByName = innloggetName
-            comment = inputComment
-        }
+
+        task.dateHandled = LocalDateTime.now()
+        task.handledBy = innloggetIdent
+        task.handledByName = innloggetName
+        task.comment = inputComment
     }
 }
