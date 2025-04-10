@@ -78,8 +78,7 @@ data class BehandlingDetaljerView(
     }
 
     interface TechnicalPartId {
-        //TODO should not be nullable?
-        val id: UUID?
+        val id: UUID
     }
 
     data class PartStatus(
