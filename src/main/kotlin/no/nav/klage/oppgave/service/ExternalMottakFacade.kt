@@ -49,7 +49,7 @@ class ExternalMottakFacade(
         tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
     }
 
-    fun createMottakForKlageAnkeV4(oversendtKlageAnke: OversendtKlageAnkeV4) {
+    fun createMottakForKlageAnkeV4(oversendtKlageAnke: OversendtKlageAnkeV4): Behandling {
         val behandling = mottakService.createMottakForKlageAnkeV4(oversendtKlageAnke)
 
         if (oversendtKlageAnke.saksbehandlerIdentForTildeling != null) {
@@ -57,16 +57,6 @@ class ExternalMottakFacade(
                 behandling = behandling,
                 saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdentForTildeling
             )
-        }
-
-        tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)
-    }
-
-    fun createMottakForKlageAnkeV3ForE2ETests(oversendtKlageAnke: OversendtKlageAnkeV3): Behandling {
-        val behandling = mottakService.createMottakForKlageAnkeV3(oversendtKlageAnke)
-
-        if (oversendtKlageAnke.saksbehandlerIdent != null) {
-            tryToSetSaksbehandler(behandling = behandling, saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdent)
         }
 
         tryToSendSvarbrev(behandlingId = behandling.id, hindreAutomatiskSvarbrev = oversendtKlageAnke.hindreAutomatiskSvarbrev == true)

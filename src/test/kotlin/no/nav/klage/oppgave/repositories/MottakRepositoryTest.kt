@@ -20,6 +20,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.*
 
 @ActiveProfiles("local")
 @DataJpaTest
@@ -48,7 +49,10 @@ class MottakRepositoryTest {
         val mottak = Mottak(
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "123454")),
+            klager = Klager(
+                id = UUID.randomUUID(),
+                partId = PartId(type = PartIdType.PERSON, value = "123454")
+            ),
             fagsystem = Fagsystem.AO01,
             fagsakId = "12345",
             kildeReferanse = "54321",

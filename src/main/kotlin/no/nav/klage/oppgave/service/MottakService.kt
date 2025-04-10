@@ -583,7 +583,7 @@ class MottakService(
     private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInput): Mottak {
         val prosessfullmektig = if (input.fullmektig != null) {
             Prosessfullmektig(
-                //TODO: Skal vi tillate denne fullmektig uten partId fra Kabin?
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.of(input.fullmektig.type.name),
                     value = input.fullmektig.value
@@ -597,6 +597,11 @@ class MottakService(
 
         val klager = if (input.klager != null) {
             Klager(
+                id = if (input.klager.value == sakenGjelder.partId.value) {
+                    sakenGjelder.id
+                } else {
+                    UUID.randomUUID()
+                },
                 partId = PartId(
                     type = PartIdType.of(input.klager.type.name),
                     value = input.klager.value
@@ -604,6 +609,7 @@ class MottakService(
             )
         } else {
             Klager(
+                id = sakenGjelder.id,
                 partId = PartId(
                     type = PartIdType.of(sakenGjelder.partId.type.name),
                     value = sakenGjelder.partId.value
@@ -656,7 +662,7 @@ class MottakService(
     fun CreateKlageBasedOnKabinInput.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
         val prosessfullmektig = if (fullmektig != null) {
             Prosessfullmektig(
-                //TODO: Skal vi tillate denne fullmektig uten partId fra Kabin?
+                id = UUID.randomUUID(),
                 partId = fullmektig.toPartId(),
                 navn = null,
                 address = null,
@@ -665,22 +671,31 @@ class MottakService(
             null
         }
 
-        val klager = if (klager != null) {
+        val sakenGjelderPart = SakenGjelder(
+            id = UUID.randomUUID(),
+            partId = sakenGjelder.toPartId(),
+        )
+
+        val klagePart = if (klager != null) {
             Klager(
+                id = if (klager.value == sakenGjelderPart.partId.value) {
+                    sakenGjelderPart.id
+                } else {
+                    UUID.randomUUID()
+                },
                 partId = klager.toPartId(),
             )
         } else {
             Klager(
+                id = sakenGjelderPart.id,
                 partId = sakenGjelder.toPartId(),
             )
         }
 
         return Mottak(
             type = Type.KLAGE,
-            klager = klager,
-            sakenGjelder = SakenGjelder(
-                partId = sakenGjelder.toPartId(),
-            ),
+            klager = klagePart,
+            sakenGjelder = sakenGjelderPart,
             fagsystem = Fagsystem.of(fagsystemId),
             fagsakId = fagsakId,
             kildeReferanse = kildereferanse,
@@ -708,7 +723,7 @@ class MottakService(
     fun CreateAnkeBasedOnCompleteKabinInput.toMottak(): Mottak {
         val prosessfullmektig = if (fullmektig != null) {
             Prosessfullmektig(
-                //TODO: Skal vi tillate denne fullmektig uten partId fra Kabin?
+                id = UUID.randomUUID(),
                 partId = fullmektig.toPartId(),
                 navn = null,
                 address = null,
@@ -717,22 +732,31 @@ class MottakService(
             null
         }
 
-        val klager = if (klager != null) {
+        val sakenGjelderPart = SakenGjelder(
+            id = UUID.randomUUID(),
+            partId = sakenGjelder.toPartId(),
+        )
+
+        val klagePart = if (klager != null) {
             Klager(
+                id = if (klager.value == sakenGjelder.toPartId().value) {
+                    sakenGjelderPart.id
+                } else {
+                    UUID.randomUUID()
+                },
                 partId = klager.toPartId(),
             )
         } else {
             Klager(
+                id = sakenGjelderPart.id,
                 partId = sakenGjelder.toPartId(),
             )
         }
 
         return Mottak(
             type = Type.ANKE,
-            klager = klager,
-            sakenGjelder = SakenGjelder(
-                partId = sakenGjelder.toPartId(),
-            ),
+            klager = klagePart,
+            sakenGjelder = sakenGjelderPart,
             fagsystem = Fagsystem.of(fagsystemId),
             fagsakId = fagsakId,
             kildeReferanse = kildereferanse,

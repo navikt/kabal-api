@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.repositories
 
 import com.ninjasquad.springmockk.MockkBean
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
@@ -61,7 +62,8 @@ class BehandlingRepositoryTest {
         val forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft()
         forlengetBehandlingstidDraft.title = "title"
 
-        val receiver = ForlengetBehandlingstidDraftReceiver(
+        val receiver = Brevmottaker(
+            technicalPartId = UUID.randomUUID(),
             identifikator = "abc",
             localPrint = false,
             forceCentralPrint = false,
@@ -151,7 +153,10 @@ class BehandlingRepositoryTest {
     fun getMottak(): Mottak = Mottak(
         ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,
-        klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+        klager = Klager(
+            id = UUID.randomUUID(),
+            partId = PartId(type = PartIdType.PERSON, value = "23452354")
+        ),
         kildeReferanse = "1234234",
         sakMottattKaDato = LocalDateTime.now(),
         fagsystem = Fagsystem.K9,
@@ -171,8 +176,11 @@ class BehandlingRepositoryTest {
     )
 
     fun getKlagebehandling(mottakId: UUID) = Klagebehandling(
-        klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+        klager = Klager(
+            id = UUID.randomUUID(),
+            partId = PartId(type = PartIdType.PERSON, value = "23452354")),
         sakenGjelder = SakenGjelder(
+            id = UUID.randomUUID(),
             partId = PartId(type = PartIdType.PERSON, value = "23452354"),
         ),
         prosessfullmektig = null,

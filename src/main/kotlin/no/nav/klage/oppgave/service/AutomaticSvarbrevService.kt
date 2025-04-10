@@ -3,8 +3,8 @@ package no.nav.klage.oppgave.service
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.api.view.AddressInput
 import no.nav.klage.dokument.api.view.HandlingEnum
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAvsenderMottakerInfo
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
@@ -27,6 +27,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.nio.file.Files
 import java.time.LocalDateTime
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Service
@@ -109,7 +110,7 @@ class AutomaticSvarbrevService(
         if (svarbrevSettings.shouldSend) {
             logger.debug("Sender svarbrev for behandling {} i event {}", behandling.id, automaticSvarbrevEvent.id)
 
-            val receiver = getReceiver(behandling = behandling)
+            val (receiver, technicalPartId) = getReceiver(behandling = behandling)
             val receiverValidationErrorMessage = getPotentialErrorMessage(receiver)
             if (receiverValidationErrorMessage != null) {
                 //Dette gir de godkjente feilene vi kjenner til, og skal sendes videre til merkantil.
@@ -129,7 +130,6 @@ class AutomaticSvarbrevService(
                 val bytes = getSvarbrevPDF(
                     behandling = behandling,
                     svarbrevSettings = svarbrevSettings,
-                    receiver = receiver
                 )
 
                 val tmpFile = Files.createTempFile(null, null).toFile()
@@ -160,7 +160,12 @@ class AutomaticSvarbrevService(
                 dokumentUnderArbeidService.getDokumentUnderArbeid(automaticSvarbrevEvent.dokumentUnderArbeidId!!) as DokumentUnderArbeidAsHoveddokument
 
             if (!automaticSvarbrevEvent.receiversAreSet) {
-                setReceiversInDokumentUnderArbeid(dokumentUnderArbeid, receiver, behandling)
+                setReceiversInDokumentUnderArbeid(
+                    dokumentUnderArbeid = dokumentUnderArbeid,
+                    receiver = receiver,
+                    technicalPartId = technicalPartId,
+                    behandling = behandling,
+                )
                 automaticSvarbrevEvent.receiversAreSet = true
                 automaticSvarbrevEvent.modified = LocalDateTime.now()
                 automaticSvarbrevEventRepository.save(automaticSvarbrevEvent)
@@ -185,9 +190,9 @@ class AutomaticSvarbrevService(
                     behandlingId = behandling.id,
                     systemUserContext = true,
                     mottakere = listOf(
-                        if (receiver.id != null) {
+                        if (receiver.identifikator != null) {
                             MottakerPartId(
-                                value = getPartIdFromIdentifikator(receiver.id)
+                                value = getPartIdFromIdentifikator(receiver.identifikator)
                             )
                         } else if (receiver.navn != null) {
                             MottakerNavn(
@@ -216,23 +221,24 @@ class AutomaticSvarbrevService(
     private fun setReceiversInDokumentUnderArbeid(
         dokumentUnderArbeid: DokumentUnderArbeidAsHoveddokument,
         receiver: Svarbrev.Receiver,
-        behandling: Behandling
+        technicalPartId: UUID,
+        behandling: Behandling,
     ) {
-        dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
+        dokumentUnderArbeid.brevmottakere.clear()
 
         val (markLocalPrint, forceCentralPrint) = dokumentUnderArbeidService.getPreferredHandling(
-            identifikator = receiver.id,
+            identifikator = receiver.identifikator,
             handling = HandlingEnum.valueOf(receiver.handling.name),
             isAddressOverridden = receiver.overriddenAddress != null,
             sakenGjelderFnr = behandling.sakenGjelder.partId.value,
             tema = behandling.ytelse.toTema(),
-            systemContext = true
-
+            systemContext = true,
         )
 
-        dokumentUnderArbeid.avsenderMottakerInfoSet.add(
-            DokumentUnderArbeidAvsenderMottakerInfo(
-                identifikator = receiver.id,
+        dokumentUnderArbeid.brevmottakere.add(
+            Brevmottaker(
+                technicalPartId = technicalPartId,
+                identifikator = receiver.identifikator,
                 localPrint = markLocalPrint,
                 forceCentralPrint = forceCentralPrint,
                 address = receiver.overriddenAddress?.let {
@@ -256,9 +262,9 @@ class AutomaticSvarbrevService(
     private fun getPotentialErrorMessage(
         receiver: Svarbrev.Receiver,
     ): String? {
-        if (receiver.id != null) {
+        if (receiver.identifikator != null) {
             val part = partSearchService.searchPart(
-                identifikator = receiver.id,
+                identifikator = receiver.identifikator,
                 skipAccessControl = true
             )
 
@@ -280,14 +286,11 @@ class AutomaticSvarbrevService(
     private fun getSvarbrevPDF(
         behandling: Behandling,
         svarbrevSettings: SvarbrevSettings,
-        receiver: Svarbrev.Receiver
     ): ByteArray {
         return kabalJsonToPdfService.getSvarbrevPDF(
             svarbrev = Svarbrev(
                 title = svarbrevTitle,
-                receivers = listOf(
-                    receiver
-                ),
+                receivers = emptyList(), //not needed for svarbrev pdf.
                 fullmektigFritekst = null,
                 varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
                 varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
@@ -313,19 +316,19 @@ class AutomaticSvarbrevService(
 
     }
 
-    private fun getReceiver(behandling: Behandling): Svarbrev.Receiver {
+    private fun getReceiver(behandling: Behandling): Pair<Svarbrev.Receiver, UUID> {
         return if (behandling.prosessfullmektig != null) {
             val prosessfullmektig = behandling.prosessfullmektig!!
             if (prosessfullmektig.partId != null) {
                 Svarbrev.Receiver(
-                    id = prosessfullmektig.partId.value,
+                    identifikator = prosessfullmektig.partId.value,
                     handling = Svarbrev.Receiver.HandlingEnum.AUTO,
                     overriddenAddress = null,
                     navn = null
                 )
             } else {
                 Svarbrev.Receiver(
-                    id = null,
+                    identifikator = null,
                     handling = Svarbrev.Receiver.HandlingEnum.AUTO,
                     overriddenAddress = Svarbrev.Receiver.AddressInput(
                         adresselinje1 = prosessfullmektig.address!!.adresselinje1,
@@ -336,21 +339,14 @@ class AutomaticSvarbrevService(
                     ),
                     navn = prosessfullmektig.navn
                 )
-            }
-        } else if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
-            Svarbrev.Receiver(
-                id = behandling.klager.partId.value,
-                handling = Svarbrev.Receiver.HandlingEnum.AUTO,
-                overriddenAddress = null,
-                navn = null
-            )
+            } to prosessfullmektig.id
         } else {
             Svarbrev.Receiver(
-                id = behandling.sakenGjelder.partId.value,
+                identifikator = behandling.klager.partId.value,
                 handling = Svarbrev.Receiver.HandlingEnum.AUTO,
                 overriddenAddress = null,
                 navn = null
-            )
+            ) to behandling.klager.id
         }
     }
 

@@ -10,6 +10,7 @@ import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 object BehandlingSetters {
 
@@ -473,6 +474,7 @@ object BehandlingSetters {
             prosessfullmektig = null
         } else {
             prosessfullmektig = Prosessfullmektig(
+                id = UUID.randomUUID(),
                 partId = partId,
                 address = address?.let {
                     Adresse(
@@ -515,7 +517,8 @@ object BehandlingSetters {
                 partId = prosessfullmektig?.partId,
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
-                utfoerendeNavn = utfoerendeNavn
+                utfoerendeNavn = utfoerendeNavn,
+                name = prosessfullmektig?.navn
             )
         )
     }
@@ -538,6 +541,7 @@ object BehandlingSetters {
         }
 
         klager.partId = nyVerdi
+        klager.id = UUID.randomUUID()
 
         recordKlagerHistory(
             tidspunkt = tidspunkt,
