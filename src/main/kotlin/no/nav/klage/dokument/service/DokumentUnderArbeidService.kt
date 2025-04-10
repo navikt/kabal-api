@@ -734,13 +734,11 @@ class DokumentUnderArbeidService(
         innloggetIdent: String
     ): OpplastetDokumentUnderArbeidAsHoveddokument {
 
-        if (avsenderInput.identifikator != null) {
-            //Validate part
-            partSearchService.searchPart(
-                identifikator = avsenderInput.identifikator,
-                skipAccessControl = true
-            )
-        }
+        //Validate part
+        partSearchService.searchPart(
+            identifikator = avsenderInput.identifikator,
+            skipAccessControl = true
+        )
 
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
@@ -760,10 +758,21 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan bare sette avsender på inngående dokument")
         }
 
+        val technicalPartId = when(avsenderInput.identifikator) {
+            behandling.sakenGjelder.partId.value ->
+                behandling.sakenGjelder.id
+            behandling.klager.partId.value ->
+                behandling.klager.id
+            behandling.prosessfullmektig?.partId?.value ->
+                behandling.prosessfullmektig!!.id
+            else ->
+                UUID.randomUUID()
+        }
+
         dokumentUnderArbeid.brevmottakere.clear()
         dokumentUnderArbeid.brevmottakere.add(
             Brevmottaker(
-                technicalPartId = avsenderInput.id,
+                technicalPartId = technicalPartId,
                 identifikator = avsenderInput.identifikator,
                 localPrint = false,
                 forceCentralPrint = false,

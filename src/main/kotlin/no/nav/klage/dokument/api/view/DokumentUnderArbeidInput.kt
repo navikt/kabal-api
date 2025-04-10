@@ -51,8 +51,7 @@ enum class InngaaendeKanal {
 }
 
 data class AvsenderInput(
-    val id: UUID,
-    val identifikator: String?,
+    val identifikator: String,
 )
 
 data class MottakerInput(
