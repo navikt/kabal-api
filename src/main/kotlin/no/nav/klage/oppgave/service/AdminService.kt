@@ -575,35 +575,52 @@ class AdminService(
                     behandling.klager.id = behandling.sakenGjelder.id
                 }
 
-                //prosessfullmektig already has id set from Flyway-script
+                if (behandling.prosessfullmektig?.partId?.value == behandling.klager.partId.value) {
+                    behandling.prosessfullmektig!!.id = behandling.klager.id
+                }
 
                 //these ids should then be set for brevmottakere also. Both from DUA-relation and from "forlenget behandlingstid"-relation
                 if (behandling is BehandlingWithVarsletBehandlingstid) {
                     if (behandling.forlengetBehandlingstidDraft != null) {
                         behandling.forlengetBehandlingstidDraft!!.receivers.forEach { receiver ->
-                            if (receiver.identifikator == behandling.sakenGjelder.partId.value) {
-                                receiver.technicalPartId = behandling.sakenGjelder.id
-                            } else if (receiver.identifikator == behandling.klager.partId.value) {
-                                receiver.technicalPartId = behandling.klager.id
-                            }
-                        }
-                    }
-
-                    val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
-                    duaList.forEach { dokumentUnderArbeid ->
-                        if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
-                            dokumentUnderArbeid.brevmottakere.forEach { receiver ->
-                                if (receiver.identifikator == behandling.sakenGjelder.partId.value) {
+                            when (receiver.identifikator) {
+                                behandling.sakenGjelder.partId.value -> {
                                     receiver.technicalPartId = behandling.sakenGjelder.id
-                                } else if (receiver.identifikator == behandling.klager.partId.value) {
+                                }
+
+                                behandling.klager.partId.value -> {
                                     receiver.technicalPartId = behandling.klager.id
-                                } else if (behandling.prosessfullmektig != null && receiver.identifikator == behandling.prosessfullmektig?.partId?.value) {
+                                }
+
+                                behandling.prosessfullmektig?.partId?.value -> {
                                     receiver.technicalPartId = behandling.prosessfullmektig!!.id
                                 }
                             }
                         }
                     }
                 }
+
+                val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
+                duaList.forEach { dokumentUnderArbeid ->
+                    if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
+                        dokumentUnderArbeid.brevmottakere.forEach { receiver ->
+                            when (receiver.identifikator) {
+                                behandling.sakenGjelder.partId.value -> {
+                                    receiver.technicalPartId = behandling.sakenGjelder.id
+                                }
+
+                                behandling.klager.partId.value -> {
+                                    receiver.technicalPartId = behandling.klager.id
+                                }
+
+                                behandling.prosessfullmektig?.partId?.value -> {
+                                    receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                                }
+                            }
+                        }
+                    }
+                }
+
             } catch (e: Exception) {
                 logger.debug("Couldn't set id to part", e)
             }
