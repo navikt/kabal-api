@@ -6,6 +6,7 @@ import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
+import no.nav.klage.oppgave.service.TaskListMerkantilService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpStatus
@@ -19,6 +20,7 @@ class AdminController(
     private val adminService: AdminService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val azureGateway: AzureGateway,
+    private val taskListMerkantilService: TaskListMerkantilService
 ) {
 
     companion object {
@@ -233,6 +235,25 @@ class AdminController(
         }
     }
 
+    @PostMapping("/merkantil-task/{taskId}/complete", produces = ["application/json"])
+    fun completeMerkantilTask(
+        @PathVariable("taskId") taskId: UUID,
+        @RequestBody input: Comment
+    ) {
+        logger.debug("completeMerkantilTask is called")
+        krevAdminTilgang()
+
+        try {
+            taskListMerkantilService.setCommentAndMarkTaskAsCompleted(
+                taskId = taskId,
+                inputComment = input.comment
+            )
+        } catch (e: Exception) {
+            logger.warn("Failed to complete merkantil task", e)
+            throw e
+        }
+    }
+
     @GetMapping("/set-id-on-parter")
     @ResponseStatus(HttpStatus.OK)
     fun setIdOnParter() {
@@ -247,6 +268,7 @@ class AdminController(
     }
 
     data class Fnr(val fnr: String)
+    data class Comment(val comment: String)
 
     private fun krevAdminTilgang() {
         if (!innloggetSaksbehandlerService.isKabalAdmin()) {

@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.klageenheter
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
@@ -20,12 +19,12 @@ import java.util.*
 @Service
 class ExternalMottakFacade(
     private val mottakService: MottakService,
-    private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val behandlingService: BehandlingService,
     private val saksbehandlerService: SaksbehandlerService,
     private val kabalInnstillingerClient: KabalInnstillingerClient,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val automaticSvarbrevEventRepository: AutomaticSvarbrevEventRepository,
+    private val taskListMerkantilService: TaskListMerkantilService,
 ) {
 
     companion object {
@@ -99,7 +98,7 @@ class ExternalMottakFacade(
             )
         } catch (e: Exception) {
             logger.error("Klarte ikke å tildele behandling ${behandling.id} til saksbehandlerIdent $saksbehandlerIdent. Feil: $e")
-            mottakService.createTaskForMerkantil(
+            taskListMerkantilService.createTaskForMerkantil(
                 behandlingId = behandling.id,
                 reason = "Klarte ikke å tildele behandling ${behandling.id} til saksbehandlerIdent $saksbehandlerIdent. Feilmelding: ${e.message}"
             )

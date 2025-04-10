@@ -41,7 +41,8 @@ class AutomaticSvarbrevService(
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val mottakService: MottakService,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
-    private val environment: Environment
+    private val environment: Environment,
+    private val taskListMerkantilService: TaskListMerkantilService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -96,7 +97,7 @@ class AutomaticSvarbrevService(
         if (svarbrevSettings == null) {
             //Må skrive til merkantil-task.
             logger.error("Fant ikke svarbrevinnstillinger for ytelse ${behandling.ytelse} og type ${behandling.type}")
-            mottakService.createTaskForMerkantil(
+            taskListMerkantilService.createTaskForMerkantil(
                 behandlingId = behandling.id,
                 reason = "Fant ikke svarbrevinnstillinger for ytelse ${behandling.ytelse} og type ${behandling.type}"
             )
@@ -114,7 +115,7 @@ class AutomaticSvarbrevService(
             if (receiverValidationErrorMessage != null) {
                 //Dette gir de godkjente feilene vi kjenner til, og skal sendes videre til merkantil.
                 logger.error(receiverValidationErrorMessage)
-                mottakService.createTaskForMerkantil(
+                taskListMerkantilService.createTaskForMerkantil(
                     behandlingId = behandling.id,
                     reason = receiverValidationErrorMessage
                 )
