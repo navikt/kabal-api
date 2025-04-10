@@ -136,6 +136,15 @@ fun OversendtKlageAnkeV4.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
         )
     }
 
+    val prosessfullmektigPart = if (prosessfullmektig?.id?.verdi == klagePart.partId.value) {
+        Prosessfullmektig(
+            id = klagePart.id,
+            partId = klagePart.partId,
+            address = null,
+            navn = null,
+        )
+    } else prosessfullmektig?.toProsessfullmektig()
+
     return Mottak(
         type = Type.valueOf(type.name),
         sakenGjelder = sakenGjelderPart,
@@ -153,7 +162,7 @@ fun OversendtKlageAnkeV4.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
         ytelse = ytelse,
         forrigeBehandlingId = forrigeBehandlingId,
         kommentar = kommentar,
-        prosessfullmektig = prosessfullmektig?.toProsessfullmektig(),
+        prosessfullmektig = prosessfullmektigPart,
         forrigeSaksbehandlerident = null,
         sentFrom = Mottak.Sender.FAGSYSTEM,
     )

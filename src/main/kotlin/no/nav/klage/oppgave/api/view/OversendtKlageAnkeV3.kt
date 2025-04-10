@@ -121,7 +121,7 @@ data class OversendtKlageAnkeV3(
     )
 
 fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
-    val (sakenGjelderPart, klagePart) = getParts(sakenGjelder, klager)
+    val (sakenGjelderPart, klagePart, prosessfullmektigPart) = getParts(sakenGjelder, klager)
     return Mottak(
         type = type,
         klager = klagePart,
@@ -143,7 +143,7 @@ fun OversendtKlageAnkeV3.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
         ytelse = ytelse,
         forrigeBehandlingId = forrigeBehandlingId,
         kommentar = kommentar,
-        prosessfullmektig = klager.toProsessfullmektig(),
+        prosessfullmektig = prosessfullmektigPart,
         forrigeSaksbehandlerident = null,
         sentFrom = Mottak.Sender.FAGSYSTEM,
     )

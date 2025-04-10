@@ -118,7 +118,7 @@ fun OversendtPartIdType.toPartIdType(): PartIdType =
         OversendtPartIdType.VIRKSOMHET -> PartIdType.VIRKSOMHET
     }
 
-fun getParts(sakenGjelder: OversendtSakenGjelder?, klager: OversendtKlagerLegacy): Pair<SakenGjelder, Klager> {
+fun getParts(sakenGjelder: OversendtSakenGjelder?, klager: OversendtKlagerLegacy): Triple<SakenGjelder, Klager, Prosessfullmektig?> {
     val klagePart = Klager(
         id = UUID.randomUUID(),
         partId = klager.id.toPartId(),
@@ -136,5 +136,16 @@ fun getParts(sakenGjelder: OversendtSakenGjelder?, klager: OversendtKlagerLegacy
         )
     }
 
-    return sakenGjelderPart to klagePart
+    val prosessfullmektigPart = if (klager.klagersProsessfullmektig?.id?.verdi == klager.id.verdi) {
+        Prosessfullmektig(
+            id = klagePart.id,
+            partId = klagePart.partId,
+            address = null,
+            navn = null,
+        )
+    } else if (klager.klagersProsessfullmektig != null) {
+        klager.klagersProsessfullmektig.toProsessfullmektig()
+    } else null
+
+    return Triple(sakenGjelderPart, klagePart, prosessfullmektigPart)
 }

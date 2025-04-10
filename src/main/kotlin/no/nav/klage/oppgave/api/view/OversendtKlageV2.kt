@@ -104,7 +104,7 @@ data class OversendtKlageV2(
 )
 
 fun OversendtKlageV2.toMottak(): Mottak {
-    val (sakenGjelderPart, klagePart) = getParts(sakenGjelder, klager)
+    val (sakenGjelderPart, klagePart, prosessfullmektigPart) = getParts(sakenGjelder, klager)
     return Mottak(
         type = type,
         klager = klagePart,
@@ -122,7 +122,7 @@ fun OversendtKlageV2.toMottak(): Mottak {
         frist = frist,
         ytelse = ytelse,
         kommentar = kommentar,
-        prosessfullmektig = klager.toProsessfullmektig(),
+        prosessfullmektig = prosessfullmektigPart,
         forrigeBehandlingId = null,
         sentFrom = Mottak.Sender.FAGSYSTEM,
     )

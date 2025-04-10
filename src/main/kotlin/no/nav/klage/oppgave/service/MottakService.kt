@@ -268,6 +268,11 @@ class MottakService(
             receivedDocumentJournalpostId = input.receivedDocumentJournalpostId
         )
 
+        validateParts(
+            sakenGjelderIdentifikator = sourceBehandling.sakenGjelder.partId.value,
+            prosessfullmektigIdentifikator = input.fullmektig?.value,
+        )
+
         val mottak = mottakRepository.save(sourceBehandling.toMottak(input))
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
@@ -381,6 +386,7 @@ class MottakService(
         validateDateNotInFuture(innsendtTilNav, ::innsendtTilNav.name)
         validateOptionalDateTimeNotInFuture(oversendtKaDato, ::oversendtKaDato.name)
         validateSaksbehandler(avsenderSaksbehandlerIdent, avsenderEnhet)
+        validatePartsLegacy(sakenGjelder = sakenGjelder, klager = klager)
     }
 
     fun OversendtKlageAnkeV3.validate() {
@@ -396,6 +402,21 @@ class MottakService(
         validateOptionalDateTimeNotInFuture(sakMottattKaTidspunkt, ::sakMottattKaTidspunkt.name)
         validateKildeReferanse(kildeReferanse)
         validateEnhet(forrigeBehandlendeEnhet)
+        validatePartsLegacy(sakenGjelder = sakenGjelder, klager = klager)
+    }
+
+    fun validatePartsLegacy(sakenGjelder: OversendtSakenGjelder?, klager: OversendtKlagerLegacy) {
+        if (klager.klagersProsessfullmektig != null) {
+            if (sakenGjelder == null) {
+                if (klager.id.verdi == klager.klagersProsessfullmektig.id.verdi) {
+                    throw OversendtKlageNotValidException("Siden saken gjelder ikke er satt, så regner vi med at det er samme som klager, og da kan ikke prosessfullmektig være samme person.")
+                }
+            } else {
+                if (sakenGjelder.id.verdi == klager.klagersProsessfullmektig.id.verdi) {
+                    throw OversendtKlageNotValidException("Saken gjelder og prosessfullmektig kan ikke være samme person.")
+                }
+            }
+        }
     }
 
     fun OversendtKlageAnkeV4.validate() {
@@ -414,6 +435,15 @@ class MottakService(
         validateKildeReferanse(kildeReferanse)
         validateEnhet(forrigeBehandlendeEnhet)
         prosessfullmektig?.let { validateProsessfullmektig(it) }
+        validateParts(sakenGjelderIdentifikator = sakenGjelder.id.verdi, prosessfullmektigIdentifikator = prosessfullmektig?.id?.verdi)
+    }
+
+    fun validateParts(sakenGjelderIdentifikator: String, prosessfullmektigIdentifikator: String?) {
+        if (prosessfullmektigIdentifikator != null) {
+            if (sakenGjelderIdentifikator == prosessfullmektigIdentifikator) {
+                throw OversendtKlageNotValidException("Saken gjelder og prosessfullmektig kan ikke være samme person.")
+            }
+        }
     }
 
     private fun validateProsessfullmektig(prosessfullmektig: OversendtProsessfullmektig) {
@@ -451,6 +481,10 @@ class MottakService(
         validateDateNotInFuture(sakMottattKa, ::sakMottattKa.name)
         validateKildeReferanse(kildereferanse)
         validateEnhet(forrigeBehandlendeEnhet)
+        validateParts(
+            sakenGjelderIdentifikator = sakenGjelder.value,
+            prosessfullmektigIdentifikator = fullmektig?.value,
+        )
     }
 
     fun CreateAnkeBasedOnCompleteKabinInput.validate() {
@@ -467,6 +501,10 @@ class MottakService(
         validateDateNotInFuture(mottattNav, ::mottattNav.name)
         validateKildeReferanse(kildereferanse)
         validateEnhet(forrigeBehandlendeEnhet)
+        validateParts(
+            sakenGjelderIdentifikator = sakenGjelder.value,
+            prosessfullmektigIdentifikator = fullmektig?.value,
+        )
     }
 
     fun behandlingIsDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): BehandlingIsDuplicateResponse {
@@ -596,40 +634,42 @@ class MottakService(
     }
 
     private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInput): Mottak {
-        val prosessfullmektig = if (input.fullmektig != null) {
-            Prosessfullmektig(
-                id = UUID.randomUUID(),
-                partId = PartId(
-                    type = PartIdType.of(input.fullmektig.type.name),
-                    value = input.fullmektig.value
-                ),
-                navn = null,
-                address = null
+        val klager = if (input.klager == null || input.klager.value == sakenGjelder.partId.value) {
+            Klager(
+                id = sakenGjelder.id,
+                partId = sakenGjelder.partId,
             )
         } else {
-            null
-        }
-
-        val klager = if (input.klager != null) {
             Klager(
-                id = if (input.klager.value == sakenGjelder.partId.value) {
-                    sakenGjelder.id
-                } else {
-                    UUID.randomUUID()
-                },
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.of(input.klager.type.name),
                     value = input.klager.value
                 ),
             )
+        }
+
+        val prosessfullmektig = if (input.fullmektig != null) {
+            if (input.fullmektig.value == klager.partId.value) {
+                Prosessfullmektig(
+                    id = klager.id,
+                    partId = klager.partId,
+                    navn = null,
+                    address = null
+                )
+            } else {
+                Prosessfullmektig(
+                    id = UUID.randomUUID(),
+                    partId = PartId(
+                        type = PartIdType.of(input.fullmektig.type.name),
+                        value = input.fullmektig.value
+                    ),
+                    navn = null,
+                    address = null
+                )
+            }
         } else {
-            Klager(
-                id = sakenGjelder.id,
-                partId = PartId(
-                    type = PartIdType.of(sakenGjelder.partId.type.name),
-                    value = sakenGjelder.partId.value
-                ),
-            )
+            null
         }
 
         val type = Type.of(input.typeId)
@@ -675,42 +715,53 @@ class MottakService(
     }
 
     fun CreateKlageBasedOnKabinInput.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
-        val prosessfullmektig = if (fullmektig != null) {
-            Prosessfullmektig(
-                id = UUID.randomUUID(),
-                partId = fullmektig.toPartId(),
-                navn = null,
-                address = null,
-            )
-        } else {
-            null
-        }
-
-        val sakenGjelderPart = SakenGjelder(
+        val sakenGjelder = SakenGjelder(
             id = UUID.randomUUID(),
             partId = sakenGjelder.toPartId(),
         )
 
-        val klagePart = if (klager != null) {
+        val klager = if (klager == null || klager.value == sakenGjelder.partId.value) {
             Klager(
-                id = if (klager.value == sakenGjelderPart.partId.value) {
-                    sakenGjelderPart.id
-                } else {
-                    UUID.randomUUID()
-                },
-                partId = klager.toPartId(),
+                id = sakenGjelder.id,
+                partId = sakenGjelder.partId,
             )
         } else {
             Klager(
-                id = sakenGjelderPart.id,
-                partId = sakenGjelder.toPartId(),
+                id = UUID.randomUUID(),
+                partId = PartId(
+                    type = PartIdType.of(klager.type.name),
+                    value = klager.value
+                ),
             )
+        }
+
+        val prosessfullmektig = if (fullmektig != null) {
+            if (fullmektig.value == klager.partId.value) {
+                Prosessfullmektig(
+                    id = klager.id,
+                    partId = klager.partId,
+                    navn = null,
+                    address = null
+                )
+            } else {
+                Prosessfullmektig(
+                    id = UUID.randomUUID(),
+                    partId = PartId(
+                        type = PartIdType.of(fullmektig.type.name),
+                        value = fullmektig.value
+                    ),
+                    navn = null,
+                    address = null
+                )
+            }
+        } else {
+            null
         }
 
         return Mottak(
             type = Type.KLAGE,
-            klager = klagePart,
-            sakenGjelder = sakenGjelderPart,
+            klager = klager,
+            sakenGjelder = sakenGjelder,
             fagsystem = Fagsystem.of(fagsystemId),
             fagsakId = fagsakId,
             kildeReferanse = kildereferanse,
@@ -736,42 +787,53 @@ class MottakService(
     }
 
     fun CreateAnkeBasedOnCompleteKabinInput.toMottak(): Mottak {
-        val prosessfullmektig = if (fullmektig != null) {
-            Prosessfullmektig(
-                id = UUID.randomUUID(),
-                partId = fullmektig.toPartId(),
-                navn = null,
-                address = null,
-            )
-        } else {
-            null
-        }
-
-        val sakenGjelderPart = SakenGjelder(
+        val sakenGjelder = SakenGjelder(
             id = UUID.randomUUID(),
             partId = sakenGjelder.toPartId(),
         )
 
-        val klagePart = if (klager != null) {
+        val klager = if (klager == null || klager.value == sakenGjelder.partId.value) {
             Klager(
-                id = if (klager.value == sakenGjelder.toPartId().value) {
-                    sakenGjelderPart.id
-                } else {
-                    UUID.randomUUID()
-                },
-                partId = klager.toPartId(),
+                id = sakenGjelder.id,
+                partId = sakenGjelder.partId,
             )
         } else {
             Klager(
-                id = sakenGjelderPart.id,
-                partId = sakenGjelder.toPartId(),
+                id = UUID.randomUUID(),
+                partId = PartId(
+                    type = PartIdType.of(klager.type.name),
+                    value = klager.value
+                ),
             )
+        }
+
+        val prosessfullmektig = if (fullmektig != null) {
+            if (fullmektig.value == klager.partId.value) {
+                Prosessfullmektig(
+                    id = klager.id,
+                    partId = klager.partId,
+                    navn = null,
+                    address = null
+                )
+            } else {
+                Prosessfullmektig(
+                    id = UUID.randomUUID(),
+                    partId = PartId(
+                        type = PartIdType.of(fullmektig.type.name),
+                        value = fullmektig.value
+                    ),
+                    navn = null,
+                    address = null
+                )
+            }
+        } else {
+            null
         }
 
         return Mottak(
             type = Type.ANKE,
-            klager = klagePart,
-            sakenGjelder = sakenGjelderPart,
+            klager = klager,
+            sakenGjelder = sakenGjelder,
             fagsystem = Fagsystem.of(fagsystemId),
             fagsakId = fagsakId,
             kildeReferanse = kildereferanse,

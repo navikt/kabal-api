@@ -72,7 +72,7 @@ data class OversendtAnkeITrygderettenV1(
 )
 
 fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingInput(inputDocuments: MutableSet<Saksdokument>): AnkeITrygderettenbehandlingInput {
-    val (sakenGjelderPart, klagePart) = getParts(sakenGjelder, klager)
+    val (sakenGjelderPart, klagePart, _) = getParts(sakenGjelder, klager)
     return AnkeITrygderettenbehandlingInput(
         klager = klagePart,
         sakenGjelder = sakenGjelderPart,
