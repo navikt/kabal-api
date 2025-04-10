@@ -1357,35 +1357,43 @@ class BehandlingService(
 
     fun setFullmektig(
         behandlingId: UUID,
-        input: FullmektigInput?,
+        input: FullmektigInput,
         utfoerendeSaksbehandlerIdent: String
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
 
-        if (input != null) {
-            if (input.identifikator != null && (input.address != null || input.name != null)) {
-                throw IllegalOperation("Address and name can only be set without id")
-            }
-
-            if ((input.address != null && input.name == null) || (input.address == null && input.name != null)) {
-                throw IllegalOperation("Both address or name must be set")
-            }
-
-            if (input.address != null) {
-                input.address.validateAddress()
-            }
-
-            if (input.identifikator != null && input.identifikator in listOf(
-                    behandling.sakenGjelder.partId.value,
-                )
-            ) {
-                throw IllegalOperation("Fullmektig kan ikke være den samme som den saken gjelder.")
+        if (behandling.prosessfullmektig == null) {
+            if (input.identifikator == null && input.address == null && input.name == null) {
+                throw IllegalOperation("Fullmektig er allerede fjernet")
             }
         }
 
-        val partId: PartId? = if (input?.identifikator == null) {
+        if (behandling.prosessfullmektig?.partId?.value != null && behandling.prosessfullmektig?.partId?.value == input.identifikator) {
+            throw IllegalOperation("Denne fullmektigen er allerede satt")
+        }
+
+        if (input.identifikator != null && (input.address != null || input.name != null)) {
+            throw IllegalOperation("Address and name can only be set without id")
+        }
+
+        if ((input.address != null && input.name == null) || (input.address == null && input.name != null)) {
+            throw IllegalOperation("Both address or name must be set")
+        }
+
+        if (input.address != null) {
+            input.address.validateAddress()
+        }
+
+        if (input.identifikator != null && input.identifikator in listOf(
+                behandling.sakenGjelder.partId.value,
+            )
+        ) {
+            throw IllegalOperation("Fullmektig kan ikke være den samme som den saken gjelder.")
+        }
+
+        val partId: PartId? = if (input.identifikator == null) {
             null
         } else {
             getPartIdFromIdentifikator(input.identifikator)
@@ -1394,8 +1402,8 @@ class BehandlingService(
         val event =
             behandling.setFullmektig(
                 partId = partId,
-                name = input?.name,
-                address = input?.address?.let {
+                name = input.name,
+                address = input.address?.let {
                     val poststed = if (it.landkode == "NO") {
                         if (it.postnummer != null) {
                             kodeverkService.getPoststed(it.postnummer)
