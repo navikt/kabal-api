@@ -470,10 +470,17 @@ object BehandlingSetters {
             )
         }
 
-        if (partId == null && address == null && name == null) {
-            prosessfullmektig = null
+        prosessfullmektig = if (partId == null && address == null && name == null) {
+            null
         } else {
-            prosessfullmektig = Prosessfullmektig(
+            if (partId?.value == klager.partId.value) {
+                Prosessfullmektig(
+                    id = klager.id,
+                    partId = klager.partId,
+                    address = null,
+                    navn = null,
+                )
+            } else Prosessfullmektig(
                 id = UUID.randomUUID(),
                 partId = partId,
                 address = address?.let {
@@ -540,8 +547,20 @@ object BehandlingSetters {
             )
         }
 
-        klager.partId = nyVerdi
-        klager.id = UUID.randomUUID()
+        when (nyVerdi.value) {
+            prosessfullmektig?.partId?.value -> {
+                klager.id = prosessfullmektig!!.id
+                klager.partId = prosessfullmektig!!.partId!!
+            }
+            sakenGjelder.partId.value -> {
+                klager.id = sakenGjelder.id
+                klager.partId = sakenGjelder.partId
+            }
+            else -> {
+                klager.partId = nyVerdi
+                klager.id = UUID.randomUUID()
+            }
+        }
 
         recordKlagerHistory(
             tidspunkt = tidspunkt,

@@ -1379,10 +1379,9 @@ class BehandlingService(
 
             if (input.identifikator != null && input.identifikator in listOf(
                     behandling.sakenGjelder.partId.value,
-                    behandling.klager.partId.value,
                 )
             ) {
-                throw IllegalOperation("Fullmektig can not be the same as sakenGjelder or klager")
+                throw IllegalOperation("Fullmektig kan ikke være den samme som den saken gjelder.")
             }
         }
 
@@ -1502,10 +1501,6 @@ class BehandlingService(
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
-
-        if (behandling.sakenGjelder.partId.value == identifikator) {
-            throw IllegalOperation("Klager kan ikke være samme som saken gjelder")
-        }
 
         if (behandling.klager.partId.value == identifikator) {
             throw IllegalOperation("Denne klageparten er allerede satt")
