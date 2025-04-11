@@ -30,9 +30,12 @@ class TaskListMerkantilService(
     }
 
     @Transactional
-    fun setCommentAndMarkTaskAsCompleted(taskId: UUID, inputComment: String) {
+    fun setCommentAndMarkTaskAsCompleted(taskId: UUID, inputComment: String): TaskListMerkantil? {
         val task = taskListMerkantilRepository.findById(taskId)
             .orElseThrow { IllegalArgumentException("Task with id $taskId not found") }
+        if (task.dateHandled != null) {
+            throw IllegalStateException("Task with id $taskId is already handled")
+        }
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         val innloggetName = saksbehandlerService.getNameForIdentDefaultIfNull(
             navIdent = innloggetIdent
@@ -42,5 +45,7 @@ class TaskListMerkantilService(
         task.handledBy = innloggetIdent
         task.handledByName = innloggetName
         task.comment = inputComment
+
+        return task
     }
 }
