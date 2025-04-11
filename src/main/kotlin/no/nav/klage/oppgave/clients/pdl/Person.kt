@@ -14,6 +14,7 @@ data class Person(
     val sivilstand: Sivilstand?,
     val vergemaalEllerFremtidsfullmakt: Boolean,
     val doed: LocalDate?,
+    val sikkerhetstiltak: Sikkerhetstiltak?,
 ) {
     fun harBeskyttelsesbehovFortrolig() = beskyttelsesbehov == Beskyttelsesbehov.FORTROLIG
 
@@ -26,6 +27,21 @@ data class Person(
         } else {
             "$fornavn $etternavn"
         }
+    }
+}
+
+data class Sikkerhetstiltak(
+    val tiltakstype: Tiltakstype,
+    val beskrivelse: String,
+    val gyldigFraOgMed: LocalDate,
+    val gyldigTilOgMed: LocalDate,
+) {
+    enum class Tiltakstype {
+        FYUS,
+        TFUS,
+        FTUS,
+        DIUS,
+        TOAN,
     }
 }
 

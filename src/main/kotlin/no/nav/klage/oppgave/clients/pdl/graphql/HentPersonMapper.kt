@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.clients.pdl.graphql
 
 import no.nav.klage.oppgave.clients.pdl.Beskyttelsesbehov
 import no.nav.klage.oppgave.clients.pdl.Person
+import no.nav.klage.oppgave.clients.pdl.Sikkerhetstiltak
 import no.nav.klage.oppgave.clients.pdl.Sivilstand
 import no.nav.klage.oppgave.domain.kodeverk.SivilstandType
 import no.nav.klage.oppgave.util.getLogger
@@ -32,6 +33,7 @@ class HentPersonMapper {
                 ?.mapSivilstand(),
             vergemaalEllerFremtidsfullmakt = pdlPerson.vergemaalEllerFremtidsfullmakt.isNotEmpty(),
             doed = pdlPerson.doedsfall.firstOrNull()?.doedsdato,
+            sikkerhetstiltak = pdlPerson.sikkerhetstiltak.firstOrNull()?.mapToSikkerhetstiltak(),
         )
     }
 
@@ -55,4 +57,12 @@ class HentPersonMapper {
             PdlPerson.Adressebeskyttelse.GraderingType.STRENGT_FORTROLIG_UTLAND -> Beskyttelsesbehov.STRENGT_FORTROLIG_UTLAND
             else -> null
         }
+
+    fun PdlPerson.Sikkerhetstiltak.mapToSikkerhetstiltak(): Sikkerhetstiltak? =
+        Sikkerhetstiltak(
+            tiltakstype = Sikkerhetstiltak.Tiltakstype.valueOf(this.tiltakstype.name),
+            beskrivelse = this.beskrivelse,
+            gyldigFraOgMed = this.gyldigFraOgMed,
+            gyldigTilOgMed = this.gyldigTilOgMed
+        )
 }
