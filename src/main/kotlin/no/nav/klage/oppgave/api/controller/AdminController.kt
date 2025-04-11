@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.api.controller
 
 import no.nav.klage.oppgave.api.view.TaskListMerkantilView
 import no.nav.klage.oppgave.config.SecurityConfiguration
+import no.nav.klage.oppgave.domain.klage.TaskListMerkantil
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.service.AdminService
@@ -239,12 +240,12 @@ class AdminController(
     fun completeMerkantilTask(
         @PathVariable("taskId") taskId: UUID,
         @RequestBody input: Comment
-    ) {
+    ): TaskListMerkantil? {
         logger.debug("completeMerkantilTask is called")
         krevAdminTilgang()
 
         try {
-            taskListMerkantilService.setCommentAndMarkTaskAsCompleted(
+            return taskListMerkantilService.setCommentAndMarkTaskAsCompleted(
                 taskId = taskId,
                 inputComment = input.comment
             )
