@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.oppgave.api.view.TaskListMerkantilView
 import no.nav.klage.oppgave.domain.klage.TaskListMerkantil
+import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.TaskListMerkantilRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -12,6 +14,7 @@ class TaskListMerkantilService(
     private val taskListMerkantilRepository: TaskListMerkantilRepository,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val saksbehandlerService: SaksbehandlerService,
+    private val behandlingRepository: BehandlingRepository,
 ) {
 
     @Transactional
@@ -30,7 +33,7 @@ class TaskListMerkantilService(
     }
 
     @Transactional
-    fun setCommentAndMarkTaskAsCompleted(taskId: UUID, inputComment: String): TaskListMerkantil? {
+    fun setCommentAndMarkTaskAsCompleted(taskId: UUID, inputComment: String): TaskListMerkantilView {
         val task = taskListMerkantilRepository.findById(taskId)
             .orElseThrow { IllegalArgumentException("Task with id $taskId not found") }
         if (task.dateHandled != null) {
@@ -46,6 +49,25 @@ class TaskListMerkantilService(
         task.handledByName = innloggetName
         task.comment = inputComment
 
-        return task
+        return task.toTaskListMerkantilView()
+    }
+
+    fun getTaskListMerkantil(): List<TaskListMerkantilView> {
+        return taskListMerkantilRepository.findAll().sortedByDescending { it.created }
+            .map { it.toTaskListMerkantilView() }
+    }
+
+    fun TaskListMerkantil.toTaskListMerkantilView(): TaskListMerkantilView {
+        return TaskListMerkantilView(
+            id = id,
+            behandlingId = behandlingId,
+            reason = reason,
+            created = created,
+            dateHandled = dateHandled,
+            handledBy = handledBy,
+            handledByName = handledByName,
+            comment = comment,
+            typeId = behandlingRepository.findByIdEager(behandlingId).type.id
+        )
     }
 }

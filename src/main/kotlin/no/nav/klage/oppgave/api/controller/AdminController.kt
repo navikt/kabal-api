@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.api.controller
 
 import no.nav.klage.oppgave.api.view.TaskListMerkantilView
 import no.nav.klage.oppgave.config.SecurityConfiguration
-import no.nav.klage.oppgave.domain.klage.TaskListMerkantil
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.service.AdminService
@@ -169,7 +168,26 @@ class AdminController(
         logger.debug("getTaskListMerkantil is called")
         krevAdminTilgang()
 
-        return adminService.getTaskListMerkantil()
+        return taskListMerkantilService.getTaskListMerkantil()
+    }
+
+    @PostMapping("/merkantil-tasks/{taskId}/complete", produces = ["application/json"])
+    fun completeMerkantilTask(
+        @PathVariable("taskId") taskId: UUID,
+        @RequestBody input: Comment
+    ): TaskListMerkantilView {
+        logger.debug("completeMerkantilTask is called")
+        krevAdminTilgang()
+
+        try {
+            return taskListMerkantilService.setCommentAndMarkTaskAsCompleted(
+                taskId = taskId,
+                inputComment = input.comment
+            )
+        } catch (e: Exception) {
+            logger.warn("Failed to complete merkantil task", e)
+            throw e
+        }
     }
 
     @GetMapping(value = ["/enableminsidemicrofrontend/{behandlingId}", "/enableminsidemicrofrontend"])
@@ -232,25 +250,6 @@ class AdminController(
             adminService.fixMissingInKaka()
         } catch (e: Exception) {
             logger.warn("Failed to finishing missing in kaka", e)
-            throw e
-        }
-    }
-
-    @PostMapping("/merkantil-task/{taskId}/complete", produces = ["application/json"])
-    fun completeMerkantilTask(
-        @PathVariable("taskId") taskId: UUID,
-        @RequestBody input: Comment
-    ): TaskListMerkantil? {
-        logger.debug("completeMerkantilTask is called")
-        krevAdminTilgang()
-
-        try {
-            return taskListMerkantilService.setCommentAndMarkTaskAsCompleted(
-                taskId = taskId,
-                inputComment = input.comment
-            )
-        } catch (e: Exception) {
-            logger.warn("Failed to complete merkantil task", e)
             throw e
         }
     }

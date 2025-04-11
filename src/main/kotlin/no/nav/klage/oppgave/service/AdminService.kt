@@ -13,7 +13,6 @@ import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
-import no.nav.klage.oppgave.api.view.TaskListMerkantilView
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
@@ -487,25 +486,6 @@ class AdminService(
         Registreringshjemmel.BTRL_13,
         Registreringshjemmel.KONTSL_11,
     )
-
-    fun getTaskListMerkantil(): List<TaskListMerkantilView> {
-        return taskListMerkantilRepository.findAll().sortedByDescending { it.created }
-            .map { it.toTaskListMerkantilView() }
-    }
-
-    fun TaskListMerkantil.toTaskListMerkantilView(): TaskListMerkantilView {
-        return TaskListMerkantilView(
-            id = id,
-            behandlingId = behandlingId,
-            reason = reason,
-            created = created,
-            dateHandled = dateHandled,
-            handledBy = handledBy,
-            handledByName = handledByName,
-            comment = comment,
-            typeId = behandlingRepository.findByIdEager(behandlingId).type.id
-        )
-    }
 
     fun enableMinsideMicrofrontend(behandlingId: UUID) {
         val behandling = behandlingRepository.findByIdEager(behandlingId)
