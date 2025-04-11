@@ -736,7 +736,7 @@ class DokumentUnderArbeidService(
 
         //Validate part
         partSearchService.searchPart(
-            identifikator = avsenderInput.id,
+            identifikator = avsenderInput.identifikator,
             skipAccessControl = true
         )
 
@@ -758,10 +758,22 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan bare sette avsender på inngående dokument")
         }
 
-        dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
-        dokumentUnderArbeid.avsenderMottakerInfoSet.add(
-            DokumentUnderArbeidAvsenderMottakerInfo(
-                identifikator = avsenderInput.id,
+        val technicalPartId = when(avsenderInput.identifikator) {
+            behandling.sakenGjelder.partId.value ->
+                behandling.sakenGjelder.id
+            behandling.klager.partId.value ->
+                behandling.klager.id
+            behandling.prosessfullmektig?.partId?.value ->
+                behandling.prosessfullmektig!!.id
+            else ->
+                UUID.randomUUID()
+        }
+
+        dokumentUnderArbeid.brevmottakere.clear()
+        dokumentUnderArbeid.brevmottakere.add(
+            Brevmottaker(
+                technicalPartId = technicalPartId,
+                identifikator = avsenderInput.identifikator,
                 localPrint = false,
                 forceCentralPrint = false,
                 address = null,
@@ -832,20 +844,21 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan bare sette mottakere på utgående dokument")
         }
 
-        dokumentUnderArbeid.avsenderMottakerInfoSet.clear()
+        dokumentUnderArbeid.brevmottakere.clear()
 
         mottakerInput.mottakerList.forEach {
             val (markLocalPrint, forceCentralPrint) = getPreferredHandling(
-                identifikator = it.id,
+                identifikator = it.identifikator,
                 handling = it.handling,
                 isAddressOverridden = it.overriddenAddress != null,
                 sakenGjelderFnr = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
                 systemContext = systemContext,
             )
-            dokumentUnderArbeid.avsenderMottakerInfoSet.add(
-                DokumentUnderArbeidAvsenderMottakerInfo(
-                    identifikator = it.id,
+            dokumentUnderArbeid.brevmottakere.add(
+                Brevmottaker(
+                    technicalPartId = it.id,
+                    identifikator = it.identifikator,
                     localPrint = markLocalPrint,
                     forceCentralPrint = forceCentralPrint,
                     address = getDokumentUnderArbeidAdresse(it.overriddenAddress),
@@ -887,9 +900,9 @@ class DokumentUnderArbeidService(
         systemContext: Boolean,
     ) {
         mottakerInput.mottakerList.forEach { mottaker ->
-            if (mottaker.id != null) {
+            if (mottaker.identifikator != null) {
                 val part = partSearchService.searchPart(
-                    identifikator = mottaker.id,
+                    identifikator = mottaker.identifikator,
                     skipAccessControl = systemContext
                 )
 
@@ -1249,10 +1262,11 @@ class DokumentUnderArbeidService(
         }
 
         if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
-            hovedDokument.avsenderMottakerInfoSet.clear()
-            hovedDokument.avsenderMottakerInfoSet.add(
-                DokumentUnderArbeidAvsenderMottakerInfo(
+            hovedDokument.brevmottakere.clear()
+            hovedDokument.brevmottakere.add(
+                Brevmottaker(
                     //Hardkoder Trygderetten
+                    technicalPartId = UUID.randomUUID(),
                     identifikator = "974761084",
                     localPrint = false,
                     forceCentralPrint = false,
@@ -1352,7 +1366,7 @@ class DokumentUnderArbeidService(
 
         val errors = mutableListOf<DocumentValidationResponse>()
 
-        dokumentUnderArbeid.avsenderMottakerInfoSet.forEach { mottaker ->
+        dokumentUnderArbeid.brevmottakere.forEach { mottaker ->
             if (mottaker.identifikator != null) {
                 val part = partSearchService.searchPartWithUtsendingskanal(
                     identifikator = mottaker.identifikator,
@@ -1444,8 +1458,8 @@ class DokumentUnderArbeidService(
     }
 
     private fun documentWillGoToCentralPrint(
-        mottaker: DokumentUnderArbeidAvsenderMottakerInfo,
-        part: BehandlingDetaljerView.PartViewWithUtsendingskanal
+        mottaker: Brevmottaker,
+        part: BehandlingDetaljerView.SearchPartViewWithUtsendingskanal
     ): Boolean {
         return mottaker.forceCentralPrint ||
                 (!mottaker.localPrint && part.utsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT)
@@ -1470,7 +1484,7 @@ class DokumentUnderArbeidService(
             )
         }
 
-        val avsenderMottakerInfoSet = hovedDokument.avsenderMottakerInfoSet
+        val avsenderMottakerInfoSet = hovedDokument.brevmottakere
 
         if (hovedDokument.dokumentType != DokumentType.NOTAT && avsenderMottakerInfoSet.isEmpty()) {
             throw DokumentValidationException("Avsender/mottakere må være satt")
@@ -2153,7 +2167,8 @@ class DokumentUnderArbeidService(
             mottakerInput = MottakerInput(
                 svarbrev.receivers.map {
                     Mottaker(
-                        id = it.id,
+                        id = UUID.randomUUID(),
+                        identifikator = it.identifikator,
                         handling = HandlingEnum.valueOf(it.handling.name),
                         overriddenAddress = it.overriddenAddress?.let { address ->
                             AddressInput(
@@ -2234,8 +2249,9 @@ class DokumentUnderArbeidService(
         val document = getDokumentUnderArbeid(documentView.id) as DokumentUnderArbeidAsHoveddokument
 
         forlengetBehandlingstidDraft.receivers.forEach {
-            document.avsenderMottakerInfoSet.add(
-                DokumentUnderArbeidAvsenderMottakerInfo(
+            document.brevmottakere.add(
+                Brevmottaker(
+                    technicalPartId = it.id,
                     identifikator = it.identifikator,
                     localPrint = it.localPrint,
                     forceCentralPrint = it.forceCentralPrint,

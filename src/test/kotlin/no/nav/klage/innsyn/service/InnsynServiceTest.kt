@@ -49,12 +49,14 @@ internal class InnsynServiceTest {
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
             klager = Klager(
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.PERSON,
                     value = "123"
                 )
             ),
             sakenGjelder = SakenGjelder(
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.PERSON,
                     value = "123"
@@ -88,12 +90,14 @@ internal class InnsynServiceTest {
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
             klager = Klager(
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.PERSON,
                     value = "123"
                 )
             ),
             sakenGjelder = SakenGjelder(
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.PERSON,
                     value = "123"
@@ -125,12 +129,14 @@ internal class InnsynServiceTest {
 
         val ankeITRBehandling = AnkeITrygderettenbehandling(
             klager = Klager(
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.PERSON,
                     value = "123"
                 )
             ),
             sakenGjelder = SakenGjelder(
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.PERSON,
                     value = "123"
@@ -164,12 +170,14 @@ internal class InnsynServiceTest {
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
             klager = Klager(
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.PERSON,
                     value = "123"
                 )
             ),
             sakenGjelder = SakenGjelder(
+                id = UUID.randomUUID(),
                 partId = PartId(
                     type = PartIdType.PERSON,
                     value = "123"

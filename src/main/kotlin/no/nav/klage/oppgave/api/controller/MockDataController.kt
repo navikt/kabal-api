@@ -10,9 +10,7 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
-import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingInput
-import no.nav.klage.oppgave.domain.klage.MottakDokumentType
-import no.nav.klage.oppgave.domain.klage.utfallToTrygderetten
+import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.ExternalMottakFacade
 import no.nav.klage.oppgave.util.getLogger
@@ -255,13 +253,13 @@ class MockDataController(
         val fnr = fnrAndJournalpostId.fnr
         val lastMonth = LocalDate.now().minusMonths(1).toEpochDay()
         val now = LocalDate.now().toEpochDay()
-        val dato = mockInput?.sakMottattKaTidspunkt ?: LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(lastMonth, now))
+        val dato = (mockInput?.sakMottattKaTidspunkt ?: LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(lastMonth, now))).atStartOfDay()
 
-        val klager = mockInput?.klager ?: OversendtKlagerLegacy(
+        val sakenGjelder = mockInput?.sakenGjelder ?: OversendtPart(
             id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
         )
 
-        val sakenGjelder = mockInput?.sakenGjelder
+        val klager = mockInput?.klager
 
         val oversendtSak = mockInput?.fagsak ?: OversendtSak(
             fagsakId = "1234",
@@ -271,25 +269,25 @@ class MockDataController(
         logger.debug("Will create mottak/behandling for klage/anke of type {} for ytelse {}", type, ytelse)
         val behandling = when (type) {
             Type.KLAGE, Type.ANKE, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET, Type.OMGJOERINGSKRAV -> {
-                mottakFacade.createMottakForKlageAnkeV3ForE2ETests(
-                    OversendtKlageAnkeV3(
+                mottakFacade.createMottakForKlageAnkeV4(
+                    OversendtKlageAnkeV4(
                         ytelse = ytelse,
-                        type = type,
-                        klager = klager,
-                        fagsak = oversendtSak,
+                        type = OversendtType.valueOf(type.name),
                         sakenGjelder = sakenGjelder,
+                        klager = klager,
+                        prosessfullmektig = mockInput?.prosessfullmektig,
+                        fagsak = oversendtSak,
                         kildeReferanse = mockInput?.kildeReferanse ?: UUID.randomUUID().toString(),
                         dvhReferanse = mockInput?.dvhReferanse,
-                        innsynUrl = "https://nav.no",
                         hjemler = listOf(ytelseToHjemler[ytelse]!!.random()),
                         forrigeBehandlendeEnhet = mockInput?.forrigeBehandlendeEnhet ?: "4295", //NAV Klageinstans nord
-                        brukersHenvendelseMottattNavDato = dato,
-                        sakMottattKaDato = dato,
-                        innsendtTilNav = dato.minusDays(3),
-                        kilde = oversendtSak.fagsystem,
+                        sakMottattKaTidspunkt = dato,
                         kommentar = mockInput?.kommentar,
                         hindreAutomatiskSvarbrev = mockInput?.hindreAutomatiskSvarbrev,
-                        saksbehandlerIdent = mockInput?.saksbehandlerIdent,
+                        saksbehandlerIdentForTildeling = mockInput?.saksbehandlerIdent,
+                        tilknyttedeJournalposter = emptyList(),
+                        brukersKlageMottattVedtaksinstans = dato.minusDays(2).toLocalDate(),
+                        frist = null,
                     )
                 )
             }
@@ -308,9 +306,26 @@ class MockDataController(
                         throw error("wrong version")
                 }
 
+                val sakenGjelderPart = SakenGjelder(
+                    id = UUID.randomUUID(),
+                    partId = sakenGjelder.id.toPartId(),
+                )
+
+                val klagePart = if (sakenGjelder.id.verdi == klager?.id?.verdi || klager == null) {
+                    Klager(
+                        id = sakenGjelderPart.id,
+                        partId = sakenGjelderPart.partId,
+                    )
+                } else {
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = klager.id.toPartId(),
+                    )
+                }
+
                 val input = AnkeITrygderettenbehandlingInput(
-                    klager = klager.toKlagepart(),
-                    sakenGjelder = sakenGjelder?.toSakenGjelder(),
+                    klager = klagePart,
+                    sakenGjelder = sakenGjelderPart,
                     prosessfullmektig = null,
                     ytelse = ytelse,
                     type = type,
@@ -318,7 +333,7 @@ class MockDataController(
                     dvhReferanse = mockInput?.dvhReferanse ?: UUID.randomUUID().toString(),
                     fagsystem = Fagsystem.fromNavn(oversendtSak.fagsystem.name),
                     fagsakId = oversendtSak.fagsakId,
-                    sakMottattKlageinstans = dato.atStartOfDay(),
+                    sakMottattKlageinstans = dato,
                     saksdokumenter = mutableSetOf(),
                     innsendingsHjemler = mutableSetOf(ytelseToHjemler[ytelse]!!.random()),
                     sendtTilTrygderetten = LocalDateTime.now(),
@@ -364,8 +379,9 @@ class MockDataController(
 
     data class MockInput(
         val ytelse: Ytelse?,
-        val klager: OversendtKlagerLegacy?,
-        val sakenGjelder: OversendtSakenGjelder?,
+        val sakenGjelder: OversendtPart,
+        val klager: OversendtPart?,
+        val prosessfullmektig: OversendtProsessfullmektig?,
         val kildeReferanse: String?,
         val dvhReferanse: String?,
         val forrigeBehandlendeEnhet: String?,

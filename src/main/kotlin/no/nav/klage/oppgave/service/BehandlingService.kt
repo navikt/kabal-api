@@ -1357,28 +1357,43 @@ class BehandlingService(
 
     fun setFullmektig(
         behandlingId: UUID,
-        input: FullmektigInput?,
+        input: FullmektigInput,
         utfoerendeSaksbehandlerIdent: String
     ): LocalDateTime {
-
-        if (input != null) {
-            if (input.identifikator != null && (input.address != null || input.name != null)) {
-                throw IllegalOperation("Address and name can only be set without id")
-            }
-
-            if ((input.address != null && input.name == null) || (input.address == null && input.name != null)) {
-                throw IllegalOperation("Both address or name must be set")
-            }
-
-            if (input.address != null) {
-                input.address.validateAddress()
-            }
-        }
-
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
-        val partId: PartId? = if (input?.identifikator == null) {
+
+        if (behandling.prosessfullmektig == null) {
+            if (input.identifikator == null && input.address == null && input.name == null) {
+                throw IllegalOperation("Fullmektig er allerede fjernet")
+            }
+        }
+
+        if (behandling.prosessfullmektig?.partId?.value != null && behandling.prosessfullmektig?.partId?.value == input.identifikator) {
+            throw IllegalOperation("Denne fullmektigen er allerede satt")
+        }
+
+        if (input.identifikator != null && (input.address != null || input.name != null)) {
+            throw IllegalOperation("Address and name can only be set without id")
+        }
+
+        if ((input.address != null && input.name == null) || (input.address == null && input.name != null)) {
+            throw IllegalOperation("Both address or name must be set")
+        }
+
+        if (input.address != null) {
+            input.address.validateAddress()
+        }
+
+        if (input.identifikator != null && input.identifikator in listOf(
+                behandling.sakenGjelder.partId.value,
+            )
+        ) {
+            throw IllegalOperation("Fullmektig kan ikke være den samme som den saken gjelder.")
+        }
+
+        val partId: PartId? = if (input.identifikator == null) {
             null
         } else {
             getPartIdFromIdentifikator(input.identifikator)
@@ -1387,8 +1402,8 @@ class BehandlingService(
         val event =
             behandling.setFullmektig(
                 partId = partId,
-                name = input?.name,
-                address = input?.address?.let {
+                name = input.name,
+                address = input.address?.let {
                     val poststed = if (it.landkode == "NO") {
                         if (it.postnummer != null) {
                             kodeverkService.getPoststed(it.postnummer)
@@ -1412,16 +1427,29 @@ class BehandlingService(
         val partView = if (behandling.prosessfullmektig == null) {
             null
         } else if (behandling.prosessfullmektig!!.partId != null) {
-            partSearchService.searchPartWithUtsendingskanal(
+            val searchPartViewWithUtsendingskanal = partSearchService.searchPartWithUtsendingskanal(
                 identifikator = behandling.prosessfullmektig?.partId?.value!!,
                 skipAccessControl = true,
                 sakenGjelderId = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
                 systemContext = false,
             )
+
+            BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                id = behandling.prosessfullmektig!!.id,
+                identifikator = searchPartViewWithUtsendingskanal.identifikator,
+                name = searchPartViewWithUtsendingskanal.name,
+                type = searchPartViewWithUtsendingskanal.type,
+                available = searchPartViewWithUtsendingskanal.available,
+                language = searchPartViewWithUtsendingskanal.language,
+                statusList = searchPartViewWithUtsendingskanal.statusList,
+                address = searchPartViewWithUtsendingskanal.address,
+                utsendingskanal = searchPartViewWithUtsendingskanal.utsendingskanal,
+            )
         } else {
             BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                id = null,
+                id = behandling.prosessfullmektig!!.id,
+                identifikator = null,
                 name = behandling.prosessfullmektig!!.navn!!,
                 type = null,
                 available = true,
@@ -1453,7 +1481,8 @@ class BehandlingService(
                     timestamp = behandling.modified,
                     part = partView?.let {
                         Part(
-                            id = partView.id,
+                            id = behandling.prosessfullmektig?.id!!,
+                            identifikator = partView.identifikator,
                             type = partView.type,
                             name = partView.name,
                             statusList = partView.statusList,
@@ -1481,6 +1510,10 @@ class BehandlingService(
             behandlingId
         )
 
+        if (behandling.klager.partId.value == identifikator) {
+            throw IllegalOperation("Denne klageparten er allerede satt")
+        }
+
         val event =
             behandling.setKlager(
                 nyVerdi = getPartIdFromIdentifikator(identifikator),
@@ -1507,7 +1540,8 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     part = Part(
-                        id = partView.id,
+                        id = behandling.klager.id,
+                        identifikator = partView.identifikator,
                         type = partView.type,
                         name = partView.name,
                         statusList = partView.statusList,
@@ -2376,20 +2410,21 @@ class BehandlingService(
         vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
         sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
         klager = behandlingMapper.getPartViewWithUtsendingskanal(
+            technicalPartId = klager.id,
             partId = klager.partId,
             behandling = this,
             navn = null,
             address = null,
-        )
-            .toKabinPartView(),
-        fullmektig = prosessfullmektig?.let {
+        ).toKabinPartView(),
+        fullmektig = if (prosessfullmektig?.partId != null) {
             behandlingMapper.getPartViewWithUtsendingskanal(
-                partId = it.partId,
+                technicalPartId = prosessfullmektig!!.id,
+                partId = prosessfullmektig!!.partId,
                 behandling = this,
-                navn = it.navn,
-                address = it.address,
+                navn = prosessfullmektig!!.navn,
+                address = prosessfullmektig!!.address,
             ).toKabinPartView()
-        },
+        } else null,
         fagsakId = fagsakId,
         fagsystem = fagsystem,
         fagsystemId = fagsystem.id,

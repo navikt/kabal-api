@@ -4,10 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
-import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
-import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
-import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
-import no.nav.klage.oppgave.api.view.OversendtKlageV2
+import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.BehandlingService
@@ -41,7 +38,7 @@ class ExternalApiController(
 
     @Operation(
         summary = "Send inn klage til klageinstans",
-        description = "Endepunkt for å registrere en klage/anke som skal behandles av klageinstans"
+        description = "Endepunkt for å registrere en klage/anke som skal behandles av klageinstans. Vurder å gå over til V4."
     )
     @PostMapping("/oversendelse/v2/klage")
     fun sendInnKlageV2(
@@ -53,7 +50,7 @@ class ExternalApiController(
 
     @Operation(
         summary = "Send inn sak til klageinstans",
-        description = "Endepunkt for å registrere en klage/anke som skal behandles av klageinstans"
+        description = "Endepunkt for å registrere en klage/anke som skal behandles av klageinstans. Vurder å gå over til V4."
     )
     @PostMapping("/oversendelse/v3/sak")
     fun sendInnSakV3(
@@ -61,6 +58,18 @@ class ExternalApiController(
         @Valid @RequestBody oversendtKlageAnke: OversendtKlageAnkeV3
     ) {
         externalMottakFacade.createMottakForKlageAnkeV3(oversendtKlageAnke)
+    }
+
+    @Operation(
+        summary = "Send inn sak til klageinstans",
+        description = "Endepunkt for å registrere en klage/anke som skal behandles av klageinstans."
+    )
+    @PostMapping("/oversendelse/v4/sak")
+    fun sendInnSakV4(
+        @Parameter(description = "Oversendt sak")
+        @Valid @RequestBody oversendtKlageAnke: OversendtKlageAnkeV4
+    ) {
+        externalMottakFacade.createMottakForKlageAnkeV4(oversendtKlageAnke)
     }
 
     @Operation(

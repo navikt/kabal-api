@@ -1,9 +1,12 @@
 package no.nav.klage.oppgave.domain.klage
 
 import jakarta.persistence.*
+import java.util.*
 
 @Embeddable
 data class Klager(
+    @Column(name = "klager_id")
+    var id: UUID,
     @Embedded
     @AttributeOverrides(
         value = [
@@ -14,6 +17,7 @@ data class Klager(
     var partId: PartId,
 ) {
     fun toSakenGjelder() = SakenGjelder(
+        id = this.id,
         partId = this.partId.copy(),
     )
 }

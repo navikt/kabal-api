@@ -5,11 +5,13 @@ import org.hibernate.envers.Audited
 import java.util.*
 
 @Entity
-@Table(name = "dokument_under_arbeid_avsender_mottaker_info", schema = "klage")
+@Table(name = "brevmottaker", schema = "klage")
 @Audited
-class DokumentUnderArbeidAvsenderMottakerInfo(
+class Brevmottaker(
     @Id
     val id: UUID = UUID.randomUUID(),
+    @Column(name = "technical_part_id")
+    var technicalPartId: UUID,
     @Column(name = "identifikator")
     val identifikator: String?,
     @Column(name = "local_print")
@@ -36,11 +38,12 @@ class DokumentUnderArbeidAvsenderMottakerInfo(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as DokumentUnderArbeidAvsenderMottakerInfo
+        other as Brevmottaker
 
         if (localPrint != other.localPrint) return false
         if (forceCentralPrint != other.forceCentralPrint) return false
         if (id != other.id) return false
+        if (technicalPartId != other.technicalPartId) return false
         if (identifikator != other.identifikator) return false
         if (address != other.address) return false
         if (navn != other.navn) return false
@@ -53,13 +56,14 @@ class DokumentUnderArbeidAvsenderMottakerInfo(
         result = 31 * result + forceCentralPrint.hashCode()
         result = 31 * result + id.hashCode()
         result = 31 * result + (identifikator?.hashCode() ?: 0)
+        result = 31 * result + (technicalPartId?.hashCode() ?: 0)
         result = 31 * result + (address?.hashCode() ?: 0)
         result = 31 * result + (navn?.hashCode() ?: 0)
         return result
     }
 
     override fun toString(): String {
-        return "DokumentUnderArbeidAvsenderMottakerInfo(id=$id, identifikator=$identifikator, localPrint=$localPrint, forceCentralPrint=$forceCentralPrint, address=$address, navn=$navn)"
+        return "Brevmottaker(id=$id, technicalPartId=$technicalPartId, identifikator=$identifikator, localPrint=$localPrint, forceCentralPrint=$forceCentralPrint, address=$address, navn=$navn)"
     }
 
 }

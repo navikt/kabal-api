@@ -32,8 +32,8 @@ import java.time.LocalDate
 
 @ActiveProfiles("local")
 @SpringBootTest(classes = [MottakService::class])
-@EnableJpaRepositories(basePackages = ["no.nav.klage.oppgave.repositories"])
-@EntityScan("no.nav.klage.oppgave.domain")
+@EnableJpaRepositories(basePackages = ["no.nav.klage.oppgave.repositories", "no.nav.klage.dokument.repositories"])
+@EntityScan("no.nav.klage.oppgave.domain", "no.nav.klage.dokument.domain")
 @AutoConfigureDataJpa
 @Testcontainers
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

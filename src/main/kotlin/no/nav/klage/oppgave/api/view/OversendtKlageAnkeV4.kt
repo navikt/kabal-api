@@ -118,27 +118,55 @@ data class OversendtKlageAnkeV4(
 
     )
 
-fun OversendtKlageAnkeV4.toMottak(forrigeBehandlingId: UUID? = null) = Mottak(
-    type = Type.valueOf(type.name),
-    klager = klager?.toKlager() ?: sakenGjelder.toKlager(),
-    sakenGjelder = sakenGjelder.toSakenGjelder(),
-    fagsystem = fagsak.fagsystem,
-    fagsakId = fagsak.fagsakId,
-    kildeReferanse = kildeReferanse,
-    dvhReferanse = dvhReferanse,
-    hjemler = hjemler.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
-    forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
-    mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
-    brukersKlageMottattVedtaksinstans = brukersKlageMottattVedtaksinstans,
-    sakMottattKaDato = sakMottattKaTidspunkt ?: LocalDateTime.now(),
-    frist = frist,
-    ytelse = ytelse,
-    forrigeBehandlingId = forrigeBehandlingId,
-    kommentar = kommentar,
-    prosessfullmektig = prosessfullmektig?.toProsessfullmektig(),
-    forrigeSaksbehandlerident = null,
-    sentFrom = Mottak.Sender.FAGSYSTEM,
-)
+fun OversendtKlageAnkeV4.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
+    val sakenGjelderPart = SakenGjelder(
+        id = UUID.randomUUID(),
+        partId = sakenGjelder.id.toPartId(),
+    )
+
+    val klagePart = if (sakenGjelder.id.verdi == klager?.id?.verdi || klager == null) {
+        Klager(
+            id = sakenGjelderPart.id,
+            partId = sakenGjelderPart.partId,
+        )
+    } else {
+        Klager(
+            id = UUID.randomUUID(),
+            partId = klager.id.toPartId(),
+        )
+    }
+
+    val prosessfullmektigPart = if (prosessfullmektig?.id?.verdi == klagePart.partId.value) {
+        Prosessfullmektig(
+            id = klagePart.id,
+            partId = klagePart.partId,
+            address = null,
+            navn = null,
+        )
+    } else prosessfullmektig?.toProsessfullmektig()
+
+    return Mottak(
+        type = Type.valueOf(type.name),
+        sakenGjelder = sakenGjelderPart,
+        klager = klagePart,
+        fagsystem = fagsak.fagsystem,
+        fagsakId = fagsak.fagsakId,
+        kildeReferanse = kildeReferanse,
+        dvhReferanse = dvhReferanse,
+        hjemler = hjemler.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
+        forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
+        mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
+        brukersKlageMottattVedtaksinstans = brukersKlageMottattVedtaksinstans,
+        sakMottattKaDato = sakMottattKaTidspunkt ?: LocalDateTime.now(),
+        frist = frist,
+        ytelse = ytelse,
+        forrigeBehandlingId = forrigeBehandlingId,
+        kommentar = kommentar,
+        prosessfullmektig = prosessfullmektigPart,
+        forrigeSaksbehandlerident = null,
+        sentFrom = Mottak.Sender.FAGSYSTEM,
+    )
+}
 
 enum class OversendtType {
     KLAGE,
@@ -164,6 +192,7 @@ data class OversendtProsessfullmektig(
     val adresse: OversendtAdresse?,
 ) {
     fun toProsessfullmektig() = Prosessfullmektig(
+        id = UUID.randomUUID(),
         partId = id?.toPartId(),
         address = adresse?.let {
             Adresse(
@@ -222,12 +251,4 @@ data class OversendtPart(
         required = true
     )
     val id: OversendtPartId,
-) {
-    fun toSakenGjelder() = SakenGjelder(
-        partId = id.toPartId(),
-    )
-
-    fun toKlager() = Klager(
-        partId = id.toPartId(),
-    )
-}
+)

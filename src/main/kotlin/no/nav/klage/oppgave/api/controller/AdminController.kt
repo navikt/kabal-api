@@ -6,6 +6,7 @@ import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
+import no.nav.klage.oppgave.service.TaskListMerkantilService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpStatus
@@ -19,6 +20,7 @@ class AdminController(
     private val adminService: AdminService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val azureGateway: AzureGateway,
+    private val taskListMerkantilService: TaskListMerkantilService
 ) {
 
     companion object {
@@ -166,7 +168,26 @@ class AdminController(
         logger.debug("getTaskListMerkantil is called")
         krevAdminTilgang()
 
-        return adminService.getTaskListMerkantil()
+        return taskListMerkantilService.getTaskListMerkantil()
+    }
+
+    @PostMapping("/merkantil-tasks/{taskId}/complete", produces = ["application/json"])
+    fun completeMerkantilTask(
+        @PathVariable("taskId") taskId: UUID,
+        @RequestBody input: Comment
+    ): TaskListMerkantilView {
+        logger.debug("completeMerkantilTask is called")
+        krevAdminTilgang()
+
+        try {
+            return taskListMerkantilService.setCommentAndMarkTaskAsCompleted(
+                taskId = taskId,
+                inputComment = input.comment
+            )
+        } catch (e: Exception) {
+            logger.warn("Failed to complete merkantil task", e)
+            throw e
+        }
     }
 
     @GetMapping(value = ["/enableminsidemicrofrontend/{behandlingId}", "/enableminsidemicrofrontend"])
@@ -233,7 +254,21 @@ class AdminController(
         }
     }
 
+    @GetMapping("/set-id-on-parter")
+    @ResponseStatus(HttpStatus.OK)
+    fun setIdOnParter() {
+        logger.debug("setIdOnParter is called")
+        krevAdminTilgang()
+        try {
+            adminService.setIdOnParter()
+        } catch (e: Exception) {
+            logger.warn("Failed to set id on parter", e)
+            throw e
+        }
+    }
+
     data class Fnr(val fnr: String)
+    data class Comment(val comment: String)
 
     private fun krevAdminTilgang() {
         if (!innloggetSaksbehandlerService.isKabalAdmin()) {

@@ -103,24 +103,27 @@ data class OversendtKlageV2(
     val hindreAutomatiskSvarbrev: Boolean?
 )
 
-fun OversendtKlageV2.toMottak() = Mottak(
-    type = type,
-    klager = klager.toKlagepart(),
-    sakenGjelder = sakenGjelder?.toSakenGjelder(),
-    fagsystem = kilde,
-    fagsakId = fagsak.fagsakId,
-    kildeReferanse = kildeReferanse,
-    dvhReferanse = dvhReferanse,
-    hjemler = hjemler!!.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
-    forrigeSaksbehandlerident = avsenderSaksbehandlerIdent,
-    forrigeBehandlendeEnhet = avsenderEnhet,
-    mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
-    brukersKlageMottattVedtaksinstans = mottattFoersteinstans,
-    sakMottattKaDato = oversendtKaDato ?: LocalDateTime.now(),
-    frist = frist,
-    ytelse = ytelse,
-    kommentar = kommentar,
-    prosessfullmektig = klager.toProsessfullmektig(),
-    forrigeBehandlingId = null,
-    sentFrom = Mottak.Sender.FAGSYSTEM,
-)
+fun OversendtKlageV2.toMottak(): Mottak {
+    val (sakenGjelderPart, klagePart, prosessfullmektigPart) = getParts(sakenGjelder, klager)
+    return Mottak(
+        type = type,
+        klager = klagePart,
+        sakenGjelder = sakenGjelderPart,
+        fagsystem = kilde,
+        fagsakId = fagsak.fagsakId,
+        kildeReferanse = kildeReferanse,
+        dvhReferanse = dvhReferanse,
+        hjemler = hjemler!!.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
+        forrigeSaksbehandlerident = avsenderSaksbehandlerIdent,
+        forrigeBehandlendeEnhet = avsenderEnhet,
+        mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
+        brukersKlageMottattVedtaksinstans = mottattFoersteinstans,
+        sakMottattKaDato = oversendtKaDato ?: LocalDateTime.now(),
+        frist = frist,
+        ytelse = ytelse,
+        kommentar = kommentar,
+        prosessfullmektig = prosessfullmektigPart,
+        forrigeBehandlingId = null,
+        sentFrom = Mottak.Sender.FAGSYSTEM,
+    )
+}

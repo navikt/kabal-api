@@ -169,8 +169,11 @@ class KlagebehandlingRepositoryTest {
         val ankebehandling = Ankebehandling(
             klageBehandlendeEnhet = "",
             sourceBehandlingId = klageWithAnke.id,
-            klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+            klager = Klager(
+                id = UUID.randomUUID(),
+                partId = PartId(type = PartIdType.PERSON, value = "23452354")),
             sakenGjelder = SakenGjelder(
+                id = UUID.randomUUID(),
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
             ),
             prosessfullmektig = null,
@@ -207,7 +210,10 @@ class KlagebehandlingRepositoryTest {
     fun getMottak(): Mottak = Mottak(
         ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,
-        klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+        klager = Klager(
+            id = UUID.randomUUID(),
+            partId = PartId(type = PartIdType.PERSON, value = "23452354")
+        ),
         kildeReferanse = "1234234",
         sakMottattKaDato = LocalDateTime.now(),
         fagsystem = Fagsystem.K9,
@@ -229,8 +235,11 @@ class KlagebehandlingRepositoryTest {
         mottakId: UUID,
         saksdokumenter: MutableSet<Saksdokument>? = null,
     ): Klagebehandling = Klagebehandling(
-        klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+        klager = Klager(
+            id = UUID.randomUUID(),
+            partId = PartId(type = PartIdType.PERSON, value = "23452354")),
         sakenGjelder = SakenGjelder(
+            id = UUID.randomUUID(),
             partId = PartId(type = PartIdType.PERSON, value = "23452354"),
         ),
         prosessfullmektig = null,

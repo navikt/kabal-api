@@ -1,7 +1,7 @@
 package no.nav.klage.dokument.repositories
 
 import com.ninjasquad.springmockk.MockkBean
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAvsenderMottakerInfo
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsVedlegg
 import no.nav.klage.kodeverk.DokumentType
@@ -140,7 +140,8 @@ class DokumentUnderArbeidRepositoryTest {
             modified = LocalDateTime.now(),
             datoMottatt = null,
             avsenderMottakerInfoSet = mutableSetOf(
-                DokumentUnderArbeidAvsenderMottakerInfo(
+                Brevmottaker(
+                    technicalPartId = UUID.randomUUID(),
                     identifikator = "123",
                     localPrint = false,
                     forceCentralPrint = false,
@@ -174,7 +175,7 @@ class DokumentUnderArbeidRepositoryTest {
         testEntityManager.flush()
         testEntityManager.clear()
         val hoveddokument = opplastetDokumentUnderArbeidAsHoveddokumentRepository.getReferenceById(hovedDokument.id)
-        assertThat(hoveddokument.avsenderMottakerInfoSet.first().identifikator == "123")
+        assertThat(hoveddokument.brevmottakere.first().identifikator == "123")
     }
 
     @Test
