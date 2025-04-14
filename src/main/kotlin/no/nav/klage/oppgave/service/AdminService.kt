@@ -94,6 +94,7 @@ class AdminService(
         private val objectMapper = ourJacksonObjectMapper()
     }
 
+    @Transactional
     fun syncKafkaWithDb() {
         var pageable: Pageable =
             PageRequest.of(0, 50, Sort.by("created").descending())
@@ -112,6 +113,7 @@ class AdminService(
         } while (pageable.isPaged)
     }
 
+    @Transactional
     fun reindexBehandlingInSearch(behandlingId: UUID) {
         behandlingEndretKafkaProducer.sendBehandlingEndret(
             behandlingRepository.findByIdEager(behandlingId)
@@ -119,6 +121,7 @@ class AdminService(
     }
 
     /** only for use in dev */
+    @Transactional
     fun deleteBehandlingInDev(behandlingId: UUID) {
         logger.debug("Delete test data in dev: attempt to delete behandling with id {}", behandlingId)
         val (hoveddokumenter, vedlegg) = dokumentUnderArbeidRepository.findByBehandlingId(behandlingId)
@@ -179,6 +182,7 @@ class AdminService(
         //Delete in dokumentarkiv? Probably not necessary. They clean up when they need to.
     }
 
+    @Transactional
     fun resendToDVH() {
         logger.debug("Attempting to resend all events to DVH")
         kafkaDispatcher.dispatchEventsToKafka(
@@ -187,6 +191,7 @@ class AdminService(
         )
     }
 
+    @Transactional
     fun generateMissingAnkeITrygderetten() {
         logger.debug("Attempting generate missing AnkeITrygderettenBehandling")
 
@@ -244,6 +249,7 @@ class AdminService(
         logger.debug(logString)
     }
 
+    @Transactional
     fun isSkjermet(fnr: String) {
         try {
             logger.debug("isSkjermet called")
@@ -255,6 +261,7 @@ class AdminService(
         }
     }
 
+    @Transactional
     fun migrateDvhEvents() {
         val events = kafkaEventRepository.findByType(EventType.STATS_DVH)
 
@@ -294,6 +301,7 @@ class AdminService(
         }
     }
 
+    @Transactional
     fun logExpiredUsers() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val saksbehandlerSet = unfinishedBehandlinger.mapNotNull { it.tildeling?.saksbehandlerident }.toSet()
@@ -330,6 +338,7 @@ class AdminService(
         secureLogger.debug("Expired, assigned rol: \n $rolLogOutput")
     }
 
+    @Transactional
     fun logProtected() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         secureLogger.debug("Checking for protected users")
@@ -348,6 +357,7 @@ class AdminService(
     }
 
 
+    @Transactional
     @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo")
     @SchedulerLock(name = "cleanupExpiredAssignees")
     fun cleanupExpiredAssignees() {
@@ -387,6 +397,7 @@ class AdminService(
         return nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true
     }
 
+    @Transactional
     fun logInvalidRegistreringshjemler() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNull()
         val ytelseAndHjemmelPairSet = unfinishedBehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
@@ -413,6 +424,7 @@ class AdminService(
         secureLogger.debug("Invalid registreringshjemler in ankebehandlinger v2: {}", filteredAnkeInvalidHjemler)
     }
 
+    @Transactional
     fun setSortKeyToDUA() {
         val allDUAs = journalfoertDokumentUnderArbeidAsVedleggRepository.findAll()
         val journalpostList = safFacade.getJournalposter(
@@ -433,6 +445,7 @@ class AdminService(
         logger.debug("setSortKeyToDUA: ${allDUAs.size} DUAs were updated with sortKeys: $keys")
     }
 
+    @Transactional
     fun migrateTilbakekreving() {
         val candidates = behandlingRepository.findByTilbakekrevingIsFalse()
         logger.debug("Found ${candidates.size} candidates for tilbakekreving migration.")
@@ -449,6 +462,7 @@ class AdminService(
         logger.debug("Migrated $migrations candidates.")
     }
 
+    @Transactional
     fun fixMissingInKaka() {
         kakaApiGateway.finalizeBehandling(
             behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
@@ -457,6 +471,7 @@ class AdminService(
         )
     }
 
+    @Transactional
     fun getInfotrygdsak(sakId: String): SakFromKlanke {
         return klageFssProxyClient.getSakWithAppAccess(
             sakId = sakId,
@@ -487,6 +502,7 @@ class AdminService(
         Registreringshjemmel.KONTSL_11,
     )
 
+    @Transactional
     fun enableMinsideMicrofrontend(behandlingId: UUID) {
         val behandling = behandlingRepository.findByIdEager(behandlingId)
         if (behandling.feilregistrering != null) {
@@ -495,6 +511,7 @@ class AdminService(
         minsideMicrofrontendService.enableMinsideMicrofrontend(behandling = behandling)
     }
 
+    @Transactional
     fun enableAllMinsideMicrofrontends() {
         logger.debug("Enabling all minside microfrontends")
         val behandlinger = behandlingRepository.findByFeilregistreringIsNull()
@@ -504,11 +521,13 @@ class AdminService(
         logger.debug("Finished enabling all minside microfrontends")
     }
 
+    @Transactional
     fun disableMinsideMicrofrontend(behandlingId: UUID) {
         val behandling = behandlingRepository.findByIdEager(behandlingId)
         minsideMicrofrontendService.disableMinsideMicrofrontend(behandling = behandling)
     }
 
+    @Transactional
     fun disableAllMinsideMicrofrontends() {
         logger.debug("Disabling all minside microfrontends")
         val behandlinger = behandlingRepository.findAll()
@@ -543,11 +562,17 @@ class AdminService(
         logger.debug("Evicted all caches")
     }
 
-    fun setIdOnParter() {
+    fun setIdOnParter(behandlinger: List<Behandling>) {
         logger.debug("setIdOnParter is called")
         val behandlinger = behandlingRepository.findAll()
+        logger.debug("Found ${behandlinger.size} behandlinger to set id on parter")
+        var counter = 0
         behandlinger.forEach { behandling ->
             try {
+                if (counter % 100 == 0) {
+                    logger.debug("{} behandlinger processed", counter)
+                }
+
                 //Id for sakenGjelder is already set from Flyway-script.
 
                 //then for klager. Set to same as sakenGjelder if klager is same person, (else keep what Flyway-script set)
@@ -583,24 +608,28 @@ class AdminService(
                 val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
                 duaList.forEach { dokumentUnderArbeid ->
                     if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
-                        dokumentUnderArbeid.brevmottakere.forEach { receiver ->
-                            when (receiver.identifikator) {
-                                behandling.sakenGjelder.partId.value -> {
-                                    receiver.technicalPartId = behandling.sakenGjelder.id
-                                }
+                        if (dokumentUnderArbeid.brevmottakere.isNotEmpty()) {
+                            dokumentUnderArbeid.brevmottakere.forEach { receiver ->
+                                when (receiver.identifikator) {
+                                    behandling.sakenGjelder.partId.value -> {
+                                        receiver.technicalPartId = behandling.sakenGjelder.id
+                                    }
 
-                                behandling.klager.partId.value -> {
-                                    receiver.technicalPartId = behandling.klager.id
-                                }
+                                    behandling.klager.partId.value -> {
+                                        receiver.technicalPartId = behandling.klager.id
+                                    }
 
-                                behandling.prosessfullmektig?.partId?.value -> {
-                                    receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                                    behandling.prosessfullmektig?.partId?.value -> {
+                                        receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                                    }
                                 }
                             }
+                            dokumentUnderArbeidRepository.save(dokumentUnderArbeid)
                         }
                     }
                 }
-
+                behandlingRepository.save(behandling)
+                counter++
             } catch (e: Exception) {
                 logger.debug("Couldn't set id to part", e)
             }
