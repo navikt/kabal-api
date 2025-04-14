@@ -562,7 +562,7 @@ class AdminService(
         logger.debug("Evicted all caches")
     }
 
-    fun setIdOnParter(behandlinger: List<Behandling>) {
+    fun setIdOnParter() {
         logger.debug("setIdOnParter is called")
         val behandlinger = behandlingRepository.findAll()
         logger.debug("Found ${behandlinger.size} behandlinger to set id on parter")
