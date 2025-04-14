@@ -10,6 +10,7 @@ import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 object BehandlingSetters {
 
@@ -469,10 +470,18 @@ object BehandlingSetters {
             )
         }
 
-        if (partId == null && address == null && name == null) {
-            prosessfullmektig = null
+        prosessfullmektig = if (partId == null && address == null && name == null) {
+            null
         } else {
-            prosessfullmektig = Prosessfullmektig(
+            if (partId?.value == klager.partId.value) {
+                Prosessfullmektig(
+                    id = klager.id,
+                    partId = klager.partId,
+                    address = null,
+                    navn = null,
+                )
+            } else Prosessfullmektig(
+                id = UUID.randomUUID(),
                 partId = partId,
                 address = address?.let {
                     Adresse(
@@ -515,7 +524,8 @@ object BehandlingSetters {
                 partId = prosessfullmektig?.partId,
                 tidspunkt = tidspunkt,
                 utfoerendeIdent = utfoerendeIdent,
-                utfoerendeNavn = utfoerendeNavn
+                utfoerendeNavn = utfoerendeNavn,
+                name = prosessfullmektig?.navn
             )
         )
     }
@@ -537,7 +547,20 @@ object BehandlingSetters {
             )
         }
 
-        klager.partId = nyVerdi
+        when (nyVerdi.value) {
+            prosessfullmektig?.partId?.value -> {
+                klager.id = prosessfullmektig!!.id
+                klager.partId = prosessfullmektig!!.partId!!
+            }
+            sakenGjelder.partId.value -> {
+                klager.id = sakenGjelder.id
+                klager.partId = sakenGjelder.partId
+            }
+            else -> {
+                klager.partId = nyVerdi
+                klager.id = UUID.randomUUID()
+            }
+        }
 
         recordKlagerHistory(
             tidspunkt = tidspunkt,

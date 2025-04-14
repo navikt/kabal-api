@@ -32,7 +32,7 @@ class SearchController(
     @PostMapping("/searchpart")
     fun searchPart(
         @RequestBody input: IdentifikatorInput,
-    ): BehandlingDetaljerView.PartView {
+    ): BehandlingDetaljerView.SearchPartView {
         logMethodDetails(
             ::searchPart.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -45,7 +45,7 @@ class SearchController(
     @PostMapping("/searchpartwithutsendingskanal")
     fun searchPartWithUtsendingskanal(
         @RequestBody input: SearchPartWithUtsendingskanalInput,
-    ): BehandlingDetaljerView.PartViewWithUtsendingskanal {
+    ): BehandlingDetaljerView.SearchPartViewWithUtsendingskanal {
         logMethodDetails(
             ::searchPartWithUtsendingskanal.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -64,7 +64,7 @@ class SearchController(
     @PostMapping("/searchperson")
     fun searchPerson(
         @RequestBody input: IdentifikatorInput,
-    ): BehandlingDetaljerView.SakenGjelderView {
+    ): BehandlingDetaljerView.SearchPersonView {
         logMethodDetails(
             ::searchPerson.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),

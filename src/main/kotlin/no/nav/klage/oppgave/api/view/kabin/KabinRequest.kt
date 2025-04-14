@@ -126,7 +126,7 @@ data class SvarbrevInput(
 ) {
 
     data class Receiver(
-        val id: String?,
+        val identifikator: String?,
         val handling: HandlingEnum,
         val overriddenAddress: AddressInput?,
         val navn: String?,
