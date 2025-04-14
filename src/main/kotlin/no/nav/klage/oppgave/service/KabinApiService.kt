@@ -118,9 +118,9 @@ class KabinApiService(
                 behandlingId = behandling.id,
                 systemUserContext = false,
                 mottakere = svarbrevInput.receivers.map {
-                    if (it.id != null) {
+                    if (it.identifikator != null) {
                         MottakerPartId(
-                            value = getPartIdFromIdentifikator(it.id)
+                            value = getPartIdFromIdentifikator(it.identifikator)
                         )
                     } else if (it.navn != null) {
                         MottakerNavn(
@@ -143,7 +143,7 @@ class KabinApiService(
             title = title,
             receivers = receivers.map { receiver ->
                 Svarbrev.Receiver(
-                    id = receiver.id,
+                    identifikator = receiver.identifikator,
                     overriddenAddress = receiver.overriddenAddress?.let {
                         Svarbrev.Receiver.AddressInput(
                             adresselinje1 = it.adresselinje1,
@@ -246,20 +246,22 @@ class KabinApiService(
             sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = omgjoeringskravbehandling)
                 .toKabinPartView(),
             klager = behandlingMapper.getPartViewWithUtsendingskanal(
+                technicalPartId = omgjoeringskravbehandling.klager.id,
                 partId = omgjoeringskravbehandling.klager.partId,
                 behandling = omgjoeringskravbehandling,
                 navn = null,
                 address = null
             ).toKabinPartView(),
-            fullmektig = omgjoeringskravbehandling.prosessfullmektig?.let {
+            fullmektig = if (omgjoeringskravbehandling.prosessfullmektig?.partId != null) {
+                val prosessfullmektig = omgjoeringskravbehandling.prosessfullmektig!!
                 behandlingMapper.getPartViewWithUtsendingskanal(
-                    partId = it.partId,
+                    technicalPartId = prosessfullmektig.id,
+                    partId = prosessfullmektig.partId,
                     behandling = omgjoeringskravbehandling,
-                    navn = it.navn,
-                    address = it.address
-                )
-                    .toKabinPartView()
-            },
+                    navn = prosessfullmektig.navn,
+                    address = prosessfullmektig.address
+                ).toKabinPartView()
+            } else null,
             mottattKlageinstans = omgjoeringskravbehandling.mottattKlageinstans.toLocalDate(),
             mottattVedtaksinstans = null,
             frist = omgjoeringskravbehandling.frist!!,
@@ -317,20 +319,22 @@ class KabinApiService(
             sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = ankebehandling)
                 .toKabinPartView(),
             klager = behandlingMapper.getPartViewWithUtsendingskanal(
+                technicalPartId = ankebehandling.klager.id,
                 partId = ankebehandling.klager.partId,
                 behandling = ankebehandling,
                 navn = null,
                 address = null,
             ).toKabinPartView(),
-            fullmektig = ankebehandling.prosessfullmektig?.let {
+            fullmektig = if (ankebehandling.prosessfullmektig?.partId != null) {
+                val prosessfullmektig = ankebehandling.prosessfullmektig!!
                 behandlingMapper.getPartViewWithUtsendingskanal(
-                    partId = it.partId,
+                    technicalPartId = prosessfullmektig.id,
+                    partId = prosessfullmektig.partId,
                     behandling = ankebehandling,
-                    navn = it.navn,
-                    address = it.address
-                )
-                    .toKabinPartView()
-            },
+                    navn = prosessfullmektig.navn,
+                    address = prosessfullmektig.address
+                ).toKabinPartView()
+            } else null,
             mottattKlageinstans = ankebehandling.mottattKlageinstans.toLocalDate(),
             mottattVedtaksinstans = null,
             frist = ankebehandling.frist!!,
@@ -388,20 +392,22 @@ class KabinApiService(
             sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = klagebehandling)
                 .toKabinPartView(),
             klager = behandlingMapper.getPartViewWithUtsendingskanal(
+                technicalPartId = klagebehandling.klager.id,
                 partId = klagebehandling.klager.partId,
                 behandling = klagebehandling,
                 navn = null,
                 address = null,
             ).toKabinPartView(),
-            fullmektig = klagebehandling.prosessfullmektig?.let {
+            fullmektig = if (klagebehandling.prosessfullmektig?.partId != null) {
+                val prosessfullmektig = klagebehandling.prosessfullmektig!!
                 behandlingMapper.getPartViewWithUtsendingskanal(
-                    partId = it.partId,
+                    technicalPartId = prosessfullmektig.id,
+                    partId = prosessfullmektig.partId,
                     behandling = klagebehandling,
-                    navn = it.navn,
-                    address = it.address,
-                )
-                    .toKabinPartView()
-            },
+                    navn = prosessfullmektig.navn,
+                    address = prosessfullmektig.address,
+                ).toKabinPartView()
+            } else null,
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
             mottattKlageinstans = klagebehandling.mottattKlageinstans.toLocalDate(),
             frist = klagebehandling.frist!!,
@@ -447,20 +453,22 @@ class KabinApiService(
             vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
             sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
             klager = behandlingMapper.getPartViewWithUtsendingskanal(
+                technicalPartId = klager.id,
                 partId = klager.partId,
                 behandling = this,
                 navn = null,
                 address = null,
             )
                 .toKabinPartView(),
-            fullmektig = prosessfullmektig?.let {
+            fullmektig = if (prosessfullmektig?.partId != null) {
                 behandlingMapper.getPartViewWithUtsendingskanal(
-                    partId = it.partId,
+                    technicalPartId = prosessfullmektig!!.id,
+                    partId = prosessfullmektig!!.partId,
                     behandling = this,
-                    navn = it.navn,
-                    address = it.address,
+                    navn = prosessfullmektig!!.navn,
+                    address = prosessfullmektig!!.address,
                 ).toKabinPartView()
-            },
+            } else null,
             fagsakId = fagsakId,
             fagsystem = fagsystem,
             fagsystemId = fagsystem.id,

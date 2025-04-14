@@ -13,7 +13,6 @@ import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
-import no.nav.klage.oppgave.api.view.TaskListMerkantilView
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
@@ -488,25 +487,6 @@ class AdminService(
         Registreringshjemmel.KONTSL_11,
     )
 
-    fun getTaskListMerkantil(): List<TaskListMerkantilView> {
-        return taskListMerkantilRepository.findAll().sortedByDescending { it.created }
-            .map { it.toTaskListMerkantilView() }
-    }
-
-    fun TaskListMerkantil.toTaskListMerkantilView(): TaskListMerkantilView {
-        return TaskListMerkantilView(
-            id = id,
-            behandlingId = behandlingId,
-            reason = reason,
-            created = created,
-            dateHandled = dateHandled,
-            handledBy = handledBy,
-            handledByName = handledByName,
-            comment = comment,
-            typeId = behandlingRepository.findByIdEager(behandlingId).type.id
-        )
-    }
-
     fun enableMinsideMicrofrontend(behandlingId: UUID) {
         val behandling = behandlingRepository.findByIdEager(behandlingId)
         if (behandling.feilregistrering != null) {
@@ -561,6 +541,70 @@ class AdminService(
     )
     fun evictAllCaches() {
         logger.debug("Evicted all caches")
+    }
+
+    fun setIdOnParter() {
+        logger.debug("setIdOnParter is called")
+        val behandlinger = behandlingRepository.findAll()
+        behandlinger.forEach { behandling ->
+            try {
+                //Id for sakenGjelder is already set from Flyway-script.
+
+                //then for klager. Set to same as sakenGjelder if klager is same person, (else keep what Flyway-script set)
+                if (behandling.klager.partId.value == behandling.sakenGjelder.partId.value) {
+                    behandling.klager.id = behandling.sakenGjelder.id
+                }
+
+                if (behandling.prosessfullmektig?.partId?.value == behandling.klager.partId.value) {
+                    behandling.prosessfullmektig!!.id = behandling.klager.id
+                }
+
+                //these ids should then be set for brevmottakere also. Both from DUA-relation and from "forlenget behandlingstid"-relation
+                if (behandling is BehandlingWithVarsletBehandlingstid) {
+                    if (behandling.forlengetBehandlingstidDraft != null) {
+                        behandling.forlengetBehandlingstidDraft!!.receivers.forEach { receiver ->
+                            when (receiver.identifikator) {
+                                behandling.sakenGjelder.partId.value -> {
+                                    receiver.technicalPartId = behandling.sakenGjelder.id
+                                }
+
+                                behandling.klager.partId.value -> {
+                                    receiver.technicalPartId = behandling.klager.id
+                                }
+
+                                behandling.prosessfullmektig?.partId?.value -> {
+                                    receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                                }
+                            }
+                        }
+                    }
+                }
+
+                val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
+                duaList.forEach { dokumentUnderArbeid ->
+                    if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
+                        dokumentUnderArbeid.brevmottakere.forEach { receiver ->
+                            when (receiver.identifikator) {
+                                behandling.sakenGjelder.partId.value -> {
+                                    receiver.technicalPartId = behandling.sakenGjelder.id
+                                }
+
+                                behandling.klager.partId.value -> {
+                                    receiver.technicalPartId = behandling.klager.id
+                                }
+
+                                behandling.prosessfullmektig?.partId?.value -> {
+                                    receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                                }
+                            }
+                        }
+                    }
+                }
+
+            } catch (e: Exception) {
+                logger.debug("Couldn't set id to part", e)
+            }
+        }
     }
 }
 

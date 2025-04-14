@@ -93,7 +93,7 @@ class KabalDocumentMapper(
         return DokumentEnhetWithDokumentreferanserInput(
             avsenderMottakerList = mapAvsenderMottakerInfoSetToAvsenderMottakerInput(
                 behandling = behandling,
-                avsenderMottakerInfoSet = hovedDokument.avsenderMottakerInfoSet,
+                avsenderMottakerInfoSet = hovedDokument.brevmottakere,
                 dokumentType = hovedDokument.dokumentType
             ),
             journalfoeringData = JournalfoeringDataInput(
@@ -156,7 +156,7 @@ class KabalDocumentMapper(
 
     private fun mapAvsenderMottakerInfoSetToAvsenderMottakerInput(
         behandling: Behandling,
-        avsenderMottakerInfoSet: Set<DokumentUnderArbeidAvsenderMottakerInfo>?,
+        avsenderMottakerInfoSet: Set<Brevmottaker>?,
         dokumentType: DokumentType
     ): List<AvsenderMottakerInput> {
         return if (dokumentType == DokumentType.NOTAT) {
@@ -188,7 +188,7 @@ class KabalDocumentMapper(
     }
 
     private fun getKanal(
-        avsenderMottakerInfo: DokumentUnderArbeidAvsenderMottakerInfo,
+        avsenderMottakerInfo: Brevmottaker,
         behandling: Behandling,
     ): Kanal {
         return if (avsenderMottakerInfo.localPrint) {

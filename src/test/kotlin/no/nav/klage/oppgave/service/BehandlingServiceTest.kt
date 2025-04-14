@@ -435,7 +435,10 @@ class BehandlingServiceTest {
         val mottak = Mottak(
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+            klager = Klager(
+                id = UUID.randomUUID(),
+                partId = PartId(type = PartIdType.PERSON, value = "23452354")
+            ),
             kildeReferanse = "1234234",
             sakMottattKaDato = LocalDateTime.now(),
             fagsystem = Fagsystem.K9,
@@ -465,8 +468,12 @@ class BehandlingServiceTest {
         )
 
         val behandling = Klagebehandling(
-            klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+            klager = Klager(
+                id = UUID.randomUUID(),
+                partId = PartId(type = PartIdType.PERSON, value = "23452354")
+            ),
             sakenGjelder = SakenGjelder(
+                id = UUID.randomUUID(),
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
             ),
             prosessfullmektig = null,

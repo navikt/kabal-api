@@ -26,6 +26,7 @@ import no.nav.klage.oppgave.util.getSortKey
 import org.hibernate.Hibernate
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
+import java.util.*
 
 @Component
 class DokumentMapper(
@@ -150,16 +151,20 @@ class DokumentMapper(
                 unproxiedDUA as OpplastetDokumentUnderArbeidAsHoveddokument
                 inngaaendeKanal =
                     if (unproxiedDUA.inngaaendeKanal != null) unproxiedDUA.inngaaendeKanal!! else null
-                val avsenderIdentifikator = unproxiedDUA.avsenderMottakerInfoSet.firstOrNull()?.identifikator
-                if (avsenderIdentifikator != null) {
-                    avsender = behandlingMapper.getPartView(getPartIdFromIdentifikator(avsenderIdentifikator))
+                val avsenderIdentifikator = unproxiedDUA.brevmottakere.firstOrNull()
+                if (avsenderIdentifikator?.identifikator != null) {
+                    avsender = behandlingMapper.getAvsenderPartView(
+                        partId = getPartIdFromIdentifikator(identifikator = avsenderIdentifikator.identifikator),
+                        technicalPartId = avsenderIdentifikator.id,
+                    )
                 }
             } else if (unproxiedDUA.isUtgaaende()) {
-                val mottakerInfoSet = unproxiedDUA.avsenderMottakerInfoSet
+                val mottakerInfoSet = unproxiedDUA.brevmottakere
                 if (mottakerInfoSet.isNotEmpty()) {
 
                     mottakerList = mottakerInfoSet.map {
                         toDokumentViewMottaker(
+                            technicalPartId = it.technicalPartId,
                             identifikator = it.identifikator,
                             navn = it.navn,
                             address = it.address,
@@ -215,6 +220,7 @@ class DokumentMapper(
     }
 
     fun toDokumentViewMottaker(
+        technicalPartId: UUID,
         identifikator: String?,
         navn: String?,
         address: Adresse?,
@@ -223,6 +229,7 @@ class DokumentMapper(
         behandling: Behandling
     ) = DokumentView.Mottaker(
         part = behandlingMapper.getPartViewWithUtsendingskanal(
+            technicalPartId = technicalPartId,
             partId = identifikator?.let { getPartIdFromIdentifikator(identifikator) },
             behandling = behandling,
             navn = navn,
@@ -323,16 +330,17 @@ class DokumentMapper(
                 )
             } else null,
             avsenderMottaker = if (journalpost.avsenderMottaker == null ||
-                (journalpost.avsenderMottaker.id == null ||
-                        journalpost.avsenderMottaker.type == null)
+                (journalpost.avsenderMottaker.id == null && journalpost.avsenderMottaker.navn == null)
             ) {
                 null
             } else {
                 DokumentReferanse.AvsenderMottaker(
                     id = journalpost.avsenderMottaker.id,
-                    type = DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
-                        journalpost.avsenderMottaker.type.name
-                    ),
+                    type = journalpost.avsenderMottaker.type?.let {
+                        DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
+                            it.name
+                        )
+                    },
                     navn = journalpost.avsenderMottaker.navn,
                 )
             },
@@ -376,10 +384,12 @@ class DokumentMapper(
             }
         } ?: emptyList())
 
-        return listOf(DokumentReferanse.TimelineItem(
-            timestamp = this.datoOpprettet,
-            type = DokumentReferanse.TimelineItem.TimelineType.OPPRETTET
-        )) + relevantDates.sortedBy { it.timestamp }
+        return listOf(
+            DokumentReferanse.TimelineItem(
+                timestamp = this.datoOpprettet,
+                type = DokumentReferanse.TimelineItem.TimelineType.OPPRETTET
+            )
+        ) + relevantDates.sortedBy { it.timestamp }
     }
 
     private fun String.toTimelineType(): DokumentReferanse.TimelineItem.TimelineType {
