@@ -562,6 +562,7 @@ class AdminService(
         logger.debug("Evicted all caches")
     }
 
+    @Transactional
     fun setIdOnParter() {
         logger.debug("setIdOnParter is called")
         val behandlinger = behandlingRepository.findAll()
@@ -624,11 +625,11 @@ class AdminService(
                                     }
                                 }
                             }
-                            dokumentUnderArbeidRepository.save(dokumentUnderArbeid)
+//                            dokumentUnderArbeidRepository.save(dokumentUnderArbeid)
                         }
                     }
                 }
-                behandlingRepository.save(behandling)
+//                behandlingRepository.save(behandling)
                 counter++
             } catch (e: Exception) {
                 logger.debug("Couldn't set id to part", e)
