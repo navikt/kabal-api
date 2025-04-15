@@ -653,6 +653,14 @@ class AdminService(
                 logger.debug("Couldn't set id to part", e)
             }
         }
+        //Save the rest.
+        if (behandlingerToSave.isNotEmpty()) {
+            behandlingRepository.saveAllAndFlush(behandlingerToSave)
+        }
+        if (duaToSave.isNotEmpty()) {
+            dokumentUnderArbeidRepository.saveAllAndFlush(duaToSave)
+        }
+
         logger.debug("setIdOnParter is done. Processed $counter behandlinger")
     }
 }
