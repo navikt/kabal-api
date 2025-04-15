@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
@@ -569,10 +570,18 @@ class AdminService(
         logger.debug("Found $behandlingerSize behandlinger to set id on parter")
         var counter = 0
         var start = System.currentTimeMillis()
+        val behandlingerToSave: MutableList<Behandling> = mutableListOf()
+        val duaToSave: MutableList<DokumentUnderArbeid> = mutableListOf()
         behandlinger.forEach { behandling ->
             try {
                 val chunk = 100
-                if (counter % chunk == 0) {
+                if (counter > 0 && counter % chunk == 0) {
+                    behandlingRepository.saveAllAndFlush(behandlingerToSave)
+                    dokumentUnderArbeidRepository.saveAllAndFlush(duaToSave)
+
+                    behandlingerToSave.clear()
+                    duaToSave.clear()
+
                     logger.debug(
                         "{} more behandlinger processed. Currently at {} of {}. It took {} seconds",
                         chunk,
@@ -634,11 +643,11 @@ class AdminService(
                                     }
                                 }
                             }
-                            dokumentUnderArbeidRepository.save(dokumentUnderArbeid)
+                            duaToSave += dokumentUnderArbeid
                         }
                     }
                 }
-                behandlingRepository.save(behandling)
+                behandlingerToSave += behandling
                 counter++
             } catch (e: Exception) {
                 logger.debug("Couldn't set id to part", e)
