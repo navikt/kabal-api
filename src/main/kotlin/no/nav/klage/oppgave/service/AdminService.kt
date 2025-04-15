@@ -566,12 +566,22 @@ class AdminService(
     fun setIdOnParter() {
         logger.debug("setIdOnParter is called")
         val behandlinger = behandlingRepository.findAll()
-        logger.debug("Found ${behandlinger.size} behandlinger to set id on parter")
+        val behandlingerSize = behandlinger.size
+        logger.debug("Found $behandlingerSize behandlinger to set id on parter")
         var counter = 0
+        var start = System.currentTimeMillis()
         behandlinger.forEach { behandling ->
             try {
-                if (counter % 100 == 0) {
-                    logger.debug("{} behandlinger processed", counter)
+                val chunk = 100
+                if (counter % chunk == 0) {
+                    logger.debug(
+                        "{} more behandlinger processed. Currently at {} of {}. It took {} seconds",
+                        chunk,
+                        counter,
+                        behandlingerSize,
+                        (System.currentTimeMillis() - start) / 1000
+                    )
+                    start = System.currentTimeMillis()
                 }
 
                 //Id for sakenGjelder is already set from Flyway-script.
@@ -625,16 +635,15 @@ class AdminService(
                                     }
                                 }
                             }
-//                            dokumentUnderArbeidRepository.save(dokumentUnderArbeid)
                         }
                     }
                 }
-//                behandlingRepository.save(behandling)
                 counter++
             } catch (e: Exception) {
                 logger.debug("Couldn't set id to part", e)
             }
         }
+        logger.debug("setIdOnParter is done. Processed $counter behandlinger")
     }
 }
 
