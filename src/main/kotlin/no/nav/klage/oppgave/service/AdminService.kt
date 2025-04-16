@@ -625,7 +625,7 @@ class AdminService(
                             }
                         }
                         logger.debug(
-                            "Handling forlengetBehandlingstidDraft receivers took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                            "Handling forlengetBehandlingstidDraft receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
                         )
                     }
                 }
@@ -633,7 +633,7 @@ class AdminService(
                 val startGetDUA = System.currentTimeMillis()
                 val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
                 logger.debug(
-                    "Getting DUA (with eager brevmottakere) for behandling took ${System.currentTimeMillis() - startGetDUA} millis. Found ${duaList.size} DUAs"
+                    "Getting DUA (with eager brevmottakere) for behandling (${behandling.id}) took ${System.currentTimeMillis() - startGetDUA} millis. Found ${duaList.size} DUAs"
                 )
                 duaList.forEach { dokumentUnderArbeid ->
                     if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
@@ -658,7 +658,7 @@ class AdminService(
                             }
                             duaToSave += dokumentUnderArbeid
                             logger.debug(
-                                "Handling dokumentUnderArbeid receivers took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                                "Handling dokumentUnderArbeid receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
                             )
                         }
                     }
@@ -667,7 +667,7 @@ class AdminService(
                 behandlingerToSave += behandling
                 counter++
             } catch (e: Exception) {
-                logger.debug("Couldn't set id to part", e)
+                logger.error("Couldn't set id to part for behandling (${behandling.id})", e)
             }
         }
         //Save the rest.
