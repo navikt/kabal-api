@@ -72,9 +72,10 @@ data class OversendtAnkeITrygderettenV1(
 )
 
 fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingInput(inputDocuments: MutableSet<Saksdokument>): AnkeITrygderettenbehandlingInput {
+    val (sakenGjelderPart, klagePart, _) = getParts(sakenGjelder, klager)
     return AnkeITrygderettenbehandlingInput(
-        klager = klager.toKlagepart(),
-        sakenGjelder = sakenGjelder?.toSakenGjelder(),
+        klager = klagePart,
+        sakenGjelder = sakenGjelderPart,
         prosessfullmektig = null,
         ytelse = ytelse,
         type = Type.ANKE_I_TRYGDERETTEN,

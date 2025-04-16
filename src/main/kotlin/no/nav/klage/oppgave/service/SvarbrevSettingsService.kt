@@ -63,14 +63,13 @@ class SvarbrevSettingsService(
                 ?: throw ValidationException("BehandlingstidUnitType må angis.")
 
             val svarbrevSettings = svarbrevSettingsRepository.findById(id).get()
-            svarbrevSettings.apply {
-                behandlingstidUnits = updateSvarbrevSettingsInput.behandlingstidUnits
-                behandlingstidUnitType = inputBehandlingstidUnitType
-                customText = updateSvarbrevSettingsInput.customText.takeIf { it.isNotBlank() }
-                shouldSend = updateSvarbrevSettingsInput.shouldSend
-                createdBy = tokenUtil.getIdent()
-                modified = LocalDateTime.now()
-            }
+
+            svarbrevSettings.behandlingstidUnits = updateSvarbrevSettingsInput.behandlingstidUnits
+            svarbrevSettings.behandlingstidUnitType = inputBehandlingstidUnitType
+            svarbrevSettings.customText = updateSvarbrevSettingsInput.customText.takeIf { it.isNotBlank() }
+            svarbrevSettings.shouldSend = updateSvarbrevSettingsInput.shouldSend
+            svarbrevSettings.createdBy = tokenUtil.getIdent()
+            svarbrevSettings.modified = LocalDateTime.now()
 
             svarbrevSettings.history.add(svarbrevSettings.toHistory())
 

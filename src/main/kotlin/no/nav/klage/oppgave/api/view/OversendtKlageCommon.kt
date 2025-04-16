@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.domain.klage.*
+import java.util.*
 
 data class OversendtSakenGjelder(
     @Schema(
@@ -17,11 +18,7 @@ data class OversendtSakenGjelder(
         deprecated = true,
     )
     val skalMottaKopi: Boolean
-) {
-    fun toSakenGjelder() = SakenGjelder(
-        partId = id.toPartId(),
-    )
-}
+)
 
 data class OversendtKlagerLegacy(
     @Schema(
@@ -35,9 +32,6 @@ data class OversendtKlagerLegacy(
     )
     val klagersProsessfullmektig: OversendtProsessfullmektigLegacy? = null
 ) {
-    fun toKlagepart() = Klager(
-        partId = id.toPartId(),
-    )
 
     fun toProsessfullmektig(): Prosessfullmektig? {
         if (klagersProsessfullmektig == null) return null
@@ -59,9 +53,11 @@ data class OversendtProsessfullmektigLegacy(
     val skalKlagerMottaKopi: Boolean
 ) {
     fun toProsessfullmektig() = Prosessfullmektig(
-        partId = id.toPartId(), address = null, navn = null,
-
-    )
+        id = UUID.randomUUID(),
+        partId = id.toPartId(),
+        address = null,
+        navn = null,
+        )
 }
 
 data class OversendtPartId(
@@ -121,3 +117,35 @@ fun OversendtPartIdType.toPartIdType(): PartIdType =
         OversendtPartIdType.PERSON -> PartIdType.PERSON
         OversendtPartIdType.VIRKSOMHET -> PartIdType.VIRKSOMHET
     }
+
+fun getParts(sakenGjelder: OversendtSakenGjelder?, klager: OversendtKlagerLegacy): Triple<SakenGjelder, Klager, Prosessfullmektig?> {
+    val klagePart = Klager(
+        id = UUID.randomUUID(),
+        partId = klager.id.toPartId(),
+    )
+
+    val sakenGjelderPart = if (sakenGjelder?.id?.verdi == klager.id.verdi || sakenGjelder == null) {
+        SakenGjelder(
+            id = klagePart.id,
+            partId = klagePart.partId,
+        )
+    } else {
+        SakenGjelder(
+            id = UUID.randomUUID(),
+            partId = sakenGjelder.id.toPartId(),
+        )
+    }
+
+    val prosessfullmektigPart = if (klager.klagersProsessfullmektig?.id?.verdi == klager.id.verdi) {
+        Prosessfullmektig(
+            id = klagePart.id,
+            partId = klagePart.partId,
+            address = null,
+            navn = null,
+        )
+    } else if (klager.klagersProsessfullmektig != null) {
+        klager.klagersProsessfullmektig.toProsessfullmektig()
+    } else null
+
+    return Triple(sakenGjelderPart, klagePart, prosessfullmektigPart)
+}

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
@@ -13,7 +14,6 @@ import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
-import no.nav.klage.oppgave.api.view.TaskListMerkantilView
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
@@ -95,6 +95,7 @@ class AdminService(
         private val objectMapper = ourJacksonObjectMapper()
     }
 
+    @Transactional
     fun syncKafkaWithDb() {
         var pageable: Pageable =
             PageRequest.of(0, 50, Sort.by("created").descending())
@@ -113,6 +114,7 @@ class AdminService(
         } while (pageable.isPaged)
     }
 
+    @Transactional
     fun reindexBehandlingInSearch(behandlingId: UUID) {
         behandlingEndretKafkaProducer.sendBehandlingEndret(
             behandlingRepository.findByIdEager(behandlingId)
@@ -120,6 +122,7 @@ class AdminService(
     }
 
     /** only for use in dev */
+    @Transactional
     fun deleteBehandlingInDev(behandlingId: UUID) {
         logger.debug("Delete test data in dev: attempt to delete behandling with id {}", behandlingId)
         val (hoveddokumenter, vedlegg) = dokumentUnderArbeidRepository.findByBehandlingId(behandlingId)
@@ -180,6 +183,7 @@ class AdminService(
         //Delete in dokumentarkiv? Probably not necessary. They clean up when they need to.
     }
 
+    @Transactional
     fun resendToDVH() {
         logger.debug("Attempting to resend all events to DVH")
         kafkaDispatcher.dispatchEventsToKafka(
@@ -188,6 +192,7 @@ class AdminService(
         )
     }
 
+    @Transactional
     fun generateMissingAnkeITrygderetten() {
         logger.debug("Attempting generate missing AnkeITrygderettenBehandling")
 
@@ -245,6 +250,7 @@ class AdminService(
         logger.debug(logString)
     }
 
+    @Transactional
     fun isSkjermet(fnr: String) {
         try {
             logger.debug("isSkjermet called")
@@ -256,6 +262,7 @@ class AdminService(
         }
     }
 
+    @Transactional
     fun migrateDvhEvents() {
         val events = kafkaEventRepository.findByType(EventType.STATS_DVH)
 
@@ -295,6 +302,7 @@ class AdminService(
         }
     }
 
+    @Transactional
     fun logExpiredUsers() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val saksbehandlerSet = unfinishedBehandlinger.mapNotNull { it.tildeling?.saksbehandlerident }.toSet()
@@ -331,6 +339,7 @@ class AdminService(
         secureLogger.debug("Expired, assigned rol: \n $rolLogOutput")
     }
 
+    @Transactional
     fun logProtected() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         secureLogger.debug("Checking for protected users")
@@ -349,6 +358,7 @@ class AdminService(
     }
 
 
+    @Transactional
     @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo")
     @SchedulerLock(name = "cleanupExpiredAssignees")
     fun cleanupExpiredAssignees() {
@@ -388,6 +398,7 @@ class AdminService(
         return nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true
     }
 
+    @Transactional
     fun logInvalidRegistreringshjemler() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNull()
         val ytelseAndHjemmelPairSet = unfinishedBehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
@@ -414,6 +425,7 @@ class AdminService(
         secureLogger.debug("Invalid registreringshjemler in ankebehandlinger v2: {}", filteredAnkeInvalidHjemler)
     }
 
+    @Transactional
     fun setSortKeyToDUA() {
         val allDUAs = journalfoertDokumentUnderArbeidAsVedleggRepository.findAll()
         val journalpostList = safFacade.getJournalposter(
@@ -434,6 +446,7 @@ class AdminService(
         logger.debug("setSortKeyToDUA: ${allDUAs.size} DUAs were updated with sortKeys: $keys")
     }
 
+    @Transactional
     fun migrateTilbakekreving() {
         val candidates = behandlingRepository.findByTilbakekrevingIsFalse()
         logger.debug("Found ${candidates.size} candidates for tilbakekreving migration.")
@@ -450,6 +463,7 @@ class AdminService(
         logger.debug("Migrated $migrations candidates.")
     }
 
+    @Transactional
     fun fixMissingInKaka() {
         kakaApiGateway.finalizeBehandling(
             behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
@@ -458,6 +472,7 @@ class AdminService(
         )
     }
 
+    @Transactional
     fun getInfotrygdsak(sakId: String): SakFromKlanke {
         return klageFssProxyClient.getSakWithAppAccess(
             sakId = sakId,
@@ -488,25 +503,7 @@ class AdminService(
         Registreringshjemmel.KONTSL_11,
     )
 
-    fun getTaskListMerkantil(): List<TaskListMerkantilView> {
-        return taskListMerkantilRepository.findAll().sortedByDescending { it.created }
-            .map { it.toTaskListMerkantilView() }
-    }
-
-    fun TaskListMerkantil.toTaskListMerkantilView(): TaskListMerkantilView {
-        return TaskListMerkantilView(
-            id = id,
-            behandlingId = behandlingId,
-            reason = reason,
-            created = created,
-            dateHandled = dateHandled,
-            handledBy = handledBy,
-            handledByName = handledByName,
-            comment = comment,
-            typeId = behandlingRepository.findByIdEager(behandlingId).type.id
-        )
-    }
-
+    @Transactional
     fun enableMinsideMicrofrontend(behandlingId: UUID) {
         val behandling = behandlingRepository.findByIdEager(behandlingId)
         if (behandling.feilregistrering != null) {
@@ -515,6 +512,7 @@ class AdminService(
         minsideMicrofrontendService.enableMinsideMicrofrontend(behandling = behandling)
     }
 
+    @Transactional
     fun enableAllMinsideMicrofrontends() {
         logger.debug("Enabling all minside microfrontends")
         val behandlinger = behandlingRepository.findByFeilregistreringIsNull()
@@ -524,11 +522,13 @@ class AdminService(
         logger.debug("Finished enabling all minside microfrontends")
     }
 
+    @Transactional
     fun disableMinsideMicrofrontend(behandlingId: UUID) {
         val behandling = behandlingRepository.findByIdEager(behandlingId)
         minsideMicrofrontendService.disableMinsideMicrofrontend(behandling = behandling)
     }
 
+    @Transactional
     fun disableAllMinsideMicrofrontends() {
         logger.debug("Disabling all minside microfrontends")
         val behandlinger = behandlingRepository.findAll()
@@ -561,6 +561,124 @@ class AdminService(
     )
     fun evictAllCaches() {
         logger.debug("Evicted all caches")
+    }
+
+    fun setIdOnParter() {
+        logger.debug("setIdOnParter is called")
+        val behandlinger = behandlingRepository.findAll()
+        val behandlingerSize = behandlinger.size
+        logger.debug("Found $behandlingerSize behandlinger to set id on parter")
+        var counter = 0
+        var start = System.currentTimeMillis()
+        val behandlingerToSave: MutableList<Behandling> = mutableListOf()
+        val duaToSave: MutableList<DokumentUnderArbeid> = mutableListOf()
+        behandlinger.forEach { behandling ->
+            try {
+                val chunk = 100
+                if (counter > 0 && counter % chunk == 0) {
+                    behandlingRepository.saveAllAndFlush(behandlingerToSave)
+                    dokumentUnderArbeidRepository.saveAllAndFlush(duaToSave)
+
+                    behandlingerToSave.clear()
+                    duaToSave.clear()
+
+                    logger.debug(
+                        "{} more behandlinger processed. Currently at {} of {}. It took {} millis",
+                        chunk,
+                        counter,
+                        behandlingerSize,
+                        (System.currentTimeMillis() - start)
+                    )
+                    start = System.currentTimeMillis()
+                }
+
+                //Id for sakenGjelder is already set from Flyway-script.
+
+                //then for klager. Set to same as sakenGjelder if klager is same person, (else keep what Flyway-script set)
+                if (behandling.klager.partId.value == behandling.sakenGjelder.partId.value) {
+                    behandling.klager.id = behandling.sakenGjelder.id
+                }
+
+                if (behandling.prosessfullmektig?.partId?.value == behandling.klager.partId.value) {
+                    behandling.prosessfullmektig!!.id = behandling.klager.id
+                }
+
+                //these ids should then be set for brevmottakere also. Both from DUA-relation and from "forlenget behandlingstid"-relation
+                if (behandling is BehandlingWithVarsletBehandlingstid) {
+                    if (behandling.forlengetBehandlingstidDraft != null) {
+                        val getReceiversStart = System.currentTimeMillis()
+                        val receivers = behandling.forlengetBehandlingstidDraft!!.receivers
+
+                        receivers.forEach { receiver ->
+                            when (receiver.identifikator) {
+                                behandling.sakenGjelder.partId.value -> {
+                                    receiver.technicalPartId = behandling.sakenGjelder.id
+                                }
+
+                                behandling.klager.partId.value -> {
+                                    receiver.technicalPartId = behandling.klager.id
+                                }
+
+                                behandling.prosessfullmektig?.partId?.value -> {
+                                    receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                                }
+                            }
+                        }
+                        logger.debug(
+                            "Handling forlengetBehandlingstidDraft receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                        )
+                    }
+                }
+
+                val startGetDUA = System.currentTimeMillis()
+                val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
+                logger.debug(
+                    "Getting DUA (with eager brevmottakere) for behandling (${behandling.id}) took ${System.currentTimeMillis() - startGetDUA} millis. Found ${duaList.size} DUAs"
+                )
+                duaList.forEach { dokumentUnderArbeid ->
+                    if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
+                        val getReceiversStart = System.currentTimeMillis()
+                        val receivers = dokumentUnderArbeid.brevmottakere
+
+                        if (receivers.isNotEmpty()) {
+                            receivers.forEach { receiver ->
+                                when (receiver.identifikator) {
+                                    behandling.sakenGjelder.partId.value -> {
+                                        receiver.technicalPartId = behandling.sakenGjelder.id
+                                    }
+
+                                    behandling.klager.partId.value -> {
+                                        receiver.technicalPartId = behandling.klager.id
+                                    }
+
+                                    behandling.prosessfullmektig?.partId?.value -> {
+                                        receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                                    }
+                                }
+                            }
+                            duaToSave += dokumentUnderArbeid
+                            logger.debug(
+                                "Handling dokumentUnderArbeid receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                            )
+                        }
+                    }
+                }
+
+                behandlingerToSave += behandling
+                counter++
+            } catch (e: Exception) {
+                logger.error("Couldn't set id to part for behandling (${behandling.id})", e)
+            }
+        }
+        //Save the rest.
+        if (behandlingerToSave.isNotEmpty()) {
+            behandlingRepository.saveAllAndFlush(behandlingerToSave)
+        }
+        if (duaToSave.isNotEmpty()) {
+            dokumentUnderArbeidRepository.saveAllAndFlush(duaToSave)
+        }
+
+        logger.debug("setIdOnParter is done. Processed $counter behandlinger")
     }
 }
 

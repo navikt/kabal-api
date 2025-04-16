@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.MottakerInput
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.dokument.service.KabalJsonToPdfService
 import no.nav.klage.kodeverk.Enhet
@@ -200,7 +201,7 @@ class ForlengetBehandlingstidDraftService(
 
         input.mottakerList.forEach {
             val (markLocalPrint, forceCentralPrint) = dokumentUnderArbeidService.getPreferredHandling(
-                identifikator = it.id,
+                identifikator = it.identifikator,
                 handling = it.handling,
                 isAddressOverridden = it.overriddenAddress != null,
                 sakenGjelderFnr = behandling.sakenGjelder.partId.value,
@@ -209,9 +210,10 @@ class ForlengetBehandlingstidDraftService(
             )
 
             behandling.forlengetBehandlingstidDraft!!.receivers.add(
-                ForlengetBehandlingstidDraftReceiver(
+                Brevmottaker(
+                    technicalPartId = it.id,
                     navn = it.navn,
-                    identifikator = it.id,
+                    identifikator = it.identifikator,
                     localPrint = markLocalPrint,
                     forceCentralPrint = forceCentralPrint,
                     address = dokumentUnderArbeidService.getDokumentUnderArbeidAdresse(it.overriddenAddress),
@@ -557,6 +559,7 @@ class ForlengetBehandlingstidDraftService(
             doNotSendLetter = doNotSendLetter,
             receivers = receivers.map {
                 dokumentMapper.toDokumentViewMottaker(
+                    technicalPartId = it.technicalPartId,
                     identifikator = it.identifikator,
                     navn = it.navn,
                     address = it.address,

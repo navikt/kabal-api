@@ -17,6 +17,8 @@ class FullmektigHistorikk(
         ]
     )
     var partId: PartId?,
+    @Column(name = "fullmektig_name")
+    val name: String?,
     @Column(name = "tidspunkt")
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")

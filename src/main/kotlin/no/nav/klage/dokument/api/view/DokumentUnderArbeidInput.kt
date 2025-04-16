@@ -51,7 +51,7 @@ enum class InngaaendeKanal {
 }
 
 data class AvsenderInput(
-    val id: String
+    val identifikator: String,
 )
 
 data class MottakerInput(
@@ -59,7 +59,8 @@ data class MottakerInput(
 )
 
 data class Mottaker(
-    val id: String?,
+    val id: UUID,
+    val identifikator: String?,
     val handling: HandlingEnum,
     val overriddenAddress: AddressInput?,
     val navn: String?,

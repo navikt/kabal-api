@@ -457,7 +457,10 @@ class OppgaveServiceTest {
         val mottak = Mottak(
             ytelse = ytelse,
             type = type,
-            klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
+            klager = Klager(
+                id = UUID.randomUUID(),
+                partId = PartId(type = PartIdType.PERSON, value = fnr)
+            ),
             kildeReferanse = "1234234",
             sakMottattKaDato = now,
             fagsystem = fagsystem,
@@ -487,8 +490,12 @@ class OppgaveServiceTest {
         val behandling = when (type) {
             Type.KLAGE -> {
                 Klagebehandling(
-                    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
+                    klager = Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = fnr)
+                    ),
                     sakenGjelder = SakenGjelder(
+                        id = UUID.randomUUID(),
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
                     ),
                     prosessfullmektig = null,
@@ -525,8 +532,11 @@ class OppgaveServiceTest {
 
             Type.ANKE -> {
                 Ankebehandling(
-                    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
+                    klager = Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = fnr)),
                     sakenGjelder = SakenGjelder(
+                        id = UUID.randomUUID(),
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
                     ),
                     prosessfullmektig = null,
@@ -563,8 +573,12 @@ class OppgaveServiceTest {
 
             Type.ANKE_I_TRYGDERETTEN -> {
                 AnkeITrygderettenbehandling(
-                    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = fnr)),
+                    klager = Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = fnr)
+                    ),
                     sakenGjelder = SakenGjelder(
+                        id = UUID.randomUUID(),
                         partId = PartId(type = PartIdType.PERSON, value = fnr),
                     ),
                     prosessfullmektig = null,
@@ -594,8 +608,12 @@ class OppgaveServiceTest {
 
             Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
                 BehandlingEtterTrygderettenOpphevet(
-                    klager = Klager(partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+                    klager = Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354")
+                    ),
                     sakenGjelder = SakenGjelder(
+                        id = UUID.randomUUID(),
                         partId = PartId(type = PartIdType.PERSON, value = "23452354"),
                     ),
                     prosessfullmektig = null,
