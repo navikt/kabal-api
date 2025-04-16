@@ -563,6 +563,7 @@ class AdminService(
         logger.debug("Evicted all caches")
     }
 
+    @Transactional
     fun setIdOnParter() {
         logger.debug("setIdOnParter is called")
         val behandlinger = behandlingRepository.findAll()
