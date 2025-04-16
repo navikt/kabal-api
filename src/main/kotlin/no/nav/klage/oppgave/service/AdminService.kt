@@ -577,7 +577,7 @@ class AdminService(
                 val chunk = 100
                 if (counter > 0 && counter % chunk == 0) {
                     behandlingRepository.saveAllAndFlush(behandlingerToSave)
-                    dokumentUnderArbeidRepository.saveAllAndFlush(duaToSave)
+//                    dokumentUnderArbeidRepository.saveAllAndFlush(duaToSave)
 
                     behandlingerToSave.clear()
                     duaToSave.clear()
@@ -603,6 +603,7 @@ class AdminService(
                     behandling.prosessfullmektig!!.id = behandling.klager.id
                 }
 
+                /*
                 //these ids should then be set for brevmottakere also. Both from DUA-relation and from "forlenget behandlingstid"-relation
                 if (behandling is BehandlingWithVarsletBehandlingstid) {
                     if (behandling.forlengetBehandlingstidDraft != null) {
@@ -623,6 +624,7 @@ class AdminService(
                         }
                     }
                 }
+
 
                 val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
                 duaList.forEach { dokumentUnderArbeid ->
@@ -647,6 +649,7 @@ class AdminService(
                         }
                     }
                 }
+                 */
                 behandlingerToSave += behandling
                 counter++
             } catch (e: Exception) {
