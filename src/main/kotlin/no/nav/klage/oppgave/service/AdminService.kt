@@ -583,11 +583,11 @@ class AdminService(
                     duaToSave.clear()
 
                     logger.debug(
-                        "{} more behandlinger processed. Currently at {} of {}. It took {} seconds",
+                        "{} more behandlinger processed. Currently at {} of {}. It took {} millis",
                         chunk,
                         counter,
                         behandlingerSize,
-                        (System.currentTimeMillis() - start) / 1000
+                        (System.currentTimeMillis() - start)
                     )
                     start = System.currentTimeMillis()
                 }
@@ -603,7 +603,7 @@ class AdminService(
                     behandling.prosessfullmektig!!.id = behandling.klager.id
                 }
 
-                /*
+
                 //these ids should then be set for brevmottakere also. Both from DUA-relation and from "forlenget behandlingstid"-relation
                 if (behandling is BehandlingWithVarsletBehandlingstid) {
                     if (behandling.forlengetBehandlingstidDraft != null) {
@@ -625,31 +625,31 @@ class AdminService(
                     }
                 }
 
+                /*
+                           val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
+                           duaList.forEach { dokumentUnderArbeid ->
+                               if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
+                                   if (dokumentUnderArbeid.brevmottakere.isNotEmpty()) {
+                                       dokumentUnderArbeid.brevmottakere.forEach { receiver ->
+                                           when (receiver.identifikator) {
+                                               behandling.sakenGjelder.partId.value -> {
+                                                   receiver.technicalPartId = behandling.sakenGjelder.id
+                                               }
 
-                val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
-                duaList.forEach { dokumentUnderArbeid ->
-                    if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
-                        if (dokumentUnderArbeid.brevmottakere.isNotEmpty()) {
-                            dokumentUnderArbeid.brevmottakere.forEach { receiver ->
-                                when (receiver.identifikator) {
-                                    behandling.sakenGjelder.partId.value -> {
-                                        receiver.technicalPartId = behandling.sakenGjelder.id
-                                    }
+                                               behandling.klager.partId.value -> {
+                                                   receiver.technicalPartId = behandling.klager.id
+                                               }
 
-                                    behandling.klager.partId.value -> {
-                                        receiver.technicalPartId = behandling.klager.id
-                                    }
-
-                                    behandling.prosessfullmektig?.partId?.value -> {
-                                        receiver.technicalPartId = behandling.prosessfullmektig!!.id
-                                    }
-                                }
-                            }
-                            duaToSave += dokumentUnderArbeid
-                        }
-                    }
-                }
-                 */
+                                               behandling.prosessfullmektig?.partId?.value -> {
+                                                   receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                                               }
+                                           }
+                                       }
+                                       duaToSave += dokumentUnderArbeid
+                                   }
+                               }
+                           }
+                            */
                 behandlingerToSave += behandling
                 counter++
             } catch (e: Exception) {
