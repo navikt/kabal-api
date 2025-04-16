@@ -603,11 +603,15 @@ class AdminService(
                     behandling.prosessfullmektig!!.id = behandling.klager.id
                 }
 
-
                 //these ids should then be set for brevmottakere also. Both from DUA-relation and from "forlenget behandlingstid"-relation
                 if (behandling is BehandlingWithVarsletBehandlingstid) {
                     if (behandling.forlengetBehandlingstidDraft != null) {
-                        behandling.forlengetBehandlingstidDraft!!.receivers.forEach { receiver ->
+                        val getReceiversStart = System.currentTimeMillis()
+                        val receivers = behandling.forlengetBehandlingstidDraft!!.receivers
+                        logger.debug(
+                            "Getting forlengetBehandlingstidDraft receivers took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                        )
+                        receivers.forEach { receiver ->
                             when (receiver.identifikator) {
                                 behandling.sakenGjelder.partId.value -> {
                                     receiver.technicalPartId = behandling.sakenGjelder.id
@@ -625,12 +629,17 @@ class AdminService(
                     }
                 }
 
-
                 val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
                 duaList.forEach { dokumentUnderArbeid ->
                     if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
-                        if (dokumentUnderArbeid.brevmottakere.isNotEmpty()) {
-                            dokumentUnderArbeid.brevmottakere.forEach { receiver ->
+                        val getReceiversStart = System.currentTimeMillis()
+                        val receivers = dokumentUnderArbeid.brevmottakere
+                        logger.debug(
+                            "Getting dokumentUnderArbeid receivers took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                        )
+
+                        if (receivers.isNotEmpty()) {
+                            receivers.forEach { receiver ->
                                 when (receiver.identifikator) {
                                     behandling.sakenGjelder.partId.value -> {
                                         receiver.technicalPartId = behandling.sakenGjelder.id
