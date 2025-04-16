@@ -608,9 +608,7 @@ class AdminService(
                     if (behandling.forlengetBehandlingstidDraft != null) {
                         val getReceiversStart = System.currentTimeMillis()
                         val receivers = behandling.forlengetBehandlingstidDraft!!.receivers
-                        logger.debug(
-                            "Getting forlengetBehandlingstidDraft receivers took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
-                        )
+
                         receivers.forEach { receiver ->
                             when (receiver.identifikator) {
                                 behandling.sakenGjelder.partId.value -> {
@@ -626,17 +624,21 @@ class AdminService(
                                 }
                             }
                         }
+                        logger.debug(
+                            "Handling forlengetBehandlingstidDraft receivers took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                        )
                     }
                 }
 
+                val startGetDUA = System.currentTimeMillis()
                 val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
+                logger.debug(
+                    "Getting DUA (with eager brevmottakere) for behandling took ${System.currentTimeMillis() - startGetDUA} millis. Found ${duaList.size} DUAs"
+                )
                 duaList.forEach { dokumentUnderArbeid ->
                     if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
                         val getReceiversStart = System.currentTimeMillis()
                         val receivers = dokumentUnderArbeid.brevmottakere
-                        logger.debug(
-                            "Getting dokumentUnderArbeid receivers took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
-                        )
 
                         if (receivers.isNotEmpty()) {
                             receivers.forEach { receiver ->
@@ -655,6 +657,9 @@ class AdminService(
                                 }
                             }
                             duaToSave += dokumentUnderArbeid
+                            logger.debug(
+                                "Handling dokumentUnderArbeid receivers took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                            )
                         }
                     }
                 }
