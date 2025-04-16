@@ -577,7 +577,7 @@ class AdminService(
                 val chunk = 100
                 if (counter > 0 && counter % chunk == 0) {
                     behandlingRepository.saveAllAndFlush(behandlingerToSave)
-//                    dokumentUnderArbeidRepository.saveAllAndFlush(duaToSave)
+                    dokumentUnderArbeidRepository.saveAllAndFlush(duaToSave)
 
                     behandlingerToSave.clear()
                     duaToSave.clear()
@@ -625,31 +625,31 @@ class AdminService(
                     }
                 }
 
-                /*
-                           val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
-                           duaList.forEach { dokumentUnderArbeid ->
-                               if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
-                                   if (dokumentUnderArbeid.brevmottakere.isNotEmpty()) {
-                                       dokumentUnderArbeid.brevmottakere.forEach { receiver ->
-                                           when (receiver.identifikator) {
-                                               behandling.sakenGjelder.partId.value -> {
-                                                   receiver.technicalPartId = behandling.sakenGjelder.id
-                                               }
 
-                                               behandling.klager.partId.value -> {
-                                                   receiver.technicalPartId = behandling.klager.id
-                                               }
+                val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
+                duaList.forEach { dokumentUnderArbeid ->
+                    if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
+                        if (dokumentUnderArbeid.brevmottakere.isNotEmpty()) {
+                            dokumentUnderArbeid.brevmottakere.forEach { receiver ->
+                                when (receiver.identifikator) {
+                                    behandling.sakenGjelder.partId.value -> {
+                                        receiver.technicalPartId = behandling.sakenGjelder.id
+                                    }
 
-                                               behandling.prosessfullmektig?.partId?.value -> {
-                                                   receiver.technicalPartId = behandling.prosessfullmektig!!.id
-                                               }
-                                           }
-                                       }
-                                       duaToSave += dokumentUnderArbeid
-                                   }
-                               }
-                           }
-                            */
+                                    behandling.klager.partId.value -> {
+                                        receiver.technicalPartId = behandling.klager.id
+                                    }
+
+                                    behandling.prosessfullmektig?.partId?.value -> {
+                                        receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                                    }
+                                }
+                            }
+                            duaToSave += dokumentUnderArbeid
+                        }
+                    }
+                }
+
                 behandlingerToSave += behandling
                 counter++
             } catch (e: Exception) {
