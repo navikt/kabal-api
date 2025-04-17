@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
@@ -564,6 +563,90 @@ class AdminService(
     }
 
     @Transactional
+    fun setIdOnParterWithBehandlinger(behandlingIdList: List<UUID>) {
+        logger.debug("setIdOnParterWithBehandlinger is called")
+        val behandlingerSize = behandlingIdList.size
+        logger.debug("Found $behandlingerSize behandlinger to set id on parter")
+
+        val behandlinger = behandlingRepository.findAllById(behandlingIdList)
+
+        behandlinger.forEach { behandling ->
+            //Id for sakenGjelder is already set from Flyway-script.
+
+            //then for klager. Set to same as sakenGjelder if klager is same person, (else keep what Flyway-script set)
+            if (behandling.klager.partId.value == behandling.sakenGjelder.partId.value) {
+                behandling.klager.id = behandling.sakenGjelder.id
+            }
+
+            if (behandling.prosessfullmektig?.partId?.value == behandling.klager.partId.value) {
+                behandling.prosessfullmektig!!.id = behandling.klager.id
+            }
+
+            //these ids should then be set for brevmottakere also. Both from DUA-relation and from "forlenget behandlingstid"-relation
+            if (behandling is BehandlingWithVarsletBehandlingstid) {
+                if (behandling.forlengetBehandlingstidDraft != null) {
+                    val getReceiversStart = System.currentTimeMillis()
+                    val receivers = behandling.forlengetBehandlingstidDraft!!.receivers
+
+                    receivers.forEach { receiver ->
+                        when (receiver.identifikator) {
+                            behandling.sakenGjelder.partId.value -> {
+                                receiver.technicalPartId = behandling.sakenGjelder.id
+                            }
+
+                            behandling.klager.partId.value -> {
+                                receiver.technicalPartId = behandling.klager.id
+                            }
+
+                            behandling.prosessfullmektig?.partId?.value -> {
+                                receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                            }
+                        }
+                    }
+                    logger.debug(
+                        "Handling forlengetBehandlingstidDraft receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                    )
+                }
+            }
+
+            val startGetDUA = System.currentTimeMillis()
+            val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
+            logger.debug(
+                "Getting DUA (with eager brevmottakere) for behandling (${behandling.id}) took ${System.currentTimeMillis() - startGetDUA} millis. Found ${duaList.size} DUAs"
+            )
+            duaList.forEach { dokumentUnderArbeid ->
+                if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
+                    val getReceiversStart = System.currentTimeMillis()
+                    val receivers = dokumentUnderArbeid.brevmottakere
+
+                    if (receivers.isNotEmpty()) {
+                        receivers.forEach { receiver ->
+                            when (receiver.identifikator) {
+                                behandling.sakenGjelder.partId.value -> {
+                                    receiver.technicalPartId = behandling.sakenGjelder.id
+                                }
+
+                                behandling.klager.partId.value -> {
+                                    receiver.technicalPartId = behandling.klager.id
+                                }
+
+                                behandling.prosessfullmektig?.partId?.value -> {
+                                    receiver.technicalPartId = behandling.prosessfullmektig!!.id
+                                }
+                            }
+                        }
+                        logger.debug(
+                            "Handling dokumentUnderArbeid receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                        )
+                    }
+                }
+            }
+        }
+
+        logger.debug("setIdOnParterWithBehandlinger is done. Processed $behandlingerSize behandlinger")
+    }
+/*
+    @Transactional
     fun setIdOnParter() {
         logger.debug("setIdOnParter is called")
         val behandlinger = behandlingRepository.findAll()
@@ -681,6 +764,8 @@ class AdminService(
 
         logger.debug("setIdOnParter is done. Processed $counter behandlinger")
     }
+ */
+
 }
 
 
