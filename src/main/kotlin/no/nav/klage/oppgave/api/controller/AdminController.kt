@@ -4,6 +4,7 @@ import no.nav.klage.oppgave.api.view.TaskListMerkantilView
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.gateway.AzureGateway
+import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.TaskListMerkantilService
@@ -20,7 +21,8 @@ class AdminController(
     private val adminService: AdminService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val azureGateway: AzureGateway,
-    private val taskListMerkantilService: TaskListMerkantilService
+    private val taskListMerkantilService: TaskListMerkantilService,
+    private val behandlingRepository: BehandlingRepository,
 ) {
 
     companion object {
@@ -260,9 +262,27 @@ class AdminController(
         logger.debug("setIdOnParter is called")
         krevAdminTilgang()
         try {
-            adminService.setIdOnParter()
+            var counter = 0
+            val allBehandlinger = behandlingRepository.findAll()
+            val behandlingerTotalSize = allBehandlinger.size
+            val chunkSize = 100
+            allBehandlinger
+                .map { it.id }
+                .chunked(chunkSize)
+                .forEach { behandlingIdList ->
+                    val start = System.currentTimeMillis()
+                    adminService.setIdOnParterWithBehandlinger(behandlingIdList)
+                    counter += behandlingIdList.size
+                    logger.debug(
+                        "setIdOnParter took {} ms for {} behandlinger. Now at {} of total {}",
+                        System.currentTimeMillis() - start,
+                        behandlingIdList.size,
+                        counter,
+                        behandlingerTotalSize,
+                    )
+                }
         } catch (e: Exception) {
-            logger.warn("Failed to set id on parter", e)
+            logger.error("Failed to set id on parter", e)
             throw e
         }
     }
