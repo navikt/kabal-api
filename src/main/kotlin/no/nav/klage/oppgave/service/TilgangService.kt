@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
+import no.nav.klage.oppgave.domain.klage.Access
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
@@ -60,8 +61,9 @@ class TilgangService(
     }
 
     fun verifyInnloggetSaksbehandlersTilgangTil(fnr: String) {
-        if (!harInnloggetSaksbehandlerTilgangTil(fnr)) {
-            throw MissingTilgangException("Saksbehandler har ikke tilgang til denne brukeren")
+        val access = harInnloggetSaksbehandlerTilgangTil(fnr)
+        if (!access.access) {
+            throw MissingTilgangException(access.reason ?: "Saksbehandler har ikke tilgang til denne brukeren")
         }
     }
 
@@ -81,7 +83,7 @@ class TilgangService(
         }
     }
 
-    fun harInnloggetSaksbehandlerTilgangTil(fnr: String): Boolean {
+    fun harInnloggetSaksbehandlerTilgangTil(fnr: String): Access {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         return verifiserTilgangTilPersonForSaksbehandler(
             fnr = fnr,
@@ -98,7 +100,7 @@ class TilgangService(
         kanBehandleStrengtFortrolig: () -> Boolean,
         kanBehandleFortrolig: () -> Boolean,
         kanBehandleEgenAnsatt: () -> Boolean
-    ): Boolean {
+    ): Access {
         val personInfo = pdlFacade.getPersonInfo(fnr)
         val harBeskyttelsesbehovFortrolig = personInfo.harBeskyttelsesbehovFortrolig()
         val harBeskyttelsesbehovStrengtFortrolig = personInfo.harBeskyttelsesbehovStrengtFortrolig()
@@ -111,7 +113,7 @@ class TilgangService(
                 securelogger.info("Access granted to strengt fortrolig for $ident")
             } else {
                 securelogger.info("Access denied to strengt fortrolig for $ident")
-                return false
+                return Access(access = false, reason = "Ikke tilgang til adressebeskyttelse strengt fortrolig")
             }
         }
         if (harBeskyttelsesbehovFortrolig) {
@@ -121,7 +123,7 @@ class TilgangService(
                 securelogger.info("Access granted to fortrolig for $ident")
             } else {
                 securelogger.info("Access denied to fortrolig for $ident")
-                return false
+                return Access(access = false, reason = "Ikke tilgang til adressebeskyttelse fortrolig")
             }
         }
         if (erEgenAnsatt && !(harBeskyttelsesbehovFortrolig || harBeskyttelsesbehovStrengtFortrolig)) {
@@ -131,9 +133,9 @@ class TilgangService(
                 securelogger.info("Access granted to egen ansatt for $ident")
             } else {
                 securelogger.info("Access denied to egen ansatt for $ident")
-                return false
+                return Access(access = false, reason = "Ikke tilgang til egen ansatt")
             }
         }
-        return true
+        return Access(access = true)
     }
 }

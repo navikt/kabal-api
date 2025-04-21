@@ -154,7 +154,7 @@ class BehandlingServiceTest {
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
         every { tilgangService.verifyInnloggetSaksbehandlersTilgangTil(any()) } returns Unit
-        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(any()) } returns true
+        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(any()) } returns Access(true)
         every { saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(any()) } returns false
         every { behandlingMapper.mapToMedunderskriverWrapped(any()) } returns MedunderskriverWrapped(
             employee = null,

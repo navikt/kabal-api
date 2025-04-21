@@ -125,7 +125,8 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleStrengtFortrolig() }.returns(false)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(false)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(false)
+        val access = tilgangService.harInnloggetSaksbehandlerTilgangTil("")
+        assertThat(access.access).isEqualTo(false)
     }
 
     @Test
@@ -139,7 +140,8 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleStrengtFortrolig() }.returns(false)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(false)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(false)
+        val access = tilgangService.harInnloggetSaksbehandlerTilgangTil("")
+        assertThat(access.access).isEqualTo(false)
     }
 
     @Test
@@ -151,7 +153,8 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleEgenAnsatt() }.returns(false)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(true)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(false)
+        val access = tilgangService.harInnloggetSaksbehandlerTilgangTil("")
+        assertThat(access.access).isEqualTo(false)
     }
 
     @Test
@@ -163,7 +166,7 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleEgenAnsatt() }.returns(true)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(true)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(true)
+        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true))
     }
 
     @Test
@@ -179,7 +182,7 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleStrengtFortrolig() }.returns(false)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(false)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(true)
+        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true))
     }
 
     @Test
@@ -195,7 +198,8 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleStrengtFortrolig() }.returns(true)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(false)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(false)
+        val access = tilgangService.harInnloggetSaksbehandlerTilgangTil("")
+        assertThat(access.access).isEqualTo(false)
     }
 
     @Test
@@ -211,7 +215,7 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleStrengtFortrolig() }.returns(false)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(true)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(true)
+        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true))
     }
 }
 
