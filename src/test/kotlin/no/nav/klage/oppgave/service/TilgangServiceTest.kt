@@ -260,4 +260,5 @@ fun getPerson(): Person = Person(
     sivilstand = null,
     vergemaalEllerFremtidsfullmakt = false,
     doed = null,
+    sikkerhetstiltak = null,
 )

@@ -103,6 +103,7 @@ class BehandlingMapper(
             strengtFortrolig = klagebehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
             vergemaalEllerFremtidsfullmakt = klagebehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = klagebehandling.sakenGjelder.getDead(),
+            sikkerhetstiltak = klagebehandling.sakenGjelder.sikkerhetstiltak(),
             kvalitetsvurderingReference = if (klagebehandling.feilregistrering == null && klagebehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = klagebehandling.kakaKvalitetsvurderingId!!,
@@ -175,6 +176,7 @@ class BehandlingMapper(
             strengtFortrolig = omgjoeringskravbehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
             vergemaalEllerFremtidsfullmakt = omgjoeringskravbehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = omgjoeringskravbehandling.sakenGjelder.getDead(),
+            sikkerhetstiltak = omgjoeringskravbehandling.sakenGjelder.sikkerhetstiltak(),
             kvalitetsvurderingReference = if (omgjoeringskravbehandling.feilregistrering == null && omgjoeringskravbehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = omgjoeringskravbehandling.kakaKvalitetsvurderingId!!,
@@ -294,6 +296,7 @@ class BehandlingMapper(
             strengtFortrolig = ankebehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
             vergemaalEllerFremtidsfullmakt = ankebehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = ankebehandling.sakenGjelder.getDead(),
+            sikkerhetstiltak = ankebehandling.sakenGjelder.sikkerhetstiltak(),
             kvalitetsvurderingReference = if (ankebehandling.feilregistrering == null && ankebehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = ankebehandling.kakaKvalitetsvurderingId!!,
@@ -366,6 +369,7 @@ class BehandlingMapper(
             strengtFortrolig = ankeITrygderettenbehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
             vergemaalEllerFremtidsfullmakt = ankeITrygderettenbehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = ankeITrygderettenbehandling.sakenGjelder.getDead(),
+            sikkerhetstiltak = ankeITrygderettenbehandling.sakenGjelder.sikkerhetstiltak(),
             kvalitetsvurderingReference = null,
             sattPaaVent = ankeITrygderettenbehandling.sattPaaVent,
             sendtTilTrygderetten = ankeITrygderettenbehandling.sendtTilTrygderetten,
@@ -438,6 +442,7 @@ class BehandlingMapper(
             strengtFortrolig = behandlingEtterTrygderettenOpphevet.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
             vergemaalEllerFremtidsfullmakt = behandlingEtterTrygderettenOpphevet.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
             dead = behandlingEtterTrygderettenOpphevet.sakenGjelder.getDead(),
+            sikkerhetstiltak = behandlingEtterTrygderettenOpphevet.sakenGjelder.sikkerhetstiltak(),
             kvalitetsvurderingReference = if (behandlingEtterTrygderettenOpphevet.feilregistrering == null && behandlingEtterTrygderettenOpphevet.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = behandlingEtterTrygderettenOpphevet.kakaKvalitetsvurderingId!!,
@@ -672,6 +677,22 @@ class BehandlingMapper(
             null
         } else {
             pdlFacade.getPersonInfo(partId.value).doed
+        }
+    }
+
+    private fun SakenGjelder.sikkerhetstiltak(): BehandlingDetaljerView.Sikkerhetstiltak? {
+        return if (erVirksomhet()) {
+            null
+        } else {
+            val sikkerhetstiltak = pdlFacade.getPersonInfo(partId.value).sikkerhetstiltak
+            if (sikkerhetstiltak != null && sikkerhetstiltak.gyldigFraOgMed <= LocalDate.now() && sikkerhetstiltak.gyldigTilOgMed >= LocalDate.now()) {
+                BehandlingDetaljerView.Sikkerhetstiltak(
+                    tiltakstype = BehandlingDetaljerView.Sikkerhetstiltak.Tiltakstype.valueOf(sikkerhetstiltak.tiltakstype.name),
+                    beskrivelse = sikkerhetstiltak.beskrivelse,
+                    gyldigFraOgMed = sikkerhetstiltak.gyldigFraOgMed,
+                    gyldigTilOgMed = sikkerhetstiltak.gyldigTilOgMed,
+                )
+            } else null
         }
     }
 
