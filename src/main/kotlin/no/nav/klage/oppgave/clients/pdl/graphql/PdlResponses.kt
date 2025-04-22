@@ -28,6 +28,7 @@ data class PdlPerson(
     val sivilstand: List<Sivilstand>,
     val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,
     val doedsfall: List<Doedsfall>,
+    val sikkerhetstiltak: List<Sikkerhetstiltak>
 ) {
     data class Adressebeskyttelse(val gradering: GraderingType) {
         enum class GraderingType { STRENGT_FORTROLIG_UTLAND, STRENGT_FORTROLIG, FORTROLIG, UGRADERT }
@@ -81,4 +82,19 @@ data class PdlPerson(
     data class Doedsfall(
         val doedsdato: LocalDate,
     )
+
+    data class Sikkerhetstiltak(
+        val tiltakstype: Tiltakstype,
+        val beskrivelse: String,
+        val gyldigFraOgMed: LocalDate,
+        val gyldigTilOgMed: LocalDate,
+    )
+
+    enum class Tiltakstype {
+        FYUS,
+        TFUS,
+        FTUS,
+        DIUS,
+        TOAN,
+    }
 }

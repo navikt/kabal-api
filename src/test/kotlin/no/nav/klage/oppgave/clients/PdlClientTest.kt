@@ -61,7 +61,8 @@ internal class PdlClientTest {
               "sivilstand": [],
               "vergemaalEllerFremtidsfullmakt": [],
               "doedsfall": [],
-              "fullmakt": []
+              "fullmakt": [],
+              "sikkerhetstiltak": []
             }
           }
         }

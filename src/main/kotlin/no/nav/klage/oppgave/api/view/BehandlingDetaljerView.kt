@@ -34,6 +34,7 @@ data class BehandlingDetaljerView(
     val strengtFortrolig: Boolean,
     val vergemaalEllerFremtidsfullmakt: Boolean,
     val dead: LocalDate?,
+    val sikkerhetstiltak: Sikkerhetstiltak?,
     val kvalitetsvurderingReference: KvalitetsvurderingReference?,
     val sattPaaVent: SattPaaVent? = null,
     val sendtTilTrygderetten: LocalDateTime? = null,
@@ -51,6 +52,21 @@ data class BehandlingDetaljerView(
     val tilbakekreving: Boolean,
     val timesPreviouslyExtended: Int,
 ) {
+    data class Sikkerhetstiltak(
+        val tiltakstype: Tiltakstype,
+        val beskrivelse: String,
+        val gyldigFraOgMed: LocalDate,
+        val gyldigTilOgMed: LocalDate,
+    ) {
+        enum class Tiltakstype {
+            FYUS,
+            TFUS,
+            FTUS,
+            DIUS,
+            TOAN,
+        }
+    }
+
     data class CombinedMedunderskriverAndROLView(
         val employee: SaksbehandlerView?,
         val flowState: FlowState,
@@ -95,6 +111,7 @@ data class BehandlingDetaljerView(
             FULLMAKT,
             RESERVERT_I_KRR,
             DELT_ANSVAR,
+
         }
     }
 

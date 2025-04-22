@@ -28,6 +28,12 @@ query($ident: ID!){
         },
         doedsfall {
             doedsdato
+        },
+        sikkerhetstiltak {
+            tiltakstype
+            beskrivelse
+            gyldigFraOgMed
+            gyldigTilOgMed
         }
     }
 }
