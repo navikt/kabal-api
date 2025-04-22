@@ -209,9 +209,20 @@ class ForlengetBehandlingstidDraftService(
                 systemContext = false,
             )
 
+            val technicalPartId = it.id ?: when(it.identifikator) {
+                behandling.sakenGjelder.partId.value ->
+                    behandling.sakenGjelder.id
+                behandling.klager.partId.value ->
+                    behandling.klager.id
+                behandling.prosessfullmektig?.partId?.value ->
+                    behandling.prosessfullmektig!!.id
+                else ->
+                    UUID.randomUUID()
+            }
+
             behandling.forlengetBehandlingstidDraft!!.receivers.add(
                 Brevmottaker(
-                    technicalPartId = it.id,
+                    technicalPartId = technicalPartId,
                     navn = it.navn,
                     identifikator = it.identifikator,
                     localPrint = markLocalPrint,
