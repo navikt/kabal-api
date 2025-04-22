@@ -228,7 +228,7 @@ class ForlengetBehandlingstidDraftService(
             val name = behandling.prosessfullmektig!!.partId?.value?.let {
                 partSearchService.searchPart(
                     identifikator = it,
-                    skipAccessControl = true
+                    systemUserContext = true
                 ).name
             } ?: behandling.prosessfullmektig?.navn
             name
@@ -291,7 +291,7 @@ class ForlengetBehandlingstidDraftService(
 
         val sakenGjelderName = partSearchService.searchPart(
             identifikator = behandling.sakenGjelder.partId.value,
-            skipAccessControl = true
+            systemUserContext = true
         ).name
 
         val forlengetBehandlingstidDraft = behandling.forlengetBehandlingstidDraft
@@ -304,7 +304,7 @@ class ForlengetBehandlingstidDraftService(
             klagerName = if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
                 partSearchService.searchPart(
                     identifikator = behandling.klager.partId.value,
-                    skipAccessControl = true
+                    systemUserContext = true
                 ).name
             } else {
                 sakenGjelderName

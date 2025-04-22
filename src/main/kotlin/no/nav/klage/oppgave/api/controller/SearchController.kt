@@ -54,7 +54,7 @@ class SearchController(
 
         return partSearchService.searchPartWithUtsendingskanal(
             identifikator = input.identifikator,
-            skipAccessControl = false,
+            systemUserContext = false,
             sakenGjelderId = input.sakenGjelderId,
             tema = Ytelse.of(input.ytelseId).toTema(),
             systemContext = false

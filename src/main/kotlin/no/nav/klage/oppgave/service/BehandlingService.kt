@@ -1429,7 +1429,7 @@ class BehandlingService(
         } else if (behandling.prosessfullmektig!!.partId != null) {
             val searchPartViewWithUtsendingskanal = partSearchService.searchPartWithUtsendingskanal(
                 identifikator = behandling.prosessfullmektig?.partId?.value!!,
-                skipAccessControl = true,
+                systemUserContext = true,
                 sakenGjelderId = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
                 systemContext = false,
@@ -1525,7 +1525,7 @@ class BehandlingService(
         val partView =
             partSearchService.searchPartWithUtsendingskanal(
                 identifikator = behandling.klager.partId.value,
-                skipAccessControl = true,
+                systemUserContext = true,
                 sakenGjelderId = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
                 systemContext = false,
