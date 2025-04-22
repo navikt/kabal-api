@@ -758,16 +758,7 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan bare sette avsender på inngående dokument")
         }
 
-        val technicalPartId = when(avsenderInput.identifikator) {
-            behandling.sakenGjelder.partId.value ->
-                behandling.sakenGjelder.id
-            behandling.klager.partId.value ->
-                behandling.klager.id
-            behandling.prosessfullmektig?.partId?.value ->
-                behandling.prosessfullmektig!!.id
-            else ->
-                UUID.randomUUID()
-        }
+        val technicalPartId = behandling.getTechnicalIdFromPart(identifikator = avsenderInput.identifikator)
 
         dokumentUnderArbeid.brevmottakere.clear()
         dokumentUnderArbeid.brevmottakere.add(
@@ -846,37 +837,30 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid.brevmottakere.clear()
 
-        mottakerInput.mottakerList.forEach {
+        mottakerInput.mottakerList.forEach { mottaker ->
             val (markLocalPrint, forceCentralPrint) = getPreferredHandling(
-                identifikator = it.identifikator,
-                handling = it.handling,
-                isAddressOverridden = it.overriddenAddress != null,
+                identifikator = mottaker.identifikator,
+                handling = mottaker.handling,
+                isAddressOverridden = mottaker.overriddenAddress != null,
                 sakenGjelderFnr = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
                 systemContext = systemContext,
             )
 
-            val technicalPartId = it.id ?: when(it.identifikator) {
-                behandling.sakenGjelder.partId.value ->
-                    behandling.sakenGjelder.id
-                behandling.klager.partId.value ->
-                    behandling.klager.id
-                behandling.prosessfullmektig?.partId?.value ->
-                    behandling.prosessfullmektig!!.id
-                else ->
-                    UUID.randomUUID()
-            }
+            val technicalPartId = mottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = mottaker.identifikator)
 
-            dokumentUnderArbeid.brevmottakere.add(
-                Brevmottaker(
-                    technicalPartId = technicalPartId,
-                    identifikator = it.identifikator,
-                    localPrint = markLocalPrint,
-                    forceCentralPrint = forceCentralPrint,
-                    address = getDokumentUnderArbeidAdresse(it.overriddenAddress),
-                    navn = it.navn,
+            if (dokumentUnderArbeid.brevmottakere.none { it.id == technicalPartId }) {
+                dokumentUnderArbeid.brevmottakere.add(
+                    Brevmottaker(
+                        technicalPartId = technicalPartId,
+                        identifikator = mottaker.identifikator,
+                        localPrint = markLocalPrint,
+                        forceCentralPrint = forceCentralPrint,
+                        address = getDokumentUnderArbeidAdresse(mottaker.overriddenAddress),
+                        navn = mottaker.navn,
+                    )
                 )
-            )
+            }
         }
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
