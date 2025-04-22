@@ -737,7 +737,7 @@ class DokumentUnderArbeidService(
         //Validate part
         partSearchService.searchPart(
             identifikator = avsenderInput.identifikator,
-            skipAccessControl = true
+            systemUserContext = true
         )
 
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
@@ -903,7 +903,7 @@ class DokumentUnderArbeidService(
             if (mottaker.identifikator != null) {
                 val part = partSearchService.searchPart(
                     identifikator = mottaker.identifikator,
-                    skipAccessControl = systemContext
+                    systemUserContext = systemContext
                 )
 
                 when (part.type) {
@@ -1370,7 +1370,7 @@ class DokumentUnderArbeidService(
             if (mottaker.identifikator != null) {
                 val part = partSearchService.searchPartWithUtsendingskanal(
                     identifikator = mottaker.identifikator,
-                    skipAccessControl = true,
+                    systemUserContext = true,
                     sakenGjelderId = behandling.sakenGjelder.partId.value,
                     tema = behandling.ytelse.toTema(),
                     systemContext = systemContext,
@@ -2137,13 +2137,13 @@ class DokumentUnderArbeidService(
             sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
             sakenGjelderName = partSearchService.searchPart(
                 identifikator = behandling.sakenGjelder.partId.value,
-                skipAccessControl = systemContext
+                systemUserContext = systemContext
             ).name,
             ytelse = behandling.ytelse,
             klagerIdentifikator = behandling.klager.partId.value,
             klagerName = partSearchService.searchPart(
                 identifikator = behandling.klager.partId.value,
-                skipAccessControl = systemContext
+                systemUserContext = systemContext
             ).name,
             avsenderEnhetId = avsenderEnhetId,
         )
@@ -2204,7 +2204,7 @@ class DokumentUnderArbeidService(
     ): DokumentUnderArbeidAsHoveddokument {
         val sakenGjelderName = partSearchService.searchPart(
             identifikator = behandling.sakenGjelder.partId.value,
-            skipAccessControl = true
+            systemUserContext = true
         ).name
 
         val bytes = kabalJsonToPdfService.getForlengetBehandlingstidPDF(
@@ -2215,7 +2215,7 @@ class DokumentUnderArbeidService(
             klagerName = if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
                 partSearchService.searchPart(
                     identifikator = behandling.klager.partId.value,
-                    skipAccessControl = true
+                    systemUserContext = true
                 ).name
             } else {
                 sakenGjelderName

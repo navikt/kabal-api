@@ -265,7 +265,7 @@ class AutomaticSvarbrevService(
         if (receiver.identifikator != null) {
             val part = partSearchService.searchPart(
                 identifikator = receiver.identifikator,
-                skipAccessControl = true
+                systemUserContext = true
             )
 
             when (part.type) {
@@ -302,13 +302,13 @@ class AutomaticSvarbrevService(
             sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
             sakenGjelderName = partSearchService.searchPart(
                 identifikator = behandling.sakenGjelder.partId.value,
-                skipAccessControl = true
+                systemUserContext = true
             ).name,
             ytelse = behandling.ytelse,
             klagerIdentifikator = behandling.klager.partId.value,
             klagerName = partSearchService.searchPart(
                 identifikator = behandling.klager.partId.value,
-                skipAccessControl = true,
+                systemUserContext = true,
             ).name,
             //Hardcode KA Oslo
             avsenderEnhetId = Enhet.E4291.navn,

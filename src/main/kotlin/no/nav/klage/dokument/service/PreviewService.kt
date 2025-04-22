@@ -35,7 +35,7 @@ class PreviewService(
 
         val sakenGjelderName = partSearchService.searchPart(
             identifikator = input.sakenGjelder,
-            skipAccessControl = true
+            systemUserContext = true
         ).name
 
         return kabalJsonToPdfService.getSvarbrevPDF(
@@ -48,7 +48,7 @@ class PreviewService(
             klagerName = if (input.klager != null) {
                 partSearchService.searchPart(
                     identifikator = input.klager,
-                    skipAccessControl = true
+                    systemUserContext = true
                 ).name
             } else {
                 sakenGjelderName
