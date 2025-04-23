@@ -849,7 +849,7 @@ class DokumentUnderArbeidService(
 
             val technicalPartId = mottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = mottaker.identifikator)
 
-            if (dokumentUnderArbeid.brevmottakere.none { it.id == technicalPartId }) {
+            if (dokumentUnderArbeid.brevmottakere.none { it.technicalPartId == technicalPartId }) {
                 dokumentUnderArbeid.brevmottakere.add(
                     Brevmottaker(
                         technicalPartId = technicalPartId,
