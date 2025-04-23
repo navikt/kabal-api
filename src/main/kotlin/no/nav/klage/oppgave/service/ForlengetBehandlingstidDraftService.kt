@@ -211,7 +211,7 @@ class ForlengetBehandlingstidDraftService(
 
             val technicalPartId = mottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = mottaker.identifikator)
 
-            if (behandling.forlengetBehandlingstidDraft!!.receivers.none { it.technicalPartId == technicalPartId }) {
+            if (behandling.forlengetBehandlingstidDraft!!.receivers.none { it.identifikator == mottaker.identifikator}) {
                 behandling.forlengetBehandlingstidDraft!!.receivers.add(
                     Brevmottaker(
                         technicalPartId = technicalPartId,
