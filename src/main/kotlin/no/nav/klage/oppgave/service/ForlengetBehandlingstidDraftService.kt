@@ -199,26 +199,30 @@ class ForlengetBehandlingstidDraftService(
 
         behandling.forlengetBehandlingstidDraft!!.receivers.clear()
 
-        input.mottakerList.forEach {
+        input.mottakerList.forEach { mottaker ->
             val (markLocalPrint, forceCentralPrint) = dokumentUnderArbeidService.getPreferredHandling(
-                identifikator = it.identifikator,
-                handling = it.handling,
-                isAddressOverridden = it.overriddenAddress != null,
+                identifikator = mottaker.identifikator,
+                handling = mottaker.handling,
+                isAddressOverridden = mottaker.overriddenAddress != null,
                 sakenGjelderFnr = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
                 systemContext = false,
             )
 
-            behandling.forlengetBehandlingstidDraft!!.receivers.add(
-                Brevmottaker(
-                    technicalPartId = it.id,
-                    navn = it.navn,
-                    identifikator = it.identifikator,
-                    localPrint = markLocalPrint,
-                    forceCentralPrint = forceCentralPrint,
-                    address = dokumentUnderArbeidService.getDokumentUnderArbeidAdresse(it.overriddenAddress),
+            val technicalPartId = mottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = mottaker.identifikator)
+
+            if (behandling.forlengetBehandlingstidDraft!!.receivers.none { it.identifikator == mottaker.identifikator}) {
+                behandling.forlengetBehandlingstidDraft!!.receivers.add(
+                    Brevmottaker(
+                        technicalPartId = technicalPartId,
+                        navn = mottaker.navn,
+                        identifikator = mottaker.identifikator,
+                        localPrint = markLocalPrint,
+                        forceCentralPrint = forceCentralPrint,
+                        address = dokumentUnderArbeidService.getDokumentUnderArbeidAdresse(mottaker.overriddenAddress),
+                    )
                 )
-            )
+            }
         }
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling)
     }

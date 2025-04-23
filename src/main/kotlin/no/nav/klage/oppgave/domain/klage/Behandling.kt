@@ -285,6 +285,22 @@ sealed class Behandling(
             it.varsletBehandlingstid?.varselType == VarsletBehandlingstid.VarselType.FORLENGET
         }
     }
+
+    fun getTechnicalIdFromPart(identifikator: String?): UUID {
+        return when (identifikator) {
+            sakenGjelder.partId.value ->
+                sakenGjelder.id
+
+            klager.partId.value ->
+                klager.id
+
+            prosessfullmektig?.partId?.value ->
+                prosessfullmektig!!.id
+
+            else ->
+                UUID.randomUUID()
+        }
+    }
 }
 
 enum class BehandlingRole {

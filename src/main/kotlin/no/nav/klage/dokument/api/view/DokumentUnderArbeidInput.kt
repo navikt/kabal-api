@@ -59,7 +59,7 @@ data class MottakerInput(
 )
 
 data class Mottaker(
-    val id: UUID,
+    val id: UUID?,
     val identifikator: String?,
     val handling: HandlingEnum,
     val overriddenAddress: AddressInput?,
