@@ -29,7 +29,7 @@ class CreateBehandlingFromMottak(
         )
     }
 
-    fun createBehandling(mottak: Mottak): Behandling {
+    fun createBehandling(mottak: Mottak, isBasedOnJournalpost: Boolean = false): Behandling {
         logger.debug(
             "Received mottak {} in CreateBehandlingFromMottak",
             mottak.id
@@ -43,7 +43,10 @@ class CreateBehandlingFromMottak(
                 ankebehandling
             }
             Type.OMGJOERINGSKRAV -> {
-                omgjoeringskravbehandlingService.createOmgjoeringskravbehandlingFromMottak(mottak)
+                omgjoeringskravbehandlingService.createOmgjoeringskravbehandlingFromMottak(
+                    mottak = mottak,
+                    isBasedOnJournalpost = isBasedOnJournalpost,
+                )
             }
 
             Type.ANKE_I_TRYGDERETTEN -> TODO()

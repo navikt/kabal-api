@@ -133,6 +133,21 @@ class KabinApiController(
         )
     }
 
+    @PostMapping("/createklage")
+    fun createKlage(
+        @RequestBody input: CreateKlageBasedOnKabinInput
+    ): CreatedBehandlingResponse {
+        logMethodDetails(
+            methodName = ::createKlage.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger
+        )
+
+        return kabinApiService.createKlage(
+            input = input
+        )
+    }
+
     @PostMapping("/createankefromcompleteinput")
     fun createAnkeFromCompleteInput(
         @RequestBody input: CreateAnkeBasedOnCompleteKabinInput
@@ -144,6 +159,21 @@ class KabinApiController(
         )
 
         return kabinApiService.createAnkeFromCompleteKabinInput(
+            input = input
+        )
+    }
+
+    @PostMapping("/create-omgjoeringskrav-based-on-journalpost")
+    fun createOmgjoeringskravBasedOnJournalpost(
+        @RequestBody input: CreateOmgjoeringskravBasedOnJournalpostInput
+    ): CreatedBehandlingResponse {
+        logMethodDetails(
+            methodName = ::createOmgjoeringskravBasedOnJournalpost.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger
+        )
+
+        return kabinApiService.createOmgjoeringskravBasedOnJournalpost(
             input = input
         )
     }
@@ -160,21 +190,6 @@ class KabinApiController(
 
         return mottakService.getUsedJournalpostIdList(
             sakenGjelder = input.fnr
-        )
-    }
-
-    @PostMapping("/createklage")
-    fun createKlage(
-        @RequestBody input: CreateKlageBasedOnKabinInput
-    ): CreatedBehandlingResponse {
-        logMethodDetails(
-            methodName = ::createKlage.name,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
-        )
-
-        return kabinApiService.createKlage(
-            input = input
         )
     }
 
