@@ -49,6 +49,7 @@ data class BehandlingDetaljerView(
     val previousSaksbehandler: SaksbehandlerView?,
     val varsletFrist: LocalDate?,
     val gosysOppgaveId: Long?,
+    val requiresGosysOppgave: Boolean,
     val tilbakekreving: Boolean,
     val timesPreviouslyExtended: Int,
 ) {

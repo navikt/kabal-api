@@ -443,7 +443,7 @@ class BehandlingService(
             }
         }
 
-        if (!behandling.fagsystem.modernized && behandling.gosysOppgaveId == null) {
+        if ((!behandling.fagsystem.modernized || behandling is OmgjoeringskravbehandlingBasedOnJournalpost) && behandling.gosysOppgaveId == null) {
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "gosysOppgave",
