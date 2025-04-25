@@ -167,10 +167,12 @@ class JournalpostController(
         return ResponseEntity.ok()
             .headers(HttpHeaders().apply {
                 contentType = fysiskDokument.contentType
-                fysiskDokument.contentType.subtypeSuffix
                 add(
                     HttpHeaders.CONTENT_DISPOSITION,
-                    "inline; filename=\"${fysiskDokument.title.removeSuffix(".pdf")}.pdf\""
+                    if (fysiskDokument.contentType == MediaType.APPLICATION_PDF)
+                        "inline; filename=\"${fysiskDokument.title.removeSuffix(".pdf")}.pdf\""
+                    else
+                        "attachment; filename=\"${fysiskDokument.title}\""
                 )
             })
             .contentLength(resourceThatWillBeDeleted.contentLength())
