@@ -160,7 +160,7 @@ class BehandlingAvslutningService(
                     )
                     logger.debug("Behandlingen som er avsluttet ble sendt tilbake til Infotrygd.")
                 }
-            } else {
+            } else if (behandling !is OmgjoeringskravbehandlingBasedOnJournalpost) {
                 //Notify modern fagsystem
                 val behandlingEvent = BehandlingEvent(
                     eventId = UUID.randomUUID(),
@@ -186,6 +186,8 @@ class BehandlingAvslutningService(
                         type = EventType.BEHANDLING_EVENT
                     )
                 )
+            } else {
+                logger.debug("Behandling er basert på journalpost, så vi trenger ikke å sende melding til fagsystem.")
             }
         }
 
