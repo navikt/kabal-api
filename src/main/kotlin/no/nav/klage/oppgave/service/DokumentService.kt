@@ -161,12 +161,12 @@ class DokumentService(
     }
 
     fun getFysiskDokument(journalpostId: String, dokumentInfoId: String): FysiskDokument {
-        val resource = safRestClient.getDokument(dokumentInfoId, journalpostId)
+        val (resource, contentType) = safRestClient.getDokument(dokumentInfoId, journalpostId)
 
         return FysiskDokument(
             title = getDocumentTitle(journalpostId = journalpostId, dokumentInfoId = dokumentInfoId),
             content = resource,
-            contentType = MediaType.APPLICATION_PDF, //for now
+            contentType = MediaType.valueOf(contentType)
         )
     }
 

@@ -166,7 +166,8 @@ class JournalpostController(
             getResourceThatWillBeDeleted(dokumentService.changeTitleInPDF(fysiskDokument.content, fysiskDokument.title))
         return ResponseEntity.ok()
             .headers(HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_PDF
+                contentType = fysiskDokument.contentType
+                fysiskDokument.contentType.subtypeSuffix
                 add(
                     HttpHeaders.CONTENT_DISPOSITION,
                     "inline; filename=\"${fysiskDokument.title.removeSuffix(".pdf")}.pdf\""
