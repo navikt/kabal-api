@@ -380,7 +380,12 @@ class DokumentMapper(
             logger.warn("Could not find arkivvariant for dokumentInfoId ${this.dokumentInfoId}. Returning PDF as default.")
             return DokumentReferanse.Filtype.PDF
         } else {
-            DokumentReferanse.Filtype.valueOf(arkivvariant.filtype)
+            if (arkivvariant.filtype != null) {
+                DokumentReferanse.Filtype.valueOf(arkivvariant.filtype)
+            } else {
+                logger.warn("Could not find filtype for arkivvariant for dokumentInfoId ${this.dokumentInfoId}. Returning PDF as default.")
+                return DokumentReferanse.Filtype.PDF
+            }
         }
     }
 
