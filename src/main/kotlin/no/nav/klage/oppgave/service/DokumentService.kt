@@ -14,9 +14,15 @@ import no.nav.klage.oppgave.clients.dokarkiv.UpdateDocumentTitleDokumentInput
 import no.nav.klage.oppgave.clients.dokarkiv.UpdateDocumentTitlesJournalpostInput
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.SafFacade
-import no.nav.klage.oppgave.clients.saf.graphql.*
+import no.nav.klage.oppgave.clients.saf.graphql.DokumentInfo
+import no.nav.klage.oppgave.clients.saf.graphql.DokumentoversiktBruker
+import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
+import no.nav.klage.oppgave.clients.saf.graphql.Variantformat
 import no.nav.klage.oppgave.clients.saf.rest.SafRestClient
-import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.domain.kafka.Employee
+import no.nav.klage.oppgave.domain.kafka.InternalEventType
+import no.nav.klage.oppgave.domain.kafka.InternalIdentityEvent
+import no.nav.klage.oppgave.domain.kafka.JournalfoertDocumentModified
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.DocumentToMerge
 import no.nav.klage.oppgave.domain.klage.MergedDocument
@@ -166,7 +172,7 @@ class DokumentService(
         return FysiskDokument(
             title = getDocumentTitle(journalpostId = journalpostId, dokumentInfoId = dokumentInfoId),
             content = resource,
-            contentType = MediaType.valueOf(contentType)
+            mediaType = MediaType.valueOf(contentType)
         )
     }
 
