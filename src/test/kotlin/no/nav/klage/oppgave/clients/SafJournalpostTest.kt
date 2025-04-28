@@ -111,6 +111,7 @@ internal class SafJournalpostTest {
                 {
                   "variantformat": "ARKIV",
                   "filnavn": "10062939619-A1-019960700",
+                  "filtype": "PDF",
                   "saksbehandlerHarTilgang": true,
                   "skjerming": null
                 }

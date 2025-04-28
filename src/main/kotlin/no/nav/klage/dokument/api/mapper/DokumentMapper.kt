@@ -358,6 +358,7 @@ class DokumentMapper(
             kanalnavn = journalpost.kanalnavn,
             utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
             originalJournalpostId = hoveddokument.originalJournalpostId,
+            filtype = hoveddokument.toArkivFiltype(),
             sortKey = getSortKey(journalpost = journalpost, dokumentInfoId = hoveddokument.dokumentInfoId),
             logiskeVedlegg = hoveddokument.logiskeVedlegg?.map {
                 no.nav.klage.oppgave.api.view.LogiskVedlegg(
@@ -370,6 +371,17 @@ class DokumentMapper(
         dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost, saksdokumenter))
 
         return dokumentReferanse
+    }
+
+    private fun DokumentInfo.toArkivFiltype(): DokumentReferanse.Filtype {
+        val arkivvariant = this.dokumentvarianter.find { it.variantformat == Variantformat.ARKIV }
+
+        return if (arkivvariant == null) {
+            logger.warn("Could not find arkivvariant for dokumentInfoId ${this.dokumentInfoId}. Returning PDF as default.")
+            return DokumentReferanse.Filtype.PDF
+        } else {
+            DokumentReferanse.Filtype.valueOf(arkivvariant.filtype)
+        }
     }
 
     private fun Journalpost.toTimeline(): List<DokumentReferanse.TimelineItem> {

@@ -120,6 +120,7 @@ internal class SafDokumentoversiktBrukerTest {
                         {
                           "variantformat": "ARKIV",
                           "filnavn": "Søknad om sykepenger 16.11.2020 - 10.12.2020",
+                          "filtype": "PDF",
                           "saksbehandlerHarTilgang": false,
                           "skjerming": null
                         }
