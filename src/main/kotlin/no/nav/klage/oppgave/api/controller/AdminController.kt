@@ -124,6 +124,14 @@ class AdminController(
         adminService.logProtected()
     }
 
+    @GetMapping("/loginaccessible")
+    fun logInaccessible() {
+        logger.debug("logInaccessible is called")
+        krevAdminTilgang()
+
+        adminService.logInaccessibleBehandlinger()
+    }
+
     @PostMapping("/setsortkeytodua")
     fun setSortKeyToDUA() {
         logger.debug("setSortKeyToDUA is called")
