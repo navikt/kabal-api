@@ -365,21 +365,21 @@ class AdminService(
             "Checking for inaccessible behandlinger. Number of unfinished behandlinger: {}",
             unfinishedBehandlinger.size
         )
-        val strengtFortroligBehandlinger: Set<String> = mutableSetOf()
-        val fortroligBehandlinger: Set<String> = mutableSetOf()
-        val egenAnsattBehandlinger: Set<String> = mutableSetOf()
+        val strengtFortroligBehandlinger = mutableSetOf<String>()
+        val fortroligBehandlinger = mutableSetOf<String>()
+        val egenAnsattBehandlinger = mutableSetOf<String>()
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
                     val person = pdlFacade.getPersonInfo(behandling.sakenGjelder.partId.value)
                     if (person.harBeskyttelsesbehovStrengtFortrolig()) {
-                        strengtFortroligBehandlinger.plus(behandling.id.toString())
+                        strengtFortroligBehandlinger.add(behandling.id.toString())
                     }
 
                     if (person.harBeskyttelsesbehovFortrolig()) {
                         behandling.tildeling?.saksbehandlerident?.let {
                             if (!saksbehandlerService.hasFortroligRole(ident = it, useCache = true)) {
-                                fortroligBehandlinger.plus(behandling.id.toString())
+                                fortroligBehandlinger.add(behandling.id.toString())
                             }
                         }
                     }
@@ -387,7 +387,7 @@ class AdminService(
                     if (egenAnsattService.erEgenAnsatt(person.foedselsnr)) {
                         behandling.tildeling?.saksbehandlerident?.let {
                             if (!saksbehandlerService.hasEgenAnsattRole(ident = it, useCache = true)) {
-                                egenAnsattBehandlinger.plus(behandling.id.toString())
+                                egenAnsattBehandlinger.add(behandling.id.toString())
                             }
                         }
                     }
