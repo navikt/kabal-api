@@ -73,14 +73,32 @@ class SaksbehandlerService(
 
     fun isKROL(ident: String): Boolean = getRoleIds(ident).contains(kabalKROLRoleId)
 
-    fun isKabalSvarbrevinnstillinger(ident: String): Boolean = getRoleIds(ident).contains(kabalSvarbrevinnstillingerRoleId)
+    fun isKabalSvarbrevinnstillinger(ident: String): Boolean =
+        getRoleIds(ident).contains(kabalSvarbrevinnstillingerRoleId)
 
-    fun hasFortroligRole(ident: String): Boolean = getRoleIds(ident).contains(fortroligRoleId)
+    fun hasFortroligRole(ident: String, useCache: Boolean = false): Boolean {
+        return if (useCache) {
+            getNavIdentsForRoleId(fortroligRoleId).contains(ident)
+        } else {
+            getRoleIds(ident).contains(fortroligRoleId)
+        }
+    }
 
-    fun hasStrengtFortroligRole(ident: String): Boolean =
-        getRoleIds(ident).contains(strengtFortroligRoleId)
+    fun hasStrengtFortroligRole(ident: String, useCache: Boolean = false): Boolean {
+        return if (useCache) {
+            getNavIdentsForRoleId(strengtFortroligRoleId).contains(ident)
+        } else {
+            getRoleIds(ident).contains(strengtFortroligRoleId)
+        }
+    }
 
-    fun hasEgenAnsattRole(ident: String): Boolean = getRoleIds(ident).contains(egenAnsattRoleId)
+    fun hasEgenAnsattRole(ident: String, useCache: Boolean = false): Boolean {
+        return if (useCache) {
+            getNavIdentsForRoleId(egenAnsattRoleId).contains(ident)
+        } else {
+            getRoleIds(ident).contains(egenAnsattRoleId)
+        }
+    }
 
     fun hasKabalOppgavestyringAlleEnheterRole(ident: String): Boolean =
         getRoleIds(ident).contains(kabalOppgavestyringAlleEnheterRoleId)
@@ -92,6 +110,13 @@ class SaksbehandlerService(
         azureGateway.getRoleIds(ident)
     } catch (e: Exception) {
         logger.warn("Failed to retrieve roller for navident $ident, using emptylist instead")
+        emptyList()
+    }
+
+    private fun getNavIdentsForRoleId(roleId: String): List<String> = try {
+        azureGateway.getGroupMembersNavIdents(roleId)
+    } catch (e: Exception) {
+        logger.warn("Failed to retrieve navidents for role $roleId, using emptylist instead")
         emptyList()
     }
 
