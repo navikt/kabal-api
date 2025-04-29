@@ -25,6 +25,7 @@ class ExternalMottakFacade(
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val automaticSvarbrevEventRepository: AutomaticSvarbrevEventRepository,
     private val taskListMerkantilService: TaskListMerkantilService,
+    private val svarbrevSettingsService: SvarbrevSettingsService,
 ) {
 
     companion object {
@@ -73,18 +74,29 @@ class ExternalMottakFacade(
             return
         }
 
-        automaticSvarbrevEventRepository.save(
-            AutomaticSvarbrevEvent(
-                status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.NOT_HANDLED,
-                created = LocalDateTime.now(),
-                modified = LocalDateTime.now(),
-                behandlingId = behandlingId,
-                dokumentUnderArbeidId = null,
-                receiversAreSet = false,
-                documentIsMarkedAsFinished = false,
-                varsletFristIsSetInBehandling = false
-            )
+        val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId)
+
+        val svarbrevSettingsForYtelseAndType = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(
+            ytelse = behandling.ytelse,
+            type = behandling.type,
         )
+
+        val shouldSendSvarbrev = svarbrevSettingsForYtelseAndType?.shouldSend ?: false
+
+        if (shouldSendSvarbrev) {
+            automaticSvarbrevEventRepository.save(
+                AutomaticSvarbrevEvent(
+                    status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.NOT_HANDLED,
+                    created = LocalDateTime.now(),
+                    modified = LocalDateTime.now(),
+                    behandlingId = behandlingId,
+                    dokumentUnderArbeidId = null,
+                    receiversAreSet = false,
+                    documentIsMarkedAsFinished = false,
+                    varsletFristIsSetInBehandling = false
+                )
+            )
+        }
     }
 
     private fun tryToSetSaksbehandler(
