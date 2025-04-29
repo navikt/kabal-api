@@ -138,6 +138,7 @@ class MicrosoftGraphClient(
                 uriBuilder
                     .path("/groups/{groupid}/members")
                     .queryParam("\$select", groupMemberSelect)
+                    .queryParam("\$top", 5000)
                     .build(groupid)
             }
             .header("Authorization", "Bearer ${tokenUtil.getAppAccessTokenWithGraphScope()}")
