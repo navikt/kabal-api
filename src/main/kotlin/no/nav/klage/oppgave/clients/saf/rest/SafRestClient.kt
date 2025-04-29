@@ -37,10 +37,12 @@ class SafRestClient(
         dokumentInfoId: String,
         journalpostId: String,
         variantFormat: String = "ARKIV"
-    ): Resource {
+    ): Pair<Resource, String> {
         return try {
+            var contentTypeHeader: String? = null
+            val tempFile = Files.createTempFile(null, null)
             runWithTimingAndLogging {
-                val dataBufferFlux = safWebClient.get()
+                safWebClient.get()
                     .uri(
                         "/rest/hentdokument/{journalpostId}/{dokumentInfoId}/{variantFormat}",
                         journalpostId,
@@ -55,12 +57,14 @@ class SafRestClient(
                     .onStatus(HttpStatusCode::isError) { response ->
                         logErrorResponse(response, ::getDokument.name, secureLogger)
                     }
-                    .bodyToFlux(DataBuffer::class.java)
+                    .toEntityFlux(DataBuffer::class.java)
+                    .flatMap { entity ->
+                        contentTypeHeader = entity.headers["Content-Type"]?.firstOrNull()
+                        DataBufferUtils.write(entity.body!!, tempFile)
+                    }
+                    .block()
 
-                val tempFile = Files.createTempFile(null, null)
-
-                DataBufferUtils.write(dataBufferFlux, tempFile).block()
-                FileSystemResource(tempFile)
+                FileSystemResource(tempFile) to contentTypeHeader!!
             }
         } catch (badRequest: WebClientResponseException.BadRequest) {
             logger.warn("Got a 400 fetching dokument with journalpostId $journalpostId, dokumentInfoId $dokumentInfoId and variantFormat $variantFormat")

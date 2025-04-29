@@ -13,6 +13,7 @@ import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
+import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
@@ -85,6 +86,7 @@ class AdminService(
     private val pdlFacade: PdlFacade,
     private val minsideMicrofrontendService: MinsideMicrofrontendService,
     private val kakaApiGateway: KakaApiGateway,
+    private val egenAnsattService: EgenAnsattService,
 ) {
 
     companion object {
@@ -354,6 +356,57 @@ class AdminService(
                 }
             }
         }
+    }
+
+    @Transactional
+    fun logInaccessibleBehandlinger() {
+        val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        secureLogger.debug(
+            "Checking for inaccessible behandlinger. Number of unfinished behandlinger: {}",
+            unfinishedBehandlinger.size
+        )
+        val strengtFortroligBehandlinger = mutableSetOf<String>()
+        val fortroligBehandlinger = mutableSetOf<String>()
+        val egenAnsattBehandlinger = mutableSetOf<String>()
+        unfinishedBehandlinger.forEach { behandling ->
+            if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
+                try {
+                    val person = pdlFacade.getPersonInfo(behandling.sakenGjelder.partId.value)
+                    if (person.harBeskyttelsesbehovStrengtFortrolig()) {
+                        strengtFortroligBehandlinger.add(behandling.id.toString())
+                    }
+
+                    if (person.harBeskyttelsesbehovFortrolig()) {
+                        behandling.tildeling?.saksbehandlerident?.let {
+                            if (!saksbehandlerService.hasFortroligRole(ident = it, useCache = true)) {
+                                fortroligBehandlinger.add(behandling.id.toString())
+                            }
+                        }
+                    }
+
+                    if (egenAnsattService.erEgenAnsatt(person.foedselsnr)) {
+                        behandling.tildeling?.saksbehandlerident?.let {
+                            if (!saksbehandlerService.hasEgenAnsattRole(ident = it, useCache = true)) {
+                                egenAnsattBehandlinger.add(behandling.id.toString())
+                            }
+                        }
+                    }
+
+
+                } catch (e: Exception) {
+                    secureLogger.debug("Couldn't check person", e)
+                }
+            }
+        }
+
+        secureLogger.debug(
+            "Finished checking for inaccessible behandlinger. Strengt fortrolige behandlinger: {} \n" +
+                    "Fortrolige behandlinger der saksbehandler mangler tilgang: {} \n" +
+                    "Egen ansatt-behandlinger der saksbehandler mangler tilgang: {}",
+            strengtFortroligBehandlinger,
+            fortroligBehandlinger,
+            egenAnsattBehandlinger
+        )
     }
 
 
@@ -645,127 +698,6 @@ class AdminService(
 
         logger.debug("setIdOnParterWithBehandlinger is done. Processed $behandlingerSize behandlinger")
     }
-/*
-    @Transactional
-    fun setIdOnParter() {
-        logger.debug("setIdOnParter is called")
-        val behandlinger = behandlingRepository.findAll()
-        val behandlingerSize = behandlinger.size
-        logger.debug("Found $behandlingerSize behandlinger to set id on parter")
-        var counter = 0
-        var start = System.currentTimeMillis()
-        val behandlingerToSave: MutableList<Behandling> = mutableListOf()
-        val duaToSave: MutableList<DokumentUnderArbeid> = mutableListOf()
-        behandlinger.forEach { behandling ->
-            try {
-                val chunk = 100
-                if (counter > 0 && counter % chunk == 0) {
-                    behandlingRepository.saveAllAndFlush(behandlingerToSave)
-                    dokumentUnderArbeidRepository.saveAllAndFlush(duaToSave)
-
-                    behandlingerToSave.clear()
-                    duaToSave.clear()
-
-                    logger.debug(
-                        "{} more behandlinger processed. Currently at {} of {}. It took {} millis",
-                        chunk,
-                        counter,
-                        behandlingerSize,
-                        (System.currentTimeMillis() - start)
-                    )
-                    start = System.currentTimeMillis()
-                }
-
-                //Id for sakenGjelder is already set from Flyway-script.
-
-                //then for klager. Set to same as sakenGjelder if klager is same person, (else keep what Flyway-script set)
-                if (behandling.klager.partId.value == behandling.sakenGjelder.partId.value) {
-                    behandling.klager.id = behandling.sakenGjelder.id
-                }
-
-                if (behandling.prosessfullmektig?.partId?.value == behandling.klager.partId.value) {
-                    behandling.prosessfullmektig!!.id = behandling.klager.id
-                }
-
-                //these ids should then be set for brevmottakere also. Both from DUA-relation and from "forlenget behandlingstid"-relation
-                if (behandling is BehandlingWithVarsletBehandlingstid) {
-                    if (behandling.forlengetBehandlingstidDraft != null) {
-                        val getReceiversStart = System.currentTimeMillis()
-                        val receivers = behandling.forlengetBehandlingstidDraft!!.receivers
-
-                        receivers.forEach { receiver ->
-                            when (receiver.identifikator) {
-                                behandling.sakenGjelder.partId.value -> {
-                                    receiver.technicalPartId = behandling.sakenGjelder.id
-                                }
-
-                                behandling.klager.partId.value -> {
-                                    receiver.technicalPartId = behandling.klager.id
-                                }
-
-                                behandling.prosessfullmektig?.partId?.value -> {
-                                    receiver.technicalPartId = behandling.prosessfullmektig!!.id
-                                }
-                            }
-                        }
-                        logger.debug(
-                            "Handling forlengetBehandlingstidDraft receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
-                        )
-                    }
-                }
-
-                val startGetDUA = System.currentTimeMillis()
-                val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
-                logger.debug(
-                    "Getting DUA (with eager brevmottakere) for behandling (${behandling.id}) took ${System.currentTimeMillis() - startGetDUA} millis. Found ${duaList.size} DUAs"
-                )
-                duaList.forEach { dokumentUnderArbeid ->
-                    if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
-                        val getReceiversStart = System.currentTimeMillis()
-                        val receivers = dokumentUnderArbeid.brevmottakere
-
-                        if (receivers.isNotEmpty()) {
-                            receivers.forEach { receiver ->
-                                when (receiver.identifikator) {
-                                    behandling.sakenGjelder.partId.value -> {
-                                        receiver.technicalPartId = behandling.sakenGjelder.id
-                                    }
-
-                                    behandling.klager.partId.value -> {
-                                        receiver.technicalPartId = behandling.klager.id
-                                    }
-
-                                    behandling.prosessfullmektig?.partId?.value -> {
-                                        receiver.technicalPartId = behandling.prosessfullmektig!!.id
-                                    }
-                                }
-                            }
-                            duaToSave += dokumentUnderArbeid
-                            logger.debug(
-                                "Handling dokumentUnderArbeid receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
-                            )
-                        }
-                    }
-                }
-
-                behandlingerToSave += behandling
-                counter++
-            } catch (e: Exception) {
-                logger.error("Couldn't set id to part for behandling (${behandling.id})", e)
-            }
-        }
-        //Save the rest.
-        if (behandlingerToSave.isNotEmpty()) {
-            behandlingRepository.saveAllAndFlush(behandlingerToSave)
-        }
-        if (duaToSave.isNotEmpty()) {
-            dokumentUnderArbeidRepository.saveAllAndFlush(duaToSave)
-        }
-
-        logger.debug("setIdOnParter is done. Processed $counter behandlinger")
-    }
- */
-
 }
 
 

@@ -41,8 +41,13 @@ data class DokumentReferanse(
     val kanalnavn: String,
     val utsendingsinfo: Utsendingsinfo?,
     val originalJournalpostId: String?,
+    val filtype: Filtype,
     val sortKey: String,
 ) {
+
+    enum class Filtype {
+        PDF, JPEG, PNG, TIFF, XLSX, JSON, XML, AXML, DXML, RTF
+    }
 
     enum class Journalstatus {
         //Journalposten er mottatt, men ikke journalført. "Mottatt" er et annet ord for "arkivert" eller "midlertidig journalført"

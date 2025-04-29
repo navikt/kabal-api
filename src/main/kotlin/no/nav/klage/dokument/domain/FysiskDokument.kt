@@ -9,5 +9,5 @@ import org.springframework.http.MediaType
 data class FysiskDokument(
     val title: String,
     val content: Resource,
-    val contentType: MediaType,
+    val mediaType: MediaType,
 )
