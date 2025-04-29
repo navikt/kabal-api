@@ -13,6 +13,7 @@ import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getResourceThatWillBeDeleted
 import no.nav.klage.oppgave.util.logMethodDetails
+import no.nav.klage.oppgave.util.mediaTypeToFileExtension
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
@@ -158,17 +159,26 @@ class DokumentUnderArbeidController(
         @PathVariable("dokumentId") dokumentId: UUID,
     ): Any {
         logger.debug("Kall mottatt på getPdf for {}", dokumentId)
-        val (title, resourceOrUrl) = dokumentUnderArbeidService.getFysiskDokumentAsResourceOrUrl(
+        val (title, resourceOrUrl, mediaType) = dokumentUnderArbeidService.getFysiskDokumentAsResourceOrUrl(
             behandlingId = behandlingId,
             dokumentId = dokumentId,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
 
         return if (resourceOrUrl is Resource) {
+            val fileExtension = mediaTypeToFileExtension(mediaType ?: MediaType.APPLICATION_PDF)
+            val filename = title.removeSuffix(fileExtension) + fileExtension
+
             ResponseEntity.ok()
                 .headers(HttpHeaders().apply {
-                    contentType = MediaType.APPLICATION_PDF
-                    add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"${title.removeSuffix(".pdf")}.pdf\"")
+                    contentType = mediaType
+                    add(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        if (mediaType == MediaType.APPLICATION_PDF)
+                            "inline; filename=\"$filename\""
+                        else
+                            "attachment; filename=\"$filename\""
+                    )
                 })
                 .contentLength(resourceOrUrl.contentLength())
                 .body(getResourceThatWillBeDeleted(resourceOrUrl))

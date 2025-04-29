@@ -11,6 +11,7 @@ import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getResourceThatWillBeDeleted
 import no.nav.klage.oppgave.util.logMethodDetails
+import no.nav.klage.oppgave.util.mediaTypeToFileExtension
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
@@ -162,14 +163,20 @@ class JournalpostController(
             dokumentInfoId = dokumentInfoId
         )
 
+        val fileExtension = mediaTypeToFileExtension(fysiskDokument.mediaType)
+        val filename = fysiskDokument.title.removeSuffix(fileExtension) + fileExtension
+
         val resourceThatWillBeDeleted =
             getResourceThatWillBeDeleted(dokumentService.changeTitleInPDF(fysiskDokument.content, fysiskDokument.title))
         return ResponseEntity.ok()
             .headers(HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_PDF
+                contentType = fysiskDokument.mediaType
                 add(
                     HttpHeaders.CONTENT_DISPOSITION,
-                    "inline; filename=\"${fysiskDokument.title.removeSuffix(".pdf")}.pdf\""
+                    if (fysiskDokument.mediaType == MediaType.APPLICATION_PDF)
+                        "inline; filename=\"$filename\""
+                    else
+                        "attachment; filename=\"$filename\""
                 )
             })
             .contentLength(resourceThatWillBeDeleted.contentLength())

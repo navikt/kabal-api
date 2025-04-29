@@ -1524,13 +1524,13 @@ class DokumentUnderArbeidService(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         innloggetIdent: String
-    ): Pair<String, Any> {
+    ): Triple<String, Any, MediaType?> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
         behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
 
-        val (title, resourceOrLink) = if (dokumentUnderArbeid.erFerdigstilt()) {
+        val (title, resourceOrLink, mediaType) = if (dokumentUnderArbeid.erFerdigstilt()) {
             if (dokumentUnderArbeid.dokarkivReferences.isEmpty()) {
                 throw RuntimeException("Dokument is finalized but has no dokarkiv references")
             }
@@ -1540,26 +1540,43 @@ class DokumentUnderArbeidService(
                 journalpostId = dokarkivReference.journalpostId,
                 dokumentInfoId = dokarkivReference.dokumentInfoId!!,
             )
-            fysiskDokument.title to fysiskDokument.content
+            Triple(
+                fysiskDokument.title,
+                fysiskDokument.content,
+                fysiskDokument.mediaType
+            )
         } else {
             when (dokumentUnderArbeid) {
                 is OpplastetDokumentUnderArbeidAsHoveddokument -> {
-                    dokumentUnderArbeid.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!)
+                    Triple(
+                        dokumentUnderArbeid.name,
+                        mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!),
+                        null
+                    )
                 }
 
                 is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                    dokumentUnderArbeid.name to mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!)
+                    Triple(
+                        dokumentUnderArbeid.name,
+                        mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!),
+                        null
+                    )
                 }
 
                 is DokumentUnderArbeidAsSmartdokument -> {
                     if (dokumentUnderArbeid.isPDFGenerationNeeded()) {
-                        dokumentUnderArbeid.name to ByteArrayResource(
-                            mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(
-                                dokumentUnderArbeid
-                            ).bytes
+                        Triple(
+                            dokumentUnderArbeid.name,
+                            ByteArrayResource(
+                                mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(
+                                    dokumentUnderArbeid
+                                ).bytes),
+                            MediaType.APPLICATION_PDF
                         )
-                    } else dokumentUnderArbeid.name to mellomlagerService.getUploadedDocumentAsSignedURL(
-                        dokumentUnderArbeid.mellomlagerId!!
+                    } else Triple(
+                        dokumentUnderArbeid.name,
+                        mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!),
+                        null
                     )
                 }
 
@@ -1568,7 +1585,11 @@ class DokumentUnderArbeidService(
                         journalpostId = dokumentUnderArbeid.journalpostId,
                         dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
                     )
-                    fysiskDokument.title to fysiskDokument.content
+                    Triple(
+                        fysiskDokument.title,
+                        fysiskDokument.content,
+                        fysiskDokument.mediaType
+                    )
                 }
 
                 else -> {
@@ -1577,7 +1598,11 @@ class DokumentUnderArbeidService(
             }
         }
 
-        return title to resourceOrLink
+        return Triple(
+            title,
+            resourceOrLink,
+            mediaType
+        )
     }
 
     fun slettDokument(
