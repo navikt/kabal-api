@@ -91,6 +91,9 @@ class AdminService(
     private val slackClient: SlackClient,
 ) {
 
+    @Value("\${KLAGE_BACKEND_GROUP_ID}")
+    lateinit var klageBackendGroupId: String
+
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -409,7 +412,7 @@ class AdminService(
                     "Fortrolige behandlinger der saksbehandler mangler tilgang: $fortroligBehandlinger \n" +
                     "Egen ansatt-behandlinger der saksbehandler mangler tilgang: $egenAnsattBehandlinger"
 
-        slackClient.postMessage("<!subteam^S0384EXKSUS>: \n$resultMessage")
+        slackClient.postMessage("<!subteam^$klageBackendGroupId>: \n$resultMessage")
         secureLogger.debug(resultMessage)
     }
 
