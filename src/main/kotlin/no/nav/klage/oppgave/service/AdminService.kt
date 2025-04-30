@@ -404,7 +404,7 @@ class AdminService(
         }
 
         val resultMessage = String.format(
-            "Finished checking for inaccessible behandlinger. \n" +
+            "Fullført søk etter utilgjengelige behandlinger. \n" +
                     "Strengt fortrolige behandlinger: {} \n" +
                     "Fortrolige behandlinger der saksbehandler mangler tilgang: {} \n" +
                     "Egen ansatt-behandlinger der saksbehandler mangler tilgang: {}",
@@ -413,7 +413,7 @@ class AdminService(
             egenAnsattBehandlinger
         )
 
-        slackClient.postMessage("@klage-backend: \n$resultMessage")
+        slackClient.postMessage("<@S0384EXKSUS>: \n$resultMessage")
         secureLogger.debug(resultMessage)
     }
 
