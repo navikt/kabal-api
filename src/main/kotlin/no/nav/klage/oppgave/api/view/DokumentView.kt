@@ -123,6 +123,7 @@ data class DokumentReferanse(
         val originalJournalpostId: String?,
         val sortKey: String,
         val logiskeVedlegg: List<LogiskVedlegg>?,
+        val filtype: Filtype,
     )
 
     enum class Journalposttype {
