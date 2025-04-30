@@ -477,7 +477,8 @@ class DokumentMapper(
                             tittel = it.tittel,
                             logiskVedleggId = it.logiskVedleggId
                         )
-                    }
+                    },
+                    filtype = vedlegg.toArkivFiltype(),
                 )
             } ?: throw RuntimeException("could not create VedleggReferanser from dokumenter")
         } else {
