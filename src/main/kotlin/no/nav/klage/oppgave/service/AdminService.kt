@@ -403,15 +403,11 @@ class AdminService(
             }
         }
 
-        val resultMessage = String.format(
+        val resultMessage =
             "Fullført søk etter utilgjengelige behandlinger. \n" +
-                    "Strengt fortrolige behandlinger: {} \n" +
-                    "Fortrolige behandlinger der saksbehandler mangler tilgang: {} \n" +
-                    "Egen ansatt-behandlinger der saksbehandler mangler tilgang: {}",
-            strengtFortroligBehandlinger,
-            fortroligBehandlinger,
-            egenAnsattBehandlinger
-        )
+                    "Strengt fortrolige behandlinger: $strengtFortroligBehandlinger \n" +
+                    "Fortrolige behandlinger der saksbehandler mangler tilgang: $fortroligBehandlinger \n" +
+                    "Egen ansatt-behandlinger der saksbehandler mangler tilgang: $egenAnsattBehandlinger"
 
         slackClient.postMessage("<!subteam^S0384EXKSUS>: \n$resultMessage")
         secureLogger.debug(resultMessage)
