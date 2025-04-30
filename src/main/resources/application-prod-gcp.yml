@@ -57,6 +57,7 @@ GOSYS_OPPGAVE_SCOPE: prod-fss.oppgavehandtering.oppgave
 FSS_CLUSTER: prod-fss
 
 SETTINGS_CLEANUP_CRON: 0 15 16 * * WED
+FIND_INACCESSIBLE_BEHANDLINGER_CRON: 0 30 10 * * WED
 
 spring:
   datasource:

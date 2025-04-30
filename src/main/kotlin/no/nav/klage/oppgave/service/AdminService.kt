@@ -46,6 +46,7 @@ import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.util.*
+import no.nav.slackposter.SlackClient
 import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.CacheEvict
@@ -87,6 +88,7 @@ class AdminService(
     private val minsideMicrofrontendService: MinsideMicrofrontendService,
     private val kakaApiGateway: KakaApiGateway,
     private val egenAnsattService: EgenAnsattService,
+    private val slackClient: SlackClient,
 ) {
 
     companion object {
@@ -359,6 +361,8 @@ class AdminService(
     }
 
     @Transactional
+    @Scheduled(cron = "\${FIND_INACCESSIBLE_BEHANDLINGER_CRON}", zone = "Europe/Oslo")
+    @SchedulerLock(name = "findInaccessibleBehandlinger")
     fun logInaccessibleBehandlinger() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         secureLogger.debug(
@@ -399,14 +403,18 @@ class AdminService(
             }
         }
 
-        secureLogger.debug(
-            "Finished checking for inaccessible behandlinger. Strengt fortrolige behandlinger: {} \n" +
+        val resultMessage = String.format(
+            "Finished checking for inaccessible behandlinger. \n" +
+                    "Strengt fortrolige behandlinger: {} \n" +
                     "Fortrolige behandlinger der saksbehandler mangler tilgang: {} \n" +
                     "Egen ansatt-behandlinger der saksbehandler mangler tilgang: {}",
             strengtFortroligBehandlinger,
             fortroligBehandlinger,
             egenAnsattBehandlinger
         )
+
+        slackClient.postMessage("@klage-backend: \n$resultMessage")
+        secureLogger.debug(resultMessage)
     }
 
 
