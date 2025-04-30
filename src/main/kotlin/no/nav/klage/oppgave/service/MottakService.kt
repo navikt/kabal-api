@@ -307,7 +307,7 @@ class MottakService(
         secureLogger.debug("Har lagret følgende mottak basert på en CreateOmgjoeringskravBasedOnJournalpostInput: {}", mottak)
         logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
 
-        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(mottak = mottak, isBasedOnJournalpost = true)
 
         updateMetrics(
             kilde = mottak.fagsystem.name,
