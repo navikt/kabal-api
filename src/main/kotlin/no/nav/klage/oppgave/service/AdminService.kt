@@ -413,8 +413,7 @@ class AdminService(
             egenAnsattBehandlinger
         )
 
-        slackClient.postMessage("<@S0384EXKSUS>: \n$resultMessage")
-        slackClient.postMessage("Hei hei <!subteam^S0384EXKSUS>, dette er en annen test")
+        slackClient.postMessage("<!subteam^S0384EXKSUS>: \n$resultMessage")
         secureLogger.debug(resultMessage)
     }
 
