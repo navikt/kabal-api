@@ -132,8 +132,8 @@ class DokumentMapper(
             journalfoertDokumentReference = DokumentView.JournalfoertDokumentReference(
                 journalpostId = unproxiedDUA.journalpostId,
                 dokumentInfoId = unproxiedDUA.dokumentInfoId,
-                harTilgangTilArkivvariant = harTilgangTilArkivvariant(dokument),
-                hasAccess = harTilgangTilArkivvariant(dokument),
+                harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(dokument),
+                hasAccess = harTilgangTilArkivEllerSladdetVariant(dokument),
                 datoOpprettet = unproxiedDUA.opprettet,
                 sortKey = unproxiedDUA.sortKey!!
             )
@@ -311,8 +311,8 @@ class DokumentMapper(
             temaId = Tema.fromNavn(journalpost.tema?.name).id,
             dokumentInfoId = hoveddokument.dokumentInfoId,
             journalpostId = journalpost.journalpostId,
-            harTilgangTilArkivvariant = harTilgangTilArkivvariant(hoveddokument),
-            hasAccess = harTilgangTilArkivvariant(hoveddokument),
+            harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(hoveddokument),
+            hasAccess = harTilgangTilArkivEllerSladdetVariant(hoveddokument),
             valgt = saksdokumenter.containsDokument(
                 journalpost.journalpostId,
                 hoveddokument.dokumentInfoId
@@ -464,8 +464,8 @@ class DokumentMapper(
                 DokumentReferanse.VedleggReferanse(
                     tittel = vedlegg.tittel,
                     dokumentInfoId = vedlegg.dokumentInfoId,
-                    harTilgangTilArkivvariant = harTilgangTilArkivvariant(vedlegg),
-                    hasAccess = harTilgangTilArkivvariant(vedlegg),
+                    harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(vedlegg),
+                    hasAccess = harTilgangTilArkivEllerSladdetVariant(vedlegg),
                     valgt = saksdokumenter.containsDokument(
                         journalpost.journalpostId,
                         vedlegg.dokumentInfoId
@@ -485,9 +485,10 @@ class DokumentMapper(
         }
     }
 
-    fun harTilgangTilArkivvariant(dokumentInfo: DokumentInfo): Boolean =
+    fun harTilgangTilArkivEllerSladdetVariant(dokumentInfo: DokumentInfo): Boolean =
         dokumentInfo.dokumentvarianter.any { dv ->
-            dv.variantformat == Variantformat.ARKIV && dv.saksbehandlerHarTilgang
+            dv.variantformat == Variantformat.ARKIV && dv.saksbehandlerHarTilgang ||
+                    dv.variantformat == Variantformat.SLADDET && dv.saksbehandlerHarTilgang
         }
 
     private fun MutableSet<Saksdokument>.containsDokument(journalpostId: String, dokumentInfoId: String) =
