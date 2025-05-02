@@ -135,7 +135,8 @@ class DokumentMapper(
                 harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(dokument),
                 hasAccess = harTilgangTilArkivEllerSladdetVariant(dokument),
                 datoOpprettet = unproxiedDUA.opprettet,
-                sortKey = unproxiedDUA.sortKey!!
+                sortKey = unproxiedDUA.sortKey!!,
+                varianter = dokument.toVarianter(),
             )
         }
 
@@ -365,12 +366,45 @@ class DokumentMapper(
                     tittel = it.tittel,
                     logiskVedleggId = it.logiskVedleggId
                 )
-            }
+            },
+            varianter = hoveddokument.toVarianter(),
         )
 
         dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost, saksdokumenter))
 
         return dokumentReferanse
+    }
+
+    private fun DokumentInfo.toVarianter(): List<DokumentReferanse.Variant> {
+        return this.dokumentvarianter.filter {
+            it.variantformat in listOf(
+                Variantformat.ARKIV,
+                Variantformat.SLADDET
+            )
+        }.map { variant ->
+            DokumentReferanse.Variant(
+                format = when (variant.variantformat) {
+                    Variantformat.ARKIV -> {
+                        DokumentReferanse.Variant.Format.ARKIV
+                    }
+                    Variantformat.SLADDET -> {
+                        DokumentReferanse.Variant.Format.SLADDET
+                    }
+                    else -> throw RuntimeException("Unknown variantformat: ${variant.variantformat}")
+                },
+                filtype = variant.filtype.toFiltype(),
+                hasAccess = variant.saksbehandlerHarTilgang,
+            )
+        }
+    }
+
+    private fun String?.toFiltype(): DokumentReferanse.Filtype {
+        return if (this != null) {
+            DokumentReferanse.Filtype.valueOf(this)
+        } else {
+            logger.warn("Filtype was null. Returning PDF as default.")
+            return DokumentReferanse.Filtype.PDF
+        }
     }
 
     private fun DokumentInfo.toArkivFiltype(): DokumentReferanse.Filtype {
@@ -479,6 +513,7 @@ class DokumentMapper(
                         )
                     },
                     filtype = vedlegg.toArkivFiltype(),
+                    varianter = vedlegg.toVarianter(),
                 )
             } ?: throw RuntimeException("could not create VedleggReferanser from dokumenter")
         } else {

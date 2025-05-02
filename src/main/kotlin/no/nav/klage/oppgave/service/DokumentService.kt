@@ -166,8 +166,16 @@ class DokumentService(
         return journalpost.dokumenter?.filter { harArkivVariantformat(it) }?.map { it.dokumentInfoId } ?: emptyList()
     }
 
-    fun getFysiskDokument(journalpostId: String, dokumentInfoId: String): FysiskDokument {
-        val (resource, contentType) = safRestClient.getDokument(dokumentInfoId, journalpostId)
+    fun getFysiskDokument(
+        journalpostId: String,
+        dokumentInfoId: String,
+        variantFormat: DokumentReferanse.Variant.Format //= DokumentReferanse.Variant.Format.ARKIV
+    ): FysiskDokument {
+        val (resource, contentType) = safRestClient.getDokument(
+            dokumentInfoId = dokumentInfoId,
+            journalpostId = journalpostId,
+            variantFormat = variantFormat.name,
+        )
 
         return FysiskDokument(
             title = getDocumentTitle(journalpostId = journalpostId, dokumentInfoId = dokumentInfoId),

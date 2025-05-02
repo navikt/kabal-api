@@ -151,6 +151,7 @@ class JournalpostController(
         @PathVariable journalpostId: String,
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
+        @RequestParam(value = "format", required = false, defaultValue = "ARKIV") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
     ): ResponseEntity<Resource> {
         logMethodDetails(
             methodName = ::getArkivertDokumentPDF.name,
@@ -160,7 +161,8 @@ class JournalpostController(
 
         val fysiskDokument = dokumentService.getFysiskDokument(
             journalpostId = journalpostId,
-            dokumentInfoId = dokumentInfoId
+            dokumentInfoId = dokumentInfoId,
+            variantFormat = variantFormat,
         )
 
         val fileExtension = mediaTypeToFileExtension(fysiskDokument.mediaType)

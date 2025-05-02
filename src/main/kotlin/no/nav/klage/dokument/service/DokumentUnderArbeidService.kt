@@ -15,6 +15,7 @@ import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
+import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -1523,7 +1524,8 @@ class DokumentUnderArbeidService(
     fun getFysiskDokumentAsResourceOrUrl(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
-        innloggetIdent: String
+        innloggetIdent: String,
+        variantFormat: DokumentReferanse.Variant.Format
     ): Triple<String, Any, MediaType?> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
@@ -1539,6 +1541,7 @@ class DokumentUnderArbeidService(
             val fysiskDokument = dokumentService.getFysiskDokument(
                 journalpostId = dokarkivReference.journalpostId,
                 dokumentInfoId = dokarkivReference.dokumentInfoId!!,
+                variantFormat = variantFormat,
             )
             Triple(
                 fysiskDokument.title,
@@ -1584,6 +1587,7 @@ class DokumentUnderArbeidService(
                     val fysiskDokument = dokumentService.getFysiskDokument(
                         journalpostId = dokumentUnderArbeid.journalpostId,
                         dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
+                        variantFormat = variantFormat,
                     )
                     Triple(
                         fysiskDokument.title,
