@@ -483,7 +483,8 @@ class DokumentUnderArbeidService(
         val alreadAddedDocumentsMapped = alreadyAddedDocuments.map {
             JournalfoertDokumentReference(
                 journalpostId = it.journalpostId,
-                dokumentInfoId = it.dokumentInfoId
+                dokumentInfoId = it.dokumentInfoId,
+                variantFormat = DokumentReferanse.Variant.Format.valueOf(it.variantFormat.name),
             )
         }.toSet()
 
@@ -515,7 +516,10 @@ class DokumentUnderArbeidService(
                 sortKey = getSortKey(
                     journalpost = journalpostInDokarkiv,
                     dokumentInfoId = journalfoertDokumentReference.dokumentInfoId
-                )
+                ),
+                variantFormat = JournalfoertDokumentUnderArbeidAsVedlegg.VariantFormat.valueOf(
+                    journalfoertDokumentReference.variantFormat.name
+                ),
             )
 
             journalfoertDokumentUnderArbeidRepository.save(

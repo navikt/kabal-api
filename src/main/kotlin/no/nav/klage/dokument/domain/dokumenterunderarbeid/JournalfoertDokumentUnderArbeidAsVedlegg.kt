@@ -1,8 +1,6 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import jakarta.persistence.Column
-import jakarta.persistence.DiscriminatorValue
-import jakarta.persistence.Entity
+import jakarta.persistence.*
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
@@ -20,6 +18,9 @@ class JournalfoertDokumentUnderArbeidAsVedlegg (
     val dokumentInfoId: String,
     @Column(name = "sort_key")
     var sortKey: String?,
+    @Column(name = "variant_format")
+    @Enumerated(EnumType.STRING)
+    val variantFormat: VariantFormat,
 
     //Common properties
     id: UUID = UUID.randomUUID(),
@@ -45,4 +46,9 @@ class JournalfoertDokumentUnderArbeidAsVedlegg (
     parentId = parentId,
     creatorIdent = creatorIdent,
     creatorRole = creatorRole,
-)
+) {
+    enum class VariantFormat {
+        ARKIV,
+        SLADDET,
+    }
+}

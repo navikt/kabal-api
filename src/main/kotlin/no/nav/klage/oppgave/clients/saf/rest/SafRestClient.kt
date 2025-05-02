@@ -85,7 +85,7 @@ class SafRestClient(
     fun downloadDocumentAsMono(
         dokumentInfoId: String,
         journalpostId: String,
-        variantFormat: String = "ARKIV",
+        variantFormat: String,// = "ARKIV",
         pathToFile: Path,
         token: String,
     ): Mono<Void> {
