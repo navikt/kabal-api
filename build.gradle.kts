@@ -19,6 +19,7 @@ val klageKodeverkVersion = "1.10.5"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
 val otelVersion = "1.49.0"
 val mikrofrontendSelectorVersion = "3.0.0"
+val simpleSlackPosterVersion = "0.1.4"
 
 plugins {
     val kotlinVersion = "2.1.20"
@@ -96,6 +97,7 @@ dependencies {
     implementation("no.nav.security:token-client-spring:$tokenValidationVersion")
 
     implementation("org.springframework.retry:spring-retry:$springRetryVersion")
+    implementation("no.nav.slackposter:simple-slack-poster:$simpleSlackPosterVersion")
 
     implementation("org.verapdf:validation-model:$verapdfVersion") {
         exclude(group = "com.sun.xml.bind")
