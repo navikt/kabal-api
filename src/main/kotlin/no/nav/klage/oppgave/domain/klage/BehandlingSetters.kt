@@ -810,6 +810,24 @@ object BehandlingSetters {
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
     }
 
+    fun Behandling.removeSaksdokumenter(
+        saksdokumentList: List<Saksdokument>,
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val existingSaksdokumenter = saksdokumenter.joinToString()
+        val tidspunkt = LocalDateTime.now()
+        saksdokumenter.removeAll(saksdokumentList)
+        modified = tidspunkt
+        val endringslogg = Endringslogginnslag.endringslogg(
+            saksbehandlerident = saksbehandlerident,
+            felt = Felt.SAKSDOKUMENT,
+            fraVerdi = existingSaksdokumenter,
+            tilVerdi = saksdokumenter.joinToString(),
+            behandlingId = id,
+        )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
     fun Behandling.clearSaksdokumenter(
         saksbehandlerident: String
     ): BehandlingEndretEvent {

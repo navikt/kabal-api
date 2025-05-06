@@ -7,7 +7,7 @@ import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.BehandlingEditedView
 import no.nav.klage.oppgave.api.view.DokumenterResponse
-import no.nav.klage.oppgave.api.view.TilknyttetDokument
+import no.nav.klage.oppgave.api.view.TilknyttetDokumentSet
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -55,7 +55,7 @@ class BehandlingDokumentController(
     @PostMapping("/{id}/dokumenttilknytninger")
     fun setTilknyttetDokument(
         @PathVariable("id") behandlingId: UUID,
-        @RequestBody input: TilknyttetDokument
+        @RequestBody input: TilknyttetDokumentSet
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
             ::setTilknyttetDokument.name,
@@ -65,11 +65,13 @@ class BehandlingDokumentController(
         )
         val modified = behandlingService.connectDocumentsToBehandling(
             behandlingId = behandlingId,
-            journalfoertDokumentReferenceSet = setOf(
-                JournalfoertDokumentReference(
-                    journalpostId = input.journalpostId, dokumentInfoId = input.dokumentInfoId,
+            journalfoertDokumentReferenceSet = if (input.journalpostId != null && input.dokumentInfoId != null) {
+                setOf(
+                    JournalfoertDokumentReference(
+                        journalpostId = input.journalpostId, dokumentInfoId = input.dokumentInfoId,
+                    )
                 )
-            ),
+            } else input.journalfoertDokumentReferenceSet,
             saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             systemUserContext = false,
             ignoreCheckSkrivetilgang = false,
@@ -78,18 +80,20 @@ class BehandlingDokumentController(
     }
 
     @DeleteMapping("/{id}/dokumenttilknytninger")
-    fun removeAllTilknyttetDokument(
+    fun batchRemoveTilknyttetDokument(
         @PathVariable("id") behandlingId: UUID,
+        @RequestBody input: TilknyttetDokumentSet?
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::removeAllTilknyttetDokument.name,
+            ::batchRemoveTilknyttetDokument.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             behandlingId,
             logger
         )
-        val modified = behandlingService.disconnectAllDokumenterFromBehandling(
+        val modified = behandlingService.disconnectDokumenterFromBehandling(
             behandlingId = behandlingId,
-            saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            journalfoertDokumentReferenceSet = input?.journalfoertDokumentReferenceSet
         )
         return BehandlingEditedView(modified)
     }
