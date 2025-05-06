@@ -552,10 +552,12 @@ object BehandlingSetters {
                 klager.id = prosessfullmektig!!.id
                 klager.partId = prosessfullmektig!!.partId!!
             }
+
             sakenGjelder.partId.value -> {
                 klager.id = sakenGjelder.id
                 klager.partId = sakenGjelder.partId
             }
+
             else -> {
                 klager.partId = nyVerdi
                 klager.id = UUID.randomUUID()
@@ -811,12 +813,13 @@ object BehandlingSetters {
     }
 
     fun Behandling.removeSaksdokumenter(
-        saksdokumentList: List<Saksdokument>,
+        saksdokumentListForRemoval: List<Saksdokument>,
         saksbehandlerident: String
     ): BehandlingEndretEvent {
         val existingSaksdokumenter = saksdokumenter.joinToString()
         val tidspunkt = LocalDateTime.now()
-        saksdokumenter.removeAll(saksdokumentList)
+        saksdokumenter.removeIf { saksdokumentListForRemoval.any { saksdokumentForRemoval -> saksdokumentForRemoval.journalpostId == it.journalpostId && saksdokumentForRemoval.dokumentInfoId == it.dokumentInfoId } }
+
         modified = tidspunkt
         val endringslogg = Endringslogginnslag.endringslogg(
             saksbehandlerident = saksbehandlerident,
