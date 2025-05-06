@@ -199,7 +199,7 @@ data class DokumentReferanse(
 }
 
 data class TilknyttetDokumentSet(
-    val journalfoertDokumentReferenceSet: Set<JournalfoertDokumentReference>,
+    val journalfoertDokumentReferenceSet: Set<JournalfoertDokumentReference>?,
     //TODO: Delete when not needed anymore
     val journalpostId: String?,
     val dokumentInfoId: String?,

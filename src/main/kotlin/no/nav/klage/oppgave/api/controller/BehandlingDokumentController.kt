@@ -71,7 +71,7 @@ class BehandlingDokumentController(
                         journalpostId = input.journalpostId, dokumentInfoId = input.dokumentInfoId,
                     )
                 )
-            } else input.journalfoertDokumentReferenceSet,
+            } else input.journalfoertDokumentReferenceSet ?: throw Error("Trenger oppgitt dokumentreferanse"),
             saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             systemUserContext = false,
             ignoreCheckSkrivetilgang = false,
