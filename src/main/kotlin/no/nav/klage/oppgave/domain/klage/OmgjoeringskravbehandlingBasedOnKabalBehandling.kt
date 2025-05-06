@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.domain.klage
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.Type
@@ -9,7 +11,6 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import org.hibernate.envers.Audited
-import org.hibernate.envers.NotAudited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -17,22 +18,11 @@ import java.util.*
 //const val KLAGEENHET_PREFIX = "42"
 
 @Entity
+@DiscriminatorValue("omgjoeringskrav-based-on-kabal-behandling")
 @Audited
-abstract class Omgjoeringskravbehandling(
-    @Column(name = "klage_behandlende_enhet")
-    val klageBehandlendeEnhet: String,
-    @Column(name = "mottak_id")
-    val mottakId: UUID,
-    @Column(name = "kaka_kvalitetsvurdering_id")
-    var kakaKvalitetsvurderingId: UUID?,
-    @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
-    val kakaKvalitetsvurderingVersion: Int,
-    @Embedded
-    override var varsletBehandlingstid: VarsletBehandlingstid?,
-    @OneToOne(cascade = [CascadeType.ALL], optional = true)
-    @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
-    @NotAudited
-    override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
+class OmgjoeringskravbehandlingBasedOnKabalBehandling(
+    @Column(name = "source_behandling_id")
+    var sourceBehandlingId: UUID?,
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),
@@ -75,7 +65,13 @@ abstract class Omgjoeringskravbehandling(
     gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
-) : BehandlingWithVarsletBehandlingstid, Behandling(
+    klageBehandlendeEnhet: String,
+    mottakId: UUID,
+    kakaKvalitetsvurderingId: UUID,
+    kakaKvalitetsvurderingVersion: Int,
+    varsletBehandlingstid: VarsletBehandlingstid?,
+    forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
+) : BehandlingWithVarsletBehandlingstid, Omgjoeringskravbehandling(
     id = id,
     klager = klager,
     sakenGjelder = sakenGjelder,
@@ -115,10 +111,17 @@ abstract class Omgjoeringskravbehandling(
     gosysOppgaveUpdate = gosysOppgaveUpdate,
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
+    klageBehandlendeEnhet = klageBehandlendeEnhet,
+    mottakId = mottakId,
+    kakaKvalitetsvurderingId = kakaKvalitetsvurderingId,
+    kakaKvalitetsvurderingVersion = kakaKvalitetsvurderingVersion,
+    varsletBehandlingstid = varsletBehandlingstid,
+    forlengetBehandlingstidDraft = forlengetBehandlingstidDraft,
+    oppgaveId = oppgaveId,
 ) {
 
     override fun toString(): String {
-        return "Omgjoeringskravbehandling(id=$id, " +
+        return "OmgjoeringskravbehandlingBasedOnKabalBehandling(id=$id, " +
                 "modified=$modified, " +
                 "created=$created)"
     }
@@ -127,7 +130,7 @@ abstract class Omgjoeringskravbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Omgjoeringskravbehandling
+        other as OmgjoeringskravbehandlingBasedOnKabalBehandling
 
         return id == other.id
     }

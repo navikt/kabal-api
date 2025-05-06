@@ -138,7 +138,8 @@ class BehandlingAvslutningService(
                 )
 
                 if (sakInKlanke.typeResultat == SakFinishedInput.TypeResultat.RESULTAT.name &&
-                    sakInKlanke.nivaa == SakFinishedInput.Nivaa.KA.name) {
+                    sakInKlanke.nivaa == SakFinishedInput.Nivaa.KA.name
+                ) {
                     logger.warn("Behandlingen er allerede satt til ferdig i Infotrygd, så trenger ikke å oppdatere.")
                 } else {
                     val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
@@ -160,7 +161,7 @@ class BehandlingAvslutningService(
                     )
                     logger.debug("Behandlingen som er avsluttet ble sendt tilbake til Infotrygd.")
                 }
-            } else {
+            } else if (behandling !is OmgjoeringskravbehandlingBasedOnJournalpost || behandling.fagsystem == Fagsystem.IT01) {
                 //Notify modern fagsystem
                 val behandlingEvent = BehandlingEvent(
                     eventId = UUID.randomUUID(),
@@ -186,6 +187,8 @@ class BehandlingAvslutningService(
                         type = EventType.BEHANDLING_EVENT
                     )
                 )
+            } else {
+                logger.debug("Behandling er basert på journalpost, så vi trenger ikke å sende melding til fagsystem.")
             }
         }
 

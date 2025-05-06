@@ -59,7 +59,7 @@ class StatistikkTilDVHService(
     private fun StatistikkTilDVH.toJson(): String = objectMapper.writeValueAsString(this)
 
     fun shouldSendStats(behandlingEndretEvent: BehandlingEndretEvent): Boolean {
-        return if (behandlingEndretEvent.behandling.shouldUpdateInfotrygd()) {
+        return if (behandlingEndretEvent.behandling.shouldUpdateInfotrygd() || behandlingEndretEvent.behandling is OmgjoeringskravbehandlingBasedOnJournalpost) {
             false
         } else behandlingEndretEvent.endringslogginnslag.any {
             it.felt === Felt.TILDELT_SAKSBEHANDLERIDENT

@@ -27,37 +27,69 @@ class OmgjoeringskravbehandlingService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createOmgjoeringskravbehandlingFromMottak(mottak: Mottak): Behandling {
-        val omgjoeringskravbehandling = omgjoeringskravbehandlingRepository.save(
-            Omgjoeringskravbehandling(
-                klager = mottak.klager.copy(),
-                sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
-                prosessfullmektig = mottak.prosessfullmektig,
-                ytelse = mottak.ytelse,
-                type = mottak.type,
-                kildeReferanse = mottak.kildeReferanse,
-                dvhReferanse = mottak.dvhReferanse,
-                fagsystem = mottak.fagsystem,
-                fagsakId = mottak.fagsakId,
-                mottattKlageinstans = mottak.sakMottattKaDato,
-                tildeling = null,
-                frist = mottak.generateFrist(),
-                mottakId = mottak.id,
-                saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
-                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
-                kakaKvalitetsvurderingVersion = 2,
-                hjemler = mottak.mapToBehandlingHjemler(),
-                sourceBehandlingId = mottak.forrigeBehandlingId,
-                previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
-                oppgaveId = null,
-                klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                gosysOppgaveId = null,
-                tilbakekreving = false,
-                varsletBehandlingstid = null,
-                forlengetBehandlingstidDraft = null,
+    fun createOmgjoeringskravbehandlingFromMottak(mottak: Mottak, isBasedOnJournalpost: Boolean = false): Behandling {
+        val omgjoeringskravbehandling = if (isBasedOnJournalpost) {
+            omgjoeringskravbehandlingRepository.save(
+                OmgjoeringskravbehandlingBasedOnJournalpost(
+                    klager = mottak.klager.copy(),
+                    sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
+                    prosessfullmektig = mottak.prosessfullmektig,
+                    ytelse = mottak.ytelse,
+                    type = mottak.type,
+                    kildeReferanse = mottak.kildeReferanse,
+                    dvhReferanse = mottak.dvhReferanse,
+                    fagsystem = mottak.fagsystem,
+                    fagsakId = mottak.fagsakId,
+                    mottattKlageinstans = mottak.sakMottattKaDato,
+                    tildeling = null,
+                    frist = mottak.generateFrist(),
+                    mottakId = mottak.id,
+                    saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
+                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingVersion = 2,
+                    hjemler = mottak.mapToBehandlingHjemler(),
+                    previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
+                    oppgaveId = null,
+                    klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
+                    gosysOppgaveId = null,
+                    tilbakekreving = false,
+                    varsletBehandlingstid = null,
+                    forlengetBehandlingstidDraft = null,
+                )
             )
-        )
-        logger.debug("Created omgjoeringskravbehandling {} for mottak {}", omgjoeringskravbehandling.id, mottak.id)
+        } else {
+            omgjoeringskravbehandlingRepository.save(
+                OmgjoeringskravbehandlingBasedOnKabalBehandling(
+                    klager = mottak.klager.copy(),
+                    sakenGjelder = mottak.sakenGjelder?.copy() ?: mottak.klager.toSakenGjelder(),
+                    prosessfullmektig = mottak.prosessfullmektig,
+                    ytelse = mottak.ytelse,
+                    type = mottak.type,
+                    kildeReferanse = mottak.kildeReferanse,
+                    dvhReferanse = mottak.dvhReferanse,
+                    fagsystem = mottak.fagsystem,
+                    fagsakId = mottak.fagsakId,
+                    mottattKlageinstans = mottak.sakMottattKaDato,
+                    tildeling = null,
+                    frist = mottak.generateFrist(),
+                    mottakId = mottak.id,
+                    saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
+                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingVersion = 2,
+                    hjemler = mottak.mapToBehandlingHjemler(),
+                    sourceBehandlingId = mottak.forrigeBehandlingId,
+                    previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
+                    oppgaveId = null,
+                    klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
+                    gosysOppgaveId = null,
+                    tilbakekreving = false,
+                    varsletBehandlingstid = null,
+                    forlengetBehandlingstidDraft = null,
+                )
+            )
+        }
+
+        logger.debug("Created {} with id {} for mottak with id {}", omgjoeringskravbehandling::javaClass.name, omgjoeringskravbehandling.id, mottak.id)
 
         if (mottak.forrigeBehandlingId != null) {
             val behandling = behandlingRepository.findById(mottak.forrigeBehandlingId).get()

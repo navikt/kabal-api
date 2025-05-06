@@ -38,14 +38,7 @@ data class CreateBehandlingBasedOnKabinInput(
     val svarbrevInput: SvarbrevInput?,
     val hjemmelIdList: List<String>,
     val gosysOppgaveId: Long?,
-) {
-    data class OversendtPartId(
-        val type: OversendtPartIdType,
-        val value: String
-    )
-
-    enum class OversendtPartIdType { PERSON, VIRKSOMHET }
-}
+)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CreateAnkeBasedOnCompleteKabinInput(
@@ -64,21 +57,20 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
     val gosysOppgaveId: Long?,
-) {
-    data class OversendtPartId(
-        val type: OversendtPartIdType,
-        val value: String
+)
+data class OversendtPartId(
+    val type: OversendtPartIdType,
+    val value: String
+)
+
+fun OversendtPartId.toPartId(): PartId {
+    return PartId(
+        type = PartIdType.of(type.name),
+        value = value
     )
-
-    fun OversendtPartId.toPartId(): PartId {
-        return PartId(
-            type = PartIdType.of(type.name),
-            value = value
-        )
-    }
-
-    enum class OversendtPartIdType { PERSON, VIRKSOMHET }
 }
+
+enum class OversendtPartIdType { PERSON, VIRKSOMHET }
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CreateKlageBasedOnKabinInput(
@@ -98,21 +90,25 @@ data class CreateKlageBasedOnKabinInput(
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
     val gosysOppgaveId: Long?,
-) {
-    data class OversendtPartId(
-        val type: OversendtPartIdType,
-        val value: String
-    )
+)
 
-    fun OversendtPartId.toPartId(): PartId {
-        return PartId(
-            type = PartIdType.of(type.name),
-            value = value
-        )
-    }
-
-    enum class OversendtPartIdType { PERSON, VIRKSOMHET }
-}
+data class CreateOmgjoeringskravBasedOnJournalpostInput(
+    val sakenGjelder: OversendtPartId,
+    val klager: OversendtPartId?,
+    val fullmektig: OversendtPartId?,
+    val fagsakId: String,
+    val fagsystemId: String,
+    val hjemmelIdList: List<String>,
+    val forrigeBehandlendeEnhet: String,
+    val receivedDocumentJournalpostId: String,
+    val mottattNav: LocalDate,
+    val frist: LocalDate,
+    val ytelseId: String,
+    val kildereferanse: String,
+    val saksbehandlerIdent: String?,
+    val svarbrevInput: SvarbrevInput?,
+    val gosysOppgaveId: Long?,
+)
 
 data class SvarbrevInput(
     val title: String,
