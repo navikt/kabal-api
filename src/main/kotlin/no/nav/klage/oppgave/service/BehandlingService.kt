@@ -1805,11 +1805,34 @@ class BehandlingService(
 
         if (journalfoertDokumentReferenceSet.isNullOrEmpty()) {
             try {
+                val saksdokumenterToRemove = behandling.saksdokumenter
+
                 val event =
                     behandling.clearSaksdokumenter(
                         saksbehandlerIdent
                     )
                 event.let { applicationEventPublisher.publishEvent(it) }
+
+                publishInternalEvent(
+                    data = objectMapper.writeValueAsString(
+                        IncludedDocumentsChangedEvent(
+                            actor = Employee(
+                                navIdent = saksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                            ),
+                            timestamp = LocalDateTime.now(),
+                            journalfoertDokumentReferenceSet = saksdokumenterToRemove.map {
+                                JournalfoertDokument(
+                                    it.journalpostId,
+                                    it.dokumentInfoId
+                                )
+                            }.toSet()
+
+                        )
+                    ),
+                    behandlingId = behandling.id,
+                    type = InternalEventType.INCLUDED_DOCUMENTS_REMOVED,
+                )
 
                 return behandling.modified
             } catch (e: Exception) {
@@ -1831,6 +1854,27 @@ class BehandlingService(
                         saksbehandlerIdent
                     )
                 event.let { applicationEventPublisher.publishEvent(it) }
+
+                publishInternalEvent(
+                    data = objectMapper.writeValueAsString(
+                        IncludedDocumentsChangedEvent(
+                            actor = Employee(
+                                navIdent = saksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                            ),
+                            timestamp = LocalDateTime.now(),
+                            journalfoertDokumentReferenceSet = saksdokumenter.map {
+                                JournalfoertDokument(
+                                    it.journalpostId,
+                                    it.dokumentInfoId
+                                )
+                            }.toSet()
+
+                        )
+                    ),
+                    behandlingId = behandling.id,
+                    type = InternalEventType.INCLUDED_DOCUMENTS_REMOVED,
+                )
 
                 return behandling.modified
             } catch (e: Exception) {
@@ -1932,6 +1976,27 @@ class BehandlingService(
                 saksbehandlerident = saksbehandlerIdent
             )
             event.let { applicationEventPublisher.publishEvent(it) }
+
+            publishInternalEvent(
+                data = objectMapper.writeValueAsString(
+                    IncludedDocumentsChangedEvent(
+                        actor = Employee(
+                            navIdent = saksbehandlerIdent,
+                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                        ),
+                        timestamp = LocalDateTime.now(),
+                        journalfoertDokumentReferenceSet = saksdokumentsToAdd.map {
+                            JournalfoertDokument(
+                                it.journalpostId,
+                                it.dokumentInfoId
+                            )
+                        }.toSet()
+
+                    )
+                ),
+                behandlingId = behandling.id,
+                type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
+            )
         }
     }
 
@@ -1947,6 +2012,26 @@ class BehandlingService(
                     saksbehandlerIdent
                 )
             event.let { applicationEventPublisher.publishEvent(it) }
+
+            publishInternalEvent(
+                data = objectMapper.writeValueAsString(
+                    IncludedDocumentsChangedEvent(
+                        actor = Employee(
+                            navIdent = saksbehandlerIdent,
+                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                        ),
+                        timestamp = LocalDateTime.now(),
+                        journalfoertDokumentReferenceSet = setOf(
+                            JournalfoertDokument(
+                                saksdokument.journalpostId,
+                                saksdokument.dokumentInfoId
+                            )
+                        )
+                    )
+                ),
+                behandlingId = behandling.id,
+                type = InternalEventType.INCLUDED_DOCUMENTS_REMOVED,
+            )
 
             return behandling
         } catch (e: Exception) {

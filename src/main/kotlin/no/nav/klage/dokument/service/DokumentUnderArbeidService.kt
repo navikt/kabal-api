@@ -1988,6 +1988,27 @@ class DokumentUnderArbeidService(
                     behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
                         ?.also { applicationEventPublisher.publishEvent(it) }
                 }
+
+                publishInternalEvent(
+                    data = objectMapper.writeValueAsString(
+                        IncludedDocumentsChangedEvent(
+                            actor = Employee(
+                                navIdent = saksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                            ),
+                            timestamp = LocalDateTime.now(),
+                            journalfoertDokumentReferenceSet = saksdokumenter.map {
+                                JournalfoertDokument(
+                                    it.journalpostId,
+                                    it.dokumentInfoId
+                                )
+                            }.toSet()
+
+                        )
+                    ),
+                    behandlingId = behandling.id,
+                    type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
+                )
             }
         }
 
