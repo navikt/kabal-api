@@ -2,7 +2,6 @@ package no.nav.klage.dokument.api.view
 
 import com.fasterxml.jackson.databind.JsonNode
 import no.nav.klage.dokument.exceptions.AddressValidationException
-import no.nav.klage.oppgave.api.view.DokumentReferanse
 import java.time.LocalDate
 import java.util.*
 
@@ -30,7 +29,6 @@ data class JournalfoerteDokumenterInput(
 data class JournalfoertDokumentReference(
     val journalpostId: String,
     val dokumentInfoId: String,
-    val variantFormat: DokumentReferanse.Variant.Format,
 )
 
 data class OptionalPersistentDokumentIdInput(val dokumentId: UUID?)

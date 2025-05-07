@@ -484,7 +484,6 @@ class DokumentUnderArbeidService(
             JournalfoertDokumentReference(
                 journalpostId = it.journalpostId,
                 dokumentInfoId = it.dokumentInfoId,
-                variantFormat = DokumentReferanse.Variant.Format.valueOf(it.variantFormat.name),
             )
         }.toSet()
 
@@ -516,9 +515,6 @@ class DokumentUnderArbeidService(
                 sortKey = getSortKey(
                     journalpost = journalpostInDokarkiv,
                     dokumentInfoId = journalfoertDokumentReference.dokumentInfoId
-                ),
-                variantFormat = JournalfoertDokumentUnderArbeidAsVedlegg.VariantFormat.valueOf(
-                    journalfoertDokumentReference.variantFormat.name
                 ),
             )
 

@@ -384,12 +384,22 @@ class DokumentService(
 
         val userToken = tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
 
+        val journalposter = safFacade.getJournalposter(
+            journalpostIdSet = documentsToMerge.map { it.first }.toSet(),
+            fnr = null,
+            saksbehandlerContext = true,
+        )
+
         Flux.fromIterable(documentsWithPaths).flatMapSequential { (document, path) ->
             safRestClient.downloadDocumentAsMono(
                 journalpostId = document.first,
                 dokumentInfoId = document.second,
                 pathToFile = path,
                 token = userToken,
+                variantFormat = getVariantFormatAsString(
+                    document = document,
+                    journalposter = journalposter,
+                )
             )
         }.collectList().block()
 
@@ -410,6 +420,21 @@ class DokumentService(
         }
 
         return pathToMergedDocument.toPath() to title
+    }
+
+    private fun getVariantFormatAsString(
+        document: Pair<String, String>,
+        journalposter: List<Journalpost>
+    ): String {
+        val correctJournalpost = journalposter.find { it.journalpostId == document.first }
+            ?: throw RuntimeException("Document not found in SAF")
+        val correctDokumentInfo = correctJournalpost.dokumenter?.find { it.dokumentInfoId == document.second }
+            ?: throw RuntimeException("Document not found in SAF")
+        return if (correctDokumentInfo.dokumentvarianter.any { it.variantformat == Variantformat.SLADDET }) {
+            Variantformat.SLADDET.name
+        } else {
+            Variantformat.ARKIV.name
+        }
     }
 
     fun mergePDFFiles(resourcesToMerge: List<Resource>, title: String = "merged document"): Pair<FileSystemResource, String> {
