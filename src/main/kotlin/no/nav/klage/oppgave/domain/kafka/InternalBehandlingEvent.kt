@@ -26,6 +26,9 @@ enum class InternalEventType {
     DOCUMENTS_ADDED,
     DOCUMENTS_REMOVED,
     DOCUMENTS_CHANGED,
+    INCLUDED_DOCUMENTS_ADDED,
+    INCLUDED_DOCUMENTS_REMOVED,
+    INCLUDED_DOCUMENTS_CLEARED,
     //Change to SMART_DOCUMENT_LANGUAGE_CHANGED when FE is ready
     SMART_DOCUMENT_LANGUAGE,
     SMART_DOCUMENT_VERSIONED,
@@ -57,10 +60,21 @@ data class Employee(
     val navn: String,
 )
 
+data class JournalfoertDokument(
+    val journalpostId: String,
+    val dokumentInfoId: String,
+)
+
+
 abstract class BaseEvent(
     open val actor: Employee,
     open val timestamp: LocalDateTime,
 )
+
+data class MinimalEvent(
+    override val actor: Employee,
+    override val timestamp: LocalDateTime,
+) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class MedunderskriverEvent(
     override val actor: Employee,
@@ -200,6 +214,12 @@ data class DocumentsAddedEvent(
     override val timestamp: LocalDateTime,
     val documents: List<DokumentView>,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
+
+data class IncludedDocumentsChangedEvent(
+    override val actor: Employee,
+    override val timestamp: LocalDateTime,
+    val journalfoertDokumentReferenceSet: Set<JournalfoertDokument>
+): BaseEvent(actor = actor, timestamp = timestamp)
 
 data class DocumentPatched(
     override val actor: Employee,

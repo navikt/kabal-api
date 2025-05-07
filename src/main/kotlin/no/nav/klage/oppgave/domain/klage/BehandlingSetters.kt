@@ -552,10 +552,12 @@ object BehandlingSetters {
                 klager.id = prosessfullmektig!!.id
                 klager.partId = prosessfullmektig!!.partId!!
             }
+
             sakenGjelder.partId.value -> {
                 klager.id = sakenGjelder.id
                 klager.partId = sakenGjelder.partId
             }
+
             else -> {
                 klager.partId = nyVerdi
                 klager.id = UUID.randomUUID()
@@ -805,6 +807,25 @@ object BehandlingSetters {
             felt = Felt.SAKSDOKUMENT,
             fraVerdi = saksdokument.toString(),
             tilVerdi = null,
+            behandlingId = id,
+        )
+        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+    }
+
+    fun Behandling.removeSaksdokumenter(
+        saksdokumentListForRemoval: List<Saksdokument>,
+        saksbehandlerident: String
+    ): BehandlingEndretEvent {
+        val existingSaksdokumenter = saksdokumenter.joinToString()
+        val tidspunkt = LocalDateTime.now()
+        saksdokumenter.removeIf { saksdokumentListForRemoval.any { saksdokumentForRemoval -> saksdokumentForRemoval.journalpostId == it.journalpostId && saksdokumentForRemoval.dokumentInfoId == it.dokumentInfoId } }
+
+        modified = tidspunkt
+        val endringslogg = Endringslogginnslag.endringslogg(
+            saksbehandlerident = saksbehandlerident,
+            felt = Felt.SAKSDOKUMENT,
+            fraVerdi = existingSaksdokumenter,
+            tilVerdi = saksdokumenter.joinToString(),
             behandlingId = id,
         )
         return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))

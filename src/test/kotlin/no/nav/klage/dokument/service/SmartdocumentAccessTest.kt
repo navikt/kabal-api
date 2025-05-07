@@ -65,6 +65,7 @@ class SmartdocumentAccessTest {
             kabalJsonToPdfService = mockk(),
             tokenUtil = mockk(),
             svarbrevSettingsService = mockk(),
+            innsynsbegjaeringTemplateId = "templateId",
         )
 
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns "navident"

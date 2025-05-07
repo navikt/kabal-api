@@ -39,6 +39,7 @@ import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingSetters.setS
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokumenter
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.clearSaksdokumenter
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.removeSaksdokument
+import no.nav.klage.oppgave.domain.klage.BehandlingSetters.removeSaksdokumenter
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttetAvSaksbehandler
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setExtraUtfallSet
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setFeilregistrering
@@ -1795,23 +1796,82 @@ class BehandlingService(
         return behandling.modified
     }
 
-    fun disconnectAllDokumenterFromBehandling(
+    fun disconnectDokumenterFromBehandling(
         behandlingId: UUID,
-        saksbehandlerIdent: String
+        saksbehandlerIdent: String,
+        journalfoertDokumentReferenceSet: Set<JournalfoertDokumentReference>?
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(behandlingId)
 
-        try {
-            val event =
-                behandling.clearSaksdokumenter(
-                    saksbehandlerIdent
-                )
-            event.let { applicationEventPublisher.publishEvent(it) }
+        if (journalfoertDokumentReferenceSet.isNullOrEmpty()) {
+            try {
+                val event =
+                    behandling.clearSaksdokumenter(
+                        saksbehandlerIdent
+                    )
+                event.let { applicationEventPublisher.publishEvent(it) }
 
-            return behandling.modified
-        } catch (e: Exception) {
-            logger.error("Error disconnecting all documents from behandling ${behandling.id}", e)
-            throw e
+                publishInternalEvent(
+                    data = objectMapper.writeValueAsString(
+                        MinimalEvent(
+                            actor = Employee(
+                                navIdent = saksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                            ),
+                            timestamp = LocalDateTime.now(),
+                        )
+                    ),
+                    behandlingId = behandling.id,
+                    type = InternalEventType.INCLUDED_DOCUMENTS_CLEARED,
+                )
+
+                return behandling.modified
+            } catch (e: Exception) {
+                logger.error("Error disconnecting all documents from behandling ${behandling.id}", e)
+                throw e
+            }
+        } else {
+            val saksdokumenter = journalfoertDokumentReferenceSet.map {
+                Saksdokument(
+                    journalpostId = it.journalpostId,
+                    dokumentInfoId = it.dokumentInfoId
+                )
+            }
+
+            try {
+                val event =
+                    behandling.removeSaksdokumenter(
+                        saksdokumenter,
+                        saksbehandlerIdent
+                    )
+                event.let { applicationEventPublisher.publishEvent(it) }
+
+                publishInternalEvent(
+                    data = objectMapper.writeValueAsString(
+                        IncludedDocumentsChangedEvent(
+                            actor = Employee(
+                                navIdent = saksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                            ),
+                            timestamp = LocalDateTime.now(),
+                            journalfoertDokumentReferenceSet = saksdokumenter.map {
+                                JournalfoertDokument(
+                                    it.journalpostId,
+                                    it.dokumentInfoId
+                                )
+                            }.toSet()
+
+                        )
+                    ),
+                    behandlingId = behandling.id,
+                    type = InternalEventType.INCLUDED_DOCUMENTS_REMOVED,
+                )
+
+                return behandling.modified
+            } catch (e: Exception) {
+                logger.error("Error disconnecting documents from behandling ${behandling.id}", e)
+                throw e
+            }
         }
     }
 
@@ -1907,6 +1967,27 @@ class BehandlingService(
                 saksbehandlerident = saksbehandlerIdent
             )
             event.let { applicationEventPublisher.publishEvent(it) }
+
+            publishInternalEvent(
+                data = objectMapper.writeValueAsString(
+                    IncludedDocumentsChangedEvent(
+                        actor = Employee(
+                            navIdent = saksbehandlerIdent,
+                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                        ),
+                        timestamp = LocalDateTime.now(),
+                        journalfoertDokumentReferenceSet = saksdokumentsToAdd.map {
+                            JournalfoertDokument(
+                                it.journalpostId,
+                                it.dokumentInfoId
+                            )
+                        }.toSet()
+
+                    )
+                ),
+                behandlingId = behandling.id,
+                type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
+            )
         }
     }
 
@@ -1922,6 +2003,26 @@ class BehandlingService(
                     saksbehandlerIdent
                 )
             event.let { applicationEventPublisher.publishEvent(it) }
+
+            publishInternalEvent(
+                data = objectMapper.writeValueAsString(
+                    IncludedDocumentsChangedEvent(
+                        actor = Employee(
+                            navIdent = saksbehandlerIdent,
+                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                        ),
+                        timestamp = LocalDateTime.now(),
+                        journalfoertDokumentReferenceSet = setOf(
+                            JournalfoertDokument(
+                                saksdokument.journalpostId,
+                                saksdokument.dokumentInfoId
+                            )
+                        )
+                    )
+                ),
+                behandlingId = behandling.id,
+                type = InternalEventType.INCLUDED_DOCUMENTS_REMOVED,
+            )
 
             return behandling
         } catch (e: Exception) {

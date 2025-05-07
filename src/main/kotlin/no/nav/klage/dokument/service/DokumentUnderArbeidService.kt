@@ -85,6 +85,7 @@ class DokumentUnderArbeidService(
     private val kabalJsonToPdfService: KabalJsonToPdfService,
     private val tokenUtil: TokenUtil,
     private val svarbrevSettingsService: SvarbrevSettingsService,
+    @Value("\${INNSYNSBEGJAERING_TEMPLATE_ID}") private val innsynsbegjaeringTemplateId: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -468,13 +469,17 @@ class DokumentUnderArbeidService(
                 parentDocument = parentDocument
             )
 
-            behandlingService.connectDocumentsToBehandling(
-                behandlingId = behandling.id,
-                journalfoertDokumentReferenceSet = journalfoerteDokumenter,
-                saksbehandlerIdent = innloggetIdent,
-                systemUserContext = false,
-                ignoreCheckSkrivetilgang = isCurrentROL
-            )
+            val templateId = if (parentDocument is DokumentUnderArbeidAsSmartdokument) parentDocument.smartEditorTemplateId else null
+
+            if (templateId != innsynsbegjaeringTemplateId) {
+                behandlingService.connectDocumentsToBehandling(
+                    behandlingId = behandling.id,
+                    journalfoertDokumentReferenceSet = journalfoerteDokumenter,
+                    saksbehandlerIdent = innloggetIdent,
+                    systemUserContext = false,
+                    ignoreCheckSkrivetilgang = isCurrentROL
+                )
+            }
         }
 
         val alreadyAddedDocuments =
@@ -1987,6 +1992,27 @@ class DokumentUnderArbeidService(
                     behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
                         ?.also { applicationEventPublisher.publishEvent(it) }
                 }
+
+                publishInternalEvent(
+                    data = objectMapper.writeValueAsString(
+                        IncludedDocumentsChangedEvent(
+                            actor = Employee(
+                                navIdent = saksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                            ),
+                            timestamp = LocalDateTime.now(),
+                            journalfoertDokumentReferenceSet = saksdokumenter.map {
+                                JournalfoertDokument(
+                                    it.journalpostId,
+                                    it.dokumentInfoId
+                                )
+                            }.toSet()
+
+                        )
+                    ),
+                    behandlingId = behandling.id,
+                    type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
+                )
             }
         }
 
