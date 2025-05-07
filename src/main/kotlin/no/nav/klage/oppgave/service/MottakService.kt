@@ -927,7 +927,7 @@ class MottakService(
         }
 
         return Mottak(
-            type = Type.ANKE,
+            type = Type.OMGJOERINGSKRAV,
             klager = klager,
             sakenGjelder = sakenGjelder,
             fagsystem = Fagsystem.of(fagsystemId),
