@@ -125,6 +125,7 @@ class BehandlingMapper(
             gosysOppgaveId = klagebehandling.gosysOppgaveId,
             tilbakekreving = klagebehandling.tilbakekreving,
             timesPreviouslyExtended = klagebehandling.getTimesPreviouslyExtended(),
+            requiresGosysOppgave = !klagebehandling.fagsystem.modernized,
         )
     }
 
@@ -199,6 +200,7 @@ class BehandlingMapper(
             kommentarFraVedtaksinstans = null,
             tilbakekreving = omgjoeringskravbehandling.tilbakekreving,
             timesPreviouslyExtended = omgjoeringskravbehandling.getTimesPreviouslyExtended(),
+            requiresGosysOppgave = omgjoeringskravbehandling is OmgjoeringskravbehandlingBasedOnJournalpost || !omgjoeringskravbehandling.fagsystem.modernized
         )
     }
 
@@ -318,6 +320,7 @@ class BehandlingMapper(
             gosysOppgaveId = ankebehandling.gosysOppgaveId,
             tilbakekreving = ankebehandling.tilbakekreving,
             timesPreviouslyExtended = ankebehandling.getTimesPreviouslyExtended(),
+            requiresGosysOppgave = !ankebehandling.fagsystem.modernized,
         )
     }
 
@@ -388,6 +391,7 @@ class BehandlingMapper(
             gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
             tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
             timesPreviouslyExtended = ankeITrygderettenbehandling.getTimesPreviouslyExtended(),
+            requiresGosysOppgave = !ankeITrygderettenbehandling.fagsystem.modernized,
         )
     }
 
@@ -465,6 +469,7 @@ class BehandlingMapper(
             gosysOppgaveId = behandlingEtterTrygderettenOpphevet.gosysOppgaveId,
             tilbakekreving = behandlingEtterTrygderettenOpphevet.tilbakekreving,
             timesPreviouslyExtended = behandlingEtterTrygderettenOpphevet.getTimesPreviouslyExtended(),
+            requiresGosysOppgave = !behandlingEtterTrygderettenOpphevet.fagsystem.modernized
         )
     }
 

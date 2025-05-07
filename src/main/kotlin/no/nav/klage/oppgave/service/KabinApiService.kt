@@ -82,6 +82,26 @@ class KabinApiService(
         return CreatedBehandlingResponse(behandlingId = behandling.id)
     }
 
+    fun createOmgjoeringskravBasedOnJournalpost(input: CreateOmgjoeringskravBasedOnJournalpostInput): CreatedBehandlingResponse {
+        val behandling = mottakService.createOmgjoeringskravBasedOnJournalpost(input = input)
+
+        if (input.gosysOppgaveId != null) {
+            behandlingService.setGosysOppgaveIdFromKabin(
+                behandlingId = behandling.id,
+                gosysOppgaveId = input.gosysOppgaveId,
+                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
+        }
+
+        setSaksbehandlerAndCreateSvarbrev(
+            behandling = behandling,
+            saksbehandlerIdent = input.saksbehandlerIdent,
+            svarbrevInput = input.svarbrevInput,
+        )
+
+        return CreatedBehandlingResponse(behandlingId = behandling.id)
+    }
+
     private fun setSaksbehandlerAndCreateSvarbrev(
         behandling: Behandling,
         saksbehandlerIdent: String?,
