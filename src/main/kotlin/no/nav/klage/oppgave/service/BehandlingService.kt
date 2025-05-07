@@ -1805,8 +1805,6 @@ class BehandlingService(
 
         if (journalfoertDokumentReferenceSet.isNullOrEmpty()) {
             try {
-                val saksdokumenterToRemove = behandling.saksdokumenter
-
                 val event =
                     behandling.clearSaksdokumenter(
                         saksbehandlerIdent
@@ -1815,23 +1813,16 @@ class BehandlingService(
 
                 publishInternalEvent(
                     data = objectMapper.writeValueAsString(
-                        IncludedDocumentsChangedEvent(
+                        MinimalEvent(
                             actor = Employee(
                                 navIdent = saksbehandlerIdent,
                                 navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
                             ),
                             timestamp = LocalDateTime.now(),
-                            journalfoertDokumentReferenceSet = saksdokumenterToRemove.map {
-                                JournalfoertDokument(
-                                    it.journalpostId,
-                                    it.dokumentInfoId
-                                )
-                            }.toSet()
-
                         )
                     ),
                     behandlingId = behandling.id,
-                    type = InternalEventType.INCLUDED_DOCUMENTS_REMOVED,
+                    type = InternalEventType.INCLUDED_DOCUMENTS_CLEARED,
                 )
 
                 return behandling.modified

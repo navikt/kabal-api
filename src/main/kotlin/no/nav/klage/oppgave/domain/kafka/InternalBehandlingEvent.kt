@@ -28,6 +28,7 @@ enum class InternalEventType {
     DOCUMENTS_CHANGED,
     INCLUDED_DOCUMENTS_ADDED,
     INCLUDED_DOCUMENTS_REMOVED,
+    INCLUDED_DOCUMENTS_CLEARED,
     //Change to SMART_DOCUMENT_LANGUAGE_CHANGED when FE is ready
     SMART_DOCUMENT_LANGUAGE,
     SMART_DOCUMENT_VERSIONED,
@@ -69,6 +70,11 @@ abstract class BaseEvent(
     open val actor: Employee,
     open val timestamp: LocalDateTime,
 )
+
+data class MinimalEvent(
+    override val actor: Employee,
+    override val timestamp: LocalDateTime,
+) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class MedunderskriverEvent(
     override val actor: Employee,
