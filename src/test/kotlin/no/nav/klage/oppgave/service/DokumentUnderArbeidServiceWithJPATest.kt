@@ -132,6 +132,7 @@ class DokumentUnderArbeidServiceWithJPATest {
             kabalJsonToPdfService = mockk(),
             tokenUtil = mockk(),
             svarbrevSettingsService = mockk(),
+            innsynsbegjaeringTemplateId = "templateId",
         )
 
         val behandlingId = UUID.randomUUID()

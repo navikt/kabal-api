@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.api.view
 
+import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -196,6 +197,13 @@ data class DokumentReferanse(
     }
 
 }
+
+data class TilknyttetDokumentSet(
+    val journalfoertDokumentReferenceSet: Set<JournalfoertDokumentReference>?,
+    //TODO: Delete when not needed anymore
+    val journalpostId: String?,
+    val dokumentInfoId: String?,
+)
 
 data class TilknyttetDokument(val journalpostId: String, val dokumentInfoId: String)
 
