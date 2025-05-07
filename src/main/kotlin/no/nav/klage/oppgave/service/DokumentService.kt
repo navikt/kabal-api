@@ -169,7 +169,7 @@ class DokumentService(
     fun getFysiskDokument(
         journalpostId: String,
         dokumentInfoId: String,
-        variantFormat: DokumentReferanse.Variant.Format //= DokumentReferanse.Variant.Format.ARKIV
+        variantFormat: DokumentReferanse.Variant.Format,
     ): FysiskDokument {
         val (resource, contentType) = safRestClient.getDokument(
             dokumentInfoId = dokumentInfoId,
@@ -396,7 +396,7 @@ class DokumentService(
                 dokumentInfoId = document.second,
                 pathToFile = path,
                 token = userToken,
-                variantFormat = getVariantFormatAsString(
+                variantFormat = getPreferredVariantFormatAsString(
                     document = document,
                     journalposter = journalposter,
                 )
@@ -422,7 +422,7 @@ class DokumentService(
         return pathToMergedDocument.toPath() to title
     }
 
-    private fun getVariantFormatAsString(
+    private fun getPreferredVariantFormatAsString(
         document: Pair<String, String>,
         journalposter: List<Journalpost>
     ): String {
@@ -430,6 +430,8 @@ class DokumentService(
             ?: throw RuntimeException("Document not found in SAF")
         val correctDokumentInfo = correctJournalpost.dokumenter?.find { it.dokumentInfoId == document.second }
             ?: throw RuntimeException("Document not found in SAF")
+
+        //Prefer SLADDET over ARKIV
         return if (correctDokumentInfo.dokumentvarianter.any { it.variantformat == Variantformat.SLADDET }) {
             Variantformat.SLADDET.name
         } else {
