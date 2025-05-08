@@ -349,19 +349,21 @@ class DokumentService(
             }
     }
 
-    fun mergeJournalfoerteDocuments(id: UUID): Pair<Path, String> {
+    fun mergeJournalfoerteDocuments(id: UUID, preferArkivvariantIfAccess: Boolean): Pair<Path, String> {
         val mergedDocument = mergedDocumentRepository.getReferenceById(id)
         val documentsToMerge = mergedDocument.documentsToMerge.sortedBy { it.index }
 
         return mergeJournalfoerteDocuments(
-            documentsToMerge.map { it.journalpostId to it.dokumentInfoId },
-            mergedDocument.title
+            documentsToMerge = documentsToMerge.map { it.journalpostId to it.dokumentInfoId },
+            title = mergedDocument.title,
+            preferArkivvariantIfAccess = preferArkivvariantIfAccess,
         )
     }
 
     fun mergeJournalfoerteDocuments(
         documentsToMerge: List<Pair<String, String>>,
-        title: String = "merged document"
+        title: String = "merged document",
+        preferArkivvariantIfAccess: Boolean,
     ): Pair<Path, String> {
         if (documentsToMerge.isEmpty()) {
             throw RuntimeException("No documents to merge")
@@ -399,6 +401,7 @@ class DokumentService(
                 variantFormat = getPreferredVariantFormatAsString(
                     document = document,
                     journalposter = journalposter,
+                    preferArkivvariantIfAccess = preferArkivvariantIfAccess,
                 )
             )
         }.collectList().block()
@@ -424,18 +427,27 @@ class DokumentService(
 
     private fun getPreferredVariantFormatAsString(
         document: Pair<String, String>,
-        journalposter: List<Journalpost>
+        journalposter: List<Journalpost>,
+        preferArkivvariantIfAccess: Boolean,
     ): String {
         val correctJournalpost = journalposter.find { it.journalpostId == document.first }
             ?: throw RuntimeException("Document not found in SAF")
         val correctDokumentInfo = correctJournalpost.dokumenter?.find { it.dokumentInfoId == document.second }
             ?: throw RuntimeException("Document not found in SAF")
 
-        //Prefer SLADDET over ARKIV
-        return if (correctDokumentInfo.dokumentvarianter.any { it.variantformat == Variantformat.SLADDET }) {
-            Variantformat.SLADDET.name
-        } else {
-            Variantformat.ARKIV.name
+        return when {
+            preferArkivvariantIfAccess && correctDokumentInfo.dokumentvarianter.any { it.variantformat == Variantformat.ARKIV && it.saksbehandlerHarTilgang } -> {
+                Variantformat.ARKIV.name
+            }
+            correctDokumentInfo.dokumentvarianter.any { it.variantformat == Variantformat.SLADDET && it.saksbehandlerHarTilgang } -> {
+                Variantformat.SLADDET.name
+            }
+            correctDokumentInfo.dokumentvarianter.any { it.variantformat == Variantformat.ARKIV && it.saksbehandlerHarTilgang } -> {
+                Variantformat.ARKIV.name
+            }
+            else -> {
+                throw RuntimeException("No access to document with dokumentInfoId ${document.second} in journalpost ${document.first}")
+            }
         }
     }
 

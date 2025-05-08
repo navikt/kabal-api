@@ -2101,7 +2101,9 @@ class DokumentUnderArbeidService(
                     .sortedByDescending { it.sortKey }
                     .map {
                         it.journalpostId to it.dokumentInfoId
-                    }).first
+                    },
+                preferArkivvariantIfAccess = false,
+            ).first
         } else {
             null
         }

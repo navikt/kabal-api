@@ -226,7 +226,8 @@ class JournalpostController(
 
     @GetMapping("/mergedocuments/{referenceId}/pdf")
     fun getMergedDocuments(
-        @PathVariable referenceId: UUID
+        @PathVariable referenceId: UUID,
+        @RequestParam(value = "format", required = false, defaultValue = "SLADDET") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.SLADDET,
     ): ResponseEntity<Resource> {
         logMethodDetails(
             methodName = ::getMergedDocuments.name,
@@ -234,7 +235,10 @@ class JournalpostController(
             logger = logger,
         )
 
-        val (pathToMergedDocument, title) = dokumentService.mergeJournalfoerteDocuments(referenceId)
+        val (pathToMergedDocument, title) = dokumentService.mergeJournalfoerteDocuments(
+            id = referenceId,
+            preferArkivvariantIfAccess = variantFormat == DokumentReferanse.Variant.Format.ARKIV,
+        )
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = MediaType.APPLICATION_PDF
         responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$title.pdf\"")
