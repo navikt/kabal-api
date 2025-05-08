@@ -523,8 +523,8 @@ class DokumentMapper(
 
     fun harTilgangTilArkivEllerSladdetVariant(dokumentInfo: DokumentInfo): Boolean =
         dokumentInfo.dokumentvarianter.any { dv ->
-            dv.variantformat == Variantformat.ARKIV && dv.saksbehandlerHarTilgang ||
-                    dv.variantformat == Variantformat.SLADDET && dv.saksbehandlerHarTilgang
+            (dv.variantformat == Variantformat.ARKIV && dv.saksbehandlerHarTilgang) ||
+                    (dv.variantformat == Variantformat.SLADDET && dv.saksbehandlerHarTilgang)
         }
 
     private fun MutableSet<Saksdokument>.containsDokument(journalpostId: String, dokumentInfoId: String) =
