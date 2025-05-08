@@ -43,8 +43,19 @@ data class DokumentReferanse(
     val utsendingsinfo: Utsendingsinfo?,
     val originalJournalpostId: String?,
     val filtype: Filtype,
+    val varianter: List<Variant>,
     val sortKey: String,
 ) {
+
+    data class Variant(
+        val format: Format,
+        val filtype: Filtype,
+        val hasAccess: Boolean,
+    ) {
+        enum class Format {
+            ARKIV, SLADDET
+        }
+    }
 
     enum class Filtype {
         PDF, JPEG, PNG, TIFF, XLSX, JSON, XML, AXML, DXML, RTF
@@ -125,6 +136,7 @@ data class DokumentReferanse(
         val sortKey: String,
         val logiskeVedlegg: List<LogiskVedlegg>?,
         val filtype: Filtype,
+        val varianter: List<Variant>,
     )
 
     enum class Journalposttype {

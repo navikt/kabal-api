@@ -7,6 +7,7 @@ import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.DokumentUnderArbeidMetadata
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -157,11 +158,13 @@ class DokumentUnderArbeidController(
     fun getPdf(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
+        @RequestParam(value = "format", required = false, defaultValue = "ARKIV") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
     ): Any {
         logger.debug("Kall mottatt på getPdf for {}", dokumentId)
         val (title, resourceOrUrl, mediaType) = dokumentUnderArbeidService.getFysiskDokumentAsResourceOrUrl(
             behandlingId = behandlingId,
             dokumentId = dokumentId,
+            variantFormat = variantFormat,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
 

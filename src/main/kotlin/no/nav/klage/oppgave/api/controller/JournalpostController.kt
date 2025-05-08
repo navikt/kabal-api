@@ -151,6 +151,7 @@ class JournalpostController(
         @PathVariable journalpostId: String,
         @Parameter(description = "Id til dokumentInfo")
         @PathVariable dokumentInfoId: String,
+        @RequestParam(value = "format", required = false, defaultValue = "ARKIV") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
     ): ResponseEntity<Resource> {
         logMethodDetails(
             methodName = ::getArkivertDokumentPDF.name,
@@ -160,7 +161,8 @@ class JournalpostController(
 
         val fysiskDokument = dokumentService.getFysiskDokument(
             journalpostId = journalpostId,
-            dokumentInfoId = dokumentInfoId
+            dokumentInfoId = dokumentInfoId,
+            variantFormat = variantFormat,
         )
 
         val fileExtension = mediaTypeToFileExtension(fysiskDokument.mediaType)
@@ -224,7 +226,8 @@ class JournalpostController(
 
     @GetMapping("/mergedocuments/{referenceId}/pdf")
     fun getMergedDocuments(
-        @PathVariable referenceId: UUID
+        @PathVariable referenceId: UUID,
+        @RequestParam(value = "format", required = false, defaultValue = "SLADDET") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.SLADDET,
     ): ResponseEntity<Resource> {
         logMethodDetails(
             methodName = ::getMergedDocuments.name,
@@ -232,7 +235,10 @@ class JournalpostController(
             logger = logger,
         )
 
-        val (pathToMergedDocument, title) = dokumentService.mergeJournalfoerteDocuments(referenceId)
+        val (pathToMergedDocument, title) = dokumentService.mergeJournalfoerteDocuments(
+            id = referenceId,
+            preferArkivvariantIfAccess = variantFormat == DokumentReferanse.Variant.Format.ARKIV,
+        )
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = MediaType.APPLICATION_PDF
         responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$title.pdf\"")

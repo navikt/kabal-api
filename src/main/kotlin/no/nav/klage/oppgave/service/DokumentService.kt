@@ -166,8 +166,16 @@ class DokumentService(
         return journalpost.dokumenter?.filter { harArkivVariantformat(it) }?.map { it.dokumentInfoId } ?: emptyList()
     }
 
-    fun getFysiskDokument(journalpostId: String, dokumentInfoId: String): FysiskDokument {
-        val (resource, contentType) = safRestClient.getDokument(dokumentInfoId, journalpostId)
+    fun getFysiskDokument(
+        journalpostId: String,
+        dokumentInfoId: String,
+        variantFormat: DokumentReferanse.Variant.Format,
+    ): FysiskDokument {
+        val (resource, contentType) = safRestClient.getDokument(
+            dokumentInfoId = dokumentInfoId,
+            journalpostId = journalpostId,
+            variantFormat = variantFormat.name,
+        )
 
         return FysiskDokument(
             title = getDocumentTitle(journalpostId = journalpostId, dokumentInfoId = dokumentInfoId),
@@ -200,8 +208,8 @@ class DokumentService(
             dokumentInfoId = dokumentInfoId,
             title = dokumentInfo?.tittel
                 ?: throw RuntimeException("Document/title not found in Dokarkiv"),
-            harTilgangTilArkivvariant = dokumentMapper.harTilgangTilArkivvariant(dokumentInfo),
-            hasAccess = dokumentMapper.harTilgangTilArkivvariant(dokumentInfo)
+            harTilgangTilArkivvariant = dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokumentInfo),
+            hasAccess = dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokumentInfo)
         )
     }
 
@@ -219,9 +227,11 @@ class DokumentService(
                 val document: PDDocument = if (resource is FileSystemResource) {
                     Loader.loadPDF(resource.file, getMixedMemorySettingsForPDFBox(memorySettingsForPDFBox))
                 } else {
-                    Loader.loadPDF(RandomAccessReadBuffer(resource.contentAsByteArray), getMixedMemorySettingsForPDFBox(
-                        memorySettingsForPDFBox
-                    ))
+                    Loader.loadPDF(
+                        RandomAccessReadBuffer(resource.contentAsByteArray), getMixedMemorySettingsForPDFBox(
+                            memorySettingsForPDFBox
+                        )
+                    )
                 }
 
                 val info: PDDocumentInformation = document.documentInformation
@@ -341,19 +351,21 @@ class DokumentService(
             }
     }
 
-    fun mergeJournalfoerteDocuments(id: UUID): Pair<Path, String> {
+    fun mergeJournalfoerteDocuments(id: UUID, preferArkivvariantIfAccess: Boolean): Pair<Path, String> {
         val mergedDocument = mergedDocumentRepository.getReferenceById(id)
         val documentsToMerge = mergedDocument.documentsToMerge.sortedBy { it.index }
 
         return mergeJournalfoerteDocuments(
-            documentsToMerge.map { it.journalpostId to it.dokumentInfoId },
-            mergedDocument.title
+            documentsToMerge = documentsToMerge.map { it.journalpostId to it.dokumentInfoId },
+            title = mergedDocument.title,
+            preferArkivvariantIfAccess = preferArkivvariantIfAccess,
         )
     }
 
     fun mergeJournalfoerteDocuments(
         documentsToMerge: List<Pair<String, String>>,
-        title: String = "merged document"
+        title: String = "merged document",
+        preferArkivvariantIfAccess: Boolean,
     ): Pair<Path, String> {
         if (documentsToMerge.isEmpty()) {
             throw RuntimeException("No documents to merge")
@@ -376,12 +388,23 @@ class DokumentService(
 
         val userToken = tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
 
+        val journalposter = safFacade.getJournalposter(
+            journalpostIdSet = documentsToMerge.map { it.first }.toSet(),
+            fnr = null,
+            saksbehandlerContext = true,
+        )
+
         Flux.fromIterable(documentsWithPaths).flatMapSequential { (document, path) ->
             safRestClient.downloadDocumentAsMono(
                 journalpostId = document.first,
                 dokumentInfoId = document.second,
                 pathToFile = path,
                 token = userToken,
+                variantFormat = getPreferredVariantFormatAsString(
+                    document = document,
+                    journalposter = journalposter,
+                    preferArkivvariantIfAccess = preferArkivvariantIfAccess,
+                )
             )
         }.collectList().block()
 
@@ -404,7 +427,47 @@ class DokumentService(
         return pathToMergedDocument.toPath() to title
     }
 
-    fun mergePDFFiles(resourcesToMerge: List<Resource>, title: String = "merged document"): Pair<FileSystemResource, String> {
+    private fun getPreferredVariantFormatAsString(
+        document: Pair<String, String>,
+        journalposter: List<Journalpost>,
+        preferArkivvariantIfAccess: Boolean,
+    ): String {
+        val journalpost = journalposter.find { it.journalpostId == document.first }
+            ?: throw RuntimeException("Document not found in SAF")
+        val dokumentInfo = journalpost.dokumenter?.find { it.dokumentInfoId == document.second }
+            ?: throw RuntimeException("Document not found in SAF")
+
+        val hasAccessToArkivVariant = dokumentInfo.dokumentvarianter.any {
+            it.variantformat == Variantformat.ARKIV && it.saksbehandlerHarTilgang
+        }
+
+        val hasAccessToSladdetVariant = dokumentInfo.dokumentvarianter.any {
+            it.variantformat == Variantformat.SLADDET && it.saksbehandlerHarTilgang
+        }
+
+        return when {
+            preferArkivvariantIfAccess && hasAccessToArkivVariant -> {
+                Variantformat.ARKIV.name
+            }
+
+            hasAccessToSladdetVariant -> {
+                Variantformat.SLADDET.name
+            }
+
+            hasAccessToArkivVariant -> {
+                Variantformat.ARKIV.name
+            }
+
+            else -> {
+                throw RuntimeException("No access to document with dokumentInfoId ${document.second} in journalpost ${document.first}")
+            }
+        }
+    }
+
+    fun mergePDFFiles(
+        resourcesToMerge: List<Resource>,
+        title: String = "merged document"
+    ): Pair<FileSystemResource, String> {
         val merger = PDFMergerUtility()
 
         val pdDocumentInformation = PDDocumentInformation()

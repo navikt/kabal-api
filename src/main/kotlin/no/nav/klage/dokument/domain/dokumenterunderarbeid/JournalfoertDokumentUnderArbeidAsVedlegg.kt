@@ -11,7 +11,7 @@ import java.util.*
 @Entity
 @DiscriminatorValue("journalfoertdokument")
 @Audited
-class JournalfoertDokumentUnderArbeidAsVedlegg (
+class JournalfoertDokumentUnderArbeidAsVedlegg(
     @Column(name = "opprettet")
     var opprettet: LocalDateTime,
     @Column(name = "journalfoert_dokument_journalpost_id")

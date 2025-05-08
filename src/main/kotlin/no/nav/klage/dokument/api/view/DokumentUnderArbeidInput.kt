@@ -28,7 +28,7 @@ data class JournalfoerteDokumenterInput(
 
 data class JournalfoertDokumentReference(
     val journalpostId: String,
-    val dokumentInfoId: String
+    val dokumentInfoId: String,
 )
 
 data class OptionalPersistentDokumentIdInput(val dokumentId: UUID?)
