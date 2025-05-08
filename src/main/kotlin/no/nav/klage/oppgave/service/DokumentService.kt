@@ -435,14 +435,18 @@ class DokumentService(
         val correctDokumentInfo = correctJournalpost.dokumenter?.find { it.dokumentInfoId == document.second }
             ?: throw RuntimeException("Document not found in SAF")
 
+        val hasAccessToArkivVariant = correctDokumentInfo.dokumentvarianter.any { 
+            it.variantformat == Variantformat.ARKIV && it.saksbehandlerHarTilgang 
+        }
+
         return when {
-            preferArkivvariantIfAccess && correctDokumentInfo.dokumentvarianter.any { it.variantformat == Variantformat.ARKIV && it.saksbehandlerHarTilgang } -> {
+            preferArkivvariantIfAccess && hasAccessToArkivVariant -> {
                 Variantformat.ARKIV.name
             }
             correctDokumentInfo.dokumentvarianter.any { it.variantformat == Variantformat.SLADDET && it.saksbehandlerHarTilgang } -> {
                 Variantformat.SLADDET.name
             }
-            correctDokumentInfo.dokumentvarianter.any { it.variantformat == Variantformat.ARKIV && it.saksbehandlerHarTilgang } -> {
+            hasAccessToArkivVariant -> {
                 Variantformat.ARKIV.name
             }
             else -> {
