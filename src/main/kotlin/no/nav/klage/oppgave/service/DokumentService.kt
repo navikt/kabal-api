@@ -227,9 +227,11 @@ class DokumentService(
                 val document: PDDocument = if (resource is FileSystemResource) {
                     Loader.loadPDF(resource.file, getMixedMemorySettingsForPDFBox(memorySettingsForPDFBox))
                 } else {
-                    Loader.loadPDF(RandomAccessReadBuffer(resource.contentAsByteArray), getMixedMemorySettingsForPDFBox(
-                        memorySettingsForPDFBox
-                    ))
+                    Loader.loadPDF(
+                        RandomAccessReadBuffer(resource.contentAsByteArray), getMixedMemorySettingsForPDFBox(
+                            memorySettingsForPDFBox
+                        )
+                    )
                 }
 
                 val info: PDDocumentInformation = document.documentInformation
@@ -435,27 +437,37 @@ class DokumentService(
         val correctDokumentInfo = correctJournalpost.dokumenter?.find { it.dokumentInfoId == document.second }
             ?: throw RuntimeException("Document not found in SAF")
 
-        val hasAccessToArkivVariant = correctDokumentInfo.dokumentvarianter.any { 
-            it.variantformat == Variantformat.ARKIV && it.saksbehandlerHarTilgang 
+        val hasAccessToArkivVariant = correctDokumentInfo.dokumentvarianter.any {
+            it.variantformat == Variantformat.ARKIV && it.saksbehandlerHarTilgang
+        }
+
+        val hasAccessToSladdetVariant = correctDokumentInfo.dokumentvarianter.any {
+            it.variantformat == Variantformat.SLADDET && it.saksbehandlerHarTilgang
         }
 
         return when {
             preferArkivvariantIfAccess && hasAccessToArkivVariant -> {
                 Variantformat.ARKIV.name
             }
-            correctDokumentInfo.dokumentvarianter.any { it.variantformat == Variantformat.SLADDET && it.saksbehandlerHarTilgang } -> {
+
+            hasAccessToSladdetVariant -> {
                 Variantformat.SLADDET.name
             }
+
             hasAccessToArkivVariant -> {
                 Variantformat.ARKIV.name
             }
+
             else -> {
                 throw RuntimeException("No access to document with dokumentInfoId ${document.second} in journalpost ${document.first}")
             }
         }
     }
 
-    fun mergePDFFiles(resourcesToMerge: List<Resource>, title: String = "merged document"): Pair<FileSystemResource, String> {
+    fun mergePDFFiles(
+        resourcesToMerge: List<Resource>,
+        title: String = "merged document"
+    ): Pair<FileSystemResource, String> {
         val merger = PDFMergerUtility()
 
         val pdDocumentInformation = PDDocumentInformation()
