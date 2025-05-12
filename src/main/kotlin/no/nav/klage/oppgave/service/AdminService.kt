@@ -412,33 +412,29 @@ class AdminService(
             "Fullført søk etter utilgjengelige behandlinger. \n" +
                     "Strengt fortrolige behandlinger: $strengtFortroligBehandlinger \n" +
                     "Fortrolige behandlinger der saksbehandler mangler tilgang: $fortroligBehandlinger \n" +
-                    "Egen ansatt-behandlinger der saksbehandler mangler tilgang: $egenAnsattBehandlinger"
+                    "Egen ansatt-behandlinger der saksbehandler mangler tilgang: $egenAnsattBehandlinger\n\n" +
+                    checkForUnavailableDueToHjemler(unfinishedBehandlinger = unfinishedBehandlinger)
 
         slackClient.postMessage("<!subteam^$klageBackendGroupId>: \n$resultMessage")
         secureLogger.debug(resultMessage)
     }
 
-    fun checkForUnavailableDueToHjemler(){
-        val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+    private fun checkForUnavailableDueToHjemler(unfinishedBehandlinger: List<Behandling>): String {
         val unavailableBehandlinger = mutableSetOf<UUID>()
         val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
-        logger.debug("Antall behandlinger: ${unfinishedBehandlinger.size}")
         unfinishedBehandlinger.forEach { behandling ->
             val registeredHjemlerForYtelse = kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
-            logger.debug("Behandling-id: ${behandling.id}, Hjemler: ${behandling.hjemler}, Ytelse: ${behandling.ytelse}, registeredHjemlerForYtelse: $registeredHjemlerForYtelse")
             if (behandling.hjemler.all {
                 it !in registeredHjemlerForYtelse
                 }
             ) {
-                logger.debug("Behandling-id: ${behandling.id} has no registered hjemler for ytelse ${behandling.ytelse}")
                 unavailableBehandlinger.add(behandling.id)
             } else if (behandling.hjemler.any { it !in registeredHjemlerForYtelse }) {
-                logger.debug("Behandling-id: ${behandling.id} has hjemler that are not registered for ytelse ${behandling.ytelse}")
                 missingHjemmelInRegistryBehandling.add(Pair(behandling.id, behandling.hjemler.filter { it !in registeredHjemlerForYtelse }.toSet()))
             }
         }
 
-        var errorLog = "Utilgjengelige behandlinger: \n"
+        var errorLog = "Utilgjengelige behandlinger på grunn av hjemler: \n"
         unavailableBehandlinger.forEach { behandling ->
             val behandling = behandlingRepository.findById(behandling).get()
             val hjemler = behandling.hjemler
@@ -449,7 +445,7 @@ class AdminService(
             errorLog += "Behandling-id: ${it.first}, Hjemler: ${it.second} \n"
         }
 
-        logger.debug(errorLog)
+        return errorLog
     }
 
     @Transactional

@@ -217,6 +217,14 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
+    @GetMapping("/loginaccessible")
+    fun logInaccessible() {
+        logger.debug("logInaccessible is called")
+        adminService.logInaccessibleBehandlinger()
+    }
+
+
+    @Unprotected
     @GetMapping("/evictallcaches", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun evictAllCAches() {
@@ -228,13 +236,6 @@ class DevOnlyAdminController(
             logger.warn("Failed to evict all caches", e)
             throw e
         }
-    }
-
-    @Unprotected
-    @GetMapping("/loginaccessibleduetohjemler")
-    fun checkForUnavailableDueToHjemler() {
-        logger.debug("logInaccessible is called")
-        adminService.checkForUnavailableDueToHjemler()
     }
 
     data class Fnr(val fnr: String)

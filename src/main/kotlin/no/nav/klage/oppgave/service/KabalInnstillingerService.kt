@@ -64,10 +64,9 @@ class KabalInnstillingerService(
         }.toSet()
     }
 
-    @Cacheable(CacheWithJCacheConfiguration.SAKSBEHANDLER_NAME_CACHE)
+    @Cacheable(CacheWithJCacheConfiguration.HJEMLER_FOR_YTELSE_CACHE)
     fun getRegisteredHjemlerForYtelse(ytelse: Ytelse): Set<Hjemmel> {
         val hjemler = kabalInnstillingerClient.getHjemmelIdsForYtelse(ytelse)
-        logger.debug("Fant hjemler for ytelse ${ytelse}: $hjemler")
         return hjemler.map { Hjemmel.of(it) }.toSet()
     }
 }
