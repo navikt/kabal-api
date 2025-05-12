@@ -423,14 +423,27 @@ class AdminService(
         val unavailableBehandlinger = mutableSetOf<UUID>()
         val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
         unfinishedBehandlinger.forEach { behandling ->
-            val hjemlerForYtelseInInnstillinger = kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
-            if (behandling.hjemler.all {
-                it !in hjemlerForYtelseInInnstillinger
+            when (behandling) {
+                is Klagebehandling, is Ankebehandling, is Omgjoeringskravbehandling -> {
+                    if (behandling.tildeling == null) {
+                        val hjemlerForYtelseInInnstillinger =
+                            kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
+                        if (behandling.hjemler.all {
+                                it !in hjemlerForYtelseInInnstillinger
+                            }
+                        ) {
+                            unavailableBehandlinger.add(behandling.id)
+                        } else if (behandling.hjemler.any { it !in hjemlerForYtelseInInnstillinger }) {
+                            missingHjemmelInRegistryBehandling.add(
+                                Pair(
+                                    behandling.id,
+                                    behandling.hjemler.filter { it !in hjemlerForYtelseInInnstillinger }.toSet()
+                                )
+                            )
+                        }
+                    }
                 }
-            ) {
-                unavailableBehandlinger.add(behandling.id)
-            } else if (behandling.hjemler.any { it !in hjemlerForYtelseInInnstillinger }) {
-                missingHjemmelInRegistryBehandling.add(Pair(behandling.id, behandling.hjemler.filter { it !in hjemlerForYtelseInInnstillinger }.toSet()))
+                else -> null
             }
         }
 
