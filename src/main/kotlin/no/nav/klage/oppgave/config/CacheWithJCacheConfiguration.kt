@@ -28,6 +28,7 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
         const val ANSATTE_I_ENHET_CACHE = "ansatteienhet"
         const val GROUPMEMBERS_CACHE = "groupmembers"
         const val KRR_INFO_CACHE = "krrinfo"
+        const val HJEMLER_FOR_YTELSE_CACHE = "hjemler-for-ytelse"
         const val SAKSBEHANDLER_NAME_CACHE = "saksbehandler-name"
         const val PERSON_ADDRESS = "person-address"
         const val DOK_DIST_KANAL = "dok-dist-kanal"
@@ -55,6 +56,7 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
                 GOSYSOPPGAVE_OPPGAVETYPE_CACHE,
                 GOSYSOPPGAVE_ENHETSMAPPER_CACHE,
                 GOSYSOPPGAVE_ENHETSMAPPE_CACHE,
+                HJEMLER_FOR_YTELSE_CACHE,
             )
 
         @Suppress("JAVA_CLASS_ON_COMPANION")

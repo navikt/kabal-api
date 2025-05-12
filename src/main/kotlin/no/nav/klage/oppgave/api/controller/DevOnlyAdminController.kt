@@ -217,6 +217,14 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
+    @GetMapping("/log-inaccessible")
+    fun logInaccessible() {
+        logger.debug("logInaccessible is called")
+        adminService.logInaccessibleBehandlinger()
+    }
+
+
+    @Unprotected
     @GetMapping("/evictallcaches", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun evictAllCAches() {

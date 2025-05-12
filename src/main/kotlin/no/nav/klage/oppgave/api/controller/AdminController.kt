@@ -124,7 +124,7 @@ class AdminController(
         adminService.logProtected()
     }
 
-    @GetMapping("/loginaccessible")
+    @GetMapping("/log-inaccessible")
     fun logInaccessible() {
         logger.debug("logInaccessible is called")
         krevAdminTilgang()

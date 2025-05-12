@@ -11,6 +11,7 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
@@ -89,6 +90,7 @@ class AdminService(
     private val kakaApiGateway: KakaApiGateway,
     private val egenAnsattService: EgenAnsattService,
     private val slackClient: SlackClient,
+    private val kabalInnstillingerService: KabalInnstillingerService,
 ) {
 
     @Value("\${KLAGE_BACKEND_GROUP_ID}")
@@ -410,12 +412,41 @@ class AdminService(
             "Fullført søk etter utilgjengelige behandlinger. \n" +
                     "Strengt fortrolige behandlinger: $strengtFortroligBehandlinger \n" +
                     "Fortrolige behandlinger der saksbehandler mangler tilgang: $fortroligBehandlinger \n" +
-                    "Egen ansatt-behandlinger der saksbehandler mangler tilgang: $egenAnsattBehandlinger"
+                    "Egen ansatt-behandlinger der saksbehandler mangler tilgang: $egenAnsattBehandlinger\n\n" +
+                    checkForUnavailableDueToHjemler(unfinishedBehandlinger = unfinishedBehandlinger)
 
         slackClient.postMessage("<!subteam^$klageBackendGroupId>: \n$resultMessage")
         secureLogger.debug(resultMessage)
     }
 
+    private fun checkForUnavailableDueToHjemler(unfinishedBehandlinger: List<Behandling>): String {
+        val unavailableBehandlinger = mutableSetOf<UUID>()
+        val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
+        unfinishedBehandlinger.forEach { behandling ->
+            val hjemlerForYtelseInInnstillinger = kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
+            if (behandling.hjemler.all {
+                it !in hjemlerForYtelseInInnstillinger
+                }
+            ) {
+                unavailableBehandlinger.add(behandling.id)
+            } else if (behandling.hjemler.any { it !in hjemlerForYtelseInInnstillinger }) {
+                missingHjemmelInRegistryBehandling.add(Pair(behandling.id, behandling.hjemler.filter { it !in hjemlerForYtelseInInnstillinger }.toSet()))
+            }
+        }
+
+        var errorLog = "Utilgjengelige behandlinger på grunn av hjemler: \n"
+        unavailableBehandlinger.forEach { behandling ->
+            val foundBehandling = behandlingRepository.findById(behandling).get()
+            val hjemler = foundBehandling.hjemler
+            errorLog += "Behandling-id: ${foundBehandling.id}, Hjemler: $hjemler \n"
+        }
+        errorLog += "Behandlinger med hjemler som ikke fins i innstillinger: \n"
+        missingHjemmelInRegistryBehandling.forEach {
+            errorLog += "Behandling-id: ${it.first}, Hjemler: ${it.second} \n"
+        }
+
+        return errorLog
+    }
 
     @Transactional
     @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo")
