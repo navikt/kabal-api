@@ -422,14 +422,18 @@ class AdminService(
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val unavailableBehandlinger = mutableSetOf<UUID>()
         val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
+        logger.debug("Antall behandlinger: ${unfinishedBehandlinger.size}")
         unfinishedBehandlinger.forEach { behandling ->
             val registeredHjemlerForYtelse = kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
+            logger.debug("Behandling-id: ${behandling.id}, Hjemler: ${behandling.hjemler}, Ytelse: ${behandling.ytelse}, registeredHjemlerForYtelse: $registeredHjemlerForYtelse")
             if (behandling.hjemler.none {
                 it in registeredHjemlerForYtelse
                 }
             ) {
+                logger.debug("Behandling-id: ${behandling.id} has no registered hjemler for ytelse ${behandling.ytelse}")
                 unavailableBehandlinger.add(behandling.id)
             } else if (behandling.hjemler.any { it !in registeredHjemlerForYtelse }) {
+                logger.debug("Behandling-id: ${behandling.id} has hjemler that are not registered for ytelse ${behandling.ytelse}")
                 missingHjemmelInRegistryBehandling.add(Pair(behandling.id, behandling.hjemler.filter { it !in registeredHjemlerForYtelse }.toSet()))
             }
         }
