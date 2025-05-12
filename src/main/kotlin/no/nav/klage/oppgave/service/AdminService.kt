@@ -436,9 +436,9 @@ class AdminService(
 
         var errorLog = "Utilgjengelige behandlinger på grunn av hjemler: \n"
         unavailableBehandlinger.forEach { behandling ->
-            val behandling = behandlingRepository.findById(behandling).get()
-            val hjemler = behandling.hjemler
-            errorLog += "Behandling-id: ${behandling.id}, Hjemler: $hjemler \n"
+            val foundBehandling = behandlingRepository.findById(behandling).get()
+            val hjemler = foundBehandling.hjemler
+            errorLog += "Behandling-id: ${foundBehandling.id}, Hjemler: $hjemler \n"
         }
         errorLog += "Behandlinger med hjemler som ikke fins i innstillinger: \n"
         missingHjemmelInRegistryBehandling.forEach {
