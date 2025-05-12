@@ -426,8 +426,8 @@ class AdminService(
         unfinishedBehandlinger.forEach { behandling ->
             val registeredHjemlerForYtelse = kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
             logger.debug("Behandling-id: ${behandling.id}, Hjemler: ${behandling.hjemler}, Ytelse: ${behandling.ytelse}, registeredHjemlerForYtelse: $registeredHjemlerForYtelse")
-            if (behandling.hjemler.none {
-                it in registeredHjemlerForYtelse
+            if (behandling.hjemler.all {
+                it !in registeredHjemlerForYtelse
                 }
             ) {
                 logger.debug("Behandling-id: ${behandling.id} has no registered hjemler for ytelse ${behandling.ytelse}")

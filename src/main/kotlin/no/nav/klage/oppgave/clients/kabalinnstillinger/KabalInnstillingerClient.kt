@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.clients.kabalinnstillinger
 
-import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.*
 import no.nav.klage.oppgave.util.TokenUtil
@@ -73,7 +72,7 @@ class KabalInnstillingerClient(
             .block() ?: throw RuntimeException("Could not get tildelte ytelser")
     }
 
-    fun getHjemlerForYtelse(ytelse: Ytelse): Set<Hjemmel> {
+    fun getHjemmelIdsForYtelse(ytelse: Ytelse): Set<String> {
         logger.debug("Getting all registered hjemler in kabal-innstillinger for ytelse $ytelse")
         return kabalInnstillingerWebClient.get()
             .uri { it.path("/hjemler/${ytelse.id}").build() }
@@ -83,9 +82,9 @@ class KabalInnstillingerClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getHjemlerForYtelse.name, secureLogger)
+                logErrorResponse(response, ::getHjemmelIdsForYtelse.name, secureLogger)
             }
-            .bodyToMono<Set<Hjemmel>>()
+            .bodyToMono<Set<String>>()
             .block() ?: throw RuntimeException("Could not get hjemler for ytelse")
     }
 
