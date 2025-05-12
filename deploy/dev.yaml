@@ -50,6 +50,9 @@ inboundApplications:
   - application: tokenx-token-generator
     namespace:  aura
     cluster: dev-gcp
+  - application: dp-saksbehandling
+    namespace: teamdagpenger
+    cluster: dev-gcp
 springProfile: dev-gcp
 tenant: trygdeetaten.no
 db_tier: db-custom-1-3840
