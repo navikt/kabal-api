@@ -439,7 +439,8 @@ class AdminService(
         }
 
         var errorLog = "Utilgjengelige behandlinger: \n"
-        unfinishedBehandlinger.forEach { behandling ->
+        unavailableBehandlinger.forEach { behandling ->
+            val behandling = behandlingRepository.findById(behandling).get()
             val hjemler = behandling.hjemler
             errorLog += "Behandling-id: ${behandling.id}, Hjemler: $hjemler \n"
         }
