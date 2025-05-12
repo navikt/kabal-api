@@ -75,7 +75,12 @@ class KabalInnstillingerClient(
     fun getHjemmelIdsForYtelse(ytelse: Ytelse): Set<String> {
         logger.debug("Getting all registered hjemler in kabal-innstillinger for ytelse $ytelse")
         return kabalInnstillingerWebClient.get()
-            .uri { it.path("/hjemler/${ytelse.id}").build() }
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/hjemler")
+                    .queryParam("\$ytelseId", ytelse.id)
+                    .build()
+            }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getAppAccessTokenWithKabalInnstillingerScope()}"
