@@ -449,7 +449,7 @@ class AdminService(
             errorLog += "Behandling-id: ${it.first}, Hjemler: ${it.second} \n"
         }
 
-        secureLogger.debug(errorLog)
+        logger.debug(errorLog)
     }
 
     @Transactional
