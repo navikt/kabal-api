@@ -78,7 +78,7 @@ class KabalInnstillingerClient(
             .uri { uriBuilder ->
                 uriBuilder
                     .path("/hjemler")
-                    .queryParam("\$ytelseId", ytelse.id)
+                    .queryParam("ytelseId", ytelse.id)
                     .build()
             }
             .header(
