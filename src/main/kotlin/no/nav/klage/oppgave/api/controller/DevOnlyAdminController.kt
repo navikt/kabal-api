@@ -217,7 +217,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping("/loginaccessible")
+    @GetMapping("/log-inaccessible")
     fun logInaccessible() {
         logger.debug("logInaccessible is called")
         adminService.logInaccessibleBehandlinger()
