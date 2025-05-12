@@ -1,5 +1,7 @@
 package no.nav.klage.oppgave.clients.kabalinnstillinger
 
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.*
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
@@ -69,6 +71,22 @@ class KabalInnstillingerClient(
             }
             .bodyToMono<SaksbehandlerAccess>()
             .block() ?: throw RuntimeException("Could not get tildelte ytelser")
+    }
+
+    fun getHjemlerForYtelse(ytelse: Ytelse): Set<Hjemmel> {
+        logger.debug("Getting all registered hjemler in kabal-innstillinger for ytelse $ytelse")
+        return kabalInnstillingerWebClient.get()
+            .uri { it.path("/hjemler/${ytelse.id}").build() }
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalInnstillingerScope()}"
+            )
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(response, ::getHjemlerForYtelse.name, secureLogger)
+            }
+            .bodyToMono<Set<Hjemmel>>()
+            .block() ?: throw RuntimeException("Could not get hjemler for ytelse")
     }
 
     fun searchMedunderskrivere(input: MedunderskrivereInput): Medunderskrivere {

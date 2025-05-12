@@ -11,6 +11,7 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
@@ -89,6 +90,7 @@ class AdminService(
     private val kakaApiGateway: KakaApiGateway,
     private val egenAnsattService: EgenAnsattService,
     private val slackClient: SlackClient,
+    private val kabalInnstillingerService: KabalInnstillingerService,
 ) {
 
     @Value("\${KLAGE_BACKEND_GROUP_ID}")
@@ -416,6 +418,34 @@ class AdminService(
         secureLogger.debug(resultMessage)
     }
 
+    fun checkForUnavailableDueToHjemler(){
+        val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        val unavailableBehandlinger = mutableSetOf<UUID>()
+        val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
+        unfinishedBehandlinger.forEach { behandling ->
+            val registeredHjemlerForYtelse = kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
+            if (behandling.hjemler.none {
+                it in registeredHjemlerForYtelse
+                }
+            ) {
+                unavailableBehandlinger.add(behandling.id)
+            } else if (behandling.hjemler.any { it !in registeredHjemlerForYtelse }) {
+                missingHjemmelInRegistryBehandling.add(Pair(behandling.id, behandling.hjemler.filter { it !in registeredHjemlerForYtelse }.toSet()))
+            }
+        }
+
+        var errorLog = "Utilgjengelige behandlinger: \n"
+        unfinishedBehandlinger.forEach { behandling ->
+            val hjemler = behandling.hjemler
+            errorLog += "Behandling-id: ${behandling.id}, Hjemler: $hjemler \n"
+        }
+        errorLog += "Behandlinger med hjemler som ikke fins i innstillinger: \n"
+        missingHjemmelInRegistryBehandling.forEach {
+            errorLog += "Behandling-id: ${it.first}, Hjemler: ${it.second} \n"
+        }
+
+        secureLogger.debug(errorLog)
+    }
 
     @Transactional
     @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo")

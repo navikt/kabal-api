@@ -132,6 +132,14 @@ class AdminController(
         adminService.logInaccessibleBehandlinger()
     }
 
+    @GetMapping("/loginaccessibleduetohjemler")
+    fun checkForUnavailableDueToHjemler() {
+        logger.debug("logInaccessible is called")
+        krevAdminTilgang()
+
+        adminService.checkForUnavailableDueToHjemler()
+    }
+
     @PostMapping("/setsortkeytodua")
     fun setSortKeyToDUA() {
         logger.debug("setSortKeyToDUA is called")

@@ -1,9 +1,12 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.kabalinnstillinger.KabalInnstillingerClient
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.*
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.domain.klage.Behandling
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 @Service
@@ -52,5 +55,10 @@ class KabalInnstillingerService(
         return kabalInnstillingerClient.getTildelteYtelserForEnhet(enhet).ytelseIdList.map {
             Ytelse.of(it)
         }.toSet()
+    }
+
+    @Cacheable(CacheWithJCacheConfiguration.SAKSBEHANDLER_NAME_CACHE)
+    fun getRegisteredHjemlerForYtelse(ytelse: Ytelse): Set<Hjemmel> {
+        return kabalInnstillingerClient.getHjemlerForYtelse(ytelse = ytelse)
     }
 }

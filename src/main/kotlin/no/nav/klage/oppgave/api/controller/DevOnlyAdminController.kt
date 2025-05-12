@@ -230,5 +230,12 @@ class DevOnlyAdminController(
         }
     }
 
+    @Unprotected
+    @GetMapping("/loginaccessibleduetohjemler")
+    fun checkForUnavailableDueToHjemler() {
+        logger.debug("logInaccessible is called")
+        adminService.checkForUnavailableDueToHjemler()
+    }
+
     data class Fnr(val fnr: String)
 }
