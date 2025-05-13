@@ -48,7 +48,7 @@ class KrrProxyClient(
     private fun getDigitalKontaktinformasjonNew(fnr: String, token: String): KrrProxyResponse? {
         logger.debug("Getting info from KRR")
         return krrProxyWebClient.post()
-            .uri("/rest/v1/person")
+            .uri("/rest/v1/personer")
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer $token"
