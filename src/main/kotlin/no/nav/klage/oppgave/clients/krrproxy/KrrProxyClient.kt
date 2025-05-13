@@ -1,9 +1,11 @@
 package no.nav.klage.oppgave.clients.krrproxy
 
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
@@ -23,7 +25,7 @@ class KrrProxyClient(
         private val secureLogger = getSecureLogger()
     }
 
-    //    @Cacheable(CacheWithJCacheConfiguration.KRR_INFO_CACHE)
+    @Cacheable(CacheWithJCacheConfiguration.KRR_INFO_CACHE)
     fun getDigitalKontaktinformasjonForFnrOnBehalfOf(fnr: String): DigitalKontaktinformasjon? {
         val krrProxyResponse =
             getDigitalKontaktinformasjonNew(fnr = fnr, token = tokenUtil.getOnBehalfOfTokenWithKrrProxyScope())
@@ -33,7 +35,7 @@ class KrrProxyClient(
         } else return krrProxyResponse?.personer?.get(fnr)
     }
 
-    //    @Cacheable(CacheWithJCacheConfiguration.KRR_INFO_CACHE)
+    @Cacheable(CacheWithJCacheConfiguration.KRR_INFO_CACHE)
     fun getDigitalKontaktinformasjonForFnrAppAccess(fnr: String): DigitalKontaktinformasjon? {
         val krrProxyResponse =
             getDigitalKontaktinformasjonNew(fnr = fnr, token = tokenUtil.getAppAccessTokenWithKrrProxyScope())
