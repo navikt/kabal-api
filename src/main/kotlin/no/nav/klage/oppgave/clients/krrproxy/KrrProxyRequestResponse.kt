@@ -3,6 +3,16 @@ package no.nav.klage.oppgave.clients.krrproxy
 import java.time.ZonedDateTime
 
 
+data class KrrProxyRequest(
+    val personidenter: Set<String>,
+)
+
+data class KrrProxyResponse(
+    val personer: Map<String, DigitalKontaktinformasjon>,
+    val feil: Map<String, String>,
+)
+
+
 data class DigitalKontaktinformasjon (
     val personident: String? = null,
     val aktiv: Boolean? = null,

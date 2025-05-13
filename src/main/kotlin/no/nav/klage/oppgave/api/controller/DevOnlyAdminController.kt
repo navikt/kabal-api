@@ -122,6 +122,7 @@ class DevOnlyAdminController(
             "getAppAccessTokenWithGraphScope" to tokenUtil.getAppAccessTokenWithGraphScope(),
             "getSaksbehandlerAccessTokenWithDokarkivScope" to tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope(),
             "getSaksbehandlerAccessTokenWithKodeverkScope" to tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope(),
+            "getOnBehalfOfTokenWithKrrProxyScope" to tokenUtil.getOnBehalfOfTokenWithKrrProxyScope()
         )
     }
 
