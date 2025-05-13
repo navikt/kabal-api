@@ -25,13 +25,6 @@ class KrrProxyClientConfiguration(
     fun krrProxyWebClient(): WebClient {
         return webClientBuilder
             .baseUrl(krrProxyURL)
-            .filter { clientRequest, next ->
-                logger.debug("KRR Proxy request: ${clientRequest.method()} ${clientRequest.url()} ${clientRequest.body()}")
-                next.exchange(clientRequest)
-                    .doOnSuccess { clientResponse ->
-                        logger.debug("KRR Proxy response: ${clientResponse.statusCode()}")
-                    }
-            }
             .build()
     }
 }

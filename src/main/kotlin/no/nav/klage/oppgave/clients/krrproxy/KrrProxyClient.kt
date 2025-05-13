@@ -27,7 +27,6 @@ class KrrProxyClient(
     fun getDigitalKontaktinformasjonForFnrOnBehalfOf(fnr: String): DigitalKontaktinformasjon? {
         val krrProxyResponse =
             getDigitalKontaktinformasjonNew(fnr = fnr, token = tokenUtil.getOnBehalfOfTokenWithKrrProxyScope())
-        logger.debug("KRR response: $krrProxyResponse")
         if (krrProxyResponse?.feil?.get(fnr) != null) {
             logger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
             return null
@@ -38,7 +37,6 @@ class KrrProxyClient(
     fun getDigitalKontaktinformasjonForFnrAppAccess(fnr: String): DigitalKontaktinformasjon? {
         val krrProxyResponse =
             getDigitalKontaktinformasjonNew(fnr = fnr, token = tokenUtil.getAppAccessTokenWithKrrProxyScope())
-        logger.debug("KRR response: $krrProxyResponse")
         if (krrProxyResponse?.feil?.get(fnr) != null) {
             logger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
             return null
