@@ -28,7 +28,7 @@ class KrrProxyClient(
     @Cacheable(CacheWithJCacheConfiguration.KRR_INFO_CACHE)
     fun getDigitalKontaktinformasjonForFnrOnBehalfOf(fnr: String): DigitalKontaktinformasjon? {
         val krrProxyResponse =
-            getDigitalKontaktinformasjonNew(fnr = fnr, token = tokenUtil.getOnBehalfOfTokenWithKrrProxyScope())
+            getDigitalKontaktinformasjon(fnr = fnr, token = tokenUtil.getOnBehalfOfTokenWithKrrProxyScope())
         if (krrProxyResponse?.feil?.get(fnr) != null) {
             logger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
             return null
@@ -38,14 +38,14 @@ class KrrProxyClient(
     @Cacheable(CacheWithJCacheConfiguration.KRR_INFO_CACHE)
     fun getDigitalKontaktinformasjonForFnrAppAccess(fnr: String): DigitalKontaktinformasjon? {
         val krrProxyResponse =
-            getDigitalKontaktinformasjonNew(fnr = fnr, token = tokenUtil.getAppAccessTokenWithKrrProxyScope())
+            getDigitalKontaktinformasjon(fnr = fnr, token = tokenUtil.getAppAccessTokenWithKrrProxyScope())
         if (krrProxyResponse?.feil?.get(fnr) != null) {
             logger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
             return null
         } else return krrProxyResponse?.personer?.get(fnr)
     }
 
-    private fun getDigitalKontaktinformasjonNew(fnr: String, token: String): KrrProxyResponse? {
+    private fun getDigitalKontaktinformasjon(fnr: String, token: String): KrrProxyResponse? {
         logger.debug("Getting info from KRR")
         return krrProxyWebClient.post()
             .uri("/rest/v1/personer")
@@ -57,7 +57,7 @@ class KrrProxyClient(
             .bodyValue(KrrProxyRequest(personidenter = setOf(fnr)))
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getDigitalKontaktinformasjonNew.name, secureLogger)
+                logErrorResponse(response, ::getDigitalKontaktinformasjon.name, secureLogger)
             }
             .bodyToMono<KrrProxyResponse>()
             .onErrorResume { Mono.empty() }
