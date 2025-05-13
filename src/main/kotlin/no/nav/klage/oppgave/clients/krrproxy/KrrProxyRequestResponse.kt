@@ -4,7 +4,7 @@ import java.time.ZonedDateTime
 
 
 data class KrrProxyRequest(
-    val personidenter: List<String>,
+    val personidenter: Set<String>,
 )
 
 data class KrrProxyResponse(

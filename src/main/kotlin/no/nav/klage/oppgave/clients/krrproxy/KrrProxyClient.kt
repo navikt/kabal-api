@@ -54,7 +54,7 @@ class KrrProxyClient(
                 "Bearer $token"
             )
             .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(KrrProxyRequest(personidenter = listOf(fnr)))
+            .bodyValue(KrrProxyRequest(personidenter = setOf(fnr)))
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(response, ::getDigitalKontaktinformasjonNew.name, secureLogger)
