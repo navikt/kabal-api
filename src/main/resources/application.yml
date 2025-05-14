@@ -21,6 +21,10 @@ spring:
   jpa:
     open-in-view: false
     properties:
+      org:
+        hibernate:
+          envers:
+            store_data_at_delete: true
       hibernate:
         session:
           events:
