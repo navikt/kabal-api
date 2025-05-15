@@ -110,7 +110,7 @@ data class Dokumentvariant(
     val variantformat: Variantformat,
     val filtype: String?,
     val saksbehandlerHarTilgang: Boolean,
-    val skjerming: SkjermingType?
+    val skjerming: SkjermingType?,
 )
 
 enum class SkjermingType {

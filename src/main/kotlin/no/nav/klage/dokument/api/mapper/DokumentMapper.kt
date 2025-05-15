@@ -394,6 +394,9 @@ class DokumentMapper(
                 },
                 filtype = variant.filtype.toFiltype(),
                 hasAccess = variant.saksbehandlerHarTilgang,
+                skjerming = variant.skjerming?.let {
+                    DokumentReferanse.Variant.SkjermingType.valueOf(it.name)
+                }
             )
         }
     }

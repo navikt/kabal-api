@@ -51,9 +51,16 @@ data class DokumentReferanse(
         val format: Format,
         val filtype: Filtype,
         val hasAccess: Boolean,
+        val skjerming: SkjermingType?,
+
     ) {
         enum class Format {
             ARKIV, SLADDET
+        }
+
+        enum class SkjermingType {
+            POL,
+            FEIL,
         }
     }
 
