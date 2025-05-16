@@ -19,6 +19,7 @@ jobs:
       e2e_tag: latest
     secrets:
       NAIS_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+      STATUS_API_KEY: ${{ secrets.STATUS_API_KEY }}
   
   deploy_to_prod:
     name: Prod
