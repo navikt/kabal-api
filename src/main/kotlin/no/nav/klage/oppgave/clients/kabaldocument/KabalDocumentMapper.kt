@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.PartId
+import no.nav.klage.oppgave.domain.trygderetten.Arkivmelding
 import no.nav.klage.oppgave.service.DokDistKanalService
 import no.nav.klage.oppgave.util.DokumentUnderArbeidTitleComparator
 import no.nav.klage.oppgave.util.getLogger
@@ -142,7 +143,10 @@ class KabalDocumentMapper(
         behandling: Behandling,
         dokumentUnderArbeid: DokumentUnderArbeidAsHoveddokument
     ): String? {
-        return null
+        return if (dokumentUnderArbeid.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN) {
+            Arkivmelding
+            null
+        } else null
     }
 
     private fun getBrevkode(hovedDokument: DokumentUnderArbeidAsHoveddokument): String {
