@@ -8,6 +8,8 @@ data class DokumentEnhetWithDokumentreferanserInput(
     val dokumentreferanser: DokumentInput,
     val dokumentTypeId: String,
     val journalfoerendeSaksbehandlerIdent: String,
+    /** XML-string */
+    val arkivmeldingTilTrygderetten: String?
 ) {
     data class DokumentInput(
         val hoveddokument: Dokument,

@@ -66,6 +66,7 @@ class SmartdocumentAccessTest {
             tokenUtil = mockk(),
             svarbrevSettingsService = mockk(),
             innsynsbegjaeringTemplateId = "templateId",
+            organisasjonsnummerTrygderetten = "123456789",
         )
 
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns "navident"

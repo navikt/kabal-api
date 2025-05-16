@@ -133,6 +133,7 @@ class DokumentUnderArbeidServiceWithJPATest {
             tokenUtil = mockk(),
             svarbrevSettingsService = mockk(),
             innsynsbegjaeringTemplateId = "templateId",
+            organisasjonsnummerTrygderetten = "123456789",
         )
 
         val behandlingId = UUID.randomUUID()

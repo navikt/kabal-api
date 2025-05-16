@@ -87,7 +87,7 @@ class KabalDocumentMapper(
                 Kanal.valueOf(hovedDokument.inngaaendeKanal.toString())
             }
 
-            DokumentType.BREV, DokumentType.NOTAT, DokumentType.VEDTAK, DokumentType.BESLUTNING, DokumentType.SVARBREV, DokumentType.FORLENGET_BEHANDLINGSTIDSBREV -> null
+            DokumentType.BREV, DokumentType.NOTAT, DokumentType.VEDTAK, DokumentType.BESLUTNING, DokumentType.SVARBREV, DokumentType.FORLENGET_BEHANDLINGSTIDSBREV, DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN -> null
         }
 
         return DokumentEnhetWithDokumentreferanserInput(
@@ -130,8 +130,19 @@ class KabalDocumentMapper(
                     },
             ),
             dokumentTypeId = hovedDokument.dokumentType.id,
-            journalfoerendeSaksbehandlerIdent = hovedDokument.markertFerdigBy!!
+            journalfoerendeSaksbehandlerIdent = hovedDokument.markertFerdigBy!!,
+            arkivmeldingTilTrygderetten = getArkivmeldingTilTrygderetten(
+                behandling = behandling,
+                dokumentUnderArbeid = hovedDokument,
+            ),
         )
+    }
+
+    private fun getArkivmeldingTilTrygderetten(
+        behandling: Behandling,
+        dokumentUnderArbeid: DokumentUnderArbeidAsHoveddokument
+    ): String? {
+        return null
     }
 
     private fun getBrevkode(hovedDokument: DokumentUnderArbeidAsHoveddokument): String {
@@ -140,6 +151,7 @@ class KabalDocumentMapper(
             DokumentType.KJENNELSE_FRA_TRYGDERETTEN -> BREVKODE_KJENNELSE_FRA_TR
             DokumentType.BESLUTNING, DokumentType.VEDTAK, DokumentType.BREV, DokumentType.SVARBREV, DokumentType.FORLENGET_BEHANDLINGSTIDSBREV -> BREVKODE_BREV
             DokumentType.ANNEN_INNGAAENDE_POST -> BREVKODE_ANNET
+            DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN -> BREVKODE_BREV //is this correct?
         }
     }
 

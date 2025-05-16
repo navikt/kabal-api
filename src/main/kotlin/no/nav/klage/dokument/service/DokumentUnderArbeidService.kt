@@ -86,6 +86,7 @@ class DokumentUnderArbeidService(
     private val tokenUtil: TokenUtil,
     private val svarbrevSettingsService: SvarbrevSettingsService,
     @Value("\${INNSYNSBEGJAERING_TEMPLATE_ID}") private val innsynsbegjaeringTemplateId: String,
+    @Value("\${ORGANISASJONSNUMMER_TRYGDERETTEN}") private val organisasjonsnummerTrygderetten: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -1263,13 +1264,13 @@ class DokumentUnderArbeidService(
             behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
         }
 
-        if (hovedDokument.dokumentType == DokumentType.KJENNELSE_FRA_TRYGDERETTEN) {
+        if (hovedDokument.dokumentType in listOf(DokumentType.KJENNELSE_FRA_TRYGDERETTEN, DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN)) {
             hovedDokument.brevmottakere.clear()
             hovedDokument.brevmottakere.add(
                 Brevmottaker(
                     //Hardkoder Trygderetten
                     technicalPartId = UUID.randomUUID(),
-                    identifikator = "974761084",
+                    identifikator = organisasjonsnummerTrygderetten,
                     localPrint = false,
                     forceCentralPrint = false,
                     address = null,
@@ -1488,7 +1489,7 @@ class DokumentUnderArbeidService(
 
         val avsenderMottakerInfoSet = hovedDokument.brevmottakere
 
-        if (hovedDokument.dokumentType != DokumentType.NOTAT && avsenderMottakerInfoSet.isEmpty()) {
+        if (hovedDokument.dokumentType !in listOf(DokumentType.NOTAT, DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN) && avsenderMottakerInfoSet.isEmpty()) {
             throw DokumentValidationException("Avsender/mottakere må være satt")
         }
 
