@@ -32,5 +32,5 @@ acl:
     application: tilleggsstonader-klage
     access: read
   - team: teamdagpenger
-    application: dp-behov-send-til-ka
+    application: dp-saksbehandling
     access: read
