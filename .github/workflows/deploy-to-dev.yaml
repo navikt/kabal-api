@@ -12,6 +12,9 @@ on:
       NAIS_WORKLOAD_IDENTITY_PROVIDER:
         description: "Identity provider for nais/docker-build-push"
         required: true
+      STATUS_API_KEY:
+        description: "API key for status API"
+        required: true
   workflow_dispatch:
     inputs:
       e2e_tag:
