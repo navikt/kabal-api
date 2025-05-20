@@ -70,7 +70,7 @@ internal class ArkivmeldingTest {
                 saksstatus = "saksstatus"
             )
         )
-        val xml = toXml(arkivmelding)
+        val xml = arkivmelding.toXml()
 //        println(xml)
         validateXmlAgainstXsd(xml)
     }
