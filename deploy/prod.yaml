@@ -44,7 +44,7 @@ inboundApplications:
   - application: tilleggsstonader-klage
     namespace: tilleggsstonader
     cluster: prod-gcp
-  - application: dp-saksbehandling
+  - application: dp-behov-send-til-ka
     namespace: teamdagpenger
     cluster: prod-gcp
 springProfile: prod-gcp
