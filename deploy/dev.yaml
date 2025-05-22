@@ -53,6 +53,9 @@ inboundApplications:
   - application: dp-saksbehandling
     namespace: teamdagpenger
     cluster: dev-gcp
+  - application: behandlingsflyt
+    namespace: aap
+    cluster: dev-gcp
 springProfile: dev-gcp
 tenant: trygdeetaten.no
 db_tier: db-custom-1-3840
