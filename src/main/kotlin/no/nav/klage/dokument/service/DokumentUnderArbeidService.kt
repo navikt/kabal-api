@@ -87,6 +87,7 @@ class DokumentUnderArbeidService(
     private val svarbrevSettingsService: SvarbrevSettingsService,
     @Value("\${INNSYNSBEGJAERING_TEMPLATE_ID}") private val innsynsbegjaeringTemplateId: String,
     @Value("\${ORGANISASJONSNUMMER_TRYGDERETTEN}") private val organisasjonsnummerTrygderetten: String,
+    @Value("\${spring.profiles.active:}") private val activeSpringProfile: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -1248,6 +1249,10 @@ class DokumentUnderArbeidService(
 
         if (hovedDokument !is DokumentUnderArbeidAsHoveddokument) {
             throw RuntimeException("document is not hoveddokument")
+        }
+
+        if (hovedDokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN && activeSpringProfile != "dev-gcp") {
+            throw DokumentValidationException("Ekspedisjonsbrev til Trygderetten er ikke tilgjengelig i prod enda.")
         }
 
         hovedDokument.journalfoerendeEnhetId = if (systemContext) {
