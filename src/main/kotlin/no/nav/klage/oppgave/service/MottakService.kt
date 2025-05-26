@@ -304,7 +304,10 @@ class MottakService(
 
         val mottak = mottakRepository.save(input.toMottak())
 
-        secureLogger.debug("Har lagret følgende mottak basert på en CreateOmgjoeringskravBasedOnJournalpostInput: {}", mottak)
+        secureLogger.debug(
+            "Har lagret følgende mottak basert på en CreateOmgjoeringskravBasedOnJournalpostInput: {}",
+            mottak
+        )
         logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak = mottak, isBasedOnJournalpost = true)
@@ -372,7 +375,13 @@ class MottakService(
                 }
             }
             .flatMap { it.mottakDokument }
-            .filter { it.type in listOf(MottakDokumentType.BRUKERS_ANKE, MottakDokumentType.BRUKERS_KLAGE) }
+            .filter {
+                it.type in listOf(
+                    MottakDokumentType.BRUKERS_ANKE,
+                    MottakDokumentType.BRUKERS_KLAGE,
+                    MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
+                )
+            }
             .map { it.journalpostId }.toSet().toList()
     }
 
@@ -439,7 +448,10 @@ class MottakService(
         validateKildeReferanse(kildeReferanse)
         validateEnhet(forrigeBehandlendeEnhet)
         prosessfullmektig?.let { validateProsessfullmektig(it) }
-        validateParts(sakenGjelderIdentifikator = sakenGjelder.id.verdi, prosessfullmektigIdentifikator = prosessfullmektig?.id?.verdi)
+        validateParts(
+            sakenGjelderIdentifikator = sakenGjelder.id.verdi,
+            prosessfullmektigIdentifikator = prosessfullmektig?.id?.verdi
+        )
     }
 
     fun validateParts(sakenGjelderIdentifikator: String, prosessfullmektigIdentifikator: String?) {

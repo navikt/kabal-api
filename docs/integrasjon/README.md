@@ -36,7 +36,7 @@ Dokumentasjon fra nais: https://security.labs.nais.io/pages/guide/api-kall/maski
 ### Oversendelse til kabal-api
 
 ```
-POST <kabal-api-url>/oversendelse/v3/sak <oversendt-klage-json>
+POST <kabal-api-url>/oversendelse/v4/sak <oversendt-klage-json>
 ```
 
 - DEV-url: `https://kabal-api.intern.dev.nav.no`
