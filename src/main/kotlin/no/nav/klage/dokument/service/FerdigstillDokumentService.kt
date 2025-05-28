@@ -14,7 +14,7 @@ import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.KafkaInternalEventService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.hibernate.Hibernate
 import org.springframework.scheduling.annotation.Async
@@ -37,7 +37,7 @@ class FerdigstillDokumentService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
@@ -116,8 +116,8 @@ class FerdigstillDokumentService(
             )
 
         } catch (e: Exception) {
-            logger.error("Could not 'ferdigstillHovedDokumenter' with dokumentEnhetId: ${updatedDokument.dokumentEnhetId}. See secure logs.")
-            secureLogger.error(
+            logger.error("Could not 'ferdigstillHovedDokumenter' with dokumentEnhetId: ${updatedDokument.dokumentEnhetId}. See team-logs for more details.")
+            teamLogger.error(
                 "Could not 'ferdigstillHovedDokumenter' with dokumentEnhetId: ${updatedDokument.dokumentEnhetId}",
                 e
             )

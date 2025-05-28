@@ -21,7 +21,6 @@ import no.nav.klage.oppgave.service.DokDistKanalService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.getSortKey
 import org.hibernate.Hibernate
 import org.springframework.stereotype.Component
@@ -39,7 +38,6 @@ class DokumentMapper(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     @Suppress("UNCHECKED_CAST")

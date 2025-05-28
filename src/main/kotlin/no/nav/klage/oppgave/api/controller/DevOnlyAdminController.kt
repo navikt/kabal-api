@@ -88,17 +88,6 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @PostMapping("/isskjermetdev")
-    @ResponseStatus(HttpStatus.OK)
-    fun isSkjermet(
-        @RequestBody input: Fnr
-    ) {
-        logger.debug("isSkjermet in dev is called")
-
-        adminService.isSkjermet(input.fnr)
-    }
-
-    @Unprotected
     @PostMapping("/migratedvh")
     fun migrateDvhEvents() {
         logger.debug("migrateDvhEvents is called")

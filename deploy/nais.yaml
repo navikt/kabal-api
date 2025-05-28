@@ -77,8 +77,6 @@ spec:
   prometheus:
     enabled: true
     path: /internal/prometheus
-  secureLogs:
-    enabled: true
   tokenx:
     enabled: true
   accessPolicy:
@@ -103,6 +101,8 @@ spec:
         - application: kabal-file-api
         - application: kabal-json-to-pdf
         - application: clamav
+          namespace: nais-system
+        - application: logging
           namespace: nais-system
       external:
       {{#each externalHosts}}

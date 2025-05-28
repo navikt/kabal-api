@@ -16,7 +16,6 @@ import no.nav.klage.oppgave.repositories.ForlengetBehandlingstidDraftRepository
 import no.nav.klage.oppgave.util.findDateBasedOnTimeUnitTypeAndUnits
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
-import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -37,7 +36,6 @@ class ForlengetBehandlingstidDraftService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun getOrCreateForlengetBehandlingstidDraft(behandlingId: UUID): ForlengetBehandlingstidDraftView {

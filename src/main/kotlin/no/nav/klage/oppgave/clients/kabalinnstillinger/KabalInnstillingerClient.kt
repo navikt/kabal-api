@@ -4,7 +4,6 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.*
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
@@ -21,7 +20,6 @@ class KabalInnstillingerClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun getTildelteYtelserForEnhet(enhet: String): TildelteYtelserResponse {
@@ -34,7 +32,11 @@ class KabalInnstillingerClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getTildelteYtelserForEnhet.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getTildelteYtelserForEnhet.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<TildelteYtelserResponse>()
             .block() ?: throw RuntimeException("Could not get tildelte ytelser for enhet $enhet")
@@ -50,7 +52,11 @@ class KabalInnstillingerClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getSaksbehandlersTildelteYtelser.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getSaksbehandlersTildelteYtelser.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<SaksbehandlerAccess>()
             .block() ?: throw RuntimeException("Could not get tildelte ytelser")
@@ -66,7 +72,11 @@ class KabalInnstillingerClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getSaksbehandlersTildelteYtelser.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getSaksbehandlersTildelteYtelser.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<SaksbehandlerAccess>()
             .block() ?: throw RuntimeException("Could not get tildelte ytelser")
@@ -87,7 +97,11 @@ class KabalInnstillingerClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getHjemmelIdsForYtelse.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getHjemmelIdsForYtelse.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<Set<String>>()
             .block() ?: throw RuntimeException("Could not get hjemler for ytelse")
@@ -105,7 +119,11 @@ class KabalInnstillingerClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::searchMedunderskrivere.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::searchMedunderskrivere.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<Medunderskrivere>()
             .block() ?: throw RuntimeException("Could not search medunderskrivere")
@@ -123,7 +141,11 @@ class KabalInnstillingerClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::searchSaksbehandlere.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::searchSaksbehandlere.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<Saksbehandlere>()
             .block() ?: throw RuntimeException("Could not search saksbehandlere")
@@ -141,7 +163,11 @@ class KabalInnstillingerClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::searchROL.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::searchROL.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<Saksbehandlere>()
             .block() ?: throw RuntimeException("Could not search rol")

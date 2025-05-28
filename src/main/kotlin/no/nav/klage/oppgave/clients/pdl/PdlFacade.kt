@@ -4,7 +4,7 @@ import no.nav.klage.oppgave.clients.pdl.graphql.*
 import no.nav.klage.oppgave.exceptions.PDLErrorException
 import no.nav.klage.oppgave.exceptions.PDLPersonNotFoundException
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.stereotype.Component
 
 @Component
@@ -17,7 +17,7 @@ class PdlFacade(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     fun getPersonInfo(fnr: String): Person {
@@ -52,8 +52,8 @@ class PdlFacade(
         if (this.errors.isNullOrEmpty() && this.data != null && this.data.hentPerson != null) {
             this.data.hentPerson
         } else {
-            logger.warn("Errors returned from PDL or person not found. See securelogs for details.")
-            secureLogger.warn("Errors returned for hentPerson($fnr) from PDL: ${this.errors}")
+            logger.warn("Errors returned from PDL or person not found. See team-logs for details.")
+            teamLogger.warn("Errors returned for hentPerson($fnr) from PDL: ${this.errors}")
             if (this.errors?.any { it.extensions.code == "not_found" } == true) {
                 throw PDLPersonNotFoundException("Fant ikke personen i PDL")
             }

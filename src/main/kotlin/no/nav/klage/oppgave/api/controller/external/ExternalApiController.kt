@@ -10,7 +10,7 @@ import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.ExternalMottakFacade
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -33,7 +33,7 @@ class ExternalApiController(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     @Operation(
@@ -98,7 +98,8 @@ class ExternalApiController(
     fun sendInnAnkeITrygderettenV1(
         @Valid @RequestBody oversendtAnkeITrygderetten: OversendtAnkeITrygderettenV1
     ) {
-        secureLogger.debug("Ankeitrygderetten data $oversendtAnkeITrygderetten sent to Kabal")
+        logger.debug("Received ankeitrygderetten data")
+        teamLogger.debug("Ankeitrygderetten data sent to Kabal: {}", oversendtAnkeITrygderetten)
         ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFromExternalApi(oversendtAnkeITrygderetten)
     }
 }

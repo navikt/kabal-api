@@ -6,7 +6,7 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.exceptions.GosysOppgaveClientException
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.HttpHeaders
@@ -25,7 +25,7 @@ class GosysOppgaveClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val securelogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     fun getGosysOppgave(gosysOppgaveId: Long, systemContext: Boolean): GosysOppgaveRecord {
@@ -148,8 +148,8 @@ class GosysOppgaveClient(
         try {
             return function.invoke()
         } catch (ex: WebClientResponseException) {
-            logger.warn("Caught WebClientResponseException, see securelogs for details")
-            securelogger.error(
+            logger.warn("Caught WebClientResponseException, see team-logs for details")
+            teamLogger.error(
                 "Got a {} error calling Oppgave {} {} with message {}",
                 ex.statusCode,
                 ex.request?.method ?: "-",

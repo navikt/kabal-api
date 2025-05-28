@@ -424,7 +424,7 @@ class OppgaveServiceTest {
 
         behandlingRepository.saveAll(listOf(klagebehandling1, klagebehandling2, klagebehandling3))
 
-        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR) } returns Access(true)
+        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR) } returns Access(true, "Test")
         every { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR2) } returns Access(
             access = false,
             reason = "Ikke tilgang"

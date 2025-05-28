@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.clients.pdl.graphql
 
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
@@ -21,7 +20,6 @@ class PdlClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun <T> runWithTiming(block: () -> T): T {
@@ -43,7 +41,11 @@ class PdlClient(
                 .bodyValue(hentPersonQuery(fnr))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::getPersonInfo.name, secureLogger)
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getPersonInfo.name,
+                        classLogger = logger,
+                    )
                 }
                 .bodyToMono<HentPersonResponse>()
                 .block() ?: throw RuntimeException("Person not found")
@@ -59,7 +61,11 @@ class PdlClient(
                 .bodyValue(query)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::getIdents.name, secureLogger)
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getIdents.name,
+                        classLogger = logger,
+                    )
                 }
                 .bodyToMono<HentIdenterResponse>()
                 .block() ?: throw RuntimeException("Person not found")
@@ -74,7 +80,11 @@ class PdlClient(
                 .bodyValue(hentAktorIdQuery(fnr))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::hentAktoerIdent.name, secureLogger)
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::hentAktoerIdent.name,
+                        classLogger = logger,
+                    )
                 }
                 .bodyToMono<HentIdenterResponse>()
                 .block()?.data?.hentIdenter?.identer?.firstOrNull()?.ident ?: throw RuntimeException("Person not found")
