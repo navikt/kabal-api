@@ -1,7 +1,6 @@
 TENANT_ID: 966ac572-f5b7-4bbe-aa88-c76419c0f851
 PDL_BASE_URL: https://pdl-api.dev-fss-pub.nais.io/graphql
 PDL_SCOPE: dev-fss.pdl.pdl-api
-SKJERMEDE_BASE_URL: https://skjermede-personer-pip.dev.intern.nav.no
 
 NORG2_API_V1_URL: https://norg2.intern.dev.nav.no/norg2/api/v1
 PROXY_APP_CLIENT_ID: c6050231-3b9f-4173-8d1e-39b7e6e3392e

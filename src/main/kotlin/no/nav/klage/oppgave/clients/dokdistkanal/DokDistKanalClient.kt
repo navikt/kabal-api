@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.clients.dokdistkanal
 
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
@@ -18,7 +17,6 @@ class DokDistKanalClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun getDistribusjonskanal(input: Request): BestemDistribusjonskanalResponse {
@@ -32,7 +30,11 @@ class DokDistKanalClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getDistribusjonskanal.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getDistribusjonskanal.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<BestemDistribusjonskanalResponse>()
             .block() ?: throw RuntimeException("Null response from getDistribusjonskanal")
@@ -49,7 +51,11 @@ class DokDistKanalClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getDistribusjonskanal.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getDistribusjonskanal.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<BestemDistribusjonskanalResponse>()
             .block() ?: throw RuntimeException("Null response from getDistribusjonskanal")

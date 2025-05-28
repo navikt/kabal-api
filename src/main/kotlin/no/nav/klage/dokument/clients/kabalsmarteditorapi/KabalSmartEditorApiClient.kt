@@ -9,7 +9,6 @@ import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDoc
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentVersionResponse
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
@@ -27,7 +26,6 @@ class KabalSmartEditorApiClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun createDocument(
@@ -50,7 +48,11 @@ class KabalSmartEditorApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::createDocument.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::createDocument.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<SmartDocumentResponse>()
             .block() ?: throw RuntimeException("Document could not be created")
@@ -78,7 +80,11 @@ class KabalSmartEditorApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::updateDocument.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::updateDocument.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<SmartDocumentResponse>()
             .block() ?: throw RuntimeException("Document could not be updated")
@@ -95,7 +101,11 @@ class KabalSmartEditorApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getDocument.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getDocument.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<SmartDocumentResponse>()
             .block() ?: throw RuntimeException("Document could not be retrieved")
@@ -113,7 +123,11 @@ class KabalSmartEditorApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getDocument.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getDocument.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<SmartDocumentResponse>()
             .block() ?: throw RuntimeException("Document could not be retrieved")
@@ -130,7 +144,11 @@ class KabalSmartEditorApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::deleteDocument.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::deleteDocument.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<Unit>()
             .block()
@@ -147,7 +165,11 @@ class KabalSmartEditorApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::deleteDocumentAsSystemUser.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::deleteDocumentAsSystemUser.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<Unit>()
             .block()
@@ -164,7 +186,11 @@ class KabalSmartEditorApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getDocument.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getDocument.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<List<SmartDocumentVersionResponse>>()
             .block() ?: throw RuntimeException("Document versions could not be retrieved")
@@ -184,7 +210,11 @@ class KabalSmartEditorApiClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::createComment.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::createComment.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<CommentOutput>()
             .block() ?: throw RuntimeException("Comment could not be created")
@@ -201,7 +231,11 @@ class KabalSmartEditorApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getAllCommentsWithPossibleThreads.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getAllCommentsWithPossibleThreads.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<List<CommentOutput>>()
             .block() ?: throw RuntimeException("Comments could not be retrieved")
@@ -222,7 +256,11 @@ class KabalSmartEditorApiClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::replyToComment.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::replyToComment.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<CommentOutput>()
             .block() ?: throw RuntimeException("Comment could not be replied to")
@@ -240,7 +278,11 @@ class KabalSmartEditorApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getCommentWithPossibleThread.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getCommentWithPossibleThread.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<CommentOutput>()
             .block() ?: throw RuntimeException("Comment could not be retrieved")
@@ -264,7 +306,11 @@ class KabalSmartEditorApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::deleteCommentWithPossibleThread.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::deleteCommentWithPossibleThread.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<CommentOutput>()
             .block() ?: throw RuntimeException("Comment could not be deleted")
@@ -285,7 +331,11 @@ class KabalSmartEditorApiClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::modifyComment.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::modifyComment.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<CommentOutput>()
             .block() ?: throw RuntimeException("Comment could not be modified")

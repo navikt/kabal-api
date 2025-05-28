@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.clients.saf.rest
 
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
@@ -29,7 +28,6 @@ class SafRestClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     @Retryable
@@ -55,7 +53,11 @@ class SafRestClient(
                     )
                     .retrieve()
                     .onStatus(HttpStatusCode::isError) { response ->
-                        logErrorResponse(response, ::getDokument.name, secureLogger)
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getDokument.name,
+                            classLogger = logger,
+                        )
                     }
                     .toEntityFlux(DataBuffer::class.java)
                     .flatMap { entity ->
@@ -104,7 +106,11 @@ class SafRestClient(
                     )
                     .retrieve()
                     .onStatus(HttpStatusCode::isError) { response ->
-                        logErrorResponse(response, ::downloadDocumentAsMono.name, secureLogger)
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::downloadDocumentAsMono.name,
+                            classLogger = logger,
+                        )
                     }
                     .bodyToFlux(DataBuffer::class.java)
 

@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.clients.ereg
 
 import no.nav.klage.oppgave.exceptions.EREGOrganizationNotFoundException
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatusCode
@@ -24,7 +23,6 @@ class EregClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun hentNoekkelInformasjonOmOrganisasjon(orgnummer: String): NoekkelInfoOmOrganisasjon {
@@ -45,8 +43,11 @@ class EregClient(
                     }
 
                     else -> {
-                        logErrorResponse(response, ::hentNoekkelInformasjonOmOrganisasjon.name, secureLogger)
-                        Mono.error(RuntimeException("Ukjent feil ved henting av nøkkelinfo om organisasjon $orgnummer"))
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::hentNoekkelInformasjonOmOrganisasjon.name,
+                            classLogger = logger,
+                        )
                     }
                 }
             }

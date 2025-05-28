@@ -50,8 +50,11 @@ inboundApplications:
   - application: tokenx-token-generator
     namespace:  aura
     cluster: dev-gcp
-  - application: dp-saksbehandling
+  - application: dp-behov-send-til-ka
     namespace: teamdagpenger
+    cluster: dev-gcp
+  - application: behandlingsflyt
+    namespace: aap
     cluster: dev-gcp
 springProfile: dev-gcp
 tenant: trygdeetaten.no

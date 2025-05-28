@@ -3,11 +3,9 @@ package no.nav.klage.oppgave.clients.kabaldocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Innholdsfortegnelse
-import no.nav.klage.oppgave.clients.kabaldocument.model.request.UpdateTitleInput
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFullfoerOutput
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -20,7 +18,6 @@ class KabalDocumentGateway(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun createKomplettDokumentEnhet(

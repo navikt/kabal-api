@@ -13,7 +13,6 @@ import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
@@ -41,7 +40,6 @@ class CleanupAfterBehandlingEventListener(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
         private val objectMapperBehandlingEvents = ObjectMapper().registerModule(JavaTimeModule()).configure(
             SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false
         )
@@ -79,7 +77,7 @@ class CleanupAfterBehandlingEventListener(
                     try {
                         meldingRepository.delete(melding)
                     } catch (exception: Exception) {
-                        secureLogger.error("Could not delete melding with id ${melding.id}", exception)
+                        logger.error("Could not delete melding with id ${melding.id}", exception)
                     }
                 }
         } else if (behandlingEndretEvent.endringslogginnslag.any { it.felt == Felt.FEILREGISTRERING } && behandling.feilregistrering != null) {

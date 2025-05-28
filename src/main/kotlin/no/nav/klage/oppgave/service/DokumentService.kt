@@ -31,7 +31,7 @@ import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.repositories.MergedDocumentRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.io.MemoryUsageSetting
@@ -74,7 +74,7 @@ class DokumentService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
@@ -92,19 +92,6 @@ class DokumentService(
                     pageSize,
                     previousPageRef
                 )
-
-            //Attempt to track down elusive bug with repeated documents
-            val uniqueJournalposter = dokumentoversiktBruker.journalposter.map { it.journalpostId }.toSet()
-            if (uniqueJournalposter.size != dokumentoversiktBruker.journalposter.size) {
-                secureLogger.error(
-                    "Received list of non unique documents from SAF.\nUnique list: ${
-                        uniqueJournalposter.joinToString()
-                    }. " + "\nFull list: ${
-                        dokumentoversiktBruker.journalposter.joinToString { it.journalpostId }
-                    }" + "\nParams: fnr: ${behandling.sakenGjelder.partId.value}, behandlingId: ${behandling.id}, " +
-                            "temaer: ${temaer.joinToString()}, pageSize: $pageSize, previousPageRef: $previousPageRef"
-                )
-            }
 
             val dokumentReferanseList = dokumentoversiktBruker.journalposter.map { journalpost ->
                 dokumentMapper.mapJournalpostToDokumentReferanse(
@@ -240,7 +227,7 @@ class DokumentService(
                 document.save(tmpFile)
                 document.close()
             }
-            secureLogger.debug("changeTitleInPDF with title $title took $timeMillis ms")
+            logger.debug("changeTitleInPDF took $timeMillis ms")
 
             if (resource is FileSystemResource) {
                 resource.file.delete()
@@ -248,7 +235,8 @@ class DokumentService(
 
             return FileSystemResource(tmpFile)
         } catch (e: Exception) {
-            secureLogger.warn("Unable to change title for pdf content", e)
+            logger.warn("Unable to change titleInPDF. See more details in team-logs.")
+            teamLogger.warn("Unable to change title in pdf", e)
             return resource
         }
     }

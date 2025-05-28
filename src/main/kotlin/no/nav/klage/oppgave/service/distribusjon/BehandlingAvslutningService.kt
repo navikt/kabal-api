@@ -17,7 +17,7 @@ import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -42,7 +42,7 @@ class BehandlingAvslutningService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
         private val objectMapperBehandlingEvents = ObjectMapper().registerModule(JavaTimeModule()).configure(
             SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false
         )
@@ -70,8 +70,8 @@ class BehandlingAvslutningService(
             privateAvsluttBehandling(behandlingId)
 
         } catch (e: Exception) {
-            logger.error("Feilet under avslutning av behandling $behandlingId. Se mer i secure log")
-            secureLogger.error("Feilet under avslutning av behandling $behandlingId", e)
+            logger.error("Feilet under avslutning av behandling $behandlingId. Se mer i team-logs")
+            teamLogger.error("Feilet under avslutning av behandling $behandlingId", e)
             throw e
         }
     }

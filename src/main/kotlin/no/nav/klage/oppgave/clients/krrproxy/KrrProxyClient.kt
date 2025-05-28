@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.clients.krrproxy
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.HttpHeaders
@@ -22,7 +22,7 @@ class KrrProxyClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     @Cacheable(CacheWithJCacheConfiguration.KRR_INFO_CACHE)
@@ -30,7 +30,8 @@ class KrrProxyClient(
         val krrProxyResponse =
             getDigitalKontaktinformasjon(fnr = fnr, token = tokenUtil.getOnBehalfOfTokenWithKrrProxyScope())
         if (krrProxyResponse?.feil?.get(fnr) != null) {
-            logger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
+            logger.error("Error from KRR. Returning null. See team-logs for more details.")
+            teamLogger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
             return null
         } else return krrProxyResponse?.personer?.get(fnr)
     }
@@ -40,7 +41,8 @@ class KrrProxyClient(
         val krrProxyResponse =
             getDigitalKontaktinformasjon(fnr = fnr, token = tokenUtil.getAppAccessTokenWithKrrProxyScope())
         if (krrProxyResponse?.feil?.get(fnr) != null) {
-            logger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
+            logger.error("Error from KRR. Returning null. See team-logs for more details.")
+            teamLogger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
             return null
         } else return krrProxyResponse?.personer?.get(fnr)
     }
@@ -57,7 +59,11 @@ class KrrProxyClient(
             .bodyValue(KrrProxyRequest(personidenter = setOf(fnr)))
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getDigitalKontaktinformasjon.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getDigitalKontaktinformasjon.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<KrrProxyResponse>()
             .onErrorResume { Mono.empty() }

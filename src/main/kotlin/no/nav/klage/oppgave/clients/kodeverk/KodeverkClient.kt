@@ -4,7 +4,6 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.exceptions.KodeverkNotFoundException
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.http.HttpHeaders
@@ -24,7 +23,6 @@ class KodeverkClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     @Cacheable(CacheWithJCacheConfiguration.POSTSTEDER_CACHE)
@@ -45,7 +43,11 @@ class KodeverkClient(
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::getPoststeder.name, secureLogger)
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getPoststeder.name,
+                        classLogger = logger,
+                    )
                 }
                 .bodyToMono<KodeverkResponse>()
                 .block() ?: throw KodeverkNotFoundException("Search for Postnummer kodeverk returned null.")
@@ -82,7 +84,11 @@ class KodeverkClient(
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::getPoststeder.name, secureLogger)
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getPoststeder.name,
+                        classLogger = logger,
+                    )
                 }
                 .bodyToMono<KodeverkResponse>()
                 .block() ?: throw KodeverkNotFoundException("Search for Landkoder kodeverk returned null.")

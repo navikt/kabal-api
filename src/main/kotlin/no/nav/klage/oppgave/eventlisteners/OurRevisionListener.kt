@@ -4,7 +4,6 @@ import io.opentelemetry.api.trace.Span
 import no.nav.klage.oppgave.domain.OurRevision
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import org.hibernate.envers.RevisionListener
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -20,7 +19,6 @@ class OurRevisionListener(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val securelogger = getSecureLogger()
     }
 
     override fun newRevision(revisionEntity: Any?) {

@@ -13,7 +13,7 @@
             </encoder>
         </appender>
 
-        <logger name="secure" level="debug" additivity="false">
+        <logger name="team-logs" level="debug" additivity="false">
             <appender-ref ref="text"/>
         </logger>
 
@@ -42,19 +42,16 @@
             <appender-ref ref="audit"/>
         </logger>
 
-        <appender name="secureJson" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>/secure-logs/secure.log</file>
-            <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-                <fileNamePattern>/secure-logs/secure.log.%d{yyyy-MM-dd}.%i</fileNamePattern>
-                <maxHistory>30</maxHistory>
-                <maxFileSize>26MB</maxFileSize>
-                <totalSizeCap>100MB</totalSizeCap>
-            </rollingPolicy>
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        <appender name="team-logs" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>team-logs.nais-system:5170</destination>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"google_cloud_project":"${GOOGLE_CLOUD_PROJECT}","nais_namespace_name":"${NAIS_NAMESPACE}","nais_pod_name":"${HOSTNAME}","nais_container_name":"${NAIS_APP_NAME}"}</customFields>
+                <includeContext>false</includeContext>
+            </encoder>
         </appender>
 
-        <logger name="secure" level="debug" additivity="false">
-            <appender-ref ref="secureJson"/>
+        <logger name="team-logs" level="debug" additivity="false">
+            <appender-ref ref="team-logs"/>
         </logger>
 
         <appender name="json" class="ch.qos.logback.core.ConsoleAppender">
@@ -66,17 +63,13 @@
         </root>
 
         <logger name="org.springframework.web.filter.CommonsRequestLoggingFilter" level="debug" additivity="false">
-            <appender-ref ref="secureJson"/>
-        </logger>
-
-        <logger name="reactor.netty.http.client" level="info" additivity="false">
-            <appender-ref ref="secureJson"/>
+            <appender-ref ref="json"/>
         </logger>
 
         <logger name="org.springframework.data.convert.CustomConversions" level="error"/>
 
         <logger name="no.nav.security.token.support" level="info" additivity="false">
-            <appender-ref ref="secureJson"/>
+            <appender-ref ref="team-logs"/>
         </logger>
 
         <logger name="org.hibernate.SQL_SLOW" level="debug"/>

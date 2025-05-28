@@ -166,7 +166,7 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleEgenAnsatt() }.returns(true)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(true)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true))
+        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true, "Access granted"))
     }
 
     @Test
@@ -182,7 +182,7 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleStrengtFortrolig() }.returns(false)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(false)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true))
+        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true, "Access granted"))
     }
 
     @Test
@@ -215,7 +215,7 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleStrengtFortrolig() }.returns(false)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(true)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true))
+        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true, "Access granted"))
     }
 }
 

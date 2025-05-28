@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import java.util.*
@@ -14,20 +14,19 @@ class KafkaProducer(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     fun publishToKafkaTopic(klagebehandlingId: UUID, json: String, topic: String) {
         logger.debug("Sending to Kafka topic: {}", topic)
-        secureLogger.debug("Sending to Kafka topic: {}\npayload: {}", topic, json)
         runCatching {
             aivenKafkaTemplate.send(topic, klagebehandlingId.toString(), json).get()
             logger.debug("Payload sent to Kafka.")
         }.onFailure {
             val errorMessage =
-                "Could not send payload to Kafka. Check secure logs for more information."
+                "Could not send payload to Kafka. Check team-logs for more information."
             logger.error(errorMessage)
-            secureLogger.error("Could not send payload to Kafka", it)
+            teamLogger.error("Could not send payload to Kafka", it)
         }
     }
 }

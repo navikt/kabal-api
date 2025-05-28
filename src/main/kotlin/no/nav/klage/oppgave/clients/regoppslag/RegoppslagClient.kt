@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.clients.regoppslag
 
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
@@ -20,7 +19,6 @@ class RegoppslagClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun getMottakerOgAdresse(input: Request, token: String): HentMottakerOgAdresseResponse? {
@@ -34,7 +32,11 @@ class RegoppslagClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getMottakerOgAdresse.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getMottakerOgAdresse.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<HentMottakerOgAdresseResponse>()
             .onErrorResume { Mono.empty() }

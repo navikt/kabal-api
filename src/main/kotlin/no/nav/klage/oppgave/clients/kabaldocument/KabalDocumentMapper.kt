@@ -12,7 +12,6 @@ import no.nav.klage.oppgave.service.DokDistKanalService
 import no.nav.klage.oppgave.util.DokumentUnderArbeidTitleComparator
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
-import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
 
 @Service
@@ -25,7 +24,6 @@ class KabalDocumentMapper(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
 
         private const val BREVKODE_BREV = "BREV_FRA_KLAGEINSTANS"
         private const val BREVKODE_NOTAT = "NOTAT_FRA_KLAGEINSTANS"
