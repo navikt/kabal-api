@@ -13,7 +13,6 @@ import no.nav.klage.oppgave.domain.kafka.InternalIdentityEvent
 import no.nav.klage.oppgave.service.AivenKafkaClientCreator
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
@@ -38,7 +37,6 @@ class EventController(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     private val gaugeBehandling = meterRegistry.getGauge(

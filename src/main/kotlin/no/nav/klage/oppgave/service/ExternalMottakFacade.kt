@@ -10,7 +10,6 @@ import no.nav.klage.oppgave.domain.events.AutomaticSvarbrevEvent
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.repositories.AutomaticSvarbrevEventRepository
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
@@ -31,7 +30,6 @@ class ExternalMottakFacade(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun createMottakForKlageV2(oversendtKlage: OversendtKlageV2) {

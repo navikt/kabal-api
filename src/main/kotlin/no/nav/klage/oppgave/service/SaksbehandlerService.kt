@@ -7,7 +7,6 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
 
@@ -33,7 +32,6 @@ class SaksbehandlerService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun getEnhetForSaksbehandler(navIdent: String): Enhet {
@@ -64,9 +62,6 @@ class SaksbehandlerService(
 
     fun getAnsattInfoFromNom(navIdent: String): GetAnsattResponse {
         val ansatt = nomClient.getAnsatt(navIdent)
-        secureLogger.debug(
-            ansatt.toString()
-        )
         return ansatt
     }
 

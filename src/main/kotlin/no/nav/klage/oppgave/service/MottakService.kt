@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.service
 
 
 import io.micrometer.core.instrument.MeterRegistry
-import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
@@ -25,10 +24,9 @@ import no.nav.klage.oppgave.exceptions.PreviousBehandlingNotFinalizedException
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.klage.oppgave.util.isValidFnrOrDnr
 import no.nav.klage.oppgave.util.isValidOrgnr
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.env.Environment
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -51,10 +49,6 @@ class MottakService(
     private val createBehandlingFromMottak: CreateBehandlingFromMottak,
     private val pdlFacade: PdlFacade,
     private val eregClient: EregClient,
-    private val dokumentUnderArbeidService: DokumentUnderArbeidService,
-    private val behandlingService: BehandlingService,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembruker: String,
-    private val taskListMerkantilRepository: TaskListMerkantilRepository,
 ) {
 
     private val lovligeTyperIMottakV2 = LovligeTyper.lovligeTyper(environment)
@@ -63,18 +57,18 @@ class MottakService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     @Transactional
     fun createMottakForKlageV2(oversendtKlage: OversendtKlageV2): Behandling {
-        secureLogger.debug("Prøver å lagre oversendtKlageV2: {}", oversendtKlage)
+        logger.debug("Prøver å lagre oversendtKlageV2. Se team-logs for detaljer.")
+        teamLogger.debug("Prøver å lagre oversendtKlageV2: {}", oversendtKlage)
         oversendtKlage.validate()
 
         val mottak = mottakRepository.save(oversendtKlage.toMottak())
 
-        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlage: {}", mottak)
-        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+        logger.debug("Har opprettet mottak med id {}", mottak.id)
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
@@ -89,12 +83,12 @@ class MottakService(
 
     @Transactional
     fun createMottakForKlageAnkeV3(oversendtKlageAnke: OversendtKlageAnkeV3): Behandling {
-        secureLogger.debug("Prøver å lagre oversendtKlageAnkeV3: {}", oversendtKlageAnke)
+        logger.debug("Prøver å lagre oversendtKlageAnkeV3. Se team-logs for detaljer.")
+        teamLogger.debug("Prøver å lagre oversendtKlageAnkeV3: {}", oversendtKlageAnke)
 
         val mottak = validateAndSaveMottak(oversendtKlageAnke)
 
-        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlageAnke: {}", mottak)
-        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+        logger.debug("Har opprettet mottak med id {}", mottak.id)
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
@@ -108,12 +102,12 @@ class MottakService(
 
     @Transactional
     fun createMottakForKlageAnkeV4(oversendtKlageAnke: OversendtKlageAnkeV4): Behandling {
-        secureLogger.debug("Prøver å lagre oversendtKlageAnkeV4: {}", oversendtKlageAnke)
+        logger.debug("Prøver å lagre oversendtKlageAnkeV4. Se team-logs for detaljer.")
+        teamLogger.debug("Prøver å lagre oversendtKlageAnkeV4: {}", oversendtKlageAnke)
 
         val mottak = validateAndSaveMottak(oversendtKlageAnke)
 
-        secureLogger.debug("Har lagret følgende mottak basert på en oversendtKlageAnke: {}", mottak)
-        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+        logger.debug("Har opprettet mottak med id {}", mottak.id)
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
@@ -276,14 +270,14 @@ class MottakService(
 
     @Transactional
     fun createAnkeMottakFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): Behandling {
-        secureLogger.debug("Prøver å lage mottak fra anke fra Kabin: {}", input)
+        logger.debug("Prøver å lage mottak fra anke fra Kabin. Se team-logs for detaljer.")
+        teamLogger.debug("Prøver å lage mottak fra anke fra Kabin: {}", input)
 
         input.validate()
 
         val mottak = mottakRepository.save(input.toMottak())
 
-        secureLogger.debug("Har lagret følgende mottak basert på en CreateAnkeBasedOnCompleteKabinInput: {}", mottak)
-        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+        logger.debug("Har opprettet mottak med id {}", mottak.id)
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 
@@ -298,17 +292,14 @@ class MottakService(
 
     @Transactional
     fun createOmgjoeringskravBasedOnJournalpost(input: CreateOmgjoeringskravBasedOnJournalpostInput): Behandling {
-        secureLogger.debug("Prøver å lage mottak fra OmgjoeringskravBasedOnJournalpost fra Kabin: {}", input)
+        logger.debug("Prøver å lage mottak fra OmgjoeringskravBasedOnJournalpost fra Kabin. Se team-logs for detaljer.")
+        teamLogger.debug("Prøver å lage mottak fra OmgjoeringskravBasedOnJournalpost fra Kabin: {}", input)
 
         input.validate()
 
         val mottak = mottakRepository.save(input.toMottak())
 
-        secureLogger.debug(
-            "Har lagret følgende mottak basert på en CreateOmgjoeringskravBasedOnJournalpostInput: {}",
-            mottak
-        )
-        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+        logger.debug("Har opprettet mottak med id {}", mottak.id)
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak = mottak, isBasedOnJournalpost = true)
 
@@ -323,14 +314,14 @@ class MottakService(
 
     @Transactional
     fun createKlageMottakFromKabinInput(klageInput: CreateKlageBasedOnKabinInput): Behandling {
-        secureLogger.debug("Prøver å lage mottak fra klage fra Kabin: {}", klageInput)
+        logger.debug("Prøver å lage mottak fra klage fra Kabin. Se team-logs for detaljer.")
+        teamLogger.debug("Prøver å lage mottak fra klage fra Kabin: {}", klageInput)
 
         klageInput.validate()
 
         val mottak = mottakRepository.save(klageInput.toMottak())
 
-        secureLogger.debug("Har lagret følgende mottak basert på en CreateKlageBasedOnKabinInput: {}", mottak)
-        logger.debug("Har lagret mottak {}, publiserer nå event", mottak.id)
+        logger.debug("Har opprettet mottak med id {}", mottak.id)
 
         val behandling = createBehandlingFromMottak.createBehandling(mottak)
 

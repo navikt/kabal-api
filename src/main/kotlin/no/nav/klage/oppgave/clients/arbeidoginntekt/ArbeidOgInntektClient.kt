@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.clients.arbeidoginntekt
 
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
@@ -17,7 +16,6 @@ class ArbeidOgInntektClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun getAInntektUrl(
@@ -31,7 +29,11 @@ class ArbeidOgInntektClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getAInntektUrl.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getAInntektUrl.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<String>()
             .block() ?: throw RuntimeException("No AInntekt url returned")
@@ -48,7 +50,11 @@ class ArbeidOgInntektClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getAARegisterUrl.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getAARegisterUrl.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<String>()
             .block() ?: throw RuntimeException("No AAreg url returned")

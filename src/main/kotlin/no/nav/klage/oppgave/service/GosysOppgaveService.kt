@@ -20,7 +20,6 @@ import no.nav.klage.oppgave.exceptions.GosysOppgaveClientException
 import no.nav.klage.oppgave.exceptions.GosysOppgaveNotEditableException
 import no.nav.klage.oppgave.exceptions.IllegalOperation
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -42,7 +41,6 @@ class GosysOppgaveService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val securelogger = getSecureLogger()
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
 
         const val ENDRET_AV_ENHETSNR_SYSTEM = "9999"

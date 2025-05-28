@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.clients.saf.graphql
 
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
@@ -24,7 +24,7 @@ class SafGraphQlClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     @Retryable
@@ -45,7 +45,11 @@ class SafGraphQlClient(
                 .bodyValue(hentDokumentoversiktBrukerQuery(fnr, tema, pageSize, previousPageRef))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::getDokumentoversiktBrukerAsSaksbehandler.name, secureLogger)
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getDokumentoversiktBrukerAsSaksbehandler.name,
+                        classLogger = logger,
+                    )
                 }
                 .bodyToMono<DokumentoversiktBrukerResponse>()
                 .block()
@@ -135,7 +139,11 @@ class SafGraphQlClient(
                 .bodyValue(hentJournalpostQuery(journalpostId))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, "getJournalpostWithTokenAsMono", secureLogger)
+                    logErrorResponse(
+                        response = response,
+                        functionName = "getJournalpostWithTokenAsMono",
+                        classLogger = logger,
+                    )
                 }
                 .bodyToMono<JournalpostResponse>()
         } catch (e: Exception) {
@@ -157,7 +165,11 @@ class SafGraphQlClient(
             .bodyValue(hentJournalpostQuery(journalpostId))
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, "getJournalpost", secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = "getJournalpost",
+                    classLogger = logger,
+                )
             }
             .bodyToMono<JournalpostResponse>()
             .block()?.data?.journalpost ?: throw RuntimeException("Got null from SAF for journalpost with id $journalpostId")
@@ -183,8 +195,8 @@ class SafGraphQlClient(
         previousPageRef: String?
     ) {
         if (response.errors != null) {
-            logger.error("Error from SAF, see securelogs")
-            secureLogger.error("Error from SAF when making call with following parameters: fnr=$fnr, pagesize=$pageSize, previousPageRef=$previousPageRef. Error is ${response.errors}")
+            logger.error("Error from SAF, see more details in team-logs")
+            teamLogger.error("Error from SAF when making call with following parameters: fnr=$fnr, pagesize=$pageSize, previousPageRef=$previousPageRef. Error is ${response.errors}")
         }
     }
 
@@ -192,8 +204,8 @@ class SafGraphQlClient(
         response: JournalpostResponse,
     ) {
         if (response.errors != null) {
-            logger.error("Error from SAF, see securelogs")
-            secureLogger.error("Error from SAF when making call. Response is $response, error is ${response.errors}")
+            logger.error("Error from SAF, see more details in team-logs")
+            teamLogger.error("Error from SAF when making call. Response is $response, error is ${response.errors}")
         }
     }
 

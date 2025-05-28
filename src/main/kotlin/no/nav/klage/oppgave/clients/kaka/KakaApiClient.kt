@@ -5,7 +5,6 @@ import no.nav.klage.oppgave.clients.kaka.model.response.KakaOutput
 import no.nav.klage.oppgave.clients.kaka.model.response.ValidationErrors
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
@@ -23,7 +22,6 @@ class KakaApiClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun createKvalitetsvurdering(kvalitetsvurderingVersion: Int): KakaOutput {
@@ -37,7 +35,11 @@ class KakaApiClient(
             .contentType(MediaType.APPLICATION_JSON)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::createKvalitetsvurdering.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::createKvalitetsvurdering.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<KakaOutput>()
             .block() ?: throw RuntimeException("Kvalitetsvurdering could not be created")
@@ -54,7 +56,11 @@ class KakaApiClient(
             .bodyValue(saksdataInput)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::finalizeBehandling.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::finalizeBehandling.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<Void>()
             .block()
@@ -69,7 +75,11 @@ class KakaApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::deleteKvalitetsvurderingV2.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::deleteKvalitetsvurderingV2.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<Void>()
             .block()
@@ -95,7 +105,11 @@ class KakaApiClient(
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getValidationErrors.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getValidationErrors.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<ValidationErrors>()
             .block() ?: throw RuntimeException("Validation errors could not be retrieved")

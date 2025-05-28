@@ -6,7 +6,6 @@ import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRe
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.SvarbrevRequest
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
@@ -22,7 +21,6 @@ class KabalJsonToPdfClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun getPDFDocument(json: String): PDFDocument {
@@ -33,7 +31,11 @@ class KabalJsonToPdfClient(
             .bodyValue(json)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getPDFDocument.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getPDFDocument.name,
+                    classLogger = logger,
+                )
             }
             .toEntity(ByteArray::class.java)
             .map {
@@ -55,7 +57,11 @@ class KabalJsonToPdfClient(
             .bodyValue(innholdsfortegnelseRequest)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getInnholdsfortegnelse.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getInnholdsfortegnelse.name,
+                    classLogger = logger,
+                )
             }
             .toEntity(ByteArray::class.java)
             .map {
@@ -76,7 +82,11 @@ class KabalJsonToPdfClient(
             .bodyValue(json)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::validateJsonDocument.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::validateJsonDocument.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<DocumentValidationResponse>()
             .block() ?: throw RuntimeException("Response null")

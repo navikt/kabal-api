@@ -4,7 +4,7 @@ import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -19,7 +19,7 @@ class KafkaDispatcher(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     @Value("\${DVH_STATISTIKK_TOPIC}")
@@ -47,8 +47,8 @@ class KafkaDispatcher(
                 }.onFailure {
                     event.status = UtsendingStatus.FEILET
                     event.errorMessage = it.message
-                    logger.error("Send $type event ${event.id} to kafka failed, see secure log for details")
-                    secureLogger.error("Send $type event ${event.id} to kafka failed. Object: $event")
+                    logger.error("Send $type event ${event.id} to kafka failed, see team-logs for details")
+                    teamLogger.error("Send $type event ${event.id} to kafka failed. Object: $event")
                 }.onSuccess {
                     event.status = UtsendingStatus.SENDT
                     event.errorMessage = null

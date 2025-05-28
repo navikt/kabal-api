@@ -8,8 +8,7 @@ import no.nav.klage.innsyn.service.InnsynService
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
-import no.nav.klage.oppgave.util.logMethodDetails
+import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
@@ -41,7 +40,7 @@ class InnsynController(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     @Operation(
@@ -51,10 +50,9 @@ class InnsynController(
     @GetMapping("/saker")
     fun getSaker(): InnsynResponse {
         val identFromToken = tokenUtil.getSubjectFromTokenXToken()
-        logMethodDetails(
+        logMethodDetailsInTeamLogs(
             methodName = ::getSaker.name,
-            innloggetIdent = identFromToken,
-            logger = secureLogger,
+            innloggetBrukerFnr = identFromToken,
         )
 
         return innsynService.getSakerForBruker(fnr = identFromToken)
@@ -69,10 +67,9 @@ class InnsynController(
         @PathVariable("journalpostId") journalpostId: String,
     ): ResponseEntity<Resource> {
         val identFromToken = tokenUtil.getSubjectFromTokenXToken()
-        logMethodDetails(
+        logMethodDetailsInTeamLogs(
             methodName = ::getDocument.name,
-            innloggetIdent = identFromToken,
-            logger = secureLogger,
+            innloggetBrukerFnr = identFromToken,
         )
 
         //TODO: Samkjør dette med metoden som brukes for merging av dokument inne i Kabal
@@ -96,7 +93,13 @@ class InnsynController(
                         }
                     }
                 })
+    }
 
-
+    private fun logMethodDetailsInTeamLogs(methodName: String, innloggetBrukerFnr: String) {
+        teamLogger.debug(
+            "{} is requested by fnr {}",
+            methodName,
+            innloggetBrukerFnr,
+        )
     }
 }

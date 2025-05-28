@@ -2,7 +2,6 @@ package no.nav.klage.dokument.clients.klagefileapi
 
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
@@ -27,7 +26,6 @@ class FileApiClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     fun getDocument(id: String, systemUser: Boolean = false): Resource {
@@ -44,7 +42,11 @@ class FileApiClient(
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getDocument.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getDocument.name,
+                    classLogger = logger,
+                )
             }
             .bodyToFlux(DataBuffer::class.java)
 
@@ -68,7 +70,11 @@ class FileApiClient(
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::getDocument.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getDocument.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<String>()
             .block()!!
@@ -90,7 +96,11 @@ class FileApiClient(
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(response, ::deleteDocument.name, secureLogger)
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::deleteDocument.name,
+                        classLogger = logger,
+                    )
                 }
                 .bodyToMono<Boolean>()
                 .block()
@@ -127,7 +137,11 @@ class FileApiClient(
             .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(response, ::uploadDocument.name, secureLogger)
+                logErrorResponse(
+                    response = response,
+                    functionName = ::uploadDocument.name,
+                    classLogger = logger,
+                )
             }
             .bodyToMono<DocumentUploadedResponse>()
             .block()

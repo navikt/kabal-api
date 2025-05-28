@@ -9,7 +9,6 @@ import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import org.springframework.stereotype.Service
 
 @Service
@@ -24,7 +23,6 @@ class TilgangService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val securelogger = getSecureLogger()
     }
 
     //TODO: Denne brukes bare i tester, rydd opp ved anledning.
@@ -107,35 +105,26 @@ class TilgangService(
         val erEgenAnsatt = egenAnsattService.erEgenAnsatt(fnr)
 
         if (harBeskyttelsesbehovStrengtFortrolig) {
-            securelogger.info("erStrengtFortrolig")
+            logger.debug("erStrengtFortrolig")
             //Merk at vi ikke sjekker egenAnsatt her, strengt fortrolig trumfer det
-            if (kanBehandleStrengtFortrolig.invoke()) {
-                securelogger.info("Access granted to strengt fortrolig for $ident")
-            } else {
-                securelogger.info("Access denied to strengt fortrolig for $ident")
+            if (!kanBehandleStrengtFortrolig.invoke()) {
                 return Access(access = false, reason = "Ikke tilgang til adressebeskyttelse strengt fortrolig")
             }
         }
         if (harBeskyttelsesbehovFortrolig) {
-            securelogger.info("erFortrolig")
+            logger.debug("erFortrolig")
             //Merk at vi ikke sjekker egenAnsatt her, fortrolig trumfer det
-            if (kanBehandleFortrolig.invoke()) {
-                securelogger.info("Access granted to fortrolig for $ident")
-            } else {
-                securelogger.info("Access denied to fortrolig for $ident")
+            if (!kanBehandleFortrolig.invoke()) {
                 return Access(access = false, reason = "Ikke tilgang til adressebeskyttelse fortrolig")
             }
         }
         if (erEgenAnsatt && !(harBeskyttelsesbehovFortrolig || harBeskyttelsesbehovStrengtFortrolig)) {
-            securelogger.info("erEgenAnsatt")
+            logger.debug("erEgenAnsatt")
             //Er kun egenAnsatt, har ikke et beskyttelsesbehov i tillegg
-            if (kanBehandleEgenAnsatt.invoke()) {
-                securelogger.info("Access granted to egen ansatt for $ident")
-            } else {
-                securelogger.info("Access denied to egen ansatt for $ident")
+            if (!kanBehandleEgenAnsatt.invoke()) {
                 return Access(access = false, reason = "Ikke tilgang til egen ansatt")
             }
         }
-        return Access(access = true)
+        return Access(access = true, reason = "Access granted")
     }
 }

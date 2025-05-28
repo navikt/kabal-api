@@ -76,17 +76,6 @@ class AdminController(
         }
     }
 
-    @PostMapping("/isskjermet")
-    @ResponseStatus(HttpStatus.OK)
-    fun isSkjermet(
-        @RequestBody input: Fnr
-    ) {
-        logger.debug("isSkjermet is called")
-        krevAdminTilgang()
-
-        adminService.isSkjermet(input.fnr)
-    }
-
     @PostMapping("/migratedvhevents")
     fun migrateDvhEvents() {
         logger.debug("migrateDvhEvents is called")

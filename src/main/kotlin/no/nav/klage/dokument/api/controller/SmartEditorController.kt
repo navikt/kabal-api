@@ -10,7 +10,6 @@ import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.CommentO
 import no.nav.klage.dokument.service.SmartDocumentService
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -26,7 +25,6 @@ class SmartEditorController(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
     }
 
     @PostMapping

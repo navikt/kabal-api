@@ -25,7 +25,6 @@ import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.KafkaInternalEventService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -49,7 +48,6 @@ class SmartDocumentService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 

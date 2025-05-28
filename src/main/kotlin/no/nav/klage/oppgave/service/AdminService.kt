@@ -1,8 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.databind.node.ArrayNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
@@ -22,7 +19,6 @@ import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.SafFacade
-import no.nav.klage.oppgave.clients.skjermede.SkjermedeApiClient
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.DOK_DIST_KANAL
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHETER_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHET_CACHE
@@ -48,7 +44,6 @@ import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.util.*
 import no.nav.slackposter.SlackClient
-import org.slf4j.Logger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.data.domain.PageRequest
@@ -75,7 +70,6 @@ class AdminService(
     private val kafkaEventRepository: KafkaEventRepository,
     private val fileApiClient: FileApiClient,
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
-    private val skjermedeApiClient: SkjermedeApiClient,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val safFacade: SafFacade,
     private val saksbehandlerService: SaksbehandlerService,
@@ -84,7 +78,6 @@ class AdminService(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val tokenUtil: TokenUtil,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
-    private val taskListMerkantilRepository: TaskListMerkantilRepository,
     private val pdlFacade: PdlFacade,
     private val minsideMicrofrontendService: MinsideMicrofrontendService,
     private val kakaApiGateway: KakaApiGateway,
@@ -99,7 +92,7 @@ class AdminService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
         private val objectMapper = ourJacksonObjectMapper()
     }
 
@@ -259,18 +252,6 @@ class AdminService(
     }
 
     @Transactional
-    fun isSkjermet(fnr: String) {
-        try {
-            logger.debug("isSkjermet called")
-            val isSkjermet = skjermedeApiClient.isSkjermet(fnr)
-
-            secureLogger.debug("isSkjermet: {} for fnr {}", isSkjermet, fnr)
-        } catch (e: Exception) {
-            secureLogger.error("isSkjermet failed for fnr $fnr", e)
-        }
-    }
-
-    @Transactional
     fun migrateDvhEvents() {
         val events = kafkaEventRepository.findByType(EventType.STATS_DVH)
 
@@ -322,7 +303,7 @@ class AdminService(
             }
         }
 
-        secureLogger.debug("Expired, assigned saksbehandler: \n $saksbehandlerLogOutput")
+        logger.debug("Expired, assigned saksbehandler: \n $saksbehandlerLogOutput")
 
         val medunderskriverSet = unfinishedBehandlinger.mapNotNull { it.medunderskriver?.saksbehandlerident }.toSet()
         var medunderskriverLogOutput = ""
@@ -333,7 +314,7 @@ class AdminService(
             }
         }
 
-        secureLogger.debug("Expired, assigned medunderskriver: \n $medunderskriverLogOutput")
+        logger.debug("Expired, assigned medunderskriver: \n $medunderskriverLogOutput")
 
         val rolSet = unfinishedBehandlinger.mapNotNull { it.rolIdent }.toSet()
         var rolLogOutput = ""
@@ -344,22 +325,22 @@ class AdminService(
             }
         }
 
-        secureLogger.debug("Expired, assigned rol: \n $rolLogOutput")
+        logger.debug("Expired, assigned rol: \n $rolLogOutput")
     }
 
     @Transactional
     fun logProtected() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
-        secureLogger.debug("Checking for protected users")
+        teamLogger.debug("Checking for protected users")
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
                     val person = pdlFacade.getPersonInfo(behandling.sakenGjelder.partId.value)
                     if (person.harBeskyttelsesbehovStrengtFortrolig()) {
-                        secureLogger.debug("Protected user in behandling with id {}", behandling.id)
+                        teamLogger.debug("Protected user in behandling with id {}", behandling.id)
                     }
                 } catch (e: Exception) {
-                    secureLogger.debug("Couldn't check person", e)
+                    teamLogger.debug("Couldn't check person", e)
                 }
             }
         }
@@ -370,7 +351,7 @@ class AdminService(
     @SchedulerLock(name = "findInaccessibleBehandlinger")
     fun logInaccessibleBehandlinger() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
-        secureLogger.debug(
+        teamLogger.debug(
             "Checking for inaccessible behandlinger. Number of unfinished behandlinger: {}",
             unfinishedBehandlinger.size
         )
@@ -403,7 +384,7 @@ class AdminService(
 
 
                 } catch (e: Exception) {
-                    secureLogger.debug("Couldn't check person", e)
+                    teamLogger.debug("Couldn't check person", e)
                 }
             }
         }
@@ -416,7 +397,7 @@ class AdminService(
                     checkForUnavailableDueToHjemler(unfinishedBehandlinger = unfinishedBehandlinger)
 
         slackClient.postMessage("<!subteam^$klageBackendGroupId>: \n$resultMessage")
-        secureLogger.debug(resultMessage)
+        teamLogger.debug(resultMessage)
     }
 
     private fun checkForUnavailableDueToHjemler(unfinishedBehandlinger: List<Behandling>): String {
@@ -509,7 +490,7 @@ class AdminService(
             pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
         }
         val filteredInvalidHjemler = invalidHjemler.filter { it.second.isNotEmpty() }
-        secureLogger.debug("Invalid registreringshjemler in unfinished behandlinger: {}", filteredInvalidHjemler)
+        teamLogger.debug("Invalid registreringshjemler in unfinished behandlinger: {}", filteredInvalidHjemler)
 
         val klagebehandlinger = klagebehandlingRepository.findByKakaKvalitetsvurderingVersionIs(2)
         val klageYtelseAndHjemmelPairSet = klagebehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
@@ -517,7 +498,7 @@ class AdminService(
             pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
         }
         val filteredKlageInvalidHjemler = klageinvalidHjemler.filter { it.second.isNotEmpty() }
-        secureLogger.debug("Invalid registreringshjemler in klagebehandlinger v2: {}", filteredKlageInvalidHjemler)
+        teamLogger.debug("Invalid registreringshjemler in klagebehandlinger v2: {}", filteredKlageInvalidHjemler)
 
         val ankebehandlinger = ankebehandlingRepository.findByKakaKvalitetsvurderingVersionIs(2)
         val ankeYtelseAndHjemmelPairSet = ankebehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
@@ -525,7 +506,7 @@ class AdminService(
             pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
         }
         val filteredAnkeInvalidHjemler = ankeinvalidHjemler.filter { it.second.isNotEmpty() }
-        secureLogger.debug("Invalid registreringshjemler in ankebehandlinger v2: {}", filteredAnkeInvalidHjemler)
+        teamLogger.debug("Invalid registreringshjemler in ankebehandlinger v2: {}", filteredAnkeInvalidHjemler)
     }
 
     @Transactional
@@ -749,60 +730,4 @@ class AdminService(
 
         logger.debug("setIdOnParterWithBehandlinger is done. Processed $behandlingerSize behandlinger")
     }
-}
-
-
-fun migrateTables(fromJsonString: String?, secureLogger: Logger?): String {
-    secureLogger?.debug("fromJsonString: $fromJsonString")
-
-    val jsonNode = jacksonObjectMapper().readTree(fromJsonString)
-    val tableNodes = traverseNodesAndGetTables(jsonNode, mutableSetOf())
-
-    if (tableNodes.size > 1) {
-        secureLogger?.debug("fromJsonString had more than one table: ${tableNodes.size}")
-    }
-
-    for (tableNode in tableNodes) {
-        val tableChildren = tableNode.path("children") as ArrayNode
-
-        if (tableChildren.size() > 1 || tableChildren.first().path("type").asText() != "tbody") {
-            break
-        }
-
-        val tbodyChildrenToMove = tableChildren.first().path("children") as ArrayNode
-        tableChildren.addAll(tbodyChildrenToMove)
-        val indexOfTbody = tableChildren.indexOfFirst { it.path("type").asText() == "tbody" }
-        tableChildren.remove(indexOfTbody)
-    }
-
-    val newJsonString = jsonNode.toPrettyString()
-
-    secureLogger?.debug("toJsonString: $newJsonString")
-
-    return newJsonString
-}
-
-fun traverseNodesAndGetTables(root: JsonNode, tableSet: MutableSet<JsonNode>): Set<JsonNode> {
-    if (root.isObject) {
-        val fieldNames = root.fieldNames().asSequence().toList()
-        fieldNames.forEach {
-            val fieldValue: JsonNode = root.get(it)
-
-            if (fieldValue.asText() == "table") {
-                tableSet.add(root)
-            }
-
-            traverseNodesAndGetTables(fieldValue, tableSet)
-        }
-    } else if (root.isArray) {
-        val arrayNode: ArrayNode = root as ArrayNode
-        for (i in 0 until arrayNode.size()) {
-            val arrayElement: JsonNode = arrayNode.get(i)
-            traverseNodesAndGetTables(arrayElement, tableSet)
-        }
-    } else {
-        // JsonNode root represents a single value field
-    }
-
-    return tableSet
 }

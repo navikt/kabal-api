@@ -4,7 +4,7 @@ import jakarta.validation.Valid
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.service.MottakService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSecureLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.PostMapping
@@ -20,7 +20,7 @@ class UnprotectedDataFeeder(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val secureLogger = getSecureLogger()
+        private val teamLogger = getTeamLogger()
     }
 
     @Unprotected
@@ -28,8 +28,8 @@ class UnprotectedDataFeeder(
     fun sendInnKlageV3(
         @Valid @RequestBody oversendtKlage: OversendtKlageAnkeV3
     ) {
-        logger.warn("Data manually fed to Kabal through unprotected endpoint")
-        secureLogger.warn("Data $oversendtKlage fed to Kabal through unprotected endpoint")
+        logger.warn("Data manually fed to Kabal through unprotected endpoint. See team-logs for details.")
+        teamLogger.warn("Data $oversendtKlage fed to Kabal through unprotected endpoint")
         mottakService.createMottakForKlageAnkeV3(oversendtKlage)
     }
 }
