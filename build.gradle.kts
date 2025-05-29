@@ -73,7 +73,7 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
-    kapt("org.hibernate.orm:hibernate-jpamodelgen:7.0.0.Final")
+    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.6.13.Final")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
 
