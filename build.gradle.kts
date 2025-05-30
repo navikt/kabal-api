@@ -6,7 +6,7 @@ val logstashVersion = "8.1"
 val springRetryVersion = "2.0.12"
 val springMockkVersion = "4.0.2"
 val springDocVersion = "2.8.8"
-val testContainersVersion = "1.21.0"
+val testContainersVersion = "1.21.1"
 val shedlockVersion = "6.7.0"
 val archunitVersion = "1.4.1"
 val kotlinXmlBuilderVersion = "1.9.3"
@@ -73,7 +73,7 @@ dependencies {
     implementation("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
-    kapt("org.hibernate.orm:hibernate-jpamodelgen:6.6.13.Final")
+    kapt("org.hibernate.orm:hibernate-jpamodelgen:7.0.0.Final")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
 
