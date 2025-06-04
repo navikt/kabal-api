@@ -1983,12 +1983,12 @@ class DokumentUnderArbeidService(
 
         journalpostIdSet.forEach { documentInfo ->
             val journalpost = journalpostSet.find { it.journalpostId == documentInfo }
-            val saksbehandlerIdent = systembrukerIdent
+            val saksbehandlerIdent = hovedDokument.markertFerdigBy
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 
             if (behandling.ferdigstilling == null) {
                 saksdokumenter.forEach { saksdokument ->
-                    behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
+                    behandling.addSaksdokument(saksdokument, saksbehandlerIdent ?: systembrukerIdent)
                         ?.also { applicationEventPublisher.publishEvent(it) }
                 }
 
@@ -1996,8 +1996,8 @@ class DokumentUnderArbeidService(
                     data = objectMapper.writeValueAsString(
                         IncludedDocumentsChangedEvent(
                             actor = Employee(
-                                navIdent = saksbehandlerIdent,
-                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                                navIdent = saksbehandlerIdent ?: systembrukerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent ?: systembrukerIdent),
                             ),
                             timestamp = LocalDateTime.now(),
                             journalfoertDokumentReferenceSet = saksdokumenter.map {
