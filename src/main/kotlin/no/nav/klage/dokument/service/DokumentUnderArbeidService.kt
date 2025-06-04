@@ -1983,7 +1983,7 @@ class DokumentUnderArbeidService(
 
         journalpostIdSet.forEach { documentInfo ->
             val journalpost = journalpostSet.find { it.journalpostId == documentInfo }
-            val saksbehandlerIdent = systembrukerIdent
+            val saksbehandlerIdent = hovedDokument.markertFerdigBy!!
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 
             if (behandling.ferdigstilling == null) {
