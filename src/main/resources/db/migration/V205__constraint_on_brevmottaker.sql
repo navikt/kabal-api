@@ -79,8 +79,12 @@ WHERE id IN (
              '31a5fbd1-55f3-4bfa-aa70-135899244ff4',
              'cd43a0e8-8dd3-4076-9add-61cf921d4e4e',
              '4e9f4d05-507f-427c-b1f0-0270c94d77c8',
-             'fe5d5527-62c6-445e-8f87-4e40b66d12b8',
-             'a389db5c-b126-439b-8349-650477304bc0');
+             'fe5d5527-62c6-445e-8f87-4e40b66d12b8');
+
+UPDATE klage.brevmottaker
+SET technical_part_id = 'd684c12c-4402-41c5-896c-d4d0a0ec0505',
+    navn              = 'DUPLIKAT 2025-06-05'
+WHERE id = 'a389db5c-b126-439b-8349-650477304bc0';
 
 ALTER TABLE klage.brevmottaker
     ADD CONSTRAINT unique_mottaker UNIQUE (dokument_under_arbeid_id, technical_part_id);
