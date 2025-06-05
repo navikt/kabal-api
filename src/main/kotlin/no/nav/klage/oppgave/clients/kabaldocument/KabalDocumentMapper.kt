@@ -128,7 +128,7 @@ class KabalDocumentMapper(
                     },
             ),
             dokumentTypeId = hovedDokument.dokumentType.id,
-            journalfoerendeSaksbehandlerIdent = hovedDokument.markertFerdigBy!!
+            journalfoerendeSaksbehandlerIdent = hovedDokument.markertFerdigBy!!,
         )
     }
 

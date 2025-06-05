@@ -10,77 +10,77 @@ import javax.xml.transform.stream.StreamSource
 import javax.xml.validation.SchemaFactory
 
 
-fun toXml(arkivmelding: Arkivmelding): String {
+fun Arkivmelding.toXml(): String {
     return xml("arkivmelding") {
         xmlns = "http://www.arkivverket.no/standarder/noark5/arkivmelding"
         namespace("xsi", "http://www.w3.org/2001/XMLSchema-instance")
         attribute("xsi:schemaLocation", "http://www.arkivverket.no/standarder/noark5/arkivmelding arkivmelding.xsd")
-        "system" { -arkivmelding.system }
-        "meldingId" { -arkivmelding.meldingId }
-        "tidspunkt" { -arkivmelding.tidspunkt.truncatedToSeconds() }
-        "antallFiler" { -arkivmelding.antallFiler.toString() }
+        "system" { -system }
+        "meldingId" { -meldingId }
+        "tidspunkt" { -tidspunkt.truncatedToSeconds() }
+        "antallFiler" { -antallFiler.toString() }
         "mappe" {
             attribute("xsi:type", "saksmappe")
-            "tittel" { -arkivmelding.mappe.tittel }
-            "opprettetDato" { -arkivmelding.mappe.opprettetDato.truncatedToSeconds() }
-            "virksomhetsspesifikkeMetadata" { -arkivmelding.mappe.virksomhetsspesifikkeMetadata }
+            "tittel" { -mappe.tittel }
+            "opprettetDato" { -mappe.opprettetDato.truncatedToSeconds() }
+            "virksomhetsspesifikkeMetadata" { -mappe.virksomhetsspesifikkeMetadata }
             "part" {
-                "partNavn" { -arkivmelding.mappe.part.partNavn }
-                "partRolle" { -arkivmelding.mappe.part.partRolle }
-                arkivmelding.mappe.part.organisasjonsnummer?.organisasjonsnummer?.let {
+                "partNavn" { -mappe.part.partNavn }
+                "partRolle" { -mappe.part.partRolle }
+                mappe.part.organisasjonsnummer?.organisasjonsnummer?.let {
                     "organisasjonsnummer" {
-                        "organisasjonsnummer" { -arkivmelding.mappe.part.organisasjonsnummer.organisasjonsnummer }
+                        "organisasjonsnummer" { -mappe.part.organisasjonsnummer.organisasjonsnummer }
                     }
                 }
-                arkivmelding.mappe.part.foedselsnummer?.foedselsnummer?.let {
+                mappe.part.foedselsnummer?.foedselsnummer?.let {
                     "foedselsnummer" {
-                        "foedselsnummer" { -arkivmelding.mappe.part.foedselsnummer.foedselsnummer }
+                        "foedselsnummer" { -mappe.part.foedselsnummer.foedselsnummer }
                     }
                 }
-                arkivmelding.mappe.part.kontaktperson?.let {
-                    "kontaktperson" { -arkivmelding.mappe.part.kontaktperson }
+                mappe.part.kontaktperson?.let {
+                    "kontaktperson" { -mappe.part.kontaktperson }
                 }
             }
             "registrering" {
                 attribute("xsi:type", "journalpost")
-                "opprettetDato" { -arkivmelding.mappe.registrering.opprettetDato.truncatedToSeconds() }
-                "opprettetAv" { -arkivmelding.mappe.registrering.opprettetAv }
+                "opprettetDato" { -mappe.registrering.opprettetDato.truncatedToSeconds() }
+                "opprettetAv" { -mappe.registrering.opprettetAv }
                 "dokumentbeskrivelse" {
-                    "dokumenttype" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.dokumenttype }
-                    "dokumentstatus" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.dokumentstatus }
-                    "tittel" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.tittel }
-                    "opprettetDato" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.opprettetDato.truncatedToSeconds() }
-                    "opprettetAv" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.opprettetAv }
-                    "tilknyttetRegistreringSom" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.tilknyttetRegistreringSom }
-                    "dokumentnummer" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.dokumentnummer.toString() }
-                    "tilknyttetDato" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.tilknyttetDato.truncatedToSeconds() }
-                    "tilknyttetAv" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.tilknyttetAv }
+                    "dokumenttype" { -mappe.registrering.dokumentbeskrivelse.dokumenttype }
+                    "dokumentstatus" { -mappe.registrering.dokumentbeskrivelse.dokumentstatus }
+                    "tittel" { -mappe.registrering.dokumentbeskrivelse.tittel }
+                    "opprettetDato" { -mappe.registrering.dokumentbeskrivelse.opprettetDato.truncatedToSeconds() }
+                    "opprettetAv" { -mappe.registrering.dokumentbeskrivelse.opprettetAv }
+                    "tilknyttetRegistreringSom" { -mappe.registrering.dokumentbeskrivelse.tilknyttetRegistreringSom }
+                    "dokumentnummer" { -mappe.registrering.dokumentbeskrivelse.dokumentnummer.toString() }
+                    "tilknyttetDato" { -mappe.registrering.dokumentbeskrivelse.tilknyttetDato.truncatedToSeconds() }
+                    "tilknyttetAv" { -mappe.registrering.dokumentbeskrivelse.tilknyttetAv }
                     "dokumentobjekt" {
-                        "versjonsnummer" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.dokumentobjekt.versjonsnummer.toString() }
-                        "variantformat" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.dokumentobjekt.variantformat }
-                        "format" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.dokumentobjekt.format }
-                        "opprettetDato" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.dokumentobjekt.opprettetDato.truncatedToSeconds() }
-                        "opprettetAv" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.dokumentobjekt.opprettetAv }
-                        "referanseDokumentfil" { -arkivmelding.mappe.registrering.dokumentbeskrivelse.dokumentobjekt.referanseDokumentfil }
+                        "versjonsnummer" { -mappe.registrering.dokumentbeskrivelse.dokumentobjekt.versjonsnummer.toString() }
+                        "variantformat" { -mappe.registrering.dokumentbeskrivelse.dokumentobjekt.variantformat }
+                        "format" { -mappe.registrering.dokumentbeskrivelse.dokumentobjekt.format }
+                        "opprettetDato" { -mappe.registrering.dokumentbeskrivelse.dokumentobjekt.opprettetDato.truncatedToSeconds() }
+                        "opprettetAv" { -mappe.registrering.dokumentbeskrivelse.dokumentobjekt.opprettetAv }
+                        "referanseDokumentfil" { -mappe.registrering.dokumentbeskrivelse.dokumentobjekt.referanseDokumentfil }
                     }
                 }
-                "tittel" { -arkivmelding.mappe.registrering.tittel }
+                "tittel" { -mappe.registrering.tittel }
                 "korrespondansepart" {
-                    "korrespondanseparttype" { -arkivmelding.mappe.registrering.korrespondansepart.korrespondanseparttype }
-                    "korrespondansepartNavn" { -arkivmelding.mappe.registrering.korrespondansepart.korrespondansepartNavn }
+                    "korrespondanseparttype" { -mappe.registrering.korrespondansepart.korrespondanseparttype }
+                    "korrespondansepartNavn" { -mappe.registrering.korrespondansepart.korrespondansepartNavn }
                     "organisasjonsnummer" {
-                        "organisasjonsnummer" { -arkivmelding.mappe.registrering.korrespondansepart.organisasjonsnummer.organisasjonsnummer }
+                        "organisasjonsnummer" { -mappe.registrering.korrespondansepart.organisasjonsnummer.organisasjonsnummer }
                     }
                 }
-                "journalposttype" { -arkivmelding.mappe.registrering.journalposttype }
-                "journalstatus" { -arkivmelding.mappe.registrering.journalstatus }
-                "journaldato" { -arkivmelding.mappe.registrering.journaldato.toString() }
+                "journalposttype" { -mappe.registrering.journalposttype }
+                "journalstatus" { -mappe.registrering.journalstatus }
+                "journaldato" { -mappe.registrering.journaldato.toString() }
             }
-            "saksdato" { -arkivmelding.mappe.saksdato.toString() }
-            "administrativEnhet" { -arkivmelding.mappe.administrativEnhet }
-            "saksansvarlig" { -arkivmelding.mappe.saksansvarlig }
-            "journalenhet" { -arkivmelding.mappe.journalenhet }
-            "saksstatus" { -arkivmelding.mappe.saksstatus }
+            "saksdato" { -mappe.saksdato.toString() }
+            "administrativEnhet" { -mappe.administrativEnhet }
+            "saksansvarlig" { -mappe.saksansvarlig }
+            "journalenhet" { -mappe.journalenhet }
+            "saksstatus" { -mappe.saksstatus }
         }
     }.toString(PrintOptions(singleLineTextElements = true))
 }
@@ -88,9 +88,13 @@ fun toXml(arkivmelding: Arkivmelding): String {
 private fun LocalDateTime.truncatedToSeconds() = this.truncatedTo(ChronoUnit.SECONDS).toString()
 
 class Arkivmelding(
+    //Antageligvis Kabal, for å kjenne igjen våre forsendelser
     val system: String,
+    //Skal vi sette denne? Virker som om den hentes fra en forsendelsesbestilling
     val meldingId: String,
+    //now()
     val tidspunkt: LocalDateTime,
+    //Henter fra det vi skal sende inn til kabal-document
     val antallFiler: Int,
     val mappe: Mappe
 ) {
