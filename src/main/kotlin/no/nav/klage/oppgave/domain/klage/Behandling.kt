@@ -222,6 +222,8 @@ sealed class Behandling(
     open var ignoreGosysOppgave: Boolean,
     @Column(name = "tilbakekreving")
     var tilbakekreving: Boolean,
+    @Column(name = "opprettet_sendt")
+    var opprettetSendt: Boolean = false,
 ) {
 
     /**
