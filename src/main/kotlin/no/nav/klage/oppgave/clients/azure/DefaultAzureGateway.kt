@@ -43,12 +43,7 @@ class DefaultAzureGateway(private val microsoftGraphClient: MicrosoftGraphClient
         }
 
     override fun getPersonligDataOmSaksbehandlerMedIdent(navIdent: String): SaksbehandlerPersonligInfo {
-        val data = try {
-            microsoftGraphClient.getSaksbehandler(navIdent)
-        } catch (e: Exception) {
-            logger.warn("Failed to call getSaksbehandler for navident $navIdent", e)
-            throw e
-        }
+        val data = microsoftGraphClient.getSaksbehandler(navIdent)
         return SaksbehandlerPersonligInfo(
             navIdent = data.onPremisesSamAccountName,
             azureId = data.id,
