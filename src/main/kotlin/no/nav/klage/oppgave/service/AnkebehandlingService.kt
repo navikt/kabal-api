@@ -107,6 +107,21 @@ class AnkebehandlingService(
             )
         )
 
+        applicationEventPublisher.publishEvent(
+            BehandlingEndretEvent(
+                behandling = ankebehandling,
+                endringslogginnslag = listOfNotNull(
+                    Endringslogginnslag.endringslogg(
+                        saksbehandlerident = systembrukerIdent,
+                        felt = Felt.ANKEBEHANDLING_OPPRETTET,
+                        fraVerdi = null,
+                        tilVerdi = "Opprettet",
+                        behandlingId = ankebehandling.id,
+                    )
+                )
+            )
+        )
+
         return ankebehandling
     }
 
