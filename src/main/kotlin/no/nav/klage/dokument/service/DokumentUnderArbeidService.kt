@@ -842,30 +842,58 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid.brevmottakere.clear()
 
-        mottakerInput.mottakerList.forEach { mottaker ->
+        val existingMottakere = dokumentUnderArbeid.brevmottakere
+        val (mottakereToUpdate, mottakereToAdd) = mottakerInput.mottakerList.partition { inputMottaker ->
+            inputMottaker.id in (existingMottakere.map { it.technicalPartId })
+        }
+
+        val mottakereToDelete = existingMottakere.filter { existingMottaker ->
+            existingMottaker.technicalPartId !in (mottakerInput.mottakerList.map { it.id })
+        }
+
+        if (mottakereToDelete.union(mottakereToUpdate).size != dokumentUnderArbeid.brevmottakere.size) {
+            throw RuntimeException("Feil i håndtering av mottakere. Undersøk det tekniske.")
+        }
+
+        mottakerInput.mottakerList.forEach { inputMottaker ->
             val (markLocalPrint, forceCentralPrint) = getPreferredHandling(
-                identifikator = mottaker.identifikator,
-                handling = mottaker.handling,
-                isAddressOverridden = mottaker.overriddenAddress != null,
+                identifikator = inputMottaker.identifikator,
+                handling = inputMottaker.handling,
+                isAddressOverridden = inputMottaker.overriddenAddress != null,
                 sakenGjelderFnr = behandling.sakenGjelder.partId.value,
                 tema = behandling.ytelse.toTema(),
                 systemContext = systemContext,
             )
 
-            val technicalPartId = mottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = mottaker.identifikator)
+            val technicalPartId = inputMottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = inputMottaker.identifikator)
 
-            if (dokumentUnderArbeid.brevmottakere.none { it.identifikator == mottaker.identifikator }) {
-                dokumentUnderArbeid.brevmottakere.add(
-                    Brevmottaker(
-                        technicalPartId = technicalPartId,
-                        identifikator = mottaker.identifikator,
-                        localPrint = markLocalPrint,
-                        forceCentralPrint = forceCentralPrint,
-                        address = getDokumentUnderArbeidAdresse(mottaker.overriddenAddress),
-                        navn = mottaker.navn,
+            when (inputMottaker) {
+                in mottakereToAdd -> {
+                    dokumentUnderArbeid.brevmottakere.add(
+                        Brevmottaker(
+                            technicalPartId = technicalPartId,
+                            identifikator = inputMottaker.identifikator,
+                            localPrint = markLocalPrint,
+                            forceCentralPrint = forceCentralPrint,
+                            address = getDokumentUnderArbeidAdresse(inputMottaker.overriddenAddress),
+                            navn = inputMottaker.navn,
+                        )
                     )
-                )
+                }
+                in mottakereToUpdate -> {
+                    val existingMottaker = dokumentUnderArbeid.brevmottakere.first { it.technicalPartId == technicalPartId }
+                    existingMottaker.localPrint = markLocalPrint
+                    existingMottaker.forceCentralPrint = forceCentralPrint
+                    existingMottaker.address = getDokumentUnderArbeidAdresse(inputMottaker.overriddenAddress)
+                }
+                else -> {
+                    throw RuntimeException("Feil ved setting av mottaker med id ${inputMottaker.id}. Undersøk det tekniske.")
+                }
             }
+        }
+
+        mottakereToDelete.forEach {
+            dokumentUnderArbeid.brevmottakere.removeIf { existingMottaker -> existingMottaker.technicalPartId == it.technicalPartId }
         }
 
         dokumentUnderArbeid.modified = LocalDateTime.now()
