@@ -580,6 +580,8 @@ class AdminService(
                     )
                 )
             )
+            behandling.opprettetSendt = true
+            logger.debug("Generated opprettetEvent for behandlingId: $behandlingId")
         } else {
             val klagebehandlinger = klagebehandlingRepository.findAll()
             logger.debug("Generating opprettetEvents for ${klagebehandlinger.size} klagebehandlinger")
