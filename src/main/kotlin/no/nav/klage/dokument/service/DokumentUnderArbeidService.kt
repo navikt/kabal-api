@@ -848,10 +848,6 @@ class DokumentUnderArbeidService(
         val mottakereToDelete = existingMottakere.filter { existingMottaker ->
             existingMottaker.technicalPartId !in (mottakerInput.mottakerList.map { it.id })
         }
-
-        if (mottakereToDelete.union(mottakereToUpdate).size != dokumentUnderArbeid.brevmottakere.size) {
-            throw RuntimeException("Feil i håndtering av mottakere. Undersøk det tekniske.")
-        }
         
         mottakerInput.mottakerList.forEach { inputMottaker ->
             val (markLocalPrint, forceCentralPrint) = getPreferredHandling(
@@ -888,6 +884,10 @@ class DokumentUnderArbeidService(
                     throw RuntimeException("Feil ved setting av mottaker med id ${inputMottaker.id}. Undersøk det tekniske.")
                 }
             }
+        }
+
+        dokumentUnderArbeid.brevmottakere.removeIf { existingMottaker ->
+            mottakereToDelete.any { it.technicalPartId == existingMottaker.technicalPartId }
         }
 
         mottakereToDelete.forEach {
