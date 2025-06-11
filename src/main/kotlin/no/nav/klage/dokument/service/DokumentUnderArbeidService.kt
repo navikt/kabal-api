@@ -854,7 +854,9 @@ class DokumentUnderArbeidService(
         if (mottakereToDelete.union(mottakereToUpdate).size != dokumentUnderArbeid.brevmottakere.size) {
             throw RuntimeException("Feil i håndtering av mottakere. Undersøk det tekniske.")
         }
-
+        logger.debug("mottakereToUpdate: {}, mottakereToAdd: {}, mottakereToDelete: {}",
+            mottakereToUpdate, mottakereToAdd, mottakereToDelete
+        )
         mottakerInput.mottakerList.forEach { inputMottaker ->
             val (markLocalPrint, forceCentralPrint) = getPreferredHandling(
                 identifikator = inputMottaker.identifikator,
