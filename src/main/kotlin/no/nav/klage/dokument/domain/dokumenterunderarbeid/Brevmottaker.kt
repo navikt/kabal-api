@@ -15,9 +15,9 @@ class Brevmottaker(
     @Column(name = "identifikator")
     val identifikator: String?,
     @Column(name = "local_print")
-    val localPrint: Boolean,
+    var localPrint: Boolean,
     @Column(name = "force_central_print")
-    val forceCentralPrint: Boolean,
+    var forceCentralPrint: Boolean,
     @Embedded
     @AttributeOverrides(
         value = [
@@ -30,7 +30,7 @@ class Brevmottaker(
             AttributeOverride(name = "landkode", column = Column(name = "address_landkode")),
         ]
     )
-    val address: Adresse?,
+    var address: Adresse?,
     @Column(name = "navn")
     val navn: String?,
 ) {

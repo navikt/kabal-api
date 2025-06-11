@@ -46,7 +46,7 @@ class SaksbehandlerService(
 
         return try {
             azureGateway.getPersonligDataOmSaksbehandlerMedIdent(navIdent).sammensattNavn
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             "Ukjent navn"
         }
     }
