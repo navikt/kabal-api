@@ -284,6 +284,22 @@ class AdminController(
         }
     }
 
+    @GetMapping("/opprettet-event/{behandlingId}", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun generateOpprettetEvent(
+        @PathVariable("behandlingId") behandlingId: UUID? = null
+    ) {
+        logger.debug("generateOpprettetEvent is called, optional behandlingId: {}", behandlingId)
+        krevAdminTilgang()
+        try {
+            logger.info("Generating opprettet events.")
+            adminService.generateOpprettetEvents(behandlingId = behandlingId)
+        } catch (e: Exception) {
+            logger.warn("Failed to generate opprettet events", e)
+            throw e
+        }
+    }
+
     data class Fnr(val fnr: String)
     data class Comment(val comment: String)
 

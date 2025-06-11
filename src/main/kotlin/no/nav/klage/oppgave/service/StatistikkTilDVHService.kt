@@ -66,6 +66,9 @@ class StatistikkTilDVHService(
                     || it.felt === Felt.KLAGEBEHANDLING_MOTTATT
                     || it.felt === Felt.ANKEBEHANDLING_MOTTATT
                     || it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT
+                    || it.felt === Felt.KLAGEBEHANDLING_OPPRETTET
+                    || it.felt === Felt.ANKEBEHANDLING_OPPRETTET
+                    || it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
         }
     }
 
@@ -81,6 +84,12 @@ class StatistikkTilDVHService(
                         it.felt === Felt.ANKEBEHANDLING_MOTTATT ||
                         it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT
             } -> BehandlingState.MOTTATT
+
+            endringslogginnslag.any {
+                it.felt === Felt.KLAGEBEHANDLING_OPPRETTET ||
+                        it.felt === Felt.ANKEBEHANDLING_OPPRETTET ||
+                        it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
+            } -> BehandlingState.OPPRETTET
 
             endringslogginnslag.any {
                 it.felt === Felt.FEILREGISTRERING
@@ -223,6 +232,9 @@ class StatistikkTilDVHService(
     ): LocalDateTime {
         return when (behandlingState) {
             BehandlingState.MOTTATT -> behandling.mottattKlageinstans
+
+            BehandlingState.OPPRETTET -> behandling.created
+
             BehandlingState.TILDELT_SAKSBEHANDLER -> behandling.modified //tildelt eller fradelt
 
             BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA -> {
