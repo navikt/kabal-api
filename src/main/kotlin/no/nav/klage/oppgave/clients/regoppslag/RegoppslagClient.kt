@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.clients.regoppslag
 
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.logErrorResponse
+import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.stereotype.Component
@@ -32,27 +32,30 @@ class RegoppslagClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(
-                    response = response,
-                    functionName = ::getMottakerOgAdresse.name,
-                    classLogger = logger,
-                )
+                response.bodyToMono(String::class.java).map {
+                    val errorString = "Got ${response.statusCode()} when requesting ${::getMottakerOgAdresse.name}"
+                    //Debug is enough because this is not always an error
+                    logger.debug("$errorString. See team-logs for more details.")
+                    getTeamLogger().warn("$errorString - response body: '$it'")
+                    RuntimeException(errorString)
+                }
             }
             .bodyToMono<HentMottakerOgAdresseResponse>()
             .onErrorResume { Mono.empty() }
             .block()
     }
+
     data class Request(
         val identifikator: String,
         val type: RegoppslagType,
     ) {
-        enum class RegoppslagType{
+        enum class RegoppslagType {
             ORGANISASJON,
             PERSON
         }
     }
 
-    data class HentMottakerOgAdresseResponse (
+    data class HentMottakerOgAdresseResponse(
         val identifikator: String,
         val navn: String,
         val adresse: Treg002Adresse,
