@@ -223,6 +223,7 @@ sealed class Behandling(
     @Column(name = "tilbakekreving")
     var tilbakekreving: Boolean,
     @Column(name = "opprettet_sendt")
+    @NotAudited
     var opprettetSendt: Boolean = false,
 ) {
 
