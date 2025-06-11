@@ -890,10 +890,6 @@ class DokumentUnderArbeidService(
             mottakereToDelete.any { it.technicalPartId == existingMottaker.technicalPartId }
         }
 
-        mottakereToDelete.forEach {
-            dokumentUnderArbeid.brevmottakere.removeIf { existingMottaker -> existingMottaker.technicalPartId == it.technicalPartId }
-        }
-
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         publishInternalEvent(
