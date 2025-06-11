@@ -840,7 +840,7 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan bare sette mottakere på utgående dokument")
         }
 
-        dokumentUnderArbeid.brevmottakere.clear()
+        logger.debug("Input mottakere: {}", mottakerInput.mottakerList)
 
         val existingMottakere = dokumentUnderArbeid.brevmottakere
         val (mottakereToUpdate, mottakereToAdd) = mottakerInput.mottakerList.partition { inputMottaker ->
