@@ -19,6 +19,7 @@ class RegoppslagClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val teamLogger = getTeamLogger()
     }
 
     fun getMottakerOgAdresse(input: Request, token: String): HentMottakerOgAdresseResponse? {
@@ -32,12 +33,12 @@ class RegoppslagClient(
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
-                response.bodyToMono(String::class.java).map {
+                response.bodyToMono(String::class.java).flatMap {
                     val errorString = "Got ${response.statusCode()} when requesting ${::getMottakerOgAdresse.name}"
                     //Debug is enough because this is not always an error
                     logger.debug("$errorString. See team-logs for more details.")
-                    getTeamLogger().warn("$errorString - response body: '$it'")
-                    RuntimeException(errorString)
+                    teamLogger.warn("$errorString - response body: '$it'")
+                    Mono.error(RuntimeException(errorString))
                 }
             }
             .bodyToMono<HentMottakerOgAdresseResponse>()
