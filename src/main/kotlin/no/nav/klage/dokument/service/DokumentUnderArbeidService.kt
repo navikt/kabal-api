@@ -120,13 +120,9 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
 
-        if (dokumentType.isUtgaaende() && !systemContext && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
-            if (behandling.ferdigstilling == null) {
-                validateCanCreateDocuments(
-                    behandlingRole = behandlingRole,
-                    parentDocument = if (parentId != null) getDokumentUnderArbeid(parentId)
-                            as DokumentUnderArbeidAsHoveddokument else null
-                )
+        if (!systemContext) {
+            if (innloggetSaksbehandlerService.isROL() || innloggetSaksbehandlerService.isKROL()) {
+                throw MissingTilgangException("ROL/KROL kan ikke laste opp dokumenter.")
             }
         }
 
@@ -356,7 +352,7 @@ class DokumentUnderArbeidService(
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
         if (behandling.ferdigstilling == null) {
-            validateCanCreateDocuments(
+            validateCanCreateSmartdocumentsOrJournalfoerte(
                 behandlingRole = behandlingRole,
                 parentDocument = if (parentId != null) getDokumentUnderArbeid(parentId)
                         as DokumentUnderArbeidAsHoveddokument else null
@@ -463,12 +459,13 @@ class DokumentUnderArbeidService(
         if (behandling.ferdigstilling == null) {
             val isCurrentROL = behandling.rolIdent == innloggetIdent
 
-            validateCanCreateDocuments(
+            validateCanCreateSmartdocumentsOrJournalfoerte(
                 behandlingRole = behandlingRole,
                 parentDocument = parentDocument
             )
 
-            val templateId = if (parentDocument is DokumentUnderArbeidAsSmartdokument) parentDocument.smartEditorTemplateId else null
+            val templateId =
+                if (parentDocument is DokumentUnderArbeidAsSmartdokument) parentDocument.smartEditorTemplateId else null
 
             if (templateId != innsynsbegjaeringTemplateId) {
                 behandlingService.connectDocumentsToBehandling(
@@ -535,7 +532,7 @@ class DokumentUnderArbeidService(
             ?: error("can't be null")
     }
 
-    private fun validateCanCreateDocuments(
+    private fun validateCanCreateSmartdocumentsOrJournalfoerte(
         behandlingRole: BehandlingRole,
         parentDocument: DokumentUnderArbeidAsHoveddokument?
     ) {
@@ -848,7 +845,7 @@ class DokumentUnderArbeidService(
         val mottakereToDelete = existingMottakere.filter { existingMottaker ->
             existingMottaker.technicalPartId !in (mottakerInput.mottakerList.map { it.id })
         }
-        
+
         mottakerInput.mottakerList.forEach { inputMottaker ->
             val (markLocalPrint, forceCentralPrint) = getPreferredHandling(
                 identifikator = inputMottaker.identifikator,
@@ -859,7 +856,8 @@ class DokumentUnderArbeidService(
                 systemContext = systemContext,
             )
 
-            val technicalPartId = inputMottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = inputMottaker.identifikator)
+            val technicalPartId =
+                inputMottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = inputMottaker.identifikator)
 
             when (inputMottaker) {
                 in mottakereToAdd -> {
@@ -874,12 +872,15 @@ class DokumentUnderArbeidService(
                         )
                     )
                 }
+
                 in mottakereToUpdate -> {
-                    val existingMottaker = dokumentUnderArbeid.brevmottakere.first { it.technicalPartId == technicalPartId }
+                    val existingMottaker =
+                        dokumentUnderArbeid.brevmottakere.first { it.technicalPartId == technicalPartId }
                     existingMottaker.localPrint = markLocalPrint
                     existingMottaker.forceCentralPrint = forceCentralPrint
                     existingMottaker.address = getDokumentUnderArbeidAdresse(inputMottaker.overriddenAddress)
                 }
+
                 else -> {
                     throw RuntimeException("Feil ved setting av mottaker med id ${inputMottaker.id}. Undersøk det tekniske.")
                 }
@@ -1599,7 +1600,8 @@ class DokumentUnderArbeidService(
                             ByteArrayResource(
                                 mellomlagreNyVersjonAvSmartEditorDokumentAndGetPdf(
                                     dokumentUnderArbeid
-                                ).bytes),
+                                ).bytes
+                            ),
                             MediaType.APPLICATION_PDF
                         )
                     } else Triple(
@@ -1658,7 +1660,6 @@ class DokumentUnderArbeidService(
 
         deleteDocuments(
             documentSet = vedlegg,
-            innloggetIdent = innloggetIdent,
             behandlingRole = behandling.getRoleInBehandling(innloggetIdent),
             behandling = behandling,
         )
@@ -1670,7 +1671,6 @@ class DokumentUnderArbeidService(
         //then hoveddokument
         deleteDocuments(
             documentSet = setOf(document),
-            innloggetIdent = innloggetIdent,
             behandlingRole = behandling.getRoleInBehandling(innloggetIdent),
             behandling = behandling,
         )
@@ -1693,12 +1693,17 @@ class DokumentUnderArbeidService(
 
     private fun deleteDocuments(
         documentSet: Set<DokumentUnderArbeid>,
-        innloggetIdent: String,
         behandlingRole: BehandlingRole,
         behandling: Behandling,
     ) {
         documentSet.forEach { document ->
-            if (behandling.ferdigstilling == null) {
+            if ((document is OpplastetDokumentUnderArbeidAsVedlegg || document is OpplastetDokumentUnderArbeidAsHoveddokument) &&
+                (innloggetSaksbehandlerService.isROL() || innloggetSaksbehandlerService.isKROL())
+            ) {
+                throw MissingTilgangException("ROL/KROL har ikke anledning til å slette opplastede dokumenter.")
+            }
+
+            if (behandling.ferdigstilling == null && !(document is OpplastetDokumentUnderArbeidAsVedlegg || document is OpplastetDokumentUnderArbeidAsHoveddokument)) {
                 if (document.creatorRole != behandlingRole && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
                     throw MissingTilgangException("$behandlingRole har ikke anledning til å slette dokumentet eiet av ${document.creatorRole}.")
                 }
