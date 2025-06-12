@@ -145,6 +145,7 @@ enum class Tema {
     AAP, //Arbeidsavklaringspenger
     AAR, //Aa-registeret
     AGR, //Ajourhold - Grunnopplysninger
+    AKT, //Aktivitetsplan med dialoger
     ARP, //Arbeidsrådgivning - psykologtjenester
     ARS, //Arbeidsrådgivning - skjermet
     BAR, //Barnetrygd
