@@ -79,6 +79,23 @@ class KlagebehandlingService(
                 )
             )
         )
+        applicationEventPublisher.publishEvent(
+            BehandlingEndretEvent(
+                behandling = klagebehandling,
+                endringslogginnslag = listOfNotNull(
+                    Endringslogginnslag.endringslogg(
+                        saksbehandlerident = systembrukerIdent,
+                        felt = Felt.KLAGEBEHANDLING_OPPRETTET,
+                        fraVerdi = null,
+                        tilVerdi = "Opprettet",
+                        behandlingId = klagebehandling.id,
+                    )
+                )
+            )
+        )
+
+        klagebehandling.opprettetSendt = true
+
         return klagebehandling
     }
 
