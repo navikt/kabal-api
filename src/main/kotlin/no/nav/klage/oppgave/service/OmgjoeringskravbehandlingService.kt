@@ -129,6 +129,24 @@ class OmgjoeringskravbehandlingService(
                 )
             )
         )
+
+        applicationEventPublisher.publishEvent(
+            BehandlingEndretEvent(
+                behandling = omgjoeringskravbehandling,
+                endringslogginnslag = listOfNotNull(
+                    Endringslogginnslag.endringslogg(
+                        saksbehandlerident = systembrukerIdent,
+                        felt = Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
+                        fraVerdi = null,
+                        tilVerdi = "Opprettet",
+                        behandlingId = omgjoeringskravbehandling.id,
+                    )
+                )
+            )
+        )
+
+        omgjoeringskravbehandling.opprettetSendt = true
+
         return omgjoeringskravbehandling
     }
 

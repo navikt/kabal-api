@@ -35,6 +35,7 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ROLLER
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLERE_I_ENHET_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.TILGANGER_CACHE
+import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
@@ -46,6 +47,7 @@ import no.nav.klage.oppgave.util.*
 import no.nav.slackposter.SlackClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.CacheEvict
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -64,6 +66,7 @@ class AdminService(
     private val klagebehandlingRepository: KlagebehandlingRepository,
     private val ankebehandlingRepository: AnkebehandlingRepository,
     private val ankeITrygderettenbehandlingRepository: AnkeITrygderettenbehandlingRepository,
+    private val omgjoeringskravbehandlingRepository: OmgjoeringskravbehandlingRepository,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     private val journalfoertDokumentUnderArbeidAsVedleggRepository: JournalfoertDokumentUnderArbeidAsVedleggRepository,
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
@@ -84,6 +87,7 @@ class AdminService(
     private val egenAnsattService: EgenAnsattService,
     private val slackClient: SlackClient,
     private val kabalInnstillingerService: KabalInnstillingerService,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
     @Value("\${KLAGE_BACKEND_GROUP_ID}")
@@ -424,6 +428,7 @@ class AdminService(
                         }
                     }
                 }
+
                 else -> null
             }
         }
@@ -554,6 +559,111 @@ class AdminService(
                 UUID.fromString("7acb07e4-8b71-4ccf-9cca-f9a72a441812")
             )
         )
+    }
+
+    @Transactional
+    fun generateOpprettetEvents(behandlingId: UUID? = null) {
+        if (behandlingId != null) {
+            logger.debug("Generating opprettetEvent for behandlingId: $behandlingId")
+            val behandling = behandlingRepository.findByIdEager(behandlingId)
+            applicationEventPublisher.publishEvent(
+                BehandlingEndretEvent(
+                    behandling = behandling,
+                    endringslogginnslag = listOfNotNull(
+                        Endringslogginnslag.endringslogg(
+                            saksbehandlerident = systembrukerIdent,
+                            felt = when (behandling) {
+                                is Klagebehandling -> Felt.KLAGEBEHANDLING_OPPRETTET
+                                is Ankebehandling -> Felt.ANKEBEHANDLING_OPPRETTET
+                                is Omgjoeringskravbehandling -> Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
+                                else -> throw IllegalArgumentException("Unknown behandling type: ${behandling.type}")
+                            },
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = behandling.id,
+                        )
+                    )
+                )
+            )
+            behandling.opprettetSendt = true
+            logger.debug("Generated opprettetEvent for behandlingId: $behandlingId")
+        } else {
+            val klagebehandlinger = klagebehandlingRepository.findAll()
+            logger.debug("Generating opprettetEvents for ${klagebehandlinger.size} klagebehandlinger")
+            var klagebehandlingIds = ""
+            klagebehandlinger.forEach { behandling ->
+                if (!behandling.opprettetSendt) {
+                    applicationEventPublisher.publishEvent(
+                        BehandlingEndretEvent(
+                            behandling = behandling,
+                            endringslogginnslag = listOfNotNull(
+                                Endringslogginnslag.endringslogg(
+                                    saksbehandlerident = systembrukerIdent,
+                                    felt = Felt.KLAGEBEHANDLING_OPPRETTET,
+                                    fraVerdi = null,
+                                    tilVerdi = "Opprettet",
+                                    behandlingId = behandling.id,
+                                )
+                            )
+                        )
+                    )
+                    behandling.opprettetSendt = true
+                    klagebehandlingIds += "${behandling.id}, "
+                }
+            }
+            val ankebehandlinger = ankebehandlingRepository.findAll()
+            logger.debug("Generating opprettetEvents for ${ankebehandlinger.size} ankebehandlinger")
+            var ankebehandlingIds = ""
+            ankebehandlinger.forEach { behandling ->
+                if (!behandling.opprettetSendt) {
+                    applicationEventPublisher.publishEvent(
+                        BehandlingEndretEvent(
+                            behandling = behandling,
+                            endringslogginnslag = listOfNotNull(
+                                Endringslogginnslag.endringslogg(
+                                    saksbehandlerident = systembrukerIdent,
+                                    felt = Felt.ANKEBEHANDLING_OPPRETTET,
+                                    fraVerdi = null,
+                                    tilVerdi = "Opprettet",
+                                    behandlingId = behandling.id,
+                                )
+                            )
+                        )
+                    )
+                    behandling.opprettetSendt = true
+                    ankebehandlingIds += "${behandling.id}, "
+                }
+            }
+            val omgjoeringskravbehandlinger = omgjoeringskravbehandlingRepository.findAll()
+            logger.debug("Generating opprettetEvents for ${omgjoeringskravbehandlinger.size} omgjoeringskravbehandlinger")
+            var omgjoeringskravbehandlingIds = ""
+            omgjoeringskravbehandlinger.forEach { behandling ->
+                if (!behandling.opprettetSendt) {
+                    applicationEventPublisher.publishEvent(
+                        BehandlingEndretEvent(
+                            behandling = behandling,
+                            endringslogginnslag = listOfNotNull(
+                                Endringslogginnslag.endringslogg(
+                                    saksbehandlerident = systembrukerIdent,
+                                    felt = Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
+                                    fraVerdi = null,
+                                    tilVerdi = "Opprettet",
+                                    behandlingId = behandling.id,
+                                )
+                            )
+                        )
+                    )
+                    behandling.opprettetSendt = true
+                    omgjoeringskravbehandlingIds += "${behandling.id}, "
+                }
+            }
+            logger.debug(
+                "Successfully generated opprettetEvents for behandlinger: \nKlagebehandlinger: {} \nAnkebehandlinger: {} \nOmgjoeringskravbehandlinger: {}",
+                klagebehandlingIds,
+                ankebehandlingIds,
+                omgjoeringskravbehandlingIds
+            )
+        }
     }
 
     @Transactional
