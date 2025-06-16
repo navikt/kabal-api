@@ -16,5 +16,6 @@ fun DokumentType.isUtgaaende(): Boolean {
         DokumentType.VEDTAK,
         DokumentType.SVARBREV,
         DokumentType.FORLENGET_BEHANDLINGSTIDSBREV,
+        DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN,
     )
 }

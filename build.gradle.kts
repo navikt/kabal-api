@@ -9,13 +9,12 @@ val springDocVersion = "2.8.8"
 val testContainersVersion = "1.21.0"
 val shedlockVersion = "6.7.0"
 val archunitVersion = "1.4.1"
-val kotlinXmlBuilderVersion = "1.9.3"
 val logbackSyslog4jVersion = "1.0.0"
 val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.5"
 val tikaVersion = "3.2.0"
 val verapdfVersion = "1.28.1"
-val klageKodeverkVersion = "1.10.12"
+val klageKodeverkVersion = "1.10.15"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
 val otelVersion = "1.50.0"
 val mikrofrontendSelectorVersion = "3.0.0"
@@ -88,8 +87,6 @@ dependencies {
     implementation("com.papertrailapp:logback-syslog4j:$logbackSyslog4jVersion")
 
     implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jacksonJsonschemaVersion")
-
-    implementation("org.redundent:kotlin-xml-builder:$kotlinXmlBuilderVersion")
 
     implementation("no.nav.klage:klage-kodeverk:$klageKodeverkVersion")
 

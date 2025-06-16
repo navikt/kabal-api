@@ -145,6 +145,7 @@ enum class Tema {
     AAP, //Arbeidsavklaringspenger
     AAR, //Aa-registeret
     AGR, //Ajourhold - Grunnopplysninger
+    AKT, //Aktivitetsplan med dialoger
     ARP, //Arbeidsrådgivning - psykologtjenester
     ARS, //Arbeidsrådgivning - skjermet
     BAR, //Barnetrygd
@@ -178,8 +179,10 @@ enum class Tema {
     OMS, //Omsorgspenger, pleiepenger og opplæringspenger
     OPA, //Oppfølging - Arbeidsgiver
     OPP, //Oppfølging
+    PAI, //Innsyn
     PEN, //Pensjon
     PER, //Permittering og masseoppsigelser
+    POI, //Innsyn etter personopplysningsloven
     REH, //Rehabilitering
     REK, //Rekruttering og stilling
     RPO, //Retting av personopplysninger
@@ -201,6 +204,7 @@ enum class Tema {
     UFM, //Unntak fra medlemskap
     UFO, //Uføretrygd
     UKJ, //Ukjent
+    UNG, //Ungdomsprogramytelsen
     VEN, //Ventelønn
     YRA, //Yrkesrettet attføring
     YRK //Yrkesskade / Menerstatning
