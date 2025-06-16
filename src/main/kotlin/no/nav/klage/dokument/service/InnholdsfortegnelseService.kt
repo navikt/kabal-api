@@ -5,7 +5,6 @@ import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRe
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.InnholdsfortegnelseRepository
-import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
@@ -75,11 +74,11 @@ class InnholdsfortegnelseService(
 
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentUnderArbeid.id)
 
-        if (dokumentUnderArbeid.dokumentType in listOf(DokumentType.BREV, DokumentType.VEDTAK, DokumentType.BESLUTNING)) {
-            if (vedlegg.any { it !is JournalfoertDokumentUnderArbeidAsVedlegg }) {
-                error("All documents must be JournalfoertDokumentUnderArbeidAsVedlegg")
-            }
-        }
+//        if (dokumentUnderArbeid.dokumentType in listOf(DokumentType.BREV, DokumentType.VEDTAK, DokumentType.BESLUTNING)) {
+//            if (vedlegg.any { it !is JournalfoertDokumentUnderArbeidAsVedlegg }) {
+//                error("All documents must be JournalfoertDokumentUnderArbeidAsVedlegg")
+//            }
+//        }
 
         val journalpostList = safFacade.getJournalposter(
             journalpostIdSet = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
