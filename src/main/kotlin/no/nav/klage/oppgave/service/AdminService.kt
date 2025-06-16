@@ -572,7 +572,12 @@ class AdminService(
                     endringslogginnslag = listOfNotNull(
                         Endringslogginnslag.endringslogg(
                             saksbehandlerident = systembrukerIdent,
-                            felt = Felt.KLAGEBEHANDLING_OPPRETTET,
+                            felt = when (behandling) {
+                                is Klagebehandling -> Felt.KLAGEBEHANDLING_OPPRETTET
+                                is Ankebehandling -> Felt.ANKEBEHANDLING_OPPRETTET
+                                is Omgjoeringskravbehandling -> Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
+                                else -> throw IllegalArgumentException("Unknown behandling type: ${behandling.type}")
+                            },
                             fraVerdi = null,
                             tilVerdi = "Opprettet",
                             behandlingId = behandling.id,

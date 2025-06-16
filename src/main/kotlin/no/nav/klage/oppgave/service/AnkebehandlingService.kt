@@ -122,6 +122,8 @@ class AnkebehandlingService(
             )
         )
 
+        ankebehandling.opprettetSendt = true
+
         return ankebehandling
     }
 

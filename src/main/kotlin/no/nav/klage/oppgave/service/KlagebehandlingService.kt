@@ -94,6 +94,8 @@ class KlagebehandlingService(
             )
         )
 
+        klagebehandling.opprettetSendt = true
+
         return klagebehandling
     }
 

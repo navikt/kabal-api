@@ -145,6 +145,8 @@ class OmgjoeringskravbehandlingService(
             )
         )
 
+        omgjoeringskravbehandling.opprettetSendt = true
+
         return omgjoeringskravbehandling
     }
 
