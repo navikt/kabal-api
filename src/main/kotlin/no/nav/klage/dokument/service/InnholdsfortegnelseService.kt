@@ -91,7 +91,7 @@ class InnholdsfortegnelseService(
             kabalJsonToPdfService.getInnholdsfortegnelse(
                 InnholdsfortegnelseRequest(
                     documents = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                        allDokumenterUnderArbeid = vedlegg,
+                        vedlegg = vedlegg,
                         behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId),
                         hoveddokument = dokumentUnderArbeid,
                         journalpostList = journalpostList,
