@@ -9,7 +9,6 @@ val springDocVersion = "2.8.8"
 val testContainersVersion = "1.21.0"
 val shedlockVersion = "6.7.0"
 val archunitVersion = "1.4.1"
-val kotlinXmlBuilderVersion = "1.9.3"
 val logbackSyslog4jVersion = "1.0.0"
 val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.5"
@@ -88,8 +87,6 @@ dependencies {
     implementation("com.papertrailapp:logback-syslog4j:$logbackSyslog4jVersion")
 
     implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jacksonJsonschemaVersion")
-
-    implementation("org.redundent:kotlin-xml-builder:$kotlinXmlBuilderVersion")
 
     implementation("no.nav.klage:klage-kodeverk:$klageKodeverkVersion")
 
