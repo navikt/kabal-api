@@ -287,7 +287,7 @@ class AdminController(
     @GetMapping("/opprettet-event/{behandlingId}", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun generateOpprettetEvent(
-        @PathVariable("behandlingId") behandlingId: UUID? = null
+        @PathVariable(required = false, name = "behandlingId") behandlingId: UUID? = null
     ) {
         logger.debug("generateOpprettetEvent is called, optional behandlingId: {}", behandlingId)
         krevAdminTilgang()
