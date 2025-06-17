@@ -2443,7 +2443,7 @@ class BehandlingService(
                 getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
             } else {
                 if (behandlingForCheck.rolFlowState == FlowState.SENT && behandlingForCheck.rolIdent == null) {
-                    if (innloggetSaksbehandlerService.isRol()) {
+                    if (innloggetSaksbehandlerService.isROL()) {
                         getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
                     } else {
                         getBehandlingForWriteAllowROLAndMU(
