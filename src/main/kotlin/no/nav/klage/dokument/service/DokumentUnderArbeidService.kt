@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
+import no.nav.klage.dokument.api.view.Mottaker
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
@@ -24,11 +25,8 @@ import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.getHistogram
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
-import no.nav.klage.oppgave.domain.klage.ForlengetBehandlingstidDraft
-import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
@@ -863,6 +861,11 @@ class DokumentUnderArbeidService(
 
             val technicalPartId = inputMottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = inputMottaker.identifikator)
 
+            val getAddressFromFullmektig = inputMottaker.identifikator == null
+            if (getAddressFromFullmektig && behandling.prosessfullmektig?.id != technicalPartId) {
+                throw DokumentValidationException("Kun fullmektig kan brukes som mottaker uten identifikator.")
+            }
+
             when (inputMottaker) {
                 in mottakereToAdd -> {
                     dokumentUnderArbeid.brevmottakere.add(
@@ -871,7 +874,11 @@ class DokumentUnderArbeidService(
                             identifikator = inputMottaker.identifikator,
                             localPrint = markLocalPrint,
                             forceCentralPrint = forceCentralPrint,
-                            address = getDokumentUnderArbeidAdresse(inputMottaker.overriddenAddress),
+                            address = getDokumentUnderArbeidAdresse(
+                                overrideAddress = inputMottaker.overriddenAddress,
+                                getAddressFromFullmektig = getAddressFromFullmektig,
+                                fullmektig = behandling.prosessfullmektig,
+                            ),
                             navn = inputMottaker.navn,
                         )
                     )
@@ -880,7 +887,11 @@ class DokumentUnderArbeidService(
                     val existingMottaker = dokumentUnderArbeid.brevmottakere.first { it.technicalPartId == technicalPartId }
                     existingMottaker.localPrint = markLocalPrint
                     existingMottaker.forceCentralPrint = forceCentralPrint
-                    existingMottaker.address = getDokumentUnderArbeidAdresse(inputMottaker.overriddenAddress)
+                    existingMottaker.address = getDokumentUnderArbeidAdresse(
+                        overrideAddress = inputMottaker.overriddenAddress,
+                        getAddressFromFullmektig = getAddressFromFullmektig,
+                        fullmektig = behandling.prosessfullmektig,
+                    )
                 }
                 else -> {
                     throw RuntimeException("Feil ved setting av mottaker med id ${inputMottaker.id}. Undersøk det tekniske.")
@@ -925,6 +936,10 @@ class DokumentUnderArbeidService(
         systemContext: Boolean,
     ) {
         mottakerInput.mottakerList.forEach { mottaker ->
+            if (mottaker.identifikator == null && mottaker.id == null) {
+                throw DokumentValidationException("Mottaker må ha enten identifikator eller id.")
+            }
+
             if (mottaker.identifikator != null) {
                 val part = partSearchService.searchPart(
                     identifikator = mottaker.identifikator,
@@ -940,10 +955,7 @@ class DokumentUnderArbeidService(
                         throw DokumentValidationException("Mottaker ${part.name} er avviklet, velg en annen mottaker.")
                     }
                 }
-            } else if (mottaker.overriddenAddress == null && mottaker.navn == null) {
-                throw DokumentValidationException("Adresse og navn må oppgis når id mangler.")
             }
-
 
             if (mottaker.overriddenAddress != null) {
                 val landkoder = kodeverkService.getLandkoder()
@@ -994,7 +1006,11 @@ class DokumentUnderArbeidService(
         HandlingEnum.CENTRAL_PRINT -> false to true
     }
 
-    fun getDokumentUnderArbeidAdresse(overrideAddress: AddressInput?): Adresse? {
+    fun getDokumentUnderArbeidAdresse(
+        overrideAddress: AddressInput?,
+        getAddressFromFullmektig: Boolean,
+        fullmektig: Prosessfullmektig?,
+    ): Adresse? {
         return if (overrideAddress != null) {
             val poststed = if (overrideAddress.landkode == "NO") {
                 if (overrideAddress.postnummer != null) {
@@ -1009,6 +1025,15 @@ class DokumentUnderArbeidService(
                 postnummer = overrideAddress.postnummer,
                 poststed = poststed,
                 landkode = overrideAddress.landkode
+            )
+        } else if (getAddressFromFullmektig) {
+            Adresse(
+                adresselinje1 = fullmektig!!.address!!.adresselinje1,
+                adresselinje2 = fullmektig.address.adresselinje2,
+                adresselinje3 = fullmektig.address.adresselinje3,
+                postnummer = fullmektig.address.postnummer,
+                poststed = fullmektig.address.poststed,
+                landkode = fullmektig.address.landkode,
             )
         } else null
     }
