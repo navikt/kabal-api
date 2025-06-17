@@ -114,6 +114,7 @@ class FerdigstillDokumentService(
                 behandlingId = updatedDokument.behandlingId,
                 type = InternalEventType.DOCUMENT_FINISHED,
             )
+            logger.debug("ferdigstill for document with id {} successful", updatedDokument.id)
 
         } catch (e: Exception) {
             logger.error("Could not 'ferdigstillHovedDokumenter' with dokumentEnhetId: ${updatedDokument.dokumentEnhetId}. See team-logs for more details.")
@@ -122,7 +123,6 @@ class FerdigstillDokumentService(
                 e
             )
         }
-        logger.debug("ferdigstill for document with id {} successful", updatedDokument.id)
     }
 
     private fun publishInternalEvent(data: String, behandlingId: UUID, type: InternalEventType) {
