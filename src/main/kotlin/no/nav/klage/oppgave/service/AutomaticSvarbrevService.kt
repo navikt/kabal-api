@@ -249,7 +249,10 @@ class AutomaticSvarbrevService(
                             adresselinje3 = it.adresselinje3,
                             landkode = it.landkode,
                             postnummer = it.postnummer
-                        )
+                        ),
+                        //Already handled when creating the receiver
+                        getAddressFromFullmektig = false,
+                        fullmektig = null,
                     )
                 },
                 navn = receiver.navn,

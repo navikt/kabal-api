@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.MottakerInput
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
+import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.dokument.service.KabalJsonToPdfService
 import no.nav.klage.kodeverk.Enhet
@@ -207,9 +208,15 @@ class ForlengetBehandlingstidDraftService(
                 systemContext = false,
             )
 
-            val technicalPartId = mottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = mottaker.identifikator)
+            val technicalPartId =
+                mottaker.id ?: behandling.getTechnicalIdFromPart(identifikator = mottaker.identifikator)
 
-            if (behandling.forlengetBehandlingstidDraft!!.receivers.none { it.identifikator == mottaker.identifikator}) {
+            val getAddressFromFullmektig = mottaker.identifikator == null
+            if (getAddressFromFullmektig && behandling.prosessfullmektig?.id != technicalPartId) {
+                throw DokumentValidationException("Kun fullmektig kan brukes som mottaker uten identifikator.")
+            }
+
+            if (behandling.forlengetBehandlingstidDraft!!.receivers.none { it.identifikator == mottaker.identifikator }) {
                 behandling.forlengetBehandlingstidDraft!!.receivers.add(
                     Brevmottaker(
                         technicalPartId = technicalPartId,
@@ -217,7 +224,11 @@ class ForlengetBehandlingstidDraftService(
                         identifikator = mottaker.identifikator,
                         localPrint = markLocalPrint,
                         forceCentralPrint = forceCentralPrint,
-                        address = dokumentUnderArbeidService.getDokumentUnderArbeidAdresse(mottaker.overriddenAddress),
+                        address = dokumentUnderArbeidService.getDokumentUnderArbeidAdresse(
+                            overrideAddress = mottaker.overriddenAddress,
+                            getAddressFromFullmektig = getAddressFromFullmektig,
+                            fullmektig = behandling.prosessfullmektig,
+                        )
                     )
                 )
             }
@@ -490,8 +501,9 @@ class ForlengetBehandlingstidDraftService(
             if (lastVarsletBehandlingstid?.varsletBehandlingstid != null) {
                 val lastBehandlingstidHadLetter = !lastVarsletBehandlingstid.varsletBehandlingstid!!.doNotSendLetter
 
-                val lastBehandlingstidHadUnitsAndType = (lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null &&
-                        lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType != null)
+                val lastBehandlingstidHadUnitsAndType =
+                    (lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnits != null &&
+                            lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletBehandlingstidUnitType != null)
 
                 val lastBehandlingstidHadFrist = lastVarsletBehandlingstid.varsletBehandlingstid!!.varsletFrist != null
 

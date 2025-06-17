@@ -284,7 +284,7 @@ class AdminController(
         }
     }
 
-    @GetMapping("/opprettet-event/{behandlingId}", produces = ["application/json"])
+    @GetMapping(value =  ["/opprettet-event/{behandlingId}", "/opprettet-event"], produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun generateOpprettetEvent(
         @PathVariable(required = false, name = "behandlingId") behandlingId: UUID? = null
