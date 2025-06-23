@@ -118,8 +118,8 @@ class OmgjoeringskravbehandlingService(
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = omgjoeringskravbehandling,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                endringsinnslag = listOfNotNull(
+                    Endringsinnslag.createEndringsinnslag(
                         saksbehandlerident = systembrukerIdent,
                         felt = Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT,
                         fraVerdi = null,
@@ -133,8 +133,8 @@ class OmgjoeringskravbehandlingService(
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = omgjoeringskravbehandling,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                endringsinnslag = listOfNotNull(
+                    Endringsinnslag.createEndringsinnslag(
                         saksbehandlerident = systembrukerIdent,
                         felt = Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
                         fraVerdi = null,

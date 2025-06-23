@@ -80,7 +80,7 @@ class CleanupAfterBehandlingEventListener(
                         logger.error("Could not delete melding with id ${melding.id}", exception)
                     }
                 }
-        } else if (behandlingEndretEvent.endringslogginnslag.any { it.felt == Felt.FEILREGISTRERING } && behandling.feilregistrering != null) {
+        } else if (behandlingEndretEvent.endringsinnslag.any { it.felt == Felt.FEILREGISTRERING } && behandling.feilregistrering != null) {
             logger.debug(
                 "Cleanup and notifying vedtaksinstans after feilregistrering. Behandling.id: {}",
                 behandling.id
@@ -93,7 +93,7 @@ class CleanupAfterBehandlingEventListener(
                 fssProxyClient.setToFeilregistrertInKabal(
                     sakId = behandling.kildeReferanse,
                     input = FeilregistrertInKabalInput(
-                        saksbehandlerIdent = behandlingEndretEvent.endringslogginnslag.first().saksbehandlerident!!,
+                        saksbehandlerIdent = behandlingEndretEvent.endringsinnslag.first().saksbehandlerident!!,
                     )
                 )
                 logger.debug("Feilregistrering av behandling ble registrert i Infotrygd.")

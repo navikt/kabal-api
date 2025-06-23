@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.oppgave.domain.klage.Endringslogginnslag.Companion.endringslogg
+import no.nav.klage.oppgave.domain.klage.Endringsinnslag.Companion.createEndringsinnslag
 import java.time.LocalDateTime
 
 
@@ -9,7 +9,7 @@ fun BehandlingWithVarsletBehandlingstid.setVarsletBehandlingstid(
     saksbehandlerident: String,
     saksbehandlernavn: String,
     mottakere: List<Mottaker>,
-): List<Endringslogginnslag> {
+): List<Endringsinnslag> {
     val gammelVerdi = this.varsletBehandlingstid
 
     val tidspunkt = LocalDateTime.now()
@@ -31,17 +31,17 @@ fun BehandlingWithVarsletBehandlingstid.setVarsletBehandlingstid(
         mottakere = mottakere,
     )
 
-    val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+    val endringsinnslag = mutableListOf<Endringsinnslag>()
 
-    endringslogg(
+    createEndringsinnslag(
         saksbehandlerident = saksbehandlerident,
         felt = Felt.VARSLET_FRIST,
         fraVerdi = gammelVerdi.toString(),
         tilVerdi = varsletBehandlingstid.toString(),
         behandlingId = this.id,
-    )?.let { endringslogginnslag.add(it) }
+    )?.let { endringsinnslag.add(it) }
 
-    return endringslogginnslag
+    return endringsinnslag
 }
 
 private fun BehandlingWithVarsletBehandlingstid.recordVarsletBehandlingstidHistory(

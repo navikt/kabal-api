@@ -1278,12 +1278,12 @@ class BehandlingService(
                 saksbehandlerident = utfoerendeSaksbehandlerIdent,
                 saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
             )
-            val endringslogginnslag =
-                eventNyBehandling.endringslogginnslag + eventAvsluttetAvSaksbehandler.endringslogginnslag
+            val endringsinnslaginnslag =
+                eventNyBehandling.endringsinnslag + eventAvsluttetAvSaksbehandler.endringsinnslag
             applicationEventPublisher.publishEvent(
                 BehandlingEndretEvent(
                     behandling = behandling,
-                    endringslogginnslag = endringslogginnslag
+                    endringsinnslag = endringsinnslaginnslag
                 )
             )
 
@@ -1304,12 +1304,12 @@ class BehandlingService(
                 saksbehandlerident = utfoerendeSaksbehandlerIdent,
                 saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
             )
-            val endringslogginnslag =
-                eventNyBehandling.endringslogginnslag + eventAvsluttetAvSaksbehandler.endringslogginnslag
+            val endringsinnslaginnslag =
+                eventNyBehandling.endringsinnslag + eventAvsluttetAvSaksbehandler.endringsinnslag
             applicationEventPublisher.publishEvent(
                 BehandlingEndretEvent(
                     behandling = behandling,
-                    endringslogginnslag = endringslogginnslag
+                    endringsinnslag = endringsinnslaginnslag
                 )
             )
 
@@ -2237,7 +2237,7 @@ class BehandlingService(
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
-        val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+        val endringsinnslag = mutableListOf<Endringsinnslag>()
 
         if (utfall != null) {
             if (utfall in behandling.extraUtfallSet) {
@@ -2246,7 +2246,7 @@ class BehandlingService(
                         nyVerdi = behandling.extraUtfallSet.minus(utfall),
                         saksbehandlerident = utfoerendeSaksbehandlerIdent
                     )
-                endringslogginnslag += event.endringslogginnslag
+                endringsinnslag += event.endringsinnslag
             }
         } else {
             val event =
@@ -2254,7 +2254,7 @@ class BehandlingService(
                     nyVerdi = setOf(),
                     saksbehandlerident = utfoerendeSaksbehandlerIdent
                 )
-            endringslogginnslag += event.endringslogginnslag
+            endringsinnslag += event.endringsinnslag
         }
 
         val event =
@@ -2262,11 +2262,11 @@ class BehandlingService(
                 nyVerdi = utfall,
                 saksbehandlerident = utfoerendeSaksbehandlerIdent
             )
-        endringslogginnslag += event.endringslogginnslag
+        endringsinnslag += event.endringsinnslag
 
         val groupedEvent = BehandlingEndretEvent(
             behandling = behandling,
-            endringslogginnslag = endringslogginnslag,
+            endringsinnslag = endringsinnslag,
         )
         applicationEventPublisher.publishEvent(groupedEvent)
 

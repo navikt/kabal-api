@@ -95,8 +95,8 @@ class AnkebehandlingService(
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = ankebehandling,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                endringsinnslag = listOfNotNull(
+                    Endringsinnslag.createEndringsinnslag(
                         saksbehandlerident = systembrukerIdent,
                         felt = Felt.ANKEBEHANDLING_MOTTATT,
                         fraVerdi = null,
@@ -110,8 +110,8 @@ class AnkebehandlingService(
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = ankebehandling,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                endringsinnslag = listOfNotNull(
+                    Endringsinnslag.createEndringsinnslag(
                         saksbehandlerident = systembrukerIdent,
                         felt = Felt.ANKEBEHANDLING_OPPRETTET,
                         fraVerdi = null,
@@ -176,8 +176,8 @@ class AnkebehandlingService(
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = ankebehandling,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                endringsinnslag = listOfNotNull(
+                    Endringsinnslag.createEndringsinnslag(
                         saksbehandlerident = ankeITrygderettenbehandling.tildeling!!.saksbehandlerident,
                         felt = Felt.ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN,
                         fraVerdi = null,

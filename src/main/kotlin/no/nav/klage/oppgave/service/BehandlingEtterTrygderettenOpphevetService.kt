@@ -9,7 +9,7 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.klage.BehandlingEtterTrygderettenOpphevet
-import no.nav.klage.oppgave.domain.klage.Endringslogginnslag
+import no.nav.klage.oppgave.domain.klage.Endringsinnslag
 import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.repositories.BehandlingEtterTrygderettenOpphevetRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -87,8 +87,8 @@ class BehandlingEtterTrygderettenOpphevetService(
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = behandlingEtterTrygderettenOpphevet,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                endringsinnslag = listOfNotNull(
+                    Endringsinnslag.createEndringsinnslag(
                         saksbehandlerident = ankeITrygderettenbehandling.tildeling!!.saksbehandlerident,
                         felt = Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET,
                         fraVerdi = null,

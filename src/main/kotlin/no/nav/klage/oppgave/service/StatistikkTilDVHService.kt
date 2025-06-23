@@ -59,7 +59,7 @@ class StatistikkTilDVHService(
     fun shouldSendStats(behandlingEndretEvent: BehandlingEndretEvent): Boolean {
         return if (behandlingEndretEvent.behandling.shouldUpdateInfotrygd() || behandlingEndretEvent.behandling is OmgjoeringskravbehandlingBasedOnJournalpost) {
             false
-        } else behandlingEndretEvent.endringslogginnslag.any {
+        } else behandlingEndretEvent.endringsinnslag.any {
             it.felt === Felt.TILDELT_SAKSBEHANDLERIDENT
                     || it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                     || it.felt === Felt.FEILREGISTRERING
@@ -73,63 +73,63 @@ class StatistikkTilDVHService(
     }
 
     private fun getBehandlingState(behandlingEndretEvent: BehandlingEndretEvent): BehandlingState {
-        val endringslogginnslag: List<Endringslogginnslag> = behandlingEndretEvent.endringslogginnslag
+        val endringsinnslag: List<Endringsinnslag> = behandlingEndretEvent.endringsinnslag
         val behandling = behandlingEndretEvent.behandling
         val type = behandling.type
         val utfall = behandling.utfall
 
         return when {
-            endringslogginnslag.any {
+            endringsinnslag.any {
                 it.felt === Felt.KLAGEBEHANDLING_MOTTATT ||
                         it.felt === Felt.ANKEBEHANDLING_MOTTATT ||
                         it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT
             } -> BehandlingState.MOTTATT
 
-            endringslogginnslag.any {
+            endringsinnslag.any {
                 it.felt === Felt.KLAGEBEHANDLING_OPPRETTET ||
                         it.felt === Felt.ANKEBEHANDLING_OPPRETTET ||
                         it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
             } -> BehandlingState.OPPRETTET
 
-            endringslogginnslag.any {
+            endringsinnslag.any {
                 it.felt === Felt.FEILREGISTRERING
             } -> BehandlingState.AVSLUTTET
 
-            endringslogginnslag.any {
+            endringsinnslag.any {
                 it.felt === Felt.NY_BEHANDLING_ETTER_TR_OPPHEVET
                         && type == Type.ANKE_I_TRYGDERETTEN
             } -> BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA
 
-            endringslogginnslag.any {
+            endringsinnslag.any {
                 it.felt === Felt.NY_ANKEBEHANDLING_KA
                         && type == Type.ANKE_I_TRYGDERETTEN
             } -> BehandlingState.NY_ANKEBEHANDLING_I_KA_UTEN_TR
 
-            endringslogginnslag.any {
+            endringsinnslag.any {
                 it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type == Type.ANKE_I_TRYGDERETTEN
                         && utfall in utfallToNewAnkebehandling
             } -> BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA
 
-            endringslogginnslag.any {
+            endringsinnslag.any {
                 it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type == Type.ANKE_I_TRYGDERETTEN
             } -> BehandlingState.AVSLUTTET
 
-            endringslogginnslag.any { it.felt === Felt.TILDELT_SAKSBEHANDLERIDENT } -> BehandlingState.TILDELT_SAKSBEHANDLER
+            endringsinnslag.any { it.felt === Felt.TILDELT_SAKSBEHANDLERIDENT } -> BehandlingState.TILDELT_SAKSBEHANDLER
 
-            endringslogginnslag.any {
+            endringsinnslag.any {
                 it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type == Type.ANKE
                         && utfall !in utfallToTrygderetten
             } -> BehandlingState.AVSLUTTET
 
-            endringslogginnslag.any {
+            endringsinnslag.any {
                 it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type != Type.ANKE
             } -> BehandlingState.AVSLUTTET
 
-            endringslogginnslag.any {
+            endringsinnslag.any {
                 it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type == Type.ANKE
                         && utfall in utfallToTrygderetten
@@ -138,7 +138,7 @@ class StatistikkTilDVHService(
             else -> BehandlingState.UKJENT.also {
                 logger.warn(
                     "unknown state for behandling with id {}",
-                    endringslogginnslag.first().behandlingId
+                    endringsinnslag.first().behandlingId
                 )
             }
         }

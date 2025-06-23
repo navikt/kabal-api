@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.domain.klage
 import no.nav.klage.oppgave.util.getLogger
 import java.util.*
 
-class Endringslogginnslag(
+class Endringsinnslag(
     val saksbehandlerident: String?, //subjekt?
     val felt: Felt,
     val behandlingId: UUID,
@@ -12,16 +12,16 @@ class Endringslogginnslag(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
 
-        fun endringslogg(
+        fun createEndringsinnslag(
             saksbehandlerident: String?,
             felt: Felt,
             fraVerdi: String?,
             tilVerdi: String?,
             behandlingId: UUID,
-        ): Endringslogginnslag? {
+        ): Endringsinnslag? {
             if ((fraVerdi == null && tilVerdi == null) || fraVerdi == tilVerdi) {
                 logger.debug(
-                    "Returning null from endringslogg. Felt: {}, fraVerdi: {}, tilVerdi: {}, behandlingId: {}",
+                    "Returning null from endringsinnslag. Felt: {}, fraVerdi: {}, tilVerdi: {}, behandlingId: {}",
                     felt.name,
                     fraVerdi,
                     tilVerdi,
@@ -29,7 +29,7 @@ class Endringslogginnslag(
                 )
                 return null
             } else {
-                return Endringslogginnslag(
+                return Endringsinnslag(
                     saksbehandlerident = saksbehandlerident,
                     felt = felt,
                     behandlingId = behandlingId,

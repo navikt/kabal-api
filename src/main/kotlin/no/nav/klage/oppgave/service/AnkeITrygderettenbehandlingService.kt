@@ -14,7 +14,7 @@ import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingInput
-import no.nav.klage.oppgave.domain.klage.Endringslogginnslag
+import no.nav.klage.oppgave.domain.klage.Endringsinnslag
 import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
@@ -106,8 +106,8 @@ class AnkeITrygderettenbehandlingService(
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = ankeITrygderettenbehandling,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                endringsinnslag = listOfNotNull(
+                    Endringsinnslag.createEndringsinnslag(
                         saksbehandlerident = systembrukerIdent,
                         felt = Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
                         fraVerdi = null,

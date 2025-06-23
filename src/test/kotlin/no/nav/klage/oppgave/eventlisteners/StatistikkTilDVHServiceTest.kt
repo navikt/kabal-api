@@ -31,8 +31,8 @@ class StatistikkTilDVHServiceTest {
 
         val klagebehandlingEndretEvent = BehandlingEndretEvent(
             behandling = klagebehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            endringsinnslag = listOf(
+                Endringsinnslag(
                     saksbehandlerident = null,
                     felt = Felt.KLAGEBEHANDLING_MOTTATT,
                     behandlingId = UUID.randomUUID(),
@@ -42,8 +42,8 @@ class StatistikkTilDVHServiceTest {
 
         val ankebehandlingEndretEvent = BehandlingEndretEvent(
             behandling = ankebehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            endringsinnslag = listOf(
+                Endringsinnslag(
                     saksbehandlerident = null,
                     felt = Felt.ANKEBEHANDLING_MOTTATT,
                     behandlingId = UUID.randomUUID(),
@@ -53,8 +53,8 @@ class StatistikkTilDVHServiceTest {
 
         val ankeITrygderettenbehandlingEndretEvent = BehandlingEndretEvent(
             behandling = ankeITrygderettenbehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            endringsinnslag = listOf(
+                Endringsinnslag(
                     saksbehandlerident = null,
                     felt = Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
                     behandlingId = UUID.randomUUID(),
@@ -72,8 +72,8 @@ class StatistikkTilDVHServiceTest {
 
         val klagebehandlingEndretEvent = BehandlingEndretEvent(
             behandling = klagebehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            endringsinnslag = listOf(
+                Endringsinnslag(
                     saksbehandlerident = null,
                     felt = Felt.TILDELT_SAKSBEHANDLERIDENT,
                     behandlingId = UUID.randomUUID(),
@@ -83,8 +83,8 @@ class StatistikkTilDVHServiceTest {
 
         val klagebehandlingHJEEndretEvent = BehandlingEndretEvent(
             behandling = klagebehandlingHJE,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            endringsinnslag = listOf(
+                Endringsinnslag(
                     saksbehandlerident = null,
                     felt = Felt.TILDELT_SAKSBEHANDLERIDENT,
                     behandlingId = UUID.randomUUID(),
@@ -94,8 +94,8 @@ class StatistikkTilDVHServiceTest {
 
         val ankebehandlingEndretEvent = BehandlingEndretEvent(
             behandling = ankebehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            endringsinnslag = listOf(
+                Endringsinnslag(
                     saksbehandlerident = null,
                     felt = Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT,
                     behandlingId = UUID.randomUUID(),
@@ -105,8 +105,8 @@ class StatistikkTilDVHServiceTest {
 
         val ankeITrygderettenbehandlingEndretEvent = BehandlingEndretEvent(
             behandling = ankeITrygderettenbehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            endringsinnslag = listOf(
+                Endringsinnslag(
                     saksbehandlerident = null,
                     felt = Felt.AVSLUTTET_TIDSPUNKT,
                     behandlingId = UUID.randomUUID(),

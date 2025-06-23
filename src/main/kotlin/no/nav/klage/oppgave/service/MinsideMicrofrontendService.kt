@@ -40,7 +40,7 @@ class MinsideMicrofrontendService(
             behandlingEndretEvent.behandling.id,
             "MinsideMicrofrontendService"
         )
-        if (behandlingEndretEvent.endringslogginnslag.any {
+        if (behandlingEndretEvent.endringsinnslag.any {
                 it.felt in listOf(
                     Felt.KLAGEBEHANDLING_MOTTATT,
                     Felt.ANKEBEHANDLING_MOTTATT,
@@ -49,7 +49,7 @@ class MinsideMicrofrontendService(
                 )
             }) {
             enableMinsideMicrofrontend(behandling = behandlingEndretEvent.behandling)
-        } else if (behandlingEndretEvent.endringslogginnslag.any {
+        } else if (behandlingEndretEvent.endringsinnslag.any {
                 it.felt in listOf(
                     Felt.FEILREGISTRERING
                 )

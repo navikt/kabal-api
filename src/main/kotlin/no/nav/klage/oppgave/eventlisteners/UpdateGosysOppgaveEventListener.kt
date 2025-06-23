@@ -32,13 +32,13 @@ class UpdateGosysOppgaveEventListener(
     fun updateOppgave(behandlingEndretEvent: BehandlingEndretEvent) {
         logger.debug("updateOppgave called. Received BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
 
-        val relevantEndringslogginnslag = behandlingEndretEvent.endringslogginnslag.find { it.felt == Felt.TILDELT_SAKSBEHANDLERIDENT }
+        val relevantEndringsinnslag = behandlingEndretEvent.endringsinnslag.find { it.felt == Felt.TILDELT_SAKSBEHANDLERIDENT }
 
-        if (relevantEndringslogginnslag != null && behandlingEndretEvent.behandling.gosysOppgaveId != null) {
+        if (relevantEndringsinnslag != null && behandlingEndretEvent.behandling.gosysOppgaveId != null) {
             gosysOppgaveService.assignGosysOppgave(
                 gosysOppgaveId = behandlingEndretEvent.behandling.gosysOppgaveId!!,
                 tildeltSaksbehandlerIdent = behandlingEndretEvent.behandling.tildeling?.saksbehandlerident,
-                utfoerendeSaksbehandlerIdent = relevantEndringslogginnslag.saksbehandlerident ?: systembrukerIdent,
+                utfoerendeSaksbehandlerIdent = relevantEndringsinnslag.saksbehandlerident ?: systembrukerIdent,
                 behandlingId = behandlingEndretEvent.behandling.id,
                 throwExceptionIfFerdigstilt = false,
             )

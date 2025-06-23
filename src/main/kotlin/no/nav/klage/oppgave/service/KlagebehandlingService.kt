@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
-import no.nav.klage.oppgave.domain.klage.Endringslogginnslag
+import no.nav.klage.oppgave.domain.klage.Endringsinnslag
 import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.domain.klage.Mottak
@@ -68,8 +68,8 @@ class KlagebehandlingService(
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = klagebehandling,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                endringsinnslag = listOfNotNull(
+                    Endringsinnslag.createEndringsinnslag(
                         saksbehandlerident = systembrukerIdent,
                         felt = Felt.KLAGEBEHANDLING_MOTTATT,
                         fraVerdi = null,
@@ -82,8 +82,8 @@ class KlagebehandlingService(
         applicationEventPublisher.publishEvent(
             BehandlingEndretEvent(
                 behandling = klagebehandling,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                endringsinnslag = listOfNotNull(
+                    Endringsinnslag.createEndringsinnslag(
                         saksbehandlerident = systembrukerIdent,
                         felt = Felt.KLAGEBEHANDLING_OPPRETTET,
                         fraVerdi = null,

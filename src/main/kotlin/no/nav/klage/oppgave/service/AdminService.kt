@@ -569,8 +569,8 @@ class AdminService(
             applicationEventPublisher.publishEvent(
                 BehandlingEndretEvent(
                     behandling = behandling,
-                    endringslogginnslag = listOfNotNull(
-                        Endringslogginnslag.endringslogg(
+                    endringsinnslag = listOfNotNull(
+                        Endringsinnslag.createEndringsinnslag(
                             saksbehandlerident = systembrukerIdent,
                             felt = when (behandling) {
                                 is Klagebehandling -> Felt.KLAGEBEHANDLING_OPPRETTET
@@ -596,8 +596,8 @@ class AdminService(
                     applicationEventPublisher.publishEvent(
                         BehandlingEndretEvent(
                             behandling = behandling,
-                            endringslogginnslag = listOfNotNull(
-                                Endringslogginnslag.endringslogg(
+                            endringsinnslag = listOfNotNull(
+                                Endringsinnslag.createEndringsinnslag(
                                     saksbehandlerident = systembrukerIdent,
                                     felt = Felt.KLAGEBEHANDLING_OPPRETTET,
                                     fraVerdi = null,
@@ -619,8 +619,8 @@ class AdminService(
                     applicationEventPublisher.publishEvent(
                         BehandlingEndretEvent(
                             behandling = behandling,
-                            endringslogginnslag = listOfNotNull(
-                                Endringslogginnslag.endringslogg(
+                            endringsinnslag = listOfNotNull(
+                                Endringsinnslag.createEndringsinnslag(
                                     saksbehandlerident = systembrukerIdent,
                                     felt = Felt.ANKEBEHANDLING_OPPRETTET,
                                     fraVerdi = null,
@@ -642,8 +642,8 @@ class AdminService(
                     applicationEventPublisher.publishEvent(
                         BehandlingEndretEvent(
                             behandling = behandling,
-                            endringslogginnslag = listOfNotNull(
-                                Endringslogginnslag.endringslogg(
+                            endringsinnslag = listOfNotNull(
+                                Endringsinnslag.createEndringsinnslag(
                                     saksbehandlerident = systembrukerIdent,
                                     felt = Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
                                     fraVerdi = null,
