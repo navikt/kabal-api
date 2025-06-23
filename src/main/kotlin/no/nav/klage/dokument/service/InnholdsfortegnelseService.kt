@@ -3,7 +3,6 @@ package no.nav.klage.dokument.service
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
-import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.InnholdsfortegnelseRepository
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.service.BehandlingService
@@ -17,7 +16,6 @@ import java.util.*
 @Service
 @Transactional
 class InnholdsfortegnelseService(
-    private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     private val dokumentUnderArbeidCommonService: DokumentUnderArbeidCommonService,
     private val dokumentMapper: DokumentMapper,
     private val mellomlagerService: MellomlagerService,
@@ -73,12 +71,6 @@ class InnholdsfortegnelseService(
         dokumentUnderArbeid as DokumentUnderArbeidAsHoveddokument
 
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentUnderArbeid.id)
-
-//        if (dokumentUnderArbeid.dokumentType in listOf(DokumentType.BREV, DokumentType.VEDTAK, DokumentType.BESLUTNING)) {
-//            if (vedlegg.any { it !is JournalfoertDokumentUnderArbeidAsVedlegg }) {
-//                error("All documents must be JournalfoertDokumentUnderArbeidAsVedlegg")
-//            }
-//        }
 
         val journalpostList = safFacade.getJournalposter(
             journalpostIdSet = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
