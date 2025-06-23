@@ -6,7 +6,8 @@ import no.nav.klage.kodeverk.FradelingReason
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -21,7 +22,7 @@ object BehandlingSetters {
         utfoerendeIdent: String,
         utfoerendeNavn: String,
         fradelingWithChangedHjemmelIdList: String?,
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         if (!(nyVerdiSaksbehandlerident == null && nyVerdiEnhet == null) &&
             !(nyVerdiSaksbehandlerident != null && nyVerdiEnhet != null)
         ) {
@@ -61,31 +62,34 @@ object BehandlingSetters {
             } else hjemler.joinToString(",") { it.id },
         )
 
-        val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+        val changeList = mutableListOf<BehandlingChangedEvent.Change>()
 
-        endringslogg(
+        createChange(
+            behandlingId = this.id,
             saksbehandlerident = utfoerendeIdent,
-            felt = Felt.TILDELT_TIDSPUNKT,
+            felt = BehandlingChangedEvent.Felt.TILDELT_TIDSPUNKT,
             fraVerdi = gammelVerdiTidspunkt?.format(DateTimeFormatter.ISO_LOCAL_DATE),
             tilVerdi = tidspunkt.format(DateTimeFormatter.ISO_LOCAL_DATE),
-        )?.let { endringslogginnslag.add(it) }
+        )?.let { changeList.add(it) }
 
-        endringslogg(
+        createChange(
+            behandlingId = this.id,
             saksbehandlerident = utfoerendeIdent,
-            felt = Felt.TILDELT_SAKSBEHANDLERIDENT,
+            felt = BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT,
             fraVerdi = gammelVerdiSaksbehandlerident,
             tilVerdi = nyVerdiSaksbehandlerident,
-        )?.let { endringslogginnslag.add(it) }
+        )?.let { changeList.add(it) }
 
-        endringslogg(
+        createChange(
+            behandlingId = this.id,
             saksbehandlerident = utfoerendeIdent,
-            felt = Felt.TILDELT_ENHET,
+            felt = BehandlingChangedEvent.Felt.TILDELT_ENHET,
             fraVerdi = gammelVerdiEnhet,
             tilVerdi = nyVerdiEnhet,
         )
-            ?.let { endringslogginnslag.add(it) }
+            ?.let { changeList.add(it) }
 
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
+        return BehandlingChangedEvent(behandling = this, changeList = changeList)
     }
 
     private fun Behandling.recordTildelingHistory(
@@ -112,7 +116,7 @@ object BehandlingSetters {
         nyMedunderskriverFlowState: FlowState,
         utfoerendeIdent: String,
         utfoerendeNavn: String,
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdiMedunderskriverFlowState = medunderskriverFlowState
         val tidspunkt = LocalDateTime.now()
 
@@ -134,23 +138,24 @@ object BehandlingSetters {
             utfoerendeNavn = utfoerendeNavn,
         )
 
-        val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+        val changeList = mutableListOf<BehandlingChangedEvent.Change>()
 
-        endringslogg(
+        createChange(
+            behandlingId = this.id,
             saksbehandlerident = utfoerendeIdent,
-            felt = Felt.MEDUNDERSKRIVER_FLOW_STATE_ID,
+            felt = BehandlingChangedEvent.Felt.MEDUNDERSKRIVER_FLOW_STATE_ID,
             fraVerdi = gammelVerdiMedunderskriverFlowState.id,
             tilVerdi = nyMedunderskriverFlowState.id,
-        )?.let { endringslogginnslag.add(it) }
+        )?.let { changeList.add(it) }
 
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
+        return BehandlingChangedEvent(behandling = this, changeList = changeList)
     }
 
     fun Behandling.setMedunderskriverNavIdent(
         nyMedunderskriverNavIdent: String?,
         utfoerendeIdent: String,
         utfoerendeNavn: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdiMedunderskriverNavIdent = medunderskriver?.saksbehandlerident
         val tidspunkt = LocalDateTime.now()
 
@@ -180,16 +185,17 @@ object BehandlingSetters {
 
         modified = tidspunkt
 
-        val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+        val changeList = mutableListOf<BehandlingChangedEvent.Change>()
 
-        endringslogg(
+        createChange(
+            behandlingId = this.id,
             saksbehandlerident = utfoerendeIdent,
-            felt = Felt.MEDUNDERSKRIVERIDENT,
+            felt = BehandlingChangedEvent.Felt.MEDUNDERSKRIVERIDENT,
             fraVerdi = gammelVerdiMedunderskriverNavIdent,
             tilVerdi = nyMedunderskriverNavIdent,
-        )?.let { endringslogginnslag.add(it) }
+        )?.let { changeList.add(it) }
 
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
+        return BehandlingChangedEvent(behandling = this, changeList = changeList)
     }
 
     private fun Behandling.recordMedunderskriverHistory(
@@ -212,7 +218,7 @@ object BehandlingSetters {
         newROLFlowStateState: FlowState,
         utfoerendeIdent: String,
         utfoerendeNavn: String,
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val oldValue = rolFlowState
         val now = LocalDateTime.now()
 
@@ -234,45 +240,47 @@ object BehandlingSetters {
             utfoerendeNavn = utfoerendeNavn,
         )
 
-        val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+        val changeList = mutableListOf<BehandlingChangedEvent.Change>()
 
-        endringslogg(
+        createChange(
+            behandlingId = this.id,
             saksbehandlerident = utfoerendeIdent,
-            felt = Felt.ROL_FLOW_STATE_ID,
+            felt = BehandlingChangedEvent.Felt.ROL_FLOW_STATE_ID,
             fraVerdi = oldValue.id,
             tilVerdi = rolFlowState.id,
-        )?.let { endringslogginnslag.add(it) }
+        )?.let { changeList.add(it) }
 
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
+        return BehandlingChangedEvent(behandling = this, changeList = changeList)
     }
 
     fun Behandling.setROLReturnedDate(
         setNull: Boolean,
         utfoerendeIdent: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val oldValue = rolReturnedDate
         val now = LocalDateTime.now()
 
         rolReturnedDate = if (setNull) null else now
         modified = now
 
-        val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+        val changeList = mutableListOf<BehandlingChangedEvent.Change>()
 
-        endringslogg(
+        createChange(
+            behandlingId = this.id,
             saksbehandlerident = utfoerendeIdent,
-            felt = Felt.ROL_RETURNED_TIDSPUNKT,
+            felt = BehandlingChangedEvent.Felt.ROL_RETURNED_TIDSPUNKT,
             fraVerdi = oldValue.toString(),
             tilVerdi = rolReturnedDate.toString(),
-        )?.let { endringslogginnslag.add(it) }
+        )?.let { changeList.add(it) }
 
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
+        return BehandlingChangedEvent(behandling = this, changeList = changeList)
     }
 
     fun Behandling.setROLIdent(
         newROLIdent: String?,
         utfoerendeIdent: String,
         utfoerendeNavn: String,
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val oldValue = rolIdent
         val now = LocalDateTime.now()
 
@@ -298,16 +306,17 @@ object BehandlingSetters {
             utfoerendeNavn = utfoerendeNavn,
         )
 
-        val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+        val changeList = mutableListOf<BehandlingChangedEvent.Change>()
 
-        endringslogg(
+        createChange(
+            behandlingId = this.id,
             saksbehandlerident = utfoerendeIdent,
-            felt = Felt.ROL_IDENT,
+            felt = BehandlingChangedEvent.Felt.ROL_IDENT,
             fraVerdi = oldValue,
             tilVerdi = rolIdent,
-        )?.let { endringslogginnslag.add(it) }
+        )?.let { changeList.add(it) }
 
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
+        return BehandlingChangedEvent(behandling = this, changeList = changeList)
     }
 
     private fun Behandling.recordRolHistory(
@@ -330,7 +339,7 @@ object BehandlingSetters {
         nyVerdi: SattPaaVent?,
         utfoerendeIdent: String,
         utfoerendeNavn: String,
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelSattPaaVent = sattPaaVent
         val tidspunkt = LocalDateTime.now()
 
@@ -352,16 +361,17 @@ object BehandlingSetters {
             utfoerendeNavn = utfoerendeNavn,
         )
 
-        val endringslogginnslag = mutableListOf<Endringslogginnslag>()
+        val changeList = mutableListOf<BehandlingChangedEvent.Change>()
 
-        endringslogg(
+        createChange(
+            behandlingId = this.id,
             saksbehandlerident = utfoerendeIdent,
-            felt = Felt.SATT_PAA_VENT,
+            felt = BehandlingChangedEvent.Felt.SATT_PAA_VENT,
             fraVerdi = gammelSattPaaVent.toString(),
             tilVerdi = nyVerdi.toString(),
-        )?.let { endringslogginnslag.add(it) }
+        )?.let { changeList.add(it) }
 
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = endringslogginnslag)
+        return BehandlingChangedEvent(behandling = this, changeList = changeList)
     }
 
     private fun Behandling.recordSattPaaVentHistory(
@@ -382,73 +392,77 @@ object BehandlingSetters {
     fun Behandling.setMottattKlageinstans(
         nyVerdi: LocalDateTime,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = mottattKlageinstans
         val tidspunkt = LocalDateTime.now()
         mottattKlageinstans = nyVerdi
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.MOTTATT_KLAGEINSTANS_TIDSPUNKT,
+                felt = BehandlingChangedEvent.Felt.MOTTATT_KLAGEINSTANS_TIDSPUNKT,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setFrist(
         nyVerdi: LocalDate,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = frist
         val tidspunkt = LocalDateTime.now()
         frist = nyVerdi
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.FRIST_DATO,
+                felt = BehandlingChangedEvent.Felt.FRIST_DATO,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setGosysOppgaveId(
         nyVerdi: Long,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = gosysOppgaveId
         val tidspunkt = LocalDateTime.now()
         gosysOppgaveId = nyVerdi
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.GOSYSOPPGAVE_ID,
+                felt = BehandlingChangedEvent.Felt.GOSYSOPPGAVE_ID,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setInnsendingshjemler(
         nyVerdi: Set<Hjemmel>,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = hjemler
         val tidspunkt = LocalDateTime.now()
         hjemler = nyVerdi
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.INNSENDINGSHJEMLER_ID_LIST,
+                felt = BehandlingChangedEvent.Felt.INNSENDINGSHJEMLER_ID_LIST,
                 fraVerdi = gammelVerdi.joinToString { it.id },
                 tilVerdi = nyVerdi.joinToString { it.id },
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setFullmektig(
@@ -457,7 +471,7 @@ object BehandlingSetters {
         name: String?,
         utfoerendeIdent: String,
         utfoerendeNavn: String,
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = prosessfullmektig
         val tidspunkt = LocalDateTime.now()
 
@@ -504,14 +518,15 @@ object BehandlingSetters {
             utfoerendeNavn = utfoerendeNavn,
         )
 
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = utfoerendeIdent,
-                felt = Felt.FULLMEKTIG,
+                felt = BehandlingChangedEvent.Felt.FULLMEKTIG,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = partId.toString(),
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     private fun Behandling.recordFullmektigHistory(
@@ -534,7 +549,7 @@ object BehandlingSetters {
         nyVerdi: PartId,
         utfoerendeIdent: String,
         utfoerendeNavn: String,
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = klager
         val tidspunkt = LocalDateTime.now()
 
@@ -571,14 +586,15 @@ object BehandlingSetters {
         )
 
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = utfoerendeIdent,
-                felt = Felt.KLAGER,
+                felt = BehandlingChangedEvent.Felt.KLAGER,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = klager.toString(),
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     private fun Behandling.recordKlagerHistory(
@@ -599,82 +615,86 @@ object BehandlingSetters {
     fun Behandling.setRegistreringshjemler(
         nyVerdi: Set<Registreringshjemmel>,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = registreringshjemler
         val tidspunkt = LocalDateTime.now()
         registreringshjemler = nyVerdi.toMutableSet()
         modified = tidspunkt
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.REGISTRERINGSHJEMLER_ID_LIST,
+                felt = BehandlingChangedEvent.Felt.REGISTRERINGSHJEMLER_ID_LIST,
                 fraVerdi = gammelVerdi.joinToString { it.id },
                 tilVerdi = nyVerdi.joinToString { it.id },
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setUtfall(
         nyVerdi: Utfall?,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = utfall
         val tidspunkt = LocalDateTime.now()
         utfall = nyVerdi
         modified = tidspunkt
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.UTFALL_ID,
+                felt = BehandlingChangedEvent.Felt.UTFALL_ID,
                 fraVerdi = gammelVerdi?.id,
                 tilVerdi = utfall?.id,
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setExtraUtfallSet(
         nyVerdi: Set<Utfall>,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = extraUtfallSet
         val tidspunkt = LocalDateTime.now()
         extraUtfallSet = nyVerdi
         modified = tidspunkt
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.EXTRA_UTFALL_SET,
+                felt = BehandlingChangedEvent.Felt.EXTRA_UTFALL_SET,
                 fraVerdi = gammelVerdi.joinToString { it.id },
                 tilVerdi = extraUtfallSet.joinToString { it.id },
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setTilbakekreving(
         nyVerdi: Boolean,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = tilbakekreving
         val tidspunkt = LocalDateTime.now()
         tilbakekreving = nyVerdi
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.TILBAKEKREVING,
+                felt = BehandlingChangedEvent.Felt.TILBAKEKREVING,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = tilbakekreving.toString(),
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setAvsluttetAvSaksbehandler(
         saksbehandlerident: String,
         saksbehandlernavn: String,
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = ferdigstilling?.avsluttetAvSaksbehandler
         val tidspunkt = LocalDateTime.now()
 
@@ -686,14 +706,15 @@ object BehandlingSetters {
         )
 
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT,
+                felt = BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = tidspunkt.toString(),
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setGosysOppgaveUpdate(
@@ -701,7 +722,7 @@ object BehandlingSetters {
         mappeId: Long?,
         kommentar: String,
         saksbehandlerident: String,
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val tidspunkt = LocalDateTime.now()
 
         gosysOppgaveUpdate = GosysOppgaveUpdate(
@@ -711,68 +732,71 @@ object BehandlingSetters {
         )
 
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.GOSYS_OPPGAVE_UPDATE,
+                felt = BehandlingChangedEvent.Felt.GOSYS_OPPGAVE_UPDATE,
                 fraVerdi = null,
                 tilVerdi = gosysOppgaveUpdate.toString(),
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setIgnoreGosysOppgave(
         ignoreGosysOppgaveNewValue: Boolean,
         saksbehandlerident: String,
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val tidspunkt = LocalDateTime.now()
         val gammelVerdi = ignoreGosysOppgave
         ignoreGosysOppgave = ignoreGosysOppgaveNewValue
         modified = tidspunkt
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.IGNORE_GOSYS_OPPGAVE,
+                felt = BehandlingChangedEvent.Felt.IGNORE_GOSYS_OPPGAVE,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = ignoreGosysOppgave.toString(),
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setAvsluttet(
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = ferdigstilling?.avsluttet
         val tidspunkt = LocalDateTime.now()
         ferdigstilling!!.avsluttet = tidspunkt
         modified = tidspunkt
-        val endringslogg =
-            endringslogg(
+        val change =
+            createChange(
+                behandlingId = this.id,
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.AVSLUTTET_TIDSPUNKT,
+                felt = BehandlingChangedEvent.Felt.AVSLUTTET_TIDSPUNKT,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = tidspunkt.toString(),
             )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.addSaksdokument(
         saksdokument: Saksdokument,
         saksbehandlerident: String
-    ): BehandlingEndretEvent? {
+    ): BehandlingChangedEvent? {
         if (saksdokumenter.none { it.journalpostId == saksdokument.journalpostId && it.dokumentInfoId == saksdokument.dokumentInfoId }) {
             val tidspunkt = LocalDateTime.now()
             saksdokumenter.add(saksdokument)
             modified = tidspunkt
-            val endringslogg = Endringslogginnslag.endringslogg(
+            val change = createChange(
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.SAKSDOKUMENT,
+                felt = BehandlingChangedEvent.Felt.SAKSDOKUMENT,
                 fraVerdi = null,
                 tilVerdi = saksdokument.toString(),
                 behandlingId = id,
             )
-            return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+            return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
         }
         return null
     }
@@ -780,104 +804,88 @@ object BehandlingSetters {
     fun Behandling.addSaksdokumenter(
         saksdokumentList: List<Saksdokument>,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val existingSaksdokumenter = saksdokumenter.joinToString()
         val tidspunkt = LocalDateTime.now()
         saksdokumenter.addAll(saksdokumentList)
         modified = tidspunkt
-        val endringslogg = Endringslogginnslag.endringslogg(
+        val change = createChange(
             saksbehandlerident = saksbehandlerident,
-            felt = Felt.SAKSDOKUMENT,
+            felt = BehandlingChangedEvent.Felt.SAKSDOKUMENT,
             fraVerdi = existingSaksdokumenter,
             tilVerdi = saksdokumenter.joinToString(),
             behandlingId = id,
         )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.removeSaksdokument(
         saksdokument: Saksdokument,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val tidspunkt = LocalDateTime.now()
         saksdokumenter.removeIf { it.id == saksdokument.id }
         modified = tidspunkt
-        val endringslogg = Endringslogginnslag.endringslogg(
+        val change = createChange(
             saksbehandlerident = saksbehandlerident,
-            felt = Felt.SAKSDOKUMENT,
+            felt = BehandlingChangedEvent.Felt.SAKSDOKUMENT,
             fraVerdi = saksdokument.toString(),
             tilVerdi = null,
             behandlingId = id,
         )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.removeSaksdokumenter(
         saksdokumentListForRemoval: List<Saksdokument>,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val existingSaksdokumenter = saksdokumenter.joinToString()
         val tidspunkt = LocalDateTime.now()
         saksdokumenter.removeIf { saksdokumentListForRemoval.any { saksdokumentForRemoval -> saksdokumentForRemoval.journalpostId == it.journalpostId && saksdokumentForRemoval.dokumentInfoId == it.dokumentInfoId } }
 
         modified = tidspunkt
-        val endringslogg = Endringslogginnslag.endringslogg(
+        val change = createChange(
             saksbehandlerident = saksbehandlerident,
-            felt = Felt.SAKSDOKUMENT,
+            felt = BehandlingChangedEvent.Felt.SAKSDOKUMENT,
             fraVerdi = existingSaksdokumenter,
             tilVerdi = saksdokumenter.joinToString(),
             behandlingId = id,
         )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.clearSaksdokumenter(
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val tidspunkt = LocalDateTime.now()
         val oldValue = saksdokumenter.joinToString()
         saksdokumenter.clear()
         modified = tidspunkt
-        val endringslogg = Endringslogginnslag.endringslogg(
+        val change = createChange(
             saksbehandlerident = saksbehandlerident,
-            felt = Felt.SAKSDOKUMENT,
+            felt = BehandlingChangedEvent.Felt.SAKSDOKUMENT,
             fraVerdi = oldValue,
             tilVerdi = null,
             behandlingId = id,
         )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setFeilregistrering(
         feilregistrering: Feilregistrering,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val tidspunkt = LocalDateTime.now()
         modified = tidspunkt
         this.feilregistrering = feilregistrering
-        val endringslogg = Endringslogginnslag.endringslogg(
+        val change = createChange(
             saksbehandlerident = saksbehandlerident,
-            felt = Felt.FEILREGISTRERING,
+            felt = BehandlingChangedEvent.Felt.FEILREGISTRERING,
             fraVerdi = null,
             tilVerdi = feilregistrering.toString(),
             behandlingId = id,
         )
-        return BehandlingEndretEvent(behandling = this, endringslogginnslag = listOfNotNull(endringslogg))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
-
-    private fun Behandling.endringslogg(
-        saksbehandlerident: String,
-        felt: Felt,
-        fraVerdi: String?,
-        tilVerdi: String?,
-    ): Endringslogginnslag? {
-        return Endringslogginnslag.endringslogg(
-            saksbehandlerident = saksbehandlerident,
-            felt = felt,
-            fraVerdi = fraVerdi,
-            tilVerdi = tilVerdi,
-            behandlingId = this.id,
-        )
-    }
-
 }

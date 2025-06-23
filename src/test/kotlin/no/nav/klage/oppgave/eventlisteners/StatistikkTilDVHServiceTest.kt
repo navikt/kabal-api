@@ -5,7 +5,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.StatistikkTilDVHService
@@ -29,95 +29,95 @@ class StatistikkTilDVHServiceTest {
     @Test
     fun `shouldSendStats new behandling`() {
 
-        val klagebehandlingEndretEvent = BehandlingEndretEvent(
+        val klagebehandlingChangedEvent = BehandlingChangedEvent(
             behandling = klagebehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            changeList = listOf(
+                BehandlingChangedEvent.Change(
                     saksbehandlerident = null,
-                    felt = Felt.KLAGEBEHANDLING_MOTTATT,
+                    felt = BehandlingChangedEvent.Felt.KLAGEBEHANDLING_MOTTATT,
                     behandlingId = UUID.randomUUID(),
                 )
             )
         )
 
-        val ankebehandlingEndretEvent = BehandlingEndretEvent(
+        val ankebehandlingChangedEvent = BehandlingChangedEvent(
             behandling = ankebehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            changeList = listOf(
+                BehandlingChangedEvent.Change(
                     saksbehandlerident = null,
-                    felt = Felt.ANKEBEHANDLING_MOTTATT,
+                    felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT,
                     behandlingId = UUID.randomUUID(),
                 )
             )
         )
 
-        val ankeITrygderettenbehandlingEndretEvent = BehandlingEndretEvent(
+        val ankeITrygderettenbehandlingChangedEvent = BehandlingChangedEvent(
             behandling = ankeITrygderettenbehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            changeList = listOf(
+                BehandlingChangedEvent.Change(
                     saksbehandlerident = null,
-                    felt = Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
+                    felt = BehandlingChangedEvent.Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
                     behandlingId = UUID.randomUUID(),
                 )
             )
         )
 
-        assertTrue(statistikkTilDVHService.shouldSendStats(klagebehandlingEndretEvent))
-        assertTrue(statistikkTilDVHService.shouldSendStats(ankebehandlingEndretEvent))
-        assertFalse(statistikkTilDVHService.shouldSendStats(ankeITrygderettenbehandlingEndretEvent))
+        assertTrue(statistikkTilDVHService.shouldSendStats(klagebehandlingChangedEvent))
+        assertTrue(statistikkTilDVHService.shouldSendStats(ankebehandlingChangedEvent))
+        assertFalse(statistikkTilDVHService.shouldSendStats(ankeITrygderettenbehandlingChangedEvent))
     }
 
     @Test
     fun `shouldSendStats existing behandling`() {
 
-        val klagebehandlingEndretEvent = BehandlingEndretEvent(
+        val klagebehandlingChangedEvent = BehandlingChangedEvent(
             behandling = klagebehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            changeList = listOf(
+                BehandlingChangedEvent.Change(
                     saksbehandlerident = null,
-                    felt = Felt.TILDELT_SAKSBEHANDLERIDENT,
+                    felt = BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT,
                     behandlingId = UUID.randomUUID(),
                 )
             )
         )
 
-        val klagebehandlingHJEEndretEvent = BehandlingEndretEvent(
+        val klagebehandlingHJEEndretEvent = BehandlingChangedEvent(
             behandling = klagebehandlingHJE,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            changeList = listOf(
+                BehandlingChangedEvent.Change(
                     saksbehandlerident = null,
-                    felt = Felt.TILDELT_SAKSBEHANDLERIDENT,
+                    felt = BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT,
                     behandlingId = UUID.randomUUID(),
                 )
             )
         )
 
-        val ankebehandlingEndretEvent = BehandlingEndretEvent(
+        val ankebehandlingChangedEvent = BehandlingChangedEvent(
             behandling = ankebehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            changeList = listOf(
+                BehandlingChangedEvent.Change(
                     saksbehandlerident = null,
-                    felt = Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT,
+                    felt = BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT,
                     behandlingId = UUID.randomUUID(),
                 )
             )
         )
 
-        val ankeITrygderettenbehandlingEndretEvent = BehandlingEndretEvent(
+        val ankeITrygderettenbehandlingChangedEvent = BehandlingChangedEvent(
             behandling = ankeITrygderettenbehandlingOMP,
-            endringslogginnslag = listOf(
-                Endringslogginnslag(
+            changeList = listOf(
+                BehandlingChangedEvent.Change(
                     saksbehandlerident = null,
-                    felt = Felt.AVSLUTTET_TIDSPUNKT,
+                    felt = BehandlingChangedEvent.Felt.AVSLUTTET_TIDSPUNKT,
                     behandlingId = UUID.randomUUID(),
                 )
             )
         )
 
-        assertTrue(statistikkTilDVHService.shouldSendStats(klagebehandlingEndretEvent))
+        assertTrue(statistikkTilDVHService.shouldSendStats(klagebehandlingChangedEvent))
         assertFalse(statistikkTilDVHService.shouldSendStats(klagebehandlingHJEEndretEvent))
-        assertTrue(statistikkTilDVHService.shouldSendStats(ankebehandlingEndretEvent))
-        assertFalse(statistikkTilDVHService.shouldSendStats(ankeITrygderettenbehandlingEndretEvent))
+        assertTrue(statistikkTilDVHService.shouldSendStats(ankebehandlingChangedEvent))
+        assertFalse(statistikkTilDVHService.shouldSendStats(ankeITrygderettenbehandlingChangedEvent))
     }
 
     private val klagebehandlingOMP = Klagebehandling(

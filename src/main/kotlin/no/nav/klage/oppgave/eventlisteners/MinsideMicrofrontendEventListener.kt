@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.eventlisteners
 
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.service.MinsideMicrofrontendService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.context.event.EventListener
@@ -17,13 +17,13 @@ class MinsideMicrofrontendEventListener(
     }
 
     @EventListener
-    fun handleMinsideMicrofrontendEvent(behandlingEndretEvent: BehandlingEndretEvent) {
+    fun handleMinsideMicrofrontendEvent(behandlingChangedEvent: BehandlingChangedEvent) {
         logger.debug(
             "Received BehandlingEndretEvent for behandlingId {} in {}",
-            behandlingEndretEvent.behandling.id,
+            behandlingChangedEvent.behandling.id,
             ::handleMinsideMicrofrontendEvent.name
         )
-        minsideMicrofrontendService.process(behandlingEndretEvent)
-        logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
+        minsideMicrofrontendService.process(behandlingChangedEvent)
+        logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingChangedEvent.behandling.id)
     }
 }

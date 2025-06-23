@@ -17,9 +17,6 @@ import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumen
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.Endringslogginnslag
-import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.KafkaInternalEventService
@@ -466,21 +463,6 @@ class SmartDocumentService(
                 type = type,
                 data = data,
             )
-        )
-    }
-
-    private fun Behandling.endringslogg(
-        saksbehandlerident: String,
-        felt: Felt,
-        fraVerdi: String?,
-        tilVerdi: String?,
-    ): Endringslogginnslag? {
-        return Endringslogginnslag.endringslogg(
-            saksbehandlerident = saksbehandlerident,
-            felt = felt,
-            fraVerdi = fraVerdi,
-            tilVerdi = tilVerdi,
-            behandlingId = this.id,
         )
     }
 

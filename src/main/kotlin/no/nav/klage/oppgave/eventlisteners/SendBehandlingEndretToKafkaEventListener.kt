@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.eventlisteners
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.service.BehandlingEndretKafkaProducer
 import no.nav.klage.oppgave.util.getLogger
@@ -28,15 +28,15 @@ class SendBehandlingEndretToKafkaEventListener(
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun indexKlagebehandling(behandlingEndretEvent: BehandlingEndretEvent) {
-        logger.debug("Received BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
+    fun indexKlagebehandling(behandlingChangedEvent: BehandlingChangedEvent) {
+        logger.debug("Received BehandlingEndretEvent for behandlingId {}", behandlingChangedEvent.behandling.id)
         //full fetch to make sure all collections are loaded
-        val behandling = behandlingRepository.findByIdEager(behandlingEndretEvent.behandling.id)
+        val behandling = behandlingRepository.findByIdEager(behandlingChangedEvent.behandling.id)
         try {
             behandlingEndretKafkaProducer.sendBehandlingEndret(behandling)
         } catch (e: Exception) {
-            logger.error("could not index behandling with id ${behandlingEndretEvent.behandling.id}", e)
+            logger.error("could not index behandling with id ${behandlingChangedEvent.behandling.id}", e)
         }
-        logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
+        logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingChangedEvent.behandling.id)
     }
 }

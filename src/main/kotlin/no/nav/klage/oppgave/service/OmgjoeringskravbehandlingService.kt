@@ -2,8 +2,12 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
+import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.klage.Mottak
+import no.nav.klage.oppgave.domain.klage.OmgjoeringskravbehandlingBasedOnJournalpost
+import no.nav.klage.oppgave.domain.klage.OmgjoeringskravbehandlingBasedOnKabalBehandling
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.OmgjoeringskravbehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -116,12 +120,12 @@ class OmgjoeringskravbehandlingService(
         }
 
         applicationEventPublisher.publishEvent(
-            BehandlingEndretEvent(
+            BehandlingChangedEvent(
                 behandling = omgjoeringskravbehandling,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                changeList = listOfNotNull(
+                    createChange(
                         saksbehandlerident = systembrukerIdent,
-                        felt = Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT,
+                        felt = BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT,
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = omgjoeringskravbehandling.id,
@@ -131,12 +135,12 @@ class OmgjoeringskravbehandlingService(
         )
 
         applicationEventPublisher.publishEvent(
-            BehandlingEndretEvent(
+            BehandlingChangedEvent(
                 behandling = omgjoeringskravbehandling,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                changeList = listOfNotNull(
+                    createChange(
                         saksbehandlerident = systembrukerIdent,
-                        felt = Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
+                        felt = BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = omgjoeringskravbehandling.id,
