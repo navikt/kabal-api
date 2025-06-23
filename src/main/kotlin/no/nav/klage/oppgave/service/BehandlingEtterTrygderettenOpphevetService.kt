@@ -6,11 +6,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.klage.BehandlingEtterTrygderettenOpphevet
-import no.nav.klage.oppgave.domain.klage.Endringslogginnslag
-import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.repositories.BehandlingEtterTrygderettenOpphevetRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -85,12 +84,12 @@ class BehandlingEtterTrygderettenOpphevetService(
         )
 
         applicationEventPublisher.publishEvent(
-            BehandlingEndretEvent(
+            BehandlingChangedEvent(
                 behandling = behandlingEtterTrygderettenOpphevet,
-                endringslogginnslag = listOfNotNull(
-                    Endringslogginnslag.endringslogg(
+                changeList = listOfNotNull(
+                    createChange(
                         saksbehandlerident = ankeITrygderettenbehandling.tildeling!!.saksbehandlerident,
-                        felt = Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET,
+                        felt = BehandlingChangedEvent.Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET,
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = behandlingEtterTrygderettenOpphevet.id,
