@@ -1,9 +1,8 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
-import no.nav.klage.oppgave.domain.klage.Endringsinnslag
-import no.nav.klage.oppgave.domain.klage.Felt
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
 import no.nav.klage.oppgave.domain.klage.Mottak
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
@@ -66,12 +65,12 @@ class KlagebehandlingService(
         logger.debug("Created klagebehandling {} for mottak {}", klagebehandling.id, mottak.id)
 
         applicationEventPublisher.publishEvent(
-            BehandlingEndretEvent(
+            BehandlingChangedEvent(
                 behandling = klagebehandling,
-                endringsinnslag = listOfNotNull(
-                    Endringsinnslag.createEndringsinnslag(
+                changeList = listOfNotNull(
+                    createChange(
                         saksbehandlerident = systembrukerIdent,
-                        felt = Felt.KLAGEBEHANDLING_MOTTATT,
+                        felt = BehandlingChangedEvent.Felt.KLAGEBEHANDLING_MOTTATT,
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = klagebehandling.id,
@@ -80,12 +79,12 @@ class KlagebehandlingService(
             )
         )
         applicationEventPublisher.publishEvent(
-            BehandlingEndretEvent(
+            BehandlingChangedEvent(
                 behandling = klagebehandling,
-                endringsinnslag = listOfNotNull(
-                    Endringsinnslag.createEndringsinnslag(
+                changeList = listOfNotNull(
+                    createChange(
                         saksbehandlerident = systembrukerIdent,
-                        felt = Felt.KLAGEBEHANDLING_OPPRETTET,
+                        felt = BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET,
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = klagebehandling.id,

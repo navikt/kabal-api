@@ -4,7 +4,7 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
@@ -29,23 +29,23 @@ class StatistikkTilDVHService(
         const val TR_ENHET = "TR0000"
     }
 
-    fun process(behandlingEndretEvent: BehandlingEndretEvent) {
-        if (shouldSendStats(behandlingEndretEvent)) {
-            val behandling = behandlingEndretEvent.behandling
+    fun process(behandlingChangedEvent: BehandlingChangedEvent) {
+        if (shouldSendStats(behandlingChangedEvent)) {
+            val behandling = behandlingChangedEvent.behandling
 
             val eventId = UUID.randomUUID()
             val statistikkTilDVH = createStatistikkTilDVH(
                 eventId = eventId,
                 behandling = behandling,
-                behandlingState = getBehandlingState(behandlingEndretEvent)
+                behandlingState = getBehandlingState(behandlingChangedEvent)
             )
 
             kafkaEventRepository.save(
                 KafkaEvent(
                     id = eventId,
-                    behandlingId = behandlingEndretEvent.behandling.id,
-                    kilde = behandlingEndretEvent.behandling.fagsystem.navn,
-                    kildeReferanse = behandlingEndretEvent.behandling.kildeReferanse,
+                    behandlingId = behandlingChangedEvent.behandling.id,
+                    kilde = behandlingChangedEvent.behandling.fagsystem.navn,
+                    kildeReferanse = behandlingChangedEvent.behandling.kildeReferanse,
                     status = UtsendingStatus.IKKE_SENDT,
                     jsonPayload = statistikkTilDVH.toJson(),
                     type = EventType.STATS_DVH
@@ -56,81 +56,81 @@ class StatistikkTilDVHService(
 
     private fun StatistikkTilDVH.toJson(): String = objectMapper.writeValueAsString(this)
 
-    fun shouldSendStats(behandlingEndretEvent: BehandlingEndretEvent): Boolean {
-        return if (behandlingEndretEvent.behandling.shouldUpdateInfotrygd() || behandlingEndretEvent.behandling is OmgjoeringskravbehandlingBasedOnJournalpost) {
+    fun shouldSendStats(behandlingChangedEvent: BehandlingChangedEvent): Boolean {
+        return if (behandlingChangedEvent.behandling.shouldUpdateInfotrygd() || behandlingChangedEvent.behandling is OmgjoeringskravbehandlingBasedOnJournalpost) {
             false
-        } else behandlingEndretEvent.endringsinnslag.any {
-            it.felt === Felt.TILDELT_SAKSBEHANDLERIDENT
-                    || it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
-                    || it.felt === Felt.FEILREGISTRERING
-                    || it.felt === Felt.KLAGEBEHANDLING_MOTTATT
-                    || it.felt === Felt.ANKEBEHANDLING_MOTTATT
-                    || it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT
-                    || it.felt === Felt.KLAGEBEHANDLING_OPPRETTET
-                    || it.felt === Felt.ANKEBEHANDLING_OPPRETTET
-                    || it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
+        } else behandlingChangedEvent.changeList.any {
+            it.felt === BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT
+                    || it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
+                    || it.felt === BehandlingChangedEvent.Felt.FEILREGISTRERING
+                    || it.felt === BehandlingChangedEvent.Felt.KLAGEBEHANDLING_MOTTATT
+                    || it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT
+                    || it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT
+                    || it.felt === BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET
+                    || it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET
+                    || it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
         }
     }
 
-    private fun getBehandlingState(behandlingEndretEvent: BehandlingEndretEvent): BehandlingState {
-        val endringsinnslag: List<Endringsinnslag> = behandlingEndretEvent.endringsinnslag
-        val behandling = behandlingEndretEvent.behandling
+    private fun getBehandlingState(behandlingChangedEvent: BehandlingChangedEvent): BehandlingState {
+        val changeList: List<BehandlingChangedEvent.Change> = behandlingChangedEvent.changeList
+        val behandling = behandlingChangedEvent.behandling
         val type = behandling.type
         val utfall = behandling.utfall
 
         return when {
-            endringsinnslag.any {
-                it.felt === Felt.KLAGEBEHANDLING_MOTTATT ||
-                        it.felt === Felt.ANKEBEHANDLING_MOTTATT ||
-                        it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT
+            changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.KLAGEBEHANDLING_MOTTATT ||
+                        it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT ||
+                        it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT
             } -> BehandlingState.MOTTATT
 
-            endringsinnslag.any {
-                it.felt === Felt.KLAGEBEHANDLING_OPPRETTET ||
-                        it.felt === Felt.ANKEBEHANDLING_OPPRETTET ||
-                        it.felt === Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
+            changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET ||
+                        it.felt === BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET ||
+                        it.felt === BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
             } -> BehandlingState.OPPRETTET
 
-            endringsinnslag.any {
-                it.felt === Felt.FEILREGISTRERING
+            changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.FEILREGISTRERING
             } -> BehandlingState.AVSLUTTET
 
-            endringsinnslag.any {
-                it.felt === Felt.NY_BEHANDLING_ETTER_TR_OPPHEVET
+            changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.NY_BEHANDLING_ETTER_TR_OPPHEVET
                         && type == Type.ANKE_I_TRYGDERETTEN
             } -> BehandlingState.AVSLUTTET_I_TR_MED_OPPHEVET_OG_NY_BEHANDLING_I_KA
 
-            endringsinnslag.any {
-                it.felt === Felt.NY_ANKEBEHANDLING_KA
+            changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.NY_ANKEBEHANDLING_KA
                         && type == Type.ANKE_I_TRYGDERETTEN
             } -> BehandlingState.NY_ANKEBEHANDLING_I_KA_UTEN_TR
 
-            endringsinnslag.any {
-                it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
+            changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type == Type.ANKE_I_TRYGDERETTEN
                         && utfall in utfallToNewAnkebehandling
             } -> BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA
 
-            endringsinnslag.any {
-                it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
+            changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type == Type.ANKE_I_TRYGDERETTEN
             } -> BehandlingState.AVSLUTTET
 
-            endringsinnslag.any { it.felt === Felt.TILDELT_SAKSBEHANDLERIDENT } -> BehandlingState.TILDELT_SAKSBEHANDLER
+            changeList.any { it.felt === BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT } -> BehandlingState.TILDELT_SAKSBEHANDLER
 
-            endringsinnslag.any {
-                it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
+            changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type == Type.ANKE
                         && utfall !in utfallToTrygderetten
             } -> BehandlingState.AVSLUTTET
 
-            endringsinnslag.any {
-                it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
+            changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type != Type.ANKE
             } -> BehandlingState.AVSLUTTET
 
-            endringsinnslag.any {
-                it.felt === Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
+            changeList.any {
+                it.felt === BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT
                         && type == Type.ANKE
                         && utfall in utfallToTrygderetten
             } -> BehandlingState.SENDT_TIL_TR
@@ -138,7 +138,7 @@ class StatistikkTilDVHService(
             else -> BehandlingState.UKJENT.also {
                 logger.warn(
                     "unknown state for behandling with id {}",
-                    endringsinnslag.first().behandlingId
+                    changeList.first().behandlingId
                 )
             }
         }

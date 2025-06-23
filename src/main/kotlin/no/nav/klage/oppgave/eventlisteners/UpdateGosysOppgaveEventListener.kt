@@ -1,8 +1,7 @@
 package no.nav.klage.oppgave.eventlisteners
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
-import no.nav.klage.oppgave.domain.klage.Felt
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.service.GosysOppgaveService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
@@ -29,21 +28,21 @@ class UpdateGosysOppgaveEventListener(
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun updateOppgave(behandlingEndretEvent: BehandlingEndretEvent) {
-        logger.debug("updateOppgave called. Received BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
+    fun updateOppgave(behandlingChangedEvent: BehandlingChangedEvent) {
+        logger.debug("updateOppgave called. Received BehandlingEndretEvent for behandlingId {}", behandlingChangedEvent.behandling.id)
 
-        val relevantEndringsinnslag = behandlingEndretEvent.endringsinnslag.find { it.felt == Felt.TILDELT_SAKSBEHANDLERIDENT }
+        val relevantChange = behandlingChangedEvent.changeList.find { it.felt == BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT }
 
-        if (relevantEndringsinnslag != null && behandlingEndretEvent.behandling.gosysOppgaveId != null) {
+        if (relevantChange != null && behandlingChangedEvent.behandling.gosysOppgaveId != null) {
             gosysOppgaveService.assignGosysOppgave(
-                gosysOppgaveId = behandlingEndretEvent.behandling.gosysOppgaveId!!,
-                tildeltSaksbehandlerIdent = behandlingEndretEvent.behandling.tildeling?.saksbehandlerident,
-                utfoerendeSaksbehandlerIdent = relevantEndringsinnslag.saksbehandlerident ?: systembrukerIdent,
-                behandlingId = behandlingEndretEvent.behandling.id,
+                gosysOppgaveId = behandlingChangedEvent.behandling.gosysOppgaveId!!,
+                tildeltSaksbehandlerIdent = behandlingChangedEvent.behandling.tildeling?.saksbehandlerident,
+                utfoerendeSaksbehandlerIdent = relevantChange.saksbehandlerident ?: systembrukerIdent,
+                behandlingId = behandlingChangedEvent.behandling.id,
                 throwExceptionIfFerdigstilt = false,
             )
         }
 
-        logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingEndretEvent.behandling.id)
+        logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingChangedEvent.behandling.id)
     }
 }

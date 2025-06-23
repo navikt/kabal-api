@@ -3,8 +3,11 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
+import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.klage.Ankebehandling
+import no.nav.klage.oppgave.domain.klage.Mottak
 import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -93,12 +96,12 @@ class AnkebehandlingService(
         }
 
         applicationEventPublisher.publishEvent(
-            BehandlingEndretEvent(
+            BehandlingChangedEvent(
                 behandling = ankebehandling,
-                endringsinnslag = listOfNotNull(
-                    Endringsinnslag.createEndringsinnslag(
+                changeList = listOfNotNull(
+                    createChange(
                         saksbehandlerident = systembrukerIdent,
-                        felt = Felt.ANKEBEHANDLING_MOTTATT,
+                        felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT,
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = ankebehandling.id,
@@ -108,12 +111,12 @@ class AnkebehandlingService(
         )
 
         applicationEventPublisher.publishEvent(
-            BehandlingEndretEvent(
+            BehandlingChangedEvent(
                 behandling = ankebehandling,
-                endringsinnslag = listOfNotNull(
-                    Endringsinnslag.createEndringsinnslag(
+                changeList = listOfNotNull(
+                    createChange(
                         saksbehandlerident = systembrukerIdent,
-                        felt = Felt.ANKEBEHANDLING_OPPRETTET,
+                        felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET,
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = ankebehandling.id,
@@ -174,12 +177,12 @@ class AnkebehandlingService(
         )
 
         applicationEventPublisher.publishEvent(
-            BehandlingEndretEvent(
+            BehandlingChangedEvent(
                 behandling = ankebehandling,
-                endringsinnslag = listOfNotNull(
-                    Endringsinnslag.createEndringsinnslag(
+                changeList = listOfNotNull(
+                    createChange(
                         saksbehandlerident = ankeITrygderettenbehandling.tildeling!!.saksbehandlerident,
-                        felt = Felt.ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN,
+                        felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET_BASERT_PAA_ANKE_I_TRYGDERETTEN,
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = ankebehandling.id,

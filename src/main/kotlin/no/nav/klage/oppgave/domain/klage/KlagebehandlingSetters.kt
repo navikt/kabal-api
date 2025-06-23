@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.domain.klage
 
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
-import no.nav.klage.oppgave.domain.klage.Endringsinnslag.Companion.createEndringsinnslag
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -10,19 +10,19 @@ object KlagebehandlingSetters {
     fun Klagebehandling.setMottattVedtaksinstans(
         nyVerdi: LocalDate,
         saksbehandlerident: String
-    ): BehandlingEndretEvent {
+    ): BehandlingChangedEvent {
         val gammelVerdi = mottattVedtaksinstans
         val tidspunkt = LocalDateTime.now()
         mottattVedtaksinstans = nyVerdi
         modified = tidspunkt
-        val endringsinnslag =
-            createEndringsinnslag(
+        val change =
+            createChange(
                 saksbehandlerident = saksbehandlerident,
-                felt = Felt.MOTTATT_FOERSTEINSTANS_DATO,
+                felt = BehandlingChangedEvent.Felt.MOTTATT_FOERSTEINSTANS_DATO,
                 fraVerdi = gammelVerdi.toString(),
                 tilVerdi = nyVerdi.toString(),
                 behandlingId = this.id,
             )
-        return BehandlingEndretEvent(behandling = this, endringsinnslag = listOfNotNull(endringsinnslag))
+        return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 }

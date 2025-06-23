@@ -10,12 +10,11 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingInput
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandlingInput
-import no.nav.klage.oppgave.domain.klage.Endringsinnslag
-import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -104,12 +103,12 @@ class AnkeITrygderettenbehandlingService(
         )
 
         applicationEventPublisher.publishEvent(
-            BehandlingEndretEvent(
+            BehandlingChangedEvent(
                 behandling = ankeITrygderettenbehandling,
-                endringsinnslag = listOfNotNull(
-                    Endringsinnslag.createEndringsinnslag(
+                changeList = listOfNotNull(
+                    createChange(
                         saksbehandlerident = systembrukerIdent,
-                        felt = Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
+                        felt = BehandlingChangedEvent.Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
                         fraVerdi = null,
                         tilVerdi = "Opprettet",
                         behandlingId = ankeITrygderettenbehandling.id,

@@ -22,7 +22,7 @@ import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.kafka.FullmektigEvent
 import no.nav.klage.oppgave.domain.kafka.KlagerEvent
@@ -1278,12 +1278,13 @@ class BehandlingService(
                 saksbehandlerident = utfoerendeSaksbehandlerIdent,
                 saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
             )
-            val endringsinnslaginnslag =
-                eventNyBehandling.endringsinnslag + eventAvsluttetAvSaksbehandler.endringsinnslag
+            val changeList =
+                eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
+
             applicationEventPublisher.publishEvent(
-                BehandlingEndretEvent(
+                BehandlingChangedEvent(
                     behandling = behandling,
-                    endringsinnslag = endringsinnslaginnslag
+                    changeList = changeList
                 )
             )
 
@@ -1304,12 +1305,13 @@ class BehandlingService(
                 saksbehandlerident = utfoerendeSaksbehandlerIdent,
                 saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
             )
-            val endringsinnslaginnslag =
-                eventNyBehandling.endringsinnslag + eventAvsluttetAvSaksbehandler.endringsinnslag
+            val changeListsinnslaginnslag =
+                eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
+
             applicationEventPublisher.publishEvent(
-                BehandlingEndretEvent(
+                BehandlingChangedEvent(
                     behandling = behandling,
-                    endringsinnslag = endringsinnslaginnslag
+                    changeList = changeListsinnslaginnslag
                 )
             )
 
@@ -2237,7 +2239,7 @@ class BehandlingService(
         val behandling = getBehandlingForUpdate(
             behandlingId
         )
-        val endringsinnslag = mutableListOf<Endringsinnslag>()
+        val changeList = mutableListOf<BehandlingChangedEvent.Change>()
 
         if (utfall != null) {
             if (utfall in behandling.extraUtfallSet) {
@@ -2246,7 +2248,7 @@ class BehandlingService(
                         nyVerdi = behandling.extraUtfallSet.minus(utfall),
                         saksbehandlerident = utfoerendeSaksbehandlerIdent
                     )
-                endringsinnslag += event.endringsinnslag
+                changeList += event.changeList
             }
         } else {
             val event =
@@ -2254,7 +2256,7 @@ class BehandlingService(
                     nyVerdi = setOf(),
                     saksbehandlerident = utfoerendeSaksbehandlerIdent
                 )
-            endringsinnslag += event.endringsinnslag
+            changeList += event.changeList
         }
 
         val event =
@@ -2262,11 +2264,11 @@ class BehandlingService(
                 nyVerdi = utfall,
                 saksbehandlerident = utfoerendeSaksbehandlerIdent
             )
-        endringsinnslag += event.endringsinnslag
+        changeList += event.changeList
 
-        val groupedEvent = BehandlingEndretEvent(
+        val groupedEvent = BehandlingChangedEvent(
             behandling = behandling,
-            endringsinnslag = endringsinnslag,
+            changeList = changeList,
         )
         applicationEventPublisher.publishEvent(groupedEvent)
 

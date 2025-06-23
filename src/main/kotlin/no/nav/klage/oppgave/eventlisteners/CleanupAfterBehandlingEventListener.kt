@@ -7,7 +7,7 @@ import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.*
@@ -53,8 +53,8 @@ class CleanupAfterBehandlingEventListener(
     @EventListener
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    fun cleanupAfterBehandling(behandlingEndretEvent: BehandlingEndretEvent) {
-        val behandling = behandlingEndretEvent.behandling
+    fun cleanupAfterBehandling(behandlingChangedEvent: BehandlingChangedEvent) {
+        val behandling = behandlingChangedEvent.behandling
 
         if (behandling.ferdigstilling?.avsluttet != null) {
             logger.debug("Received behandlingEndretEvent for avsluttet behandling. Deleting meldinger and sattPaaVent.")
@@ -80,7 +80,7 @@ class CleanupAfterBehandlingEventListener(
                         logger.error("Could not delete melding with id ${melding.id}", exception)
                     }
                 }
-        } else if (behandlingEndretEvent.endringsinnslag.any { it.felt == Felt.FEILREGISTRERING } && behandling.feilregistrering != null) {
+        } else if (behandlingChangedEvent.changeList.any { it.felt == BehandlingChangedEvent.Felt.FEILREGISTRERING } && behandling.feilregistrering != null) {
             logger.debug(
                 "Cleanup and notifying vedtaksinstans after feilregistrering. Behandling.id: {}",
                 behandling.id
@@ -93,7 +93,7 @@ class CleanupAfterBehandlingEventListener(
                 fssProxyClient.setToFeilregistrertInKabal(
                     sakId = behandling.kildeReferanse,
                     input = FeilregistrertInKabalInput(
-                        saksbehandlerIdent = behandlingEndretEvent.endringsinnslag.first().saksbehandlerident!!,
+                        saksbehandlerIdent = behandlingChangedEvent.changeList.first().saksbehandlerident!!,
                     )
                 )
                 logger.debug("Feilregistrering av behandling ble registrert i Infotrygd.")

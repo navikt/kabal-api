@@ -35,7 +35,8 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ROLLER
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLERE_I_ENHET_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.TILGANGER_CACHE
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
@@ -567,15 +568,15 @@ class AdminService(
             logger.debug("Generating opprettetEvent for behandlingId: $behandlingId")
             val behandling = behandlingRepository.findByIdEager(behandlingId)
             applicationEventPublisher.publishEvent(
-                BehandlingEndretEvent(
+                BehandlingChangedEvent(
                     behandling = behandling,
-                    endringsinnslag = listOfNotNull(
-                        Endringsinnslag.createEndringsinnslag(
+                    changeList = listOfNotNull(
+                        createChange(
                             saksbehandlerident = systembrukerIdent,
                             felt = when (behandling) {
-                                is Klagebehandling -> Felt.KLAGEBEHANDLING_OPPRETTET
-                                is Ankebehandling -> Felt.ANKEBEHANDLING_OPPRETTET
-                                is Omgjoeringskravbehandling -> Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
+                                is Klagebehandling -> BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET
+                                is Ankebehandling -> BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET
+                                is Omgjoeringskravbehandling -> BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
                                 else -> throw IllegalArgumentException("Unknown behandling type: ${behandling.type}")
                             },
                             fraVerdi = null,
@@ -594,12 +595,12 @@ class AdminService(
             klagebehandlinger.forEach { behandling ->
                 if (!behandling.opprettetSendt) {
                     applicationEventPublisher.publishEvent(
-                        BehandlingEndretEvent(
+                        /* event = */ BehandlingChangedEvent(
                             behandling = behandling,
-                            endringsinnslag = listOfNotNull(
-                                Endringsinnslag.createEndringsinnslag(
+                            changeList = listOfNotNull(
+                                createChange(
                                     saksbehandlerident = systembrukerIdent,
-                                    felt = Felt.KLAGEBEHANDLING_OPPRETTET,
+                                    felt = BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET,
                                     fraVerdi = null,
                                     tilVerdi = "Opprettet",
                                     behandlingId = behandling.id,
@@ -617,12 +618,12 @@ class AdminService(
             ankebehandlinger.forEach { behandling ->
                 if (!behandling.opprettetSendt) {
                     applicationEventPublisher.publishEvent(
-                        BehandlingEndretEvent(
+                        BehandlingChangedEvent(
                             behandling = behandling,
-                            endringsinnslag = listOfNotNull(
-                                Endringsinnslag.createEndringsinnslag(
+                            changeList = listOfNotNull(
+                                createChange(
                                     saksbehandlerident = systembrukerIdent,
-                                    felt = Felt.ANKEBEHANDLING_OPPRETTET,
+                                    felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET,
                                     fraVerdi = null,
                                     tilVerdi = "Opprettet",
                                     behandlingId = behandling.id,
@@ -640,12 +641,12 @@ class AdminService(
             omgjoeringskravbehandlinger.forEach { behandling ->
                 if (!behandling.opprettetSendt) {
                     applicationEventPublisher.publishEvent(
-                        BehandlingEndretEvent(
+                        BehandlingChangedEvent(
                             behandling = behandling,
-                            endringsinnslag = listOfNotNull(
-                                Endringsinnslag.createEndringsinnslag(
+                            changeList = listOfNotNull(
+                                createChange(
                                     saksbehandlerident = systembrukerIdent,
-                                    felt = Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
+                                    felt = BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
                                     fraVerdi = null,
                                     tilVerdi = "Opprettet",
                                     behandlingId = behandling.id,

@@ -1,12 +1,11 @@
 package no.nav.klage.oppgave.service
 
 
-import no.nav.klage.oppgave.domain.events.BehandlingEndretEvent
+import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.KafkaEvent
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
 import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.Felt
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -34,27 +33,27 @@ class MinsideMicrofrontendService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun process(behandlingEndretEvent: BehandlingEndretEvent) {
+    fun process(behandlingChangedEvent: BehandlingChangedEvent) {
         logger.debug(
             "Received BehandlingEndretEvent for behandlingId {} in {}",
-            behandlingEndretEvent.behandling.id,
+            behandlingChangedEvent.behandling.id,
             "MinsideMicrofrontendService"
         )
-        if (behandlingEndretEvent.endringsinnslag.any {
+        if (behandlingChangedEvent.changeList.any {
                 it.felt in listOf(
-                    Felt.KLAGEBEHANDLING_MOTTATT,
-                    Felt.ANKEBEHANDLING_MOTTATT,
-                    Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT,
-                    Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
+                    BehandlingChangedEvent.Felt.KLAGEBEHANDLING_MOTTATT,
+                    BehandlingChangedEvent.Felt.ANKEBEHANDLING_MOTTATT,
+                    BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_MOTTATT,
+                    BehandlingChangedEvent.Felt.ANKE_I_TRYGDERETTEN_OPPRETTET,
                 )
             }) {
-            enableMinsideMicrofrontend(behandling = behandlingEndretEvent.behandling)
-        } else if (behandlingEndretEvent.endringsinnslag.any {
+            enableMinsideMicrofrontend(behandling = behandlingChangedEvent.behandling)
+        } else if (behandlingChangedEvent.changeList.any {
                 it.felt in listOf(
-                    Felt.FEILREGISTRERING
+                    BehandlingChangedEvent.Felt.FEILREGISTRERING
                 )
             }) {
-            val behandling = behandlingEndretEvent.behandling
+            val behandling = behandlingChangedEvent.behandling
             val allBehandlinger =
                 behandlingRepository.findBySakenGjelderPartIdValueAndFeilregistreringIsNull(behandling.sakenGjelder.partId.value)
             if (allBehandlinger.any {
