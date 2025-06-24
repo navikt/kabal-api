@@ -96,7 +96,7 @@ class DokumentMapper(
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentInDokarkiv.tittel ?: "Tittel ikke funnet i SAF",
             tema = Tema.fromNavn(journalpost.tema?.name).beskrivelse,
-            dato = journalpost.getDatoRegSendt()?.toLocalDate() ?: journalpost.datoOpprettet.toLocalDate(),
+            dato = journalpost.datoSortering.toLocalDate(),
             avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
             saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
             type = Type.valueOf(
@@ -345,7 +345,8 @@ class DokumentMapper(
             },
             opprettetAvNavn = journalpost.opprettetAvNavn,
             datoOpprettet = journalpost.datoOpprettet,
-            datoRegSendt = journalpost.getDatoRegSendt(),
+            datoSortering = journalpost.datoSortering,
+            datoRegSendt = journalpost.datoSortering,
             relevanteDatoer = journalpost.relevanteDatoer?.map {
                 DokumentReferanse.RelevantDatoOld(
                     dato = it.dato,
@@ -532,38 +533,6 @@ class DokumentMapper(
         any {
             it.journalpostId == journalpostId && it.dokumentInfoId == dokumentInfoId
         }
-
-    private fun Journalpost.getDatoRegSendt(): LocalDateTime? {
-        return try {
-            when (this.journalposttype) {
-                Journalposttype.I -> {
-                    this.getRelevantDato(Datotype.DATO_REGISTRERT)
-                        ?: error("could not find datoRegSendt for inngående dokument")
-                }
-
-                Journalposttype.N -> {
-                    this.dokumenter?.firstOrNull()?.datoFerdigstilt
-                        ?: this.getRelevantDato(Datotype.DATO_JOURNALFOERT)
-                        ?: this.getRelevantDato(Datotype.DATO_DOKUMENT)
-                        ?: error("could not find datoRegSendt for notat")
-                }
-
-                Journalposttype.U -> {
-                    this.getRelevantDato(Datotype.DATO_EKSPEDERT)
-                        ?: this.getRelevantDato(Datotype.DATO_SENDT_PRINT)
-                        ?: this.getRelevantDato(Datotype.DATO_JOURNALFOERT)
-                        ?: this.getRelevantDato(Datotype.DATO_DOKUMENT)
-                        ?: error("could not find datoRegSendt for utgående dokument")
-                }
-
-                null -> error("cannot happen")
-            }
-        } catch (e: Exception) {
-            logger.debug("could not getDatoRegSendt, returning null.", e)
-            null
-        }
-
-    }
 
     fun Journalpost.getRelevantDato(datotype: Datotype): LocalDateTime? {
         return this.relevanteDatoer?.find { it.datotype == datotype }?.dato

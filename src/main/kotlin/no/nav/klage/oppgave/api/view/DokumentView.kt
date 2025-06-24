@@ -35,6 +35,7 @@ data class DokumentReferanse(
     val avsenderMottaker: AvsenderMottaker?,
     val opprettetAvNavn: String?,
     val datoOpprettet: LocalDateTime,
+    val datoSortering: LocalDateTime,
     val datoRegSendt: LocalDateTime?,
     val relevanteDatoer: List<RelevantDatoOld>,
     val timeline: List<TimelineItem>,
