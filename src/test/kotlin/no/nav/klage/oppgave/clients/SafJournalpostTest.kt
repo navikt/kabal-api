@@ -85,6 +85,7 @@ internal class SafJournalpostTest {
           "kanalnavn": "Ingen distribusjon",
           "skjerming": null,
           "datoOpprettet": "2008-12-06T00:00",
+          "datoSortering": "2008-12-07T00:00",
           "relevanteDatoer": [
             {
               "dato": "1996-07-01T00:00",
