@@ -90,6 +90,7 @@ internal class SafDokumentoversiktBrukerTest {
                   "kanalnavn": "Ditt NAV",
                   "skjerming": null,
                   "datoOpprettet": "2020-12-14T12:22:03",
+                  "datoSortering": "2020-12-15T12:22:03",
                   "relevanteDatoer": [
                     {
                       "dato": "2020-12-14T12:22:03",
