@@ -42,19 +42,19 @@ class DokumentMapper(
 
     @Suppress("UNCHECKED_CAST")
     fun getSortedDokumentViewListForInnholdsfortegnelse(
-        allDokumenterUnderArbeid: Set<DokumentUnderArbeidAsVedlegg>,
+        vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
         behandling: Behandling,
         hoveddokument: DokumentUnderArbeidAsHoveddokument,
         journalpostList: List<Journalpost>,
     ): List<InnholdsfortegnelseRequest.Document> {
-        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = allDokumenterUnderArbeid.partition {
+        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = vedlegg.partition {
             it !is JournalfoertDokumentUnderArbeidAsVedlegg
-        } as Pair<List<DokumentUnderArbeid>, List<JournalfoertDokumentUnderArbeidAsVedlegg>>
+        } as Pair<List<DokumentUnderArbeidAsVedlegg>, List<JournalfoertDokumentUnderArbeidAsVedlegg>>
 
         return dokumenterUnderArbeid.sortedByDescending { it.created }
             .map {
                 mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
-                    dokumentUnderArbeid = it,
+                    vedlegg = it,
                     behandling = behandling,
                     hoveddokument = hoveddokument,
                 )
@@ -70,17 +70,21 @@ class DokumentMapper(
     }
 
     fun mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
-        dokumentUnderArbeid: DokumentUnderArbeid,
+        vedlegg: DokumentUnderArbeidAsVedlegg,
         behandling: Behandling,
         hoveddokument: DokumentUnderArbeidAsHoveddokument,
     ): InnholdsfortegnelseRequest.Document {
         return InnholdsfortegnelseRequest.Document(
-            tittel = dokumentUnderArbeid.name,
+            tittel = vedlegg.name,
             tema = behandling.ytelse.toTema().navn,
             dato = LocalDateTime.now().toLocalDate(),
             avsenderMottaker = "",
             saksnummer = behandling.fagsakId,
-            type = if (hoveddokument.dokumentType == DokumentType.NOTAT) Type.N else throw RuntimeException("Wrong hoveddokument type: ${hoveddokument.dokumentType}.")
+            type = when (hoveddokument.dokumentType) {
+                DokumentType.KJENNELSE_FRA_TRYGDERETTEN, DokumentType.ANNEN_INNGAAENDE_POST -> throw RuntimeException("Inngående post kan ikke ha innholdsfortegnelse")
+                DokumentType.VEDTAK, DokumentType.BREV, DokumentType.BESLUTNING, DokumentType.SVARBREV, DokumentType.FORLENGET_BEHANDLINGSTIDSBREV, DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN -> Type.U
+                DokumentType.NOTAT -> Type.N
+            }
         )
     }
 
@@ -386,9 +390,11 @@ class DokumentMapper(
                     Variantformat.ARKIV -> {
                         DokumentReferanse.Variant.Format.ARKIV
                     }
+
                     Variantformat.SLADDET -> {
                         DokumentReferanse.Variant.Format.SLADDET
                     }
+
                     else -> throw RuntimeException("Unknown variantformat: ${variant.variantformat}")
                 },
                 filtype = variant.filtype.toFiltype(),
