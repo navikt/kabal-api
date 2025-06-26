@@ -53,6 +53,7 @@ class Norg2Client(private val norg2WebClient: WebClient) {
                     uriBuilder
                         .path("/enhet")
                         .queryParam("enhetStatusListe", "AKTIV")
+                        .queryParam("oppgavebehandlerFilter", "KUN_OPPGAVEBEHANDLERE")
                         .build()
                 }
                 .retrieve()
