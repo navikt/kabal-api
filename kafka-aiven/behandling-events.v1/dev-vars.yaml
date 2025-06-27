@@ -40,3 +40,6 @@ acl:
   - team: aap
     application: behandlingsflyt
     access: read
+  - team: yrkesskade
+    application: yrkesskade-saksbehandling-backend
+    access: read

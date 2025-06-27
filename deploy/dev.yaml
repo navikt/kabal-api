@@ -56,6 +56,9 @@ inboundApplications:
   - application: behandlingsflyt
     namespace: aap
     cluster: dev-gcp
+  - application: yrkesskade-saksbehandling-backend
+    namespace: yrkesskade
+    cluster: dev-gcp
 springProfile: dev-gcp
 tenant: trygdeetaten.no
 db_tier: db-custom-1-3840
