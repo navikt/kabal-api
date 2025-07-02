@@ -13,7 +13,7 @@ data class BehandlingDateNullableInput(
 data class SattPaaVentInput(
     val to: LocalDate,
     val reason: String?,
-    val sattPaaVentReasonId: String?,
+    val reasonId: String?,
 )
 
 data class GosysOppgaveUpdateInput(

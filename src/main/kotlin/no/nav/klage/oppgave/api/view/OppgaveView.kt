@@ -34,7 +34,7 @@ data class OppgaveView(
         val to: LocalDate,
         val isExpired: Boolean,
         val reason: String?,
-        val sattPaaVentReasonId: String,
+        val reasonId: String,
     )
 }
 

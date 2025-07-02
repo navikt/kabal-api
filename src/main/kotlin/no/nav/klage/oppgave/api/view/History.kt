@@ -41,7 +41,7 @@ data class SattPaaVentEvent(
     val from: LocalDate,
     val to: LocalDate,
     val reason: String?,
-    val sattPaaVentReasonId: String,
+    val reasonId: String,
 )
 
 data class FeilregistrertEvent(

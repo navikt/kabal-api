@@ -873,7 +873,7 @@ class BehandlingMapper(
                 to = sattPaaVent!!.to,
                 isExpired = sattPaaVent!!.to.isBefore(LocalDate.now()),
                 reason = sattPaaVent!!.reason,
-                sattPaaVentReasonId = sattPaaVent!!.sattPaaVentReasonId,
+                reasonId = sattPaaVent!!.reasonId,
             )
         } else null
     }
