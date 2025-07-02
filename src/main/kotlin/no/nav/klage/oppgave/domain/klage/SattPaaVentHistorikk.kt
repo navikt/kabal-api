@@ -15,6 +15,7 @@ class SattPaaVentHistorikk(
             AttributeOverride(name = "from", column = Column(name = "satt_paa_vent_from")),
             AttributeOverride(name = "to", column = Column(name = "satt_paa_vent_to")),
             AttributeOverride(name = "reason", column = Column(name = "satt_paa_vent_reason")),
+            AttributeOverride(name = "reasonId", column = Column(name = "satt_paa_vent_reason_id")),
         ]
     )
     val sattPaaVent: SattPaaVent?,

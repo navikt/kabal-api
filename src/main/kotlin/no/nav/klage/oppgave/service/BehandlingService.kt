@@ -1115,6 +1115,8 @@ class BehandlingService(
                 from = LocalDate.now(),
                 to = input.to,
                 reason = input.reason,
+                //TODO: Remove elvis operator when input always includes reasonId.
+                reasonId = input.reasonId ?: SattPaaVentReason.ANNET.id
             )
         } else null
 
@@ -1150,6 +1152,7 @@ class BehandlingService(
                             from = it.from,
                             to = it.to,
                             reason = it.reason,
+                            reasonId = it.reasonId,
                         )
                     }
                 )
