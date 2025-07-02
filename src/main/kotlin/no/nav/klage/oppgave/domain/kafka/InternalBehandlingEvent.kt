@@ -269,7 +269,8 @@ data class SattPaaVentEvent(
     data class SattPaaVent(
         val from: LocalDate,
         val to: LocalDate,
-        val reason: String,
+        val reason: String?,
+        val sattPaaVentReasonId: String,
     )
 }
 

@@ -279,6 +279,7 @@ class HistoryService(
                             from = it.from,
                             to = it.to,
                             reason = it.reason,
+                            sattPaaVentReasonId = it.sattPaaVentReasonId,
                         )
                     }
                 )
@@ -292,6 +293,7 @@ class HistoryService(
                             from = it.from,
                             to = it.to,
                             reason = it.reason,
+                            sattPaaVentReasonId = it.sattPaaVentReasonId,
                         )
                     },
                     previous = previousEvent,

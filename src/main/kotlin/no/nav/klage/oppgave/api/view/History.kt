@@ -40,7 +40,8 @@ data class RolEvent(
 data class SattPaaVentEvent(
     val from: LocalDate,
     val to: LocalDate,
-    val reason: String
+    val reason: String?,
+    val sattPaaVentReasonId: String,
 )
 
 data class FeilregistrertEvent(
