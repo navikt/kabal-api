@@ -7,5 +7,6 @@ import java.time.LocalDate
 data class SattPaaVent(
     val from: LocalDate,
     val to: LocalDate,
-    val reason: String,
+    val reason: String?,
+    val reasonId: String,
 )

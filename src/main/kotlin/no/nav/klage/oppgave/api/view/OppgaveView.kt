@@ -33,7 +33,8 @@ data class OppgaveView(
         val from: LocalDate,
         val to: LocalDate,
         val isExpired: Boolean,
-        val reason: String,
+        val reason: String?,
+        val reasonId: String,
     )
 }
 
