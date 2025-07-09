@@ -67,7 +67,8 @@ class SmartdocumentAccessTest {
             svarbrevSettingsService = mockk(),
             innsynsbegjaeringTemplateId = "templateId",
             organisasjonsnummerTrygderetten = "123456789",
-            activeSpringProfile = "dev-gcp"
+            activeSpringProfile = "dev-gcp",
+            documentPolicyService = mockk(),
         )
 
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns "navident"

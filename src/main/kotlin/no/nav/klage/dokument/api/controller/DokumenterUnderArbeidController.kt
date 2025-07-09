@@ -257,18 +257,19 @@ class DokumentUnderArbeidController(
         )
     }
 
+    //here
     @PutMapping("/{dokumentId}/parent")
     fun kobleEllerFrikobleVedlegg(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") persistentDokumentId: UUID,
-        @RequestBody input: OptionalPersistentDokumentIdInput
+        @RequestBody input: OptionalParentDokumentIdInput,
     ): DokumentViewWithList {
         logger.debug("Kall mottatt på kobleEllerFrikobleVedlegg for {}", persistentDokumentId)
         try {
             return dokumentUnderArbeidService.kobleEllerFrikobleVedlegg(
                 behandlingId = behandlingId,
                 persistentDokumentId = persistentDokumentId,
-                optionalParentInput = input
+                optionalParentDocumentId = input.dokumentId,
             )
         } catch (e: Exception) {
             logger.error("Feilet under kobling av dokument $persistentDokumentId med ${input.dokumentId}", e)

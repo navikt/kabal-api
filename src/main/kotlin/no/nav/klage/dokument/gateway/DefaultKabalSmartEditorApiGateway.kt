@@ -6,7 +6,6 @@ import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentIn
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.ModifyCommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.CommentOutput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
-import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.retry.annotation.Retryable
@@ -42,9 +41,6 @@ class DefaultKabalSmartEditorApiGateway(
     fun createDocument(
         json: String,
         data: String?,
-        dokumentType: DokumentType,
-        innloggetIdent: String,
-        documentTitle: String,
     ): SmartDocumentResponse {
         return kabalSmartEditorApiClient.createDocument(jsonInput = json, data = data)
     }

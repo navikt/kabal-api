@@ -134,7 +134,8 @@ class DokumentUnderArbeidServiceWithJPATest {
             svarbrevSettingsService = mockk(),
             innsynsbegjaeringTemplateId = "templateId",
             organisasjonsnummerTrygderetten = "123456789",
-            activeSpringProfile = "dev-gcp"
+            activeSpringProfile = "dev-gcp",
+            documentPolicyService = mockk(),
         )
 
         val behandlingId = UUID.randomUUID()

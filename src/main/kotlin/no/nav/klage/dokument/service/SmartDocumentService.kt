@@ -62,19 +62,28 @@ class SmartDocumentService(
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
-        val behandlingRole = dokumentUnderArbeidService.validateCanCreateDocumentsAndReturnBehandlingRole(
-            behandling = behandling,
-            innloggetIdent = innloggetIdent,
-            parentId = parentId,
-        )
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
+
+//        DocumentPolicyService().validateCreateDokumentUnderArbeid(
+//            documentClassType = DocumentClassType.SMART,
+//            dokumentType = dokumentType,
+//            behandlingRole = behandlingRole,
+//            isSystemContext = false,
+//            isROLOrKROL = innloggetSaksbehandlerService.isROL() || innloggetSaksbehandlerService.isKROL(),
+//            isOppgavestyringAlleEnheter = innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter(),
+//            isBehandlingFinished = behandling.ferdigstilling != null,
+//            parentDocument = if (parentId != null) {
+//                dokumentUnderArbeidService.getDokumentUnderArbeid(parentId) as DokumentUnderArbeidAsHoveddokument
+//            } else null,
+//            isWithSaksbehandler = TODO(),
+//            isWithMU = TODO(),
+//            isBehandlingFeilregistrert = TODO(),
+//        )
 
         val smartDocumentResponse =
             kabalSmartEditorApiGateway.createDocument(
                 json = input.content.toString(),
                 data = input.data,
-                dokumentType = dokumentType,
-                innloggetIdent = innloggetIdent,
-                documentTitle = tittel,
             )
 
         val now = LocalDateTime.now()
