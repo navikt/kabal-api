@@ -257,7 +257,6 @@ class DokumentUnderArbeidController(
         )
     }
 
-    //here
     @PutMapping("/{dokumentId}/parent")
     fun kobleEllerFrikobleVedlegg(
         @PathVariable("behandlingId") behandlingId: UUID,

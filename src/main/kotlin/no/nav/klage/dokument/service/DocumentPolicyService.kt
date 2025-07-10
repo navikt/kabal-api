@@ -23,9 +23,15 @@ class DocumentPolicyService(
         creator: DuaAccessPolicy.Creator,
         action: DuaAccessPolicy.Action,
         duaMarkertFerdig: Boolean,
+        isSystemContext: Boolean = false,
     ) {
         if (duaMarkertFerdig) {
             DuaAccessPolicy.throwDuaFinishedException()
+        }
+
+        if (isSystemContext) {
+            // If the action is performed in a system context, we allow all actions ???
+            return
         }
 
         val innloggetSaksbehandler = innloggetSaksbehandlerService.getInnloggetIdent()
@@ -72,6 +78,19 @@ class DocumentPolicyService(
                 DokumentUnderArbeid.DokumentUnderArbeidType.UPLOADED -> DuaAccessPolicy.Parent.UPLOADED
                 else -> throw DokumentValidationException("Ugyldig hoveddokumenttype: ${parentDua.getType()}")
             }
+        }
+    }
+
+    fun getDokumentType(
+        duaId: UUID,
+    ): DuaAccessPolicy.DokumentType {
+        val dua = dokumentUnderArbeidRepository.findById(duaId)
+            .orElseThrow { DokumentValidationException("Finner ikke dokument med id $duaId") }
+
+        return when (dua.getType()) {
+            DokumentUnderArbeid.DokumentUnderArbeidType.SMART -> DuaAccessPolicy.DokumentType.SMART_DOCUMENT
+            DokumentUnderArbeid.DokumentUnderArbeidType.UPLOADED -> DuaAccessPolicy.DokumentType.UPLOADED
+            else -> throw DokumentValidationException("Ugyldig hoveddokumenttype: ${dua.getType()}")
         }
     }
 }
