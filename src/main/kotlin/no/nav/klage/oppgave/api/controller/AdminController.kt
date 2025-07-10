@@ -121,6 +121,20 @@ class AdminController(
         adminService.logInaccessibleBehandlinger()
     }
 
+    @GetMapping("/log-inaccessible-skjerming")
+    fun logInaccessibleSkjerming() {
+        logger.debug("logInaccessibleSkjerming is called")
+        krevAdminTilgang()
+        adminService.checkForUnavailableDueToBeskyttelseAndSkjerming(null)
+    }
+
+    @GetMapping("/log-inaccessible-hjemler")
+    fun logInaccessibleHjemler() {
+        logger.debug("logInaccessibleHjemler is called")
+        krevAdminTilgang()
+        adminService.checkForUnavailableDueToHjemler(null)
+    }
+
     @PostMapping("/setsortkeytodua")
     fun setSortKeyToDUA() {
         logger.debug("setSortKeyToDUA is called")

@@ -213,6 +213,20 @@ class DevOnlyAdminController(
         adminService.logInaccessibleBehandlinger()
     }
 
+    @Unprotected
+    @GetMapping("/log-inaccessible-skjerming")
+    fun logInaccessibleSkjerming() {
+        logger.debug("logInaccessibleSkjerming is called")
+        adminService.checkForUnavailableDueToBeskyttelseAndSkjerming(null)
+    }
+
+    @Unprotected
+    @GetMapping("/log-inaccessible-hjemler")
+    fun logInaccessibleHjemler() {
+        logger.debug("logInaccessibleHjemler is called")
+        adminService.checkForUnavailableDueToHjemler(null)
+    }
+
 
     @Unprotected
     @GetMapping("/evictallcaches", produces = ["application/json"])

@@ -360,6 +360,16 @@ class AdminService(
             "Checking for inaccessible behandlinger. Number of unfinished behandlinger: {}",
             unfinishedBehandlinger.size
         )
+
+        val resultMessage = checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput = unfinishedBehandlinger) +
+                checkForUnavailableDueToHjemler(unfinishedBehandlingerInput = unfinishedBehandlinger)
+        slackClient.postMessage("<!subteam^$klageBackendGroupId>: \n$resultMessage")
+        teamLogger.debug(resultMessage)
+    }
+
+    fun checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput: List<Behandling>?): String {
+        val unfinishedBehandlinger = unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        val start = System.currentTimeMillis()
         val strengtFortroligBehandlinger = mutableSetOf<String>()
         val fortroligBehandlinger = mutableSetOf<String>()
         val egenAnsattBehandlinger = mutableSetOf<String>()
@@ -398,14 +408,17 @@ class AdminService(
             "Fullført søk etter utilgjengelige behandlinger. \n" +
                     "Strengt fortrolige behandlinger: $strengtFortroligBehandlinger \n" +
                     "Fortrolige behandlinger der saksbehandler mangler tilgang: $fortroligBehandlinger \n" +
-                    "Egen ansatt-behandlinger der saksbehandler mangler tilgang: $egenAnsattBehandlinger\n\n" +
-                    checkForUnavailableDueToHjemler(unfinishedBehandlinger = unfinishedBehandlinger)
+                    "Egen ansatt-behandlinger der saksbehandler mangler tilgang: $egenAnsattBehandlinger\n\n"
 
-        slackClient.postMessage("<!subteam^$klageBackendGroupId>: \n$resultMessage")
-        teamLogger.debug(resultMessage)
+        val end = System.currentTimeMillis()
+        teamLogger.debug("Time it took to process unavailableDueToBeskyttelseAndSkjerming: ${end - start} millis")
+
+        return resultMessage
     }
 
-    private fun checkForUnavailableDueToHjemler(unfinishedBehandlinger: List<Behandling>): String {
+    fun checkForUnavailableDueToHjemler(unfinishedBehandlingerInput: List<Behandling>?): String {
+        val unfinishedBehandlinger = unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        val start = System.currentTimeMillis()
         val unavailableBehandlinger = mutableSetOf<UUID>()
         val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
         unfinishedBehandlinger.forEach { behandling ->
@@ -444,6 +457,9 @@ class AdminService(
         missingHjemmelInRegistryBehandling.forEach {
             errorLog += "Behandling-id: ${it.first}, Hjemler: ${it.second} \n"
         }
+
+        val end = System.currentTimeMillis()
+        teamLogger.debug("Time it took to process unavailableDueToHjemler: ${end - start} millis")
 
         return errorLog
     }
