@@ -32,9 +32,10 @@ class PdlFacade(
     fun fillPersonCache(fnrList: List<String>) {
         val start = System.currentTimeMillis()
         logger.debug("Filling person cache for ${fnrList.size} people")
-        val filteredPersonCache = personCacheService.findFnrsNotInCache(fnrList)
-        logger.debug("Size of filtered list: ${filteredPersonCache.size}")
-        val pdlOutput = pdlClient.getPersonBulk(fnrList = filteredPersonCache)
+        val fnrsNotInPersonCache = personCacheService.findFnrsNotInCache(fnrList)
+        logger.debug("Size of filtered list: ${fnrsNotInPersonCache.size}")
+        teamLogger.debug("fnr list: $fnrsNotInPersonCache")
+        val pdlOutput = pdlClient.getPersonBulk(fnrList = fnrsNotInPersonCache)
         logger.debug("Size of pdl output: ${pdlOutput.data?.hentPersonBolk?.size}")
         pdlOutput.data?.hentPersonBolk?.forEach { hentPersonBolkResult ->
             val pdlPerson = hentPersonBolkResult.person
