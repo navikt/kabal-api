@@ -372,8 +372,7 @@ class AdminService(
     fun checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput: List<Behandling>?): String {
         val unfinishedBehandlinger = unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val start = System.currentTimeMillis()
-        var now = System.currentTimeMillis()
-        logger.debug("Time spent after getting unfinished behandlinger: ${now - start} millis")
+
         val strengtFortroligBehandlinger = mutableSetOf<String>()
         val fortroligBehandlinger = mutableSetOf<String>()
         val egenAnsattBehandlinger = mutableSetOf<String>()
@@ -381,10 +380,14 @@ class AdminService(
             .filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
             .map { it.sakenGjelder.partId.value }
             .distinct()
-        logger.debug("Number of unfinished behandlinger: ${unfinishedBehandlinger.size}")
-        pdlFacade.fillPersonCache(fnrList = sakenGjelderFnrList)
-        now = System.currentTimeMillis()
-        logger.debug("Time spent after filling person cache: ${now - start} millis")
+
+        val pdlStart = System.currentTimeMillis()
+        sakenGjelderFnrList.chunked(1000).forEach { chunk ->
+            pdlFacade.fillPersonCache(fnrList = chunk)
+        }
+        val now = System.currentTimeMillis()
+        logger.debug("Time it took to fill person cache: ${now - pdlStart} millis")
+
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
@@ -408,17 +411,11 @@ class AdminService(
                             }
                         }
                     }
-
-                    now = System.currentTimeMillis()
-//                    logger.debug("Time spent after case: ${now - start} millis")
                 } catch (e: Exception) {
                     teamLogger.debug("Couldn't check person", e)
                 }
             }
         }
-
-        now = System.currentTimeMillis()
-        logger.debug("Time spent after all cases: ${now - start} millis")
 
         val resultMessage =
             "Fullført søk etter utilgjengelige behandlinger. \n" +
