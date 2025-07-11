@@ -41,7 +41,11 @@ class PdlFacade(
         pdlOutput.data?.hentPersonBolk?.forEach { hentPersonBolkResult ->
             val pdlPerson = hentPersonBolkResult.person
             if (pdlPerson != null) {
-                personCacheService.updatePersonCache(hentPersonMapper.mapToPerson(hentPersonBolkResult.ident, pdlPerson))
+                try {
+                    personCacheService.updatePersonCache(hentPersonMapper.mapToPerson(hentPersonBolkResult.ident, pdlPerson))
+                } catch (e: Exception) {
+                    teamLogger.error("Error while mapping person with fnr ${hentPersonBolkResult.ident} from PDL", e)
+                }
             }
         }
         val end = System.currentTimeMillis()
