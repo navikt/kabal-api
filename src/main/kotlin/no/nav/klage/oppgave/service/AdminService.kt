@@ -18,6 +18,7 @@ import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalIn
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
+import no.nav.klage.oppgave.clients.pdl.PersonCacheService
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.DOK_DIST_KANAL
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHETER_CACHE
@@ -89,6 +90,7 @@ class AdminService(
     private val slackClient: SlackClient,
     private val kabalInnstillingerService: KabalInnstillingerService,
     private val applicationEventPublisher: ApplicationEventPublisher,
+    private val personCacheService: PersonCacheService,
 ) {
 
     @Value("\${KLAGE_BACKEND_GROUP_ID}")
@@ -373,6 +375,12 @@ class AdminService(
         val strengtFortroligBehandlinger = mutableSetOf<String>()
         val fortroligBehandlinger = mutableSetOf<String>()
         val egenAnsattBehandlinger = mutableSetOf<String>()
+        val sakenGjelderFnrList = unfinishedBehandlinger
+            .filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
+            .map { it.sakenGjelder.partId.value }
+            .distinct()
+        pdlFacade.fillPersonCache(fnrList = sakenGjelderFnrList)
+
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
@@ -462,6 +470,10 @@ class AdminService(
         teamLogger.debug("Time it took to process unavailableDueToHjemler: ${end - start} millis")
 
         return errorLog
+    }
+
+    fun emptyPersonCache() {
+        personCacheService.emptyCache()
     }
 
     @Transactional

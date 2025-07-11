@@ -227,6 +227,13 @@ class DevOnlyAdminController(
         adminService.checkForUnavailableDueToHjemler(null)
     }
 
+    @Unprotected
+    @GetMapping("/empty-person-cache")
+    fun emptyPersonCache() {
+        logger.debug("emptyPersonCache is called")
+        adminService.emptyPersonCache()
+    }
+
 
     @Unprotected
     @GetMapping("/evictallcaches", produces = ["application/json"])
