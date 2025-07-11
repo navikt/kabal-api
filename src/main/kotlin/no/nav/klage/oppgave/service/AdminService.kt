@@ -381,6 +381,7 @@ class AdminService(
             .filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
             .map { it.sakenGjelder.partId.value }
             .distinct()
+        logger.debug("Number of unfinished behandlinger: ${unfinishedBehandlinger.size}")
         pdlFacade.fillPersonCache(fnrList = sakenGjelderFnrList)
         now = System.currentTimeMillis()
         logger.debug("Time spent after filling person cache: ${now - start} millis")
@@ -409,7 +410,7 @@ class AdminService(
                     }
 
                     now = System.currentTimeMillis()
-                    logger.debug("Time spent after case: ${now - start} millis")
+//                    logger.debug("Time spent after case: ${now - start} millis")
                 } catch (e: Exception) {
                     teamLogger.debug("Couldn't check person", e)
                 }
