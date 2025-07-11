@@ -36,6 +36,7 @@ class PdlFacade(
         logger.debug("Size of filtered list: ${fnrsNotInPersonCache.size}")
         teamLogger.debug("fnr list: $fnrsNotInPersonCache")
         val pdlOutput = pdlClient.getPersonBulk(fnrList = fnrsNotInPersonCache)
+        teamLogger.debug("PDL response: $pdlOutput")
         logger.debug("Size of pdl output: ${pdlOutput.data?.hentPersonBolk?.size}")
         pdlOutput.data?.hentPersonBolk?.forEach { hentPersonBolkResult ->
             val pdlPerson = hentPersonBolkResult.person
