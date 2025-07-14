@@ -19,7 +19,18 @@ data class Ident(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class HentPersonResponse(val data: PdlPersonDataWrapper?, val errors: List<PdlError>? = null)
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class HentPersonBolkResponse(val data: PdlPersonBolkDataWrapper?, val errors: List<PdlError>? = null)
+
 data class PdlPersonDataWrapper(val hentPerson: PdlPerson?)
+
+data class PdlPersonBolkDataWrapper(val hentPersonBolk: List<HentPersonBolkResult>?)
+
+data class HentPersonBolkResult(
+    val ident: String,
+    val person: PdlPerson?,
+    val code: String,
+)
 
 data class PdlPerson(
     val adressebeskyttelse: List<Adressebeskyttelse>,

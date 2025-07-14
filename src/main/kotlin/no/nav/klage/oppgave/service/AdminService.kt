@@ -18,6 +18,7 @@ import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalIn
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
+import no.nav.klage.oppgave.clients.pdl.PersonCacheService
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.DOK_DIST_KANAL
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHETER_CACHE
@@ -89,6 +90,7 @@ class AdminService(
     private val slackClient: SlackClient,
     private val kabalInnstillingerService: KabalInnstillingerService,
     private val applicationEventPublisher: ApplicationEventPublisher,
+    private val personCacheService: PersonCacheService,
 ) {
 
     @Value("\${KLAGE_BACKEND_GROUP_ID}")
@@ -370,9 +372,22 @@ class AdminService(
     fun checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput: List<Behandling>?): String {
         val unfinishedBehandlinger = unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val start = System.currentTimeMillis()
+
         val strengtFortroligBehandlinger = mutableSetOf<String>()
         val fortroligBehandlinger = mutableSetOf<String>()
         val egenAnsattBehandlinger = mutableSetOf<String>()
+        val sakenGjelderFnrList = unfinishedBehandlinger
+            .filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
+            .map { it.sakenGjelder.partId.value }
+            .distinct()
+
+        val pdlStart = System.currentTimeMillis()
+        sakenGjelderFnrList.chunked(1000).forEach { chunk ->
+            pdlFacade.fillPersonCache(fnrList = chunk)
+        }
+        val now = System.currentTimeMillis()
+        logger.debug("Time it took to fill person cache: ${now - pdlStart} millis")
+
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
@@ -396,8 +411,6 @@ class AdminService(
                             }
                         }
                     }
-
-
                 } catch (e: Exception) {
                     teamLogger.debug("Couldn't check person", e)
                 }
@@ -462,6 +475,10 @@ class AdminService(
         teamLogger.debug("Time it took to process unavailableDueToHjemler: ${end - start} millis")
 
         return errorLog
+    }
+
+    fun emptyPersonCache() {
+        personCacheService.emptyCache()
     }
 
     @Transactional

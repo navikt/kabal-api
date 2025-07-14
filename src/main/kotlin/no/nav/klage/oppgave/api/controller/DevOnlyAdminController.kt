@@ -111,7 +111,8 @@ class DevOnlyAdminController(
             "getAppAccessTokenWithGraphScope" to tokenUtil.getAppAccessTokenWithGraphScope(),
             "getSaksbehandlerAccessTokenWithDokarkivScope" to tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope(),
             "getSaksbehandlerAccessTokenWithKodeverkScope" to tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope(),
-            "getOnBehalfOfTokenWithKrrProxyScope" to tokenUtil.getOnBehalfOfTokenWithKrrProxyScope()
+            "getOnBehalfOfTokenWithKrrProxyScope" to tokenUtil.getOnBehalfOfTokenWithKrrProxyScope(),
+            "getAppAccessTokenWithPdlScope" to tokenUtil.getAppAccessTokenWithPdlScope()
         )
     }
 
@@ -225,6 +226,13 @@ class DevOnlyAdminController(
     fun logInaccessibleHjemler() {
         logger.debug("logInaccessibleHjemler is called")
         adminService.checkForUnavailableDueToHjemler(null)
+    }
+
+    @Unprotected
+    @GetMapping("/empty-person-cache")
+    fun emptyPersonCache() {
+        logger.debug("emptyPersonCache is called")
+        adminService.emptyPersonCache()
     }
 
 

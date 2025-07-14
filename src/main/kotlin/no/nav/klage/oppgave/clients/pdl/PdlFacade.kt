@@ -29,6 +29,21 @@ class PdlFacade(
         return hentPersonMapper.mapToPerson(fnr, pdlPerson).also { personCacheService.updatePersonCache(it) }
     }
 
+    fun fillPersonCache(fnrList: List<String>) {
+        val fnrsNotInPersonCache = personCacheService.findFnrsNotInCache(fnrList)
+        val pdlOutput = pdlClient.getPersonBulk(fnrList = fnrsNotInPersonCache)
+        pdlOutput.data?.hentPersonBolk?.forEach { hentPersonBolkResult ->
+            val pdlPerson = hentPersonBolkResult.person
+            if (pdlPerson != null) {
+                try {
+                    personCacheService.updatePersonCache(hentPersonMapper.mapToPerson(hentPersonBolkResult.ident, pdlPerson))
+                } catch (e: Exception) {
+                    teamLogger.error("Error while mapping person with fnr ${hentPersonBolkResult.ident} from PDL", e)
+                }
+            }
+        }
+    }
+
     fun personExists(fnr: String): Boolean {
         try {
             getPersonInfo(fnr)

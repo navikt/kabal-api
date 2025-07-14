@@ -16,4 +16,12 @@ class PersonCacheService {
     fun updatePersonCache(person: Person) {
         personMap[person.foedselsnr] = person
     }
+
+    fun findFnrsNotInCache(fnrList: List<String>): List<String> {
+        return fnrList.filter { !isCached(it) }
+    }
+
+    fun emptyCache() {
+        personMap.clear()
+    }
 }
