@@ -111,7 +111,8 @@ class DevOnlyAdminController(
             "getAppAccessTokenWithGraphScope" to tokenUtil.getAppAccessTokenWithGraphScope(),
             "getSaksbehandlerAccessTokenWithDokarkivScope" to tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope(),
             "getSaksbehandlerAccessTokenWithKodeverkScope" to tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope(),
-            "getOnBehalfOfTokenWithKrrProxyScope" to tokenUtil.getOnBehalfOfTokenWithKrrProxyScope()
+            "getOnBehalfOfTokenWithKrrProxyScope" to tokenUtil.getOnBehalfOfTokenWithKrrProxyScope(),
+            "getAppAccessTokenWithPdlScope" to tokenUtil.getAppAccessTokenWithPdlScope()
         )
     }
 
@@ -211,6 +212,27 @@ class DevOnlyAdminController(
     fun logInaccessible() {
         logger.debug("logInaccessible is called")
         adminService.logInaccessibleBehandlinger()
+    }
+
+    @Unprotected
+    @GetMapping("/log-inaccessible-skjerming")
+    fun logInaccessibleSkjerming() {
+        logger.debug("logInaccessibleSkjerming is called")
+        adminService.checkForUnavailableDueToBeskyttelseAndSkjerming(null)
+    }
+
+    @Unprotected
+    @GetMapping("/log-inaccessible-hjemler")
+    fun logInaccessibleHjemler() {
+        logger.debug("logInaccessibleHjemler is called")
+        adminService.checkForUnavailableDueToHjemler(null)
+    }
+
+    @Unprotected
+    @GetMapping("/empty-person-cache")
+    fun emptyPersonCache() {
+        logger.debug("emptyPersonCache is called")
+        adminService.emptyPersonCache()
     }
 
 

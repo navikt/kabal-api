@@ -53,6 +53,26 @@ class PdlClient(
     }
 
     @Retryable
+    fun getPersonBulk(fnrList: List<String>): HentPersonBolkResponse {
+        return runWithTiming {
+            val stsSystembrukerToken = tokenUtil.getAppAccessTokenWithPdlScope()
+            pdlWebClient.post()
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $stsSystembrukerToken")
+                .bodyValue(hentPersonBulkQuery(fnrList))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getPersonInfo.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<HentPersonBolkResponse>()
+                .block() ?: throw RuntimeException("Person not found")
+        }
+    }
+
+    @Retryable
     fun getIdents(query: PersonGraphqlQuery): HentIdenterResponse {
         return runWithTiming {
             val stsSystembrukerToken = tokenUtil.getAppAccessTokenWithPdlScope()
