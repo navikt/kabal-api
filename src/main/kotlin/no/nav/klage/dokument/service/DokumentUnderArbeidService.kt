@@ -86,6 +86,7 @@ class DokumentUnderArbeidService(
     @Value("\${INNSYNSBEGJAERING_TEMPLATE_ID}") private val innsynsbegjaeringTemplateId: String,
     @Value("\${ORGANISASJONSNUMMER_TRYGDERETTEN}") private val organisasjonsnummerTrygderetten: String,
     @Value("\${spring.profiles.active:}") private val activeSpringProfile: String,
+    private val documentPolicyService: DocumentPolicyService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -117,14 +118,17 @@ class DokumentUnderArbeidService(
         } else {
             behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         }
-
         val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
 
-        if (!systemContext) {
-            if (innloggetSaksbehandlerService.isROL() || innloggetSaksbehandlerService.isKROL()) {
-                throw MissingTilgangException("ROL/KROL kan ikke laste opp dokumenter.")
-            }
-        }
+        documentPolicyService.validateDokumentUnderArbeidAction(
+            behandling = behandling,
+            dokumentType = DuaAccessPolicy.DokumentType.UPLOADED,
+            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentId),
+            creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+            action = DuaAccessPolicy.Action.CREATE,
+            duaMarkertFerdig = false,
+            isSystemContext = systemContext,
+        )
 
         val mellomlagerId = mellomlagerService.uploadFile(file = file, systemContext = systemContext)
 
@@ -270,25 +274,41 @@ class DokumentUnderArbeidService(
     fun kobleEllerFrikobleVedlegg(
         behandlingId: UUID,
         persistentDokumentId: UUID,
-        optionalParentInput: OptionalPersistentDokumentIdInput,
+        optionalParentDocumentId: UUID?,
     ): DokumentViewWithList {
+        if (optionalParentDocumentId == null) {
+            throw DokumentValidationException("Per i dag støttes ikke å gjøre om vedlegg til hovedokument.")
+        }
+
+        val dua = getDokumentUnderArbeid(persistentDokumentId)
+
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
 
-        val (dokumentUnderArbeidList, duplicateJournalfoerteDokumenter) = if (optionalParentInput.dokumentId == null) {
-            listOf(
-                setAsHoveddokument(
-                    behandlingId = behandlingId,
-                    dokumentId = persistentDokumentId,
-                    innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-                )
-            ) to emptyList()
-        } else {
-            setAsVedlegg(
-                newParentId = optionalParentInput.dokumentId,
+        val behandlingRole = behandling.getRoleInBehandling(innloggetSaksbehandlerService.getInnloggetIdent())
+
+        documentPolicyService.validateDokumentUnderArbeidAction(
+            behandling = behandling,
+            dokumentType = documentPolicyService.getDokumentType(duaId = persistentDokumentId),
+            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = optionalParentDocumentId),
+            creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+            action = DuaAccessPolicy.Action.REMOVE,
+            duaMarkertFerdig = dua.erMarkertFerdig(),
+        )
+
+        documentPolicyService.validateDokumentUnderArbeidAction(
+            behandling = behandling,
+            dokumentType = documentPolicyService.getDokumentType(duaId = persistentDokumentId),
+            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = optionalParentDocumentId),
+            creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+            action = DuaAccessPolicy.Action.CREATE,
+            duaMarkertFerdig = dua.erMarkertFerdig(),
+        )
+
+        val (dokumentUnderArbeidList, duplicateJournalfoerteDokumenter) = setAsVedlegg(
+                newParentId = optionalParentDocumentId,
                 dokumentId = persistentDokumentId,
                 innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
             )
-        }
 
         val journalpostIdSet = dokumentUnderArbeidList.plus(duplicateJournalfoerteDokumenter)
             .filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
@@ -343,25 +363,6 @@ class DokumentUnderArbeidService(
         }
     }
 
-    fun validateCanCreateDocumentsAndReturnBehandlingRole(
-        behandling: Behandling,
-        innloggetIdent: String,
-        parentId: UUID?,
-    ): BehandlingRole {
-        //Sjekker lesetilgang på behandlingsnivå:
-        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
-
-        if (behandling.ferdigstilling == null) {
-            validateCanCreateSmartdocumentsOrJournalfoerte(
-                behandlingRole = behandlingRole,
-                parentDocument = if (parentId != null) getDokumentUnderArbeid(parentId)
-                        as DokumentUnderArbeidAsHoveddokument else null
-            )
-        }
-
-        return behandlingRole
-    }
-
     fun addJournalfoerteDokumenterAsVedlegg(
         behandlingId: UUID,
         journalfoerteDokumenterInput: JournalfoerteDokumenterInput,
@@ -369,13 +370,16 @@ class DokumentUnderArbeidService(
     ): JournalfoerteDokumenterResponse {
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
-        val parentDocument =
-            getDokumentUnderArbeid(journalfoerteDokumenterInput.parentId)
-                    as DokumentUnderArbeidAsHoveddokument
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        if (parentDocument.isInngaaende()) {
-            throw DokumentValidationException("Kan ikke sette journalførte dokumenter som vedlegg til ${parentDocument.dokumentType.navn}.")
-        }
+        documentPolicyService.validateDokumentUnderArbeidAction(
+            behandling = behandling,
+            dokumentType = DuaAccessPolicy.DokumentType.JOURNALFOERT,
+            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = journalfoerteDokumenterInput.parentId),
+            creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+            action = DuaAccessPolicy.Action.CREATE,
+            duaMarkertFerdig = false,
+        )
 
         val journalpostListForUser = safFacade.getJournalposter(
             journalpostIdSet = journalfoerteDokumenterInput.journalfoerteDokumenter.map { it.journalpostId }.toSet(),
@@ -440,7 +444,7 @@ class DokumentUnderArbeidService(
             }
     }
 
-    fun createJournalfoerteDokumenter(
+    private fun createJournalfoerteDokumenter(
         parentId: UUID,
         journalfoerteDokumenter: Set<JournalfoertDokumentReference>,
         behandling: Behandling,
@@ -450,19 +454,10 @@ class DokumentUnderArbeidService(
         val parentDocument =
             getDokumentUnderArbeid(parentId) as DokumentUnderArbeidAsHoveddokument
 
-        if (parentDocument.erMarkertFerdig()) {
-            throw DokumentValidationException("Kan ikke koble til et dokument som er ferdigstilt")
-        }
-
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
         if (behandling.ferdigstilling == null) {
             val isCurrentROL = behandling.rolIdent == innloggetIdent
-
-            validateCanCreateSmartdocumentsOrJournalfoerte(
-                behandlingRole = behandlingRole,
-                parentDocument = parentDocument
-            )
 
             val templateId =
                 if (parentDocument is DokumentUnderArbeidAsSmartdokument) parentDocument.smartEditorTemplateId else null
@@ -532,25 +527,6 @@ class DokumentUnderArbeidService(
             ?: error("can't be null")
     }
 
-    private fun validateCanCreateSmartdocumentsOrJournalfoerte(
-        behandlingRole: BehandlingRole,
-        parentDocument: DokumentUnderArbeidAsHoveddokument?
-    ) {
-        if (behandlingRole !in listOf(BehandlingRole.KABAL_ROL, BehandlingRole.KABAL_SAKSBEHANDLING)) {
-            throw MissingTilgangException("Kun ROL eller saksbehandler kan opprette dokumenter")
-        }
-
-        if (behandlingRole == BehandlingRole.KABAL_ROL && parentDocument == null) {
-            throw MissingTilgangException("ROL kan ikke opprette hoveddokumenter.")
-        }
-
-        if (parentDocument != null && behandlingRole == BehandlingRole.KABAL_ROL) {
-            if (!(parentDocument is SmartdokumentUnderArbeidAsHoveddokument && parentDocument.smartEditorTemplateId == Template.ROL_QUESTIONS.id)) {
-                throw MissingTilgangException("ROL kan ikke opprette vedlegg til dette hoveddokumentet.")
-            }
-        }
-    }
-
     fun getDokumentUnderArbeid(dokumentId: UUID): DokumentUnderArbeid =
         dokumentUnderArbeidRepository.findById(dokumentId).orElseThrow {
             throw DocumentDoesNotExistException("Dokumentet med id $dokumentId finnes ikke.")
@@ -571,9 +547,20 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke endre dokumenttype på vedlegg")
         }
 
-        if (dokumentUnderArbeid.erMarkertFerdig()) {
-            throw DokumentValidationException("Kan ikke endre dokumenttype på et dokument som er ferdigstilt")
-        }
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
+
+        documentPolicyService.validateDokumentUnderArbeidAction(
+            behandling = behandling,
+            dokumentType = when (dokumentUnderArbeid.getType()) {
+                DokumentUnderArbeid.DokumentUnderArbeidType.UPLOADED -> DuaAccessPolicy.DokumentType.UPLOADED
+                DokumentUnderArbeid.DokumentUnderArbeidType.SMART -> DuaAccessPolicy.DokumentType.SMART_DOCUMENT
+                DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT -> DuaAccessPolicy.DokumentType.JOURNALFOERT
+            },
+            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = null),
+            creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+            action = DuaAccessPolicy.Action.CHANGE_TYPE,
+            duaMarkertFerdig = dokumentUnderArbeid.erMarkertFerdig(),
+        )
 
         val vedlegg = getVedlegg(dokumentId)
 
@@ -1058,19 +1045,14 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        if (behandling.ferdigstilling == null) {
-            if (dokumentUnderArbeid.creatorRole != behandlingRole && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
-                throw MissingTilgangException("$behandlingRole har ikke anledning til å endre tittel på dette dokumentet eiet av ${dokumentUnderArbeid.creatorRole}.")
-            }
-        }
-
-        if (dokumentUnderArbeid.erMarkertFerdig()) {
-            throw DokumentValidationException("Kan ikke endre tittel på et dokument som er ferdigstilt")
-        }
-
-        if (dokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
-            throw DokumentValidationException("Kan ikke endre tittel på journalført dokument i denne konteksten")
-        }
+        documentPolicyService.validateDokumentUnderArbeidAction(
+            behandling = behandling,
+            dokumentType = documentPolicyService.getDokumentType(dokumentId),
+            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null),
+            creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+            action = DuaAccessPolicy.Action.RENAME,
+            duaMarkertFerdig = dokumentUnderArbeid.erMarkertFerdig(),
+        )
 
         dokumentUnderArbeid.name = dokumentTitle
 
@@ -1216,43 +1198,22 @@ class DokumentUnderArbeidService(
         )
     }
 
-    fun validateWriteAccessToDocument(
+    fun validateWriteAccessToSmartDocument(
         dokumentId: UUID,
+        behandling: Behandling,
     ) {
         val dokument = getDokumentUnderArbeid(dokumentId)
-        if (dokument.erMarkertFerdig()) {
-            throw DokumentValidationException("Dokument er allerede ferdigstilt.")
-        }
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
+        val behandlingRole = behandling.getRoleInBehandling(innloggetSaksbehandlerService.getInnloggetIdent())
 
-        val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-
-        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
-
-        if (behandling.ferdigstilling == null) {
-            when (dokument.creatorRole) {
-                BehandlingRole.KABAL_SAKSBEHANDLING -> {
-                    if (behandlingRole !in listOf(
-                            BehandlingRole.KABAL_SAKSBEHANDLING,
-                            BehandlingRole.KABAL_MEDUNDERSKRIVER
-                        )
-                    ) {
-                        throw MissingTilgangException("Kun saksbehandler eller medunderskriver kan skrive i dette dokumentet.")
-                    }
-                }
-
-                BehandlingRole.KABAL_ROL -> {
-                    if (behandlingRole != BehandlingRole.KABAL_ROL) {
-                        throw MissingTilgangException("Kun ROL kan skrive i dette dokumentet.")
-                    }
-                }
-
-                else -> {
-                    throw RuntimeException("A document was created by non valid role: ${dokument.creatorRole}")
-                }
-            }
-        }
+        documentPolicyService.validateDokumentUnderArbeidAction(
+            behandling = behandling,
+            dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = if (dokument is DokumentUnderArbeidAsVedlegg) dokument.parentId else null),
+            creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+            action = DuaAccessPolicy.Action.WRITE,
+            duaMarkertFerdig = dokument.erMarkertFerdig(),
+        )
     }
 
     private fun getVedlegg(hoveddokumentId: UUID): Set<DokumentUnderArbeidAsVedlegg> {
@@ -1302,6 +1263,24 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Ekspedisjonsbrev til Trygderetten er ikke tilgjengelig i prod enda.")
         }
 
+        val behandling = if (systemContext) {
+            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(hovedDokument.behandlingId)
+        } else {
+            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
+        }
+
+        val behandlingRole = behandling.getRoleInBehandling(innloggetSaksbehandlerService.getInnloggetIdent())
+
+        documentPolicyService.validateDokumentUnderArbeidAction(
+            behandling = behandling,
+            dokumentType = documentPolicyService.getDokumentType(dokumentId),
+            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = null),
+            creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+            action = DuaAccessPolicy.Action.FINISH,
+            duaMarkertFerdig = hovedDokument.erMarkertFerdig(),
+            isSystemContext = systemContext,
+        )
+
         hovedDokument.journalfoerendeEnhetId = if (systemContext) {
             "9999"
         } else {
@@ -1310,13 +1289,11 @@ class DokumentUnderArbeidService(
             ).enhetId
         }
 
-        val behandling = if (systemContext) {
-            behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(hovedDokument.behandlingId)
-        } else {
-            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
-        }
-
-        if (hovedDokument.dokumentType in listOf(DokumentType.KJENNELSE_FRA_TRYGDERETTEN, DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN)) {
+        if (hovedDokument.dokumentType in listOf(
+                DokumentType.KJENNELSE_FRA_TRYGDERETTEN,
+                DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN
+            )
+        ) {
             hovedDokument.brevmottakere.clear()
             hovedDokument.brevmottakere.add(
                 Brevmottaker(
@@ -1524,10 +1501,6 @@ class DokumentUnderArbeidService(
         hovedDokument: DokumentUnderArbeidAsHoveddokument,
         systemContext: Boolean,
     ) {
-        if (hovedDokument.erMarkertFerdig() || hovedDokument.erFerdigstilt()) {
-            throw DokumentValidationException("Kan ikke markere et dokument som allerede er ferdigstilt som ferdigstilt")
-        }
-
         val errors = validateDokumentUnderArbeidAndVedlegg(
             dokumentUnderArbeid = hovedDokument,
             systemContext = systemContext,
@@ -1541,7 +1514,11 @@ class DokumentUnderArbeidService(
 
         val avsenderMottakerInfoSet = hovedDokument.brevmottakere
 
-        if (hovedDokument.dokumentType !in listOf(DokumentType.NOTAT, DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN) && avsenderMottakerInfoSet.isEmpty()) {
+        if (hovedDokument.dokumentType !in listOf(
+                DokumentType.NOTAT,
+                DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN
+            ) && avsenderMottakerInfoSet.isEmpty()
+        ) {
             throw DokumentValidationException("Avsender/mottakere må være satt")
         }
 
@@ -1679,32 +1656,45 @@ class DokumentUnderArbeidService(
             behandlingId = document.behandlingId,
         )
 
-        //first vedlegg
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
+        //first vedlegg
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentId)
             .map {
-                if (it.erMarkertFerdig()) {
-                    throw MissingTilgangException("Attempting to delete finalized document ${document.id}")
-                }
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = when (it.getType()) {
+                        DokumentUnderArbeid.DokumentUnderArbeidType.UPLOADED -> DuaAccessPolicy.DokumentType.UPLOADED
+                        DokumentUnderArbeid.DokumentUnderArbeidType.SMART -> DuaAccessPolicy.DokumentType.SMART_DOCUMENT
+                        DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT -> DuaAccessPolicy.DokumentType.JOURNALFOERT
+                    },
+                    parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = dokumentId),
+                    creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+                    action = DuaAccessPolicy.Action.REMOVE,
+                    duaMarkertFerdig = it.erMarkertFerdig(),
+                )
                 it
-            }.toSet()
+            }
 
-        deleteDocuments(
-            documentSet = vedlegg,
-            behandlingRole = behandling.getRoleInBehandling(innloggetIdent),
+        val parentDocumentId = if (document is DokumentUnderArbeidAsVedlegg) {
+            document.parentId
+        } else null
+
+        documentPolicyService.validateDokumentUnderArbeidAction(
             behandling = behandling,
+            dokumentType = when (document.getType()) {
+                DokumentUnderArbeid.DokumentUnderArbeidType.UPLOADED -> DuaAccessPolicy.DokumentType.UPLOADED
+                DokumentUnderArbeid.DokumentUnderArbeidType.SMART -> DuaAccessPolicy.DokumentType.SMART_DOCUMENT
+                DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT -> DuaAccessPolicy.DokumentType.JOURNALFOERT
+            },
+            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentDocumentId),
+            creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+            action = DuaAccessPolicy.Action.CHANGE_TYPE,
+            duaMarkertFerdig = document.erMarkertFerdig(),
         )
 
-        if (document.erMarkertFerdig()) {
-            throw MissingTilgangException("Attempting to delete finalized document ${document.id}")
-        }
-
-        //then hoveddokument
-        deleteDocuments(
-            documentSet = setOf(document),
-            behandlingRole = behandling.getRoleInBehandling(innloggetIdent),
-            behandling = behandling,
-        )
+        val documentsToRemove = vedlegg + document
+        deleteDocuments(documents = documentsToRemove)
 
         publishInternalEvent(
             data = objectMapper.writeValueAsString(
@@ -1714,7 +1704,7 @@ class DokumentUnderArbeidService(
                         navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                     ),
                     timestamp = LocalDateTime.now(),
-                    idList = vedlegg.map { it.id.toString() } + document.id.toString(),
+                    idList = documentsToRemove.map { it.id.toString() },
                 )
             ),
             behandlingId = behandling.id,
@@ -1722,24 +1712,8 @@ class DokumentUnderArbeidService(
         )
     }
 
-    private fun deleteDocuments(
-        documentSet: Set<DokumentUnderArbeid>,
-        behandlingRole: BehandlingRole,
-        behandling: Behandling,
-    ) {
-        documentSet.forEach { document ->
-            if ((document is OpplastetDokumentUnderArbeidAsVedlegg || document is OpplastetDokumentUnderArbeidAsHoveddokument) &&
-                (innloggetSaksbehandlerService.isROL() || innloggetSaksbehandlerService.isKROL())
-            ) {
-                throw MissingTilgangException("ROL/KROL har ikke anledning til å slette opplastede dokumenter.")
-            }
-
-            if (behandling.ferdigstilling == null && !(document is OpplastetDokumentUnderArbeidAsVedlegg || document is OpplastetDokumentUnderArbeidAsHoveddokument)) {
-                if (document.creatorRole != behandlingRole && !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
-                    throw MissingTilgangException("$behandlingRole har ikke anledning til å slette dokumentet eiet av ${document.creatorRole}.")
-                }
-            }
-
+    private fun deleteDocuments(documents: List<DokumentUnderArbeid>) {
+        documents.forEach { document ->
             if (document is DokumentUnderArbeidAsMellomlagret) {
                 try {
                     if (document.mellomlagerId != null) {
@@ -1760,7 +1734,7 @@ class DokumentUnderArbeidService(
 
         }
 
-        dokumentUnderArbeidRepository.deleteAll(documentSet)
+        dokumentUnderArbeidRepository.deleteAll(documents)
     }
 
     fun setAsVedlegg(
@@ -1857,58 +1831,6 @@ class DokumentUnderArbeidService(
             }
             dokumentUnderArbeid to null
         }
-    }
-
-    fun setAsHoveddokument(
-        behandlingId: UUID,
-        dokumentId: UUID,
-        innloggetIdent: String
-    ): DokumentUnderArbeidAsHoveddokument {
-        val dokument = getDokumentUnderArbeid(dokumentId)
-
-        //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
-            behandlingId = dokument.behandlingId,
-        )
-
-        if (dokument is DokumentUnderArbeidAsHoveddokument) {
-            throw DokumentValidationException("Dokumentet er allerede hoveddokument.")
-        }
-
-        if (dokument.erMarkertFerdig()) {
-            throw DokumentValidationException("Kan ikke frikoble et dokument som er ferdigstilt")
-        }
-
-        dokument as DokumentUnderArbeidAsVedlegg
-
-        val parentDocument =
-            getDokumentUnderArbeid(dokument.parentId) as DokumentUnderArbeidAsHoveddokument
-
-        val savedDocument = when (dokument) {
-            is OpplastetDokumentUnderArbeidAsVedlegg -> {
-                //delete first so we can reuse the id
-                opplastetDokumentUnderArbeidAsVedleggRepository.delete(dokument)
-
-                opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
-                    dokument.asHoveddokument(dokumentType = parentDocument.dokumentType)
-                )
-            }
-
-            is SmartdokumentUnderArbeidAsVedlegg -> {
-                //delete first so we can reuse the id
-                smartDokumentUnderArbeidAsVedleggRepository.delete(dokument)
-
-                smartDokumentUnderArbeidAsHoveddokumentRepository.save(
-                    dokument.asHoveddokument(dokumentType = parentDocument.dokumentType)
-                )
-            }
-
-            else -> {
-                error("Document could not be set as hoveddokument")
-            }
-        }
-
-        return savedDocument
     }
 
     fun findDokumenterNotFinished(behandlingId: UUID, checkReadAccess: Boolean = true): List<DokumentUnderArbeid> {
