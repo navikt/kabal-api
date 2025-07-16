@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.clients.pdl
 
-import no.nav.klage.oppgave.domain.kodeverk.SivilstandType
 import java.time.LocalDate
 
 data class Person(
@@ -11,7 +10,6 @@ data class Person(
     val sammensattNavn: String?,
     val beskyttelsesbehov: Beskyttelsesbehov?,
     val kjoenn: String?,
-    val sivilstand: Sivilstand?,
     val vergemaalEllerFremtidsfullmakt: Boolean,
     val doed: LocalDate?,
     val sikkerhetstiltak: Sikkerhetstiltak?,
@@ -44,8 +42,6 @@ data class Sikkerhetstiltak(
         TOAN,
     }
 }
-
-data class Sivilstand(val type: SivilstandType, val foedselsnr: String)
 
 enum class Beskyttelsesbehov {
     STRENGT_FORTROLIG_UTLAND, STRENGT_FORTROLIG, FORTROLIG
