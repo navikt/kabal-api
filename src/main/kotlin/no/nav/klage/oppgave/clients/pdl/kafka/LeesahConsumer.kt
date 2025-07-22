@@ -30,7 +30,7 @@ class LeesahConsumer(
         idIsGroup = false,
         containerFactory = "leesahKafkaListenerContainerFactory",
         topics = ["\${LEESAH_KAFKA_TOPIC}"],
-        properties = ["auto.offset.reset = earliest"],
+        properties = ["auto.offset.reset = latest"],
     )
     fun listen(
         cr: ConsumerRecord<String, GenericRecord>,
@@ -39,6 +39,8 @@ class LeesahConsumer(
         processPersonhendelse(
             personhendelse = cr.value(),
         )
+
+        acknowledgment.acknowledge()
     }
 
     fun processPersonhendelse(
