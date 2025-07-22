@@ -19,7 +19,6 @@ class HentPersonMapper {
             fornavn = pdlPerson.navn.first().fornavn,
             mellomnavn = pdlPerson.navn.first().mellomnavn,
             etternavn = pdlPerson.navn.first().etternavn,
-            sammensattNavn = sammensattNavn(pdlPerson.navn.first()),
             beskyttelsesbehov = pdlPerson.adressebeskyttelse.firstOrNull()?.gradering?.mapToBeskyttelsesbehov(),
             kjoenn = pdlPerson.kjoenn.firstOrNull()?.kjoenn?.name,
             vergemaalEllerFremtidsfullmakt = pdlPerson.vergemaalEllerFremtidsfullmakt.isNotEmpty(),
@@ -27,9 +26,6 @@ class HentPersonMapper {
             sikkerhetstiltak = pdlPerson.sikkerhetstiltak.firstOrNull()?.mapToSikkerhetstiltak(),
         )
     }
-
-    private fun sammensattNavn(navn: PdlPerson.Navn?): String? =
-        navn?.let { "${it.fornavn} ${it.etternavn}" }
 
     fun PdlPerson.Adressebeskyttelse.GraderingType.mapToBeskyttelsesbehov(): Beskyttelsesbehov? =
         when (this) {
