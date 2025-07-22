@@ -19,6 +19,7 @@ val commonsFileupload2JakartaVersion = "2.0.0-M1"
 val otelVersion = "1.50.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.0.0"
+val confluentVersion = "7.9.1"
 
 plugins {
     val kotlinVersion = "2.1.21"
@@ -36,6 +37,7 @@ java.sourceCompatibility = JavaVersion.VERSION_21
 repositories {
     mavenCentral()
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
+    maven("https://packages.confluent.io/maven/")
 }
 
 dependencies {
@@ -95,6 +97,8 @@ dependencies {
 
     implementation("org.springframework.retry:spring-retry:$springRetryVersion")
     implementation("no.nav.slackposter:simple-slack-poster:$simpleSlackPosterVersion")
+
+    implementation("io.confluent:kafka-connect-avro-converter:${confluentVersion}")
 
     implementation("org.verapdf:validation-model:$verapdfVersion") {
         exclude(group = "com.sun.xml.bind")

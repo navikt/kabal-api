@@ -33,12 +33,12 @@ data class HentPersonBolkResult(
 )
 
 data class PdlPerson(
-    val adressebeskyttelse: List<Adressebeskyttelse>,
-    val navn: List<Navn>,
-    val kjoenn: List<Kjoenn>,
-    val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,
-    val doedsfall: List<Doedsfall>,
-    val sikkerhetstiltak: List<Sikkerhetstiltak>
+    val adressebeskyttelse: List<Adressebeskyttelse>, //Reindeksering i kabal-search. Holder å oppdatere person-cache, alle relevante spørringer er innom den.
+    val navn: List<Navn>, //Holder å oppdatere cache.
+    val kjoenn: List<Kjoenn>,  //Holder å oppdatere cache.
+    val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,  //Holder å oppdatere cache.
+    val doedsfall: List<Doedsfall>,   //Holder å oppdatere cache.
+    val sikkerhetstiltak: List<Sikkerhetstiltak>  //Holder å oppdatere cache.
 ) {
     data class Adressebeskyttelse(val gradering: GraderingType) {
         enum class GraderingType { STRENGT_FORTROLIG_UTLAND, STRENGT_FORTROLIG, FORTROLIG, UGRADERT }

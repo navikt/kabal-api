@@ -98,6 +98,7 @@ class BehandlingService(
     private val tokenUtil: TokenUtil,
     private val gosysOppgaveService: GosysOppgaveService,
     private val kodeverkService: KodeverkService,
+    private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -2747,5 +2748,18 @@ class BehandlingService(
         return gosysOppgave.copy(
             alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(gosysOppgave.id)
         )
+    }
+
+    fun indexAllBehandlingerForSakenGjelderFnr(sakenGjelderFnr: String) {
+        val behandlinger = behandlingRepository.findBySakenGjelderPartIdValueAndFeilregistreringIsNull(
+            partIdValue = sakenGjelderFnr
+        )
+        behandlinger.forEach { behandling ->
+            try {
+                behandlingEndretKafkaProducer.sendBehandlingEndret(behandling)
+            } catch (e: Exception) {
+                logger.error("Failed to index behandling ${behandling.id}", e)
+            }
+        }
     }
 }
