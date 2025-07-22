@@ -47,6 +47,7 @@ class LeesahConsumer(
         val fnrInPersonhendelse = personhendelse.fnr
         if (personCacheService.isCached(foedselsnr = fnrInPersonhendelse)) {
             logger.debug("Personhendelse for person in cache found. Checking if relevant.")
+            logger.debug("Logging personhendelse: {}", personhendelse)
             if (personhendelse.isRelevantForOurCache) {
                 "Personhendelse is relevant for our cache. Updating person in cache."
                 personCacheService.removePersonFromCache(foedselsnr = personhendelse.fnr)
