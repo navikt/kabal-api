@@ -13,7 +13,6 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
-
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -23,7 +22,6 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.CommonLoggingErrorHandler
-import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.ContainerProperties.AckMode
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
 import java.time.Duration
@@ -70,7 +68,7 @@ class AivenKafkaConfiguration(
     fun egenAnsattKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
         factory.consumerFactory = egenAnsattConsumerFactory()
-        factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
+        factory.containerProperties.ackMode = AckMode.MANUAL
         factory.containerProperties.idleEventInterval = 3000L
         factory.setCommonErrorHandler(CommonLoggingErrorHandler())
         //Retry consumer/listener even if authorization fails at first
@@ -87,7 +85,7 @@ class AivenKafkaConfiguration(
     ): ConcurrentKafkaListenerContainerFactory<String, GenericRecord> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, GenericRecord>()
         factory.consumerFactory = leesahConsumerFactory(aivenSchemaRegistryClient = aivenSchemaRegistryClient)
-        factory.containerProperties.ackMode = AckMode.MANUAL_IMMEDIATE
+        factory.containerProperties.ackMode = AckMode.MANUAL
         factory.setCommonErrorHandler(CommonLoggingErrorHandler())
         factory.containerProperties.idleEventInterval = 3000L
 
@@ -109,7 +107,8 @@ class AivenKafkaConfiguration(
         return DefaultKafkaConsumerFactory(
             getAvroConsumerProps(),
             StringDeserializer(),
-            KafkaAvroDeserializer(aivenSchemaRegistryClient))
+            KafkaAvroDeserializer(aivenSchemaRegistryClient)
+        )
     }
 
     private fun egenAnsattConsumerProps(): Map<String, Any> {
@@ -128,9 +127,9 @@ class AivenKafkaConfiguration(
         return mapOf(
             KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to kafkaSchemaRegistryUrl,
             KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to false,
-            ConsumerConfig.GROUP_ID_CONFIG to "kabal-search",
+            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api-leesah",
             ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
-            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "latest",
+            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
         ) + commonConfig()
@@ -148,8 +147,19 @@ class AivenKafkaConfiguration(
         )
 
     @Bean
-    fun egenAnsattFinder(): PartitionFinder<String, String> {
+    fun egenAnsattPartitionFinder(): PartitionFinder<String, String> {
         return PartitionFinder(egenAnsattConsumerFactory())
+    }
+
+    @Bean
+    fun leesahPartitionFinder(
+        aivenSchemaRegistryClient: SchemaRegistryClient,
+    ): PartitionFinder<String, Any> {
+        return PartitionFinder(
+            leesahConsumerFactory(
+                aivenSchemaRegistryClient = aivenSchemaRegistryClient
+            )
+        )
     }
 
     //Common

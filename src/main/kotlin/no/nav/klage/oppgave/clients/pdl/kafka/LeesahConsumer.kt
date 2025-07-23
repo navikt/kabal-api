@@ -8,6 +8,8 @@ import no.nav.klage.oppgave.util.getTeamLogger
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
+import org.springframework.kafka.annotation.PartitionOffset
+import org.springframework.kafka.annotation.TopicPartition
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 import java.net.InetAddress
@@ -30,13 +32,17 @@ class LeesahConsumer(
         id = "kabalApiLeesahListener",
         idIsGroup = false,
         containerFactory = "leesahKafkaListenerContainerFactory",
-        topics = ["\${LEESAH_KAFKA_TOPIC}"],
-        properties = ["auto.offset.reset = latest"],
+        topicPartitions = [TopicPartition(
+            topic = "\${LEESAH_KAFKA_TOPIC}",
+            partitions = ["#{@leesahPartitionFinder.partitions('\${LEESAH_KAFKA_TOPIC}')}"],
+            partitionOffsets = [PartitionOffset(partition = "*", initialOffset = "0")]
+        )]
     )
     fun listen(
         cr: ConsumerRecord<String, GenericRecord>,
         acknowledgment: Acknowledgment,
     ) {
+        logger.debug("Reading offset ${cr.offset()} from partition ${cr.partition()} on kafka topic ${cr.topic()}")
         processPersonhendelse(
             personhendelse = cr.value(),
         )

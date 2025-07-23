@@ -40,7 +40,7 @@ class EgenAnsattKafkaConsumer(
         containerFactory = "egenAnsattKafkaListenerContainerFactory",
         topicPartitions = [TopicPartition(
             topic = "\${EGENANSATT_KAFKA_TOPIC}",
-            partitions = ["#{@egenAnsattFinder.partitions('\${EGENANSATT_KAFKA_TOPIC}')}"],
+            partitions = ["#{@egenAnsattPartitionFinder.partitions('\${EGENANSATT_KAFKA_TOPIC}')}"],
             partitionOffsets = [PartitionOffset(partition = "*", initialOffset = "0")]
         )]
     )
