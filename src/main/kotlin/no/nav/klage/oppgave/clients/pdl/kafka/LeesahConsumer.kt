@@ -10,6 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
+import java.net.InetAddress
 
 @Component
 class LeesahConsumer(
@@ -40,7 +41,7 @@ class LeesahConsumer(
             personhendelse = cr.value(),
         )
 
-        acknowledgment.acknowledge()
+//        acknowledgment.acknowledge()
     }
 
     fun processPersonhendelse(
@@ -49,9 +50,9 @@ class LeesahConsumer(
         val fnrInPersonhendelse = personhendelse.fnr
         if (personCacheService.isCached(foedselsnr = fnrInPersonhendelse)) {
             logger.debug("Personhendelse for person in cache found. Checking if relevant.")
-            logger.debug("Logging personhendelse: {}", personhendelse)
+            logger.debug("Logging personhendelse in pod ${InetAddress.getLocalHost().hostName} : {}", personhendelse)
             if (personhendelse.isRelevantForOurCache) {
-                "Personhendelse is relevant for our cache. Updating person in cache."
+                logger.debug("Personhendelse is relevant for our cache in pod ${InetAddress.getLocalHost().hostName}. Updating person in cache.")
                 personCacheService.removePersonFromCache(foedselsnr = personhendelse.fnr)
                 pdlFacade.getPersonInfo(fnr = personhendelse.fnr)
                 if (personhendelse.isAdressebeskyttelse) {
