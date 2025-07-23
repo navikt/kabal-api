@@ -4,6 +4,7 @@ import no.nav.klage.oppgave.util.getLogger
 import org.springframework.context.event.EventListener
 import org.springframework.kafka.event.ListenerContainerIdleEvent
 import org.springframework.stereotype.Component
+import java.net.InetAddress
 
 @Component
 class LeesahHealthIndication {
@@ -17,7 +18,7 @@ class LeesahHealthIndication {
     @EventListener(condition = "event.listenerId.startsWith('kabalApiLeesahListener-')")
     fun eventHandler(event: ListenerContainerIdleEvent) {
         if (!kafkaConsumerIdleAfterStartup) {
-            logger.debug("Mottok ListenerContainerIdleEvent fra kabalApiLeesahListener")
+            logger.debug("Mottok ListenerContainerIdleEvent fra kabalApiLeesahListener in pod ${InetAddress.getLocalHost().hostName}")
         }
         kafkaConsumerIdleAfterStartup = true
     }
