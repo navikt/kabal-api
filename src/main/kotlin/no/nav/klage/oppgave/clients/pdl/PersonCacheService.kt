@@ -28,4 +28,8 @@ class PersonCacheService {
     fun emptyCache() {
         personMap.clear()
     }
+
+    fun getCache(): ConcurrentMap<String, Person> {
+        return personMap
+    }
 }
