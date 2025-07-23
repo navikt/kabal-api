@@ -18,7 +18,7 @@ class LeesahHealthIndication {
     @EventListener(condition = "event.listenerId.startsWith('kabalApiLeesahListener-')")
     fun eventHandler(event: ListenerContainerIdleEvent) {
         if (!kafkaConsumerIdleAfterStartup) {
-            logger.debug("Mottok ListenerContainerIdleEvent fra kabalApiLeesahListener in pod ${InetAddress.getLocalHost().hostName}")
+            logger.debug("Mottok ListenerContainerIdleEvent fra kabalApiLeesahListener in pod ${InetAddress.getLocalHost().hostName}. Trekkspill")
         }
         kafkaConsumerIdleAfterStartup = true
     }

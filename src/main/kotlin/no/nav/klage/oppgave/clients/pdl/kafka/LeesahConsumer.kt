@@ -28,6 +28,8 @@ class LeesahConsumer(
         private val teamLogger = getTeamLogger()
     }
 
+    var offset = 99999999L
+
     @KafkaListener(
         id = "kabalApiLeesahListener",
         idIsGroup = false,
@@ -43,6 +45,10 @@ class LeesahConsumer(
         acknowledgment: Acknowledgment,
     ) {
         logger.debug("Reading offset ${cr.offset()} from partition ${cr.partition()} on kafka topic ${cr.topic()}")
+        if (cr.offset() < offset) {
+            logger.debug("Lowest offset found in pod ${InetAddress.getLocalHost().hostName}: ${cr.offset()}. Updating offset to this value. Trekkspill")
+            offset = cr.offset()
+        }
         processPersonhendelse(
             personhendelse = cr.value(),
         )
