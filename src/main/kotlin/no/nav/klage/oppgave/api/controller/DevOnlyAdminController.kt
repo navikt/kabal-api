@@ -254,7 +254,7 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping("/cache/{fnr}", produces = ["application/json"])
+    @GetMapping(value = ["/cache/{fnr}", "/cache"], produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun getPersonFromCache(
         @PathVariable(required = false, name = "fnr") fnr: String?
