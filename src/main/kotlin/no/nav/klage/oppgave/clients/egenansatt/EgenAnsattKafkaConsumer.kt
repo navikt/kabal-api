@@ -40,13 +40,13 @@ class EgenAnsattKafkaConsumer(
         containerFactory = "egenAnsattKafkaListenerContainerFactory",
         topicPartitions = [TopicPartition(
             topic = "\${EGENANSATT_KAFKA_TOPIC}",
-            partitions = ["#{@egenAnsattFinder.partitions('\${EGENANSATT_KAFKA_TOPIC}')}"],
+            partitions = ["#{@egenAnsattPartitionFinder.partitions('\${EGENANSATT_KAFKA_TOPIC}')}"],
             partitionOffsets = [PartitionOffset(partition = "*", initialOffset = "0")]
         )]
     )
     fun listen(egenAnsattRecord: ConsumerRecord<String, String>) {
         runCatching {
-//            logger.debug("Reading offset ${egenAnsattRecord.offset()} from partition ${egenAnsattRecord.partition()} on kafka topic ${egenAnsattRecord.topic()}")
+            logger.debug("Reading offset ${egenAnsattRecord.offset()} from partition ${egenAnsattRecord.partition()} on egenansatt kafka topic ${egenAnsattRecord.topic()}")
             val foedselsnr = egenAnsattRecord.key()
             val egenAnsatt = egenAnsattRecord.value().toEgenAnsatt()
             egenAnsattService.oppdaterEgenAnsatt(foedselsnr, egenAnsatt)
