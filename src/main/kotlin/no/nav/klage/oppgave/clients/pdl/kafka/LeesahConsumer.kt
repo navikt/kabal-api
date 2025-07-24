@@ -7,9 +7,11 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
 import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.springframework.context.event.EventListener
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.annotation.PartitionOffset
 import org.springframework.kafka.annotation.TopicPartition
+import org.springframework.kafka.event.ListenerContainerIdleEvent
 import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 import java.net.InetAddress
@@ -73,5 +75,16 @@ class LeesahConsumer(
                 }
             }
         }
+    }
+
+    var kafkaConsumerIdleAfterStartup = false
+
+    @EventListener(condition = "event.listenerId.startsWith('kabalApiLeesahListener-')")
+    fun eventHandler(event: ListenerContainerIdleEvent) {
+        if (!kafkaConsumerIdleAfterStartup) {
+            logger.debug("Mottok ListenerContainerIdleEvent fra kabalApiLeesahListener in pod ${InetAddress.getLocalHost().hostName}.")
+            //Sett i gang fylling av cache
+        }
+        kafkaConsumerIdleAfterStartup = true
     }
 }
