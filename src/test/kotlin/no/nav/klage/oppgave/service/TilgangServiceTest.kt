@@ -8,10 +8,9 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
-import no.nav.klage.oppgave.clients.pdl.Beskyttelsesbehov
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
-import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.person.Beskyttelsesbehov
+import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import org.assertj.core.api.Assertions.assertThat
@@ -23,7 +22,7 @@ import java.util.*
 
 class TilgangServiceTest {
 
-    private val pdlFacade: PdlFacade = mockk()
+    private val personService: PersonService = mockk()
 
     private val egenAnsattService: EgenAnsattService = mockk()
 
@@ -33,7 +32,7 @@ class TilgangServiceTest {
 
     private val tilgangService =
         TilgangService(
-            pdlFacade = pdlFacade,
+            personService = personService,
             egenAnsattService = egenAnsattService,
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             saksbehandlerService = saksbehandlerService
@@ -115,7 +114,7 @@ class TilgangServiceTest {
 
     @Test
     fun `harSaksbehandlerTilgangTil gir false på fortrolig`() {
-        every { pdlFacade.getPersonInfo(any()) }.returns(
+        every { personService.getPersonInfo(any()) }.returns(
             getPerson().copy(
                 beskyttelsesbehov = Beskyttelsesbehov.FORTROLIG
             )
@@ -131,7 +130,7 @@ class TilgangServiceTest {
 
     @Test
     fun `harSaksbehandlerTilgangTil gir false på strengt fortrolig`() {
-        every { pdlFacade.getPersonInfo(any()) }.returns(
+        every { personService.getPersonInfo(any()) }.returns(
             getPerson().copy(
                 beskyttelsesbehov = Beskyttelsesbehov.STRENGT_FORTROLIG
             )
@@ -146,7 +145,7 @@ class TilgangServiceTest {
 
     @Test
     fun `harSaksbehandlerTilgangTil gir false på egen ansatt`() {
-        every { pdlFacade.getPersonInfo(any()) }.returns(
+        every { personService.getPersonInfo(any()) }.returns(
             getPerson()
         )
 
@@ -159,7 +158,7 @@ class TilgangServiceTest {
 
     @Test
     fun `harSaksbehandlerTilgangTil gir true på egen ansatt når saksbehandler har egenAnsatt rettigheter`() {
-        every { pdlFacade.getPersonInfo(any()) }.returns(
+        every { personService.getPersonInfo(any()) }.returns(
             getPerson()
         )
 
@@ -171,7 +170,7 @@ class TilgangServiceTest {
 
     @Test
     fun `harSaksbehandlerTilgangTil gir true på fortrolig når saksbehandler har fortrolig rettigheter`() {
-        every { pdlFacade.getPersonInfo(any()) }.returns(
+        every { personService.getPersonInfo(any()) }.returns(
             getPerson().copy(
                 beskyttelsesbehov = Beskyttelsesbehov.FORTROLIG
             )
@@ -187,7 +186,7 @@ class TilgangServiceTest {
 
     @Test
     fun `harSaksbehandlerTilgangTil gir false på fortrolig når saksbehandler har strengt fortrolig rettigheter`() {
-        every { pdlFacade.getPersonInfo(any()) }.returns(
+        every { personService.getPersonInfo(any()) }.returns(
             getPerson().copy(
                 beskyttelsesbehov = Beskyttelsesbehov.FORTROLIG
             )
@@ -204,7 +203,7 @@ class TilgangServiceTest {
 
     @Test
     fun `harSaksbehandlerTilgangTil gir true på fortrolig kombinert med egen ansatt når saksbehandler har fortrolig rettigheter men ikke egen ansatt`() {
-        every { pdlFacade.getPersonInfo(any()) }.returns(
+        every { personService.getPersonInfo(any()) }.returns(
             getPerson().copy(
                 beskyttelsesbehov = Beskyttelsesbehov.FORTROLIG
             )

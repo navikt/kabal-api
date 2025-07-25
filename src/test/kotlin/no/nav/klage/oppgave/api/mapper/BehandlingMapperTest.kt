@@ -12,7 +12,6 @@ import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.service.*
 import org.assertj.core.api.Assertions.assertThat
@@ -28,7 +27,7 @@ import java.util.*
 @SpringBootTest(classes = [BehandlingMapper::class])
 class BehandlingMapperTest {
     @MockkBean
-    lateinit var pdlFacade: PdlFacade
+    lateinit var personService: PersonService
 
     @MockkBean
     lateinit var egenAnsattService: EgenAnsattService

@@ -17,7 +17,6 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.pdl.PersonCacheService
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.DOK_DIST_KANAL
@@ -83,7 +82,7 @@ class AdminService(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val tokenUtil: TokenUtil,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
-    private val pdlFacade: PdlFacade,
+    private val personService: PersonService,
     private val minsideMicrofrontendService: MinsideMicrofrontendService,
     private val kakaApiGateway: KakaApiGateway,
     private val egenAnsattService: EgenAnsattService,
@@ -342,7 +341,7 @@ class AdminService(
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = pdlFacade.getPersonInfo(behandling.sakenGjelder.partId.value)
+                    val person = personService.getPersonInfo(behandling.sakenGjelder.partId.value)
                     if (person.harBeskyttelsesbehovStrengtFortrolig()) {
                         teamLogger.debug("Protected user in behandling with id {}", behandling.id)
                     }
@@ -382,16 +381,14 @@ class AdminService(
             .distinct()
 
         val pdlStart = System.currentTimeMillis()
-        sakenGjelderFnrList.chunked(1000).forEach { chunk ->
-            pdlFacade.fillPersonCache(fnrList = chunk)
-        }
+        personService.fillPersonCache(fnrList = sakenGjelderFnrList)
         val now = System.currentTimeMillis()
         logger.debug("Time it took to fill person cache: ${now - pdlStart} millis")
 
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = pdlFacade.getPersonInfo(behandling.sakenGjelder.partId.value)
+                    val person = personService.getPersonInfo(behandling.sakenGjelder.partId.value)
                     if (person.harBeskyttelsesbehovStrengtFortrolig()) {
                         strengtFortroligBehandlinger.add(behandling.id.toString())
                     }

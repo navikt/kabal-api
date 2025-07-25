@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.clients.pdl
 
+import no.nav.klage.oppgave.domain.person.Person
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap

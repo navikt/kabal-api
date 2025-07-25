@@ -10,7 +10,6 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
@@ -62,7 +61,7 @@ internal class DuplicateOversendelseTest {
     lateinit var meterReqistry: MeterRegistry
 
     @MockkBean(relaxed = true)
-    lateinit var pdlFacade: PdlFacade
+    lateinit var personService: PersonService
 
     @MockkBean(relaxed = true)
     lateinit var eregClient: EregClient
@@ -99,7 +98,7 @@ internal class DuplicateOversendelseTest {
             enhet = Enhet("4295", "KA Nord")
         )
 
-        every { pdlFacade.personExists(any()) } returns true
+        every { personService.personExists(any()) } returns true
 
         val oversendtKlage = OversendtKlageV2(
             avsenderEnhet = "4455",

@@ -9,9 +9,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class PdlFacade(
-    private val pdlClient: PdlClient,
-    private val personCacheService: PersonCacheService,
-    private val hentPersonMapper: HentPersonMapper
+    private val pdlClient: PdlClient
 ) {
 
     companion object {
@@ -26,33 +24,13 @@ class PdlFacade(
             return personCacheService.getPerson(fnr)
         }
         logger.debug("Person not found in cache, fetching from PDL.")
+    fun getPerson(fnr: String): PdlPerson {
         val hentPersonResponse: HentPersonResponse = pdlClient.getPersonInfo(fnr)
-        val pdlPerson = hentPersonResponse.getPersonOrThrowError(fnr)
-        return hentPersonMapper.mapToPerson(fnr, pdlPerson).also { personCacheService.updatePersonCache(it) }
+        return hentPersonResponse.getPersonOrThrowError(fnr)
     }
 
-    fun fillPersonCache(fnrList: List<String>) {
-        val fnrsNotInPersonCache = personCacheService.findFnrsNotInCache(fnrList)
-        val pdlOutput = pdlClient.getPersonBulk(fnrList = fnrsNotInPersonCache)
-        pdlOutput.data?.hentPersonBolk?.forEach { hentPersonBolkResult ->
-            val pdlPerson = hentPersonBolkResult.person
-            if (pdlPerson != null) {
-                try {
-                    personCacheService.updatePersonCache(hentPersonMapper.mapToPerson(hentPersonBolkResult.ident, pdlPerson))
-                } catch (e: Exception) {
-                    teamLogger.error("Error while mapping person with fnr ${hentPersonBolkResult.ident} from PDL", e)
-                }
-            }
-        }
-    }
-
-    fun personExists(fnr: String): Boolean {
-        try {
-            getPersonInfo(fnr)
-        } catch (e: Exception) {
-            return false
-        }
-        return true
+    fun getPersonBulk(fnrList: List<String>): List<HentPersonBolkResult> {
+        return pdlClient.getPersonBulk(fnrList = fnrList).getResultsOrLogError()
     }
 
     fun getFoedselsnummerFromIdent(ident: String): String {
@@ -77,7 +55,17 @@ class PdlFacade(
             throw PDLErrorException("Klarte ikke å hente person fra PDL")
         }
 
+    private fun HentPersonBolkResponse.getResultsOrLogError(): List<HentPersonBolkResult> =
+        if (this.errors.isNullOrEmpty() && this.data != null && this.data.hentPersonBolk != null) {
+            this.data.hentPersonBolk
+        } else {
+            logger.error("Errors returned from PDL or person not found. See team-logs for details.")
+            teamLogger.error("Errors returned for hentPersonBolk from PDL: ${this.errors}")
+            emptyList()
+        }
+
     private fun getIdent(query: PersonGraphqlQuery): String {
-        return pdlClient.getIdents(query = query).data?.hentIdenter?.identer?.firstOrNull()?.ident ?: throw PDLErrorException("Klarte ikke å hente person fra PDL")
+        return pdlClient.getIdents(query = query).data?.hentIdenter?.identer?.firstOrNull()?.ident
+            ?: throw PDLErrorException("Klarte ikke å hente person fra PDL")
     }
 }
