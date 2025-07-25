@@ -18,11 +18,19 @@ class PersonCacheService {
         personMap[person.foedselsnr] = person
     }
 
+    fun removePersonFromCache(foedselsnr: String) {
+        personMap.remove(foedselsnr)
+    }
+
     fun findFnrsNotInCache(fnrList: List<String>): List<String> {
         return fnrList.filter { !isCached(it) }
     }
 
     fun emptyCache() {
         personMap.clear()
+    }
+
+    fun getCache(): ConcurrentMap<String, Person> {
+        return personMap
     }
 }
