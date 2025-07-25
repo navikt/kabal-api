@@ -48,7 +48,7 @@ class LeesahConsumer(
     ) {
         logger.debug("Reading offset ${cr.offset()} from partition ${cr.partition()} on kafka topic ${cr.topic()}")
         if (cr.offset() < offset) {
-            logger.debug("Lowest offset found in pod ${InetAddress.getLocalHost().hostName}: ${cr.offset()}. Updating offset to this value. Trekkspill")
+            logger.debug("Personhendelse: Lowest offset found in pod ${InetAddress.getLocalHost().hostName}: ${cr.offset()}. Updating offset to this value.")
             offset = cr.offset()
         }
         processPersonhendelse(
@@ -63,9 +63,9 @@ class LeesahConsumer(
     ) {
         val fnrInPersonhendelse = personhendelse.fnr
         if (personCacheService.isCached(foedselsnr = fnrInPersonhendelse)) {
-            logger.debug("Personhendelse for person in cache found. Checking if relevant.")
-            logger.debug("Logging personhendelse in pod ${InetAddress.getLocalHost().hostName} : {}", personhendelse)
+            logger.debug("Personhendelse for person in cache found in pod ${InetAddress.getLocalHost().hostName}. Checking if relevant.")
             if (personhendelse.isRelevantForOurCache) {
+                logger.debug("Personhendelse is relevant for our cache in pod ${InetAddress.getLocalHost().hostName}.")
                 logger.debug("Personhendelse is relevant for our cache in pod ${InetAddress.getLocalHost().hostName}. Updating person in cache.")
                 personCacheService.removePersonFromCache(foedselsnr = personhendelse.fnr)
                 pdlFacade.getPersonInfo(fnr = personhendelse.fnr)
