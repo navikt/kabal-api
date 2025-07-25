@@ -28,9 +28,9 @@ class PersonService(
     }
 
     fun fillPersonCache(fnrList: List<String>) {
-        fnrList.chunked(1000).forEach { fnrListChunk ->
-            val fnrsNotInPersonCache = personCacheService.findFnrsNotInCache(fnrListChunk)
-            val pdlOutput = pdlFacade.getPersonBulk(fnrList = fnrsNotInPersonCache)
+        val fnrsNotInPersonCache = personCacheService.findFnrsNotInCache(fnrList)
+        fnrsNotInPersonCache.chunked(1000).forEach { fnrListChunk ->
+            val pdlOutput = pdlFacade.getPersonBulk(fnrList = fnrListChunk)
             pdlOutput.forEach { hentPersonBolkResult ->
                 val pdlPerson = hentPersonBolkResult.person
                 if (pdlPerson != null) {
