@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.clients.pdl
+package no.nav.klage.oppgave.domain.person
 
 import java.time.LocalDate
 

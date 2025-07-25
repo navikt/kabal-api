@@ -6,7 +6,6 @@ import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Service
 @Service
 class PartSearchService(
     private val eregClient: EregClient,
-    private val pdlFacade: PdlFacade,
+    private val personService: PersonService,
     private val tilgangService: TilgangService,
     private val behandlingMapper: BehandlingMapper,
     private val krrProxyClient: KrrProxyClient,
@@ -33,7 +32,7 @@ class PartSearchService(
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator).access) {
-                    val person = pdlFacade.getPersonInfo(identifikator)
+                    val person = personService.getPersonInfo(identifikator)
                     val krrInfo = if (systemUserContext) {
                         krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
                     } else {
@@ -84,7 +83,7 @@ class PartSearchService(
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator).access) {
-                    val person = pdlFacade.getPersonInfo(identifikator)
+                    val person = personService.getPersonInfo(identifikator)
                     val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
                     BehandlingDetaljerView.SearchPartViewWithUtsendingskanal(
                         identifikator = person.foedselsnr,
@@ -135,7 +134,7 @@ class PartSearchService(
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator).access) {
-                    val person = pdlFacade.getPersonInfo(identifikator)
+                    val person = personService.getPersonInfo(identifikator)
                     val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
                     BehandlingDetaljerView.SearchPersonView(
                         identifikator = person.foedselsnr,
