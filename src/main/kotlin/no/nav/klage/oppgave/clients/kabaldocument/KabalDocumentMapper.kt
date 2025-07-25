@@ -5,10 +5,10 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.PartId
 import no.nav.klage.oppgave.service.DokDistKanalService
+import no.nav.klage.oppgave.service.PersonService
 import no.nav.klage.oppgave.util.DokumentUnderArbeidTitleComparator
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class KabalDocumentMapper(
-    private val pdlFacade: PdlFacade,
+    private val personService: PersonService,
     private val eregClient: EregClient,
     private val dokDistKanalService: DokDistKanalService,
 ) {
@@ -249,7 +249,7 @@ class KabalDocumentMapper(
 
     private fun getNavn(partId: PartId): String =
         if (partId.type == PartIdType.PERSON) {
-            pdlFacade.getPersonInfo(partId.value).settSammenNavn()
+            personService.getPersonInfo(partId.value).settSammenNavn()
         } else {
             eregClient.hentNoekkelInformasjonOmOrganisasjon(partId.value).navn.sammensattnavn
         }

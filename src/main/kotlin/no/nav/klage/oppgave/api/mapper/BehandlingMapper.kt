@@ -9,13 +9,9 @@ import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Enhet
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
-import no.nav.klage.oppgave.clients.pdl.Person
 import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.service.DokDistKanalService
-import no.nav.klage.oppgave.service.KodeverkService
-import no.nav.klage.oppgave.service.RegoppslagService
-import no.nav.klage.oppgave.service.SaksbehandlerService
+import no.nav.klage.oppgave.domain.person.Person
+import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -27,7 +23,6 @@ import java.util.*
 @Service
 @Transactional
 class BehandlingMapper(
-    private val pdlFacade: PdlFacade,
     private val egenAnsattService: EgenAnsattService,
     private val norg2Client: Norg2Client,
     private val eregClient: EregClient,
@@ -36,6 +31,7 @@ class BehandlingMapper(
     private val kodeverkService: KodeverkService,
     private val regoppslagService: RegoppslagService,
     private val dokDistKanalService: DokDistKanalService,
+    private val personService: PersonService,
 ) {
 
     companion object {
@@ -475,7 +471,7 @@ class BehandlingMapper(
 
     fun getSakenGjelderView(sakenGjelder: SakenGjelder): BehandlingDetaljerView.SakenGjelderView {
         if (sakenGjelder.erPerson()) {
-            val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
+            val person = personService.getPersonInfo(sakenGjelder.partId.value)
             val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(sakenGjelder.partId.value)
             return BehandlingDetaljerView.SakenGjelderView(
                 id = sakenGjelder.id,
@@ -497,7 +493,7 @@ class BehandlingMapper(
     fun getSakenGjelderViewWithUtsendingskanal(behandling: Behandling): BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal {
         val sakenGjelder = behandling.sakenGjelder
         if (sakenGjelder.erPerson()) {
-            val person = pdlFacade.getPersonInfo(sakenGjelder.partId.value)
+            val person = personService.getPersonInfo(sakenGjelder.partId.value)
             val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(sakenGjelder.partId.value)
             val utsendingskanal = dokDistKanalService.getUtsendingskanal(
                 mottakerId = sakenGjelder.partId.value,
@@ -533,7 +529,7 @@ class BehandlingMapper(
 
     private fun getAvsenderPartView(identifier: String, isPerson: Boolean, technicalPartId: UUID): BehandlingDetaljerView.PartView {
         return if (isPerson) {
-            val person = pdlFacade.getPersonInfo(identifier)
+            val person = personService.getPersonInfo(identifier)
             val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
             BehandlingDetaljerView.PartView(
                 id = technicalPartId,
@@ -579,7 +575,7 @@ class BehandlingMapper(
             val identifier = partId.value
 
             if (isPerson) {
-                val person = pdlFacade.getPersonInfo(identifier)
+                val person = personService.getPersonInfo(identifier)
                 val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
                 BehandlingDetaljerView.PartViewWithUtsendingskanal(
                     id = technicalPartId,
@@ -649,7 +645,7 @@ class BehandlingMapper(
         return if (erVirksomhet()) {
             false
         } else {
-            pdlFacade.getPersonInfo(partId.value).harBeskyttelsesbehovFortrolig()
+            personService.getPersonInfo(partId.value).harBeskyttelsesbehovFortrolig()
         }
     }
 
@@ -657,7 +653,7 @@ class BehandlingMapper(
         return if (erVirksomhet()) {
             false
         } else {
-            pdlFacade.getPersonInfo(partId.value).harBeskyttelsesbehovStrengtFortrolig()
+            personService.getPersonInfo(partId.value).harBeskyttelsesbehovStrengtFortrolig()
         }
     }
 
@@ -673,7 +669,7 @@ class BehandlingMapper(
         return if (erVirksomhet()) {
             false
         } else {
-            pdlFacade.getPersonInfo(partId.value).vergemaalEllerFremtidsfullmakt
+            personService.getPersonInfo(partId.value).vergemaalEllerFremtidsfullmakt
         }
     }
 
@@ -681,7 +677,7 @@ class BehandlingMapper(
         return if (erVirksomhet()) {
             null
         } else {
-            pdlFacade.getPersonInfo(partId.value).doed
+            personService.getPersonInfo(partId.value).doed
         }
     }
 
@@ -689,7 +685,7 @@ class BehandlingMapper(
         return if (erVirksomhet()) {
             null
         } else {
-            val sikkerhetstiltak = pdlFacade.getPersonInfo(partId.value).sikkerhetstiltak
+            val sikkerhetstiltak = personService.getPersonInfo(partId.value).sikkerhetstiltak
             if (sikkerhetstiltak != null && sikkerhetstiltak.gyldigFraOgMed <= LocalDate.now() && sikkerhetstiltak.gyldigTilOgMed >= LocalDate.now()) {
                 BehandlingDetaljerView.Sikkerhetstiltak(
                     tiltakstype = BehandlingDetaljerView.Sikkerhetstiltak.Tiltakstype.valueOf(sikkerhetstiltak.tiltakstype.name),

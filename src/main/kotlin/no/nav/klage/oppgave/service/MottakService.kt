@@ -13,7 +13,6 @@ import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.config.incrementMottattKlageAnke
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.kodeverk.LovligeTyper
@@ -47,7 +46,7 @@ class MottakService(
     private val azureGateway: AzureGateway,
     private val meterRegistry: MeterRegistry,
     private val createBehandlingFromMottak: CreateBehandlingFromMottak,
-    private val pdlFacade: PdlFacade,
+    private val personService: PersonService,
     private val eregClient: EregClient,
 ) {
 
@@ -649,11 +648,11 @@ class MottakService(
                     throw OversendtKlageNotValidException("Ugyldig fødselsnummer")
                 }
 
-                if (!pdlFacade.personExists(partId.value)) {
+                if (!personService.personExists(partId.value)) {
                     throw OversendtKlageNotValidException("Personen fins ikke i PDL")
                 }
 
-                if (pdlFacade.getPersonInfo(partId.value).harBeskyttelsesbehovStrengtFortrolig()) {
+                if (personService.getPersonInfo(partId.value).harBeskyttelsesbehovStrengtFortrolig()) {
                     throw OversendtKlageNotValidException("Personen skal ikke håndteres i Kabal. Kontakt Team Klage om du har spørsmål.")
                 }
             }

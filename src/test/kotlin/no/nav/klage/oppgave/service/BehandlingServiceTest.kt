@@ -21,7 +21,6 @@ import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.domain.klage.BehandlingRole.KABAL_SAKSBEHANDLING
@@ -80,7 +79,7 @@ class BehandlingServiceTest {
     lateinit var applicationEventPublisher: ApplicationEventPublisher
 
     @MockkBean
-    lateinit var pdlFacade: PdlFacade
+    lateinit var personService: PersonService
 
     @MockkBean
     lateinit var egenAnsattService: EgenAnsattService

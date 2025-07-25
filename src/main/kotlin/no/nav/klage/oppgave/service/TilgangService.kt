@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.klage.Access
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.Klagebehandling
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class TilgangService(
-    private val pdlFacade: PdlFacade,
+    private val personService: PersonService,
     private val egenAnsattService: EgenAnsattService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val saksbehandlerService: SaksbehandlerService,
@@ -99,7 +98,7 @@ class TilgangService(
         kanBehandleFortrolig: () -> Boolean,
         kanBehandleEgenAnsatt: () -> Boolean
     ): Access {
-        val personInfo = pdlFacade.getPersonInfo(fnr)
+        val personInfo = personService.getPersonInfo(fnr)
         val harBeskyttelsesbehovFortrolig = personInfo.harBeskyttelsesbehovFortrolig()
         val harBeskyttelsesbehovStrengtFortrolig = personInfo.harBeskyttelsesbehovStrengtFortrolig()
         val erEgenAnsatt = egenAnsattService.erEgenAnsatt(fnr)
