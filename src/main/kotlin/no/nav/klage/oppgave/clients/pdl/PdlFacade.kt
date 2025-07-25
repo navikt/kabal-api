@@ -18,12 +18,6 @@ class PdlFacade(
         private val teamLogger = getTeamLogger()
     }
 
-    fun getPersonInfo(fnr: String): Person {
-        if (personCacheService.isCached(fnr)) {
-            logger.debug("Returning person from cache.")
-            return personCacheService.getPerson(fnr)
-        }
-        logger.debug("Person not found in cache, fetching from PDL.")
     fun getPerson(fnr: String): PdlPerson {
         val hentPersonResponse: HentPersonResponse = pdlClient.getPersonInfo(fnr)
         return hentPersonResponse.getPersonOrThrowError(fnr)
