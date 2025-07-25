@@ -15,7 +15,6 @@ import java.net.InetAddress
 class PersonService(
     private val personCacheService: PersonCacheService,
     private val pdlFacade: PdlFacade,
-    private val behandlingService: BehandlingService,
     private val behandlingRepository: BehandlingRepository,
 ) {
     companion object {
@@ -83,7 +82,7 @@ class PersonService(
             .map { it.prosessfullmektig?.partId?.value }
             .distinct()
 
-        val allPersonsInBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).distinct().filterNotNull()
+        val allPersonsInBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
 
         logger.debug("Found all distinct persons: ${allPersonsInBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
 
