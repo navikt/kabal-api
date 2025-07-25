@@ -12,7 +12,6 @@ import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.annotation.PartitionOffset
 import org.springframework.kafka.annotation.TopicPartition
 import org.springframework.kafka.event.ListenerContainerIdleEvent
-import org.springframework.kafka.support.Acknowledgment
 import org.springframework.stereotype.Component
 import java.net.InetAddress
 
@@ -44,7 +43,6 @@ class LeesahConsumer(
     )
     fun listen(
         cr: ConsumerRecord<String, GenericRecord>,
-        acknowledgment: Acknowledgment,
     ) {
         logger.debug("Reading offset ${cr.offset()} from partition ${cr.partition()} on kafka topic ${cr.topic()}")
         if (cr.offset() < offset) {
@@ -54,8 +52,6 @@ class LeesahConsumer(
         processPersonhendelse(
             personhendelse = cr.value(),
         )
-
-//        acknowledgment.acknowledge()
     }
 
     fun processPersonhendelse(
@@ -65,7 +61,6 @@ class LeesahConsumer(
         if (personCacheService.isCached(foedselsnr = fnrInPersonhendelse)) {
             logger.debug("Personhendelse for person in cache found in pod ${InetAddress.getLocalHost().hostName}. Checking if relevant.")
             if (personhendelse.isRelevantForOurCache) {
-                logger.debug("Personhendelse is relevant for our cache in pod ${InetAddress.getLocalHost().hostName}.")
                 logger.debug("Personhendelse is relevant for our cache in pod ${InetAddress.getLocalHost().hostName}. Updating person in cache.")
                 personCacheService.removePersonFromCache(foedselsnr = personhendelse.fnr)
                 pdlFacade.getPersonInfo(fnr = personhendelse.fnr)
