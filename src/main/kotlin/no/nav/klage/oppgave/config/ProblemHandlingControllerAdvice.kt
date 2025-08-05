@@ -27,7 +27,6 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         statusCode: HttpStatusCode,
         request: WebRequest
     ): ResponseEntity<Any>? {
-        ourLogger.debug("handleExceptionInternal")
         logError(
             httpStatus = HttpStatus.valueOf(statusCode.value()),
             errorMessage = ex.message ?: "No error message available",
@@ -59,7 +58,6 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     fun handleBehandlingNotFound(
         ex: BehandlingNotFoundException,
     ): ProblemDetail {
-        ourLogger.debug("handleBehandlingNotFound")
         return create(HttpStatus.NOT_FOUND, ex)
     }
 
