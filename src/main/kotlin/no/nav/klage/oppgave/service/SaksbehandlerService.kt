@@ -26,6 +26,7 @@ class SaksbehandlerService(
     @Value("\${KABAL_ROL_ROLE_ID}") private val kabalROLRoleId: String,
     @Value("\${KABAL_KROL_ROLE_ID}") private val kabalKROLRoleId: String,
     @Value("\${KABAL_SVARBREVINNSTILLINGER_ROLE_ID}") private val kabalSvarbrevinnstillingerRoleId: String,
+    @Value("\${KABAL_SAKSBEHANDLING_ROLE_ID}") private val kabalSaksbehandlerRoleId: String,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -64,6 +65,8 @@ class SaksbehandlerService(
         val ansatt = nomClient.getAnsatt(navIdent)
         return ansatt
     }
+
+    fun isSaksbehandler(ident: String): Boolean = getRoleIds(ident).contains(kabalSaksbehandlerRoleId)
 
     fun isROL(ident: String): Boolean = getRoleIds(ident).contains(kabalROLRoleId)
 
