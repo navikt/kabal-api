@@ -11,12 +11,6 @@ query($ident: ID!){
         kjoenn {
             kjoenn
         },
-        sivilstand {
-            type
-            gyldigFraOgMed
-            relatertVedSivilstand
-            bekreftelsesdato
-        },
         vergemaalEllerFremtidsfullmakt(historikk: false) {
             type
             embete

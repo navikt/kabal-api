@@ -36,36 +36,12 @@ data class PdlPerson(
     val adressebeskyttelse: List<Adressebeskyttelse>,
     val navn: List<Navn>,
     val kjoenn: List<Kjoenn>,
-    val sivilstand: List<Sivilstand>,
     val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,
     val doedsfall: List<Doedsfall>,
     val sikkerhetstiltak: List<Sikkerhetstiltak>
 ) {
     data class Adressebeskyttelse(val gradering: GraderingType) {
         enum class GraderingType { STRENGT_FORTROLIG_UTLAND, STRENGT_FORTROLIG, FORTROLIG, UGRADERT }
-    }
-
-    data class Sivilstand(
-        val type: SivilstandType,
-        val gyldigFraOgMed: LocalDate?,
-        val relatertVedSivilstand: String?,
-        val bekreftelsesdato: LocalDate?
-    ) {
-
-        fun dato(): LocalDate? = gyldigFraOgMed ?: bekreftelsesdato
-
-        enum class SivilstandType {
-            UOPPGITT,
-            UGIFT,
-            GIFT,
-            ENKE_ELLER_ENKEMANN,
-            SKILT,
-            SEPARERT,
-            REGISTRERT_PARTNER,
-            SEPARERT_PARTNER,
-            SKILT_PARTNER,
-            GJENLEVENDE_PARTNER
-        }
     }
 
     data class Navn(

@@ -342,6 +342,7 @@ MICROSOFT_GRAPH_URL: https://graph.microsoft.com/v1.0
 
 EGENANSATT_KAFKA_TOPIC: nom.skjermede-personer-v1
 PDL_PERSON_KAFKA_TOPIC: aapen-person-pdl-dokument-v1
+LEESAH_KAFKA_TOPIC: pdl.leesah-v1
 
 INTERNAL_BEHANDLING_EVENT_TOPIC: klage.internal-behandling-events.v1
 INTERNAL_IDENTITY_EVENT_TOPIC: klage.internal-identity-events.v1
