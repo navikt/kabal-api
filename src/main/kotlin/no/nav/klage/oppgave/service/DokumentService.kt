@@ -320,7 +320,7 @@ class DokumentService(
 
     private fun generateTitleForDocumentsToMerge(documents: List<JournalfoertDokumentReference>): String {
         val numberOfDocumentNamesToShow = 3
-        val truncatedMessage = " ... " + (documents.size - numberOfDocumentNamesToShow) + " til"
+        val truncatedMessage = if (documents.size > numberOfDocumentNamesToShow) ", ... " + (documents.size - numberOfDocumentNamesToShow) + " til" else ""
         val documentsWeCareAbout = documents.take(numberOfDocumentNamesToShow)
         val journalpostList = safFacade.getJournalposter(
             journalpostIdSet = documentsWeCareAbout.map { it.journalpostId }.toSet(),
@@ -329,15 +329,12 @@ class DokumentService(
         )
 
         return "(${documents.size}) " + documentsWeCareAbout
-            .joinToString(
-                limit = numberOfDocumentNamesToShow,
-                truncated = truncatedMessage
-            ) { journalfoertDokumentReference ->
+            .joinToString { journalfoertDokumentReference ->
                 journalpostList
                     .find { it.journalpostId == journalfoertDokumentReference.journalpostId }!!
                     .dokumenter?.find { it.dokumentInfoId == journalfoertDokumentReference.dokumentInfoId }?.tittel
                     ?: throw RuntimeException("Document/title not found in Dokarkiv")
-            }
+            } + truncatedMessage
     }
 
     fun mergeJournalfoerteDocuments(id: UUID, preferArkivvariantIfAccess: Boolean): Pair<Path, String> {
