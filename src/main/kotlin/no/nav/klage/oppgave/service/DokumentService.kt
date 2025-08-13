@@ -321,13 +321,14 @@ class DokumentService(
     private fun generateTitleForDocumentsToMerge(documents: List<JournalfoertDokumentReference>): String {
         val numberOfDocumentNamesToShow = 3
         val truncatedMessage = " ... " + (documents.size - numberOfDocumentNamesToShow) + " til"
+        val documentsWeCareAbout = documents.take(numberOfDocumentNamesToShow)
         val journalpostList = safFacade.getJournalposter(
-            journalpostIdSet = documents.map { it.journalpostId }.toSet(),
+            journalpostIdSet = documentsWeCareAbout.map { it.journalpostId }.toSet(),
             fnr = null,
             saksbehandlerContext = true,
         )
 
-        return "(${documents.size}) " + documents
+        return "(${documents.size}) " + documentsWeCareAbout
             .joinToString(
                 limit = numberOfDocumentNamesToShow,
                 truncated = truncatedMessage
