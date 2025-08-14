@@ -74,13 +74,29 @@ class DocumentPolicyService(
         if (parentDuaId == null) {
             return DuaAccessPolicy.Parent.NONE
         } else {
-            val parentDua = dokumentUnderArbeidRepository.findById(parentDuaId)
+            val dua = dokumentUnderArbeidRepository.findById(parentDuaId)
                 .orElseThrow { DokumentValidationException("Finner ikke dokument med id $parentDuaId") }
 
-            return when (parentDua.getType()) {
-                DokumentUnderArbeid.DokumentUnderArbeidType.SMART -> DuaAccessPolicy.Parent.SMART_DOCUMENT
-                DokumentUnderArbeid.DokumentUnderArbeidType.UPLOADED -> DuaAccessPolicy.Parent.UPLOADED
-                else -> throw DokumentValidationException("Ugyldig hoveddokumenttype: ${parentDua.getType()}")
+            return if (dua is DokumentUnderArbeidAsSmartdokument) {
+                when (dua.smartEditorTemplateId) {
+                    "rol-questions" -> {
+                        DuaAccessPolicy.Parent.ROL_QUESTIONS
+                    }
+
+                    "rol-answers" -> {
+                        throw RuntimeException("ROL-svar kan ikke være forelder til et annet dokument")
+                    }
+
+                    else -> {
+                        DuaAccessPolicy.Parent.SMART_DOCUMENT
+                    }
+                }
+            } else {
+                when (dua.getType()) {
+                    DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT -> throw RuntimeException("Journalført dokument kan ikke være forelder til et annet dokument")
+                    DokumentUnderArbeid.DokumentUnderArbeidType.SMART -> DuaAccessPolicy.Parent.SMART_DOCUMENT
+                    DokumentUnderArbeid.DokumentUnderArbeidType.UPLOADED -> DuaAccessPolicy.Parent.UPLOADED
+                }
             }
         }
     }
@@ -192,10 +208,6 @@ class DuaAccessPolicy {
 
     companion object {
 
-        fun throwFeilregistrertException() {
-            throw RuntimeException("Behandlingen er feilregistrert.")
-        }
-
         fun throwDuaFinishedException() {
             throw RuntimeException("Ferdigstilt dokument kan ikke endres. Kontakt Team Klage.")
         }
@@ -224,10 +236,7 @@ class DuaAccessPolicy {
             }
 
             val error = errorMessageMap["$access:$action"]
-
-            if (error == null) {
-                throw RuntimeException("Handlingen er ikke mulig. Feilmelding mangler for \"$access:$action\". Kontakt Team Klage.")
-            }
+                ?: throw RuntimeException("Handlingen er ikke mulig. Feilmelding mangler for \"$access:$action\". Kontakt Team Klage.")
 
             // 14 cases
             when (access) {

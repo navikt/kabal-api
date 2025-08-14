@@ -1594,38 +1594,33 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
+        val parentDocumentId = if (document is DokumentUnderArbeidAsVedlegg) {
+            document.parentId
+        } else null
+
+        val parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentDocumentId)
+        val creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name)
+
         //first vedlegg
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentId)
             .map {
                 documentPolicyService.validateDokumentUnderArbeidAction(
                     behandling = behandling,
-                    dokumentType = when (it.getType()) {
-                        DokumentUnderArbeid.DokumentUnderArbeidType.UPLOADED -> DuaAccessPolicy.DokumentType.UPLOADED
-                        DokumentUnderArbeid.DokumentUnderArbeidType.SMART -> DuaAccessPolicy.DokumentType.SMART_DOCUMENT
-                        DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT -> DuaAccessPolicy.DokumentType.JOURNALFOERT
-                    },
-                    parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = dokumentId),
-                    creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+                    dokumentType = documentPolicyService.getDokumentType(duaId = it.id),
+                    parentDokumentType = parentDokumentType,
+                    creator = creator,
                     action = DuaAccessPolicy.Action.REMOVE,
                     duaMarkertFerdig = it.erMarkertFerdig(),
                 )
                 it
             }
 
-        val parentDocumentId = if (document is DokumentUnderArbeidAsVedlegg) {
-            document.parentId
-        } else null
-
         documentPolicyService.validateDokumentUnderArbeidAction(
             behandling = behandling,
-            dokumentType = when (document.getType()) {
-                DokumentUnderArbeid.DokumentUnderArbeidType.UPLOADED -> DuaAccessPolicy.DokumentType.UPLOADED
-                DokumentUnderArbeid.DokumentUnderArbeidType.SMART -> DuaAccessPolicy.DokumentType.SMART_DOCUMENT
-                DokumentUnderArbeid.DokumentUnderArbeidType.JOURNALFOERT -> DuaAccessPolicy.DokumentType.JOURNALFOERT
-            },
-            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentDocumentId),
+            dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
+            parentDokumentType = parentDokumentType,
             creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
-            action = DuaAccessPolicy.Action.CHANGE_TYPE,
+            action = DuaAccessPolicy.Action.REMOVE,
             duaMarkertFerdig = document.erMarkertFerdig(),
         )
 
@@ -2097,7 +2092,6 @@ class DokumentUnderArbeidService(
         svarbrev: Svarbrev,
         behandling: Behandling,
         avsenderEnhetId: String,
-        systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
         val bytes = kabalJsonToPdfService.getSvarbrevPDF(
             svarbrev = svarbrev,
@@ -2105,13 +2099,13 @@ class DokumentUnderArbeidService(
             sakenGjelderIdentifikator = behandling.sakenGjelder.partId.value,
             sakenGjelderName = partSearchService.searchPart(
                 identifikator = behandling.sakenGjelder.partId.value,
-                systemUserContext = systemContext
+                systemUserContext = false
             ).name,
             ytelse = behandling.ytelse,
             klagerIdentifikator = behandling.klager.partId.value,
             klagerName = partSearchService.searchPart(
                 identifikator = behandling.klager.partId.value,
-                systemUserContext = systemContext
+                systemUserContext = false
             ).name,
             avsenderEnhetId = avsenderEnhetId,
         )
@@ -2125,8 +2119,8 @@ class DokumentUnderArbeidService(
             parentId = null,
             file = tmpFile,
             filename = svarbrev.title,
-            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
-            systemContext = systemContext
+            utfoerendeIdent = tokenUtil.getIdent(),
+            systemContext = false,
         )
 
         updateMottakere(
@@ -2151,15 +2145,15 @@ class DokumentUnderArbeidService(
                     )
                 }
             ),
-            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
-            systemContext = systemContext,
+            utfoerendeIdent = tokenUtil.getIdent(),
+            systemContext = false,
         )
 
         val hovedDokument = finnOgMarkerFerdigHovedDokument(
             behandlingId = behandling.id,
             dokumentId = documentView.id,
-            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
-            systemContext = systemContext
+            utfoerendeIdent = tokenUtil.getIdent(),
+            systemContext = false,
         )
 
         return hovedDokument
@@ -2168,11 +2162,10 @@ class DokumentUnderArbeidService(
     fun createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid(
         forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft,
         behandling: Behandling,
-        systemContext: Boolean,
     ): DokumentUnderArbeidAsHoveddokument {
         val sakenGjelderName = partSearchService.searchPart(
             identifikator = behandling.sakenGjelder.partId.value,
-            systemUserContext = true
+            systemUserContext = false
         ).name
 
         val bytes = kabalJsonToPdfService.getForlengetBehandlingstidPDF(
@@ -2183,7 +2176,7 @@ class DokumentUnderArbeidService(
             klagerName = if (behandling.klager.partId.value != behandling.sakenGjelder.partId.value) {
                 partSearchService.searchPart(
                     identifikator = behandling.klager.partId.value,
-                    systemUserContext = true
+                    systemUserContext = false
                 ).name
             } else {
                 sakenGjelderName
@@ -2210,8 +2203,8 @@ class DokumentUnderArbeidService(
             parentId = null,
             file = tmpFile,
             filename = forlengetBehandlingstidDraft.title,
-            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
-            systemContext = systemContext
+            utfoerendeIdent = tokenUtil.getIdent(),
+            systemContext = false
         )
 
         val document = getDokumentUnderArbeid(documentView.id) as DokumentUnderArbeidAsHoveddokument
@@ -2232,8 +2225,8 @@ class DokumentUnderArbeidService(
         val hovedDokument = finnOgMarkerFerdigHovedDokument(
             behandlingId = behandling.id,
             dokumentId = documentView.id,
-            utfoerendeIdent = if (systemContext) systembrukerIdent else tokenUtil.getIdent(),
-            systemContext = systemContext
+            utfoerendeIdent = tokenUtil.getIdent(),
+            systemContext = false
         )
 
         return hovedDokument
