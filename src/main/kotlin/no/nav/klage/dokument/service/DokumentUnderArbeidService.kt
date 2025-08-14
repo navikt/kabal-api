@@ -5,7 +5,6 @@ import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
-import no.nav.klage.dokument.api.view.Mottaker
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
@@ -14,7 +13,10 @@ import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.clients.ereg.EregClient
@@ -25,8 +27,11 @@ import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.getHistogram
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.BehandlingSetters.addSaksdokument
+import no.nav.klage.oppgave.domain.klage.ForlengetBehandlingstidDraft
+import no.nav.klage.oppgave.domain.klage.Prosessfullmektig
+import no.nav.klage.oppgave.domain.klage.Saksdokument
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
@@ -1127,75 +1132,6 @@ class DokumentUnderArbeidService(
         )
 
         return dokumentUnderArbeid
-    }
-
-    /**
-     * Who should have access to a smartdocument?
-     */
-    fun getSmartdocumentAccess(
-        behandlingId: UUID,
-        dokumentId: UUID,
-    ): DocumentAccessView {
-        val dokument = getDokumentUnderArbeid(dokumentId)
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokument.behandlingId)
-        val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-
-        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
-
-        if (behandling.ferdigstilling == null) {
-            when (dokument.creatorRole) {
-                BehandlingRole.KABAL_SAKSBEHANDLING -> {
-                    when (behandlingRole) {
-                        BehandlingRole.KABAL_SAKSBEHANDLING -> {
-                            if (behandling.medunderskriverFlowState in listOf(
-                                    FlowState.NOT_SENT,
-                                    FlowState.RETURNED
-                                )
-                            ) {
-                                return DocumentAccessView(
-                                    access = DocumentAccessView.Access.WRITE
-                                )
-                            }
-                        }
-
-                        BehandlingRole.KABAL_MEDUNDERSKRIVER -> {
-                            if (behandling.medunderskriverFlowState == FlowState.SENT) {
-                                return DocumentAccessView(
-                                    access = DocumentAccessView.Access.WRITE
-                                )
-                            }
-                        }
-
-                        else -> {
-                            //fall through to default READ access
-                        }
-                    }
-                }
-
-                BehandlingRole.KABAL_ROL -> {
-                    if (behandlingRole == BehandlingRole.KABAL_ROL && behandling.rolFlowState == FlowState.SENT) {
-                        return DocumentAccessView(
-                            access = DocumentAccessView.Access.WRITE
-                        )
-                    }
-                }
-
-                BehandlingRole.KABAL_MEDUNDERSKRIVER -> error("Smartdocument is created by medunderskriver. This should not be possible.")
-
-                /* Can this happen? Maybe for documents created automatically by the system? */
-                BehandlingRole.NONE -> {
-                    if (innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
-                        return DocumentAccessView(
-                            access = DocumentAccessView.Access.WRITE
-                        )
-                    }
-                }
-            }
-        }
-
-        return DocumentAccessView(
-            access = DocumentAccessView.Access.READ
-        )
     }
 
     fun validateWriteAccessToSmartDocument(

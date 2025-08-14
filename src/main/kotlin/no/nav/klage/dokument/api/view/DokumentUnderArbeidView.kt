@@ -96,12 +96,3 @@ enum class HandlingEnum {
     LOCAL_PRINT,
     CENTRAL_PRINT
 }
-
-data class DocumentAccessView(
-    val access: Access,
-) {
-    enum class Access {
-        READ,
-        WRITE,
-    }
-}

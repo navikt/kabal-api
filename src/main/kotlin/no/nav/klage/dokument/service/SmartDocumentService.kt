@@ -222,16 +222,6 @@ class SmartDocumentService(
         )
     }
 
-    fun getDocumentAccess(
-        behandlingId: UUID,
-        documentId: UUID,
-    ): DocumentAccessView {
-        return dokumentUnderArbeidService.getSmartdocumentAccess(
-            behandlingId = behandlingId,
-            dokumentId = documentId
-        )
-    }
-
     fun getSmartDocumentVersion(
         documentId: UUID,
         version: Int,
