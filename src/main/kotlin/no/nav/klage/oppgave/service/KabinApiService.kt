@@ -126,7 +126,6 @@ class KabinApiService(
                 behandling = behandling,
                 //Hardkodes til KA Oslo
                 avsenderEnhetId = Enhet.E4291.navn,
-                systemContext = false,
             )
 
             behandlingService.setOpprinneligVarsletFrist(

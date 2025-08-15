@@ -40,6 +40,7 @@ class SmartDocumentService(
     private val behandlingService: BehandlingService,
     private val dokumentMapper: DokumentMapper,
     private val saksbehandlerService: SaksbehandlerService,
+    private val documentPolicyService: DocumentPolicyService,
 ) {
 
     companion object {
@@ -62,19 +63,21 @@ class SmartDocumentService(
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
-        val behandlingRole = dokumentUnderArbeidService.validateCanCreateDocumentsAndReturnBehandlingRole(
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
+
+        documentPolicyService.validateDokumentUnderArbeidAction(
             behandling = behandling,
-            innloggetIdent = innloggetIdent,
-            parentId = parentId,
+            dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentId),
+            creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+            action = DuaAccessPolicy.Action.CREATE,
+            duaMarkertFerdig = false,
         )
 
         val smartDocumentResponse =
             kabalSmartEditorApiGateway.createDocument(
                 json = input.content.toString(),
                 data = input.data,
-                dokumentType = dokumentType,
-                innloggetIdent = innloggetIdent,
-                documentTitle = tittel,
             )
 
         val now = LocalDateTime.now()
@@ -163,7 +166,10 @@ class SmartDocumentService(
                 readOnly = false
             )
 
-        dokumentUnderArbeidService.validateWriteAccessToDocument(dokumentId = dokumentId)
+        dokumentUnderArbeidService.validateWriteAccessToSmartDocument(
+            dokumentId = dokumentId,
+            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId),
+        )
 
         val updatedDocument = kabalSmartEditorApiGateway.updateDocument(
             smartDocumentId = smartDocumentId,
@@ -216,16 +222,6 @@ class SmartDocumentService(
         )
     }
 
-    fun getDocumentAccess(
-        behandlingId: UUID,
-        documentId: UUID,
-    ): DocumentAccessView {
-        return dokumentUnderArbeidService.getSmartdocumentAccess(
-            behandlingId = behandlingId,
-            dokumentId = documentId
-        )
-    }
-
     fun getSmartDocumentVersion(
         documentId: UUID,
         version: Int,
@@ -259,8 +255,12 @@ class SmartDocumentService(
         documentId: UUID,
         commentInput: CommentInput,
     ): CommentOutput {
-        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
+
+        dokumentUnderArbeidService.validateWriteAccessToSmartDocument(
+            dokumentId = documentId,
+            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
+        )
 
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
@@ -302,8 +302,13 @@ class SmartDocumentService(
         commentId: UUID,
         modifyCommentInput: ModifyCommentInput,
     ): CommentOutput {
-        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
+
+        dokumentUnderArbeidService.validateWriteAccessToSmartDocument(
+            dokumentId = documentId,
+            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
+        )
+
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =
@@ -359,8 +364,13 @@ class SmartDocumentService(
         commentId: UUID,
         commentInput: CommentInput,
     ): CommentOutput {
-        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
+
+        dokumentUnderArbeidService.validateWriteAccessToSmartDocument(
+            dokumentId = documentId,
+            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
+        )
+
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =
@@ -417,8 +427,13 @@ class SmartDocumentService(
         documentId: UUID,
         commentId: UUID,
     ) {
-        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
+
+        dokumentUnderArbeidService.validateWriteAccessToSmartDocument(
+            dokumentId = documentId,
+            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
+        )
+
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =

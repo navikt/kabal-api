@@ -270,13 +270,19 @@ sealed class Behandling(
         }
     }
 
-    fun getRoleInBehandling(innloggetIdent: String) = if (rolIdent == innloggetIdent) {
-        BehandlingRole.KABAL_ROL
-    } else if (tildeling?.saksbehandlerident == innloggetIdent) {
-        BehandlingRole.KABAL_SAKSBEHANDLING
-    } else if (medunderskriver?.saksbehandlerident == innloggetIdent) {
-        BehandlingRole.KABAL_MEDUNDERSKRIVER
-    } else BehandlingRole.NONE
+    fun getRoleInBehandling(innloggetIdent: String): BehandlingRole {
+        if (ferdigstilling != null || feilregistrering != null) {
+            return BehandlingRole.NONE
+        }
+
+        return if (rolIdent == innloggetIdent) {
+            BehandlingRole.KABAL_ROL
+        } else if (tildeling?.saksbehandlerident == innloggetIdent) {
+            BehandlingRole.KABAL_SAKSBEHANDLING
+        } else if (medunderskriver?.saksbehandlerident == innloggetIdent) {
+            BehandlingRole.KABAL_MEDUNDERSKRIVER
+        } else BehandlingRole.NONE
+    }
 
     fun shouldUpdateInfotrygd(): Boolean {
         return fagsystem == Fagsystem.IT01 && type !in listOf(
