@@ -1144,7 +1144,7 @@ class DokumentUnderArbeidService(
 
         documentPolicyService.validateDokumentUnderArbeidAction(
             behandling = behandling,
-            dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+            dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
             parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = if (dokument is DokumentUnderArbeidAsVedlegg) dokument.parentId else null),
             creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
             action = DuaAccessPolicy.Action.WRITE,
