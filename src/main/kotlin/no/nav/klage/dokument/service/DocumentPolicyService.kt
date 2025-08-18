@@ -32,6 +32,10 @@ class DocumentPolicyService(
             DuaAccessPolicy.throwDuaFinishedException()
         }
 
+        if (behandling.feilregistrering != null) {
+            DuaAccessPolicy.throwFeilregistrertException()
+        }
+
         if (isSystemContext) {
             // If the action is performed in a system context, we allow all actions ???
             return
@@ -40,10 +44,10 @@ class DocumentPolicyService(
         val innloggetSaksbehandler = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val user = when {
-            innloggetSaksbehandler == behandling.tildeling?.saksbehandlerident -> DuaAccessPolicy.User.TILDELT_SAKSBEHANDLER
-            innloggetSaksbehandler == behandling.medunderskriver?.saksbehandlerident -> DuaAccessPolicy.User.TILDELT_MEDUNDERSKRIVER
+            behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.tildeling?.saksbehandlerident -> DuaAccessPolicy.User.TILDELT_SAKSBEHANDLER
+            behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.medunderskriver?.saksbehandlerident -> DuaAccessPolicy.User.TILDELT_MEDUNDERSKRIVER
+            behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.rolIdent -> DuaAccessPolicy.User.TILDELT_ROL
             innloggetSaksbehandlerService.isROL() -> DuaAccessPolicy.User.ROL
-            innloggetSaksbehandler == behandling.rolIdent -> DuaAccessPolicy.User.TILDELT_ROL
             innloggetSaksbehandlerService.isSaksbehandler() -> DuaAccessPolicy.User.SAKSBEHANDLER
             else -> throw MissingTilgangException("Bruker har ikke tilgang til å håndtere dokumenter. Mangler rolle.")
         }
