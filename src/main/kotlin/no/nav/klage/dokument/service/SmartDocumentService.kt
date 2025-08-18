@@ -69,7 +69,7 @@ class SmartDocumentService(
             behandling = behandling,
             dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
             parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentId),
-            creator = DuaAccessPolicy.Creator.valueOf(behandlingRole.name),
+            documentRole = behandlingRole,
             action = DuaAccessPolicy.Action.CREATE,
             duaMarkertFerdig = false,
         )

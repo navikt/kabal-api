@@ -4,8 +4,10 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
+import no.nav.klage.dokument.service.DuaAccessPolicy.Creator
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.klage.BehandlingRole
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import org.springframework.stereotype.Service
@@ -21,7 +23,7 @@ class DocumentPolicyService(
         behandling: Behandling,
         dokumentType: DuaAccessPolicy.DokumentType,
         parentDokumentType: DuaAccessPolicy.Parent,
-        creator: DuaAccessPolicy.Creator,
+        documentRole: BehandlingRole,
         action: DuaAccessPolicy.Action,
         duaMarkertFerdig: Boolean,
         isSystemContext: Boolean = false,
@@ -63,7 +65,7 @@ class DocumentPolicyService(
             caseStatus = caseStatus,
             documentType = dokumentType,
             parent = parentDokumentType,
-            creator = creator,
+            creator = Creator.valueOf(documentRole.name),
             action = action
         )
     }
