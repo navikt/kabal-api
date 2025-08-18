@@ -1580,14 +1580,19 @@ class DokumentUnderArbeidService(
             behandlingId = document.behandlingId,
         )
 
-        val parentDocumentId = if (document is DokumentUnderArbeidAsVedlegg) {
-            document.parentId
-        } else null
+        val parentDocumentId: UUID?
+        val vedleggList: List<DokumentUnderArbeidAsVedlegg>
+        if (document is DokumentUnderArbeidAsVedlegg) {
+            parentDocumentId = document.parentId
+            vedleggList = emptyList()
+        } else {
+            parentDocumentId = null
+            vedleggList = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentId).toList()
+        }
 
         val parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentDocumentId)
 
-        val vedleggList = if (parentDocumentId != null) {
-            val vedleggList = dokumentUnderArbeidCommonService.findVedleggByParentId(parentDocumentId)
+        if (vedleggList.isNotEmpty()) {
             vedleggList.forEach { vedlegg ->
                 documentPolicyService.validateDokumentUnderArbeidAction(
                     behandling = behandling,
@@ -1598,8 +1603,7 @@ class DokumentUnderArbeidService(
                     duaMarkertFerdig = vedlegg.erMarkertFerdig(),
                 )
             }
-            vedleggList
-        } else emptyList()
+        }
 
         //then actual document
         documentPolicyService.validateDokumentUnderArbeidAction(
