@@ -67,7 +67,11 @@ class SmartDocumentService(
 
         documentPolicyService.validateDokumentUnderArbeidAction(
             behandling = behandling,
-            dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+            dokumentType = when (smartEditorTemplateId) {
+                "rol-questions" -> DuaAccessPolicy.DokumentType.ROL_QUESTIONS
+                "rol-answers" -> DuaAccessPolicy.DokumentType.ROL_ANSWERS
+                else -> DuaAccessPolicy.DokumentType.SMART_DOCUMENT
+            },
             parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentId),
             documentRole = behandlingRole,
             action = DuaAccessPolicy.Action.CREATE,
