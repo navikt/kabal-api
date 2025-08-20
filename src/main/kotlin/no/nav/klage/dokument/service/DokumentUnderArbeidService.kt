@@ -19,6 +19,7 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
+import no.nav.klage.oppgave.api.view.DokumentUnderArbeidMetadata
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -54,6 +55,8 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.time.measureTime
 
@@ -98,6 +101,8 @@ class DokumentUnderArbeidService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
+        private val DATE_FORMAT =
+            DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
     }
 
     private val metricForSmartDocumentVersions = meterRegistry.getHistogram(
@@ -1513,6 +1518,8 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("${dokument.dokumentType.navn} støtter ikke vedleggsoversikt.")
         }
 
+        val filename = "vedleggsoversikt til \"${dokument.name}\", ${LocalDate.now().format(DATE_FORMAT)}"
+
         return ResponseEntity(
             innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
                 dokumentUnderArbeid = dokument,
@@ -1522,7 +1529,7 @@ class DokumentUnderArbeidService(
                 contentType = MediaType.APPLICATION_PDF
                 add(
                     "Content-Disposition",
-                    "inline; filename=\"innholdsfortegnelse.pdf\""
+                    "inline; filename=\"$filename.pdf\""
                 )
             },
             HttpStatus.OK
@@ -2282,6 +2289,22 @@ class DokumentUnderArbeidService(
         )
 
         return hovedDokument
+    }
+
+    fun getInnholdsfortegnelseMetadata(
+        behandlingId: UUID,
+        dokumentId: UUID,
+    ): DokumentUnderArbeidMetadata {
+        val dokument =
+            getDokumentUnderArbeid(dokumentId) as DokumentUnderArbeidAsHoveddokument
+
+        val title = "Vedleggsoversikt til \"${dokument.name}\", ${LocalDate.now().format(DATE_FORMAT)}"
+
+        return DokumentUnderArbeidMetadata(
+            behandlingId = behandlingId,
+            documentId = dokumentId,
+            title = title
+        )
     }
 }
 
