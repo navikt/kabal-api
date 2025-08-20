@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.time.measureTime
 
 @Service
 @Transactional
@@ -65,18 +66,21 @@ class SmartDocumentService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        documentPolicyService.validateDokumentUnderArbeidAction(
-            behandling = behandling,
-            dokumentType = when (smartEditorTemplateId) {
-                "rol-questions" -> DuaAccessPolicy.DokumentType.ROL_QUESTIONS
-                "rol-answers" -> DuaAccessPolicy.DokumentType.ROL_ANSWERS
-                else -> DuaAccessPolicy.DokumentType.SMART_DOCUMENT
-            },
-            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentId),
-            documentRole = behandlingRole,
-            action = DuaAccessPolicy.Action.CREATE,
-            duaMarkertFerdig = false,
-        )
+        val duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = when (smartEditorTemplateId) {
+                    "rol-questions" -> DuaAccessPolicy.DokumentType.ROL_QUESTIONS
+                    "rol-answers" -> DuaAccessPolicy.DokumentType.ROL_ANSWERS
+                    else -> DuaAccessPolicy.DokumentType.SMART_DOCUMENT
+                },
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentId),
+                documentRole = behandlingRole,
+                action = DuaAccessPolicy.Action.CREATE,
+                duaMarkertFerdig = false,
+            )
+        }
+        logger.debug("Validation for creating smart document took ${duration.inWholeMilliseconds} ms")
 
         val smartDocumentResponse =
             kabalSmartEditorApiGateway.createDocument(

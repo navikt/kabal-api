@@ -55,6 +55,7 @@ import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.time.measureTime
 
 
 @Service
@@ -125,14 +126,20 @@ class DokumentUnderArbeidService(
         }
         val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
 
-        documentPolicyService.validateDokumentUnderArbeidAction(
-            behandling = behandling,
-            dokumentType = DuaAccessPolicy.DokumentType.UPLOADED,
-            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentId),
-            documentRole = behandlingRole,
-            action = DuaAccessPolicy.Action.CREATE,
-            duaMarkertFerdig = false,
-            isSystemContext = systemContext,
+        val duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = DuaAccessPolicy.DokumentType.UPLOADED,
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentId),
+                documentRole = behandlingRole,
+                action = DuaAccessPolicy.Action.CREATE,
+                duaMarkertFerdig = false,
+                isSystemContext = systemContext,
+            )
+        }
+        logger.debug(
+            "Validated createOpplastetDokumentUnderArbeid action. Duration: {} ms",
+            duration.inWholeMilliseconds
         )
 
         val mellomlagerId = mellomlagerService.uploadFile(file = file, systemContext = systemContext)
@@ -291,22 +298,34 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetSaksbehandlerService.getInnloggetIdent())
 
-        documentPolicyService.validateDokumentUnderArbeidAction(
-            behandling = behandling,
-            dokumentType = documentPolicyService.getDokumentType(duaId = persistentDokumentId),
-            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = optionalParentDocumentId),
-            documentRole = dua.creatorRole,
-            action = DuaAccessPolicy.Action.REMOVE,
-            duaMarkertFerdig = dua.erMarkertFerdig(),
+        var duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = documentPolicyService.getDokumentType(duaId = persistentDokumentId),
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = optionalParentDocumentId),
+                documentRole = dua.creatorRole,
+                action = DuaAccessPolicy.Action.REMOVE,
+                duaMarkertFerdig = dua.erMarkertFerdig(),
+            )
+        }
+        logger.debug(
+            "Validated kobleEllerFrikobleVedlegg REMOVE action. Duration: {} ms",
+            duration.inWholeMilliseconds
         )
 
-        documentPolicyService.validateDokumentUnderArbeidAction(
-            behandling = behandling,
-            dokumentType = documentPolicyService.getDokumentType(duaId = persistentDokumentId),
-            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = optionalParentDocumentId),
-            documentRole = behandlingRole,
-            action = DuaAccessPolicy.Action.CREATE,
-            duaMarkertFerdig = dua.erMarkertFerdig(),
+        duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = documentPolicyService.getDokumentType(duaId = persistentDokumentId),
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = optionalParentDocumentId),
+                documentRole = behandlingRole,
+                action = DuaAccessPolicy.Action.CREATE,
+                duaMarkertFerdig = dua.erMarkertFerdig(),
+            )
+        }
+        logger.debug(
+            "Validated kobleEllerFrikobleVedlegg CREATE action. Duration: {} ms",
+            duration.inWholeMilliseconds
         )
 
         val (dokumentUnderArbeidList, duplicateJournalfoerteDokumenter) = setAsVedlegg(
@@ -377,13 +396,19 @@ class DokumentUnderArbeidService(
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
-        documentPolicyService.validateDokumentUnderArbeidAction(
-            behandling = behandling,
-            dokumentType = DuaAccessPolicy.DokumentType.JOURNALFOERT,
-            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = journalfoerteDokumenterInput.parentId),
-            documentRole = behandlingRole,
-            action = DuaAccessPolicy.Action.CREATE,
-            duaMarkertFerdig = false,
+        val duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = DuaAccessPolicy.DokumentType.JOURNALFOERT,
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = journalfoerteDokumenterInput.parentId),
+                documentRole = behandlingRole,
+                action = DuaAccessPolicy.Action.CREATE,
+                duaMarkertFerdig = false,
+            )
+        }
+        logger.debug(
+            "Validated addJournalfoerteDokumenterAsVedlegg CREATE action. Duration: {} ms",
+            duration.inWholeMilliseconds
         )
 
         val journalpostListForUser = safFacade.getJournalposter(
@@ -552,13 +577,19 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("Kan ikke endre dokumenttype på vedlegg")
         }
 
-        documentPolicyService.validateDokumentUnderArbeidAction(
-            behandling = behandling,
-            dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
-            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = null),
-            documentRole = dokumentUnderArbeid.creatorRole,
-            action = DuaAccessPolicy.Action.CHANGE_TYPE,
-            duaMarkertFerdig = dokumentUnderArbeid.erMarkertFerdig(),
+        val duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = null),
+                documentRole = dokumentUnderArbeid.creatorRole,
+                action = DuaAccessPolicy.Action.CHANGE_TYPE,
+                duaMarkertFerdig = dokumentUnderArbeid.erMarkertFerdig(),
+            )
+        }
+        logger.debug(
+            "Validated updateDokumentType action. Duration: {} ms",
+            duration.inWholeMilliseconds
         )
 
         val vedlegg = getVedlegg(dokumentId)
@@ -1042,13 +1073,19 @@ class DokumentUnderArbeidService(
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
 
-        documentPolicyService.validateDokumentUnderArbeidAction(
-            behandling = behandling,
-            dokumentType = documentPolicyService.getDokumentType(dokumentId),
-            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null),
-            documentRole = dokumentUnderArbeid.creatorRole,
-            action = DuaAccessPolicy.Action.RENAME,
-            duaMarkertFerdig = dokumentUnderArbeid.erMarkertFerdig(),
+        val duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = documentPolicyService.getDokumentType(dokumentId),
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) dokumentUnderArbeid.parentId else null),
+                documentRole = dokumentUnderArbeid.creatorRole,
+                action = DuaAccessPolicy.Action.RENAME,
+                duaMarkertFerdig = dokumentUnderArbeid.erMarkertFerdig(),
+            )
+        }
+        logger.debug(
+            "Validated updateDokumentTitle action. Duration: {} ms",
+            duration.inWholeMilliseconds
         )
 
         dokumentUnderArbeid.name = dokumentTitle
@@ -1132,13 +1169,19 @@ class DokumentUnderArbeidService(
     ) {
         val dokument = getDokumentUnderArbeid(dokumentId)
 
-        documentPolicyService.validateDokumentUnderArbeidAction(
-            behandling = behandling,
-            dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
-            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = if (dokument is DokumentUnderArbeidAsVedlegg) dokument.parentId else null),
-            documentRole = dokument.creatorRole,
-            action = DuaAccessPolicy.Action.WRITE,
-            duaMarkertFerdig = dokument.erMarkertFerdig(),
+        val duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = if (dokument is DokumentUnderArbeidAsVedlegg) dokument.parentId else null),
+                documentRole = dokument.creatorRole,
+                action = DuaAccessPolicy.Action.WRITE,
+                duaMarkertFerdig = dokument.erMarkertFerdig(),
+            )
+        }
+        logger.debug(
+            "Validated validateWriteAccessToSmartDocument action. Duration: {} ms",
+            duration.inWholeMilliseconds
         )
     }
 
@@ -1195,14 +1238,20 @@ class DokumentUnderArbeidService(
             behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
         }
 
-        documentPolicyService.validateDokumentUnderArbeidAction(
-            behandling = behandling,
-            dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
-            parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = null),
-            documentRole = hovedDokument.creatorRole,
-            action = DuaAccessPolicy.Action.FINISH,
-            duaMarkertFerdig = hovedDokument.erMarkertFerdig(),
-            isSystemContext = systemContext,
+        val duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = null),
+                documentRole = hovedDokument.creatorRole,
+                action = DuaAccessPolicy.Action.FINISH,
+                duaMarkertFerdig = hovedDokument.erMarkertFerdig(),
+                isSystemContext = systemContext,
+            )
+        }
+        logger.debug(
+            "Validated finnOgMarkerFerdigHovedDokument action. Duration: {} ms",
+            duration.inWholeMilliseconds
         )
 
         hovedDokument.journalfoerendeEnhetId = if (systemContext) {
@@ -1594,25 +1643,37 @@ class DokumentUnderArbeidService(
 
         if (vedleggList.isNotEmpty()) {
             vedleggList.forEach { vedlegg ->
-                documentPolicyService.validateDokumentUnderArbeidAction(
-                    behandling = behandling,
-                    dokumentType = documentPolicyService.getDokumentType(duaId = vedlegg.id),
-                    parentDokumentType = parentDokumentType,
-                    documentRole = vedlegg.creatorRole,
-                    action = DuaAccessPolicy.Action.REMOVE,
-                    duaMarkertFerdig = vedlegg.erMarkertFerdig(),
+                val duration = measureTime {
+                    documentPolicyService.validateDokumentUnderArbeidAction(
+                        behandling = behandling,
+                        dokumentType = documentPolicyService.getDokumentType(duaId = vedlegg.id),
+                        parentDokumentType = parentDokumentType,
+                        documentRole = vedlegg.creatorRole,
+                        action = DuaAccessPolicy.Action.REMOVE,
+                        duaMarkertFerdig = vedlegg.erMarkertFerdig(),
+                    )
+                }
+                logger.debug(
+                    "Validated remove vedlegg action. Duration: {} ms",
+                    duration.inWholeMilliseconds
                 )
             }
         }
 
         //then actual document
-        documentPolicyService.validateDokumentUnderArbeidAction(
-            behandling = behandling,
-            dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
-            parentDokumentType = parentDokumentType,
-            documentRole = document.creatorRole,
-            action = DuaAccessPolicy.Action.REMOVE,
-            duaMarkertFerdig = document.erMarkertFerdig(),
+        val duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
+                parentDokumentType = parentDokumentType,
+                documentRole = document.creatorRole,
+                action = DuaAccessPolicy.Action.REMOVE,
+                duaMarkertFerdig = document.erMarkertFerdig(),
+            )
+        }
+        logger.debug(
+            "Validated remove hoveddokument action. Duration: {} ms",
+            duration.inWholeMilliseconds
         )
 
         val documentsToRemove = vedleggList + document

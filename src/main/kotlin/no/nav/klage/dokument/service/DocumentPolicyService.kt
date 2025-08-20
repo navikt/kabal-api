@@ -10,6 +10,7 @@ import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.domain.klage.BehandlingRole
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
+import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import java.io.BufferedReader
 import java.util.*
@@ -220,10 +221,14 @@ class DuaAccessPolicy {
 
     companion object {
 
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+
         private var accessMap: Map<String, Access> = emptyMap()
 
         @JvmStatic
         fun initializeAccessMapFromCsv(resourcePath: String = "/dua/access_map.csv") {
+            val start = System.currentTimeMillis()
             val stream = DuaAccessPolicy::class.java.getResourceAsStream(resourcePath)
                 ?: throw IllegalStateException("Resource '$resourcePath' not found on classpath")
 
@@ -257,6 +262,7 @@ class DuaAccessPolicy {
                 throw IllegalStateException("Access map loaded from '$resourcePath' is empty")
             }
             accessMap = map.toMap()
+            logger.debug("DUA access map initialized with ${accessMap.size} entries from resource '$resourcePath' in ${System.currentTimeMillis() - start} ms")
         }
 
         fun throwDuaFinishedException() {
@@ -280,7 +286,9 @@ class DuaAccessPolicy {
             action: Action,
         ) {
             val key = "$user:$caseStatus:$documentType:$parent:$creator:$action"
+            val start = System.currentTimeMillis()
             val access = accessMap[key]
+            logger.debug("DUA access check for key '$key' took ${System.currentTimeMillis() - start} ms")
 
             if (access == Access.ALLOWED) {
                 return
@@ -290,11 +298,7 @@ class DuaAccessPolicy {
                 throw RuntimeException("Handlingen er ikke mulig. Det finnes ikke regel for \"$key\". Kontakt Team Klage.")
             }
 
-            val error = errorMessageMap["$access:$action"]
-
-            if (error == null) {
-                throw RuntimeException("Handlingen er ikke mulig. Feilmelding mangler for \"$access:$action\". Kontakt Team Klage.")
-            }
+            val error = errorMessageMap["$access:$action"] ?: throw RuntimeException("Handlingen er ikke mulig. Feilmelding mangler for \"$access:$action\". Kontakt Team Klage.")
 
             // 19 cases
             when (access) {
