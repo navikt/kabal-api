@@ -12,6 +12,8 @@ data class DocumentValidationResponse(
 }
 
 data class InnholdsfortegnelseRequest(
+    val parentTitle: String,
+    val parentDate: LocalDate,
     val documents: List<Document>,
 ) {
     data class Document(

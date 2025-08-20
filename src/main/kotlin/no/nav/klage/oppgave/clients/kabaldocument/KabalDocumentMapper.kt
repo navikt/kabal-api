@@ -13,6 +13,10 @@ import no.nav.klage.oppgave.util.DokumentUnderArbeidTitleComparator
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 @Service
 class KabalDocumentMapper(
@@ -31,6 +35,8 @@ class KabalDocumentMapper(
         private const val KLAGEBEHANDLING_ID_KEY = "klagebehandling_id"
         private const val BREVKODE_KJENNELSE_FRA_TR = "NAV96-01.01"
         private const val BREVKODE_ANNET = "NAV 00-03.00"
+        private val DATE_FORMAT =
+            DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
     }
 
     fun mapBehandlingToDokumentEnhetWithDokumentreferanser(
@@ -40,9 +46,12 @@ class KabalDocumentMapper(
         innholdsfortegnelse: Innholdsfortegnelse?,
     ): DokumentEnhetWithDokumentreferanserInput {
         val innholdsfortegnelseDocument = if (innholdsfortegnelse != null && vedlegg.isNotEmpty()) {
+
+            val documentName = "Vedleggsoversikt til \"${hovedDokument.name}\", ${LocalDate.now().format(DATE_FORMAT)}"
+
             DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument(
                 mellomlagerId = innholdsfortegnelse.mellomlagerId!!,
-                name = "Vedleggsoversikt",
+                name = documentName,
                 sourceReference = null,
             )
         } else null

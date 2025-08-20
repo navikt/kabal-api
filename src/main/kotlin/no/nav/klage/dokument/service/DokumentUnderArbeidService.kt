@@ -49,6 +49,8 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 
@@ -91,6 +93,8 @@ class DokumentUnderArbeidService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
+        private val DATE_FORMAT =
+            DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
     }
 
     private val metricForSmartDocumentVersions = meterRegistry.getHistogram(
@@ -1563,6 +1567,8 @@ class DokumentUnderArbeidService(
             throw DokumentValidationException("${dokument.dokumentType.navn} støtter ikke vedleggsoversikt.")
         }
 
+        val filename = "vedleggsoversikt til \"${dokument.name}\", ${LocalDate.now().format(DATE_FORMAT)}"
+
         return ResponseEntity(
             innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
                 dokumentUnderArbeid = dokument,
@@ -1570,9 +1576,10 @@ class DokumentUnderArbeidService(
             ),
             HttpHeaders().apply {
                 contentType = MediaType.APPLICATION_PDF
+                //TODO: filnavn
                 add(
                     "Content-Disposition",
-                    "inline; filename=\"innholdsfortegnelse.pdf\""
+                    "inline; filename=\"$filename.pdf\""
                 )
             },
             HttpStatus.OK

@@ -10,6 +10,7 @@ import no.nav.klage.oppgave.util.getLogger
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -82,6 +83,8 @@ class InnholdsfortegnelseService(
         val pdfDocument =
             kabalJsonToPdfService.getInnholdsfortegnelse(
                 InnholdsfortegnelseRequest(
+                    parentTitle = dokumentUnderArbeid.name,
+                    parentDate = LocalDate.now(),
                     documents = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
                         vedlegg = vedlegg,
                         behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId),
