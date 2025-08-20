@@ -66,9 +66,9 @@ class PersonService(
 
     fun fillCacheWithAllMissingPersons() {
         val start = System.currentTimeMillis()
-        logger.debug("Finding all persons in behandlinger to fill cache in pod ${InetAddress.getLocalHost().hostName}")
+        logger.debug("Finding all persons in open behandlinger to fill cache in pod ${InetAddress.getLocalHost().hostName}")
         val allOpenBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
-        logger.debug("Found all behandlinger: ${allOpenBehandlinger.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+        logger.debug("Found all open behandlinger: ${allOpenBehandlinger.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
 
         val allSakenGjelderFnr = allOpenBehandlinger.filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
             .map { it.sakenGjelder.partId.value }
@@ -82,12 +82,12 @@ class PersonService(
             .map { it.prosessfullmektig?.partId?.value }
             .distinct()
 
-        val allPersonsInBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
+        val allPersonsInOpenBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
 
-        logger.debug("Found all distinct persons: ${allPersonsInBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+        logger.debug("Found all distinct persons: ${allPersonsInOpenBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
 
-        fillPersonCache(allPersonsInBehandlingerFnr)
+        fillPersonCache(allPersonsInOpenBehandlingerFnr)
 
-        logger.debug("Finished inserting all persons in cache in ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+        logger.debug("Finished inserting all persons from open behandlinger in cache in ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
     }
 }

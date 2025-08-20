@@ -55,6 +55,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.net.InetAddress
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -476,6 +477,64 @@ class AdminService(
 
     fun emptyPersonCache() {
         personCacheService.emptyCache()
+    }
+
+    fun resetPersonCacheFromOpenBehandlinger() {
+        val start = System.currentTimeMillis()
+        emptyPersonCache()
+        logger.debug("Emptied person cache from admin endpoint in pod ${InetAddress.getLocalHost().hostName}, took ${System.currentTimeMillis() - start} ms")
+
+        val allOpenBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        logger.debug("Found all open behandlinger: ${allOpenBehandlinger.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+
+        val allSakenGjelderFnr = allOpenBehandlinger.filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
+            .map { it.sakenGjelder.partId.value }
+            .distinct()
+
+        val allKlagerFnr = allOpenBehandlinger.filter { it.klager.partId.type == PartIdType.PERSON }
+            .map { it.klager.partId.value }
+            .distinct()
+
+        val allFullmektigFnr = allOpenBehandlinger.filter { it.prosessfullmektig?.partId?.type == PartIdType.PERSON }
+            .map { it.prosessfullmektig?.partId?.value }
+            .distinct()
+
+        val allPersonsInOpenBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
+
+        logger.debug("Found all distinct persons: ${allPersonsInOpenBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+
+        personService.fillPersonCache(allPersonsInOpenBehandlingerFnr)
+
+        logger.debug("Finished inserting all persons from open behandlinger in cache in ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+    }
+
+    fun resetPersonCacheFromAllBehandlinger() {
+        val start = System.currentTimeMillis()
+        emptyPersonCache()
+        logger.debug("Emptied person cache from admin endpoint in pod ${InetAddress.getLocalHost().hostName}, took ${System.currentTimeMillis() - start} ms")
+
+        val allBehandlinger = behandlingRepository.findAll()
+        logger.debug("Found all behandlinger: ${allBehandlinger.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+
+        val allSakenGjelderFnr = allBehandlinger.filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
+            .map { it.sakenGjelder.partId.value }
+            .distinct()
+
+        val allKlagerFnr = allBehandlinger.filter { it.klager.partId.type == PartIdType.PERSON }
+            .map { it.klager.partId.value }
+            .distinct()
+
+        val allFullmektigFnr = allBehandlinger.filter { it.prosessfullmektig?.partId?.type == PartIdType.PERSON }
+            .map { it.prosessfullmektig?.partId?.value }
+            .distinct()
+
+        val allPersonsInAllBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
+
+        logger.debug("Found all distinct persons: ${allPersonsInAllBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+
+        personService.fillPersonCache(allPersonsInAllBehandlingerFnr)
+
+        logger.debug("Finished inserting all persons in cache in ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
     }
 
     @Transactional
