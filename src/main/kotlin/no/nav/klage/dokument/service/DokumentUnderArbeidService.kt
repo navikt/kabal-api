@@ -17,6 +17,7 @@ import no.nav.klage.dokument.repositories.*
 import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
+import no.nav.klage.oppgave.api.view.DokumentUnderArbeidMetadata
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -1576,7 +1577,6 @@ class DokumentUnderArbeidService(
             ),
             HttpHeaders().apply {
                 contentType = MediaType.APPLICATION_PDF
-                //TODO: filnavn
                 add(
                     "Content-Disposition",
                     "inline; filename=\"$filename.pdf\""
@@ -2386,6 +2386,22 @@ class DokumentUnderArbeidService(
         )
 
         return hovedDokument
+    }
+
+    fun getInnholdsfortegnelseMetadata(
+        behandlingId: UUID,
+        dokumentId: UUID,
+    ): DokumentUnderArbeidMetadata {
+        val dokument =
+            getDokumentUnderArbeid(dokumentId) as DokumentUnderArbeidAsHoveddokument
+
+        val title = "Vedleggsoversikt til \"${dokument.name}\", ${LocalDate.now().format(DATE_FORMAT)}"
+
+        return DokumentUnderArbeidMetadata(
+            behandlingId = behandlingId,
+            documentId = dokumentId,
+            title = title
+        )
     }
 }
 

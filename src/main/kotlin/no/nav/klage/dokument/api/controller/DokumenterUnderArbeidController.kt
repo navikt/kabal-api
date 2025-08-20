@@ -224,10 +224,9 @@ class DokumentUnderArbeidController(
     ): DokumentUnderArbeidMetadata {
         logger.debug("Kall mottatt på getMetadataForInnholdsfortegnelse for {}", dokumentId)
 
-        return DokumentUnderArbeidMetadata(
+        return dokumentUnderArbeidService.getInnholdsfortegnelseMetadata(
             behandlingId = behandlingId,
-            documentId = dokumentId,
-            title = "Vedleggsoversikt"
+            dokumentId = dokumentId,
         )
     }
 
