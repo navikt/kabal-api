@@ -4,10 +4,10 @@ import no.nav.klage.dokument.exceptions.*
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
-import org.springframework.http.HttpStatus
-import org.springframework.http.ProblemDetail
+import org.springframework.http.*
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.context.request.WebRequest
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 
@@ -18,6 +18,22 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val ourLogger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
+    }
+
+    override fun handleExceptionInternal(
+        ex: Exception,
+        body: Any?,
+        headers: HttpHeaders,
+        statusCode: HttpStatusCode,
+        request: WebRequest
+    ): ResponseEntity<Any>? {
+        logError(
+            httpStatus = HttpStatus.valueOf(statusCode.value()),
+            errorMessage = ex.message ?: "No error message available",
+            exception = ex,
+        )
+
+        return super.handleExceptionInternal(ex, body, headers, statusCode, request)
     }
 
     @ExceptionHandler
@@ -41,8 +57,9 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     @ExceptionHandler
     fun handleBehandlingNotFound(
         ex: BehandlingNotFoundException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
+    ): ProblemDetail {
+        return create(HttpStatus.NOT_FOUND, ex)
+    }
 
     @ExceptionHandler
     fun handleMeldingNotFound(
