@@ -2751,7 +2751,7 @@ class BehandlingService(
     }
 
     fun indexAllBehandlingerForSakenGjelderFnr(sakenGjelderFnr: String) {
-        val behandlinger = behandlingRepository.findBySakenGjelderPartIdValueAndFeilregistreringIsNull(
+        val behandlinger = behandlingRepository.findBySakenGjelderPartIdValue(
             partIdValue = sakenGjelderFnr
         )
         behandlinger.forEach { behandling ->

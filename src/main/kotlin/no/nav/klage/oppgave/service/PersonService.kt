@@ -67,18 +67,18 @@ class PersonService(
     fun fillCacheWithAllMissingPersons() {
         val start = System.currentTimeMillis()
         logger.debug("Finding all persons in behandlinger to fill cache in pod ${InetAddress.getLocalHost().hostName}")
-        val allBehandlinger = behandlingRepository.findByFeilregistreringIsNull()
-        logger.debug("Found all behandlinger: ${allBehandlinger.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+        val allOpenBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        logger.debug("Found all behandlinger: ${allOpenBehandlinger.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
 
-        val allSakenGjelderFnr = allBehandlinger.filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
+        val allSakenGjelderFnr = allOpenBehandlinger.filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
             .map { it.sakenGjelder.partId.value }
             .distinct()
 
-        val allKlagerFnr = allBehandlinger.filter { it.klager.partId.type == PartIdType.PERSON }
+        val allKlagerFnr = allOpenBehandlinger.filter { it.klager.partId.type == PartIdType.PERSON }
             .map { it.klager.partId.value }
             .distinct()
 
-        val allFullmektigFnr = allBehandlinger.filter { it.prosessfullmektig?.partId?.type == PartIdType.PERSON }
+        val allFullmektigFnr = allOpenBehandlinger.filter { it.prosessfullmektig?.partId?.type == PartIdType.PERSON }
             .map { it.prosessfullmektig?.partId?.value }
             .distinct()
 
@@ -90,5 +90,4 @@ class PersonService(
 
         logger.debug("Finished inserting all persons in cache in ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
     }
-
 }

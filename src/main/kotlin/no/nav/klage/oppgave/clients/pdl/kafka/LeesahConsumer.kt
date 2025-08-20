@@ -42,7 +42,6 @@ class LeesahConsumer(
     fun listen(
         cr: ConsumerRecord<String, GenericRecord>,
     ) {
-        logger.debug("Reading offset ${cr.offset()} from partition ${cr.partition()} on kafka topic ${cr.topic()}")
         if (cr.offset() < offset) {
             logger.debug("Personhendelse: Lowest offset found in pod ${InetAddress.getLocalHost().hostName}: ${cr.offset()}. Updating offset to this value.")
             offset = cr.offset()
