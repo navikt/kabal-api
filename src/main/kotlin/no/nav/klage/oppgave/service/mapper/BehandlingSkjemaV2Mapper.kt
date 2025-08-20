@@ -74,7 +74,11 @@ private fun Set<Saksdokument>.mapToSkjemaV2(): List<BehandlingSkjemaV2.Dokument>
         )
     }
 
-fun Behandling.mapToSkjemaV2(): BehandlingSkjemaV2 {
+fun Behandling.mapToSkjemaV2(
+    erStrengtFortrolig: Boolean,
+    erFortrolig: Boolean,
+    erEgenAnsatt: Boolean
+): BehandlingSkjemaV2 {
     return BehandlingSkjemaV2(
         id = id.toString(),
         sakenGjelder = sakenGjelder.mapToSkjemaV2(),
@@ -105,6 +109,9 @@ fun Behandling.mapToSkjemaV2(): BehandlingSkjemaV2 {
         rolIdent = rolIdent,
         rolFlowStateId = rolFlowState.id,
         returnertFraROLTidspunkt = rolReturnedDate,
+        erFortrolig = erFortrolig,
+        erStrengtFortrolig = erStrengtFortrolig,
+        erEgenAnsatt = erEgenAnsatt,
     )
 }
 
@@ -136,6 +143,9 @@ data class BehandlingSkjemaV2(
     val feilregistrert: LocalDateTime?,
     val rolIdent: String?,
     val rolFlowStateId: String,
+    val erFortrolig: Boolean,
+    val erStrengtFortrolig: Boolean,
+    val erEgenAnsatt: Boolean,
 ) {
 
     data class Vedtak(

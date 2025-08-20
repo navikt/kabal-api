@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.service
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
 import no.nav.klage.oppgave.service.mapper.mapToSkjemaV2
@@ -16,6 +17,8 @@ import java.util.*
 @Service
 class BehandlingEndretKafkaProducer(
     private val aivenKafkaTemplate: KafkaTemplate<String, String>,
+    private val personService: PersonService,
+    private val egenAnsattService: EgenAnsattService,
 ) {
     @Value("\${BEHANDLING_ENDRET_TOPIC_V2}")
     lateinit var topicV2: String
@@ -31,8 +34,19 @@ class BehandlingEndretKafkaProducer(
 
     fun sendBehandlingEndret(behandling: Behandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
+        val personInfo = if (behandling.sakenGjelder.erPerson()) {
+            personService.getPersonInfo(fnr = behandling.sakenGjelder.partId.value)
+        } else null
 
-        val json = behandling.mapToSkjemaV2().toJson()
+        val erStrengtFortrolig = personInfo?.harBeskyttelsesbehovStrengtFortrolig() ?: false
+        val erFortrolig = personInfo?.harBeskyttelsesbehovFortrolig() ?: false
+        val erEgenAnsatt = personInfo?.let { egenAnsattService.erEgenAnsatt(foedselsnr = it.foedselsnr) } ?: false
+
+        val json = behandling.mapToSkjemaV2(
+            erStrengtFortrolig = erStrengtFortrolig,
+            erFortrolig = erFortrolig,
+            erEgenAnsatt = erEgenAnsatt
+        ).toJson()
 
         runCatching {
             val result = aivenKafkaTemplate.send(

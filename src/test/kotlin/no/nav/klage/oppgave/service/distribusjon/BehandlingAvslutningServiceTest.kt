@@ -164,6 +164,9 @@ internal class BehandlingAvslutningServiceTest {
     @MockkBean(relaxed = true)
     lateinit var kodeverkService: KodeverkService
 
+    @MockkBean(relaxed = true)
+    lateinit var behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer
+
     private val mottak = Mottak(
         ytelse = Ytelse.OMS_OMP,
         type = Type.KLAGE,

@@ -7,6 +7,7 @@ import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
+import no.nav.klage.oppgave.clients.pdl.PersonCacheService
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.TokenUtil
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import java.net.InetAddress
 import java.util.*
 
 @Profile("dev-gcp")
@@ -26,6 +28,7 @@ class DevOnlyAdminController(
     private val tokenUtil: TokenUtil,
     private val behandlingService: BehandlingService,
     private val klageFssProxyClient: KlageFssProxyClient,
+    private val personCacheService: PersonCacheService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -246,6 +249,26 @@ class DevOnlyAdminController(
             adminService.evictAllCaches()
         } catch (e: Exception) {
             logger.warn("Failed to evict all caches", e)
+            throw e
+        }
+    }
+
+    @Unprotected
+    @GetMapping(value = ["/cache/{fnr}", "/cache"], produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun getPersonFromCache(
+        @PathVariable(required = false, name = "fnr") fnr: String?
+    ): Pair<String?, Any> {
+        logger.debug("${::getPersonFromCache.name} is called")
+        try {
+            logger.info("Getting person from cache.")
+            return if (fnr.isNullOrBlank()) {
+                InetAddress.getLocalHost().hostName to personCacheService.getCache()
+            } else {
+                InetAddress.getLocalHost().hostName to personCacheService.getPerson(foedselsnr = fnr)
+            }
+        } catch (e: Exception) {
+            logger.warn("Failed to get from cache", e)
             throw e
         }
     }
