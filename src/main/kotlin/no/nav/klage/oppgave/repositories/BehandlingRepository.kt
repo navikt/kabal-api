@@ -38,6 +38,8 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
 
     fun findBySakenGjelderPartIdValueAndFeilregistreringIsNull(partIdValue: String): List<Behandling>
 
+    fun findBySakenGjelderPartIdValue(partIdValue: String): List<Behandling>
+
     fun findByFagsakId(fagsakId: String): List<Behandling>
 
     @EntityGraph("Behandling.commonProperties")
