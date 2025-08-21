@@ -196,13 +196,14 @@ class DuaAccessPolicy {
         FINISH,
     }
 
-    // 19 entries
+    // 20 entries
     private enum class Access {
         ALLOWED,
         NOT_ASSIGNED,
         NOT_ASSIGNED_OR_MU,
         NOT_ASSIGNED_OR_ROL,
         NOT_ASSIGNED_ROL,
+        NOT_SAKSBEHANDLER,
         ROL_REQUIRED,
         SENT_TO_MU,
         SENT_TO_ROL,
@@ -224,7 +225,7 @@ class DuaAccessPolicy {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
 
-        private var accessMap: Map<String, Access> = emptyMap()
+        private var accessMap: HashMap<String, Access> = hashMapOf()
 
         @JvmStatic
         fun initializeAccessMapFromCsv(resourcePath: String = "/dua/access_map.csv") {
@@ -232,7 +233,6 @@ class DuaAccessPolicy {
             val stream = DuaAccessPolicy::class.java.getResourceAsStream(resourcePath)
                 ?: throw IllegalStateException("Resource '$resourcePath' not found on classpath")
 
-            val map = mutableMapOf<String, Access>()
             stream.bufferedReader().use { br: BufferedReader ->
                 br.lineSequence()
                     .map { it.trim() }
@@ -241,14 +241,13 @@ class DuaAccessPolicy {
                         val cols = line.split(',').map { it.trim() }
                         require(cols.size == 2) { "Bad CSV line (expected 2 columns): $line" }
 
-                        map[cols[0]] = Access.valueOf(cols[1])
+                        accessMap[cols[0]] = Access.valueOf(cols[1])
                     }
             }
 
-            if (map.isEmpty()) {
+            if (accessMap.isEmpty()) {
                 throw IllegalStateException("Access map loaded from '$resourcePath' is empty")
             }
-            accessMap = map.toMap()
             logger.debug("DUA access map initialized with ${accessMap.size} entries from resource '$resourcePath' in ${System.currentTimeMillis() - start} ms")
         }
 
@@ -287,13 +286,14 @@ class DuaAccessPolicy {
 
             val error = errorMessageMap["$access:$action"] ?: throw RuntimeException("Handlingen er ikke mulig. Feilmelding mangler for \"$access:$action\". Kontakt Team Klage.")
 
-            // 19 cases
+            // 20 cases
             when (access) {
                 Access.ALLOWED -> throw RuntimeException(error)
                 Access.NOT_ASSIGNED -> throw MissingTilgangException(error)
                 Access.NOT_ASSIGNED_OR_MU -> throw MissingTilgangException(error)
                 Access.NOT_ASSIGNED_OR_ROL -> throw MissingTilgangException(error)
                 Access.NOT_ASSIGNED_ROL -> throw MissingTilgangException(error)
+                Access.NOT_SAKSBEHANDLER -> throw MissingTilgangException(error)
                 Access.ROL_REQUIRED -> throw MissingTilgangException(error)
                 Access.SENT_TO_MU -> throw MissingTilgangException(error)
                 Access.SENT_TO_ROL -> throw MissingTilgangException(error)
@@ -311,13 +311,14 @@ class DuaAccessPolicy {
             }
         }
 
-        // 114 entries
-        private val errorMessageMap = mapOf(
+        // 120 entries
+        private val errorMessageMap = hashMapOf(
             "ALLOWED:CREATE" to "Kan ikke opprette dokumentet. Teknisk feil. Kontakt Team Klage.",
             "NOT_ASSIGNED:CREATE" to "Kun tildelt saksbehandler kan opprette dokumentet.",
             "NOT_ASSIGNED_OR_MU:CREATE" to "Kun tildelt saksbehandler eller tilsendt medunderskriver kan opprette dokumentet.",
             "NOT_ASSIGNED_OR_ROL:CREATE" to "Kun tildelt saksbehandler eller tilsendt ROL kan opprette dokumentet.",
             "NOT_ASSIGNED_ROL:CREATE" to "Kun tilsendt ROL kan opprette dokumentet.",
+            "NOT_SAKSBEHANDLER:CREATE" to "Kun saksbehandlere kan opprette dokumentet.",
             "ROL_REQUIRED:CREATE" to "Kan ikke opprette dokumentet før ROL har returnert saken.",
             "SENT_TO_MU:CREATE" to "Kan ikke opprette dokumentet fordi saken er sendt til medunderskriver.",
             "SENT_TO_ROL:CREATE" to "Kan ikke opprette dokumentet fordi saken er sendt til ROL.",
@@ -337,6 +338,7 @@ class DuaAccessPolicy {
             "NOT_ASSIGNED_OR_MU:WRITE" to "Kun tildelt saksbehandler eller tilsendt medunderskriver kan skrive i innholdet i dokumentet.",
             "NOT_ASSIGNED_OR_ROL:WRITE" to "Kun tildelt saksbehandler eller tilsendt ROL kan skrive i innholdet i dokumentet.",
             "NOT_ASSIGNED_ROL:WRITE" to "Kun tilsendt ROL kan skrive i innholdet i dokumentet.",
+            "NOT_SAKSBEHANDLER:WRITE" to "Kun saksbehandlere kan skrive i innholdet i dokumentet.",
             "ROL_REQUIRED:WRITE" to "Kan ikke skrive i innholdet i dokumentet før ROL har returnert saken.",
             "SENT_TO_MU:WRITE" to "Kan ikke skrive i innholdet i dokumentet fordi saken er sendt til medunderskriver.",
             "SENT_TO_ROL:WRITE" to "Kan ikke skrive i innholdet i dokumentet fordi saken er sendt til ROL.",
@@ -356,6 +358,7 @@ class DuaAccessPolicy {
             "NOT_ASSIGNED_OR_MU:REMOVE" to "Kun tildelt saksbehandler eller tilsendt medunderskriver kan slette/fjerne dokumentet.",
             "NOT_ASSIGNED_OR_ROL:REMOVE" to "Kun tildelt saksbehandler eller tilsendt ROL kan slette/fjerne dokumentet.",
             "NOT_ASSIGNED_ROL:REMOVE" to "Kun tilsendt ROL kan slette/fjerne dokumentet.",
+            "NOT_SAKSBEHANDLER:REMOVE" to "Kun saksbehandlere kan slette/fjerne dokumentet.",
             "ROL_REQUIRED:REMOVE" to "Kan ikke slette/fjerne dokumentet før ROL har returnert saken.",
             "SENT_TO_MU:REMOVE" to "Kan ikke slette/fjerne dokumentet fordi saken er sendt til medunderskriver.",
             "SENT_TO_ROL:REMOVE" to "Kan ikke slette/fjerne dokumentet fordi saken er sendt til ROL.",
@@ -375,6 +378,7 @@ class DuaAccessPolicy {
             "NOT_ASSIGNED_OR_MU:CHANGE_TYPE" to "Kun tildelt saksbehandler eller tilsendt medunderskriver kan endre type på dokumentet.",
             "NOT_ASSIGNED_OR_ROL:CHANGE_TYPE" to "Kun tildelt saksbehandler eller tilsendt ROL kan endre type på dokumentet.",
             "NOT_ASSIGNED_ROL:CHANGE_TYPE" to "Kun tilsendt ROL kan endre type på dokumentet.",
+            "NOT_SAKSBEHANDLER:CHANGE_TYPE" to "Kun saksbehandlere kan endre type på dokumentet.",
             "ROL_REQUIRED:CHANGE_TYPE" to "Kan ikke endre type på dokumentet før ROL har returnert saken.",
             "SENT_TO_MU:CHANGE_TYPE" to "Kan ikke endre type på dokumentet fordi saken er sendt til medunderskriver.",
             "SENT_TO_ROL:CHANGE_TYPE" to "Kan ikke endre type på dokumentet fordi saken er sendt til ROL.",
@@ -394,6 +398,7 @@ class DuaAccessPolicy {
             "NOT_ASSIGNED_OR_MU:RENAME" to "Kun tildelt saksbehandler eller tilsendt medunderskriver kan endre navn på dokumentet.",
             "NOT_ASSIGNED_OR_ROL:RENAME" to "Kun tildelt saksbehandler eller tilsendt ROL kan endre navn på dokumentet.",
             "NOT_ASSIGNED_ROL:RENAME" to "Kun tilsendt ROL kan endre navn på dokumentet.",
+            "NOT_SAKSBEHANDLER:RENAME" to "Kun saksbehandlere kan endre navn på dokumentet.",
             "ROL_REQUIRED:RENAME" to "Kan ikke endre navn på dokumentet før ROL har returnert saken.",
             "SENT_TO_MU:RENAME" to "Kan ikke endre navn på dokumentet fordi saken er sendt til medunderskriver.",
             "SENT_TO_ROL:RENAME" to "Kan ikke endre navn på dokumentet fordi saken er sendt til ROL.",
@@ -413,6 +418,7 @@ class DuaAccessPolicy {
             "NOT_ASSIGNED_OR_MU:FINISH" to "Kun tildelt saksbehandler eller tilsendt medunderskriver kan arkivere / sende ut dokumentet.",
             "NOT_ASSIGNED_OR_ROL:FINISH" to "Kun tildelt saksbehandler eller tilsendt ROL kan arkivere / sende ut dokumentet.",
             "NOT_ASSIGNED_ROL:FINISH" to "Kun tilsendt ROL kan arkivere / sende ut dokumentet.",
+            "NOT_SAKSBEHANDLER:FINISH" to "Kun saksbehandlere kan arkivere / sende ut dokumentet.",
             "ROL_REQUIRED:FINISH" to "Kan ikke arkivere / sende ut dokumentet før ROL har returnert saken.",
             "SENT_TO_MU:FINISH" to "Kan ikke arkivere / sende ut dokumentet fordi saken er sendt til medunderskriver.",
             "SENT_TO_ROL:FINISH" to "Kan ikke arkivere / sende ut dokumentet fordi saken er sendt til ROL.",
