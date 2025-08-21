@@ -39,7 +39,7 @@ class DocumentPolicyService(
         }
 
         if (isSystemContext) {
-            // If the action is performed in a system context, we allow all actions ???
+            // If the action is performed in a system context, we allow all actions for now.
             return
         }
 
