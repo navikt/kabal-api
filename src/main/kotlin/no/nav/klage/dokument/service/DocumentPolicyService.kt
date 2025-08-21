@@ -239,22 +239,9 @@ class DuaAccessPolicy {
                     .filter { it.isNotEmpty() && !it.startsWith("#") }
                     .forEachIndexed { idx, line ->
                         val cols = line.split(',').map { it.trim() }
-                        if (idx == 0 && cols.firstOrNull()?.equals("User", ignoreCase = true) == true) {
-                            // header, skip and continue to next lines
-                            return@forEachIndexed
-                        }
-                        require(cols.size == 7) { "Bad CSV line (expected 7 columns): $line" }
+                        require(cols.size == 2) { "Bad CSV line (expected 2 columns): $line" }
 
-                        val user = User.valueOf(cols[0])
-                        val caseStatus = CaseStatus.valueOf(cols[1])
-                        val dokumentType = DokumentType.valueOf(cols[2])
-                        val parent = Parent.valueOf(cols[3])
-                        val creator = Creator.valueOf(cols[4])
-                        val action = Action.valueOf(cols[5])
-                        val access = Access.valueOf(cols[6])
-
-                        val key = "$user:$caseStatus:$dokumentType:$parent:$creator:$action"
-                        map[key] = access
+                        map[cols[0]] = Access.valueOf(cols[1])
                     }
             }
 
