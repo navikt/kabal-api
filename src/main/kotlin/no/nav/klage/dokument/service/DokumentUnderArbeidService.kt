@@ -1646,9 +1646,9 @@ class DokumentUnderArbeidService(
             vedleggList = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentId).toList()
         }
 
-        val parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentDocumentId)
-
+        //first vedlegg
         if (vedleggList.isNotEmpty()) {
+            val parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = dokumentId)
             vedleggList.forEach { vedlegg ->
                 val duration = measureTime {
                     documentPolicyService.validateDokumentUnderArbeidAction(
@@ -1672,7 +1672,7 @@ class DokumentUnderArbeidService(
             documentPolicyService.validateDokumentUnderArbeidAction(
                 behandling = behandling,
                 dokumentType = documentPolicyService.getDokumentType(duaId = dokumentId),
-                parentDokumentType = parentDokumentType,
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentDocumentId),
                 documentRole = document.creatorRole,
                 action = DuaAccessPolicy.Action.REMOVE,
                 duaMarkertFerdig = document.erMarkertFerdig(),
