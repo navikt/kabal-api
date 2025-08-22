@@ -12,8 +12,9 @@ import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
-import java.io.BufferedReader
 import java.util.*
+import java.util.Collections.unmodifiableMap
+import java.util.concurrent.atomic.AtomicBoolean
 
 @Service
 class DocumentPolicyService(
@@ -225,30 +226,35 @@ class DuaAccessPolicy {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
 
-        private var accessMap: HashMap<String, Access> = hashMapOf()
+        private lateinit var accessMap: Map<String, Access>
+        private val initialized = AtomicBoolean(false)
 
         @JvmStatic
         fun initializeAccessMapFromCsv(resourcePath: String = "/dua/access_map.csv") {
+            if (!initialized.compareAndSet(false, true)) {
+                logger.warn("DUA access map already initialized with ${accessMap.size} entries")
+                return
+            }
             val start = System.currentTimeMillis()
             val stream = DuaAccessPolicy::class.java.getResourceAsStream(resourcePath)
                 ?: throw IllegalStateException("Resource '$resourcePath' not found on classpath")
 
-            stream.bufferedReader().use { br: BufferedReader ->
-                br.lineSequence()
-                    .map { it.trim() }
-                    .filter { it.isNotEmpty() && !it.startsWith("#") }
-                    .forEachIndexed { idx, line ->
-                        val cols = line.split(',').map { it.trim() }
-                        require(cols.size == 2) { "Bad CSV line (expected 2 columns): $line" }
-
-                        accessMap[cols[0]] = Access.valueOf(cols[1])
-                    }
+            val newMap = HashMap<String, Access>(4096)
+            stream.bufferedReader().useLines { lines ->
+                lines.forEach { line ->
+                    val cols = line.split(',')
+                    require(cols.size == 2) { "Bad CSV line (expected 2 columns): $line" }
+                    newMap[cols[0]] = Access.valueOf(cols[1])
+                }
             }
+            check(newMap.isNotEmpty()) { "Access map loaded from '$resourcePath' is empty" }
 
-            if (accessMap.isEmpty()) {
-                throw IllegalStateException("Access map loaded from '$resourcePath' is empty")
-            }
-            logger.debug("DUA access map initialized with ${accessMap.size} entries from resource '$resourcePath' in ${System.currentTimeMillis() - start} ms")
+            // Atomic publication of an immutable view
+            accessMap = unmodifiableMap(newMap)
+
+            logger.debug(
+                "DUA access map initialized with ${newMap.size} entries from resource '$resourcePath' in ${System.currentTimeMillis() - start} ms"
+            )
         }
 
         fun throwDuaFinishedException() {
@@ -272,9 +278,7 @@ class DuaAccessPolicy {
             action: Action,
         ) {
             val key = "$user:$caseStatus:$documentType:$parent:$creator:$action"
-            val start = System.currentTimeMillis()
             val access = accessMap[key]
-            logger.debug("DUA access check for key '$key' took ${System.currentTimeMillis() - start} ms")
 
             if (access == Access.ALLOWED) {
                 return
@@ -284,7 +288,8 @@ class DuaAccessPolicy {
                 throw RuntimeException("Handlingen er ikke mulig. Det finnes ikke regel for \"$key\". Kontakt Team Klage.")
             }
 
-            val error = errorMessageMap["$access:$action"] ?: throw RuntimeException("Handlingen er ikke mulig. Feilmelding mangler for \"$access:$action\". Kontakt Team Klage.")
+            val error = errorMessageMap["$access:$action"]
+                ?: throw RuntimeException("Handlingen er ikke mulig. Feilmelding mangler for \"$access:$action\". Kontakt Team Klage.")
 
             // 20 cases
             when (access) {
