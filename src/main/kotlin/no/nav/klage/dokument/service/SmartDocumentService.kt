@@ -15,6 +15,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbe
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumentRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
+import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.service.BehandlingService
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.time.measureTime
 
 @Service
 @Transactional
@@ -40,6 +42,7 @@ class SmartDocumentService(
     private val behandlingService: BehandlingService,
     private val dokumentMapper: DokumentMapper,
     private val saksbehandlerService: SaksbehandlerService,
+    private val documentPolicyService: DocumentPolicyService,
 ) {
 
     companion object {
@@ -62,19 +65,28 @@ class SmartDocumentService(
 
         val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
 
-        val behandlingRole = dokumentUnderArbeidService.validateCanCreateDocumentsAndReturnBehandlingRole(
-            behandling = behandling,
-            innloggetIdent = innloggetIdent,
-            parentId = parentId,
-        )
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
+
+        val duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = when (smartEditorTemplateId) {
+                    "rol-questions" -> DuaAccessPolicy.DokumentType.ROL_QUESTIONS
+                    "rol-answers" -> DuaAccessPolicy.DokumentType.ROL_ANSWERS
+                    else -> DuaAccessPolicy.DokumentType.SMART_DOCUMENT
+                },
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = parentId),
+                documentRole = behandlingRole,
+                action = DuaAccessPolicy.Action.CREATE,
+                duaMarkertFerdig = false,
+            )
+        }
+        logger.debug("Validation for creating smart document took ${duration.inWholeMilliseconds} ms")
 
         val smartDocumentResponse =
             kabalSmartEditorApiGateway.createDocument(
                 json = input.content.toString(),
                 data = input.data,
-                dokumentType = dokumentType,
-                innloggetIdent = innloggetIdent,
-                documentTitle = tittel,
             )
 
         val now = LocalDateTime.now()
@@ -163,7 +175,10 @@ class SmartDocumentService(
                 readOnly = false
             )
 
-        dokumentUnderArbeidService.validateWriteAccessToDocument(dokumentId = dokumentId)
+        dokumentUnderArbeidService.validateWriteAccessToSmartDocument(
+            dokumentId = dokumentId,
+            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId),
+        )
 
         val updatedDocument = kabalSmartEditorApiGateway.updateDocument(
             smartDocumentId = smartDocumentId,
@@ -216,16 +231,6 @@ class SmartDocumentService(
         )
     }
 
-    fun getDocumentAccess(
-        behandlingId: UUID,
-        documentId: UUID,
-    ): DocumentAccessView {
-        return dokumentUnderArbeidService.getSmartdocumentAccess(
-            behandlingId = behandlingId,
-            dokumentId = documentId
-        )
-    }
-
     fun getSmartDocumentVersion(
         documentId: UUID,
         version: Int,
@@ -259,8 +264,12 @@ class SmartDocumentService(
         documentId: UUID,
         commentInput: CommentInput,
     ): CommentOutput {
-        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
+
+        dokumentUnderArbeidService.validateWriteAccessToSmartDocument(
+            dokumentId = documentId,
+            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
+        )
 
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
@@ -302,8 +311,13 @@ class SmartDocumentService(
         commentId: UUID,
         modifyCommentInput: ModifyCommentInput,
     ): CommentOutput {
-        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
+
+        dokumentUnderArbeidService.validateWriteAccessToSmartDocument(
+            dokumentId = documentId,
+            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
+        )
+
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =
@@ -359,8 +373,13 @@ class SmartDocumentService(
         commentId: UUID,
         commentInput: CommentInput,
     ): CommentOutput {
-        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
+
+        dokumentUnderArbeidService.validateWriteAccessToSmartDocument(
+            dokumentId = documentId,
+            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
+        )
+
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =
@@ -417,8 +436,13 @@ class SmartDocumentService(
         documentId: UUID,
         commentId: UUID,
     ) {
-        dokumentUnderArbeidService.validateWriteAccessToDocument(documentId)
         val document = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
+
+        dokumentUnderArbeidService.validateWriteAccessToSmartDocument(
+            dokumentId = documentId,
+            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(document.behandlingId),
+        )
+
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         val smartEditorId =

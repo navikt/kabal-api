@@ -449,7 +449,6 @@ class ForlengetBehandlingstidDraftService(
             dokumentUnderArbeidService.createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid(
                 behandling = behandling,
                 forlengetBehandlingstidDraft = behandling.forlengetBehandlingstidDraft!!,
-                systemContext = false,
             )
         } else {
             removeLetterValues(behandling)
