@@ -15,6 +15,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbe
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumentRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
+import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.service.BehandlingService

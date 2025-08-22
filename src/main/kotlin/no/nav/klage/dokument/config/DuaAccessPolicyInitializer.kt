@@ -1,6 +1,6 @@
 package no.nav.klage.dokument.config
 
-import no.nav.klage.dokument.service.DuaAccessPolicy
+import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner

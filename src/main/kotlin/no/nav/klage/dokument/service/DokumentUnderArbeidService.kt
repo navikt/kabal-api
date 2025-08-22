@@ -13,6 +13,7 @@ import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
+import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.PartIdType
