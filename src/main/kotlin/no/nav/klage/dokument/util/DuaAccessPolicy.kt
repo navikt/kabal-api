@@ -159,6 +159,8 @@ class DuaAccessPolicy {
             val error = errorMessageMap["$access:$action"]
                 ?: throw RuntimeException("Handlingen er ikke mulig. Feilmelding mangler for \"$access:$action\". Kontakt Team Klage.")
 
+            logger.debug("Access denied for key '$key': $error")
+
             // 20 cases
             when (access) {
                 Access.ALLOWED -> throw RuntimeException(error)
