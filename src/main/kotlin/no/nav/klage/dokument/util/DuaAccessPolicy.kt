@@ -4,7 +4,6 @@ import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.util.getLogger
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
 
 class DuaAccessPolicy {
     // 5 entries
@@ -93,11 +92,10 @@ class DuaAccessPolicy {
         private val logger = getLogger(javaClass.enclosingClass)
 
         private lateinit var accessMap: Map<String, Access>
-        private val initialized = AtomicBoolean(false)
+        private var accessMapInitialized = false
 
-        @JvmStatic
         fun initializeAccessMapFromCsv(resourcePath: String = "/dua/access_map.csv") {
-            if (!initialized.compareAndSet(false, true)) {
+            if (accessMapInitialized) {
                 logger.warn("DUA access map already initialized with ${accessMap.size} entries")
                 return
             }
@@ -119,6 +117,8 @@ class DuaAccessPolicy {
 
             // Atomic publication of an immutable view
             accessMap = Collections.unmodifiableMap(newMap)
+
+            accessMapInitialized = true
 
             logger.debug(
                 "DUA access map initialized with ${newMap.size} entries from resource '$resourcePath' in ${System.currentTimeMillis() - start} ms"
