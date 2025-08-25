@@ -56,12 +56,12 @@ class DocumentPolicyService(
         val caseStatus = when {
             behandling.ferdigstilling != null -> DuaAccessPolicy.CaseStatus.FULLFOERT
             behandling.tildeling == null -> DuaAccessPolicy.CaseStatus.LEDIG
-            behandling.medunderskriverFlowState != FlowState.SENT && behandling.rolFlowState != FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_SAKSBEHANDLER
-            behandling.medunderskriverFlowState == FlowState.SENT && behandling.tildeling != null && behandling.rolFlowState == FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_MU_AND_ROL
-            behandling.medunderskriverFlowState == FlowState.SENT && behandling.tildeling != null && behandling.rolFlowState == FlowState.RETURNED -> DuaAccessPolicy.CaseStatus.WITH_MU_AND_RETURNED_FROM_ROL
+            behandling.medunderskriverFlowState == FlowState.SENT && behandling.rolFlowState == FlowState.RETURNED -> DuaAccessPolicy.CaseStatus.WITH_MU_AND_RETURNED_FROM_ROL
             behandling.rolFlowState == FlowState.RETURNED -> DuaAccessPolicy.CaseStatus.RETURNED_FROM_ROL
+            behandling.medunderskriverFlowState == FlowState.SENT && behandling.rolFlowState == FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_MU_AND_ROL
             behandling.medunderskriverFlowState == FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_MU
             behandling.rolFlowState == FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_ROL
+            behandling.medunderskriverFlowState != FlowState.SENT && behandling.rolFlowState != FlowState.SENT -> DuaAccessPolicy.CaseStatus.WITH_SAKSBEHANDLER
             else -> throw DokumentValidationException("Ukjent case status for behandling med id ${behandling.id}")
         }
 
