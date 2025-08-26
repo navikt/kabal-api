@@ -23,6 +23,7 @@ inboundApplications:
   - application: kabin-api
   - application: kabin
   - application: mine-klager
+  - application: kaptein
   - application: k9-klage
     namespace: k9saksbehandling
     cluster: dev-fss
