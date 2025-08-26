@@ -46,6 +46,48 @@ class KapteinService(
     }
 
     private fun mapKlagebehandlingToAnonymousBehandlingView(behandling: Klagebehandling): AnonymousBehandlingView {
-        TODO("Not yet implemented")
+        return AnonymousBehandlingView(
+            id = behandling.id,
+            fraNAVEnhet = behandling.avsenderEnhetFoersteinstans,
+            mottattVedtaksinstans = behandling.mottattVedtaksinstans,
+            temaId = behandling.ytelse.toTema().id,
+            ytelseId = behandling.ytelse.id,
+            typeId = behandling.type.id,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
+            frist = behandling.frist,
+            datoSendtMedunderskriver = behandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = behandling.hjemler.map { it.id },
+            modified = behandling.modified,
+            created = behandling.created,
+            resultat = behandling.mapToVedtakView(),
+            sattPaaVent = behandling.sattPaaVent,
+            feilregistrering = behandling.feilregistrering.toView(),
+            fagsystemId = behandling.fagsystem.id,
+            varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
+            tilbakekreving = behandling.tilbakekreving,
+            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
+        )
+
+    }
+
+    private fun Behandling.mapToVedtakView(): AnonymousBehandlingView.VedtakView {
+        return AnonymousBehandlingView.VedtakView(
+            id = id,
+            utfallId = utfall?.id,
+            extraUtfallIdSet = extraUtfallSet.map { it.id }.toSet(),
+            hjemmelIdSet = registreringshjemler.map { it.id }.toSet(),
+        )
+    }
+
+    private fun Feilregistrering?.toView(): AnonymousBehandlingView.FeilregistreringView? {
+        return this?.let {
+            AnonymousBehandlingView.FeilregistreringView(
+                registered = it.registered,
+                reason = it.reason,
+                fagsystemId = it.fagsystem.id
+            )
+        }
     }
 }
