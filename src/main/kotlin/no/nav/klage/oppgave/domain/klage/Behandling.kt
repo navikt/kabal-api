@@ -313,7 +313,7 @@ sealed class Behandling(
         }
     }
 
-    fun toAgeInDays() = ChronoUnit.DAYS.between(this.mottattKlageinstans, LocalDate.now()).toInt()
+    fun toAgeInDays() = ChronoUnit.DAYS.between(this.mottattKlageinstans.toLocalDate(), LocalDate.now()).toInt()
 }
 
 enum class BehandlingRole {
