@@ -162,11 +162,20 @@ class AdminService(
 
         //delete mottak also
         val behandling = behandlingRepository.findById(behandlingId).get()
-        val mottakId = if (behandling is Klagebehandling) {
-            behandling.mottakId
-        } else if (behandling is Ankebehandling && behandling.mottakId != null) {
-            behandling.mottakId
-        } else null
+        val mottakId = when (behandling) {
+            is Klagebehandling -> {
+                behandling.mottakId
+            }
+
+            is Ankebehandling -> {
+                behandling.mottakId
+            }
+
+            is Omgjoeringskravbehandling ->
+                behandling.mottakId
+
+            else -> null
+        }
 
         behandlingRepository.deleteById(behandlingId)
 
