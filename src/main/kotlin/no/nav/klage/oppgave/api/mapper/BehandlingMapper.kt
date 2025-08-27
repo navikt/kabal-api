@@ -16,8 +16,6 @@ import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
 import java.util.*
 
 @Service
@@ -846,7 +844,7 @@ class BehandlingMapper(
             avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
             isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
             tildeltSaksbehandlerident = behandling.tildeling?.saksbehandlerident,
-            ageKA = behandling.mottattKlageinstans.toAgeInDays(),
+            ageKA = behandling.toAgeInDays(),
             sattPaaVent = behandling.toSattPaaVent(),
             feilregistrert = behandling.feilregistrering?.registered,
             fagsystemId = behandling.fagsystem.id,
@@ -859,8 +857,6 @@ class BehandlingMapper(
             timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
         )
     }
-
-    private fun LocalDateTime.toAgeInDays() = ChronoUnit.DAYS.between(this.toLocalDate(), LocalDate.now()).toInt()
 
     private fun Behandling.toSattPaaVent(): OppgaveView.SattPaaVent? {
         return if (sattPaaVent != null) {

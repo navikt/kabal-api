@@ -1,4 +1,4 @@
-package no.nav.klage.kaptein.api
+package no.nav.klage.kaptein.api.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kaptein.api.view.AnonymousBehandlingListView

@@ -30,19 +30,119 @@ class KapteinService(
     }
 
     private fun mapOmgjoeringskravbehandlingToAnonymousBehandlingView(behandling: Omgjoeringskravbehandling): AnonymousBehandlingView {
-        TODO("Not yet implemented")
+        return AnonymousBehandlingView(
+            id = behandling.id,
+            fraNAVEnhet = null,
+            mottattVedtaksinstans = null,
+            temaId = behandling.ytelse.toTema().id,
+            ytelseId = behandling.ytelse.id,
+            typeId = behandling.type.id,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
+            frist = behandling.frist,
+            ageKA = behandling.toAgeInDays(),
+            datoSendtMedunderskriver = behandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = behandling.hjemler.map { it.id },
+            modified = behandling.modified,
+            created = behandling.created,
+            resultat = behandling.mapToVedtakView(),
+            sattPaaVent = behandling.sattPaaVent,
+            feilregistrering = behandling.feilregistrering.toView(),
+            fagsystemId = behandling.fagsystem.id,
+            varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
+            tilbakekreving = behandling.tilbakekreving,
+            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
+            sendtTilTrygderetten = null,
+            kjennelseMottatt = null,
+        )
     }
 
     private fun mapBehandlingEtterTROpphevetToAnonymousBehandlingView(behandling: BehandlingEtterTrygderettenOpphevet): AnonymousBehandlingView {
-        TODO("Not yet implemented")
+        return AnonymousBehandlingView(
+            id = behandling.id,
+            fraNAVEnhet = null,
+            mottattVedtaksinstans = null,
+            temaId = behandling.ytelse.toTema().id,
+            ytelseId = behandling.ytelse.id,
+            typeId = behandling.type.id,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
+            frist = behandling.frist,
+            ageKA = behandling.toAgeInDays(),
+            datoSendtMedunderskriver = behandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = behandling.hjemler.map { it.id },
+            modified = behandling.modified,
+            created = behandling.created,
+            resultat = behandling.mapToVedtakView(),
+            sattPaaVent = behandling.sattPaaVent,
+            feilregistrering = behandling.feilregistrering.toView(),
+            fagsystemId = behandling.fagsystem.id,
+            varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
+            tilbakekreving = behandling.tilbakekreving,
+            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
+            sendtTilTrygderetten = null,
+            kjennelseMottatt = behandling.kjennelseMottatt,
+        )
     }
 
     private fun mapAnkebehandlingToAnonymousBehandlingView(behandling: Ankebehandling): AnonymousBehandlingView {
-        TODO("Not yet implemented")
+        return AnonymousBehandlingView(
+            id = behandling.id,
+            fraNAVEnhet = null,
+            mottattVedtaksinstans = null,
+            temaId = behandling.ytelse.toTema().id,
+            ytelseId = behandling.ytelse.id,
+            typeId = behandling.type.id,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
+            frist = behandling.frist,
+            ageKA = behandling.toAgeInDays(),
+            datoSendtMedunderskriver = behandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = behandling.hjemler.map { it.id },
+            modified = behandling.modified,
+            created = behandling.created,
+            resultat = behandling.mapToVedtakView(),
+            sattPaaVent = behandling.sattPaaVent,
+            feilregistrering = behandling.feilregistrering.toView(),
+            fagsystemId = behandling.fagsystem.id,
+            varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
+            tilbakekreving = behandling.tilbakekreving,
+            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
+            sendtTilTrygderetten = null,
+            kjennelseMottatt = null,
+        )
     }
 
     private fun mapAnkeITrygderettenbehandlingToAnonymousBehandlingView(behandling: AnkeITrygderettenbehandling): AnonymousBehandlingView {
-        TODO("Not yet implemented")
+        return AnonymousBehandlingView(
+            id = behandling.id,
+            fraNAVEnhet = null,
+            mottattVedtaksinstans = null,
+            temaId = behandling.ytelse.toTema().id,
+            ytelseId = behandling.ytelse.id,
+            typeId = behandling.type.id,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
+            frist = behandling.frist,
+            ageKA = behandling.toAgeInDays(),
+            datoSendtMedunderskriver = behandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = behandling.hjemler.map { it.id },
+            modified = behandling.modified,
+            created = behandling.created,
+            resultat = behandling.mapToVedtakView(),
+            sattPaaVent = behandling.sattPaaVent,
+            feilregistrering = behandling.feilregistrering.toView(),
+            fagsystemId = behandling.fagsystem.id,
+            varsletFrist = null,
+            tilbakekreving = behandling.tilbakekreving,
+            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
+            sendtTilTrygderetten = behandling.sendtTilTrygderetten,
+            kjennelseMottatt = behandling.kjennelseMottatt,
+        )
     }
 
     private fun mapKlagebehandlingToAnonymousBehandlingView(behandling: Klagebehandling): AnonymousBehandlingView {
@@ -57,6 +157,7 @@ class KapteinService(
             avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
             isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
             frist = behandling.frist,
+            ageKA = behandling.toAgeInDays(),
             datoSendtMedunderskriver = behandling.medunderskriver?.tidspunkt?.toLocalDate(),
             hjemmelIdList = behandling.hjemler.map { it.id },
             modified = behandling.modified,
@@ -68,8 +169,9 @@ class KapteinService(
             varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
             tilbakekreving = behandling.tilbakekreving,
             timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
+            sendtTilTrygderetten = null,
+            kjennelseMottatt = null,
         )
-
     }
 
     private fun Behandling.mapToVedtakView(): AnonymousBehandlingView.VedtakView {
