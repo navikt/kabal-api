@@ -15,6 +15,7 @@ import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 @Entity
@@ -311,6 +312,8 @@ sealed class Behandling(
                 UUID.randomUUID()
         }
     }
+
+    fun toAgeInDays() = ChronoUnit.DAYS.between(this.mottattKlageinstans.toLocalDate(), LocalDate.now()).toInt()
 }
 
 enum class BehandlingRole {
