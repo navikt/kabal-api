@@ -114,9 +114,7 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.FORBIDDEN, ex)
 
     @ExceptionHandler
-    fun handleResponseStatusException(
-        ex: WebClientResponseException,
-    ): ProblemDetail =
+    fun handleResponseStatusException(ex: WebClientResponseException): ResponseEntity<Any> =
         createProblemForWebClientResponseException(ex)
 
     @ExceptionHandler
@@ -218,17 +216,29 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         }
     }
 
-    private fun createProblemForWebClientResponseException(ex: WebClientResponseException): ProblemDetail {
+    private fun createProblemForWebClientResponseException(ex: WebClientResponseException): ResponseEntity<Any> {
         logError(
             httpStatus = HttpStatus.valueOf(ex.statusCode.value()),
             errorMessage = ex.statusText,
             exception = ex
         )
 
-        return ProblemDetail.forStatus(ex.statusCode).apply {
+        val contentType = ex.headers.contentType
+        if (contentType != null && MediaType.APPLICATION_PROBLEM_JSON.isCompatibleWith(contentType)) {
+            // Pass through as-is when upstream already returned problem+json
+            val body = ex.responseBodyAsByteArray
+            return ResponseEntity.status(ex.statusCode).contentType(contentType).body(body)
+        }
+
+        // Fallback: wrap into a ProblemDetail
+        val problemDetail = ProblemDetail.forStatus(ex.statusCode).apply {
             title = ex.statusText
             detail = ex.responseBodyAsString
         }
+        return ResponseEntity
+            .status(ex.statusCode)
+            .contentType(MediaType.APPLICATION_PROBLEM_JSON)
+            .body(problemDetail)
     }
 
     private fun createSectionedValidationProblem(ex: SectionedValidationErrorWithDetailsException): ProblemDetail {
