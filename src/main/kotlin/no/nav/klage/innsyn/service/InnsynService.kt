@@ -294,5 +294,6 @@ fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
         Ytelse.BIL_BIL -> Innsendingsytelse.BILSTONAD
         Ytelse.HEL_HEL -> Innsendingsytelse.HJELPEMIDLER_ORTOPEDISKE
         Ytelse.FOS_FOS -> Innsendingsytelse.FORSIKRING
+        Ytelse.PAR_PAR -> null //no matching innsendingsytelse/tema
     }
 }
