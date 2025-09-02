@@ -13,11 +13,11 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.embedded.MottakerNavn
+import no.nav.klage.oppgave.domain.behandling.embedded.MottakerPartId
 import no.nav.klage.oppgave.domain.events.AutomaticSvarbrevEvent
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.MottakerNavn
-import no.nav.klage.oppgave.domain.klage.MottakerPartId
-import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
+import no.nav.klage.oppgave.domain.svarbrevsettings.SvarbrevSettings
 import no.nav.klage.oppgave.repositories.AutomaticSvarbrevEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator

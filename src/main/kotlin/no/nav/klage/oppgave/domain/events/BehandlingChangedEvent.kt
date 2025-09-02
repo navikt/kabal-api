@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.domain.events
 
-import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.util.getLogger
 import java.util.*
 

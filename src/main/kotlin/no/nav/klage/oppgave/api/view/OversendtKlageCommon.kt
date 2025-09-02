@@ -3,7 +3,12 @@ package no.nav.klage.oppgave.api.view
 import io.swagger.v3.oas.annotations.media.Schema
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.mottak.MottakDokument
+import no.nav.klage.oppgave.domain.mottak.MottakDokumentType
 import java.util.*
 
 data class OversendtSakenGjelder(
@@ -57,7 +62,7 @@ data class OversendtProsessfullmektigLegacy(
         partId = id.toPartId(),
         address = null,
         navn = null,
-        )
+    )
 }
 
 data class OversendtPartId(

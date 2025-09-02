@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.api.view.TaskListMerkantilView
-import no.nav.klage.oppgave.domain.klage.TaskListMerkantil
+import no.nav.klage.oppgave.domain.TaskListMerkantil
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.TaskListMerkantilRepository
 import org.springframework.stereotype.Service

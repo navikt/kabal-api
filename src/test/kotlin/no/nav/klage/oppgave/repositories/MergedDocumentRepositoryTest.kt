@@ -2,8 +2,8 @@ package no.nav.klage.oppgave.repositories
 
 import com.ninjasquad.springmockk.MockkBean
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.klage.DocumentToMerge
-import no.nav.klage.oppgave.domain.klage.MergedDocument
+import no.nav.klage.oppgave.domain.document.DocumentToMerge
+import no.nav.klage.oppgave.domain.document.MergedDocument
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

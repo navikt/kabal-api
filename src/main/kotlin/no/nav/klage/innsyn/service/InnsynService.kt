@@ -6,7 +6,7 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.innsendingsytelse.Innsendingsytelse
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import org.springframework.stereotype.Service
 import java.nio.file.Path

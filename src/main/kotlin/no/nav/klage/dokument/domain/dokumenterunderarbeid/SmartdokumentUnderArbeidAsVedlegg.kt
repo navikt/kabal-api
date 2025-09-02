@@ -2,7 +2,7 @@ package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
 import jakarta.persistence.*
 import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
 import java.util.*

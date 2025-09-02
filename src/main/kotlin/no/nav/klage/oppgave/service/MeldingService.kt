@@ -5,11 +5,11 @@ import jakarta.persistence.EntityNotFoundException
 import no.nav.klage.oppgave.api.mapper.MeldingMapper
 import no.nav.klage.oppgave.api.view.MeldingModified
 import no.nav.klage.oppgave.api.view.MeldingView
+import no.nav.klage.oppgave.domain.behandling.subentities.Melding
 import no.nav.klage.oppgave.domain.kafka.Employee
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.domain.kafka.MeldingEvent
-import no.nav.klage.oppgave.domain.klage.Melding
 import no.nav.klage.oppgave.exceptions.MeldingNotFoundException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
