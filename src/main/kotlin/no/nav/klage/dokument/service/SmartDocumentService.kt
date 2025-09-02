@@ -527,7 +527,8 @@ class SmartDocumentService(
             azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
         val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
 
-        logger.debug("Found {} saksbehandlere and {} ROL users in AD groups",
+        logger.debug(
+            "Found {} saksbehandlere and {} ROL users in AD groups",
             saksbehandlerIdentList.size,
             rolIdentList.size,
         )
@@ -554,17 +555,21 @@ class SmartDocumentService(
                 val behandling = behandlingCache.getOrPut(dua.behandlingId) {
                     behandlingService.getBehandlingForReadWithoutCheckForAccess(dua.behandlingId)
                 }
-                documentPolicyService.validateDokumentUnderArbeidAction(
-                    behandling = behandling,
-                    dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
-                    parentDokumentType = DuaAccessPolicy.Parent.NONE,
-                    documentRole = dua.creatorRole,
-                    action = DuaAccessPolicy.Action.WRITE,
-                    duaMarkertFerdig = false,
-                    isSystemContext = false, //to force actual validation
-                    saksbehandler = navIdent,
-                )
-                documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
+                try {
+                    documentPolicyService.validateDokumentUnderArbeidAction(
+                        behandling = behandling,
+                        dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+                        parentDokumentType = DuaAccessPolicy.Parent.NONE,
+                        documentRole = dua.creatorRole,
+                        action = DuaAccessPolicy.Action.WRITE,
+                        duaMarkertFerdig = false,
+                        isSystemContext = false, //to force actual validation
+                        saksbehandler = navIdent,
+                    )
+                    documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
+                } catch (e: Exception) {
+                    // Ignore, user does not have access
+                }
             }
 
             vedlegg.forEach { dua ->
@@ -595,6 +600,46 @@ class SmartDocumentService(
                     navIdents = navIdents.joinToString(","),
                 )
             }
+        )
+    }
+
+    fun getSmartDocumentWriteAccess(documentId: UUID): SmartDocumentWriteAccess {
+        val saksbehandlerIdentList =
+            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
+        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
+
+        logger.debug(
+            "Found {} saksbehandlere and {} ROL users in AD groups",
+            saksbehandlerIdentList.size,
+            rolIdentList.size,
+        )
+
+        val smartDocument = dokumentUnderArbeidService.getDokumentUnderArbeid(documentId)
+
+        val navIdentsWithAccess = mutableSetOf<String>()
+
+        val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(smartDocument.behandlingId)
+
+        (saksbehandlerIdentList + rolIdentList).forEach { navIdent ->
+            try {
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+                    parentDokumentType = documentPolicyService.getParentDokumentType(smartDocument.id),
+                    documentRole = smartDocument.creatorRole,
+                    action = DuaAccessPolicy.Action.WRITE,
+                    duaMarkertFerdig = false,
+                    isSystemContext = false, //to force actual validation
+                    saksbehandler = navIdent,
+                )
+                navIdentsWithAccess += navIdent
+            } catch (e: Exception) {
+                // Ignore, user does not have access
+            }
+        }
+        return SmartDocumentWriteAccess(
+            documentId = documentId,
+            navIdents = navIdentsWithAccess.joinToString(","),
         )
     }
 }
