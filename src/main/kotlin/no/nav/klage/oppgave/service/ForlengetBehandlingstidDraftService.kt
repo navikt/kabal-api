@@ -9,7 +9,13 @@ import no.nav.klage.dokument.service.KabalJsonToPdfService
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.oppgave.api.view.*
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
+import no.nav.klage.oppgave.domain.behandling.embedded.MottakerNavn
+import no.nav.klage.oppgave.domain.behandling.embedded.MottakerPartId
+import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
+import no.nav.klage.oppgave.domain.behandling.historikk.VarsletBehandlingstidHistorikk
+import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.oppgave.exceptions.ValidationSection

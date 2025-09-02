@@ -7,8 +7,8 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.dokument.util.DuaAccessPolicy.Creator
 import no.nav.klage.kodeverk.FlowState
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import org.springframework.stereotype.Service

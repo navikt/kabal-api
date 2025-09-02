@@ -23,7 +23,12 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository

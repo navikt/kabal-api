@@ -6,7 +6,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse.Variant
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
-import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*

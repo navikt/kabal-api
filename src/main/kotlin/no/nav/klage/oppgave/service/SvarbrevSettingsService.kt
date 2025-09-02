@@ -7,8 +7,8 @@ import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.api.view.SvarbrevSettingsConsumerView
 import no.nav.klage.oppgave.api.view.SvarbrevSettingsView
 import no.nav.klage.oppgave.api.view.UpdateSvarbrevSettingsInput
-import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
-import no.nav.klage.oppgave.domain.klage.SvarbrevSettingsHistory
+import no.nav.klage.oppgave.domain.svarbrevsettings.SvarbrevSettings
+import no.nav.klage.oppgave.domain.svarbrevsettings.SvarbrevSettingsHistory
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.exceptions.ValidationException
 import no.nav.klage.oppgave.repositories.SvarbrevSettingsRepository

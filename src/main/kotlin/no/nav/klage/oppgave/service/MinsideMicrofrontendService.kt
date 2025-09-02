@@ -1,11 +1,11 @@
 package no.nav.klage.oppgave.service
 
 
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.KafkaEvent
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
-import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger

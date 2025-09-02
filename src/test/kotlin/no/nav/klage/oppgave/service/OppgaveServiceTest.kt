@@ -14,7 +14,9 @@ import no.nav.klage.oppgave.api.view.MineFerdigstilteOppgaverQueryParams
 import no.nav.klage.oppgave.api.view.Rekkefoelge
 import no.nav.klage.oppgave.api.view.Sortering
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.*
+import no.nav.klage.oppgave.domain.behandling.embedded.*
+import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
@@ -424,8 +426,8 @@ class OppgaveServiceTest {
 
         behandlingRepository.saveAll(listOf(klagebehandling1, klagebehandling2, klagebehandling3))
 
-        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR) } returns Access(true, "Test")
-        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR2) } returns Access(
+        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR) } returns TilgangService.Access(true, "Test")
+        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR2) } returns TilgangService.Access(
             access = false,
             reason = "Ikke tilgang"
         )
@@ -537,7 +539,8 @@ class OppgaveServiceTest {
                 Ankebehandling(
                     klager = Klager(
                         id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = fnr)),
+                        partId = PartId(type = PartIdType.PERSON, value = fnr)
+                    ),
                     sakenGjelder = SakenGjelder(
                         id = UUID.randomUUID(),
                         partId = PartId(type = PartIdType.PERSON, value = fnr),

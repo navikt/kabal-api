@@ -6,10 +6,10 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.Behandling_
-import no.nav.klage.oppgave.domain.klage.Ferdigstilling_
-import no.nav.klage.oppgave.domain.klage.Tildeling_
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.Behandling_
+import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling_
+import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling_
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.data.domain.Sort

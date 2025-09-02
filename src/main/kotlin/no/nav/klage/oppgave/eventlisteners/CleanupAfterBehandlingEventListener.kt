@@ -7,9 +7,9 @@ import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
+import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger

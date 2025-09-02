@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.oppgave.domain.klage.KLAGEENHET_PREFIX
+import no.nav.klage.oppgave.domain.behandling.KLAGEENHET_PREFIX
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

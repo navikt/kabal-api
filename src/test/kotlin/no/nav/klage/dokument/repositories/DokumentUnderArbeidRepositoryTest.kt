@@ -6,7 +6,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnder
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsVedlegg
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.klage.BehandlingRole.KABAL_SAKSBEHANDLING
+import no.nav.klage.oppgave.domain.behandling.BehandlingRole.KABAL_SAKSBEHANDLING
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

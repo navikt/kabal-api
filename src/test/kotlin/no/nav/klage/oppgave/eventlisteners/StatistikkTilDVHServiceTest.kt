@@ -5,8 +5,13 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
-import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.StatistikkTilDVHService
 import org.junit.jupiter.api.Assertions.assertFalse

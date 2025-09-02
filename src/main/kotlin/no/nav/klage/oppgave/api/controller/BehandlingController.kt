@@ -10,7 +10,7 @@ import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
-import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger

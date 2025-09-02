@@ -2,12 +2,12 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnJournalpost
+import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnKabalBehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.Mottak
-import no.nav.klage.oppgave.domain.klage.OmgjoeringskravbehandlingBasedOnJournalpost
-import no.nav.klage.oppgave.domain.klage.OmgjoeringskravbehandlingBasedOnKabalBehandling
+import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.OmgjoeringskravbehandlingRepository
 import no.nav.klage.oppgave.util.getLogger

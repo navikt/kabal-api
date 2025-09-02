@@ -2,7 +2,10 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.api.view.*
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
+import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
+import no.nav.klage.oppgave.domain.behandling.historikk.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime

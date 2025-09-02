@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.db
 
 import com.ninjasquad.springmockk.MockkBean
-import no.nav.klage.oppgave.domain.klage.Saksdokument
+import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

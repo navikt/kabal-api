@@ -7,7 +7,12 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.subentities.Melding
+import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

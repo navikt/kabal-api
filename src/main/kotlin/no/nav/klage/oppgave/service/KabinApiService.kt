@@ -9,7 +9,13 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.MottakerNavn
+import no.nav.klage.oppgave.domain.behandling.embedded.MottakerPartId
+import no.nav.klage.oppgave.domain.mottak.MottakDokumentType
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

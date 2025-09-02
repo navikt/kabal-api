@@ -5,7 +5,7 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.klage.SvarbrevSettings
+import no.nav.klage.oppgave.domain.svarbrevsettings.SvarbrevSettings
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

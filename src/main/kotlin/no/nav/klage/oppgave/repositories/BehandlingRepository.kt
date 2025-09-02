@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.repositories
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
-import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
