@@ -8,5 +8,5 @@ data class SmartDocumentsWriteAccessList(
 
 data class SmartDocumentWriteAccess(
     val documentId: UUID,
-    val navIdents: String,
+    val navIdents: List<String>,
 )

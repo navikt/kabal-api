@@ -597,7 +597,7 @@ class SmartDocumentService(
             smartDocumentWriteAccessList = documentIdToNavIdents.map { (documentId, navIdents) ->
                 SmartDocumentWriteAccess(
                     documentId = documentId,
-                    navIdents = navIdents.joinToString(","),
+                    navIdents = navIdents.toList(),
                 )
             }
         )
@@ -639,7 +639,7 @@ class SmartDocumentService(
         }
         return SmartDocumentWriteAccess(
             documentId = documentId,
-            navIdents = navIdentsWithAccess.joinToString(","),
+            navIdents = navIdentsWithAccess.toList(),
         )
     }
 }
