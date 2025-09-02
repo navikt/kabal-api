@@ -8,7 +8,14 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -171,7 +178,8 @@ class KlagebehandlingRepositoryTest {
             sourceBehandlingId = klageWithAnke.id,
             klager = Klager(
                 id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+                partId = PartId(type = PartIdType.PERSON, value = "23452354")
+            ),
             sakenGjelder = SakenGjelder(
                 id = UUID.randomUUID(),
                 partId = PartId(type = PartIdType.PERSON, value = "23452354"),
@@ -237,7 +245,8 @@ class KlagebehandlingRepositoryTest {
     ): Klagebehandling = Klagebehandling(
         klager = Klager(
             id = UUID.randomUUID(),
-            partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+            partId = PartId(type = PartIdType.PERSON, value = "23452354")
+        ),
         sakenGjelder = SakenGjelder(
             id = UUID.randomUUID(),
             partId = PartId(type = PartIdType.PERSON, value = "23452354"),

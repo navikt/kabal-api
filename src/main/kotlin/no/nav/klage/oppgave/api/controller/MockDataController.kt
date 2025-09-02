@@ -9,8 +9,12 @@ import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.saf.SafFacade
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.utfallToTrygderetten
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.mottak.MottakDokumentType
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.ExternalMottakFacade
 import no.nav.klage.oppgave.util.getLogger

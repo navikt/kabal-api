@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.api.view.kabin
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.TimeUnitType
-import no.nav.klage.oppgave.domain.klage.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import java.time.LocalDate
 import java.util.*
 

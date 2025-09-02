@@ -5,7 +5,7 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.kabalinnstillinger.KabalInnstillingerClient
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.*
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
-import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service

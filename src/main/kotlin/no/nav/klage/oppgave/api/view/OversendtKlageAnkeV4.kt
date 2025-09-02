@@ -5,7 +5,11 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.mottak.Mottak
+import no.nav.klage.oppgave.domain.mottak.MottakHjemmel
 import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException
 import java.time.LocalDate
 import java.time.LocalDateTime

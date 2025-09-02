@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.api.view
 
 import no.nav.klage.kodeverk.FlowState
-import no.nav.klage.oppgave.domain.klage.SattPaaVent
+import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*

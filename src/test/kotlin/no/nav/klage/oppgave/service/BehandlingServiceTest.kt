@@ -22,8 +22,14 @@ import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.domain.klage.BehandlingRole.KABAL_SAKSBEHANDLING
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingRole.KABAL_SAKSBEHANDLING
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.BehandlingFinalizedException
 import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
@@ -154,7 +160,7 @@ class BehandlingServiceTest {
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
         every { tilgangService.verifyInnloggetSaksbehandlersTilgangTil(any()) } returns Unit
-        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(any()) } returns Access(true, "")
+        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(any()) } returns TilgangService.Access(true, "")
         every { saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(any()) } returns false
         every { behandlingMapper.mapToMedunderskriverWrapped(any()) } returns MedunderskriverWrapped(
             employee = null,

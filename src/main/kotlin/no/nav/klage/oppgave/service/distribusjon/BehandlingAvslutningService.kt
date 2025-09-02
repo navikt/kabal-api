@@ -9,10 +9,10 @@ import no.nav.klage.kodeverk.*
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
+import no.nav.klage.oppgave.domain.behandling.*
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setAvsluttet
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.kafka.BehandlingEventType.*
-import no.nav.klage.oppgave.domain.klage.*
-import no.nav.klage.oppgave.domain.klage.BehandlingSetters.setAvsluttet
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.*

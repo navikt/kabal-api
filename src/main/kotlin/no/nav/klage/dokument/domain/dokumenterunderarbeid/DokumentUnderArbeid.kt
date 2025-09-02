@@ -1,7 +1,7 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
 import jakarta.persistence.*
-import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.Hibernate
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.DynamicUpdate

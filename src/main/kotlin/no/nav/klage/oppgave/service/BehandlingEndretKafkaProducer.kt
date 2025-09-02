@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
-import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
 import no.nav.klage.oppgave.service.mapper.mapToSkjemaV2
 import no.nav.klage.oppgave.util.getLogger

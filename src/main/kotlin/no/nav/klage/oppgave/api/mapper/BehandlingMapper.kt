@@ -9,7 +9,10 @@ import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Enhet
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.*
+import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.getLogger

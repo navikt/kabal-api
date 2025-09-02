@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.repositories
 
-import no.nav.klage.oppgave.domain.klage.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.*

@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.util
 
 import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.oppgave.domain.klage.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.exceptions.ValidationException
 
 fun isValidFnrOrDnr(fnr: String): Boolean {

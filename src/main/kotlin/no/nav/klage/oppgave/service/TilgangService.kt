@@ -2,9 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
-import no.nav.klage.oppgave.domain.klage.Access
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.util.getLogger
@@ -24,17 +22,6 @@ class TilgangService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    //TODO: Denne brukes bare i tester, rydd opp ved anledning.
-    fun verifyInnloggetSaksbehandlersSkrivetilgang(klagebehandling: Klagebehandling) {
-        if (klagebehandling.ferdigstilling != null) {
-            throw BehandlingAvsluttetException("Kan ikke endre avsluttet klagebehandling")
-        }
-        val ident = innloggetSaksbehandlerService.getInnloggetIdent()
-        if (!saksbehandlerHarSkrivetilgang(klagebehandling, ident)) {
-            throw MissingTilgangException("Kun tildelt saksbehandler kan endre klagebehandlingen")
-        }
-    }
-
     fun verifyInnloggetSaksbehandlersSkrivetilgang(behandling: Behandling) {
         if (behandling.ferdigstilling != null) {
             throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
@@ -44,9 +31,6 @@ class TilgangService(
             throw MissingTilgangException("Kun tildelt saksbehandler kan endre behandlingen")
         }
     }
-
-    private fun saksbehandlerHarSkrivetilgang(klagebehandling: Klagebehandling, ident: String): Boolean =
-        ident == klagebehandling.tildeling?.saksbehandlerident
 
     private fun saksbehandlerHarSkrivetilgang(behandling: Behandling, ident: String): Boolean =
         ident == behandling.tildeling?.saksbehandlerident
@@ -81,10 +65,8 @@ class TilgangService(
     }
 
     fun harInnloggetSaksbehandlerTilgangTil(fnr: String): Access {
-        val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         return verifiserTilgangTilPersonForSaksbehandler(
             fnr = fnr,
-            ident = ident,
             kanBehandleStrengtFortrolig = { innloggetSaksbehandlerService.kanBehandleStrengtFortrolig() },
             kanBehandleFortrolig = { innloggetSaksbehandlerService.kanBehandleFortrolig() },
             kanBehandleEgenAnsatt = { innloggetSaksbehandlerService.kanBehandleEgenAnsatt() },
@@ -93,7 +75,6 @@ class TilgangService(
 
     private fun verifiserTilgangTilPersonForSaksbehandler(
         fnr: String,
-        ident: String,
         kanBehandleStrengtFortrolig: () -> Boolean,
         kanBehandleFortrolig: () -> Boolean,
         kanBehandleEgenAnsatt: () -> Boolean
@@ -126,4 +107,9 @@ class TilgangService(
         }
         return Access(access = true, reason = "Access granted")
     }
+
+    data class Access(
+        val access: Boolean,
+        val reason: String,
+    )
 }

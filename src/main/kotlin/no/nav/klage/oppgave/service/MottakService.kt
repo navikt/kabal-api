@@ -14,8 +14,16 @@ import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.config.incrementMottattKlageAnke
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.kodeverk.LovligeTyper
+import no.nav.klage.oppgave.domain.mottak.Mottak
+import no.nav.klage.oppgave.domain.mottak.MottakDokument
+import no.nav.klage.oppgave.domain.mottak.MottakDokumentType
+import no.nav.klage.oppgave.domain.mottak.MottakHjemmel
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException

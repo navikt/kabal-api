@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.repositories
 
-import no.nav.klage.oppgave.domain.klage.Mottak
+import no.nav.klage.oppgave.domain.mottak.Mottak
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository

@@ -8,7 +8,8 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.person.Beskyttelsesbehov
 import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
@@ -165,7 +166,12 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleEgenAnsatt() }.returns(true)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(true)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true, "Access granted"))
+        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(
+            TilgangService.Access(
+                true,
+                "Access granted"
+            )
+        )
     }
 
     @Test
@@ -181,7 +187,12 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleStrengtFortrolig() }.returns(false)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(false)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true, "Access granted"))
+        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(
+            TilgangService.Access(
+                true,
+                "Access granted"
+            )
+        )
     }
 
     @Test
@@ -214,7 +225,12 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleStrengtFortrolig() }.returns(false)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(true)
-        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(Access(true, "Access granted"))
+        assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(
+            TilgangService.Access(
+                true,
+                "Access granted"
+            )
+        )
     }
 }
 

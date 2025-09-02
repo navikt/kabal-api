@@ -1,10 +1,10 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
-import no.nav.klage.oppgave.domain.klage.Klagebehandling
-import no.nav.klage.oppgave.domain.klage.Mottak
+import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value

@@ -3,11 +3,11 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Ankebehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
-import no.nav.klage.oppgave.domain.klage.AnkeITrygderettenbehandling
-import no.nav.klage.oppgave.domain.klage.Ankebehandling
-import no.nav.klage.oppgave.domain.klage.Mottak
+import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
