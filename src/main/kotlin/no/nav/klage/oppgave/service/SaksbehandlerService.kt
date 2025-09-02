@@ -121,4 +121,8 @@ class SaksbehandlerService(
 
     fun hasKabalInnsynEgenEnhetRole(ident: String): Boolean =
         getRoleIds(ident).contains(kabalInnsynEgenEnhetRoleId)
+
+    fun getSaksbehandlerRoleId(): String = kabalSaksbehandlerRoleId
+
+    fun getRolRoleId(): String = kabalROLRoleId
 }

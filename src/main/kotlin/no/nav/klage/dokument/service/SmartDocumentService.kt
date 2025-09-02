@@ -18,6 +18,8 @@ import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepos
 import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.KafkaInternalEventService
@@ -43,6 +45,7 @@ class SmartDocumentService(
     private val dokumentMapper: DokumentMapper,
     private val saksbehandlerService: SaksbehandlerService,
     private val documentPolicyService: DocumentPolicyService,
+    private val azureGateway: AzureGateway,
 ) {
 
     companion object {
@@ -516,6 +519,82 @@ class SmartDocumentService(
             journalpost = null,
             smartEditorDocument = smartEditorDocument,
             behandling = behandling,
+        )
+    }
+
+    fun getSmartDocumentWriteAccessList(): SmartDocumentsWriteAccessList {
+        val saksbehandlerIdentList =
+            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
+        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
+
+        logger.debug("Found {} saksbehandlere and {} ROL users in AD groups",
+            saksbehandlerIdentList.size,
+            rolIdentList.size,
+        )
+
+        val someDaysAgo = LocalDateTime.now().minusDays(7)
+
+        val hoveddokumenter =
+            smartDokumentUnderArbeidAsHoveddokumentRepository.findByMarkertFerdigIsNullAndModifiedAfter(someDaysAgo)
+        val vedlegg = smartDokumentUnderArbeidAsVedleggRepository.findByMarkertFerdigIsNullAndModifiedAfter(someDaysAgo)
+
+        logger.debug(
+            "Found {} unfinalized hoveddokumenter and {} unfinalized vedlegg modified since {} days ago.",
+            hoveddokumenter.size,
+            vedlegg.size,
+            someDaysAgo,
+        )
+
+        val behandlingCache = mutableMapOf<UUID, Behandling>()
+
+        val documentIdToNavIdents = mutableMapOf<UUID, MutableSet<String>>()
+
+        (saksbehandlerIdentList + rolIdentList).forEach { navIdent ->
+            hoveddokumenter.forEach { dua ->
+                val behandling = behandlingCache.getOrPut(dua.behandlingId) {
+                    behandlingService.getBehandlingForReadWithoutCheckForAccess(dua.behandlingId)
+                }
+                documentPolicyService.validateDokumentUnderArbeidAction(
+                    behandling = behandling,
+                    dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+                    parentDokumentType = DuaAccessPolicy.Parent.NONE,
+                    documentRole = dua.creatorRole,
+                    action = DuaAccessPolicy.Action.WRITE,
+                    duaMarkertFerdig = false,
+                    isSystemContext = false, //to force actual validation
+                    saksbehandler = navIdent,
+                )
+                documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
+            }
+
+            vedlegg.forEach { dua ->
+                val behandling = behandlingCache.getOrPut(dua.behandlingId) {
+                    behandlingService.getBehandlingForReadWithoutCheckForAccess(dua.behandlingId)
+                }
+                try {
+                    documentPolicyService.validateDokumentUnderArbeidAction(
+                        behandling = behandling,
+                        dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+                        parentDokumentType = documentPolicyService.getParentDokumentType(dua.parentId),
+                        documentRole = dua.creatorRole,
+                        action = DuaAccessPolicy.Action.WRITE,
+                        duaMarkertFerdig = false,
+                        isSystemContext = false, //to force actual validation
+                        saksbehandler = navIdent,
+                    )
+                    documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
+                } catch (e: Exception) {
+                    // Ignore, user does not have access
+                }
+            }
+        }
+        return SmartDocumentsWriteAccessList(
+            smartDocumentWriteAccessList = documentIdToNavIdents.map { (documentId, navIdents) ->
+                SmartDocumentWriteAccess(
+                    documentId = documentId,
+                    navIdents = navIdents.joinToString(","),
+                )
+            }
         )
     }
 }

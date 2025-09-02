@@ -28,6 +28,7 @@ class DocumentPolicyService(
         action: DuaAccessPolicy.Action,
         duaMarkertFerdig: Boolean,
         isSystemContext: Boolean = false,
+        saksbehandler: String? = null,
     ) {
         if (duaMarkertFerdig) {
             DuaAccessPolicy.throwDuaFinishedException()
@@ -42,7 +43,7 @@ class DocumentPolicyService(
             return
         }
 
-        val innloggetSaksbehandler = innloggetSaksbehandlerService.getInnloggetIdent()
+        val innloggetSaksbehandler = saksbehandler ?: innloggetSaksbehandlerService.getInnloggetIdent()
 
         val user = when {
             behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.tildeling?.saksbehandlerident -> DuaAccessPolicy.User.TILDELT_SAKSBEHANDLER

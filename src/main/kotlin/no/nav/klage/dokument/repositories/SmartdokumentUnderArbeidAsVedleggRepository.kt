@@ -12,4 +12,6 @@ interface SmartdokumentUnderArbeidAsVedleggRepository : JpaRepository<Smartdokum
     fun findByParentId(dokumentId: UUID): Set<SmartdokumentUnderArbeidAsVedlegg>
 
     fun findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(ferdigstiltBefore: LocalDateTime): List<SmartdokumentUnderArbeidAsVedlegg>
+
+    fun findByMarkertFerdigIsNullAndModifiedAfter(modified: LocalDateTime): List<SmartdokumentUnderArbeidAsVedlegg>
 }
