@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
+import java.time.LocalDateTime
 import java.util.*
 
 interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificationExecutor<Behandling> {
@@ -93,5 +94,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
     ): List<Behandling>
 
     fun findByTilbakekrevingIsFalse(): List<Behandling>
+
+    fun findByCreatedAfter(date: LocalDateTime): List<Behandling>
 
 }

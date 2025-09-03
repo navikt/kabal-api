@@ -7,6 +7,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 @Transactional
@@ -15,7 +16,7 @@ class KapteinService(
 ) {
 
     fun getBehandlinger(): AnonymousBehandlingListView {
-        val behandlinger = behandlingRepository.findAll()
+        val behandlinger = behandlingRepository.findByCreatedAfter(LocalDateTime.now().minusMonths(3))
         return AnonymousBehandlingListView(
             anonymizedBehandlingList = behandlinger.map { it.toAnonymousBehandlingView() },
             total = behandlinger.size,
@@ -191,7 +192,6 @@ class KapteinService(
         return AnonymousBehandlingView.VedtakView(
             id = id,
             utfallId = utfall?.id,
-            extraUtfallIdSet = extraUtfallSet.map { it.id }.toSet(),
             hjemmelIdSet = registreringshjemler.map { it.id }.toSet(),
         )
     }

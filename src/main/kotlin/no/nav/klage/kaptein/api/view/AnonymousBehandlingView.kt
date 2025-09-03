@@ -41,7 +41,6 @@ data class AnonymousBehandlingView(
     data class VedtakView(
         val id: UUID,
         val utfallId: String?,
-        val extraUtfallIdSet: Set<String>,
         val hjemmelIdSet: Set<String>,
     )
 
