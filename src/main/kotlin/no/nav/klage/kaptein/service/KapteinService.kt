@@ -2,7 +2,8 @@ package no.nav.klage.kaptein.service
 
 import no.nav.klage.kaptein.api.view.AnonymousBehandlingListView
 import no.nav.klage.kaptein.api.view.AnonymousBehandlingView
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.*
+import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

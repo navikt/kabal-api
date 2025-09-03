@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.api.mapper
 import no.nav.klage.oppgave.api.view.MeldingModified
 import no.nav.klage.oppgave.api.view.MeldingView
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
-import no.nav.klage.oppgave.domain.klage.Melding
+import no.nav.klage.oppgave.domain.behandling.subentities.Melding
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import org.springframework.stereotype.Service
 

@@ -35,13 +35,13 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ROLLER
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLERE_I_ENHET_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.TILGANGER_CACHE
+import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
-import no.nav.klage.oppgave.domain.klage.*
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.util.*

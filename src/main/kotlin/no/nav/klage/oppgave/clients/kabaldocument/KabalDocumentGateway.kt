@@ -4,7 +4,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsH
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Innholdsfortegnelse
 import no.nav.klage.oppgave.clients.kabaldocument.model.response.DokumentEnhetFullfoerOutput
-import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 import java.util.*

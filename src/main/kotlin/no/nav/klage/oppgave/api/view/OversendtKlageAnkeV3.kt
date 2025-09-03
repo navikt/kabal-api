@@ -6,8 +6,8 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.klage.Mottak
-import no.nav.klage.oppgave.domain.klage.MottakHjemmel
+import no.nav.klage.oppgave.domain.mottak.Mottak
+import no.nav.klage.oppgave.domain.mottak.MottakHjemmel
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 import java.time.LocalDateTime

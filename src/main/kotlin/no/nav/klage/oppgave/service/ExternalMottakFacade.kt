@@ -6,8 +6,8 @@ import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
 import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV4
 import no.nav.klage.oppgave.api.view.OversendtKlageV2
 import no.nav.klage.oppgave.clients.kabalinnstillinger.KabalInnstillingerClient
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.events.AutomaticSvarbrevEvent
-import no.nav.klage.oppgave.domain.klage.Behandling
 import no.nav.klage.oppgave.repositories.AutomaticSvarbrevEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value

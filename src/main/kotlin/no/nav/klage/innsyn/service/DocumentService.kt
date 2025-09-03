@@ -5,10 +5,10 @@ import no.nav.klage.innsyn.api.view.SakView
 import no.nav.klage.innsyn.client.safselvbetjening.SafSelvbetjeningGraphQlClient
 import no.nav.klage.innsyn.client.safselvbetjening.SafSelvbetjeningRestClient
 import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.oppgave.domain.klage.Ankebehandling
-import no.nav.klage.oppgave.domain.klage.Behandling
-import no.nav.klage.oppgave.domain.klage.Klagebehandling
-import no.nav.klage.oppgave.domain.klage.Omgjoeringskravbehandling
+import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.util.getLogger
 import org.apache.pdfbox.io.MemoryUsageSetting
 import org.apache.pdfbox.io.RandomAccessStreamCache

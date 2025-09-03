@@ -8,7 +8,10 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
-import no.nav.klage.oppgave.domain.klage.*
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.*
+import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
+import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -173,12 +176,13 @@ class BehandlingRepositoryTest {
         forrigeBehandlingId = null,
         sentFrom = Mottak.Sender.FAGSYSTEM,
 
-    )
+        )
 
     fun getKlagebehandling(mottakId: UUID) = Klagebehandling(
         klager = Klager(
             id = UUID.randomUUID(),
-            partId = PartId(type = PartIdType.PERSON, value = "23452354")),
+            partId = PartId(type = PartIdType.PERSON, value = "23452354")
+        ),
         sakenGjelder = SakenGjelder(
             id = UUID.randomUUID(),
             partId = PartId(type = PartIdType.PERSON, value = "23452354"),

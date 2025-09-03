@@ -17,6 +17,7 @@ import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumen
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -159,8 +160,6 @@ class SmartDocumentService(
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_ADDED,
         )
-
-        smartDocumentAccessService.notifyFrontendAboutPossibleDocumentRightChanges(behandling)
 
         return dokumentView
     }

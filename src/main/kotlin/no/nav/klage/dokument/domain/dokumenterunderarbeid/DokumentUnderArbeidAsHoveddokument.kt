@@ -3,7 +3,7 @@ package no.nav.klage.dokument.domain.dokumenterunderarbeid
 import jakarta.persistence.*
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.DokumentTypeConverter
-import no.nav.klage.oppgave.domain.klage.BehandlingRole
+import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import no.nav.klage.oppgave.util.isInngaaende
 import no.nav.klage.oppgave.util.isUtgaaende
 import org.hibernate.annotations.BatchSize
