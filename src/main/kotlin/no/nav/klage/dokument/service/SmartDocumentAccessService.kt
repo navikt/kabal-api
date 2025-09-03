@@ -10,7 +10,7 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumentRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.util.DuaAccessPolicy
-import no.nav.klage.oppgave.domain.klage.Behandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.exceptions.BehandlingNotFoundException
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.repositories.BehandlingRepository
@@ -88,6 +88,7 @@ class SmartDocumentAccessService(
                         isSystemContext = false, //to force actual validation
                         saksbehandler = navIdent,
                     )
+                    logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
                 } catch (_: Exception) {
                     // Ignore, user does not have access
@@ -109,6 +110,7 @@ class SmartDocumentAccessService(
                         isSystemContext = false, //to force actual validation
                         saksbehandler = navIdent,
                     )
+                    logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
                 } catch (_: Exception) {
                     // Ignore, user does not have access
@@ -155,6 +157,7 @@ class SmartDocumentAccessService(
                     isSystemContext = false, //to force actual validation
                     saksbehandler = navIdent,
                 )
+                logger.debug("Adding {} to list of users with access to document {}", navIdent, documentId)
                 navIdentsWithAccess += navIdent
             } catch (_: Exception) {
                 // Ignore, user does not have access
