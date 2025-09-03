@@ -16,7 +16,7 @@ class KapteinService(
 ) {
 
     fun getBehandlinger(): AnonymousBehandlingListView {
-        val behandlinger = behandlingRepository.findByCreatedAfter(LocalDateTime.now().minusMonths(1))
+        val behandlinger = behandlingRepository.findByCreatedAfter(LocalDateTime.now().minusWeeks(3))
         return AnonymousBehandlingListView(
             anonymizedBehandlingList = behandlinger.map { it.toAnonymousBehandlingView() },
             total = behandlinger.size,
