@@ -91,8 +91,9 @@ class SmartDocumentAccessService(
                     )
                     logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     logger.debug("Not adding {} (due to missing access) to list of users with access to document {}", navIdent, dua.id)
+                    logger.debug("Error:", e)
                     // Ignore, user does not have access
                 }
             }
@@ -115,8 +116,9 @@ class SmartDocumentAccessService(
                     )
                     logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
                     logger.debug("Not adding {} (due to missing access) to list of users with access to document {}", navIdent, dua.id)
+                    logger.debug("Error:", e)
                     // Ignore, user does not have access
                 }
             }
@@ -166,8 +168,9 @@ class SmartDocumentAccessService(
                 )
                 logger.debug("Adding {} to list of users with access to document {}", navIdent, documentId)
                 navIdentsWithAccess += navIdent
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 logger.debug("Not adding {} (due to missing access) to list of users with access to document {}", navIdent, documentId)
+                logger.debug("Error:", e)
                 // Ignore, user does not have access
             }
         }
@@ -218,7 +221,8 @@ class SmartDocumentAccessService(
                         saksbehandler = navIdent,
                     )
                     documentIdToNavIdents[dua.id]!!.add(navIdent)
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    logger.debug("Error:", e)
                     // Ignore, user does not have access
                 }
             }
