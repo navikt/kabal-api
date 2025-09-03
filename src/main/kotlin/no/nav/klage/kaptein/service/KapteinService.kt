@@ -58,6 +58,8 @@ class KapteinService(
             timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             sendtTilTrygderetten = null,
             kjennelseMottatt = null,
+            isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
+            tildeltEnhet = behandling.tildeling?.enhet,
         )
     }
 
@@ -87,6 +89,8 @@ class KapteinService(
             timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             sendtTilTrygderetten = null,
             kjennelseMottatt = behandling.kjennelseMottatt,
+            isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
+            tildeltEnhet = behandling.tildeling?.enhet,
         )
     }
 
@@ -116,6 +120,8 @@ class KapteinService(
             timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             sendtTilTrygderetten = null,
             kjennelseMottatt = null,
+            isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
+            tildeltEnhet = behandling.tildeling?.enhet,
         )
     }
 
@@ -145,6 +151,8 @@ class KapteinService(
             timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             sendtTilTrygderetten = behandling.sendtTilTrygderetten,
             kjennelseMottatt = behandling.kjennelseMottatt,
+            isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
+            tildeltEnhet = behandling.tildeling?.enhet,
         )
     }
 
@@ -174,6 +182,8 @@ class KapteinService(
             timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             sendtTilTrygderetten = null,
             kjennelseMottatt = null,
+            isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
+            tildeltEnhet = behandling.tildeling?.enhet,
         )
     }
 
