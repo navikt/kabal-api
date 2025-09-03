@@ -150,6 +150,7 @@ class BehandlingServiceTest {
             gosysOppgaveService = mockk(),
             kodeverkService = mockk(),
             behandlingEndretKafkaProducer = mockk(),
+            smartDocumentAccessService = mockk(),
         )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT

@@ -97,6 +97,7 @@ class DokumentUnderArbeidService(
     @Value("\${ORGANISASJONSNUMMER_TRYGDERETTEN}") private val organisasjonsnummerTrygderetten: String,
     @Value("\${spring.profiles.active:}") private val activeSpringProfile: String,
     private val documentPolicyService: DocumentPolicyService,
+    private val smartDocumentAccessService: SmartDocumentAccessService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -1353,6 +1354,8 @@ class DokumentUnderArbeidService(
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_CHANGED,
         )
+
+        smartDocumentAccessService.notifyFrontendAboutPossibleDocumentRightChanges(behandling)
 
         return hovedDokument
     }

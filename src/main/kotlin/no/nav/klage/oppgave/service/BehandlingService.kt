@@ -5,6 +5,7 @@ import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
+import no.nav.klage.dokument.service.SmartDocumentAccessService
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
@@ -99,6 +100,7 @@ class BehandlingService(
     private val gosysOppgaveService: GosysOppgaveService,
     private val kodeverkService: KodeverkService,
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
+    private val smartDocumentAccessService: SmartDocumentAccessService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -197,6 +199,8 @@ class BehandlingService(
             gosysOppgaveInput = gosysOppgaveInput,
             innloggetIdent = innloggetIdent
         )
+
+        smartDocumentAccessService.notifyFrontendAboutPossibleDocumentRightChanges(behandling)
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
         return behandlingMapper.mapToBehandlingFullfoertView(
@@ -765,6 +769,8 @@ class BehandlingService(
             type = InternalEventType.TILDELING,
         )
 
+        smartDocumentAccessService.notifyFrontendAboutPossibleDocumentRightChanges(behandling)
+
         return getSaksbehandlerViewWrapped(behandling)
     }
 
@@ -979,6 +985,8 @@ class BehandlingService(
             behandlingId = behandlingId,
             type = InternalEventType.TILDELING,
         )
+
+        smartDocumentAccessService.notifyFrontendAboutPossibleDocumentRightChanges(behandling)
     }
 
     fun setMedunderskriverToNullInSystemContext(
@@ -1640,6 +1648,8 @@ class BehandlingService(
             behandlingId = behandlingId,
             type = InternalEventType.MEDUNDERSKRIVER,
         )
+
+        smartDocumentAccessService.notifyFrontendAboutPossibleDocumentRightChanges(behandling)
 
         return medunderskriverWrapped
     }
@@ -2425,6 +2435,8 @@ class BehandlingService(
             behandlingId = behandlingId,
             type = InternalEventType.ROL,
         )
+
+        smartDocumentAccessService.notifyFrontendAboutPossibleDocumentRightChanges(behandling)
 
         return rolView
     }

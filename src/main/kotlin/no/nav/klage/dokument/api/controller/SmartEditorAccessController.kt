@@ -2,7 +2,7 @@ package no.nav.klage.dokument.api.controller
 
 import no.nav.klage.dokument.api.view.SmartDocumentWriteAccess
 import no.nav.klage.dokument.api.view.SmartDocumentsWriteAccessList
-import no.nav.klage.dokument.service.SmartDocumentService
+import no.nav.klage.dokument.service.SmartDocumentAccessService
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
@@ -17,7 +17,7 @@ import java.util.*
 @ProtectedWithClaims(issuer = ISSUER_AAD)
 @RequestMapping("/smart-document-write-access")
 class SmartEditorAccessController(
-    private val smartDocumentService: SmartDocumentService,
+    private val smartDocumentAccessService: SmartDocumentAccessService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -26,13 +26,13 @@ class SmartEditorAccessController(
 
     @GetMapping
     fun getWriteAccessForAll(): SmartDocumentsWriteAccessList {
-        return smartDocumentService.getSmartDocumentWriteAccessList()
+        return smartDocumentAccessService.getSmartDocumentWriteAccessList()
     }
 
     @GetMapping("/{documentId}")
     fun getWriteAccess(
         @PathVariable documentId: UUID,
         ): SmartDocumentWriteAccess {
-        return smartDocumentService.getSmartDocumentWriteAccess(documentId)
+        return smartDocumentAccessService.getSmartDocumentWriteAccess(documentId)
     }
 }
