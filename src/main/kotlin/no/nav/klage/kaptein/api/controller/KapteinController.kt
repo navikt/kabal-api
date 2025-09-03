@@ -5,12 +5,10 @@ import no.nav.klage.kaptein.api.view.AnonymousBehandlingListView
 import no.nav.klage.kaptein.service.KapteinService
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
-@Profile("dev-gcp")
 @RestController
 @Tag(name = "kabal-api-kaptein")
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)

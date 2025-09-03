@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.security.SecurityScheme
 import no.nav.klage.dokument.api.controller.DokumentUnderArbeidController
 import no.nav.klage.innsyn.api.controller.InnsynController
+import no.nav.klage.kaptein.api.controller.KapteinController
 import no.nav.klage.oppgave.api.controller.BehandlingDetaljerController
 import no.nav.klage.oppgave.api.controller.external.ExternalApiController
 import org.springdoc.core.models.GroupedOpenApi
@@ -37,6 +38,15 @@ class OpenApiConfig {
         return GroupedOpenApi.builder()
             .packagesToScan(DokumentUnderArbeidController::class.java.packageName)
             .group("internal-documents")
+            .pathsToMatch("/**")
+            .build()
+    }
+
+    @Bean
+    fun apiInternalKaptein(): GroupedOpenApi {
+        return GroupedOpenApi.builder()
+            .packagesToScan(KapteinController::class.java.packageName)
+            .group("internal-kaptein")
             .pathsToMatch("/**")
             .build()
     }
