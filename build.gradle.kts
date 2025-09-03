@@ -2,11 +2,11 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val mockkVersion = "1.14.5"
-val tokenValidationVersion = "5.0.34"
+val tokenValidationVersion = "5.0.35"
 val logstashVersion = "8.1"
 val springRetryVersion = "2.0.12"
 val springMockkVersion = "4.0.2"
-val springDocVersion = "2.8.11"
+val springDocVersion = "2.8.12"
 val testContainersVersion = "1.21.3"
 val shedlockVersion = "6.10.0"
 val archunitVersion = "1.4.1"
@@ -15,7 +15,7 @@ val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.5"
 val tikaVersion = "3.2.2"
 val verapdfVersion = "1.28.2"
-val klageKodeverkVersion = "1.11.0"
+val klageKodeverkVersion = "1.11.2"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
 val otelVersion = "1.53.0"
 val mikrofrontendSelectorVersion = "3.0.0"
@@ -61,7 +61,7 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("javax.cache:cache-api")
-    implementation("org.ehcache:ehcache:3.11.0")
+    implementation("org.ehcache:ehcache:3.11.1")
 
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
