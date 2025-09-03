@@ -20,6 +20,8 @@ data class AnonymousBehandlingView(
     val mottattKlageinstans: LocalDate,
     val avsluttetAvSaksbehandlerDate: LocalDate?,
     val isAvsluttetAvSaksbehandler: Boolean,
+    val isTildelt: Boolean,
+    val tildeltEnhet: String?,
     val frist: LocalDate?,
     val ageKA: Int,
     val datoSendtMedunderskriver: LocalDate?,

@@ -276,8 +276,12 @@ sealed class Behandling(
         }
     }
 
+    fun isFerdigstiltOrFeilregistrert(): Boolean {
+        return ferdigstilling != null || feilregistrering != null
+    }
+
     fun getRoleInBehandling(innloggetIdent: String): BehandlingRole {
-        if (ferdigstilling != null || feilregistrering != null) {
+        if (isFerdigstiltOrFeilregistrert()) {
             return BehandlingRole.NONE
         }
 
