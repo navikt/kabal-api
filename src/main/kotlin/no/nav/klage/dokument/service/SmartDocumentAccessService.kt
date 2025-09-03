@@ -62,7 +62,7 @@ class SmartDocumentAccessService(
         val vedlegg = smartDokumentUnderArbeidAsVedleggRepository.findByMarkertFerdigIsNullAndModifiedAfter(someDaysAgo)
 
         logger.debug(
-            "Found {} unfinalized hoveddokumenter and {} unfinalized vedlegg modified since {} days ago.",
+            "Found {} unfinalized hoveddokumenter and {} unfinalized vedlegg modified since {}.",
             hoveddokumenter.size,
             vedlegg.size,
             someDaysAgo,
@@ -78,6 +78,7 @@ class SmartDocumentAccessService(
                     getBehandling(dua.behandlingId)
                 }
                 try {
+                    logger.debug("Validating smart document access for document {} and navIdent {}", dua.id, navIdent)
                     documentPolicyService.validateDokumentUnderArbeidAction(
                         behandling = behandling,
                         dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
@@ -91,6 +92,7 @@ class SmartDocumentAccessService(
                     logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
                 } catch (_: Exception) {
+                    logger.debug("Not adding {} (due to missing access) to list of users with access to document {}", navIdent, dua.id)
                     // Ignore, user does not have access
                 }
             }
@@ -100,6 +102,7 @@ class SmartDocumentAccessService(
                     getBehandling(dua.behandlingId)
                 }
                 try {
+                    logger.debug("Validating smart document access for document {} and navIdent {}", dua.id, navIdent)
                     documentPolicyService.validateDokumentUnderArbeidAction(
                         behandling = behandling,
                         dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
@@ -113,6 +116,7 @@ class SmartDocumentAccessService(
                     logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
                 } catch (_: Exception) {
+                    logger.debug("Not adding {} (due to missing access) to list of users with access to document {}", navIdent, dua.id)
                     // Ignore, user does not have access
                 }
             }
@@ -128,6 +132,8 @@ class SmartDocumentAccessService(
     }
 
     fun getSmartDocumentWriteAccess(documentId: UUID): SmartDocumentWriteAccess {
+        logger.debug("Getting smart document access for document {}", documentId)
+
         val saksbehandlerIdentList =
             azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
         val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
@@ -147,6 +153,7 @@ class SmartDocumentAccessService(
 
         (saksbehandlerIdentList + rolIdentList).forEach { navIdent ->
             try {
+                logger.debug("Validating smart document access for document {} and navIdent {}", documentId, navIdent)
                 documentPolicyService.validateDokumentUnderArbeidAction(
                     behandling = behandling,
                     dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
@@ -160,6 +167,7 @@ class SmartDocumentAccessService(
                 logger.debug("Adding {} to list of users with access to document {}", navIdent, documentId)
                 navIdentsWithAccess += navIdent
             } catch (_: Exception) {
+                logger.debug("Not adding {} (due to missing access) to list of users with access to document {}", navIdent, documentId)
                 // Ignore, user does not have access
             }
         }
