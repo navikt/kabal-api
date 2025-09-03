@@ -92,7 +92,8 @@
             "DELVIS_MEDHOLD",
             "STADFESTELSE",
             "UGUNST",
-            "AVVIST"
+            "AVVIST",
+            "HENLAGT"
           ],
           "description": "Utfallet av behandlingen."
         },
@@ -135,14 +136,14 @@
           "type": "string",
           "enum": [
             "TRUKKET",
-            "RETUR",
             "OPPHEVET",
             "MEDHOLD",
             "DELVIS_MEDHOLD",
             "STADFESTELSE",
-            "UGUNST",
             "AVVIST",
-            "HEVET"
+            "HEVET",
+            "HENVIST",
+            "HENLAGT"
           ],
           "description": "Utfallet av behandlingen."
         },
@@ -171,14 +172,11 @@
         "utfall": {
           "type": "string",
           "enum": [
-            "TRUKKET",
-            "OPPHEVET",
-            "MEDHOLD",
             "DELVIS_MEDHOLD",
             "INNSTILLING_STADFESTELSE",
             "INNSTILLING_AVVIST"
           ],
-          "description": "Utfallet av behandlingen."
+          "description": "Utfallet av ankebehandlingen som førte til oversendelse til Trygderetten."
         }
       },
       "required": [
@@ -208,7 +206,8 @@
             "KLAGE",
             "ANKE",
             "ANKE_I_TRYGDERETTEN",
-            "BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET"
+            "BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET",
+            "OMGJOERINGSKRAV"
           ],
           "description": "Type behandling."
         }
@@ -237,8 +236,8 @@
             "MEDHOLD",
             "DELVIS_MEDHOLD",
             "STADFESTELSE",
-            "UGUNST",
-            "AVVIST"
+            "AVVIST",
+            "HENLAGT"
           ]
         },
         "journalpostReferanser": {
@@ -265,7 +264,7 @@
         "utfall": {
           "type": "string",
           "enum": [
-            "MEDHOLD_ETTER_FVL_35",
+            "MEDHOLD_ETTER_FVL_35"
           ]
         },
         "journalpostReferanser": {

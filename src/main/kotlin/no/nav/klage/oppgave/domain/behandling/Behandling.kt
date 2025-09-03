@@ -363,8 +363,8 @@ val utfallToTrygderetten = setOf(
     Utfall.INNSTILLING_STADFESTELSE
 )
 
-val noRegistringshjemmelNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR)
-val noKvalitetsvurderingNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR, Utfall.UGUNST)
+val noRegistringshjemmelNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR, Utfall.HENLAGT)
+val noKvalitetsvurderingNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR, Utfall.UGUNST, Utfall.HENLAGT)
 
 interface BehandlingWithVarsletBehandlingstid {
     val id: UUID

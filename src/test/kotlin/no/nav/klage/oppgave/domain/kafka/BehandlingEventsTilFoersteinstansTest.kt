@@ -14,6 +14,9 @@ internal class BehandlingEventsTilFoersteinstansTest {
     @Test
     @Disabled
     fun createJsonSchema() {
+        //Husk å tilpass utfallslisten i generert json basert på TypeToUtfall i kodeverk.
+        //AnkebehandlingAvsluttetDetaljer vil ha utfall fra både Ankebehandling og AnkeITrygderettenbehandling.
+        //AnkeITrygderettenbehandlingOpprettetDetaljer har feltet utfall, det gjelder utfallet på ankebehandlingen som førte til oversending til Trygderetten.
         val objectMapper = ourJacksonObjectMapper()
 
         val config = JsonSchemaConfig.vanillaJsonSchemaDraft4().withJsonSchemaDraft(JsonSchemaDraft.DRAFT_07)
