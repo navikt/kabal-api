@@ -147,8 +147,10 @@ class SmartDocumentAccessService(
             rolIdentList.size,
         )
 
-        val smartDocument: DokumentUnderArbeid = smartDokumentUnderArbeidAsHoveddokumentRepository.findById(documentId).getOrNull()
-            ?: smartDokumentUnderArbeidAsVedleggRepository.findById(documentId).getOrNull() ?: throw IllegalArgumentException("No smart document found with id $documentId")
+        val smartDocument: DokumentUnderArbeid =
+            smartDokumentUnderArbeidAsHoveddokumentRepository.findById(documentId).getOrNull()
+                ?: smartDokumentUnderArbeidAsVedleggRepository.findById(documentId).getOrNull()
+                ?: throw IllegalArgumentException("No smart document found with id $documentId")
 
         val navIdentsWithAccess = mutableSetOf<String>()
 
@@ -160,7 +162,9 @@ class SmartDocumentAccessService(
                 documentPolicyService.validateDokumentUnderArbeidAction(
                     behandling = behandling,
                     dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
-                    parentDokumentType = documentPolicyService.getParentDokumentType(smartDocument.id),
+                    parentDokumentType = if (smartDocument is SmartdokumentUnderArbeidAsVedlegg) documentPolicyService.getParentDokumentType(
+                        smartDocument.parentId
+                    ) else DuaAccessPolicy.Parent.NONE,
                     documentRole = smartDocument.creatorRole,
                     action = DuaAccessPolicy.Action.WRITE,
                     duaMarkertFerdig = false,
