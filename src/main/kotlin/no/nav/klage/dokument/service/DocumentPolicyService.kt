@@ -31,6 +31,8 @@ class DocumentPolicyService(
         duaMarkertFerdig: Boolean,
         isSystemContext: Boolean = false,
         saksbehandler: String? = null,
+        isRol: Boolean? = null,
+        isSaksbehandler: Boolean? = null,
     ) {
         if (duaMarkertFerdig) {
             DuaAccessPolicy.throwDuaFinishedException()
@@ -51,8 +53,8 @@ class DocumentPolicyService(
             behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.tildeling?.saksbehandlerident -> DuaAccessPolicy.User.TILDELT_SAKSBEHANDLER
             behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.medunderskriver?.saksbehandlerident -> DuaAccessPolicy.User.TILDELT_MEDUNDERSKRIVER
             behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.rolIdent -> DuaAccessPolicy.User.TILDELT_ROL
-            saksbehandlerService.isROL(innloggetSaksbehandler) -> DuaAccessPolicy.User.ROL
-            saksbehandlerService.isSaksbehandler(innloggetSaksbehandler) -> DuaAccessPolicy.User.SAKSBEHANDLER
+            isRol ?: saksbehandlerService.isROL(innloggetSaksbehandler) -> DuaAccessPolicy.User.ROL
+            isSaksbehandler ?: saksbehandlerService.isSaksbehandler(innloggetSaksbehandler) -> DuaAccessPolicy.User.SAKSBEHANDLER
             else -> throw MissingTilgangException("Bruker har ikke tilgang til å håndtere dokumenter. Mangler rolle.")
         }
 

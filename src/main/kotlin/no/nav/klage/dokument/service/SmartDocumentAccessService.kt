@@ -47,8 +47,8 @@ class SmartDocumentAccessService(
 
     fun getSmartDocumentWriteAccessList(): SmartDocumentsWriteAccessList {
         val saksbehandlerIdentList =
-            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
-        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
+            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId()).map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
+        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId()).map { it to DuaAccessPolicy.User.ROL }
 
         logger.debug(
             "Found {} saksbehandlere and {} ROL users in AD groups",
@@ -73,7 +73,7 @@ class SmartDocumentAccessService(
 
         val documentIdToNavIdents = mutableMapOf<UUID, MutableSet<String>>()
 
-        (saksbehandlerIdentList + rolIdentList).forEach { navIdent ->
+        (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
             hoveddokumenter.forEach { dua ->
                 val behandling = behandlingCache.getOrPut(dua.behandlingId) {
                     getBehandling(dua.behandlingId)
@@ -89,6 +89,8 @@ class SmartDocumentAccessService(
                         duaMarkertFerdig = false,
                         isSystemContext = false, //to force actual validation
                         saksbehandler = navIdent,
+                        isRol = role == DuaAccessPolicy.User.ROL,
+                        isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
                     )
                     logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
@@ -114,6 +116,8 @@ class SmartDocumentAccessService(
                         duaMarkertFerdig = false,
                         isSystemContext = false, //to force actual validation
                         saksbehandler = navIdent,
+                        isRol = role == DuaAccessPolicy.User.ROL,
+                        isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
                     )
                     logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
@@ -138,8 +142,8 @@ class SmartDocumentAccessService(
         logger.debug("Getting smart document access for document {}", documentId)
 
         val saksbehandlerIdentList =
-            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
-        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
+            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId()).map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
+        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId()).map { it to DuaAccessPolicy.User.ROL }
 
         logger.debug(
             "Found {} saksbehandlere and {} ROL users in AD groups",
@@ -156,7 +160,7 @@ class SmartDocumentAccessService(
 
         val behandling = getBehandling(smartDocument.behandlingId)
 
-        (saksbehandlerIdentList + rolIdentList).forEach { navIdent ->
+        (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
             try {
                 logger.debug("Validating smart document access for document {} and navIdent {}", documentId, navIdent)
                 documentPolicyService.validateDokumentUnderArbeidAction(
@@ -170,6 +174,8 @@ class SmartDocumentAccessService(
                     duaMarkertFerdig = false,
                     isSystemContext = false, //to force actual validation
                     saksbehandler = navIdent,
+                    isRol = role == DuaAccessPolicy.User.ROL,
+                    isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
                 )
                 logger.debug("Adding {} to list of users with access to document {}", navIdent, documentId)
                 navIdentsWithAccess += navIdent
@@ -199,8 +205,8 @@ class SmartDocumentAccessService(
             .partition { it is SmartdokumentUnderArbeidAsVedlegg }
 
         val saksbehandlerIdentList =
-            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
-        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
+            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId()).map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
+        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId()).map { it to DuaAccessPolicy.User.ROL }
 
         logger.debug(
             "Found {} saksbehandlere and {} ROL users in AD groups",
@@ -210,7 +216,7 @@ class SmartDocumentAccessService(
 
         val documentIdToNavIdents = mutableMapOf<UUID, MutableSet<String>>()
 
-        (saksbehandlerIdentList + rolIdentList).forEach { navIdent ->
+        (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
             vedlegg.forEach { dua ->
                 documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
                 dua as SmartdokumentUnderArbeidAsVedlegg
@@ -224,6 +230,8 @@ class SmartDocumentAccessService(
                         duaMarkertFerdig = dua.erMarkertFerdig(),
                         isSystemContext = false, //to force actual validation
                         saksbehandler = navIdent,
+                        isRol = role == DuaAccessPolicy.User.ROL,
+                        isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
                     )
                     documentIdToNavIdents[dua.id]!!.add(navIdent)
                 } catch (_: MissingTilgangException) {
@@ -246,6 +254,8 @@ class SmartDocumentAccessService(
                         duaMarkertFerdig = dua.erMarkertFerdig(),
                         isSystemContext = false, //to force actual validation
                         saksbehandler = navIdent,
+                        isRol = role == DuaAccessPolicy.User.ROL,
+                        isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
                     )
                     documentIdToNavIdents[dua.id]!!.add(navIdent)
                 } catch (_: Exception) {
