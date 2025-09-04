@@ -8,6 +8,7 @@ import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentIn
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.ModifyCommentInput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.CommentOutput
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
+import no.nav.klage.dokument.domain.SmartDocumentAccessBehandlingEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
@@ -24,6 +25,7 @@ import no.nav.klage.oppgave.service.KafkaInternalEventService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -43,7 +45,7 @@ class SmartDocumentService(
     private val dokumentMapper: DokumentMapper,
     private val saksbehandlerService: SaksbehandlerService,
     private val documentPolicyService: DocumentPolicyService,
-    private val smartDocumentAccessService: SmartDocumentAccessService,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
     companion object {
@@ -159,6 +161,8 @@ class SmartDocumentService(
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_ADDED,
         )
+
+        applicationEventPublisher.publishEvent(SmartDocumentAccessBehandlingEvent(behandling))
 
         return dokumentView
     }
