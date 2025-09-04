@@ -49,17 +49,7 @@ class SmartDocumentAccessService(
     }
 
     fun getSmartDocumentWriteAccessList(): SmartDocumentsWriteAccessList {
-        val saksbehandlerIdentList =
-            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
-                .map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
-        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
-            .map { it to DuaAccessPolicy.User.ROL }
-
-        logger.debug(
-            "Found {} saksbehandlere and {} ROL users in AD groups",
-            saksbehandlerIdentList.size,
-            rolIdentList.size,
-        )
+        val (saksbehandlerIdentList, rolIdentList) = getUsers()
 
         val someDaysAgo = LocalDateTime.now().minusDays(7)
 
@@ -146,17 +136,7 @@ class SmartDocumentAccessService(
     fun getSmartDocumentWriteAccess(documentId: UUID): SmartDocumentWriteAccess {
         logger.debug("Getting smart document access for document {}", documentId)
 
-        val saksbehandlerIdentList =
-            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
-                .map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
-        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
-            .map { it to DuaAccessPolicy.User.ROL }
-
-        logger.debug(
-            "Found {} saksbehandlere and {} ROL users in AD groups",
-            saksbehandlerIdentList.size,
-            rolIdentList.size,
-        )
+        val (saksbehandlerIdentList, rolIdentList) = getUsers()
 
         val smartDocument: DokumentUnderArbeid =
             smartDokumentUnderArbeidAsHoveddokumentRepository.findById(documentId).getOrNull()
@@ -211,17 +191,7 @@ class SmartDocumentAccessService(
         val (vedlegg, hoveddokumenter) = smartDocuments
             .partition { it is SmartdokumentUnderArbeidAsVedlegg }
 
-        val saksbehandlerIdentList =
-            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
-                .map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
-        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
-            .map { it to DuaAccessPolicy.User.ROL }
-
-        logger.debug(
-            "Found {} saksbehandlere and {} ROL users in AD groups",
-            saksbehandlerIdentList.size,
-            rolIdentList.size,
-        )
+        val (saksbehandlerIdentList, rolIdentList) = getUsers()
 
         val documentIdToNavIdents = mutableMapOf<UUID, MutableSet<String>>()
 
@@ -281,6 +251,22 @@ class SmartDocumentAccessService(
                 )
             }
         )
+    }
+
+    private fun getUsers(): Pair<List<Pair<String, DuaAccessPolicy.User>>, List<Pair<String, DuaAccessPolicy.User>>> {
+        val saksbehandlerIdentList =
+            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
+                .map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
+        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
+            .map { it to DuaAccessPolicy.User.ROL }
+
+        logger.debug(
+            "Found {} saksbehandlere and {} ROL users in AD groups",
+            saksbehandlerIdentList.size,
+            rolIdentList.size,
+        )
+
+        return Pair(saksbehandlerIdentList, rolIdentList)
     }
 
     /**
