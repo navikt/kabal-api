@@ -273,9 +273,20 @@ class SmartDocumentAccessService(
                 key = smartDocumentWriteAccess.documentId.toString(),
                 value = if (smartDocumentWriteAccess.navIdents.isNotEmpty()) smartDocumentWriteAccess.navIdents.joinToString(
                     ","
-                ) else null,
+                ) else "",
             )
         }
+    }
+
+    /**
+     * Notify frontend (via Kafka) that the document is finished or deleted.
+     */
+    fun notifyFrontendAboutDocumentDone(documentId: UUID) {
+        logger.debug("Notifying frontend about document finished or deleted: {}", documentId)
+        publishToKafkaTopic(
+            key = documentId.toString(),
+            value = null,
+        )
     }
 
     private fun publishToKafkaTopic(key: String, value: String?) {

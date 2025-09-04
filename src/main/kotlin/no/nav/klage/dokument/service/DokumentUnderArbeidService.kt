@@ -1355,7 +1355,15 @@ class DokumentUnderArbeidService(
             type = InternalEventType.DOCUMENTS_CHANGED,
         )
 
-        smartDocumentAccessService.notifyFrontendAboutPossibleDocumentRightChanges(behandling)
+        if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument) {
+            smartDocumentAccessService.notifyFrontendAboutDocumentDone(dokumentId)
+        }
+
+        vedlegg.forEach {
+            if (it is SmartdokumentUnderArbeidAsVedlegg) {
+                smartDocumentAccessService.notifyFrontendAboutDocumentDone(it.id)
+            }
+        }
 
         return hovedDokument
     }
@@ -1704,6 +1712,12 @@ class DokumentUnderArbeidService(
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_REMOVED,
         )
+
+        documentsToRemove.forEach { dua ->
+            if (dua is DokumentUnderArbeidAsSmartdokument) {
+                smartDocumentAccessService.notifyFrontendAboutDocumentDone(dua.id)
+            }
+        }
     }
 
     private fun deleteDocuments(documents: List<DokumentUnderArbeid>) {
