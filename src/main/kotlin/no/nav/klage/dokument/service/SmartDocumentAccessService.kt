@@ -12,6 +12,7 @@ import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepos
 import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.exceptions.BehandlingNotFoundException
+import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.service.SaksbehandlerService
@@ -91,10 +92,10 @@ class SmartDocumentAccessService(
                     )
                     logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
-                } catch (e: Exception) {
-                    logger.debug("Not adding {} (due to missing access) to list of users with access to document {}", navIdent, dua.id)
-                    logger.debug("Error:", e)
+                } catch (_: MissingTilgangException) {
                     // Ignore, user does not have access
+                } catch (e: Exception) {
+                    logger.warn("Unexpected exception:", e)
                 }
             }
 
@@ -116,10 +117,10 @@ class SmartDocumentAccessService(
                     )
                     logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
-                } catch (e: Exception) {
-                    logger.debug("Not adding {} (due to missing access) to list of users with access to document {}", navIdent, dua.id)
-                    logger.debug("Error:", e)
+                } catch (_: MissingTilgangException) {
                     // Ignore, user does not have access
+                } catch (e: Exception) {
+                    logger.warn("Unexpected exception:", e)
                 }
             }
         }
@@ -168,10 +169,10 @@ class SmartDocumentAccessService(
                 )
                 logger.debug("Adding {} to list of users with access to document {}", navIdent, documentId)
                 navIdentsWithAccess += navIdent
-            } catch (e: Exception) {
-                logger.debug("Not adding {} (due to missing access) to list of users with access to document {}", navIdent, documentId)
-                logger.debug("Error:", e)
+            } catch (_: MissingTilgangException) {
                 // Ignore, user does not have access
+            } catch (e: Exception) {
+                logger.warn("Unexpected exception:", e)
             }
         }
         return SmartDocumentWriteAccess(
@@ -221,9 +222,10 @@ class SmartDocumentAccessService(
                         saksbehandler = navIdent,
                     )
                     documentIdToNavIdents[dua.id]!!.add(navIdent)
-                } catch (e: Exception) {
-                    logger.debug("Error:", e)
+                } catch (_: MissingTilgangException) {
                     // Ignore, user does not have access
+                } catch (e: Exception) {
+                    logger.warn("Unexpected exception:", e)
                 }
             }
 
