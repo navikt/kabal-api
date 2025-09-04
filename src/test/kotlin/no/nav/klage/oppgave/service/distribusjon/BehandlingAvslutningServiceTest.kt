@@ -6,7 +6,6 @@ import io.mockk.every
 import io.mockk.mockk
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
-import no.nav.klage.dokument.service.SmartDocumentAccessService
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
@@ -118,9 +117,6 @@ internal class BehandlingAvslutningServiceTest {
 
         @MockkBean(relaxed = true)
         lateinit var safFacade: SafFacade
-
-        @MockkBean(relaxed = true)
-        lateinit var smartDocumentAccessService: SmartDocumentAccessService
     }
 
     @Autowired

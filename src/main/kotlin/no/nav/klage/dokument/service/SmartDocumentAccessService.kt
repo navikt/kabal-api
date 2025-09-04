@@ -2,6 +2,8 @@ package no.nav.klage.dokument.service
 
 import no.nav.klage.dokument.api.view.SmartDocumentWriteAccess
 import no.nav.klage.dokument.api.view.SmartDocumentsWriteAccessList
+import no.nav.klage.dokument.domain.SmartDocumentAccessBehandlingEvent
+import no.nav.klage.dokument.domain.SmartDocumentAccessDocumentEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
@@ -19,8 +21,11 @@ import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.event.TransactionPhase
+import org.springframework.transaction.event.TransactionalEventListener
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -278,10 +283,12 @@ class SmartDocumentAccessService(
      * Notify frontend (via Kafka) that there may be changes
      * to who has write access to smart documents in this behandling.
      */
-    fun notifyFrontendAboutPossibleDocumentRightChanges(behandling: Behandling) {
-        logger.debug("Notifying frontend about possible document right changes for behandling {}", behandling.id)
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun notifyFrontendAboutPossibleDocumentRightChanges(smartDocumentAccessBehandlingEvent: SmartDocumentAccessBehandlingEvent) {
+        logger.debug("Notifying frontend about possible document right changes for behandling {}", smartDocumentAccessBehandlingEvent.behandling.id)
         getSmartDocumentWriteAccessListForBehandling(
-            behandling = behandling,
+            behandling = smartDocumentAccessBehandlingEvent.behandling,
         ).smartDocumentWriteAccessList.forEach { smartDocumentWriteAccess ->
             publishToKafkaTopic(
                 key = smartDocumentWriteAccess.documentId.toString(),
@@ -295,10 +302,12 @@ class SmartDocumentAccessService(
     /**
      * Notify frontend (via Kafka) that the document is finished or deleted.
      */
-    fun notifyFrontendAboutDocumentDone(documentId: UUID) {
-        logger.debug("Notifying frontend about document finished or deleted: {}", documentId)
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun notifyFrontendAboutDocumentDone(smartDocumentAccessDocumentEvent: SmartDocumentAccessDocumentEvent) {
+        logger.debug("Notifying frontend about document finished or deleted: {}", smartDocumentAccessDocumentEvent.duaId)
         publishToKafkaTopic(
-            key = documentId.toString(),
+            key = smartDocumentAccessDocumentEvent.duaId.toString(),
             value = null,
         )
     }

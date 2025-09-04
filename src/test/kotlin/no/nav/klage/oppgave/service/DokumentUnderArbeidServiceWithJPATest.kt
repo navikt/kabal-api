@@ -136,7 +136,6 @@ class DokumentUnderArbeidServiceWithJPATest {
             organisasjonsnummerTrygderetten = "123456789",
             activeSpringProfile = "dev-gcp",
             documentPolicyService = mockk(),
-            smartDocumentAccessService = mockk(),
         )
 
         val behandlingId = UUID.randomUUID()

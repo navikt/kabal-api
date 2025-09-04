@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.PDFDocument
+import no.nav.klage.dokument.domain.SmartDocumentAccessDocumentEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
 import no.nav.klage.dokument.exceptions.DocumentDoesNotExistException
@@ -97,7 +98,6 @@ class DokumentUnderArbeidService(
     @Value("\${ORGANISASJONSNUMMER_TRYGDERETTEN}") private val organisasjonsnummerTrygderetten: String,
     @Value("\${spring.profiles.active:}") private val activeSpringProfile: String,
     private val documentPolicyService: DocumentPolicyService,
-    private val smartDocumentAccessService: SmartDocumentAccessService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -1356,12 +1356,12 @@ class DokumentUnderArbeidService(
         )
 
         if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument) {
-            smartDocumentAccessService.notifyFrontendAboutDocumentDone(dokumentId)
+            applicationEventPublisher.publishEvent(SmartDocumentAccessDocumentEvent(dokumentId))
         }
 
         vedlegg.forEach {
             if (it is SmartdokumentUnderArbeidAsVedlegg) {
-                smartDocumentAccessService.notifyFrontendAboutDocumentDone(it.id)
+                applicationEventPublisher.publishEvent(SmartDocumentAccessDocumentEvent(it.id))
             }
         }
 
@@ -1715,7 +1715,7 @@ class DokumentUnderArbeidService(
 
         documentsToRemove.forEach { dua ->
             if (dua is DokumentUnderArbeidAsSmartdokument) {
-                smartDocumentAccessService.notifyFrontendAboutDocumentDone(dua.id)
+                applicationEventPublisher.publishEvent(SmartDocumentAccessDocumentEvent(dua.id))
             }
         }
     }
