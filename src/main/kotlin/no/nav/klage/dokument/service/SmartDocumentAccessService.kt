@@ -23,7 +23,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
 import java.time.LocalDateTime
@@ -31,7 +30,6 @@ import java.util.*
 import kotlin.jvm.optionals.getOrNull
 
 @Service
-@Transactional
 class SmartDocumentAccessService(
     private val smartDokumentUnderArbeidAsHoveddokumentRepository: SmartdokumentUnderArbeidAsHoveddokumentRepository,
     private val smartDokumentUnderArbeidAsVedleggRepository: SmartdokumentUnderArbeidAsVedleggRepository,
@@ -52,8 +50,10 @@ class SmartDocumentAccessService(
 
     fun getSmartDocumentWriteAccessList(): SmartDocumentsWriteAccessList {
         val saksbehandlerIdentList =
-            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId()).map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
-        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId()).map { it to DuaAccessPolicy.User.ROL }
+            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
+                .map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
+        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
+            .map { it to DuaAccessPolicy.User.ROL }
 
         logger.debug(
             "Found {} saksbehandlere and {} ROL users in AD groups",
@@ -147,8 +147,10 @@ class SmartDocumentAccessService(
         logger.debug("Getting smart document access for document {}", documentId)
 
         val saksbehandlerIdentList =
-            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId()).map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
-        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId()).map { it to DuaAccessPolicy.User.ROL }
+            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
+                .map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
+        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
+            .map { it to DuaAccessPolicy.User.ROL }
 
         logger.debug(
             "Found {} saksbehandlere and {} ROL users in AD groups",
@@ -210,8 +212,10 @@ class SmartDocumentAccessService(
             .partition { it is SmartdokumentUnderArbeidAsVedlegg }
 
         val saksbehandlerIdentList =
-            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId()).map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
-        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId()).map { it to DuaAccessPolicy.User.ROL }
+            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
+                .map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
+        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
+            .map { it to DuaAccessPolicy.User.ROL }
 
         logger.debug(
             "Found {} saksbehandlere and {} ROL users in AD groups",
@@ -286,7 +290,10 @@ class SmartDocumentAccessService(
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun notifyFrontendAboutPossibleDocumentRightChanges(smartDocumentAccessBehandlingEvent: SmartDocumentAccessBehandlingEvent) {
-        logger.debug("Notifying frontend about possible document right changes for behandling {}", smartDocumentAccessBehandlingEvent.behandling.id)
+        logger.debug(
+            "Notifying frontend about possible document right changes for behandling {}",
+            smartDocumentAccessBehandlingEvent.behandling.id
+        )
         getSmartDocumentWriteAccessListForBehandling(
             behandling = smartDocumentAccessBehandlingEvent.behandling,
         ).smartDocumentWriteAccessList.forEach { smartDocumentWriteAccess ->
@@ -305,7 +312,10 @@ class SmartDocumentAccessService(
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     fun notifyFrontendAboutDocumentDone(smartDocumentAccessDocumentEvent: SmartDocumentAccessDocumentEvent) {
-        logger.debug("Notifying frontend about document finished or deleted: {}", smartDocumentAccessDocumentEvent.duaId)
+        logger.debug(
+            "Notifying frontend about document finished or deleted: {}",
+            smartDocumentAccessDocumentEvent.duaId
+        )
         publishToKafkaTopic(
             key = smartDocumentAccessDocumentEvent.duaId.toString(),
             value = null,
