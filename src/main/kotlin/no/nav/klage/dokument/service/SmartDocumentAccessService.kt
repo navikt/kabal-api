@@ -48,6 +48,10 @@ class SmartDocumentAccessService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    /**
+     * Used as initial load of who has write access to unfinalized smart documents.
+     * No crucial to use by FE/BFF.
+     */
     fun getSmartDocumentWriteAccessList(): SmartDocumentsWriteAccessList {
         val (saksbehandlerIdentList, rolIdentList) = getUsers()
 
@@ -133,6 +137,9 @@ class SmartDocumentAccessService(
         )
     }
 
+    /**
+     * Checking a specific document
+     */
     fun getSmartDocumentWriteAccess(documentId: UUID): SmartDocumentWriteAccess {
         logger.debug("Getting smart document access for document {}", documentId)
 
@@ -293,7 +300,7 @@ class SmartDocumentAccessService(
     }
 
     /**
-     * Notify frontend (via Kafka) that the document is finished or deleted.
+     * Notify frontend (via Kafka) that the smart document is finished or deleted.
      */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
