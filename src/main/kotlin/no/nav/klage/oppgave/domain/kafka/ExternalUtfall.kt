@@ -14,5 +14,6 @@ enum class ExternalUtfall(val navn: String) {
     HENVIST("Henvist"),
     HEVET("Hevet"),
     MEDHOLD_ETTER_FVL_35("Medhold etter fvl. § 35"),
+    HENLAGT("Henlagt"),
     ;
 }
