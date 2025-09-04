@@ -17,7 +17,6 @@ import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumen
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -177,10 +176,7 @@ class SmartDocumentService(
                 readOnly = false
             )
 
-        dokumentUnderArbeidService.validateWriteAccessToSmartDocument(
-            dokumentId = dokumentId,
-            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId),
-        )
+        //no check for access, since BFF already checks, and it can be a delayed patch call.
 
         val updatedDocument = kabalSmartEditorApiGateway.updateDocument(
             smartDocumentId = smartDocumentId,
