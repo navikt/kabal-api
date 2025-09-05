@@ -1,6 +1,7 @@
 package no.nav.klage.dokument.util
 
 import no.nav.klage.dokument.exceptions.DokumentValidationException
+import no.nav.klage.oppgave.exceptions.MissingDUARuleException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.util.getLogger
 import java.util.*
@@ -153,7 +154,7 @@ class DuaAccessPolicy {
             }
 
             if (access == null) {
-                throw RuntimeException("Handlingen er ikke mulig. Det finnes ikke regel for \"$key\". Kontakt Team Klage.")
+                throw MissingDUARuleException("Handlingen er ikke mulig. Det finnes ikke regel for \"$key\". Kontakt Team Klage.")
             }
 
             val error = errorMessageMap["$access:$action"]
@@ -163,7 +164,7 @@ class DuaAccessPolicy {
 
             // 20 cases
             when (access) {
-                Access.ALLOWED -> throw RuntimeException(error)
+                Access.ALLOWED -> throw RuntimeException(error) //should not happen, as it is handled above
                 Access.NOT_ASSIGNED -> throw MissingTilgangException(error)
                 Access.NOT_ASSIGNED_OR_MU -> throw MissingTilgangException(error)
                 Access.NOT_ASSIGNED_OR_ROL -> throw MissingTilgangException(error)
@@ -180,7 +181,7 @@ class DuaAccessPolicy {
                 Access.NOT_SUPPORTED_JOURNALFOERT -> throw DokumentValidationException(error)
                 Access.NOT_SUPPORTED_ATTACHMENT -> throw DokumentValidationException(error)
                 Access.NOT_SUPPORTED_UPLOADED -> throw DokumentValidationException(error)
-                Access.NOT_SUPPORTED_FINISHED -> throw RuntimeException(error)
+                Access.NOT_SUPPORTED_FINISHED -> throw DokumentValidationException(error)
                 Access.NOT_SUPPORTED -> throw DokumentValidationException(error)
                 Access.UNSET -> throw RuntimeException(error)
             }

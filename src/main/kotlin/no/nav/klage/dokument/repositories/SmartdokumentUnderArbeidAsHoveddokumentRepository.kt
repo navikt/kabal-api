@@ -16,4 +16,6 @@ interface SmartdokumentUnderArbeidAsHoveddokumentRepository : JpaRepository<Smar
     fun findByBehandlingIdAndDokarkivReferencesIsNotEmpty(behandlingId: UUID): Set<SmartdokumentUnderArbeidAsHoveddokument>
 
     fun findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(ferdigstiltBefore: LocalDateTime): List<SmartdokumentUnderArbeidAsHoveddokument>
+
+    fun findByMarkertFerdigIsNullAndModifiedAfter(modified: LocalDateTime): List<SmartdokumentUnderArbeidAsHoveddokument>
 }

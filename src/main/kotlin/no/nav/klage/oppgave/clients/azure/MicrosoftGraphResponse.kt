@@ -26,7 +26,7 @@ data class AzureSlimUser(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class AzureGroupMember(
     val id: String,
-    val mail: String,
+    val mail: String?,
     val onPremisesSamAccountName: String,
     val displayName: String
 )

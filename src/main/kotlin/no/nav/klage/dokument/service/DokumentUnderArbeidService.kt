@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.PDFDocument
+import no.nav.klage.dokument.domain.SmartDocumentAccessDocumentEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
 import no.nav.klage.dokument.exceptions.DocumentDoesNotExistException
@@ -1354,6 +1355,16 @@ class DokumentUnderArbeidService(
             type = InternalEventType.DOCUMENTS_CHANGED,
         )
 
+        if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument) {
+            applicationEventPublisher.publishEvent(SmartDocumentAccessDocumentEvent(dokumentId))
+        }
+
+        vedlegg.forEach {
+            if (it is SmartdokumentUnderArbeidAsVedlegg) {
+                applicationEventPublisher.publishEvent(SmartDocumentAccessDocumentEvent(it.id))
+            }
+        }
+
         return hovedDokument
     }
 
@@ -1701,6 +1712,12 @@ class DokumentUnderArbeidService(
             behandlingId = behandling.id,
             type = InternalEventType.DOCUMENTS_REMOVED,
         )
+
+        documentsToRemove.forEach { dua ->
+            if (dua is DokumentUnderArbeidAsSmartdokument) {
+                applicationEventPublisher.publishEvent(SmartDocumentAccessDocumentEvent(dua.id))
+            }
+        }
     }
 
     private fun deleteDocuments(documents: List<DokumentUnderArbeid>) {

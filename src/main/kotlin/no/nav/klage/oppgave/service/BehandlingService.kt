@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
+import no.nav.klage.dokument.domain.SmartDocumentAccessBehandlingEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
@@ -200,6 +201,8 @@ class BehandlingService(
             gosysOppgaveInput = gosysOppgaveInput,
             innloggetIdent = innloggetIdent
         )
+
+        applicationEventPublisher.publishEvent(SmartDocumentAccessBehandlingEvent(behandling))
 
         //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
         return behandlingMapper.mapToBehandlingFullfoertView(
@@ -768,6 +771,8 @@ class BehandlingService(
             type = InternalEventType.TILDELING,
         )
 
+        applicationEventPublisher.publishEvent(SmartDocumentAccessBehandlingEvent(behandling))
+
         return getSaksbehandlerViewWrapped(behandling)
     }
 
@@ -982,6 +987,8 @@ class BehandlingService(
             behandlingId = behandlingId,
             type = InternalEventType.TILDELING,
         )
+
+        applicationEventPublisher.publishEvent(SmartDocumentAccessBehandlingEvent(behandling))
     }
 
     fun setMedunderskriverToNullInSystemContext(
@@ -1643,6 +1650,8 @@ class BehandlingService(
             behandlingId = behandlingId,
             type = InternalEventType.MEDUNDERSKRIVER,
         )
+
+        applicationEventPublisher.publishEvent(SmartDocumentAccessBehandlingEvent(behandling))
 
         return medunderskriverWrapped
     }
@@ -2428,6 +2437,8 @@ class BehandlingService(
             behandlingId = behandlingId,
             type = InternalEventType.ROL,
         )
+
+        applicationEventPublisher.publishEvent(SmartDocumentAccessBehandlingEvent(behandling))
 
         return rolView
     }

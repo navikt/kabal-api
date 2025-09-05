@@ -10,13 +10,15 @@ import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
-import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
+import no.nav.klage.oppgave.service.SaksbehandlerService
+import no.nav.klage.oppgave.util.TokenUtil
 import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
 class DocumentPolicyService(
-    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
+    private val tokenUtil: TokenUtil,
+    private val saksbehandlerService: SaksbehandlerService,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
 ) {
 
@@ -28,6 +30,9 @@ class DocumentPolicyService(
         action: DuaAccessPolicy.Action,
         duaMarkertFerdig: Boolean,
         isSystemContext: Boolean = false,
+        saksbehandler: String? = null,
+        isRol: Boolean? = null,
+        isSaksbehandler: Boolean? = null,
     ) {
         if (duaMarkertFerdig) {
             DuaAccessPolicy.throwDuaFinishedException()
@@ -42,14 +47,14 @@ class DocumentPolicyService(
             return
         }
 
-        val innloggetSaksbehandler = innloggetSaksbehandlerService.getInnloggetIdent()
+        val innloggetSaksbehandler = saksbehandler ?: tokenUtil.getIdent()
 
         val user = when {
             behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.tildeling?.saksbehandlerident -> DuaAccessPolicy.User.TILDELT_SAKSBEHANDLER
             behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.medunderskriver?.saksbehandlerident -> DuaAccessPolicy.User.TILDELT_MEDUNDERSKRIVER
             behandling.ferdigstilling == null && innloggetSaksbehandler == behandling.rolIdent -> DuaAccessPolicy.User.TILDELT_ROL
-            innloggetSaksbehandlerService.isROL() -> DuaAccessPolicy.User.ROL
-            innloggetSaksbehandlerService.isSaksbehandler() -> DuaAccessPolicy.User.SAKSBEHANDLER
+            isRol ?: saksbehandlerService.isROL(innloggetSaksbehandler) -> DuaAccessPolicy.User.ROL
+            isSaksbehandler ?: saksbehandlerService.isSaksbehandler(innloggetSaksbehandler) -> DuaAccessPolicy.User.SAKSBEHANDLER
             else -> throw MissingTilgangException("Bruker har ikke tilgang til å håndtere dokumenter. Mangler rolle.")
         }
 
