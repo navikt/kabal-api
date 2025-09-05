@@ -21,6 +21,7 @@ import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.scheduling.annotation.Async
@@ -48,6 +49,7 @@ class SmartDocumentAccessService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val objectMapper = ourJacksonObjectMapper()
     }
 
     /**
@@ -317,9 +319,7 @@ class SmartDocumentAccessService(
         ).smartDocumentWriteAccessList.forEach { smartDocumentWriteAccess ->
             publishToKafkaTopic(
                 key = smartDocumentWriteAccess.documentId.toString(),
-                value = if (smartDocumentWriteAccess.navIdents.isNotEmpty()) smartDocumentWriteAccess.navIdents.joinToString(
-                    ","
-                ) else "",
+                json = objectMapper.writeValueAsString(smartDocumentWriteAccess.navIdents),
             )
         }
     }
@@ -336,14 +336,14 @@ class SmartDocumentAccessService(
         )
         publishToKafkaTopic(
             key = smartDocumentAccessDocumentEvent.duaId.toString(),
-            value = null,
+            json = null,
         )
     }
 
-    private fun publishToKafkaTopic(key: String, value: String?) {
+    private fun publishToKafkaTopic(key: String, json: String?) {
         logger.debug("Sending to Kafka topic: {}", smartDocumentWriteAccessTopic)
         runCatching {
-            aivenKafkaTemplate.send(smartDocumentWriteAccessTopic, key, value).get()
+            aivenKafkaTemplate.send(smartDocumentWriteAccessTopic, key, json).get()
             logger.debug("Payload sent to Kafka.")
         }.onFailure {
             logger.error("Could not send payload to Kafka", it)
