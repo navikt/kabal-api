@@ -36,6 +36,13 @@ import java.util.*
             NamedAttributeNode("registreringshjemler"),
         ]
     ),
+    NamedEntityGraph(
+        name = "Behandling.kapteinProperties",
+        attributeNodes = [
+            NamedAttributeNode("hjemler"),
+            NamedAttributeNode("registreringshjemler"),
+        ]
+    ),
 )
 @Audited
 sealed class Behandling(

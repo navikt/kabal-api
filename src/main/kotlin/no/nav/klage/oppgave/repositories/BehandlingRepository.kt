@@ -4,11 +4,12 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Slice
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
-import java.time.LocalDateTime
 import java.util.*
 
 interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificationExecutor<Behandling> {
@@ -95,6 +96,13 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
 
     fun findByTilbakekrevingIsFalse(): List<Behandling>
 
-    fun findByCreatedAfter(date: LocalDateTime): List<Behandling>
+    @EntityGraph("Behandling.kapteinProperties")
+    @Query(
+        """
+            SELECT b
+            FROM Behandling b
+        """
+    )
+    fun findAllForKaptein(pageable: Pageable): Slice<Behandling>
 
 }
