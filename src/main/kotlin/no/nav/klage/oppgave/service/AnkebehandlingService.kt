@@ -144,7 +144,7 @@ class AnkebehandlingService(
                 fagsakId = ankeITrygderettenbehandling.fagsakId,
                 mottattKlageinstans = ankeITrygderettenbehandling.mottattKlageinstans,
                 tildeling = ankeITrygderettenbehandling.tildeling,
-                frist = LocalDate.now() + Period.ofWeeks(12),
+                frist = LocalDate.now() + Period.ofWeeks(0),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = 2,
                 hjemler = ankeITrygderettenbehandling.hjemler,
