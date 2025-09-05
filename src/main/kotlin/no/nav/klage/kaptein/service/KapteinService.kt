@@ -30,7 +30,7 @@ class KapteinService(
         val anonymizedBehandlingList = mutableListOf<AnonymousBehandlingView>()
         var page = 0
         var slice: Slice<Behandling>
-        val pageSize = 400
+        val pageSize = 200
         do {
             val startTimePage = System.currentTimeMillis()
 
@@ -45,7 +45,7 @@ class KapteinService(
             pageTimings.add(elapsedTime)
 
             page++
-        } while (slice.hasNext())
+        } while (slice.hasNext() && page < 40) // Limit to 40 pages to avoid excessive load
 
         val totalElapsedTime = System.currentTimeMillis() - startTime
         val averagePageTime = if (pageTimings.isNotEmpty()) pageTimings.average() else 0.0
