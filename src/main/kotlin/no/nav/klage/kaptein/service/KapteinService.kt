@@ -30,7 +30,7 @@ class KapteinService(
         val anonymizedBehandlingList = mutableListOf<AnonymousBehandlingView>()
         var page = 0
         var slice: Slice<Behandling>
-        val pageSize = 200
+        val pageSize = 400
         do {
             val startTimePage = System.currentTimeMillis()
 
