@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Slice
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.util.*
 
 @Service
 @Transactional
@@ -29,23 +30,27 @@ class KapteinService(
 
         val anonymizedBehandlingList = mutableListOf<AnonymousBehandlingView>()
         var page = 0
-        var slice: Slice<Behandling>
-        val pageSize = 200
+        var slice: Slice<UUID>
+        val pageSize = 300
         do {
             val startTimePage = System.currentTimeMillis()
 
             val pageable = PageRequest.of(page, pageSize)
-            slice = behandlingRepository.findAllForKaptein(pageable)
+            slice = behandlingRepository.findAllIdListForKaptein(pageable)
 
-            slice.content.forEach {
+            val behandlingList = behandlingRepository.findAllForKapteinWithHjemler(slice.content)
+
+            behandlingList.forEach {
                 anonymizedBehandlingList += it.toAnonymousBehandlingView()
             }
 
             val elapsedTime = System.currentTimeMillis() - startTimePage
             pageTimings.add(elapsedTime)
 
+            logger.debug("Fetched page $page in $elapsedTime ms")
+
             page++
-        } while (slice.hasNext() && page < 40) // Limit to 40 pages to avoid excessive load
+        } while (slice.hasNext())
 
         val totalElapsedTime = System.currentTimeMillis() - startTime
         val averagePageTime = if (pageTimings.isNotEmpty()) pageTimings.average() else 0.0
@@ -90,7 +95,6 @@ class KapteinService(
             fagsystemId = behandling.fagsystem.id,
             varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
             tilbakekreving = behandling.tilbakekreving,
-            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             sendtTilTrygderetten = null,
             kjennelseMottatt = null,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
@@ -121,7 +125,6 @@ class KapteinService(
             fagsystemId = behandling.fagsystem.id,
             varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
             tilbakekreving = behandling.tilbakekreving,
-            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             sendtTilTrygderetten = null,
             kjennelseMottatt = behandling.kjennelseMottatt,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
@@ -152,7 +155,6 @@ class KapteinService(
             fagsystemId = behandling.fagsystem.id,
             varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
             tilbakekreving = behandling.tilbakekreving,
-            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             sendtTilTrygderetten = null,
             kjennelseMottatt = null,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
@@ -183,7 +185,6 @@ class KapteinService(
             fagsystemId = behandling.fagsystem.id,
             varsletFrist = null,
             tilbakekreving = behandling.tilbakekreving,
-            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             sendtTilTrygderetten = behandling.sendtTilTrygderetten,
             kjennelseMottatt = behandling.kjennelseMottatt,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
@@ -214,7 +215,6 @@ class KapteinService(
             fagsystemId = behandling.fagsystem.id,
             varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
             tilbakekreving = behandling.tilbakekreving,
-            timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             sendtTilTrygderetten = null,
             kjennelseMottatt = null,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,

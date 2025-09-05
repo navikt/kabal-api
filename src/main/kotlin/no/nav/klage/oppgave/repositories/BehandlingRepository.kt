@@ -96,13 +96,23 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
 
     fun findByTilbakekrevingIsFalse(): List<Behandling>
 
-    @EntityGraph("Behandling.kapteinProperties")
+    @Query(
+        """
+            SELECT b.id
+            FROM Behandling b
+        """
+    )
+    fun findAllIdListForKaptein(pageable: Pageable): Slice<UUID>
+
     @Query(
         """
             SELECT b
             FROM Behandling b
+            left join fetch b.hjemler h
+            left join fetch b.registreringshjemler rh
+            where b.id in :behandlingIdList
         """
     )
-    fun findAllForKaptein(pageable: Pageable): Slice<Behandling>
+    fun findAllForKapteinWithHjemler(behandlingIdList: List<UUID>): List<Behandling>
 
 }
