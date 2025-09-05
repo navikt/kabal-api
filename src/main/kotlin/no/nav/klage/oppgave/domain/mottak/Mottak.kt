@@ -105,7 +105,7 @@ class Mottak(
 
     private fun getDefaultFristForType(sakMottattKaDato: LocalDateTime, type: Type): LocalDate {
         return when(type) {
-            Type.ANKE -> (sakMottattKaDato.toLocalDate() + Period.ofWeeks(11))
+            Type.ANKE -> (sakMottattKaDato.toLocalDate() + Period.ofWeeks(0))
             else -> (sakMottattKaDato.toLocalDate() + Period.ofWeeks(12))
         }
     }
