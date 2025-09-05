@@ -5,9 +5,11 @@ import no.nav.klage.kaptein.api.view.AnonymousBehandlingView
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.repositories.BehandlingRepository
+import no.nav.klage.oppgave.util.getLogger
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Slice
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Service
 @Transactional
@@ -15,11 +17,43 @@ class KapteinService(
     private val behandlingRepository: BehandlingRepository,
 ) {
 
+    companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+    }
+
     fun getBehandlinger(): AnonymousBehandlingListView {
-        val behandlinger = behandlingRepository.findByCreatedAfter(LocalDateTime.now().minusWeeks(2))
+        val startTime = System.currentTimeMillis()
+
+        val pageTimings = mutableListOf<Long>()
+
+        val anonymizedBehandlingList = mutableListOf<AnonymousBehandlingView>()
+        var page = 0
+        var slice: Slice<Behandling>
+        val pageSize = 200
+        do {
+            val startTimePage = System.currentTimeMillis()
+
+            val pageable = PageRequest.of(page, pageSize)
+            slice = behandlingRepository.findAllForKaptein(pageable)
+
+            slice.content.forEach {
+                anonymizedBehandlingList += it.toAnonymousBehandlingView()
+            }
+
+            val elapsedTime = System.currentTimeMillis() - startTimePage
+            pageTimings.add(elapsedTime)
+
+            page++
+        } while (slice.hasNext())
+
+        val totalElapsedTime = System.currentTimeMillis() - startTime
+        val averagePageTime = if (pageTimings.isNotEmpty()) pageTimings.average() else 0.0
+        logger.debug("Fetched ${anonymizedBehandlingList.size} behandlinger in $totalElapsedTime ms over $page pages. Average time per page: $averagePageTime ms. Page size: $pageSize")
+
         return AnonymousBehandlingListView(
-            anonymizedBehandlingList = behandlinger.map { it.toAnonymousBehandlingView() },
-            total = behandlinger.size,
+            anonymizedBehandlingList = anonymizedBehandlingList,
+            total = anonymizedBehandlingList.size,
         )
     }
 
