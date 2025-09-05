@@ -52,10 +52,6 @@ server:
   jetty:
     threads:
       max: 600
-  compression:
-    enabled: true
-    mime-types: application/json
-    min-response-size: 5KB
 
 management:
   health:
