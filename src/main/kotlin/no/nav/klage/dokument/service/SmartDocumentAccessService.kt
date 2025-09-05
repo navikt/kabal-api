@@ -8,12 +8,14 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumentRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.exceptions.BehandlingNotFoundException
+import no.nav.klage.oppgave.exceptions.MissingDUARuleException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.repositories.BehandlingRepository
@@ -50,21 +52,22 @@ class SmartDocumentAccessService(
 
     /**
      * Used as initial load of who has write access to unfinalized smart documents.
-     * No crucial to use by FE/BFF.
+     * Not crucial to use by FE/BFF.
      */
     fun getSmartDocumentWriteAccessList(): SmartDocumentsWriteAccessList {
         val (saksbehandlerIdentList, rolIdentList) = getUsers()
 
         val someDaysAgo = LocalDateTime.now().minusDays(7)
 
-        val hoveddokumenter =
+        val hoveddokumentList =
             smartDokumentUnderArbeidAsHoveddokumentRepository.findByMarkertFerdigIsNullAndModifiedAfter(someDaysAgo)
-        val vedlegg = smartDokumentUnderArbeidAsVedleggRepository.findByMarkertFerdigIsNullAndModifiedAfter(someDaysAgo)
+        val vedleggList =
+            smartDokumentUnderArbeidAsVedleggRepository.findByMarkertFerdigIsNullAndModifiedAfter(someDaysAgo)
 
         logger.debug(
             "Found {} unfinalized hoveddokumenter and {} unfinalized vedlegg modified since {}.",
-            hoveddokumenter.size,
-            vedlegg.size,
+            hoveddokumentList.size,
+            vedleggList.size,
             someDaysAgo,
         )
 
@@ -73,7 +76,7 @@ class SmartDocumentAccessService(
         val documentIdToNavIdents = mutableMapOf<UUID, MutableSet<String>>()
 
         (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
-            hoveddokumenter.forEach { dua ->
+            hoveddokumentList.forEach { dua ->
                 val behandling = behandlingCache.getOrPut(dua.behandlingId) {
                     getBehandling(dua.behandlingId)
                 }
@@ -95,12 +98,16 @@ class SmartDocumentAccessService(
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
                 } catch (_: MissingTilgangException) {
                     // Ignore, user does not have access
+                } catch (_: MissingDUARuleException) {
+                    // Ignore, user does not have access
+                } catch (_: DokumentValidationException) {
+                    // Ignore, user does not have access
                 } catch (e: Exception) {
-                    logger.warn("Unexpected exception:", e)
+                    logger.warn("Unexpected exception when validating smart document:", e)
                 }
             }
 
-            vedlegg.forEach { dua ->
+            vedleggList.forEach { dua ->
                 val behandling = behandlingCache.getOrPut(dua.behandlingId) {
                     getBehandling(dua.behandlingId)
                 }
@@ -122,8 +129,12 @@ class SmartDocumentAccessService(
                     documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
                 } catch (_: MissingTilgangException) {
                     // Ignore, user does not have access
+                } catch (_: MissingDUARuleException) {
+                    // Ignore, user does not have access
+                } catch (_: DokumentValidationException) {
+                    // Ignore, user does not have access
                 } catch (e: Exception) {
-                    logger.warn("Unexpected exception:", e)
+                    logger.warn("Unexpected exception when validating smart document:", e)
                 }
             }
         }
@@ -175,8 +186,12 @@ class SmartDocumentAccessService(
                 navIdentsWithAccess += navIdent
             } catch (_: MissingTilgangException) {
                 // Ignore, user does not have access
+            } catch (_: MissingDUARuleException) {
+                // Ignore, user does not have access
+            } catch (_: DokumentValidationException) {
+                // Ignore, user does not have access
             } catch (e: Exception) {
-                logger.warn("Unexpected exception:", e)
+                logger.warn("Unexpected exception when validating smart document:", e)
             }
         }
         return SmartDocumentWriteAccess(
@@ -222,8 +237,12 @@ class SmartDocumentAccessService(
                     documentIdToNavIdents[dua.id]!!.add(navIdent)
                 } catch (_: MissingTilgangException) {
                     // Ignore, user does not have access
+                } catch (_: MissingDUARuleException) {
+                    // Ignore, user does not have access
+                } catch (_: DokumentValidationException) {
+                    // Ignore, user does not have access
                 } catch (e: Exception) {
-                    logger.warn("Unexpected exception:", e)
+                    logger.warn("Unexpected exception when validating smart document:", e)
                 }
             }
 
@@ -244,8 +263,14 @@ class SmartDocumentAccessService(
                         isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
                     )
                     documentIdToNavIdents[dua.id]!!.add(navIdent)
-                } catch (_: Exception) {
+                } catch (_: MissingTilgangException) {
                     // Ignore, user does not have access
+                } catch (_: MissingDUARuleException) {
+                    // Ignore, user does not have access
+                } catch (_: DokumentValidationException) {
+                    // Ignore, user does not have access
+                } catch (e: Exception) {
+                    logger.warn("Unexpected exception when validating smart document:", e)
                 }
             }
 

@@ -22,6 +22,8 @@ open class ValidationException(msg: String) : RuntimeException(msg)
 
 class MissingTilgangException(msg: String) : RuntimeException(msg)
 
+class MissingDUARuleException(msg: String) : RuntimeException(msg)
+
 class OversendtKlageNotValidException(msg: String) : RuntimeException(msg)
 
 class BehandlingAvsluttetException(msg: String) : RuntimeException(msg)
