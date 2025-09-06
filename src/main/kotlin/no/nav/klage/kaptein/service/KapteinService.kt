@@ -1,16 +1,21 @@
 package no.nav.klage.kaptein.service
 
-import no.nav.klage.kaptein.api.view.AnonymousBehandlingListView
 import no.nav.klage.kaptein.api.view.AnonymousBehandlingView
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Slice
+import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody
+import java.io.BufferedWriter
+import java.io.IOException
+import java.io.OutputStream
+import java.io.OutputStreamWriter
 
 @Service
 @Transactional
@@ -21,45 +26,46 @@ class KapteinService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val objectMapper = ourJacksonObjectMapper()
     }
 
-    fun getBehandlinger(): AnonymousBehandlingListView {
-        val startTime = System.currentTimeMillis()
-
-        val pageTimings = mutableListOf<Long>()
-
+    fun getBehandlinger(): ResponseEntity<StreamingResponseBody> {
+        val start = System.currentTimeMillis()
         val anonymizedBehandlingList = mutableListOf<AnonymousBehandlingView>()
-        var page = 0
-        var slice: Slice<UUID>
-        val pageSize = 300
-        do {
-            val startTimePage = System.currentTimeMillis()
-
-            val pageable = PageRequest.of(page, pageSize)
-            slice = behandlingRepository.findAllIdListForKaptein(pageable)
-
-            val behandlingList = behandlingRepository.findAllForKapteinWithHjemler(slice.content)
-
-            behandlingList.forEach {
-                anonymizedBehandlingList += it.toAnonymousBehandlingView()
+        behandlingRepository.findAllForKapteinStreamed().use {
+            it.forEach { b ->
+                anonymizedBehandlingList += b.toAnonymousBehandlingView()
             }
+        }
 
-            val elapsedTime = System.currentTimeMillis() - startTimePage
-            pageTimings.add(elapsedTime)
-
-            logger.debug("Fetched page $page in $elapsedTime ms")
-
-            page++
-        } while (slice.hasNext())
-
-        val totalElapsedTime = System.currentTimeMillis() - startTime
-        val averagePageTime = if (pageTimings.isNotEmpty()) pageTimings.average() else 0.0
-        logger.debug("Fetched ${anonymizedBehandlingList.size} behandlinger in $totalElapsedTime ms over $page pages. Average time per page: $averagePageTime ms. Page size: $pageSize")
-
-        return AnonymousBehandlingListView(
-            anonymizedBehandlingList = anonymizedBehandlingList,
-            total = anonymizedBehandlingList.size,
-        )
+        logger.debug("Fetched ${anonymizedBehandlingList.size} behandlinger in ${System.currentTimeMillis() - start} ms")
+        val responseBody = StreamingResponseBody { outputStream: OutputStream ->
+            try {
+                BufferedWriter(OutputStreamWriter(outputStream)).use { writer ->
+                    try {
+                        writer.write("{\"anonymizedBehandlingList\":\n[\n")
+                        writer.flush()
+                        anonymizedBehandlingList.forEachIndexed { i, behandling ->
+                            writer.write(objectMapper.writeValueAsString(behandling))
+                            if (i < anonymizedBehandlingList.size - 1) {
+                                writer.write(",\n")
+                            }
+                            writer.flush()
+                        }
+                        writer.write("\n],\n")
+                        writer.write("\"total\":${anonymizedBehandlingList.size}\n")
+                        writer.write("}\n")
+                        writer.flush()
+                    } catch (exception: IOException) {
+                        logger.error("Exception occurred while writing object to stream", exception)
+                    }
+                }
+            } catch (exception: Exception) {
+                logger.error("Exception occurred while publishing data", exception)
+            }
+            logger.debug("Finished streaming records. It took ${System.currentTimeMillis() - start} ms")
+        }
+        return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_NDJSON).body(responseBody)
     }
 
     private fun Behandling.toAnonymousBehandlingView(): AnonymousBehandlingView {
