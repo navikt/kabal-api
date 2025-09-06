@@ -1,16 +1,16 @@
 package no.nav.klage.oppgave.repositories
 
+import jakarta.persistence.QueryHint
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Slice
-import org.springframework.data.jpa.repository.EntityGraph
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Query
+import org.springframework.data.jpa.repository.*
 import java.util.*
+import java.util.stream.Stream
 
 interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificationExecutor<Behandling> {
 
@@ -114,5 +114,16 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         """
     )
     fun findAllForKapteinWithHjemler(behandlingIdList: List<UUID>): List<Behandling>
+
+    @QueryHints(QueryHint(name = HINT_FETCH_SIZE, value = "2000"))
+    @Query(
+        """
+            SELECT b
+            FROM Behandling b
+            left join fetch b.hjemler h
+            left join fetch b.registreringshjemler rh
+        """
+    )
+    fun findAllForKapteinStreamed(): Stream<Behandling>
 
 }
