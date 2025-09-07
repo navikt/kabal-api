@@ -45,8 +45,7 @@ class KapteinService(
             writer.write("{\"anonymizedBehandlingList\":\n[\n")
             var count = 1
             streamed.forEach { behandling ->
-                val str = objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView())
-                writer.write(str)
+                writer.write(objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()))
                 if (count++ < total) {
                     writer.write(",\n")
                 }
