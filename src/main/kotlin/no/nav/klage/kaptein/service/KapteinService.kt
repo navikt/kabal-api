@@ -34,10 +34,9 @@ class KapteinService(
     fun writeBehandlingerStreamedToOutputStream(httpServletResponse: HttpServletResponse) {
         val start = System.currentTimeMillis()
         val startCount = System.currentTimeMillis()
-//        val total = behandlingRepository.count()
-        val total = 2
+        val total = behandlingRepository.count()
         logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
-        behandlingRepository.findAllForKapteinStreamed(Limit.of(2)).use { streamed ->
+        behandlingRepository.findAllForKapteinStreamed(Limit.unlimited()).use { streamed ->
             //write directly to output stream
             val outputStream: OutputStream = httpServletResponse.outputStream
             val writer = BufferedWriter(OutputStreamWriter(outputStream))
@@ -66,7 +65,8 @@ class KapteinService(
 
             val end = System.currentTimeMillis()
             logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
-            logger.debug("payload: $wholePayload")
+            logger.debug("payload first part: ${wholePayload.take(100)}")
+            logger.debug("payload last part: ${wholePayload.takeLast(100)}")
             writer.flush()
             writer.close()
         }
