@@ -36,43 +36,25 @@ class KapteinService(
         val startCount = System.currentTimeMillis()
         val total = behandlingRepository.count()
         logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
-        var behandlingCounter = 0
         behandlingRepository.findAllForKapteinStreamed(Limit.of(total.toInt())).use { streamed ->
-            //write directly to output stream
             val outputStream: OutputStream = httpServletResponse.outputStream
             val writer = BufferedWriter(OutputStreamWriter(outputStream))
             httpServletResponse.contentType = MediaType.APPLICATION_JSON_VALUE
             httpServletResponse.status = HttpStatus.OK.value()
 
-            var wholePayload = ""
-            val s1 = "{\"anonymizedBehandlingList\":\n[\n"
-            writer.write(s1)
-            wholePayload += s1
+            writer.write("{\"anonymizedBehandlingList\":\n[\n")
             var count = 1
             streamed.forEach { behandling ->
-                behandlingCounter++
                 val str = objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView())
                 writer.write(str)
-                wholePayload += str
                 if (count++ < total) {
-                    val sEnd = ",\n"
-                    writer.write(sEnd)
-                    wholePayload += sEnd
-                } else {
-                    logger.debug("Last behandling written. Counter: $count, and behandlingCounter: $behandlingCounter")
+                    writer.write(",\n")
                 }
                 entityManager.detach(behandling)
             }
-            logger.debug("Loop done. Counter: $count, and behandlingCounter: $behandlingCounter")
-            val s3 = "\n],\n\"total\": ${total}\n}\n"
-            writer.write(s3)
-            wholePayload += s3
-
+            writer.write("\n],\n\"total\": ${total}\n}\n")
             val end = System.currentTimeMillis()
             logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
-            logger.debug("payload first part: ${wholePayload.take(100)}")
-            logger.debug("payload last part: ${wholePayload.takeLast(100)}")
-            logger.debug("Behandling counter: $behandlingCounter")
             writer.flush()
             writer.close()
         }
