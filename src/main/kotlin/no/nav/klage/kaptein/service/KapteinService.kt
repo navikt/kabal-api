@@ -1,5 +1,7 @@
 package no.nav.klage.kaptein.service
 
+import jakarta.persistence.EntityManager
+import jakarta.servlet.http.HttpServletResponse
 import no.nav.klage.kaptein.api.view.AnonymousBehandlingView
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
@@ -8,12 +10,9 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody
 import java.io.BufferedWriter
-import java.io.IOException
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 
@@ -21,6 +20,7 @@ import java.io.OutputStreamWriter
 @Transactional
 class KapteinService(
     private val behandlingRepository: BehandlingRepository,
+    private val entityManager: EntityManager,
 ) {
 
     companion object {
@@ -29,43 +29,35 @@ class KapteinService(
         private val objectMapper = ourJacksonObjectMapper()
     }
 
-    fun getBehandlinger(): ResponseEntity<StreamingResponseBody> {
+    @Transactional(readOnly = true)
+    fun writeBehandlingerStreamedToOutputStream(httpServletResponse: HttpServletResponse) {
         val start = System.currentTimeMillis()
-        val anonymizedBehandlingList = mutableListOf<AnonymousBehandlingView>()
-        behandlingRepository.findAllForKapteinStreamed().use {
-            it.forEach { b ->
-                anonymizedBehandlingList += b.toAnonymousBehandlingView()
-            }
-        }
-
-        logger.debug("Fetched ${anonymizedBehandlingList.size} behandlinger in ${System.currentTimeMillis() - start} ms")
-        val responseBody = StreamingResponseBody { outputStream: OutputStream ->
-            try {
-                BufferedWriter(OutputStreamWriter(outputStream)).use { writer ->
-                    try {
-                        writer.write("{\"anonymizedBehandlingList\":\n[\n")
-                        writer.flush()
-                        anonymizedBehandlingList.forEachIndexed { i, behandling ->
-                            writer.write(objectMapper.writeValueAsString(behandling))
-                            if (i < anonymizedBehandlingList.size - 1) {
-                                writer.write(",\n")
-                            }
-                            writer.flush()
-                        }
-                        writer.write("\n],\n")
-                        writer.write("\"total\":${anonymizedBehandlingList.size}\n")
-                        writer.write("}\n")
-                        writer.flush()
-                    } catch (exception: IOException) {
-                        logger.error("Exception occurred while writing object to stream", exception)
-                    }
+        val startCount = System.currentTimeMillis()
+        val total = behandlingRepository.count()
+        logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
+        behandlingRepository.findAllForKapteinStreamed().use { streamed ->
+            //write directly to output stream
+            val outputStream: OutputStream = httpServletResponse.outputStream
+            val writer = BufferedWriter(OutputStreamWriter(outputStream))
+            httpServletResponse.contentType = MediaType.APPLICATION_JSON_VALUE
+            httpServletResponse.status = HttpStatus.OK.value()
+            writer.write("{\"anonymizedBehandlingList\":\n[\n")
+            var count = 1
+            streamed.forEach { behandling ->
+                writer.write(objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()))
+                if (count++ < total) {
+                    writer.write(",\n")
                 }
-            } catch (exception: Exception) {
-                logger.error("Exception occurred while publishing data", exception)
+                entityManager.detach(behandling)
             }
-            logger.debug("Finished streaming records. It took ${System.currentTimeMillis() - start} ms")
+            writer.write("\n],\n")
+            writer.write("\"total\": ${total}\n")
+            writer.write("}\n")
+            val end = System.currentTimeMillis()
+            logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
+            writer.flush()
+            writer.close()
         }
-        return ResponseEntity.status(HttpStatus.OK).contentType(MediaType.APPLICATION_NDJSON).body(responseBody)
     }
 
     private fun Behandling.toAnonymousBehandlingView(): AnonymousBehandlingView {
