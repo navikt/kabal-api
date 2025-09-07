@@ -51,6 +51,7 @@ class KapteinService(
             wholePayload += s1
             var count = 1
             streamed.forEach { behandling ->
+                behandlingCounter++
                 val str = objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView())
                 writer.write(str)
                 wholePayload += str
@@ -58,9 +59,10 @@ class KapteinService(
                     val sEnd = ",\n"
                     writer.write(sEnd)
                     wholePayload += sEnd
+                } else {
+                    logger.debug("Last behandling written. Counter: $count, and behandlingCounter: $behandlingCounter")
                 }
                 entityManager.detach(behandling)
-                behandlingCounter++
             }
             val s3 = "\n],\n\"total\": ${total}\n}\n"
             writer.write(s3)
