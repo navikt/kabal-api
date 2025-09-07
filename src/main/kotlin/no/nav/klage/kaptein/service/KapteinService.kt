@@ -64,6 +64,7 @@ class KapteinService(
                 }
                 entityManager.detach(behandling)
             }
+            logger.debug("Loop done. Counter: $count, and behandlingCounter: $behandlingCounter")
             val s3 = "\n],\n\"total\": ${total}\n}\n"
             writer.write(s3)
             wholePayload += s3
