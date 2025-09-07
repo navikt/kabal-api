@@ -39,7 +39,7 @@ class KapteinService(
             //write directly to output stream
             val outputStream: OutputStream = httpServletResponse.outputStream
             val writer = BufferedWriter(OutputStreamWriter(outputStream))
-            httpServletResponse.contentType = MediaType.APPLICATION_JSON_VALUE
+            httpServletResponse.contentType = MediaType.APPLICATION_NDJSON_VALUE
             httpServletResponse.status = HttpStatus.OK.value()
             writer.write("{\"anonymizedBehandlingList\":\n[\n")
             var count = 1
