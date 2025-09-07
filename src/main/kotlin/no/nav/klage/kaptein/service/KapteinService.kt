@@ -35,9 +35,9 @@ class KapteinService(
         val start = System.currentTimeMillis()
         val startCount = System.currentTimeMillis()
 //        val total = behandlingRepository.count()
-        val total = 2600
+        val total = 2777
         logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
-        behandlingRepository.findAllForKapteinStreamed(Limit.of(2600)).use { streamed ->
+        behandlingRepository.findAllForKapteinStreamed(Limit.of(2777)).use { streamed ->
             //write directly to output stream
             val outputStream: OutputStream = httpServletResponse.outputStream
             val writer = BufferedWriter(OutputStreamWriter(outputStream))
