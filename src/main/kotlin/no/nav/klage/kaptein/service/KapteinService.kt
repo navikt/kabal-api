@@ -34,10 +34,11 @@ class KapteinService(
     fun writeBehandlingerStreamedToOutputStream(httpServletResponse: HttpServletResponse) {
         val start = System.currentTimeMillis()
         val startCount = System.currentTimeMillis()
-//        val total = behandlingRepository.count()
-        val total = 2777
+        val total = behandlingRepository.count()
+//        val total = 2777
         logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
-        behandlingRepository.findAllForKapteinStreamed(Limit.of(2777)).use { streamed ->
+        var behandlingCounter = 0
+        behandlingRepository.findAllForKapteinStreamed(Limit.unlimited()).use { streamed ->
             //write directly to output stream
             val outputStream: OutputStream = httpServletResponse.outputStream
             val writer = BufferedWriter(OutputStreamWriter(outputStream))
@@ -59,6 +60,7 @@ class KapteinService(
                     wholePayload += sEnd
                 }
                 entityManager.detach(behandling)
+                behandlingCounter++
             }
             val s3 = "\n],\n\"total\": ${total}\n}\n"
             writer.write(s3)
@@ -68,6 +70,7 @@ class KapteinService(
             logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
             logger.debug("payload first part: ${wholePayload.take(100)}")
             logger.debug("payload last part: ${wholePayload.takeLast(100)}")
+            logger.debug("Behandling counter: $behandlingCounter")
             writer.flush()
             writer.close()
         }
