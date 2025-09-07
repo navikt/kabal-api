@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import org.springframework.data.domain.Limit
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -33,28 +34,39 @@ class KapteinService(
     fun writeBehandlingerStreamedToOutputStream(httpServletResponse: HttpServletResponse) {
         val start = System.currentTimeMillis()
         val startCount = System.currentTimeMillis()
-        val total = behandlingRepository.count()
+//        val total = behandlingRepository.count()
+        val total = 2
         logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
-        behandlingRepository.findAllForKapteinStreamed().use { streamed ->
+        behandlingRepository.findAllForKapteinStreamed(Limit.of(2)).use { streamed ->
             //write directly to output stream
             val outputStream: OutputStream = httpServletResponse.outputStream
             val writer = BufferedWriter(OutputStreamWriter(outputStream))
-            httpServletResponse.contentType = MediaType.APPLICATION_NDJSON_VALUE
+            httpServletResponse.contentType = MediaType.APPLICATION_JSON_VALUE
             httpServletResponse.status = HttpStatus.OK.value()
-            writer.write("{\"anonymizedBehandlingList\":\n[\n")
+
+            var wholePayload = ""
+            val s1 = "{\"anonymizedBehandlingList\":\n[\n"
+            writer.write(s1)
+            wholePayload += s1
             var count = 1
             streamed.forEach { behandling ->
-                writer.write(objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()))
+                val str = objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView())
+                writer.write(str)
+                wholePayload += str
                 if (count++ < total) {
-                    writer.write(",\n")
+                    val sEnd = ",\n"
+                    writer.write(sEnd)
+                    wholePayload += sEnd
                 }
                 entityManager.detach(behandling)
             }
-            writer.write("\n],\n")
-            writer.write("\"total\": ${total}\n")
-            writer.write("}\n")
+            val s3 = "\n],\n\"total\": ${total}\n}\n"
+            writer.write(s3)
+            wholePayload += s3
+
             val end = System.currentTimeMillis()
             logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
+            logger.debug("payload: $wholePayload")
             writer.flush()
             writer.close()
         }
