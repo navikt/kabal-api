@@ -6,6 +6,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE
+import org.springframework.data.domain.Limit
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Slice
 import org.springframework.data.jpa.repository.*
@@ -124,6 +125,6 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             left join fetch b.registreringshjemler rh
         """
     )
-    fun findAllForKapteinStreamed(): Stream<Behandling>
+    fun findAllForKapteinStreamed(limit: Limit): Stream<Behandling>
 
 }

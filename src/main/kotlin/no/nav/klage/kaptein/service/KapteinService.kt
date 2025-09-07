@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import org.springframework.data.domain.Limit
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
@@ -35,12 +36,12 @@ class KapteinService(
         val startCount = System.currentTimeMillis()
         val total = behandlingRepository.count()
         logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
-        behandlingRepository.findAllForKapteinStreamed().use { streamed ->
-            //write directly to output stream
+        behandlingRepository.findAllForKapteinStreamed(Limit.of(total.toInt())).use { streamed ->
             val outputStream: OutputStream = httpServletResponse.outputStream
             val writer = BufferedWriter(OutputStreamWriter(outputStream))
-            httpServletResponse.contentType = MediaType.APPLICATION_NDJSON_VALUE
+            httpServletResponse.contentType = MediaType.APPLICATION_JSON_VALUE
             httpServletResponse.status = HttpStatus.OK.value()
+
             writer.write("{\"anonymizedBehandlingList\":\n[\n")
             var count = 1
             streamed.forEach { behandling ->
@@ -50,9 +51,7 @@ class KapteinService(
                 }
                 entityManager.detach(behandling)
             }
-            writer.write("\n],\n")
-            writer.write("\"total\": ${total}\n")
-            writer.write("}\n")
+            writer.write("\n],\n\"total\": ${total}\n}\n")
             val end = System.currentTimeMillis()
             logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
             writer.flush()
