@@ -59,6 +59,31 @@ class KapteinService(
         }
     }
 
+    @Transactional(readOnly = true)
+    fun writeBehandlingerStreamedToOutputStreamAsNDJson(httpServletResponse: HttpServletResponse) {
+        val start = System.currentTimeMillis()
+        val startCount = System.currentTimeMillis()
+        val total = behandlingRepository.count()
+        logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
+        behandlingRepository.findAllForKapteinStreamed(Limit.of(total.toInt())).use { streamed ->
+            val outputStream: OutputStream = httpServletResponse.outputStream
+            val writer = BufferedWriter(OutputStreamWriter(outputStream))
+            httpServletResponse.contentType = MediaType.APPLICATION_NDJSON_VALUE
+            httpServletResponse.status = HttpStatus.OK.value()
+            httpServletResponse.addIntHeader("Kaptein-Total", total.toInt())
+            httpServletResponse.addHeader("Transfer-Encoding", "chunked")
+
+            streamed.forEach { behandling ->
+                writer.write(objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()) + "\n")
+                entityManager.detach(behandling)
+                writer.flush()
+            }
+            val end = System.currentTimeMillis()
+            logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
+            writer.close()
+        }
+    }
+
     private fun Behandling.toAnonymousBehandlingView(): AnonymousBehandlingView {
         return when (this) {
             is Klagebehandling -> mapKlagebehandlingToAnonymousBehandlingView(this)
