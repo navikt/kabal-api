@@ -86,7 +86,7 @@ class SmartDocumentAccessService(
                     logger.debug("Validating smart document access for document {} and navIdent {}", dua.id, navIdent)
                     documentPolicyService.validateDokumentUnderArbeidAction(
                         behandling = behandling,
-                        dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+                        dokumentType = documentPolicyService.getDokumentType(dua.id),
                         parentDokumentType = DuaAccessPolicy.Parent.NONE,
                         documentRole = dua.creatorRole,
                         action = DuaAccessPolicy.Action.WRITE,
@@ -117,7 +117,7 @@ class SmartDocumentAccessService(
                     logger.debug("Validating smart document access for document {} and navIdent {}", dua.id, navIdent)
                     documentPolicyService.validateDokumentUnderArbeidAction(
                         behandling = behandling,
-                        dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+                        dokumentType = documentPolicyService.getDokumentType(dua.id),
                         parentDokumentType = documentPolicyService.getParentDokumentType(dua.parentId),
                         documentRole = dua.creatorRole,
                         action = DuaAccessPolicy.Action.WRITE,
@@ -172,7 +172,7 @@ class SmartDocumentAccessService(
                 logger.debug("Validating smart document access for document {} and navIdent {}", documentId, navIdent)
                 documentPolicyService.validateDokumentUnderArbeidAction(
                     behandling = behandling,
-                    dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+                    dokumentType = documentPolicyService.getDokumentType(smartDocument.id),
                     parentDokumentType = if (smartDocument is SmartdokumentUnderArbeidAsVedlegg) documentPolicyService.getParentDokumentType(
                         smartDocument.parentId
                     ) else DuaAccessPolicy.Parent.NONE,
@@ -226,7 +226,7 @@ class SmartDocumentAccessService(
                 try {
                     documentPolicyService.validateDokumentUnderArbeidAction(
                         behandling = behandling,
-                        dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+                        dokumentType = documentPolicyService.getDokumentType(dua.id),
                         parentDokumentType = documentPolicyService.getParentDokumentType(dua.parentId),
                         documentRole = dua.creatorRole,
                         action = DuaAccessPolicy.Action.WRITE,
@@ -254,7 +254,7 @@ class SmartDocumentAccessService(
                 try {
                     documentPolicyService.validateDokumentUnderArbeidAction(
                         behandling = behandling,
-                        dokumentType = DuaAccessPolicy.DokumentType.SMART_DOCUMENT,
+                        dokumentType = documentPolicyService.getDokumentType(dua.id),
                         parentDokumentType = DuaAccessPolicy.Parent.NONE,
                         documentRole = dua.creatorRole,
                         action = DuaAccessPolicy.Action.WRITE,
