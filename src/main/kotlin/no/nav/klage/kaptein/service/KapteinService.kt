@@ -73,13 +73,17 @@ class KapteinService(
             httpServletResponse.addIntHeader("Kaptein-Total", total.toInt())
             httpServletResponse.addHeader("Transfer-Encoding", "chunked")
 
+            var count = 0
             streamed.forEach { behandling ->
                 writer.write(objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()) + "\n")
                 entityManager.detach(behandling)
-                writer.flush()
+                if (count++ % 100 == 0) {
+                    writer.flush()
+                }
             }
             val end = System.currentTimeMillis()
             logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
+            writer.flush()
             writer.close()
         }
     }
