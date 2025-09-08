@@ -24,4 +24,11 @@ class KapteinController(
         kapteinService.writeBehandlingerStreamedToOutputStream(httpServletResponse)
     }
 
+    @GetMapping("/behandlinger-stream")
+    fun getBehandlingerStream(
+        httpServletResponse: HttpServletResponse,
+    ) {
+        kapteinService.writeBehandlingerStreamedToOutputStreamAsNDJson(httpServletResponse)
+    }
+
 }
