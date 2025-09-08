@@ -77,58 +77,32 @@ class SmartDocumentAccessService(
 
         val documentIdToNavIdents = mutableMapOf<UUID, MutableSet<String>>()
 
-        (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
-            hoveddokumentList.forEach { dua ->
-                val behandling = behandlingCache.getOrPut(dua.behandlingId) {
-                    getBehandling(dua.behandlingId)
-                }
-                try {
-                    logger.debug("Validating smart document access for document {} and navIdent {}", dua.id, navIdent)
-                    documentPolicyService.validateDokumentUnderArbeidAction(
-                        behandling = behandling,
-                        dokumentType = documentPolicyService.getDokumentType(dua.id),
-                        parentDokumentType = DuaAccessPolicy.Parent.NONE,
-                        documentRole = dua.creatorRole,
-                        action = DuaAccessPolicy.Action.WRITE,
-                        duaMarkertFerdig = false,
-                        isSystemContext = false, //to force actual validation
-                        saksbehandler = navIdent,
-                        isRol = role == DuaAccessPolicy.User.ROL,
-                        isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
-                    )
-                    logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
-                    documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
-                } catch (_: MissingTilgangException) {
-                    // Ignore, user does not have access
-                } catch (_: MissingDUARuleException) {
-                    // Ignore, user does not have access
-                } catch (_: DokumentValidationException) {
-                    // Ignore, user does not have access
-                } catch (e: Exception) {
-                    logger.warn("Unexpected exception when validating smart document:", e)
-                }
+        vedleggList.forEach { dua ->
+            documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
+            dua as SmartdokumentUnderArbeidAsVedlegg
+
+            val behandling = behandlingCache.getOrPut(dua.behandlingId) {
+                getBehandling(dua.behandlingId)
             }
 
-            vedleggList.forEach { dua ->
-                val behandling = behandlingCache.getOrPut(dua.behandlingId) {
-                    getBehandling(dua.behandlingId)
-                }
+            val dokumentType = documentPolicyService.getDokumentType(dua.id)
+            val parentDokumentType = documentPolicyService.getParentDokumentType(dua.parentId)
+
+            (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
                 try {
-                    logger.debug("Validating smart document access for document {} and navIdent {}", dua.id, navIdent)
                     documentPolicyService.validateDokumentUnderArbeidAction(
                         behandling = behandling,
-                        dokumentType = documentPolicyService.getDokumentType(dua.id),
-                        parentDokumentType = documentPolicyService.getParentDokumentType(dua.parentId),
+                        dokumentType = dokumentType,
+                        parentDokumentType = parentDokumentType,
                         documentRole = dua.creatorRole,
                         action = DuaAccessPolicy.Action.WRITE,
-                        duaMarkertFerdig = false,
+                        duaMarkertFerdig = dua.erMarkertFerdig(),
                         isSystemContext = false, //to force actual validation
                         saksbehandler = navIdent,
                         isRol = role == DuaAccessPolicy.User.ROL,
                         isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
                     )
-                    logger.debug("Adding {} to list of users with access to document {}", navIdent, dua.id)
-                    documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }.add(navIdent)
+                    documentIdToNavIdents[dua.id]!!.add(navIdent)
                 } catch (_: MissingTilgangException) {
                     // Ignore, user does not have access
                 } catch (_: MissingDUARuleException) {
@@ -140,6 +114,44 @@ class SmartDocumentAccessService(
                 }
             }
         }
+
+        hoveddokumentList.forEach { dua ->
+            documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
+            dua as SmartdokumentUnderArbeidAsHoveddokument
+
+            val behandling = behandlingCache.getOrPut(dua.behandlingId) {
+                getBehandling(dua.behandlingId)
+            }
+
+            val dokumentType = documentPolicyService.getDokumentType(dua.id)
+
+            (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
+                try {
+                    documentPolicyService.validateDokumentUnderArbeidAction(
+                        behandling = behandling,
+                        dokumentType = dokumentType,
+                        parentDokumentType = DuaAccessPolicy.Parent.NONE,
+                        documentRole = dua.creatorRole,
+                        action = DuaAccessPolicy.Action.WRITE,
+                        duaMarkertFerdig = dua.erMarkertFerdig(),
+                        isSystemContext = false, //to force actual validation
+                        saksbehandler = navIdent,
+                        isRol = role == DuaAccessPolicy.User.ROL,
+                        isSaksbehandler = role == DuaAccessPolicy.User.SAKSBEHANDLER,
+                    )
+                    documentIdToNavIdents[dua.id]!!.add(navIdent)
+                } catch (_: MissingTilgangException) {
+                    // Ignore, user does not have access
+                } catch (_: MissingDUARuleException) {
+                    // Ignore, user does not have access
+                } catch (_: DokumentValidationException) {
+                    // Ignore, user does not have access
+                } catch (e: Exception) {
+                    logger.warn("Unexpected exception when validating smart document:", e)
+                }
+            }
+        }
+
         return SmartDocumentsWriteAccessList(
             smartDocumentWriteAccessList = documentIdToNavIdents.map { (documentId, navIdents) ->
                 SmartDocumentWriteAccess(
@@ -167,15 +179,19 @@ class SmartDocumentAccessService(
 
         val behandling = getBehandling(smartDocument.behandlingId)
 
+        val dokumentType = documentPolicyService.getDokumentType(smartDocument.id)
+        val parentDokumentType =
+            if (smartDocument is SmartdokumentUnderArbeidAsVedlegg) documentPolicyService.getParentDokumentType(
+                smartDocument.parentId
+            ) else DuaAccessPolicy.Parent.NONE
+
         (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
             try {
                 logger.debug("Validating smart document access for document {} and navIdent {}", documentId, navIdent)
                 documentPolicyService.validateDokumentUnderArbeidAction(
                     behandling = behandling,
-                    dokumentType = documentPolicyService.getDokumentType(smartDocument.id),
-                    parentDokumentType = if (smartDocument is SmartdokumentUnderArbeidAsVedlegg) documentPolicyService.getParentDokumentType(
-                        smartDocument.parentId
-                    ) else DuaAccessPolicy.Parent.NONE,
+                    dokumentType = dokumentType,
+                    parentDokumentType = parentDokumentType,
                     documentRole = smartDocument.creatorRole,
                     action = DuaAccessPolicy.Action.WRITE,
                     duaMarkertFerdig = false,
@@ -219,15 +235,20 @@ class SmartDocumentAccessService(
 
         val documentIdToNavIdents = mutableMapOf<UUID, MutableSet<String>>()
 
-        (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
-            vedlegg.forEach { dua ->
-                documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
-                dua as SmartdokumentUnderArbeidAsVedlegg
+
+        vedlegg.forEach { dua ->
+            documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
+            dua as SmartdokumentUnderArbeidAsVedlegg
+
+            val dokumentType = documentPolicyService.getDokumentType(dua.id)
+            val parentDokumentType = documentPolicyService.getParentDokumentType(dua.parentId)
+
+            (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
                 try {
                     documentPolicyService.validateDokumentUnderArbeidAction(
                         behandling = behandling,
-                        dokumentType = documentPolicyService.getDokumentType(dua.id),
-                        parentDokumentType = documentPolicyService.getParentDokumentType(dua.parentId),
+                        dokumentType = dokumentType,
+                        parentDokumentType = parentDokumentType,
                         documentRole = dua.creatorRole,
                         action = DuaAccessPolicy.Action.WRITE,
                         duaMarkertFerdig = dua.erMarkertFerdig(),
@@ -247,14 +268,19 @@ class SmartDocumentAccessService(
                     logger.warn("Unexpected exception when validating smart document:", e)
                 }
             }
+        }
 
-            hoveddokumenter.forEach { dua ->
-                documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
-                dua as SmartdokumentUnderArbeidAsHoveddokument
+        hoveddokumenter.forEach { dua ->
+            documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
+            dua as SmartdokumentUnderArbeidAsHoveddokument
+
+            val dokumentType = documentPolicyService.getDokumentType(dua.id)
+
+            (saksbehandlerIdentList + rolIdentList).forEach { (navIdent, role) ->
                 try {
                     documentPolicyService.validateDokumentUnderArbeidAction(
                         behandling = behandling,
-                        dokumentType = documentPolicyService.getDokumentType(dua.id),
+                        dokumentType = dokumentType,
                         parentDokumentType = DuaAccessPolicy.Parent.NONE,
                         documentRole = dua.creatorRole,
                         action = DuaAccessPolicy.Action.WRITE,
@@ -275,7 +301,6 @@ class SmartDocumentAccessService(
                     logger.warn("Unexpected exception when validating smart document:", e)
                 }
             }
-
         }
         return SmartDocumentsWriteAccessList(
             smartDocumentWriteAccessList = documentIdToNavIdents.map { (documentId, navIdents) ->
