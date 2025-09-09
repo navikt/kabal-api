@@ -41,7 +41,7 @@ class Klagebehandling(
     val kakaKvalitetsvurderingVersion: Int,
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
-    @OneToOne(cascade = [CascadeType.ALL], optional = true)
+    @OneToOne(cascade = [CascadeType.ALL], optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,

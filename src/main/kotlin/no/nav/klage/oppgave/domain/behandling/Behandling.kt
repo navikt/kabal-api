@@ -43,6 +43,14 @@ import java.util.*
             NamedAttributeNode("registreringshjemler"),
         ]
     ),
+    NamedEntityGraph(
+        name = "Behandling.oppgaveProperties",
+        attributeNodes = [
+            NamedAttributeNode("hjemler"),
+            NamedAttributeNode("registreringshjemler"),
+            NamedAttributeNode("varsletBehandlingstidHistorikk"),
+        ]
+    ),
 )
 @Audited
 sealed class Behandling(
