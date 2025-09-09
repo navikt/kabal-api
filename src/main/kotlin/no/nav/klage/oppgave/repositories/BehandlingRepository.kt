@@ -127,4 +127,8 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
     )
     fun findAllForKapteinStreamed(limit: Limit): Stream<Behandling>
 
+    @EntityGraph("Behandling.oppgaveProperties")
+    @Query("select b from Behandling b where b.id = :id")
+    fun findByIdForOppgave(id: UUID): Behandling
+
 }

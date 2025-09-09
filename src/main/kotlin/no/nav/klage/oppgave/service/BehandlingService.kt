@@ -2073,13 +2073,18 @@ class BehandlingService(
     }
 
     fun getBehandlingOppgaveView(behandlingId: UUID): OppgaveView {
-        return behandlingMapper.mapBehandlingToOppgaveView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId))
+        return behandlingMapper.mapBehandlingToOppgaveView(getBehandlingAndCheckLeseTilgangForPersonForCreatingOppgave(behandlingId))
     }
 
     @Transactional(readOnly = true)
     fun getBehandlingAndCheckLeseTilgangForPerson(behandlingId: UUID): Behandling =
         behandlingRepository.findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
+            .also { checkLesetilgangForPerson(it) }
+
+    @Transactional(readOnly = true)
+    fun getBehandlingAndCheckLeseTilgangForPersonForCreatingOppgave(behandlingId: UUID): Behandling =
+        behandlingRepository.findByIdForOppgave(behandlingId)
             .also { checkLesetilgangForPerson(it) }
 
     @Transactional(readOnly = true)
