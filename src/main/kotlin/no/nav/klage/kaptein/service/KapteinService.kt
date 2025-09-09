@@ -8,9 +8,11 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.domain.Limit
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.BufferedWriter
@@ -22,6 +24,9 @@ import java.io.OutputStreamWriter
 class KapteinService(
     private val behandlingRepository: BehandlingRepository,
     private val entityManager: EntityManager,
+    private val aivenKafkaTemplate: KafkaTemplate<String, String>,
+    @Value("\${KAPTEIN_BEHANDLING_TOPIC}")
+    private val kapteinBehandlingTopic: String,
 ) {
 
     companion object {
@@ -85,6 +90,23 @@ class KapteinService(
             logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
             writer.flush()
             writer.close()
+        }
+    }
+
+    fun sendBehandlingChanged(behandling: Behandling) {
+        publishToKafkaTopic(
+            key = behandling.id.toString(),
+            json = objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()),
+        )
+    }
+
+    private fun publishToKafkaTopic(key: String, json: String?) {
+        logger.debug("Sending to Kafka topic: {}", kapteinBehandlingTopic)
+        runCatching {
+            aivenKafkaTemplate.send(kapteinBehandlingTopic, key, json).get()
+            logger.debug("Payload sent to Kafka.")
+        }.onFailure {
+            logger.error("Could not send payload to Kafka", it)
         }
     }
 

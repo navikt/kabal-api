@@ -349,6 +349,8 @@ INTERNAL_IDENTITY_EVENT_TOPIC: klage.internal-identity-events.v1
 
 SMART_DOCUMENT_WRITE_ACCESS_TOPIC: klage.smart-document-write-access.v1
 
+KAPTEIN_BEHANDLING_TOPIC: klage.kaptein-behandling.v1
+
 SERVICE_USER_PASSWORD: itest
 
 KABAL_DOCUMENT_BASE_URL: http://kabal-document
