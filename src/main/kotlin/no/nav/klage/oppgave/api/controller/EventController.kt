@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import io.swagger.v3.oas.annotations.tags.Tag
-import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.config.getGauge
@@ -16,10 +15,12 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import java.time.Duration
-import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -57,57 +58,21 @@ class EventController(
     @GetMapping("/events", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun events(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestParam("test-id", required = false) testId: String? = null,
-        request: HttpServletRequest,
     ): Flux<ServerSentEvent<JsonNode>?> {
-        val listenerStarted = LocalDateTime.now()
-
-        var traceId = "unknown"
-        try {
-            //[00-b37d69e0b7574e7c8ea89df62c9bab4c-ce0c8200a58042dd-00]
-            traceId = request.getHeader("traceparent").split("-")[1]
-        } catch (e: Exception) {
-            logger.warn("could not extract traceId")
-        }
-
-        logger.debug(
-            "events called with testId: {}, for behandlingId: {} and protocol: {}, with start time: {}, traceId: {}",
-            testId,
-            behandlingId,
-            request.protocol,
-            listenerStarted,
-            traceId,
-        )
-
         val behandlingView = behandlingService.getBehandlingDetaljerView(behandlingId = behandlingId)
 
         //https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-async-disconnects
-        val heartbeatStream: Flux<ServerSentEvent<JsonNode>> = getHeartbeatStream(
-            behandlingId = behandlingId,
-            testId = testId,
-            listenerStartTime = listenerStarted,
-            traceId = traceId,
-        )
+        val heartbeatStream: Flux<ServerSentEvent<JsonNode>> = getHeartbeatStream()
 
         val behandlingEventPublisher = getBehandlingEventPublisher(
             behandlingId = behandlingId,
-            testId = testId,
-            listenerStartTime = listenerStarted,
-            traceId = traceId,
         )
 
         val identityEventPublisher = getIdentityEventPublisher(
             behandlingView = behandlingView,
-            testId = testId,
-            listenerStartTime = listenerStarted,
-            traceId = traceId,
         )
 
-        val emitFirstHeartbeat = getFirstHeartbeat(
-            behandlingId = behandlingId,
-            testId = testId,
-            traceId = traceId,
-        )
+        val emitFirstHeartbeat = getFirstHeartbeat()
 
         return behandlingEventPublisher
             .mergeWith(emitFirstHeartbeat)
@@ -117,9 +82,6 @@ class EventController(
 
     private fun getBehandlingEventPublisher(
         behandlingId: UUID,
-        testId: String?,
-        listenerStartTime: LocalDateTime,
-        traceId: String,
     ): Flux<ServerSentEvent<JsonNode>?> {
         val flux = aivenKafkaClientCreator.getNewKafkaInternalBehandlingEventReceiver().receive()
             .mapNotNull { consumerRecord ->
@@ -132,33 +94,7 @@ class EventController(
                         .build()
                 } else null
             }
-            .doOnCancel {
-                logger.debug(
-                    "behandling events cancel for testId: {}, behandlingId: {}, with start time: {}, traceId: {}",
-                    testId,
-                    behandlingId,
-                    listenerStartTime,
-                    traceId,
-                )
-            }
-            .doOnTerminate {
-                logger.debug(
-                    "behandling events terminate for testId: {}, behandlingId: {}, with start time: {}, traceId: {}",
-                    testId,
-                    behandlingId,
-                    listenerStartTime,
-                    traceId,
-                )
-            }
-            .doFinally { signalType ->
-                logger.debug(
-                    "behandling events closed for testId: {}, behandlingId: {}. SignalType: {}, with start time: {}, traceId: {}",
-                    testId,
-                    behandlingId,
-                    signalType,
-                    listenerStartTime,
-                    traceId,
-                )
+            .doFinally { _ ->
                 gaugeBehandling.decrementAndGet()
             }
 
@@ -169,9 +105,6 @@ class EventController(
 
     private fun getIdentityEventPublisher(
         behandlingView: BehandlingDetaljerView,
-        testId: String?,
-        listenerStartTime: LocalDateTime,
-        traceId: String,
     ): Flux<ServerSentEvent<JsonNode>?> {
         val flux = aivenKafkaClientCreator.getNewKafkaInternalIdentityEventReceiver().receive()
             .mapNotNull { consumerRecord ->
@@ -184,33 +117,7 @@ class EventController(
                         .build()
                 } else null
             }
-            .doOnCancel {
-                logger.debug(
-                    "identity events cancel for testId: {}, behandlingId: {}, with start time: {}, traceId: {}",
-                    testId,
-                    behandlingView.id,
-                    listenerStartTime,
-                    traceId,
-                )
-            }
-            .doOnTerminate {
-                logger.debug(
-                    "identity events terminate for testId: {}, behandlingId: {}, with start time: {}, traceId: {}",
-                    testId,
-                    behandlingView.id,
-                    listenerStartTime,
-                    traceId,
-                )
-            }
-            .doFinally { signalType ->
-                logger.debug(
-                    "identity events closed for testId: {}, behandlingId: {}. SignalType: {}, with start time: {}, traceId: {}",
-                    testId,
-                    behandlingView.id,
-                    signalType,
-                    listenerStartTime,
-                    traceId,
-                )
+            .doFinally { _ ->
                 gaugeIdentity.decrementAndGet()
             }
 
@@ -219,88 +126,22 @@ class EventController(
         return flux
     }
 
-    private fun getFirstHeartbeat(
-        behandlingId: UUID,
-        testId: String?,
-        traceId: String,
-    ): Flux<ServerSentEvent<JsonNode>> {
+    private fun getFirstHeartbeat(): Flux<ServerSentEvent<JsonNode>> {
         val emitFirstHeartbeat = Flux.generate<ServerSentEvent<JsonNode>> {
             it.next(toHeartBeatServerSentEvent())
             it.complete()
         }
-            .doFinally { signalType ->
-                logger.debug(
-                    "emitFirstHeartbeat closed for testId: {}, behandlingId: {}. SignalType: {}, traceId: {}",
-                    testId,
-                    behandlingId,
-                    signalType,
-                    traceId,
-                )
-            }
-            .doOnCancel {
-                logger.debug(
-                    "emitFirstHeartbeat cancel for testId: {}, behandlingId: {}, traceId: {}",
-                    testId,
-                    behandlingId,
-                    traceId,
-                )
-            }
-            .doOnTerminate {
-                logger.debug(
-                    "emitFirstHeartbeat terminate for testId: {}, behandlingId: {}, traceId: {}",
-                    testId,
-                    behandlingId,
-                    traceId,
-                )
-            }
         return emitFirstHeartbeat
     }
 
     private fun getHeartbeatStream(
-        behandlingId: UUID,
-        testId: String?,
-        listenerStartTime: LocalDateTime,
-        traceId: String,
     ): Flux<ServerSentEvent<JsonNode>> {
         val heartbeatStream: Flux<ServerSentEvent<JsonNode>> = Flux.interval(Duration.ofSeconds(10))
             .map {
-                logger.debug(
-                    "creating heartbeat event for testId: {}, behandlingId: {}, with start time: {}, traceId: {}",
-                    testId,
-                    behandlingId,
-                    listenerStartTime,
-                    traceId,
-                )
                 toHeartBeatServerSentEvent()
             }
-            .doFinally { signalType ->
-                logger.debug(
-                    "heartbeat events closed for testId: {}, behandlingId: {}. SignalType: {}, with start time: {}, traceId: {}",
-                    testId,
-                    behandlingId,
-                    signalType,
-                    listenerStartTime,
-                    traceId,
-                )
+            .doFinally { _ ->
                 gaugeBehandlingHeartbeat.decrementAndGet()
-            }
-            .doOnCancel {
-                logger.debug(
-                    "heartbeat cancel for testId: {}, behandlingId: {}, with start time: {}, traceId: {}",
-                    testId,
-                    behandlingId,
-                    listenerStartTime,
-                    traceId,
-                )
-            }
-            .doOnTerminate {
-                logger.debug(
-                    "heartbeat terminate for testId: {}, behandlingId: {}, with start time: {}, traceId: {}",
-                    testId,
-                    behandlingId,
-                    listenerStartTime,
-                    traceId,
-                )
             }
 
         gaugeBehandlingHeartbeat.incrementAndGet()
