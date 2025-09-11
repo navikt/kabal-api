@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.service.distribusjon
+package no.nav.klage.oppgave.service.avslutning
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
@@ -162,6 +162,7 @@ class BehandlingAvslutningService(
                     logger.debug("Behandlingen som er avsluttet ble sendt tilbake til Infotrygd.")
                 }
             } else if (behandling !is OmgjoeringskravbehandlingBasedOnJournalpost || behandling.fagsystem == Fagsystem.IT01) {
+                //TODO: Vi går inn her når det er OmgjoeringskravbehandlingBasedOnJournalpost og Infotrygd som fagsystem. Er det riktig?
                 //Notify modern fagsystem
                 val behandlingEvent = BehandlingEvent(
                     eventId = UUID.randomUUID(),
