@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletResponse
-import no.nav.klage.kaptein.api.view.AnonymousBehandlingListView
 import no.nav.klage.kaptein.api.view.AnonymousBehandlingView
 import no.nav.klage.kaptein.service.KapteinService
 import no.nav.klage.oppgave.config.SecurityConfiguration
@@ -22,22 +21,6 @@ import org.springframework.web.bind.annotation.RestController
 class KapteinController(
     private val kapteinService: KapteinService,
 ) {
-
-    @ApiResponse(
-        responseCode = "200",
-        content = [
-            Content(
-                mediaType = MediaType.APPLICATION_JSON_VALUE,
-                schema = Schema(implementation = AnonymousBehandlingListView::class)
-            )
-        ]
-    )
-    @GetMapping("/behandlinger")
-    fun getBehandlinger(
-        httpServletResponse: HttpServletResponse,
-    ) {
-        kapteinService.writeBehandlingerStreamedToOutputStream(httpServletResponse)
-    }
 
     @ApiResponse(
         responseCode = "200", description = "NDJSON stream",

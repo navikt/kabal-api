@@ -9,7 +9,6 @@ import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.data.domain.Limit
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.kafka.core.KafkaTemplate
@@ -36,35 +35,6 @@ class KapteinService(
     }
 
     @Transactional(readOnly = true)
-    fun writeBehandlingerStreamedToOutputStream(httpServletResponse: HttpServletResponse) {
-        val start = System.currentTimeMillis()
-        val startCount = System.currentTimeMillis()
-        val total = behandlingRepository.count()
-        logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
-        behandlingRepository.findAllForKapteinStreamed(Limit.of(total.toInt())).use { streamed ->
-            val outputStream: OutputStream = httpServletResponse.outputStream
-            val writer = BufferedWriter(OutputStreamWriter(outputStream))
-            httpServletResponse.contentType = MediaType.APPLICATION_JSON_VALUE
-            httpServletResponse.status = HttpStatus.OK.value()
-
-            writer.write("{\"anonymizedBehandlingList\":\n[\n")
-            var count = 1
-            streamed.forEach { behandling ->
-                writer.write(objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()))
-                if (count++ < total) {
-                    writer.write(",\n")
-                }
-                entityManager.detach(behandling)
-            }
-            writer.write("\n],\n\"total\": ${total}\n}\n")
-            val end = System.currentTimeMillis()
-            logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
-            writer.flush()
-            writer.close()
-        }
-    }
-
-    @Transactional(readOnly = true)
     fun writeBehandlingerStreamedToOutputStreamAsNDJson(httpServletResponse: HttpServletResponse) {
         val start = System.currentTimeMillis()
         val startCount = System.currentTimeMillis()
@@ -74,7 +44,7 @@ class KapteinService(
         val viewYtelseCounter = mutableMapOf<String, Int>()
 
         logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
-        behandlingRepository.findAllForKapteinStreamed(Limit.of(total.toInt())).use { streamed ->
+        behandlingRepository.findAllForKapteinStreamed().use { streamed ->
             val outputStream: OutputStream = httpServletResponse.outputStream
             val writer = BufferedWriter(OutputStreamWriter(outputStream))
             httpServletResponse.contentType = MediaType.APPLICATION_NDJSON_VALUE
