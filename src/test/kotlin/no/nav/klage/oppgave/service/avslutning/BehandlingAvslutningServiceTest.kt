@@ -168,12 +168,14 @@ class BehandlingAvslutningServiceTest {
         verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
         verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
         verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
-        verify(exactly = 1) { gosysOppgaveService.addKommentar(
-            any(),
-            "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten har henvist saken.",
-            any(),
-            any()
-        ) }
+        verify(exactly = 1) {
+            gosysOppgaveService.addKommentar(
+                any(),
+                "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten har henvist saken.",
+                any(),
+                any()
+            )
+        }
         verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
         verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
@@ -232,12 +234,14 @@ class BehandlingAvslutningServiceTest {
         verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
         verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
         verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
-        verify(exactly = 1) { gosysOppgaveService.addKommentar(
-            any(),
-            "Klageinstansen har opprettet ny behandling i Kabal.",
-            any(),
-            any()
-        ) }
+        verify(exactly = 1) {
+            gosysOppgaveService.addKommentar(
+                any(),
+                "Klageinstansen har opprettet ny behandling i Kabal.",
+                any(),
+                any()
+            )
+        }
         verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
         verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
@@ -298,12 +302,14 @@ class BehandlingAvslutningServiceTest {
         verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
         verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
         verify(exactly = 1) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
-        verify(exactly = 1) { gosysOppgaveService.addKommentar(
-            any(),
-            "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten opphevet saken.",
-            any(),
-            any()
-        ) }
+        verify(exactly = 1) {
+            gosysOppgaveService.addKommentar(
+                any(),
+                "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten opphevet saken.",
+                any(),
+                any()
+            )
+        }
         verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
         verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
@@ -337,7 +343,7 @@ class BehandlingAvslutningServiceTest {
         verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
         verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
         verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
-        verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(),any(),any()) }
+        verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
         verify(exactly = 1) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
         verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
@@ -372,7 +378,7 @@ class BehandlingAvslutningServiceTest {
         verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
         verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
         verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
-        verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(),any(),any()) }
+        verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
         verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
@@ -405,7 +411,7 @@ class BehandlingAvslutningServiceTest {
         verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
         verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
         verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
-        verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(),any(),any()) }
+        verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
         verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
@@ -436,10 +442,21 @@ class BehandlingAvslutningServiceTest {
         behandlingAvslutningService.avsluttBehandling(behandlingId)
 
         verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-        verify(exactly = 1) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
+        verify(exactly = 1) {
+            fssProxyClient.setToFinishedWithAppAccess(
+                any(), SakFinishedInput(
+                    status = SakFinishedInput.Status.RETURNERT_TK,
+                    nivaa = SakFinishedInput.Nivaa.KA,
+                    typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
+                    utfall = SakFinishedInput.Utfall.AVSLAG,
+                    mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
+                    saksbehandlerIdent = "ident"
+                )
+            )
+        }
         verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
         verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
-        verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(),any(),any()) }
+        verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
         verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
@@ -471,7 +488,7 @@ class BehandlingAvslutningServiceTest {
         verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
         verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
         verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
-        verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(),any(),any()) }
+        verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
         verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
         verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
