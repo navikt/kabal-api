@@ -123,6 +123,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             FROM Behandling b
             left join fetch b.hjemler h
             left join fetch b.registreringshjemler rh
+            order by b.id
         """
     )
     fun findAllForKapteinStreamed(limit: Limit): Stream<Behandling>
