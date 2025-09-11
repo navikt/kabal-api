@@ -69,6 +69,10 @@ class KapteinService(
         val start = System.currentTimeMillis()
         val startCount = System.currentTimeMillis()
         val total = behandlingRepository.count()
+
+        val behandlingYtelseCounter = mutableMapOf<String, Int>()
+        val viewYtelseCounter = mutableMapOf<String, Int>()
+
         logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
         behandlingRepository.findAllForKapteinStreamed(Limit.of(total.toInt())).use { streamed ->
             val outputStream: OutputStream = httpServletResponse.outputStream
@@ -80,7 +84,10 @@ class KapteinService(
 
             var count = 0
             streamed.forEach { behandling ->
-                writer.write(objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()) + "\n")
+                val view = behandling.toAnonymousBehandlingView()
+                behandlingYtelseCounter[behandling.ytelse.id] = behandlingYtelseCounter.getOrDefault(behandling.ytelse.id, 0) + 1
+                viewYtelseCounter[view.ytelseId] = viewYtelseCounter.getOrDefault(view.ytelseId, 0) + 1
+                writer.write(objectMapper.writeValueAsString(view) + "\n")
                 entityManager.detach(behandling)
                 if (count++ % 100 == 0) {
                     writer.flush()
@@ -91,6 +98,8 @@ class KapteinService(
             writer.flush()
             writer.close()
         }
+        logger.debug("Behandling ytelse counts: $behandlingYtelseCounter")
+        logger.debug("View ytelse counts: $viewYtelseCounter")
     }
 
     fun sendBehandlingChanged(behandling: Behandling) {
