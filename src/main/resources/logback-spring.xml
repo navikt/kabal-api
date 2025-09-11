@@ -73,6 +73,8 @@
         </logger>
 
         <logger name="org.hibernate.SQL_SLOW" level="debug"/>
+
+        <logger name="org.apache.kafka" level="warn"/>
     </springProfile>
 
     <logger name="no.nav.klage" level="debug"/>
