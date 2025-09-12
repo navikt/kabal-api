@@ -117,8 +117,7 @@ class BehandlingAvslutningService(
         if (ankebehandling.shouldBeSentToTrygderetten()) {
             logger.debug("Anken sendes til trygderetten. Oppretter AnkeITrygderettenbehandling.")
             createAnkeITrygderettenbehandling(ankebehandling)
-            //if fagsystem is Infotrygd also do this.
-            if (ankebehandling.shouldUpdateInfotrygd()) {
+            if (ankebehandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten.")
                 fssProxyClient.setToFinishedWithAppAccess(
                     sakId = ankebehandling.kildeReferanse,
