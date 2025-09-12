@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.service.distribusjon
+package no.nav.klage.oppgave.service.avslutning
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.kodeverk.Type
