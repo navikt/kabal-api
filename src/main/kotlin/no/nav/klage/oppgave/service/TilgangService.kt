@@ -26,6 +26,10 @@ class TilgangService(
         if (behandling.ferdigstilling != null) {
             throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
         }
+        if (behandling.feilregistrering != null) {
+            throw BehandlingAvsluttetException("Kan ikke endre feilregistrert behandling")
+        }
+
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         if (!saksbehandlerHarSkrivetilgang(behandling, ident)) {
             throw MissingTilgangException("Kun tildelt saksbehandler kan endre behandlingen")
@@ -34,12 +38,6 @@ class TilgangService(
 
     private fun saksbehandlerHarSkrivetilgang(behandling: Behandling, ident: String): Boolean =
         ident == behandling.tildeling?.saksbehandlerident
-
-    fun checkIfBehandlingIsAvsluttet(behandling: Behandling) {
-        if (behandling.ferdigstilling?.avsluttet != null) {
-            throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
-        }
-    }
 
     fun verifyInnloggetSaksbehandlersTilgangTil(fnr: String) {
         val access = harInnloggetSaksbehandlerTilgangTil(fnr)
@@ -56,7 +54,10 @@ class TilgangService(
 
     fun verifyInnloggetSaksbehandlerIsMedunderskriverOrROLAndNotFinalized(behandling: Behandling) {
         if (behandling.ferdigstilling != null) {
-            throw BehandlingAvsluttetException("Kan ikke endre avsluttet klagebehandling")
+            throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
+        }
+        if (behandling.feilregistrering != null) {
+            throw BehandlingAvsluttetException("Kan ikke endre feilregistrert behandling")
         }
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         if (ident != behandling.medunderskriver?.saksbehandlerident && ident != behandling.rolIdent) {
