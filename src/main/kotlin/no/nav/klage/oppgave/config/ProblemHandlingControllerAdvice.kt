@@ -136,12 +136,6 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
-    fun handleBehandlingFinalizedException(
-        ex: BehandlingFinalizedException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
-
-    @ExceptionHandler
     fun handleEnhetNotFoundForSaksbehandlerException(
         ex: EnhetNotFoundForSaksbehandlerException,
     ): ProblemDetail =

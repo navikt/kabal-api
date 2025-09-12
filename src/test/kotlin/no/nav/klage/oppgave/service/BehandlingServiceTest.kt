@@ -31,7 +31,6 @@ import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
-import no.nav.klage.oppgave.exceptions.BehandlingFinalizedException
 import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.MottakRepository
@@ -325,7 +324,7 @@ class BehandlingServiceTest {
         val behandling = simpleInsert(fullfoert = true)
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
 
-        assertThrows<BehandlingFinalizedException> {
+        assertThrows<BehandlingAvsluttetException> {
             behandlingService.ferdigstillBehandling(
                 behandlingId = behandling.id,
                 innloggetIdent = SAKSBEHANDLER_IDENT,
