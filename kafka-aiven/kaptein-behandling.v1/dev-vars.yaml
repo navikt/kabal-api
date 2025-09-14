@@ -13,3 +13,6 @@ acl:
   - team: klage
     application: kaptein
     access: read
+  - team: klage
+    application: kaptein-api
+    access: read
