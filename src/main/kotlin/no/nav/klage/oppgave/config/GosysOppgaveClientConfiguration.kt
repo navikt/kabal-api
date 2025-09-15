@@ -4,10 +4,7 @@ import io.opentelemetry.api.trace.Span
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.web.reactive.function.client.ClientRequest
-import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
-import reactor.core.publisher.Mono
 
 @Configuration
 class GosysOppgaveClientConfiguration(private val webClientBuilder: WebClient.Builder) {
@@ -18,18 +15,7 @@ class GosysOppgaveClientConfiguration(private val webClientBuilder: WebClient.Bu
     fun gosysOppgaveWebClient(): WebClient {
         return webClientBuilder
             .baseUrl(gosysOppgaveBaseURL)
-            .filter(
-                ExchangeFilterFunction.ofRequestProcessor { request ->
-                    val traceId = Span.current().spanContext.traceId
-                    Mono.just(
-                        ClientRequest.from(request)
-                            .headers { headers ->
-                                headers["X-Correlation-ID"] = traceId
-                            }
-                            .build()
-                    )
-                }
-            )
+            .defaultHeader("Nav-Call-ID", Span.current().spanContext.traceId)
             .build()
     }
 }
