@@ -16,6 +16,7 @@ class GosysOppgaveClientConfiguration(private val webClientBuilder: WebClient.Bu
         return webClientBuilder
             .baseUrl(gosysOppgaveBaseURL)
             .defaultHeader("Nav-Call-ID", Span.current().spanContext.traceId)
+            .defaultHeader("X-Correlation-ID", Span.current().spanContext.traceId)
             .build()
     }
 }
