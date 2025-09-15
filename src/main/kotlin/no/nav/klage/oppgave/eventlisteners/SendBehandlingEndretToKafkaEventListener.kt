@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.eventlisteners
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import no.nav.klage.kaptein.service.KapteinService
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.service.BehandlingEndretKafkaProducer
@@ -17,6 +18,7 @@ import org.springframework.transaction.event.TransactionalEventListener
 class SendBehandlingEndretToKafkaEventListener(
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
     private val behandlingRepository: BehandlingRepository,
+    private val kapteinService: KapteinService,
 ) {
 
     companion object {
@@ -36,6 +38,11 @@ class SendBehandlingEndretToKafkaEventListener(
             behandlingEndretKafkaProducer.sendBehandlingEndret(behandling)
         } catch (e: Exception) {
             logger.error("could not index behandling with id ${behandlingChangedEvent.behandling.id}", e)
+        }
+        try {
+            kapteinService.sendBehandlingChanged(behandling)
+        } catch (e: Exception) {
+            logger.error("could not send behandling to Kaptein with id ${behandlingChangedEvent.behandling.id}", e)
         }
         logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingChangedEvent.behandling.id)
     }

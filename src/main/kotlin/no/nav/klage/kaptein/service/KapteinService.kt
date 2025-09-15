@@ -8,9 +8,10 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
-import org.springframework.data.domain.Limit
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.BufferedWriter
@@ -22,6 +23,9 @@ import java.io.OutputStreamWriter
 class KapteinService(
     private val behandlingRepository: BehandlingRepository,
     private val entityManager: EntityManager,
+    private val aivenKafkaTemplate: KafkaTemplate<String, String>,
+    @Value("\${KAPTEIN_BEHANDLING_TOPIC}")
+    private val kapteinBehandlingTopic: String,
 ) {
 
     companion object {
@@ -31,41 +35,16 @@ class KapteinService(
     }
 
     @Transactional(readOnly = true)
-    fun writeBehandlingerStreamedToOutputStream(httpServletResponse: HttpServletResponse) {
-        val start = System.currentTimeMillis()
-        val startCount = System.currentTimeMillis()
-        val total = behandlingRepository.count()
-        logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
-        behandlingRepository.findAllForKapteinStreamed(Limit.of(total.toInt())).use { streamed ->
-            val outputStream: OutputStream = httpServletResponse.outputStream
-            val writer = BufferedWriter(OutputStreamWriter(outputStream))
-            httpServletResponse.contentType = MediaType.APPLICATION_JSON_VALUE
-            httpServletResponse.status = HttpStatus.OK.value()
-
-            writer.write("{\"anonymizedBehandlingList\":\n[\n")
-            var count = 1
-            streamed.forEach { behandling ->
-                writer.write(objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()))
-                if (count++ < total) {
-                    writer.write(",\n")
-                }
-                entityManager.detach(behandling)
-            }
-            writer.write("\n],\n\"total\": ${total}\n}\n")
-            val end = System.currentTimeMillis()
-            logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
-            writer.flush()
-            writer.close()
-        }
-    }
-
-    @Transactional(readOnly = true)
     fun writeBehandlingerStreamedToOutputStreamAsNDJson(httpServletResponse: HttpServletResponse) {
         val start = System.currentTimeMillis()
         val startCount = System.currentTimeMillis()
         val total = behandlingRepository.count()
+
+        val behandlingYtelseCounter = mutableMapOf<String, Int>()
+        val viewYtelseCounter = mutableMapOf<String, Int>()
+
         logger.debug("Counted total behandlinger: $total in ${System.currentTimeMillis() - startCount} ms")
-        behandlingRepository.findAllForKapteinStreamed(Limit.of(total.toInt())).use { streamed ->
+        behandlingRepository.findAllForKapteinStreamed().use { streamed ->
             val outputStream: OutputStream = httpServletResponse.outputStream
             val writer = BufferedWriter(OutputStreamWriter(outputStream))
             httpServletResponse.contentType = MediaType.APPLICATION_NDJSON_VALUE
@@ -75,7 +54,10 @@ class KapteinService(
 
             var count = 0
             streamed.forEach { behandling ->
-                writer.write(objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()) + "\n")
+                val view = behandling.toAnonymousBehandlingView()
+                behandlingYtelseCounter[behandling.ytelse.id] = behandlingYtelseCounter.getOrDefault(behandling.ytelse.id, 0) + 1
+                viewYtelseCounter[view.ytelseId] = viewYtelseCounter.getOrDefault(view.ytelseId, 0) + 1
+                writer.write(objectMapper.writeValueAsString(view) + "\n")
                 entityManager.detach(behandling)
                 if (count++ % 100 == 0) {
                     writer.flush()
@@ -85,6 +67,25 @@ class KapteinService(
             logger.debug("Fetched and wrote $total behandlinger to output stream in ${end - start} ms")
             writer.flush()
             writer.close()
+        }
+        logger.debug("Behandling ytelse counts: $behandlingYtelseCounter")
+        logger.debug("View ytelse counts: $viewYtelseCounter")
+    }
+
+    fun sendBehandlingChanged(behandling: Behandling) {
+        publishToKafkaTopic(
+            key = behandling.id.toString(),
+            json = objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()),
+        )
+    }
+
+    private fun publishToKafkaTopic(key: String, json: String?) {
+        logger.debug("Sending to Kafka topic: {}", kapteinBehandlingTopic)
+        runCatching {
+            aivenKafkaTemplate.send(kapteinBehandlingTopic, key, json).get()
+            logger.debug("Payload sent to Kafka.")
+        }.onFailure {
+            logger.error("Could not send payload to Kafka", it)
         }
     }
 

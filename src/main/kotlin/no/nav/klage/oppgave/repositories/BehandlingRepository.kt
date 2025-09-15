@@ -6,9 +6,6 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE
-import org.springframework.data.domain.Limit
-import org.springframework.data.domain.Pageable
-import org.springframework.data.domain.Slice
 import org.springframework.data.jpa.repository.*
 import java.util.*
 import java.util.stream.Stream
@@ -97,35 +94,17 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
 
     fun findByTilbakekrevingIsFalse(): List<Behandling>
 
-    @Query(
-        """
-            SELECT b.id
-            FROM Behandling b
-        """
-    )
-    fun findAllIdListForKaptein(pageable: Pageable): Slice<UUID>
-
-    @Query(
-        """
-            SELECT b
-            FROM Behandling b
-            left join fetch b.hjemler h
-            left join fetch b.registreringshjemler rh
-            where b.id in :behandlingIdList
-        """
-    )
-    fun findAllForKapteinWithHjemler(behandlingIdList: List<UUID>): List<Behandling>
-
     @QueryHints(QueryHint(name = HINT_FETCH_SIZE, value = "2000"))
     @Query(
         """
-            SELECT b
-            FROM Behandling b
+            select b
+            from Behandling b
             left join fetch b.hjemler h
             left join fetch b.registreringshjemler rh
+            order by b.id
         """
     )
-    fun findAllForKapteinStreamed(limit: Limit): Stream<Behandling>
+    fun findAllForKapteinStreamed(): Stream<Behandling>
 
     @EntityGraph("Behandling.oppgaveProperties")
     @Query("select b from Behandling b where b.id = :id")

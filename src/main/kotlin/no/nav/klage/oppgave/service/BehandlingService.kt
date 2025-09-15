@@ -177,7 +177,7 @@ class BehandlingService(
             )
         }
 
-        if (behandling.ferdigstilling != null) throw BehandlingFinalizedException("Behandlingen er avsluttet")
+        if (behandling.ferdigstilling != null) throw BehandlingAvsluttetException("Behandlingen er avsluttet")
 
         //Forretningsmessige krav før vedtak kan ferdigstilles
         validateBehandlingBeforeFinalize(
@@ -456,6 +456,24 @@ class BehandlingService(
                 InvalidProperty(
                     field = "gosysOppgave",
                     reason = "Velg Gosys-oppgave."
+                )
+            )
+        }
+
+        if (behandling.medunderskriverFlowState == FlowState.SENT) {
+            behandlingValidationErrors.add(
+                InvalidProperty(
+                    field = "medunderskriver",
+                    reason = "Behandlingen er sendt til medunderskriver og kan ikke fullføres før den er tilbake."
+                )
+            )
+        }
+
+        if (behandling.rolFlowState == FlowState.SENT) {
+            behandlingValidationErrors.add(
+                InvalidProperty(
+                    field = "rol",
+                    reason = "Behandlingen er sendt til rådgivende overlege og kan ikke fullføres før den er tilbake."
                 )
             )
         }
@@ -1900,8 +1918,13 @@ class BehandlingService(
     ): Behandling =
         behandlingRepository.findById(behandlingId).get()
             .also {
-                if (!systemUserContext && it.feilregistrering != null) {
-                    throw BehandlingAvsluttetException("Behandlingen er feilregistrert")
+                if (!systemUserContext) {
+                    if (it.feilregistrering != null) {
+                        throw BehandlingAvsluttetException("Behandlingen er feilregistrert")
+                    }
+                    if (it.ferdigstilling != null) {
+                        throw BehandlingAvsluttetException("Behandlingen er avsluttet")
+                    }
                 }
             }
             .also { if (!systemUserContext) checkLesetilgangForPerson(it) }
@@ -1921,10 +1944,6 @@ class BehandlingService(
         tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling)
     }
 
-    private fun checkSkrivetilgangForSystembruker(behandling: Behandling) {
-        tilgangService.checkIfBehandlingIsAvsluttet(behandling)
-    }
-
     @Transactional(readOnly = true)
     fun getBehandlingForReadWithoutCheckForAccess(behandlingId: UUID): Behandling =
         behandlingRepository.findById(behandlingId)
@@ -1936,12 +1955,6 @@ class BehandlingService(
     @Transactional(readOnly = true)
     fun getBehandlingEagerForReadWithoutCheckForAccess(behandlingId: UUID): Behandling =
         behandlingRepository.findByIdEager(behandlingId)
-
-    fun getBehandlingForUpdateBySystembruker(
-        behandlingId: UUID,
-    ): Behandling =
-        behandlingRepository.findById(behandlingId).get()
-            .also { checkSkrivetilgangForSystembruker(it) }
 
     private fun checkYtelseAccess(
         tildeltSaksbehandlerIdent: String,
