@@ -76,7 +76,10 @@
 
         <logger name="org.apache.kafka" level="warn"/>
 
-        <logger name="reactor.netty.http.client" level="debug"/>
+        <logger name="reactor.netty.http.client" level="debug">
+            <appender-ref ref="team-logs"/>
+        </logger>
+
     </springProfile>
 
     <logger name="no.nav.klage" level="debug"/>
