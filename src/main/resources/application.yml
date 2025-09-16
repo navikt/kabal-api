@@ -35,6 +35,8 @@ spring:
   servlet:
     multipart:
       enabled: false
+  codec:
+    max-in-memory-size: 512MB
   sql:
     init:
       platform: postgresql
