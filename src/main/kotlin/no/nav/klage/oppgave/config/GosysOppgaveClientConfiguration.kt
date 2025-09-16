@@ -27,7 +27,6 @@ class GosysOppgaveClientConfiguration(private val webClientBuilder: WebClient.Bu
             .filter(
                 ExchangeFilterFunction.ofRequestProcessor { request ->
                     val traceId = Span.current().spanContext.traceId
-                    logger.debug("Found trace id in GosysOppgaveWebClient: {}", traceId)
                     Mono.just(
                         ClientRequest.from(request)
                             .headers { headers ->
