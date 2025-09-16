@@ -81,8 +81,6 @@ class BehandlingAvslutningServiceTest {
         }
     }
 
-    //TODO: Tilfeller for Gosysoppgave i klagebehandling og ankebehandling
-
     @Nested
     inner class KlagebehandlingTest {
         val behandling = spyk<Klagebehandling> {
@@ -122,9 +120,15 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Klagebehandling from Infotrygd should update Infotrygd`() {
+        fun `Klagebehandling from Infotrygd should update Infotrygd and GosysOppgave`() {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
+                oppgaveUpdateTildeltEnhetsnummer = "123",
+                oppgaveUpdateMappeId = null,
+                oppgaveUpdateKommentar = ""
+            )
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -145,7 +149,7 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
-            verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
+            verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
             verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
@@ -172,8 +176,14 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Ankebehandling with utfall going to Trygderetten and fagsystem Infotrygd creates AnkeITrygderettenbehandling and updates Infotrygd`() {
+        fun `Ankebehandling with utfall going to Trygderetten and fagsystem Infotrygd creates AnkeITrygderettenbehandling and updates Infotrygd and GosysOppgave`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
+                oppgaveUpdateTildeltEnhetsnummer = "123",
+                oppgaveUpdateMappeId = null,
+                oppgaveUpdateKommentar = ""
+            )
             every { behandling.utfall } returns Utfall.INNSTILLING_STADFESTELSE
             every { behandling.createAnkeITrygderettenbehandlingInput() } returns mockk()
 
@@ -196,7 +206,7 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
-            verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
+            verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
@@ -242,9 +252,15 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Ankebehandling with utfall not going to Trygderetten from Infotrygd should update Infotrygd`() {
+        fun `Ankebehandling with utfall not going to Trygderetten from Infotrygd should update Infotrygd and GosysOppgave`() {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
+                oppgaveUpdateTildeltEnhetsnummer = "123",
+                oppgaveUpdateMappeId = 0,
+                oppgaveUpdateKommentar = ""
+            )
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -265,7 +281,7 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
-            verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
+            verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
             verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
@@ -292,8 +308,9 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling with utfall HENVIST creates new Ankebehandling`() {
+        fun `AnkeITrygderettenbehandling from modernized fagsystem with utfall HENVIST creates new Ankebehandling`() {
             every { behandling.utfall } returns Utfall.HENVIST
+            every { behandling.fagsystem } returns Fagsystem.FS36
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -310,9 +327,11 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling with utfall HENVIST and gosysOppgaveId creates new Ankebehandling and notifies GosysOppgave`() {
+        fun `AnkeITrygderettenbehandling from Infotrygd with utfall HENVIST and gosysOppgaveId creates new Ankebehandling and notifies GosysOppgave`() {
             every { behandling.utfall } returns Utfall.HENVIST
+            every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
+
             every { behandling.gosysOppgaveUpdate } returns mockk<GosysOppgaveUpdate>()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
@@ -337,8 +356,9 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling tagged with nyAnkebehandlingKA creates new Ankebehandling`() {
+        fun `AnkeITrygderettenbehandling from modernized fagsystem tagged with nyAnkebehandlingKA creates new Ankebehandling`() {
             every { behandling.nyAnkebehandlingKA } returns now
+            every { behandling.fagsystem } returns Fagsystem.FS36
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -355,8 +375,9 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling tagged with nyAnkebehanldingKA and gosysOppgaveId creates new Ankebehandling and notifies GosysOppgave`() {
+        fun `AnkeITrygderettenbehandling from Infotrygd tagged with nyAnkebehandlingKA and gosysOppgaveId creates new Ankebehandling and notifies GosysOppgave`() {
             every { behandling.nyAnkebehandlingKA } returns now
+            every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
@@ -381,9 +402,10 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling with utfall Opphevet and nyBehandling tag creates BehandlingEtterTrygderettenOpphevet`() {
+        fun `AnkeITrygderettenbehandling from modernized fagsystem with utfall Opphevet and nyBehandling tag creates BehandlingEtterTrygderettenOpphevet`() {
             every { behandling.nyBehandlingEtterTROpphevet } returns now
             every { behandling.utfall } returns Utfall.OPPHEVET
+            every { behandling.fagsystem } returns Fagsystem.FS36
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -400,9 +422,10 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `AnkeITrygderettenbehandling with utfall Opphevet, gosysOppgaveId and nyBehandling tag creates BehandlingEtterTrygderettenOpphevet and notifies GosysOppgave`() {
+        fun `AnkeITrygderettenbehandling from Infotrygd with utfall Opphevet, gosysOppgaveId and nyBehandling tag creates BehandlingEtterTrygderettenOpphevet and notifies GosysOppgave`() {
             every { behandling.nyBehandlingEtterTROpphevet } returns now
             every { behandling.utfall } returns Utfall.OPPHEVET
+            every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
@@ -468,6 +491,12 @@ class BehandlingAvslutningServiceTest {
         fun `AnkeITrygderettenbehandling from Infotrygd with different utfall updates Infotrygd`() {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
+                oppgaveUpdateTildeltEnhetsnummer = "123",
+                oppgaveUpdateMappeId = null,
+                oppgaveUpdateKommentar = ""
+            )
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -488,7 +517,7 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
-            verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
+            verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
             verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
@@ -517,6 +546,7 @@ class BehandlingAvslutningServiceTest {
         @Test
         fun `Omgjoeringskravbehandling with utfall not MEDHOLD_ETTER_FVL_35 and gosysOppgaveId closes Gosys oppgave`() {
             every { behandling.utfall } returns Utfall.BESLUTNING_IKKE_OMGJOERE
+            every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
             //Ensured in BehandlingService
             every { behandling.ignoreGosysOppgave } returns false
@@ -633,9 +663,15 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `BehandlingEtterTrygderettenOpphevet from Infotrygd should update Infotrygd`() {
+        fun `BehandlingEtterTrygderettenOpphevet from Infotrygd should update Infotrygd and GosysOppgave`() {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
+                oppgaveUpdateTildeltEnhetsnummer = "123",
+                oppgaveUpdateMappeId = null,
+                oppgaveUpdateKommentar = ""
+            )
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -656,7 +692,7 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
-            verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
+            verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
             verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }

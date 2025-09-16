@@ -131,6 +131,13 @@ class BehandlingAvslutningService(
                     )
                 )
                 logger.debug("Vi har informert Infotrygd om innstilling til Trygderetten.")
+                if (ankebehandling.gosysOppgaveId != null && ankebehandling.gosysOppgaveUpdate != null && !ankebehandling.ignoreGosysOppgave) {
+                    gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                        behandling = ankebehandling,
+                        systemContext = true,
+                        throwExceptionIfFerdigstilt = true,
+                    )
+                }
             }
             //No need for notifying modernized fagsystem when sending to Trygderetten.
         } else if (ankebehandling.fagsystem == Fagsystem.IT01) {
