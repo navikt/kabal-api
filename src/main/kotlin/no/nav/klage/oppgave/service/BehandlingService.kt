@@ -556,15 +556,6 @@ class BehandlingService(
             }
         }
 
-        if (behandling.registreringshjemler.isNotEmpty()) {
-            behandlingValidationErrors.add(
-                InvalidProperty(
-                    field = "hjemmel",
-                    reason = getErrorText("hjemler")
-                )
-            )
-        }
-
         if (behandling.kjennelseMottatt != null) {
             behandlingValidationErrors.add(
                 InvalidProperty(
