@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.config
 
 import io.netty.channel.ChannelOption
-import io.netty.handler.logging.LogLevel
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
 import org.springframework.context.annotation.Bean
@@ -9,7 +8,6 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.netty.http.client.HttpClient
-import reactor.netty.transport.logging.AdvancedByteBufFormat
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
@@ -20,10 +18,6 @@ class WebClientConfig {
     fun reactorNettyHttpClient(): HttpClient {
         val timeoutInSeconds = 100L
         return HttpClient.create()
-            .wiretap(
-                "reactor.netty.http.client.HttpClient",
-                LogLevel.DEBUG, AdvancedByteBufFormat.TEXTUAL
-            )
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
             .responseTimeout(Duration.ofSeconds(timeoutInSeconds))
             .doOnConnected { conn ->

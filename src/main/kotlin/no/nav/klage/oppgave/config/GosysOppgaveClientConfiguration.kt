@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.config
 
 import io.opentelemetry.api.trace.Span
+import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -14,6 +15,11 @@ class GosysOppgaveClientConfiguration(private val webClientBuilder: WebClient.Bu
     @Value("\${GOSYS_OPPGAVE_BASE_URL}")
     private lateinit var gosysOppgaveBaseURL: String
 
+    companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+    }
+
     @Bean
     fun gosysOppgaveWebClient(): WebClient {
         return webClientBuilder
@@ -21,6 +27,7 @@ class GosysOppgaveClientConfiguration(private val webClientBuilder: WebClient.Bu
             .filter(
                 ExchangeFilterFunction.ofRequestProcessor { request ->
                     val traceId = Span.current().spanContext.traceId
+                    logger.debug("Found trace id in GosysOppgaveWebClient: {}", traceId)
                     Mono.just(
                         ClientRequest.from(request)
                             .headers { headers ->
