@@ -320,7 +320,7 @@ class BehandlingAvslutningService(
         if (sakInKlanke.typeResultat == SakFinishedInput.TypeResultat.RESULTAT.name &&
             sakInKlanke.nivaa == SakFinishedInput.Nivaa.KA.name
         ) {
-            logger.warn("Klagebehandlingen er allerede satt til ferdig i Infotrygd, så trenger ikke å oppdatere.")
+            logger.warn("Behandlingen er allerede satt til ferdig i Infotrygd, så trenger ikke å oppdatere.")
         } else {
             val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
                 klageTilbakebetalingutfallToInfotrygdutfall[behandling.utfall!!]!!
