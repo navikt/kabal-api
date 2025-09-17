@@ -240,6 +240,11 @@ class SmartDocumentAccessService(
             documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
             dua as SmartdokumentUnderArbeidAsVedlegg
 
+            if (dua.erMarkertFerdig()) {
+                // No need to check access to finalized documents
+                return@forEach
+            }
+
             val dokumentType = documentPolicyService.getDokumentType(dua.id)
             val parentDokumentType = documentPolicyService.getParentDokumentType(dua.parentId)
 
@@ -273,6 +278,11 @@ class SmartDocumentAccessService(
         hoveddokumenter.forEach { dua ->
             documentIdToNavIdents.getOrPut(dua.id) { mutableSetOf() }
             dua as SmartdokumentUnderArbeidAsHoveddokument
+
+            if (dua.erMarkertFerdig()) {
+                // No need to check access to finalized documents
+                return@forEach
+            }
 
             val dokumentType = documentPolicyService.getDokumentType(dua.id)
 
