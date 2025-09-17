@@ -544,6 +544,50 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
+        fun `Omgjoeringskravbehandling with utfall MEDHOLD_ETTER_FVL_35 based on Infotrygd should update Gosys`() {
+            every { behandling.utfall } returns Utfall.MEDHOLD_ETTER_FVL_35
+            every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
+                oppgaveUpdateTildeltEnhetsnummer = "123",
+                oppgaveUpdateMappeId = null,
+                oppgaveUpdateKommentar = ""
+            )
+            every { behandling.fagsystem } returns Fagsystem.IT01
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
+            verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
+            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
+        fun `Omgjoeringskravbehandling with utfall MEDHOLD_ETTER_FVL_35 based on modernized fagsystem should create Kafka event`() {
+            every { behandling.utfall } returns Utfall.MEDHOLD_ETTER_FVL_35
+            every { behandling.fagsystem } returns Fagsystem.FS36
+
+            behandlingAvslutningService.avsluttBehandling(behandlingId)
+
+            verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
+            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
+            verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
+            verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
+            verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 1) { kafkaEventRepository.save(any()) }
+        }
+
+        @Test
         fun `Omgjoeringskravbehandling with utfall not MEDHOLD_ETTER_FVL_35 and gosysOppgaveId closes Gosys oppgave`() {
             every { behandling.utfall } returns Utfall.BESLUTNING_IKKE_OMGJOERE
             every { behandling.fagsystem } returns Fagsystem.IT01
@@ -568,7 +612,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
-        fun `Omgjoeringskravbehandling with utfall not MEDHOLD_ETTER_FVL_35 does nothing external`() {
+        fun `Omgjoeringskravbehandling with utfall not MEDHOLD_ETTER_FVL_35 and no gosysOppgaveId does nothing external`() {
             every { behandling.utfall } returns Utfall.BESLUTNING_IKKE_OMGJOERE
             //Ensured in BehandlingService
             every { behandling.gosysOppgaveId } returns null
@@ -622,6 +666,7 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
+
     }
 
     @Nested

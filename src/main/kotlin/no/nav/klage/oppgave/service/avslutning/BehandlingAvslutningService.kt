@@ -100,8 +100,10 @@ class BehandlingAvslutningService(
 
     private fun handleKlagebehandling(klagebehandling: Behandling) {
         if (klagebehandling.fagsystem == Fagsystem.IT01) {
+            logger.debug("Klage med id ${klagebehandling.id} kommer fra Infotrygd, oppdaterer der.")
             updateInfotrygd(klagebehandling)
             if (klagebehandling.gosysOppgaveId != null && klagebehandling.gosysOppgaveUpdate != null && !klagebehandling.ignoreGosysOppgave) {
+                logger.debug("Klage med id ${klagebehandling.id} har Gosys-oppgave, oppdaterer den.")
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = klagebehandling,
                     systemContext = true,
@@ -109,16 +111,17 @@ class BehandlingAvslutningService(
                 )
             }
         } else  {
+            logger.debug("Klage med id ${klagebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(klagebehandling)
         }
     }
 
     private fun handleAnkebehandling(ankebehandling: Behandling) {
         if (ankebehandling.shouldBeSentToTrygderetten()) {
-            logger.debug("Anken sendes til trygderetten. Oppretter AnkeITrygderettenbehandling.")
+            logger.debug("Anke med id ${ankebehandling.id} sendes til trygderetten. Oppretter AnkeITrygderettenbehandling.")
             createAnkeITrygderettenbehandling(ankebehandling)
             if (ankebehandling.fagsystem == Fagsystem.IT01) {
-                logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten.")
+                logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten fra anke med id ${ankebehandling.id}")
                 fssProxyClient.setToFinishedWithAppAccess(
                     sakId = ankebehandling.kildeReferanse,
                     SakFinishedInput(
@@ -132,6 +135,7 @@ class BehandlingAvslutningService(
                 )
                 logger.debug("Vi har informert Infotrygd om innstilling til Trygderetten.")
                 if (ankebehandling.gosysOppgaveId != null && ankebehandling.gosysOppgaveUpdate != null && !ankebehandling.ignoreGosysOppgave) {
+                    logger.debug("Anke med id ${ankebehandling.id} har Gosys-oppgave, oppdaterer den.")
                     gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                         behandling = ankebehandling,
                         systemContext = true,
@@ -141,8 +145,10 @@ class BehandlingAvslutningService(
             }
             //No need for notifying modernized fagsystem when sending to Trygderetten.
         } else if (ankebehandling.fagsystem == Fagsystem.IT01) {
+            logger.debug("Anke med id ${ankebehandling.id} kommer fra Infotrygd, oppdaterer der.")
             updateInfotrygd(ankebehandling)
             if (ankebehandling.gosysOppgaveId != null && ankebehandling.gosysOppgaveUpdate != null && !ankebehandling.ignoreGosysOppgave) {
+                logger.debug("Anke med id ${ankebehandling.id} har Gosys-oppgave, oppdaterer den.")
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = ankebehandling,
                     systemContext = true,
@@ -150,15 +156,17 @@ class BehandlingAvslutningService(
                 )
             }
         } else {
+            logger.debug("Anke med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(ankebehandling)
         }
     }
 
     private fun handleAnkeITrygderettenbehandling(ankeITrygderettenbehandling: Behandling) {
         if (ankeITrygderettenbehandling.shouldCreateNewAnkebehandling()) {
-            logger.debug("Oppretter ny Ankebehandling basert på AnkeITrygderettenbehandling")
+            logger.debug("Oppretter ny Ankebehandling basert på AnkeITrygderettenbehandling fra ankeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id}")
             createNewAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling as AnkeITrygderettenbehandling)
             if (ankeITrygderettenbehandling.gosysOppgaveId != null) {
+                logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
                 val kommentar = if (ankeITrygderettenbehandling.nyAnkebehandlingKA != null) {
                     "Klageinstansen har opprettet ny behandling i Kabal."
                 } else if (ankeITrygderettenbehandling.utfall == Utfall.HENVIST) {
@@ -175,9 +183,10 @@ class BehandlingAvslutningService(
                 )
             }
         } else if (ankeITrygderettenbehandling.shouldCreateNewBehandlingEtterTROpphevet()) {
-            logger.debug("Oppretter ny behandling, etter TR opphevet, basert på AnkeITrygderettenbehandling")
+            logger.debug("Oppretter ny behandling, etter TR opphevet, basert på AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id}")
             createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling as AnkeITrygderettenbehandling)
             if (ankeITrygderettenbehandling.gosysOppgaveId != null) {
+                logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
                 val kommentar = "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten opphevet saken."
 
                 gosysOppgaveService.addKommentar(
@@ -188,8 +197,10 @@ class BehandlingAvslutningService(
                 )
             }
         } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.IT01) {
+            logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd, oppdaterer der.")
             updateInfotrygd(ankeITrygderettenbehandling)
             if (ankeITrygderettenbehandling.gosysOppgaveId != null && ankeITrygderettenbehandling.gosysOppgaveUpdate != null && !ankeITrygderettenbehandling.ignoreGosysOppgave) {
+                logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = ankeITrygderettenbehandling,
                     systemContext = true,
@@ -197,6 +208,7 @@ class BehandlingAvslutningService(
                 )
             }
         } else  {
+            logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(ankeITrygderettenbehandling)
         }
     }
@@ -204,8 +216,10 @@ class BehandlingAvslutningService(
     //Same as klagebehandling
     private fun handleBehandlingEtterTrygderettenOpprettet(behandlingEtterTrygderettenOpphevet: Behandling) {
         if (behandlingEtterTrygderettenOpphevet.fagsystem == Fagsystem.IT01) {
+            logger.debug("BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Infotrygd, oppdaterer der.")
             updateInfotrygd(behandlingEtterTrygderettenOpphevet)
             if (behandlingEtterTrygderettenOpphevet.gosysOppgaveId != null && behandlingEtterTrygderettenOpphevet.gosysOppgaveUpdate != null && !behandlingEtterTrygderettenOpphevet.ignoreGosysOppgave) {
+                logger.debug("BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} har Gosys-oppgave, oppdaterer den.")
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
                     behandling = behandlingEtterTrygderettenOpphevet,
                     systemContext = true,
@@ -213,31 +227,47 @@ class BehandlingAvslutningService(
                 )
             }
         } else  {
+            logger.debug("BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(behandlingEtterTrygderettenOpphevet)
         }
     }
 
     private fun handleOmgjoeringskravbehandling(omgjoeringskravbehandling: Behandling) {
-        if (omgjoeringskravbehandling.utfall != Utfall.MEDHOLD_ETTER_FVL_35) {
-            logger.debug("Avslutter omgjøringskravbehandling med utfall som ikke skal formidles til førsteinstans.")
+        if (omgjoeringskravbehandling.utfall == Utfall.MEDHOLD_ETTER_FVL_35) {
+            logger.debug("Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} har utfall som skal formidles til førsteinstans.")
+            if (omgjoeringskravbehandling is OmgjoeringskravbehandlingBasedOnJournalpost) {
+                logger.debug("Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} er basert på journalpost, Gosysoppgave skal oppdateres.")
+                if (omgjoeringskravbehandling.gosysOppgaveId != null && omgjoeringskravbehandling.gosysOppgaveUpdate != null && !omgjoeringskravbehandling.ignoreGosysOppgave) {
+                    logger.debug("Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} har Gosys-oppgave og er basert på journalpost, oppdaterer den.")
+                    gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                        behandling = omgjoeringskravbehandling,
+                        systemContext = true,
+                        throwExceptionIfFerdigstilt = true,
+                    )
+                }
+            } else {
+                logger.debug("Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} er basert på Kabal-behandling.")
+                if (omgjoeringskravbehandling.gosysOppgaveId != null && omgjoeringskravbehandling.gosysOppgaveUpdate != null && !omgjoeringskravbehandling.ignoreGosysOppgave) {
+                    logger.debug("Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} er basert på Kabal-behandling og har Gosys-oppgave, oppdaterer den.")
+                    gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                        behandling = omgjoeringskravbehandling,
+                        systemContext = true,
+                        throwExceptionIfFerdigstilt = true,
+                    )
+                } else {
+                    logger.debug("Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} er basert på Kabal-behandling, og resultatet skal formidles til førsteinstans via en Kafka-melding.")
+                    createKafkaEventForModernizedFagsystem(omgjoeringskravbehandling)
+                }
+            }
+        } else {
+            logger.debug("Avslutter omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} med utfall som ikke skal formidles til førsteinstans.")
             if (omgjoeringskravbehandling.gosysOppgaveId != null) {
-                logger.debug("Avslutter oppgave i Gosys.")
+                logger.debug("Avslutter oppgave i Gosys for omgjøringskravbehandling med id ${omgjoeringskravbehandling.id}.")
                 gosysOppgaveService.avsluttGosysOppgave(
                     behandling = omgjoeringskravbehandling,
                     throwExceptionIfFerdigstilt = false,
                 )
             }
-        } else if (omgjoeringskravbehandling is OmgjoeringskravbehandlingBasedOnJournalpost) {
-            //No other messaging than gosys when behandling is based on journalpost.
-            if (omgjoeringskravbehandling.gosysOppgaveId != null && omgjoeringskravbehandling.gosysOppgaveUpdate != null && !omgjoeringskravbehandling.ignoreGosysOppgave) {
-                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
-                    behandling = omgjoeringskravbehandling,
-                    systemContext = true,
-                    throwExceptionIfFerdigstilt = true,
-                )
-            }
-        } else  {
-            createKafkaEventForModernizedFagsystem(omgjoeringskravbehandling)
         }
     }
 
