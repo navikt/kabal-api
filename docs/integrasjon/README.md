@@ -42,8 +42,10 @@ POST <kabal-api-url>/oversendelse/v4/sak <oversendt-klage-json>
 - DEV-url: `https://kabal-api.intern.dev.nav.no`
 - PROD-url: `https://kabal-api.intern.nav.no`
 
-[OpenAPI/Swagger doc for å sende over klager](https://kabal-api.intern.dev.nav.no/swagger-ui/index.html?urls.primaryName=external) (
-husk naisdevice)
+[OpenAPI/Swagger doc for å sende over klager](https://kabal-api.intern.dev.nav.no/swagger-ui/index.html?urls.primaryName=external) (husk naisdevice).
+
+Alternativt via ansatt-domenet:
+[OpenAPI/Swagger doc for å sende over klager](https://kabal-api.ansatt.dev.nav.no/swagger-ui/index.html?urls.primaryName=external)
 
 ### Motta resultater og infomeldinger fra KA på Kafka
 
