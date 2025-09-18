@@ -1,5 +1,6 @@
 ingresses:
   - https://kabal-api.intern.dev.nav.no
+  - https://kabal-api.ansatt.dev.nav.no
 externalHosts:
   - host: login.microsoftonline.com
   - host: hooks.slack.com
