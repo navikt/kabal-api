@@ -73,6 +73,7 @@ class OmgjoeringskravbehandlingBasedOnKabalBehandling(
     kakaKvalitetsvurderingVersion: Int,
     varsletBehandlingstid: VarsletBehandlingstid?,
     forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
+    gosysOppgaveRequired: Boolean,
 ) : BehandlingWithVarsletBehandlingstid, Omgjoeringskravbehandling(
     id = id,
     klager = klager,
@@ -120,6 +121,7 @@ class OmgjoeringskravbehandlingBasedOnKabalBehandling(
     varsletBehandlingstid = varsletBehandlingstid,
     forlengetBehandlingstidDraft = forlengetBehandlingstidDraft,
     oppgaveId = oppgaveId,
+    gosysOppgaveRequired = gosysOppgaveRequired,
 ) {
 
     override fun toString(): String {

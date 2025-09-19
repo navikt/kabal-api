@@ -122,7 +122,7 @@ class BehandlingMapper(
             gosysOppgaveId = klagebehandling.gosysOppgaveId,
             tilbakekreving = klagebehandling.tilbakekreving,
             timesPreviouslyExtended = klagebehandling.getTimesPreviouslyExtended(),
-            requiresGosysOppgave = !klagebehandling.fagsystem.modernized,
+            requiresGosysOppgave = klagebehandling.gosysOppgaveRequired,
         )
     }
 
@@ -197,7 +197,7 @@ class BehandlingMapper(
             kommentarFraVedtaksinstans = null,
             tilbakekreving = omgjoeringskravbehandling.tilbakekreving,
             timesPreviouslyExtended = omgjoeringskravbehandling.getTimesPreviouslyExtended(),
-            requiresGosysOppgave = omgjoeringskravbehandling is OmgjoeringskravbehandlingBasedOnJournalpost || !omgjoeringskravbehandling.fagsystem.modernized
+            requiresGosysOppgave = omgjoeringskravbehandling.gosysOppgaveRequired
         )
     }
 
@@ -317,7 +317,7 @@ class BehandlingMapper(
             gosysOppgaveId = ankebehandling.gosysOppgaveId,
             tilbakekreving = ankebehandling.tilbakekreving,
             timesPreviouslyExtended = ankebehandling.getTimesPreviouslyExtended(),
-            requiresGosysOppgave = !ankebehandling.fagsystem.modernized,
+            requiresGosysOppgave = ankebehandling.gosysOppgaveRequired,
         )
     }
 
@@ -388,7 +388,7 @@ class BehandlingMapper(
             gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
             tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
             timesPreviouslyExtended = ankeITrygderettenbehandling.getTimesPreviouslyExtended(),
-            requiresGosysOppgave = !ankeITrygderettenbehandling.fagsystem.modernized,
+            requiresGosysOppgave = ankeITrygderettenbehandling.gosysOppgaveRequired,
         )
     }
 
@@ -466,7 +466,7 @@ class BehandlingMapper(
             gosysOppgaveId = behandlingEtterTrygderettenOpphevet.gosysOppgaveId,
             tilbakekreving = behandlingEtterTrygderettenOpphevet.tilbakekreving,
             timesPreviouslyExtended = behandlingEtterTrygderettenOpphevet.getTimesPreviouslyExtended(),
-            requiresGosysOppgave = !behandlingEtterTrygderettenOpphevet.fagsystem.modernized
+            requiresGosysOppgave = behandlingEtterTrygderettenOpphevet.gosysOppgaveRequired
         )
     }
 

@@ -91,5 +91,6 @@ fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingInput(inputDoc
         previousSaksbehandlerident = null,
         gosysOppgaveId = null,
         tilbakekreving = false,
+        gosysOppgaveRequired = false,
     )
 }

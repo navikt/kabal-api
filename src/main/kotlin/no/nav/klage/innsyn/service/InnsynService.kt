@@ -147,7 +147,7 @@ class InnsynService(
             )
         }
 
-        if (ferdigstilling != null && !shouldCreateNewBehandlingEtterTROpphevet() && !shouldCreateNewAnkebehandling()) {
+        if (ferdigstilling != null && !shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling() && !shouldCreateNewAnkebehandlingFromAnkeITrygderettenbehandling()) {
             events += SakView.Event(
                 type = SakView.Event.EventType.ANKE_AVSLUTTET_I_TRYGDERETTEN,
                 date = ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -171,7 +171,7 @@ class InnsynService(
             //If created in Kabal, don't show to user.
         }
 
-        if (ferdigstilling != null && !shouldBeSentToTrygderetten() && !shouldCreateNewAnkebehandling() && !shouldCreateNewBehandlingEtterTROpphevet()) {
+        if (ferdigstilling != null && !shouldBeSentToTrygderetten() && !shouldCreateNewAnkebehandlingFromAnkeITrygderettenbehandling() && !shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling()) {
             events += SakView.Event(
                 type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
                 date = ferdigstilling!!.avsluttetAvSaksbehandler,

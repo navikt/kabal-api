@@ -166,6 +166,7 @@ class StatistikkTilDVHServiceTest {
         gosysOppgaveId = null,
         varsletBehandlingstid = null,
         forlengetBehandlingstidDraft = null,
+        gosysOppgaveRequired = false,
     )
 
     private val klagebehandlingHJE = Klagebehandling(
@@ -209,6 +210,7 @@ class StatistikkTilDVHServiceTest {
         gosysOppgaveId = null,
         varsletBehandlingstid = null,
         forlengetBehandlingstidDraft = null,
+        gosysOppgaveRequired = false,
     )
 
     private val ankebehandlingOMP = Ankebehandling(
@@ -252,6 +254,7 @@ class StatistikkTilDVHServiceTest {
         gosysOppgaveId = null,
         varsletBehandlingstid = null,
         forlengetBehandlingstidDraft = null,
+        gosysOppgaveRequired = false,
     )
 
     private val ankeITrygderettenbehandlingOMP = AnkeITrygderettenbehandling(
@@ -289,5 +292,6 @@ class StatistikkTilDVHServiceTest {
         kjennelseMottatt = null,
         previousSaksbehandlerident = "C78901",
         gosysOppgaveId = null,
+        gosysOppgaveRequired = false,
     )
 }

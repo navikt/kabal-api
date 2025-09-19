@@ -29,23 +29,37 @@ class CreateBehandlingFromMottak(
         )
     }
 
-    fun createBehandling(mottak: Mottak, isBasedOnJournalpost: Boolean = false): Behandling {
+    fun createBehandling(mottak: Mottak, isBasedOnJournalpost: Boolean = false, gosysOppgaveRequired: Boolean, gosysOppgaveId: Long?): Behandling {
         logger.debug(
             "Received mottak {} in CreateBehandlingFromMottak",
             mottak.id
         )
 
         return when (mottak.type) {
-            Type.KLAGE -> klagebehandlingService.createKlagebehandlingFromMottak(mottak)
+            Type.KLAGE -> klagebehandlingService.createKlagebehandlingFromMottak(
+                mottak = mottak,
+                gosysOppgaveRequired = gosysOppgaveRequired,
+                gosysOppgaveId = gosysOppgaveId
+            )
             Type.ANKE -> {
-                val ankebehandling = ankebehandlingService.createAnkebehandlingFromMottak(mottak)
-                publishKafkaEvent(ankebehandling)
+                val ankebehandling = ankebehandlingService.createAnkebehandlingFromMottak(
+                    mottak = mottak,
+                    gosysOppgaveRequired = gosysOppgaveRequired,
+                    gosysOppgaveId = gosysOppgaveId
+                )
+
+                if (!ankebehandling.gosysOppgaveRequired) {
+                    publishKafkaEvent(ankebehandling)
+                }
+
                 ankebehandling
             }
             Type.OMGJOERINGSKRAV -> {
                 omgjoeringskravbehandlingService.createOmgjoeringskravbehandlingFromMottak(
                     mottak = mottak,
                     isBasedOnJournalpost = isBasedOnJournalpost,
+                    gosysOppgaveId = gosysOppgaveId,
+                    gosysOppgaveRequired = gosysOppgaveRequired,
                 )
             }
 

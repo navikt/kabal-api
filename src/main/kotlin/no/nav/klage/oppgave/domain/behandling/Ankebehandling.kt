@@ -46,7 +46,7 @@ class Ankebehandling(
 //    @Column(name = "dato_behandling_avsluttet_av_saksbehandler")
 //    var avsluttetAvSaksbehandler: LocalDateTime? = null,
 
-    //Common properties between klage/anke
+    //Common properties
     id: UUID = UUID.randomUUID(),
     klager: Klager,
     sakenGjelder: SakenGjelder,
@@ -86,6 +86,7 @@ class Ankebehandling(
     gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
+    gosysOppgaveRequired: Boolean,
 ) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
     klager = klager,
@@ -126,6 +127,7 @@ class Ankebehandling(
     gosysOppgaveUpdate = gosysOppgaveUpdate,
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
+    gosysOppgaveRequired = gosysOppgaveRequired,
 ) {
     override fun toString(): String {
         return "Ankebehandling(id=$id, " +

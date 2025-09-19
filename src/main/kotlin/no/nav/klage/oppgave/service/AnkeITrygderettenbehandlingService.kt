@@ -70,6 +70,7 @@ class AnkeITrygderettenbehandlingService(
                 previousSaksbehandlerident = input.previousSaksbehandlerident,
                 gosysOppgaveId = input.gosysOppgaveId,
                 tilbakekreving = input.tilbakekreving,
+                gosysOppgaveRequired = input.gosysOppgaveRequired,
             )
         )
         logger.debug("Created ankeITrygderettenbehandling {}", ankeITrygderettenbehandling.id)
@@ -117,31 +118,34 @@ class AnkeITrygderettenbehandlingService(
             )
         )
 
-        //Publiser Kafka-event, infomelding om opprettelse
-        val behandlingEvent = BehandlingEvent(
-            eventId = UUID.randomUUID(),
-            kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-            kilde = ankeITrygderettenbehandling.fagsystem.navn,
-            kabalReferanse = ankeITrygderettenbehandling.id.toString(),
-            type = BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET,
-            detaljer = BehandlingDetaljer(
-                ankeITrygderettenbehandlingOpprettet =
-                AnkeITrygderettenbehandlingOpprettetDetaljer(
-                    sendtTilTrygderetten = ankeITrygderettenbehandling.sendtTilTrygderetten,
-                    utfall = input.ankebehandlingUtfall,
+        if (!ankeITrygderettenbehandling.gosysOppgaveRequired) {
+            //Publiser Kafka-event, infomelding om opprettelse
+            val behandlingEvent = BehandlingEvent(
+                eventId = UUID.randomUUID(),
+                kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
+                kilde = ankeITrygderettenbehandling.fagsystem.navn,
+                kabalReferanse = ankeITrygderettenbehandling.id.toString(),
+                type = BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET,
+                detaljer = BehandlingDetaljer(
+                    ankeITrygderettenbehandlingOpprettet =
+                    AnkeITrygderettenbehandlingOpprettetDetaljer(
+                        sendtTilTrygderetten = ankeITrygderettenbehandling.sendtTilTrygderetten,
+                        utfall = input.ankebehandlingUtfall,
+                    )
                 )
             )
-        )
-        kafkaEventRepository.save(
-            KafkaEvent(
-                id = UUID.randomUUID(),
-                behandlingId = ankeITrygderettenbehandling.id,
-                kilde = ankeITrygderettenbehandling.fagsystem.navn,
-                kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-                jsonPayload = objectMapperBehandlingEvents.writeValueAsString(behandlingEvent),
-                type = EventType.BEHANDLING_EVENT
+
+            kafkaEventRepository.save(
+                KafkaEvent(
+                    id = UUID.randomUUID(),
+                    behandlingId = ankeITrygderettenbehandling.id,
+                    kilde = ankeITrygderettenbehandling.fagsystem.navn,
+                    kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
+                    jsonPayload = objectMapperBehandlingEvents.writeValueAsString(behandlingEvent),
+                    type = EventType.BEHANDLING_EVENT
+                )
             )
-        )
+        }
 
         return ankeITrygderettenbehandling
     }

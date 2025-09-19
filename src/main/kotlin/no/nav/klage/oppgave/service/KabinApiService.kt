@@ -48,16 +48,8 @@ class KabinApiService(
             .map { it.toMulighet(mulighetType = Type.OMGJOERINGSKRAV) }
     }
 
-    fun createBehandling(input: CreateBehandlingBasedOnKabinInput): CreatedBehandlingResponse {
-        val behandling = mottakService.createMottakAndBehandlingFromKabinInput(input = input)
-
-        if (input.gosysOppgaveId != null) {
-            behandlingService.setGosysOppgaveIdFromKabin(
-                behandlingId = behandling.id,
-                gosysOppgaveId = input.gosysOppgaveId,
-                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            )
-        }
+    fun createBehandlingFromPreviousKabalBehandling(input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling): CreatedBehandlingResponse {
+        val behandling = mottakService.createMottakAndBehandlingFromKabinInputWithPreviousKabalBehandling(input = input)
 
         setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
@@ -71,14 +63,6 @@ class KabinApiService(
     fun createAnkeFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): CreatedBehandlingResponse {
         val behandling = mottakService.createAnkeMottakFromCompleteKabinInput(input = input)
 
-        if (input.gosysOppgaveId != null) {
-            behandlingService.setGosysOppgaveIdFromKabin(
-                behandlingId = behandling.id,
-                gosysOppgaveId = input.gosysOppgaveId,
-                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            )
-        }
-
         setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
             saksbehandlerIdent = input.saksbehandlerIdent,
@@ -90,14 +74,6 @@ class KabinApiService(
 
     fun createOmgjoeringskravBasedOnJournalpost(input: CreateOmgjoeringskravBasedOnJournalpostInput): CreatedBehandlingResponse {
         val behandling = mottakService.createOmgjoeringskravBasedOnJournalpost(input = input)
-
-        if (input.gosysOppgaveId != null) {
-            behandlingService.setGosysOppgaveIdFromKabin(
-                behandlingId = behandling.id,
-                gosysOppgaveId = input.gosysOppgaveId,
-                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            )
-        }
 
         setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
@@ -209,14 +185,6 @@ class KabinApiService(
         input: CreateKlageBasedOnKabinInput
     ): CreatedBehandlingResponse {
         val behandling = mottakService.createKlageMottakFromKabinInput(klageInput = input)
-
-        if (input.gosysOppgaveId != null) {
-            behandlingService.setGosysOppgaveIdFromKabin(
-                behandlingId = behandling.id,
-                gosysOppgaveId = input.gosysOppgaveId,
-                utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            )
-        }
 
         setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,

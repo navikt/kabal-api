@@ -75,6 +75,7 @@ class AnkeITrygderettenbehandling(
     gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
+    gosysOppgaveRequired: Boolean,
 ) : Behandling(
     id = id,
     klager = klager,
@@ -115,6 +116,7 @@ class AnkeITrygderettenbehandling(
     gosysOppgaveUpdate = gosysOppgaveUpdate,
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
+    gosysOppgaveRequired = gosysOppgaveRequired,
 ) {
     override fun toString(): String {
         return "Ankebehandling(id=$id, " +
@@ -155,4 +157,5 @@ data class AnkeITrygderettenbehandlingInput(
     val previousSaksbehandlerident: String?,
     val gosysOppgaveId: Long?,
     val tilbakekreving: Boolean,
+    val gosysOppgaveRequired: Boolean,
 )

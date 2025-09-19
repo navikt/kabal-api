@@ -266,6 +266,7 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     gosysOppgaveId = null,
     varsletBehandlingstid = null,
     forlengetBehandlingstidDraft = null,
+    gosysOppgaveRequired = false,
 )
 
 fun getPerson(): Person = Person(

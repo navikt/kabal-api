@@ -99,7 +99,9 @@ class CleanupAfterBehandlingEventListener(
                 logger.debug("Feilregistrering av behandling ble registrert i Infotrygd.")
             }
 
-            notifyVedtaksinstans(behandling)
+            if (!behandling.gosysOppgaveRequired) {
+                notifyVedtaksinstansThroughKafka(behandling)
+            }
         }
     }
 
@@ -122,7 +124,7 @@ class CleanupAfterBehandlingEventListener(
         }
     }
 
-    private fun notifyVedtaksinstans(behandling: Behandling) {
+    private fun notifyVedtaksinstansThroughKafka(behandling: Behandling) {
         val behandlingEvent = BehandlingEvent(
             eventId = UUID.randomUUID(),
             kildeReferanse = behandling.kildeReferanse,

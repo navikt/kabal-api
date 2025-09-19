@@ -31,7 +31,7 @@ class OmgjoeringskravbehandlingService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createOmgjoeringskravbehandlingFromMottak(mottak: Mottak, isBasedOnJournalpost: Boolean = false): Behandling {
+    fun createOmgjoeringskravbehandlingFromMottak(mottak: Mottak, isBasedOnJournalpost: Boolean = false, gosysOppgaveRequired: Boolean, gosysOppgaveId: Long?): Behandling {
         val omgjoeringskravbehandling = if (isBasedOnJournalpost) {
             omgjoeringskravbehandlingRepository.save(
                 OmgjoeringskravbehandlingBasedOnJournalpost(
@@ -55,10 +55,11 @@ class OmgjoeringskravbehandlingService(
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     oppgaveId = null,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                    gosysOppgaveId = null,
+                    gosysOppgaveId = gosysOppgaveId,
                     tilbakekreving = false,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
+                    gosysOppgaveRequired = gosysOppgaveRequired
                 )
             )
         } else {
@@ -85,10 +86,11 @@ class OmgjoeringskravbehandlingService(
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     oppgaveId = null,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                    gosysOppgaveId = null,
+                    gosysOppgaveId = gosysOppgaveId,
                     tilbakekreving = false,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
+                    gosysOppgaveRequired = gosysOppgaveRequired,
                 )
             )
         }

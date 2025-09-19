@@ -234,6 +234,7 @@ internal class DocumentServiceTest {
             tilbakekreving = false,
             ignoreGosysOppgave = false,
             forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = false,
         )
     }
 }

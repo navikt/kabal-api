@@ -346,6 +346,7 @@ class MockDataController(
                     previousSaksbehandlerident = null,
                     gosysOppgaveId = null,
                     tilbakekreving = false,
+                    gosysOppgaveRequired = false,
                 )
 
                 ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(

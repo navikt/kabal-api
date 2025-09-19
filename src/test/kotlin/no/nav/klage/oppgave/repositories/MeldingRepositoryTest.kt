@@ -116,6 +116,7 @@ class MeldingRepositoryTest {
             gosysOppgaveId = null,
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = false,
         )
 
         klagebehandlingRepository.save(klage)

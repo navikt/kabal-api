@@ -57,6 +57,7 @@ class StatistikkTilDVHService(
     private fun StatistikkTilDVH.toJson(): String = objectMapper.writeValueAsString(this)
 
     fun shouldSendStats(behandlingChangedEvent: BehandlingChangedEvent): Boolean {
+        //TODO: Tenk gjennom beskjed til DVH for de som bare har GosysOppgave
         return if (behandlingChangedEvent.behandling.shouldUpdateInfotrygd() || behandlingChangedEvent.behandling is OmgjoeringskravbehandlingBasedOnJournalpost) {
             false
         } else behandlingChangedEvent.changeList.any {
