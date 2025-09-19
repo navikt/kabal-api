@@ -4,7 +4,10 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
-import no.nav.klage.oppgave.domain.behandling.*
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.utfallToNewAnkebehandling
+import no.nav.klage.oppgave.domain.behandling.utfallToTrygderetten
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
@@ -57,8 +60,7 @@ class StatistikkTilDVHService(
     private fun StatistikkTilDVH.toJson(): String = objectMapper.writeValueAsString(this)
 
     fun shouldSendStats(behandlingChangedEvent: BehandlingChangedEvent): Boolean {
-        //TODO: Tenk gjennom beskjed til DVH for de som bare har GosysOppgave
-        return if (behandlingChangedEvent.behandling.shouldUpdateInfotrygd() || behandlingChangedEvent.behandling is OmgjoeringskravbehandlingBasedOnJournalpost) {
+        return if (behandlingChangedEvent.behandling.gosysOppgaveRequired) {
             false
         } else behandlingChangedEvent.changeList.any {
             it.felt === BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT
