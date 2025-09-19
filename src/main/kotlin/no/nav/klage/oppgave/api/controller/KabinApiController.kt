@@ -118,7 +118,6 @@ class KabinApiController(
         )
     }
 
-    //Gått gjennom
     @PostMapping("/createbehandling")
     fun createBehandlingFromPreviousKabalBehandling(
         @RequestBody input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling
