@@ -210,7 +210,7 @@ class StatistikkTilDVHServiceTest {
         gosysOppgaveId = null,
         varsletBehandlingstid = null,
         forlengetBehandlingstidDraft = null,
-        gosysOppgaveRequired = false,
+        gosysOppgaveRequired = true,
     )
 
     private val ankebehandlingOMP = Ankebehandling(
