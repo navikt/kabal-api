@@ -40,7 +40,7 @@ class AnkebehandlingService(
         return ankebehandlingRepository.findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId = sourceBehandlingId)
     }
 
-    fun createAnkebehandlingFromMottak(mottak: Mottak): Ankebehandling {
+    fun createAnkebehandlingFromMottak(mottak: Mottak, gosysOppgaveRequired: Boolean, gosysOppgaveId: Long?): Ankebehandling {
         val ankebehandling = ankebehandlingRepository.save(
             Ankebehandling(
                 klager = mottak.klager.copy(),
@@ -63,10 +63,11 @@ class AnkebehandlingService(
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
                 sourceBehandlingId = mottak.forrigeBehandlingId,
                 previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
-                gosysOppgaveId = null,
+                gosysOppgaveId = gosysOppgaveId,
                 tilbakekreving = false,
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
+                gosysOppgaveRequired = gosysOppgaveRequired,
             )
         )
         logger.debug("Created ankebehandling {} for mottak {}", ankebehandling.id, mottak.id)
@@ -155,6 +156,7 @@ class AnkebehandlingService(
                 tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
+                gosysOppgaveRequired = ankeITrygderettenbehandling.gosysOppgaveRequired,
             )
         )
         logger.debug(

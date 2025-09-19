@@ -89,6 +89,7 @@ internal class InnsynServiceTest {
             gosysOppgaveId = null,
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = false,
 
             )
 
@@ -132,6 +133,7 @@ internal class InnsynServiceTest {
             sourceBehandlingId = null,
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = false,
         )
 
         val ankeITRBehandling = AnkeITrygderettenbehandling(
@@ -170,6 +172,7 @@ internal class InnsynServiceTest {
             gosysOppgaveId = null,
             sendtTilTrygderetten = ankeMottattKA.plusDays(1),
             kjennelseMottatt = kjennelseMottattFraTR,
+            gosysOppgaveRequired = false,
         )
 
         val ankebehandling2KA = Ankebehandling(
@@ -212,6 +215,7 @@ internal class InnsynServiceTest {
             sourceBehandlingId = null,
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = false,
         )
 
         return listOf(

@@ -247,6 +247,10 @@ sealed class Behandling(
     @Column(name = "opprettet_sendt")
     @NotAudited
     var opprettetSendt: Boolean = false,
+    //Only set once, when instance of behandling is created.
+    @Column(name = "gosys_oppgave_required")
+    @NotAudited
+    val gosysOppgaveRequired: Boolean,
 ) {
 
     /**
@@ -275,7 +279,7 @@ sealed class Behandling(
         return utfall in utfallToTrygderetten
     }
 
-    fun shouldCreateNewAnkebehandling(): Boolean {
+    fun shouldCreateNewAnkebehandlingFromAnkeITrygderettenbehandling(): Boolean {
         return if (this is AnkeITrygderettenbehandling) {
             nyAnkebehandlingKA != null || utfall in utfallToNewAnkebehandling
         } else {
@@ -283,12 +287,16 @@ sealed class Behandling(
         }
     }
 
-    fun shouldCreateNewBehandlingEtterTROpphevet(): Boolean {
+    fun shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(): Boolean {
         return if (this is AnkeITrygderettenbehandling) {
             nyBehandlingEtterTROpphevet != null && utfall == Utfall.OPPHEVET
         } else {
             false
         }
+    }
+
+    fun shouldNotCreateNewBehandlingFromAnkeITrygderettenbehandling(): Boolean {
+        return (!shouldCreateNewAnkebehandlingFromAnkeITrygderettenbehandling() && !shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling())
     }
 
     fun isFerdigstiltOrFeilregistrert(): Boolean {
@@ -359,6 +367,7 @@ sealed class Behandling(
             previousSaksbehandlerident = tildeling!!.saksbehandlerident,
             gosysOppgaveId = gosysOppgaveId,
             tilbakekreving = tilbakekreving,
+            gosysOppgaveRequired = gosysOppgaveRequired,
         )
     }
 }

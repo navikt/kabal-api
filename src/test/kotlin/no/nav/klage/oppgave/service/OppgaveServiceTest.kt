@@ -532,6 +532,7 @@ class OppgaveServiceTest {
                     gosysOppgaveId = null,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
+                    gosysOppgaveRequired = false,
                 )
             }
 
@@ -574,6 +575,7 @@ class OppgaveServiceTest {
                     gosysOppgaveId = null,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
+                    gosysOppgaveRequired = false,
                 )
             }
 
@@ -609,6 +611,7 @@ class OppgaveServiceTest {
                     ),
                     sendtTilTrygderetten = LocalDateTime.now(),
                     gosysOppgaveId = null,
+                    gosysOppgaveRequired = false,
                 )
             }
 
@@ -651,6 +654,7 @@ class OppgaveServiceTest {
                     ankeBehandlendeEnhet = "4291",
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
+                    gosysOppgaveRequired = false,
                 )
             }
 

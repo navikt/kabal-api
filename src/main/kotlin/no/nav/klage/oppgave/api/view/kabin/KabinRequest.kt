@@ -26,7 +26,7 @@ data class GosysOppgaveIsDuplicateInput(
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class CreateBehandlingBasedOnKabinInput(
+data class CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling(
     val typeId: String,
     val sourceBehandlingId: UUID,
     val mottattNav: LocalDate,
@@ -56,7 +56,7 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
-    val gosysOppgaveId: Long?,
+    val gosysOppgaveId: Long,
 )
 data class OversendtPartId(
     val type: OversendtPartIdType,
@@ -89,7 +89,7 @@ data class CreateKlageBasedOnKabinInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
-    val gosysOppgaveId: Long?,
+    val gosysOppgaveId: Long,
 )
 
 data class CreateOmgjoeringskravBasedOnJournalpostInput(
@@ -107,7 +107,7 @@ data class CreateOmgjoeringskravBasedOnJournalpostInput(
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput?,
-    val gosysOppgaveId: Long?,
+    val gosysOppgaveId: Long,
 )
 
 data class SvarbrevInput(

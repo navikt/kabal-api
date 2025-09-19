@@ -62,6 +62,7 @@ class BehandlingEtterTrygderettenOpphevetService(
                 tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
+                gosysOppgaveRequired = ankeITrygderettenbehandling.gosysOppgaveRequired,
             )
         )
         logger.debug(

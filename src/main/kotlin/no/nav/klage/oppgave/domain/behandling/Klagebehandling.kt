@@ -86,6 +86,7 @@ class Klagebehandling(
     gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
+    gosysOppgaveRequired: Boolean,
 ) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
     klager = klager,
@@ -126,6 +127,7 @@ class Klagebehandling(
     gosysOppgaveUpdate = gosysOppgaveUpdate,
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
+    gosysOppgaveRequired = gosysOppgaveRequired,
 ) {
 
     override fun toString(): String {

@@ -119,16 +119,16 @@ class KabinApiController(
     }
 
     @PostMapping("/createbehandling")
-    fun createBehandling(
-        @RequestBody input: CreateBehandlingBasedOnKabinInput
+    fun createBehandlingFromPreviousKabalBehandling(
+        @RequestBody input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling
     ): CreatedBehandlingResponse {
         logMethodDetails(
-            methodName = ::createBehandling.name,
+            methodName = ::createBehandlingFromPreviousKabalBehandling.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
 
-        return kabinApiService.createBehandling(
+        return kabinApiService.createBehandlingFromPreviousKabalBehandling(
             input = input
         )
     }

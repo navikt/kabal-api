@@ -518,6 +518,7 @@ class BehandlingServiceTest {
             gosysOppgaveId = null,
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = false,
         )
 
         behandlingRepository.save(behandling)

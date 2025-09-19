@@ -77,6 +77,7 @@ abstract class Omgjoeringskravbehandling(
     gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
+    gosysOppgaveRequired: Boolean,
 ) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
     klager = klager,
@@ -117,6 +118,7 @@ abstract class Omgjoeringskravbehandling(
     gosysOppgaveUpdate = gosysOppgaveUpdate,
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
+    gosysOppgaveRequired = gosysOppgaveRequired,
 ) {
 
     override fun toString(): String {

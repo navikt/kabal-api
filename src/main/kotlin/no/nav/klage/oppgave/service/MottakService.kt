@@ -77,7 +77,12 @@ class MottakService(
 
         logger.debug("Har opprettet mottak med id {}", mottak.id)
 
-        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(
+            mottak = mottak,
+            isBasedOnJournalpost = false,
+            gosysOppgaveRequired = false,
+            gosysOppgaveId = null
+        )
 
         updateMetrics(
             kilde = oversendtKlage.kilde.name,
@@ -97,7 +102,12 @@ class MottakService(
 
         logger.debug("Har opprettet mottak med id {}", mottak.id)
 
-        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(
+            mottak = mottak,
+            isBasedOnJournalpost = false,
+            gosysOppgaveRequired = false,
+            gosysOppgaveId = null,
+        )
 
         updateMetrics(
             kilde = oversendtKlageAnke.kilde.name,
@@ -116,7 +126,12 @@ class MottakService(
 
         logger.debug("Har opprettet mottak med id {}", mottak.id)
 
-        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(
+            mottak = mottak,
+            isBasedOnJournalpost = false,
+            gosysOppgaveRequired = false,
+            gosysOppgaveId = null,
+        )
 
         updateMetrics(
             kilde = oversendtKlageAnke.fagsak.fagsystem.name,
@@ -241,7 +256,7 @@ class MottakService(
     }
 
     @Transactional
-    fun createMottakAndBehandlingFromKabinInput(input: CreateBehandlingBasedOnKabinInput): Behandling {
+    fun createMottakAndBehandlingFromKabinInputWithPreviousKabalBehandling(input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling): Behandling {
         val sourceBehandlingId = input.sourceBehandlingId
         logger.debug("Prøver å lagre behandling basert på Kabin-input med sourceBehandlingId {}", sourceBehandlingId)
         val sourceBehandling = behandlingRepository.findById(sourceBehandlingId).get()
@@ -258,7 +273,12 @@ class MottakService(
 
         val mottak = mottakRepository.save(sourceBehandling.toMottak(input))
 
-        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(
+            mottak = mottak,
+            isBasedOnJournalpost = false,
+            gosysOppgaveRequired = sourceBehandling.gosysOppgaveRequired,
+            gosysOppgaveId = input.gosysOppgaveId
+        )
 
         updateMetrics(
             kilde = mottak.fagsystem.navn,
@@ -286,7 +306,12 @@ class MottakService(
 
         logger.debug("Har opprettet mottak med id {}", mottak.id)
 
-        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(
+            mottak = mottak,
+            isBasedOnJournalpost = false,
+            gosysOppgaveRequired = true,
+            gosysOppgaveId = input.gosysOppgaveId
+        )
 
         updateMetrics(
             kilde = mottak.fagsystem.name,
@@ -308,7 +333,11 @@ class MottakService(
 
         logger.debug("Har opprettet mottak med id {}", mottak.id)
 
-        val behandling = createBehandlingFromMottak.createBehandling(mottak = mottak, isBasedOnJournalpost = true)
+        val behandling = createBehandlingFromMottak.createBehandling(
+            mottak = mottak, isBasedOnJournalpost = true,
+            gosysOppgaveRequired = true,
+            gosysOppgaveId = input.gosysOppgaveId,
+        )
 
         updateMetrics(
             kilde = mottak.fagsystem.name,
@@ -330,7 +359,12 @@ class MottakService(
 
         logger.debug("Har opprettet mottak med id {}", mottak.id)
 
-        val behandling = createBehandlingFromMottak.createBehandling(mottak)
+        val behandling = createBehandlingFromMottak.createBehandling(
+            mottak = mottak,
+            isBasedOnJournalpost = false,
+            gosysOppgaveRequired = true,
+            gosysOppgaveId = klageInput.gosysOppgaveId,
+        )
 
         updateMetrics(
             kilde = mottak.fagsystem.name,
@@ -667,7 +701,7 @@ class MottakService(
         }
     }
 
-    private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInput): Mottak {
+    private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling): Mottak {
         val klager = if (input.klager == null || input.klager.value == sakenGjelder.partId.value) {
             Klager(
                 id = sakenGjelder.id,

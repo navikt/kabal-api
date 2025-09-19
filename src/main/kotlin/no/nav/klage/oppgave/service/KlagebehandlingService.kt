@@ -30,7 +30,7 @@ class KlagebehandlingService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createKlagebehandlingFromMottak(mottak: Mottak): Klagebehandling {
+    fun createKlagebehandlingFromMottak(mottak: Mottak, gosysOppgaveRequired: Boolean, gosysOppgaveId: Long?): Klagebehandling {
         val kvalitetsvurderingVersion = getKakaVersion()
 
         val klagebehandling = klagebehandlingRepository.save(
@@ -56,10 +56,11 @@ class KlagebehandlingService(
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                 hjemler = mottak.mapToBehandlingHjemler(),
                 kommentarFraFoersteinstans = mottak.kommentar,
-                gosysOppgaveId = null,
+                gosysOppgaveId = gosysOppgaveId,
                 tilbakekreving = false,
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
+                gosysOppgaveRequired = gosysOppgaveRequired,
             )
         )
         logger.debug("Created klagebehandling {} for mottak {}", klagebehandling.id, mottak.id)

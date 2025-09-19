@@ -124,6 +124,7 @@ class BehandlingAvslutningServiceTest {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
                 oppgaveUpdateTildeltEnhetsnummer = "123",
                 oppgaveUpdateMappeId = null,
@@ -179,6 +180,7 @@ class BehandlingAvslutningServiceTest {
         fun `Ankebehandling with utfall going to Trygderetten and fagsystem Infotrygd creates AnkeITrygderettenbehandling and updates Infotrygd and GosysOppgave`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
                 oppgaveUpdateTildeltEnhetsnummer = "123",
                 oppgaveUpdateMappeId = null,
@@ -256,6 +258,7 @@ class BehandlingAvslutningServiceTest {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
                 oppgaveUpdateTildeltEnhetsnummer = "123",
                 oppgaveUpdateMappeId = 0,
@@ -331,7 +334,7 @@ class BehandlingAvslutningServiceTest {
             every { behandling.utfall } returns Utfall.HENVIST
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
-
+            every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveUpdate } returns mockk<GosysOppgaveUpdate>()
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
@@ -379,6 +382,7 @@ class BehandlingAvslutningServiceTest {
             every { behandling.nyAnkebehandlingKA } returns now
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -427,6 +431,7 @@ class BehandlingAvslutningServiceTest {
             every { behandling.utfall } returns Utfall.OPPHEVET
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
 
             behandlingAvslutningService.avsluttBehandling(behandlingId)
 
@@ -492,6 +497,7 @@ class BehandlingAvslutningServiceTest {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
                 oppgaveUpdateTildeltEnhetsnummer = "123",
                 oppgaveUpdateMappeId = null,
@@ -547,6 +553,7 @@ class BehandlingAvslutningServiceTest {
         fun `Omgjoeringskravbehandling with utfall MEDHOLD_ETTER_FVL_35 based on Infotrygd should update Gosys`() {
             every { behandling.utfall } returns Utfall.MEDHOLD_ETTER_FVL_35
             every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
                 oppgaveUpdateTildeltEnhetsnummer = "123",
                 oppgaveUpdateMappeId = null,
@@ -592,6 +599,7 @@ class BehandlingAvslutningServiceTest {
             every { behandling.utfall } returns Utfall.BESLUTNING_IKKE_OMGJOERE
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
             //Ensured in BehandlingService
             every { behandling.ignoreGosysOppgave } returns false
             //Ensured in BehandlingService
@@ -645,6 +653,7 @@ class BehandlingAvslutningServiceTest {
                     navn = ""
                 )
                 every { gosysOppgaveId } returns 123L
+                every { gosysOppgaveRequired } returns true
                 every { gosysOppgaveUpdate } returns mockk<GosysOppgaveUpdate>()
                 every { utfall } returns Utfall.MEDHOLD_ETTER_FVL_35
                 every { fagsystem } returns Fagsystem.BISYS
@@ -712,6 +721,7 @@ class BehandlingAvslutningServiceTest {
             every { behandling.utfall } returns Utfall.STADFESTELSE
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveId } returns 123L
+            every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveUpdate } returns GosysOppgaveUpdate(
                 oppgaveUpdateTildeltEnhetsnummer = "123",
                 oppgaveUpdateMappeId = null,
