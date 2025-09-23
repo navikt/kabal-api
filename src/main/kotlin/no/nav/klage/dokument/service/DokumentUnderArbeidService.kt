@@ -102,6 +102,7 @@ class DokumentUnderArbeidService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val teamLogger = getTeamLogger()
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
         private val DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
@@ -1400,6 +1401,7 @@ class DokumentUnderArbeidService(
 
                 if (documentWillGoToCentralPrint(mottaker, part)) {
                     if (mottaker.address == null && part.address == null) {
+                        logger.error("address is null for mottaker and part. dokumentUnderArbeid id: ${dokumentUnderArbeid.id}")
                         errors += DocumentValidationResponse(
                             dokumentId = dokumentUnderArbeid.id,
                             errors = listOf(
@@ -1413,6 +1415,7 @@ class DokumentUnderArbeidService(
 
                 when (part.type) {
                     BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
+                        logger.error("Recipient is dead. dokumentUnderArbeid id: ${dokumentUnderArbeid.id}")
                         errors += DocumentValidationResponse(
                             dokumentId = dokumentUnderArbeid.id,
                             errors = listOf(
@@ -1424,6 +1427,7 @@ class DokumentUnderArbeidService(
                     }
 
                     BehandlingDetaljerView.IdType.ORGNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DELETED }) {
+                        logger.error("Recipient is deleted. dokumentUnderArbeid id: ${dokumentUnderArbeid.id}")
                         errors += DocumentValidationResponse(
                             dokumentId = dokumentUnderArbeid.id,
                             errors = listOf(
@@ -1435,6 +1439,7 @@ class DokumentUnderArbeidService(
                     }
 
                     else -> {
+                        logger.error("Missing type in part")
                         error("Missing type in part")
                     }
                 }
@@ -1496,6 +1501,7 @@ class DokumentUnderArbeidService(
             systemContext = systemContext,
         )
         if (errors.any { it.errors.isNotEmpty() }) {
+            teamLogger.error("Error in validateDokumentUnderArbeidAndVedlegg: ${errors.joinToString()}")
             throw SmartDocumentValidationException(
                 msg = "Dokument(er) med valideringsfeil.",
                 errors = errors,
