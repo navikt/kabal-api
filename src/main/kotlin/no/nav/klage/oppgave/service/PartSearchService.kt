@@ -84,7 +84,11 @@ class PartSearchService(
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator).access) {
                     val person = personService.getPersonInfo(identifikator)
-                    val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
+                    val krrInfo = if (systemUserContext) {
+                        krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
+                    } else {
+                        krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
+                    }
                     BehandlingDetaljerView.SearchPartViewWithUtsendingskanal(
                         identifikator = person.foedselsnr,
                         name = person.settSammenNavn(),
