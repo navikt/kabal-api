@@ -96,7 +96,7 @@ class PartSearchService(
                         available = person.doed == null,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = identifikator),
+                        address = if (systemUserContext) regoppslagService.getAddressForPersonAppAccess(fnr = identifikator) else regoppslagService.getAddressForPersonOnBehalfOf(fnr = identifikator),
                         utsendingskanal = dokDistKanalService.getUtsendingskanal(
                             mottakerId = identifikator,
                             brukerId = sakenGjelderId,
