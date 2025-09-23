@@ -111,7 +111,7 @@ class AutomaticSvarbrevService(
             logger.debug("Sender svarbrev for behandling {} i event {}", behandling.id, automaticSvarbrevEvent.id)
 
             val (receiver, technicalPartId) = getReceiver(behandling = behandling)
-            val receiverValidationErrorMessage = getPotentialErrorMessage(receiver)
+            val receiverValidationErrorMessage = getPotentialErrorMessage(receiver = receiver, behandling = behandling)
             if (receiverValidationErrorMessage != null) {
                 //Dette gir de godkjente feilene vi kjenner til, og skal sendes videre til merkantil.
                 logger.error(receiverValidationErrorMessage)
@@ -264,14 +264,33 @@ class AutomaticSvarbrevService(
 
     private fun getPotentialErrorMessage(
         receiver: Svarbrev.Receiver,
+        behandling: Behandling,
     ): String? {
         if (receiver.identifikator != null) {
-            val part = partSearchService.searchPart(
+            val part = partSearchService.searchPartWithUtsendingskanal(
                 identifikator = receiver.identifikator,
-                systemUserContext = true
+                systemUserContext = true,
+                sakenGjelderId = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema(),
+                systemContext = true,
             )
 
-            when (part.type) {
+            val (markLocalPrint, forceCentralPrint) = dokumentUnderArbeidService.getPreferredHandling(
+                identifikator = receiver.identifikator,
+                handling = HandlingEnum.valueOf(receiver.handling.name),
+                isAddressOverridden = receiver.overriddenAddress != null,
+                sakenGjelderFnr = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema(),
+                systemContext = true,
+            )
+
+            if (documentWillGoToCentralPrint(forceCentralPrint = forceCentralPrint, localPrint = markLocalPrint, part = part)) {
+                if (receiver.overriddenAddress == null && part.address == null) {
+                    return "Mottaker ${part.name} mangler adresse i input og i PDL."
+                }
+            }
+
+            when (part.type!!) {
                 BehandlingDetaljerView.IdType.FNR -> if (part.statusList.any { it.status == BehandlingDetaljerView.PartStatus.Status.DEAD }) {
                     return "Mottaker ${part.name} er død, velg en annen mottaker."
                 }
@@ -284,6 +303,15 @@ class AutomaticSvarbrevService(
             return "Adresse og navn må oppgis når id mangler."
         }
         return null
+    }
+
+    private fun documentWillGoToCentralPrint(
+        forceCentralPrint: Boolean,
+        localPrint: Boolean,
+        part: BehandlingDetaljerView.SearchPartViewWithUtsendingskanal
+    ): Boolean {
+        return forceCentralPrint ||
+                (!localPrint && part.utsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT)
     }
 
     private fun getSvarbrevPDF(
