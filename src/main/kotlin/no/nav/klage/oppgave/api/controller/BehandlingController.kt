@@ -243,6 +243,7 @@ class BehandlingController(
     /**
      * Valgfri validering før ny ankebehandling.
      */
+    @Deprecated("Use /{behandlingId}/validate/nybehandling")
     @GetMapping("/{behandlingId}/validate/nyankebehandling")
     fun validateAnkebehandling(
         @PathVariable("behandlingId") behandlingId: UUID
@@ -261,12 +262,12 @@ class BehandlingController(
     /**
      * Valgfri validering før ny gjenopptaksbehandling.
      */
-    @GetMapping("/{behandlingId}/validate/nygjenopptaksbehandling")
-    fun validateGjenopptaksbehandling(
+    @GetMapping("/{behandlingId}/validate/nybehandling")
+    fun validateBehandlingForNewBehandling(
         @PathVariable("behandlingId") behandlingId: UUID
     ): ValidationPassedResponse {
         logKlagebehandlingMethodDetails(
-            ::validateGjenopptaksbehandling.name,
+            ::validateBehandlingForNewBehandling.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             behandlingId,
             logger
@@ -566,6 +567,7 @@ class BehandlingController(
         return BehandlingEditedView(modified = modified)
     }
 
+    @Deprecated("Use /{behandlingId}/nybehandlingka")
     @PostMapping("/{behandlingId}/nyankebehandlingka")
     fun nyAnkebehandlingKA(
         @PathVariable("behandlingId") behandlingId: UUID,
@@ -584,12 +586,12 @@ class BehandlingController(
         )
     }
 
-    @PostMapping("/{behandlingId}/nygjenopptaksbehandlingka")
-    fun nyGjenopptaksbehandlingKA(
+    @PostMapping("/{behandlingId}/nybehandlingka")
+    fun nyBehandlingKA(
         @PathVariable("behandlingId") behandlingId: UUID,
     ) {
         logMethodDetails(
-            ::nyGjenopptaksbehandlingKA.name,
+            ::nyBehandlingKA.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             logger
         )
