@@ -55,6 +55,9 @@ inboundApplications:
   - application: yrkesskade-saksbehandling-backend
     namespace: yrkesskade
     cluster: prod-gcp
+  - application: ung-sak
+    namespace: k9saksbehandling
+    cluster: prod-gcp
 springProfile: prod-gcp
 tenant: nav.no
 db_tier: db-custom-1-3840
