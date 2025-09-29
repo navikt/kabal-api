@@ -124,7 +124,7 @@ abstract class Gjenopptaksbehandling(
     gosysOppgaveRequired = gosysOppgaveRequired,
 ) {
     override fun toString(): String {
-        return "Ankebehandling(id=$id, " +
+        return "Gjenopptaksbehandling(id=$id, " +
                 "modified=$modified, " +
                 "created=$created)"
     }
@@ -133,7 +133,7 @@ abstract class Gjenopptaksbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Ankebehandling
+        other as Gjenopptaksbehandling
 
         return id == other.id
     }

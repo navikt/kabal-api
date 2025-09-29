@@ -401,7 +401,7 @@ sealed class Behandling(
             sakenGjelder = sakenGjelder,
             prosessfullmektig = prosessfullmektig,
             ytelse = ytelse,
-            type = Type.ANKE_I_TRYGDERETTEN,
+            type = Type.BEGJAERING_OM_GJENOPPTAK_TRYGDERETTEN,
             kildeReferanse = kildeReferanse,
             dvhReferanse = dvhReferanse,
             fagsystem = fagsystem,

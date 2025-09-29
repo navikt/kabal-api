@@ -129,7 +129,7 @@ class GjenopptakITrygderettenbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as AnkeITrygderettenbehandling
+        other as GjenopptakITrygderettenbehandling
 
         return id == other.id
     }
