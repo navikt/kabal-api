@@ -96,6 +96,8 @@ class KapteinService(
             is AnkeITrygderettenbehandling -> mapAnkeITrygderettenbehandlingToAnonymousBehandlingView(this)
             is BehandlingEtterTrygderettenOpphevet -> mapBehandlingEtterTROpphevetToAnonymousBehandlingView(this)
             is Omgjoeringskravbehandling -> mapOmgjoeringskravbehandlingToAnonymousBehandlingView(this)
+            is Gjenopptaksbehandling -> mapGjenopptaksbehandlingToAnonymousBehandlingView(this)
+            is GjenopptakITrygderettenbehandling -> mapGjenopptakITrygderettenbehandlingToAnonymousBehandlingView(this)
         }
     }
 
@@ -244,6 +246,66 @@ class KapteinService(
             tilbakekreving = behandling.tilbakekreving,
             sendtTilTrygderetten = null,
             kjennelseMottatt = null,
+            isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
+            tildeltEnhet = behandling.tildeling?.enhet,
+        )
+    }
+
+    private fun mapGjenopptaksbehandlingToAnonymousBehandlingView(behandling: Gjenopptaksbehandling): AnonymousBehandlingView {
+        return AnonymousBehandlingView(
+            id = behandling.id,
+            fraNAVEnhet = null,
+            mottattVedtaksinstans = null,
+            temaId = behandling.ytelse.toTema().id,
+            ytelseId = behandling.ytelse.id,
+            typeId = behandling.type.id,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
+            frist = behandling.frist,
+            ageKA = behandling.toAgeInDays(),
+            datoSendtMedunderskriver = behandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = behandling.hjemler.map { it.id },
+            modified = behandling.modified,
+            created = behandling.created,
+            resultat = behandling.mapToVedtakView(),
+            sattPaaVent = behandling.sattPaaVent,
+            feilregistrering = behandling.feilregistrering.toView(),
+            fagsystemId = behandling.fagsystem.id,
+            varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
+            tilbakekreving = behandling.tilbakekreving,
+            sendtTilTrygderetten = null,
+            kjennelseMottatt = null,
+            isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
+            tildeltEnhet = behandling.tildeling?.enhet,
+        )
+    }
+
+    private fun mapGjenopptakITrygderettenbehandlingToAnonymousBehandlingView(behandling: GjenopptakITrygderettenbehandling): AnonymousBehandlingView {
+        return AnonymousBehandlingView(
+            id = behandling.id,
+            fraNAVEnhet = null,
+            mottattVedtaksinstans = null,
+            temaId = behandling.ytelse.toTema().id,
+            ytelseId = behandling.ytelse.id,
+            typeId = behandling.type.id,
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
+            frist = behandling.frist,
+            ageKA = behandling.toAgeInDays(),
+            datoSendtMedunderskriver = behandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = behandling.hjemler.map { it.id },
+            modified = behandling.modified,
+            created = behandling.created,
+            resultat = behandling.mapToVedtakView(),
+            sattPaaVent = behandling.sattPaaVent,
+            feilregistrering = behandling.feilregistrering.toView(),
+            fagsystemId = behandling.fagsystem.id,
+            varsletFrist = null,
+            tilbakekreving = behandling.tilbakekreving,
+            sendtTilTrygderetten = behandling.sendtTilTrygderetten,
+            kjennelseMottatt = behandling.kjennelseMottatt,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
             tildeltEnhet = behandling.tildeling?.enhet,
         )

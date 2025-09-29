@@ -33,10 +33,12 @@ class BehandlingAvslutningService(
     private val dokumentUnderArbeidCommonService: DokumentUnderArbeidCommonService,
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
     private val behandlingEtterTrygderettenOpphevetService: BehandlingEtterTrygderettenOpphevetService,
+    private val gjenopptakITrygderettenbehandlingService: GjenopptakITrygderettenbehandlingService,
     private val ankebehandlingService: AnkebehandlingService,
     private val fssProxyClient: KlageFssProxyClient,
     private val gosysOppgaveService: GosysOppgaveService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val gjenopptaksbehandlingService: GjenopptaksbehandlingService,
 ) {
 
     companion object {
@@ -90,6 +92,8 @@ class BehandlingAvslutningService(
             is AnkeITrygderettenbehandling -> handleAnkeITrygderettenbehandling(behandling)
             is BehandlingEtterTrygderettenOpphevet -> handleBehandlingEtterTrygderettenOpprettet(behandling)
             is Omgjoeringskravbehandling -> handleOmgjoeringskravbehandling(behandling)
+            is Gjenopptaksbehandling -> handleGjenopptaksbehandling(behandling)
+            is GjenopptakITrygderettenbehandling -> handleGjenopptakITrygderettenbehandling(behandling)
         }
 
         val event = behandling.setAvsluttet(systembrukerIdent)
@@ -188,7 +192,8 @@ class BehandlingAvslutningService(
             createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling as AnkeITrygderettenbehandling)
             if (ankeITrygderettenbehandling.gosysOppgaveRequired) {
                 logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
-                val kommentar = "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten opphevet saken."
+                val kommentar =
+                    "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten opphevet saken."
 
                 gosysOppgaveService.addKommentar(
                     behandling = ankeITrygderettenbehandling,
@@ -269,6 +274,103 @@ class BehandlingAvslutningService(
         }
     }
 
+    private fun handleGjenopptaksbehandling(gjenopptaksbehandling: Behandling) {
+        if (gjenopptaksbehandling.utfall == Utfall.MEDHOLD_ETTER_FVL_35) {
+            logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har utfall som skal formidles til førsteinstans.")
+            if (gjenopptaksbehandling.gosysOppgaveRequired) {
+                logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har Gosys-oppgave, oppdaterer den.")
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = gjenopptaksbehandling,
+                    systemContext = true,
+                    throwExceptionIfFerdigstilt = true,
+                )
+            } else {
+                logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} er basert på Kabal-behandling, og resultatet skal formidles til førsteinstans via en Kafka-melding.")
+                createKafkaEventForModernizedFagsystem(gjenopptaksbehandling)
+            }
+        } else if (gjenopptaksbehandling.shouldBeSentToTrygderetten()) {
+            createGjenopptakITrygderettenbehandling(gjenopptaksbehandling)
+            if (gjenopptaksbehandling.gosysOppgaveRequired) {
+                if (gjenopptaksbehandling.gosysOppgaveId != null && gjenopptaksbehandling.gosysOppgaveUpdate != null && !gjenopptaksbehandling.ignoreGosysOppgave) {
+                    logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har Gosys-oppgave, oppdaterer den.")
+                    gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                        behandling = gjenopptaksbehandling,
+                        systemContext = true,
+                        throwExceptionIfFerdigstilt = true,
+                    )
+                }
+            }
+        } else {
+            //Saken avsluttes ved "Trukket" og "Henlagt"
+            logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} er avsluttet med utfall som ikke fører til videre behandling.")
+            if (gjenopptaksbehandling.gosysOppgaveRequired) {
+                logger.debug("Avslutter oppgave i Gosys for gjenopptaksbehandling med id ${gjenopptaksbehandling.id}.")
+                gosysOppgaveService.avsluttGosysOppgave(
+                    behandling = gjenopptaksbehandling,
+                    throwExceptionIfFerdigstilt = false,
+                )
+            }
+        }
+    }
+
+    private fun handleGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling: Behandling) {
+        if (gjenopptakITrygderettenbehandling.shouldCreateNewGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling()) {
+            logger.debug("Oppretter ny Gjenopptaksbehandling basert på GjenopptakITrygderettenbehandling fra gjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id}")
+            createNewGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling as GjenopptakITrygderettenbehandling)
+            if (gjenopptakITrygderettenbehandling.gosysOppgaveRequired) {
+                logger.debug("AnkeITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
+                val kommentar = if (gjenopptakITrygderettenbehandling.nyGjenopptaksbehandlingKA != null) {
+                    "Klageinstansen har opprettet ny behandling i Kabal."
+                } else {
+                    error("Ugyldig tilstand for å opprette ny ankebehandling fra anke i Trygderetten")
+                }
+
+                gosysOppgaveService.addKommentar(
+                    behandling = gjenopptakITrygderettenbehandling,
+                    kommentar = kommentar,
+                    systemContext = true,
+                    throwExceptionIfFerdigstilt = false,
+                )
+            }
+        } else if (gjenopptakITrygderettenbehandling.shouldCreateNewBehandlingEtterTROpphevetFromGjenopptakITrygderettenbehandling()) {
+            logger.debug("Oppretter ny behandling, etter TR opphevet, basert på GjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id}")
+            createNewBehandlingEtterTROpphevetFromGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling as GjenopptakITrygderettenbehandling)
+            if (gjenopptakITrygderettenbehandling.gosysOppgaveRequired) {
+                logger.debug("GjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
+                val kommentar =
+                    "Klageinstansen har opprettet ny behandling i Kabal etter at Trygderetten opphevet saken."
+
+                gosysOppgaveService.addKommentar(
+                    behandling = gjenopptakITrygderettenbehandling,
+                    kommentar = kommentar,
+                    systemContext = true,
+                    throwExceptionIfFerdigstilt = false,
+                )
+            }
+        } else if (gjenopptakITrygderettenbehandling.gjenopptaksbehandlingITrygderettenShouldNotNotifyVedtaksinstans()) {
+            logger.debug("Avslutter gjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id} med utfall som ikke skal formidles til førsteinstans.")
+            if (gjenopptakITrygderettenbehandling.gosysOppgaveRequired) {
+                logger.debug("Avslutter oppgave i Gosys for gjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id}.")
+                gosysOppgaveService.avsluttGosysOppgave(
+                    behandling = gjenopptakITrygderettenbehandling,
+                    throwExceptionIfFerdigstilt = false,
+                )
+            }
+        } else if (!gjenopptakITrygderettenbehandling.gosysOppgaveRequired)  {
+            logger.debug("GjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
+            createKafkaEventForModernizedFagsystem(gjenopptakITrygderettenbehandling)
+        } else {
+            if (gjenopptakITrygderettenbehandling.gosysOppgaveId != null && gjenopptakITrygderettenbehandling.gosysOppgaveUpdate != null && !gjenopptakITrygderettenbehandling.ignoreGosysOppgave) {
+                logger.debug("GjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
+                gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
+                    behandling = gjenopptakITrygderettenbehandling,
+                    systemContext = true,
+                    throwExceptionIfFerdigstilt = true,
+                )
+            }
+        }
+    }
+
 
     private fun createKafkaEventForModernizedFagsystem(behandling: Behandling) {
         val hoveddokumenter =
@@ -292,6 +394,8 @@ class BehandlingAvslutningService(
                 is AnkeITrygderettenbehandling -> ANKEBEHANDLING_AVSLUTTET
                 is BehandlingEtterTrygderettenOpphevet -> BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET
                 is Omgjoeringskravbehandling -> OMGJOERINGSKRAVBEHANDLING_AVSLUTTET
+                is Gjenopptaksbehandling -> GJENOPPTAKSBEHANDLING_AVSLUTTET
+                is GjenopptakITrygderettenbehandling -> GJENOPPTAKSBEHANDLING_AVSLUTTET
             },
             detaljer = getBehandlingDetaljer(behandling, hoveddokumenter)
         )
@@ -354,10 +458,30 @@ class BehandlingAvslutningService(
         behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandling)
     }
 
+    private fun createNewGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling: GjenopptakITrygderettenbehandling) {
+        logger.debug("Creating gjenopptaksbehandling based on behandling with id {}", gjenopptakITrygderettenbehandling.id)
+        gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling)
+    }
+
+    private fun createNewBehandlingEtterTROpphevetFromGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling: GjenopptakITrygderettenbehandling) {
+        logger.debug(
+            "Creating BehandlingEtterTrygderettenOpphevet based on behandling with id {}",
+            gjenopptakITrygderettenbehandling.id
+        )
+        behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(gjenopptakITrygderettenbehandling)
+    }
+
     private fun createAnkeITrygderettenbehandling(behandling: Behandling) {
         logger.debug("Creating ankeITrygderettenbehandling based on behandling with id {}", behandling.id)
         ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
             behandling.createAnkeITrygderettenbehandlingInput()
+        )
+    }
+
+    private fun createGjenopptakITrygderettenbehandling(behandling: Behandling) {
+        logger.debug("Creating gjenopptakITrygderettenbehandling based on behandling with id {}", behandling.id)
+        gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(
+            behandling.createGjenopptakITrygderettenbehandlingInput()
         )
     }
 
@@ -413,6 +537,28 @@ class BehandlingAvslutningService(
             is Omgjoeringskravbehandling -> {
                 BehandlingDetaljer(
                     omgjoeringskravbehandlingAvsluttet = OmgjoeringskravbehandlingAvsluttetDetaljer(
+                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
+                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+                            .map { it.journalpostId }
+                    )
+                )
+            }
+
+            is Gjenopptaksbehandling -> {
+                BehandlingDetaljer(
+                    gjenopptaksbehandlingAvsluttet = GjenopptaksbehandlingAvsluttetDetaljer(
+                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
+                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+                            .map { it.journalpostId }
+                    )
+                )
+            }
+
+            is GjenopptakITrygderettenbehandling -> {
+                BehandlingDetaljer(
+                    gjenopptaksbehandlingAvsluttet = GjenopptaksbehandlingAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
                         utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
                         journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }

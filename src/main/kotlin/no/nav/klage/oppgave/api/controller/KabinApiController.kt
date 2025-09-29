@@ -103,6 +103,19 @@ class KabinApiController(
         return kabinApiService.getOmgjoeringskravmuligheter(partIdValue = input.idnummer)
     }
 
+    @PostMapping("/gjenopptaksmuligheter")
+    fun getGjenopptaksmuligheter(
+        @RequestBody input: GetCompletedBehandlingerInput
+    ): List<Mulighet> {
+        logMethodDetails(
+            methodName = ::getGjenopptaksmuligheter.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger
+        )
+
+        return kabinApiService.getGjenopptaksmuligheter(partIdValue = input.idnummer)
+    }
+
     @GetMapping("/completedbehandlinger/{behandlingId}")
     fun getCompletedBehandling(
         @PathVariable behandlingId: UUID
@@ -165,7 +178,7 @@ class KabinApiController(
 
     @PostMapping("/create-omgjoeringskrav-based-on-journalpost")
     fun createOmgjoeringskravBasedOnJournalpost(
-        @RequestBody input: CreateOmgjoeringskravBasedOnJournalpostInput
+        @RequestBody input: CreateBehandlingBasedOnJournalpostInput
     ): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createOmgjoeringskravBasedOnJournalpost.name,
@@ -173,7 +186,7 @@ class KabinApiController(
             logger = logger
         )
 
-        return kabinApiService.createOmgjoeringskravBasedOnJournalpost(
+        return kabinApiService.createBehandlingBasedOnJournalpost(
             input = input
         )
     }

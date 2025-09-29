@@ -55,6 +55,10 @@ import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setTilba
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setTildeling
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingWithVarsletBehandlingstidSetters.setVarsletBehandlingstid
+import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setKjennelseMottatt
+import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setNyBehandlingEtterTROpphevet
+import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setNyGjenopptaksbehandlingKA
+import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setSendtTilTrygderetten
 import no.nav.klage.oppgave.domain.behandling.setters.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
@@ -495,8 +499,12 @@ class BehandlingService(
         }
     }
 
-    fun validateAnkeITrygderettenbehandlingBeforeNyAnkebehandling(behandlingId: UUID) {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId) as AnkeITrygderettenbehandling
+    fun validateTrygderettenbehandlingBeforeNyBehandling(behandlingId: UUID) {
+        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        if (!((behandling is AnkeITrygderettenbehandling) || (behandling is GjenopptakITrygderettenbehandling))) {
+            throw Exception("Ugyldig operasjon for behandling av typen ${behandling.type}")
+        }
+
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
         val behandlingValidationErrors = mutableListOf<InvalidProperty>()
         val sectionList = mutableListOf<ValidationSection>()
@@ -545,6 +553,15 @@ class BehandlingService(
                     )
                 }
 
+                Utfall.GJENOPPTATT_OPPHEVET -> {
+                    behandlingValidationErrors.add(
+                        InvalidProperty(
+                            field = "utfall",
+                            reason = "Kan ikke lukke behandling. Dersom resultatet fra Trygderetten er «Gjenopptatt - Opphevet», må du først fullføre registrering av resultatet fra Trygderetten før du kan starte ny behandling. Når du trykker «Fullfør», vil du få mulighet til å opprette en ny gjenopptagsbegjæring."
+                        )
+                    )
+                }
+
                 else -> {
                     behandlingValidationErrors.add(
                         InvalidProperty(
@@ -556,14 +573,26 @@ class BehandlingService(
             }
         }
 
-        if (behandling.kjennelseMottatt != null) {
-            behandlingValidationErrors.add(
-                InvalidProperty(
-                    field = "kjennelseMottatt",
-                    reason = getErrorText("kjennelse mottatt")
+        if (behandling is AnkeITrygderettenbehandling) {
+            if (behandling.kjennelseMottatt != null) {
+                behandlingValidationErrors.add(
+                    InvalidProperty(
+                        field = "kjennelseMottatt",
+                        reason = getErrorText("kjennelse mottatt")
+                    )
                 )
-            )
+            }
+        } else if (behandling is GjenopptakITrygderettenbehandling) {
+            if (behandling.kjennelseMottatt != null) {
+                behandlingValidationErrors.add(
+                    InvalidProperty(
+                        field = "kjennelseMottatt",
+                        reason = getErrorText("kjennelse mottatt")
+                    )
+                )
+            }
         }
+
 
         if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
@@ -1269,6 +1298,11 @@ class BehandlingService(
                 behandling.setSendtTilTrygderetten(date, utfoerendeSaksbehandlerIdent)
             applicationEventPublisher.publishEvent(event)
             return behandling.modified
+        } else if (behandling is GjenopptakITrygderettenbehandling) {
+            val event =
+                behandling.setSendtTilTrygderetten(date, utfoerendeSaksbehandlerIdent)
+            applicationEventPublisher.publishEvent(event)
+            return behandling.modified
         } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
     }
 
@@ -1286,10 +1320,15 @@ class BehandlingService(
                 behandling.setKjennelseMottatt(date, utfoerendeSaksbehandlerIdent)
             applicationEventPublisher.publishEvent(event)
             return behandling.modified
+        } else if (behandling is GjenopptakITrygderettenbehandling) {
+            val event =
+                behandling.setKjennelseMottatt(date, utfoerendeSaksbehandlerIdent)
+            applicationEventPublisher.publishEvent(event)
+            return behandling.modified
         } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
     }
 
-    fun setNyAnkebehandlingKAAndSetToAvsluttet(
+    fun setNyBehandlingKAAndSetToAvsluttet(
         behandlingId: UUID,
         utfoerendeSaksbehandlerIdent: String
     ): Behandling {
@@ -1297,6 +1336,23 @@ class BehandlingService(
 
         if (behandling is AnkeITrygderettenbehandling) {
             val eventNyBehandling = behandling.setNyAnkebehandlingKA(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
+            val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
+                saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            )
+            val changeList =
+                eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
+
+            applicationEventPublisher.publishEvent(
+                BehandlingChangedEvent(
+                    behandling = behandling,
+                    changeList = changeList
+                )
+            )
+
+            return behandling
+        } else if (behandling is GjenopptakITrygderettenbehandling) {
+            val eventNyBehandling = behandling.setNyGjenopptaksbehandlingKA(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
             val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
                 saksbehandlerident = utfoerendeSaksbehandlerIdent,
                 saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
@@ -1339,7 +1395,25 @@ class BehandlingService(
             )
 
             return behandling
-        } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
+        } else if (behandling is GjenopptakITrygderettenbehandling) {
+            val eventNyBehandling =
+                behandling.setNyBehandlingEtterTROpphevet(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
+            val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
+                saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            )
+            val changeListsinnslaginnslag =
+                eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
+
+            applicationEventPublisher.publishEvent(
+                BehandlingChangedEvent(
+                    behandling = behandling,
+                    changeList = changeListsinnslaginnslag
+                )
+            )
+
+            return behandling
+        } else throw IllegalOperation("Dette feltet kan bare settes i saker i Trygderetten")
     }
 
     fun setInnsendingshjemler(
@@ -2077,7 +2151,11 @@ class BehandlingService(
     }
 
     fun getBehandlingOppgaveView(behandlingId: UUID): OppgaveView {
-        return behandlingMapper.mapBehandlingToOppgaveView(getBehandlingAndCheckLeseTilgangForPersonForCreatingOppgave(behandlingId))
+        return behandlingMapper.mapBehandlingToOppgaveView(
+            getBehandlingAndCheckLeseTilgangForPersonForCreatingOppgave(
+                behandlingId
+            )
+        )
     }
 
     @Transactional(readOnly = true)
@@ -2688,6 +2766,12 @@ class BehandlingService(
         partIdValue: String,
     ): List<Behandling> {
         return behandlingRepository.getOmgjoeringskravmuligheter(partIdValue)
+    }
+
+    fun getGjenopptaksmuligheterByPartIdValue(
+        partIdValue: String,
+    ): List<Behandling> {
+        return behandlingRepository.getGjenopptaksmuligheter(partIdValue)
     }
 
     private fun getUtfoerendeNavn(utfoerendeSaksbehandlerIdent: String): String {

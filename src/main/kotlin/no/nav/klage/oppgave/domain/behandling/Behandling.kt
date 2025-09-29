@@ -287,6 +287,14 @@ sealed class Behandling(
         }
     }
 
+    fun shouldCreateNewGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(): Boolean {
+        return if (this is GjenopptakITrygderettenbehandling) {
+            nyGjenopptaksbehandlingKA != null
+        } else {
+            false
+        }
+    }
+
     fun shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(): Boolean {
         return if (this is AnkeITrygderettenbehandling) {
             nyBehandlingEtterTROpphevet != null && utfall == Utfall.OPPHEVET
@@ -295,8 +303,20 @@ sealed class Behandling(
         }
     }
 
+    fun shouldCreateNewBehandlingEtterTROpphevetFromGjenopptakITrygderettenbehandling(): Boolean {
+        return if (this is GjenopptakITrygderettenbehandling) {
+            nyBehandlingEtterTROpphevet != null && utfall == Utfall.GJENOPPTATT_OPPHEVET
+        } else {
+            false
+        }
+    }
+
     fun shouldNotCreateNewBehandlingFromAnkeITrygderettenbehandling(): Boolean {
         return (!shouldCreateNewAnkebehandlingFromAnkeITrygderettenbehandling() && !shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling())
+    }
+
+    fun shouldNotCreateNewBehandlingFromGjenopptakITrygderettenbehandling(): Boolean {
+        return (!shouldCreateNewGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling() && !shouldCreateNewBehandlingEtterTROpphevetFromGjenopptakITrygderettenbehandling())
     }
 
     fun isFerdigstiltOrFeilregistrert(): Boolean {
@@ -321,6 +341,10 @@ sealed class Behandling(
         return fagsystem == Fagsystem.IT01 && type !in listOf(
             Type.OMGJOERINGSKRAV
         )
+    }
+
+    fun gjenopptaksbehandlingITrygderettenShouldNotNotifyVedtaksinstans(): Boolean {
+        return this is GjenopptakITrygderettenbehandling && utfall in listOf(Utfall.HEVET, Utfall.IKKE_GJENOPPTATT, Utfall.AVVIST, Utfall.GJENOPPTATT_STADFESTET)
     }
 
     fun getTimesPreviouslyExtended(): Int {
@@ -370,6 +394,30 @@ sealed class Behandling(
             gosysOppgaveRequired = gosysOppgaveRequired,
         )
     }
+
+    fun createGjenopptakITrygderettenbehandlingInput(): GjenopptakITrygderettenbehandlingInput {
+        return GjenopptakITrygderettenbehandlingInput(
+            klager = klager,
+            sakenGjelder = sakenGjelder,
+            prosessfullmektig = prosessfullmektig,
+            ytelse = ytelse,
+            type = Type.ANKE_I_TRYGDERETTEN,
+            kildeReferanse = kildeReferanse,
+            dvhReferanse = dvhReferanse,
+            fagsystem = fagsystem,
+            fagsakId = fagsakId,
+            sakMottattKlageinstans = mottattKlageinstans,
+            saksdokumenter = saksdokumenter,
+            innsendingsHjemler = hjemler,
+            sendtTilTrygderetten = ferdigstilling!!.avsluttetAvSaksbehandler,
+            registreringsHjemmelSet = registreringshjemler,
+            gjenopptakbehandlingUtfall = ExternalUtfall.valueOf(utfall!!.name),
+            previousSaksbehandlerident = tildeling!!.saksbehandlerident,
+            gosysOppgaveId = gosysOppgaveId,
+            tilbakekreving = tilbakekreving,
+            gosysOppgaveRequired = gosysOppgaveRequired,
+        )
+    }
 }
 
 enum class BehandlingRole {
@@ -388,7 +436,9 @@ val utfallToNewAnkebehandling = setOf(
 val utfallToTrygderetten = setOf(
     Utfall.DELVIS_MEDHOLD,
     Utfall.INNSTILLING_AVVIST,
-    Utfall.INNSTILLING_STADFESTELSE
+    Utfall.INNSTILLING_STADFESTELSE,
+    Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES,
+    Utfall.INNSTILLING_GJENOPPTAS_IKKE,
 )
 
 val noRegistringshjemmelNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR, Utfall.HENLAGT)

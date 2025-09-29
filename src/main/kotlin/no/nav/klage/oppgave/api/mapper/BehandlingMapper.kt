@@ -47,6 +47,8 @@ class BehandlingMapper(
             is AnkeITrygderettenbehandling -> mapAnkeITrygderettenbehandlingToBehandlingDetaljerView(behandling)
             is BehandlingEtterTrygderettenOpphevet -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandling)
             is Omgjoeringskravbehandling -> mapOmgjoeringskravbehandlingToBehandlingDetaljerView(behandling)
+            is Gjenopptaksbehandling -> mapGjenopptaksbehandlingToBehandlingDetaljerView(behandling)
+            is GjenopptakITrygderettenbehandling -> mapGjenopptakITrygderettenbehandlingToBehandlingDetaljerView(behandling)
         }
     }
 
@@ -467,6 +469,153 @@ class BehandlingMapper(
             tilbakekreving = behandlingEtterTrygderettenOpphevet.tilbakekreving,
             timesPreviouslyExtended = behandlingEtterTrygderettenOpphevet.getTimesPreviouslyExtended(),
             requiresGosysOppgave = behandlingEtterTrygderettenOpphevet.gosysOppgaveRequired
+        )
+    }
+
+    fun mapGjenopptaksbehandlingToBehandlingDetaljerView(gjenopptaksbehandling: Gjenopptaksbehandling): BehandlingDetaljerView {
+        val forrigeEnhetNavn = gjenopptaksbehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
+
+        return BehandlingDetaljerView(
+            id = gjenopptaksbehandling.id,
+            fraNAVEnhet = gjenopptaksbehandling.klageBehandlendeEnhet,
+            fraNAVEnhetNavn = forrigeEnhetNavn,
+            mottattVedtaksinstans = null,
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(gjenopptaksbehandling),
+            klager = getPartViewWithUtsendingskanal(
+                technicalPartId = gjenopptaksbehandling.klager.id,
+                partId = gjenopptaksbehandling.klager.partId,
+                behandling = gjenopptaksbehandling,
+                navn = null,
+                address = null,
+            ),
+            prosessfullmektig = gjenopptaksbehandling.prosessfullmektig?.let {
+                getPartViewWithUtsendingskanal(
+                    technicalPartId = it.id,
+                    partId = it.partId,
+                    behandling = gjenopptaksbehandling,
+                    navn = it.navn,
+                    address = it.address,
+                )
+            },
+            temaId = gjenopptaksbehandling.ytelse.toTema().id,
+            ytelseId = gjenopptaksbehandling.ytelse.id,
+            typeId = gjenopptaksbehandling.type.id,
+            mottattKlageinstans = gjenopptaksbehandling.mottattKlageinstans.toLocalDate(),
+            tildelt = gjenopptaksbehandling.tildeling?.tidspunkt?.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = gjenopptaksbehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = gjenopptaksbehandling.ferdigstilling != null,
+            frist = gjenopptaksbehandling.frist,
+            datoSendtMedunderskriver = gjenopptaksbehandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = gjenopptaksbehandling.hjemler.map { it.id },
+            modified = gjenopptaksbehandling.modified,
+            created = gjenopptaksbehandling.created,
+            resultat = gjenopptaksbehandling.mapToVedtakView(),
+            kommentarFraVedtaksinstans = null,
+            tilknyttedeDokumenter = gjenopptaksbehandling.saksdokumenter.map {
+                TilknyttetDokument(
+                    journalpostId = it.journalpostId,
+                    dokumentInfoId = it.dokumentInfoId
+                )
+            }.toSet(),
+            egenAnsatt = gjenopptaksbehandling.sakenGjelder.erEgenAnsatt(),
+            fortrolig = gjenopptaksbehandling.sakenGjelder.harBeskyttelsesbehovFortrolig(),
+            strengtFortrolig = gjenopptaksbehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
+            vergemaalEllerFremtidsfullmakt = gjenopptaksbehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
+            dead = gjenopptaksbehandling.sakenGjelder.getDead(),
+            sikkerhetstiltak = gjenopptaksbehandling.sakenGjelder.sikkerhetstiltak(),
+            kvalitetsvurderingReference = if (gjenopptaksbehandling.feilregistrering == null && gjenopptaksbehandling.kakaKvalitetsvurderingId != null) {
+                BehandlingDetaljerView.KvalitetsvurderingReference(
+                    id = gjenopptaksbehandling.kakaKvalitetsvurderingId!!,
+                    version = gjenopptaksbehandling.kakaKvalitetsvurderingVersion,
+                )
+            } else null,
+            sattPaaVent = gjenopptaksbehandling.sattPaaVent,
+            feilregistrering = gjenopptaksbehandling.feilregistrering.toView(),
+            fagsystemId = gjenopptaksbehandling.fagsystem.id,
+            relevantDocumentIdList = gjenopptaksbehandling.saksdokumenter.map {
+                it.dokumentInfoId
+            }.toSet(),
+            saksnummer = gjenopptaksbehandling.fagsakId,
+            rol = gjenopptaksbehandling.toROLView(),
+            medunderskriver = gjenopptaksbehandling.toMedunderskriverView(),
+            saksbehandler = gjenopptaksbehandling.toSaksbehandlerView(),
+            previousSaksbehandler = gjenopptaksbehandling.toPreviousSaksbehandlerView(),
+            varsletFrist = gjenopptaksbehandling.varsletBehandlingstid?.varsletFrist,
+            gosysOppgaveId = gjenopptaksbehandling.gosysOppgaveId,
+            tilbakekreving = gjenopptaksbehandling.tilbakekreving,
+            timesPreviouslyExtended = gjenopptaksbehandling.getTimesPreviouslyExtended(),
+            requiresGosysOppgave = gjenopptaksbehandling.gosysOppgaveRequired,
+        )
+    }
+
+    fun mapGjenopptakITrygderettenbehandlingToBehandlingDetaljerView(gjenopptakITrygderettenbehandling: GjenopptakITrygderettenbehandling): BehandlingDetaljerView {
+        return BehandlingDetaljerView(
+            id = gjenopptakITrygderettenbehandling.id,
+            fraNAVEnhet = null,
+            fraNAVEnhetNavn = null,
+            mottattVedtaksinstans = null,
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(gjenopptakITrygderettenbehandling),
+            klager = getPartViewWithUtsendingskanal(
+                technicalPartId = gjenopptakITrygderettenbehandling.klager.id,
+                partId = gjenopptakITrygderettenbehandling.klager.partId,
+                behandling = gjenopptakITrygderettenbehandling,
+                navn = null,
+                address = null,
+            ),
+            prosessfullmektig = gjenopptakITrygderettenbehandling.prosessfullmektig?.let {
+                getPartViewWithUtsendingskanal(
+                    technicalPartId = it.id,
+                    partId = it.partId,
+                    behandling = gjenopptakITrygderettenbehandling,
+                    navn = it.navn,
+                    address = it.address,
+                )
+            },
+            temaId = gjenopptakITrygderettenbehandling.ytelse.toTema().id,
+            ytelseId = gjenopptakITrygderettenbehandling.ytelse.id,
+            typeId = gjenopptakITrygderettenbehandling.type.id,
+            mottattKlageinstans = gjenopptakITrygderettenbehandling.mottattKlageinstans.toLocalDate(),
+            tildelt = gjenopptakITrygderettenbehandling.tildeling?.tidspunkt?.toLocalDate(),
+            avsluttetAvSaksbehandlerDate = gjenopptakITrygderettenbehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
+            isAvsluttetAvSaksbehandler = gjenopptakITrygderettenbehandling.ferdigstilling != null,
+            frist = gjenopptakITrygderettenbehandling.frist,
+            datoSendtMedunderskriver = gjenopptakITrygderettenbehandling.medunderskriver?.tidspunkt?.toLocalDate(),
+            hjemmelIdList = gjenopptakITrygderettenbehandling.hjemler.map { it.id },
+            modified = gjenopptakITrygderettenbehandling.modified,
+            created = gjenopptakITrygderettenbehandling.created,
+            resultat = gjenopptakITrygderettenbehandling.mapToVedtakView(),
+            kommentarFraVedtaksinstans = null,
+            tilknyttedeDokumenter = gjenopptakITrygderettenbehandling.saksdokumenter.map {
+                TilknyttetDokument(
+                    journalpostId = it.journalpostId,
+                    dokumentInfoId = it.dokumentInfoId
+                )
+            }.toSet(),
+            egenAnsatt = gjenopptakITrygderettenbehandling.sakenGjelder.erEgenAnsatt(),
+            fortrolig = gjenopptakITrygderettenbehandling.sakenGjelder.harBeskyttelsesbehovFortrolig(),
+            strengtFortrolig = gjenopptakITrygderettenbehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
+            vergemaalEllerFremtidsfullmakt = gjenopptakITrygderettenbehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
+            dead = gjenopptakITrygderettenbehandling.sakenGjelder.getDead(),
+            sikkerhetstiltak = gjenopptakITrygderettenbehandling.sakenGjelder.sikkerhetstiltak(),
+            kvalitetsvurderingReference = null,
+            sattPaaVent = gjenopptakITrygderettenbehandling.sattPaaVent,
+            sendtTilTrygderetten = gjenopptakITrygderettenbehandling.sendtTilTrygderetten,
+            kjennelseMottatt = gjenopptakITrygderettenbehandling.kjennelseMottatt,
+            feilregistrering = gjenopptakITrygderettenbehandling.feilregistrering.toView(),
+            fagsystemId = gjenopptakITrygderettenbehandling.fagsystem.id,
+            relevantDocumentIdList = gjenopptakITrygderettenbehandling.saksdokumenter.map {
+                it.dokumentInfoId
+            }.toSet(),
+            saksnummer = gjenopptakITrygderettenbehandling.fagsakId,
+            rol = gjenopptakITrygderettenbehandling.toROLView(),
+            medunderskriver = gjenopptakITrygderettenbehandling.toMedunderskriverView(),
+            saksbehandler = gjenopptakITrygderettenbehandling.toSaksbehandlerView(),
+            previousSaksbehandler = gjenopptakITrygderettenbehandling.toPreviousSaksbehandlerView(),
+            varsletFrist = null,
+            gosysOppgaveId = gjenopptakITrygderettenbehandling.gosysOppgaveId,
+            tilbakekreving = gjenopptakITrygderettenbehandling.tilbakekreving,
+            timesPreviouslyExtended = gjenopptakITrygderettenbehandling.getTimesPreviouslyExtended(),
+            requiresGosysOppgave = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
         )
     }
 

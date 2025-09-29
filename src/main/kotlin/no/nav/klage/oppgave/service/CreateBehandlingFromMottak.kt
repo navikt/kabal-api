@@ -18,6 +18,7 @@ class CreateBehandlingFromMottak(
     private val klagebehandlingService: KlagebehandlingService,
     private val ankebehandlingService: AnkebehandlingService,
     private val omgjoeringskravbehandlingService: OmgjoeringskravbehandlingService,
+    private val gjenopptaksbehandlingService: GjenopptaksbehandlingService,
     private val kafkaEventRepository: KafkaEventRepository,
 ) {
 
@@ -65,6 +66,15 @@ class CreateBehandlingFromMottak(
 
             Type.ANKE_I_TRYGDERETTEN -> TODO()
             Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> TODO()
+            Type.BEGJAERING_OM_GJENOPPTAK -> {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromMottak(
+                    mottak = mottak,
+                    isBasedOnJournalpost = isBasedOnJournalpost,
+                    gosysOppgaveId = gosysOppgaveId,
+                    gosysOppgaveRequired = gosysOppgaveRequired,
+                )
+            }
+            Type.BEGJAERING_OM_GJENOPPTAK_TRYGDERETTEN -> TODO()
         }
     }
 

@@ -7,7 +7,9 @@ import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.repositories.BehandlingEtterTrygderettenOpphevetRepository
@@ -36,44 +38,78 @@ class BehandlingEtterTrygderettenOpphevetService(
         )
     }
 
-    fun createBehandlingEtterTrygderettenOpphevet(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): BehandlingEtterTrygderettenOpphevet {
-        val behandlingEtterTrygderettenOpphevet = behandlingEtterTrygderettenOpphevetRepository.save(
-            BehandlingEtterTrygderettenOpphevet(
-                klager = ankeITrygderettenbehandling.klager.copy(),
-                sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.copy(),
-                prosessfullmektig = ankeITrygderettenbehandling.prosessfullmektig?.copy(),
-                ytelse = ankeITrygderettenbehandling.ytelse,
-                type = Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
-                kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-                dvhReferanse = ankeITrygderettenbehandling.dvhReferanse,
-                fagsystem = ankeITrygderettenbehandling.fagsystem,
-                fagsakId = ankeITrygderettenbehandling.fagsakId,
-                mottattKlageinstans = ankeITrygderettenbehandling.kjennelseMottatt!!,
-                tildeling = ankeITrygderettenbehandling.tildeling?.copy(tidspunkt = LocalDateTime.now()),
-                frist = LocalDate.now(),
-                kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
-                kakaKvalitetsvurderingVersion = 2,
-                hjemler = ankeITrygderettenbehandling.hjemler,
-                sourceBehandlingId = ankeITrygderettenbehandling.id,
-                previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
-                gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
-                kjennelseMottatt = ankeITrygderettenbehandling.kjennelseMottatt!!,
-                ankeBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
-                tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
-                varsletBehandlingstid = null,
-                forlengetBehandlingstidDraft = null,
-                gosysOppgaveRequired = ankeITrygderettenbehandling.gosysOppgaveRequired,
+    fun createBehandlingEtterTrygderettenOpphevet(behandling: Behandling): BehandlingEtterTrygderettenOpphevet {
+        val behandlingEtterTrygderettenOpphevet = if (behandling is AnkeITrygderettenbehandling) {
+            behandlingEtterTrygderettenOpphevetRepository.save(
+                BehandlingEtterTrygderettenOpphevet(
+                    klager = behandling.klager.copy(),
+                    sakenGjelder = behandling.sakenGjelder.copy(),
+                    prosessfullmektig = behandling.prosessfullmektig?.copy(),
+                    ytelse = behandling.ytelse,
+                    type = Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
+                    kildeReferanse = behandling.kildeReferanse,
+                    dvhReferanse = behandling.dvhReferanse,
+                    fagsystem = behandling.fagsystem,
+                    fagsakId = behandling.fagsakId,
+                    mottattKlageinstans = behandling.kjennelseMottatt!!,
+                    tildeling = behandling.tildeling?.copy(tidspunkt = LocalDateTime.now()),
+                    frist = LocalDate.now(),
+                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingVersion = 2,
+                    hjemler = behandling.hjemler,
+                    sourceBehandlingId = behandling.id,
+                    previousSaksbehandlerident = behandling.tildeling?.saksbehandlerident,
+                    gosysOppgaveId = behandling.gosysOppgaveId,
+                    kjennelseMottatt = behandling.kjennelseMottatt!!,
+                    ankeBehandlendeEnhet = behandling.tildeling?.enhet!!,
+                    tilbakekreving = behandling.tilbakekreving,
+                    varsletBehandlingstid = null,
+                    forlengetBehandlingstidDraft = null,
+                    gosysOppgaveRequired = behandling.gosysOppgaveRequired,
+                )
             )
-        )
+        } else if (behandling is GjenopptakITrygderettenbehandling) {
+            behandlingEtterTrygderettenOpphevetRepository.save(
+                BehandlingEtterTrygderettenOpphevet(
+                    klager = behandling.klager.copy(),
+                    sakenGjelder = behandling.sakenGjelder.copy(),
+                    prosessfullmektig = behandling.prosessfullmektig?.copy(),
+                    ytelse = behandling.ytelse,
+                    type = Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
+                    kildeReferanse = behandling.kildeReferanse,
+                    dvhReferanse = behandling.dvhReferanse,
+                    fagsystem = behandling.fagsystem,
+                    fagsakId = behandling.fagsakId,
+                    mottattKlageinstans = behandling.kjennelseMottatt!!,
+                    tildeling = behandling.tildeling?.copy(tidspunkt = LocalDateTime.now()),
+                    frist = LocalDate.now(),
+                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingVersion = 2,
+                    hjemler = behandling.hjemler,
+                    sourceBehandlingId = behandling.id,
+                    previousSaksbehandlerident = behandling.tildeling?.saksbehandlerident,
+                    gosysOppgaveId = behandling.gosysOppgaveId,
+                    kjennelseMottatt = behandling.kjennelseMottatt!!,
+                    ankeBehandlendeEnhet = behandling.tildeling?.enhet!!,
+                    tilbakekreving = behandling.tilbakekreving,
+                    varsletBehandlingstid = null,
+                    forlengetBehandlingstidDraft = null,
+                    gosysOppgaveRequired = behandling.gosysOppgaveRequired,
+                )
+            )
+        } else {
+            throw Exception("Wrong input class for behandling ${behandling.id}")
+        }
+
         logger.debug(
             "Created BehandlingEtterTrygderettenOpphevet {} from ankeITrygderettenbehandling {}",
             behandlingEtterTrygderettenOpphevet.id,
-            ankeITrygderettenbehandling.id
+            behandling.id
         )
 
         behandlingService.connectDocumentsToBehandling(
             behandlingId = behandlingEtterTrygderettenOpphevet.id,
-            journalfoertDokumentReferenceSet = ankeITrygderettenbehandling.saksdokumenter.map {
+            journalfoertDokumentReferenceSet = behandling.saksdokumenter.map {
                 JournalfoertDokumentReference(
                     journalpostId = it.journalpostId,
                     dokumentInfoId = it.dokumentInfoId
@@ -89,7 +125,7 @@ class BehandlingEtterTrygderettenOpphevetService(
                 behandling = behandlingEtterTrygderettenOpphevet,
                 changeList = listOfNotNull(
                     createChange(
-                        saksbehandlerident = ankeITrygderettenbehandling.tildeling!!.saksbehandlerident,
+                        saksbehandlerident = behandling.tildeling!!.saksbehandlerident,
                         felt = BehandlingChangedEvent.Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET,
                         fraVerdi = null,
                         tilVerdi = "Opprettet",

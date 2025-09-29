@@ -48,6 +48,7 @@ class MottakService(
     private val klagebehandlingRepository: KlagebehandlingRepository,
     private val ankebehandlingRepository: AnkebehandlingRepository,
     private val omgjoeringskravbehandlingRepository: OmgjoeringskravbehandlingRepository,
+    private val gjenopptaksbehandlingRepository: GjenopptaksbehandlingRepository,
     private val behandlingRepository: BehandlingRepository,
     private val dokumentService: DokumentService,
     private val norg2Client: Norg2Client,
@@ -218,6 +219,8 @@ class MottakService(
                 Type.ANKE_I_TRYGDERETTEN -> TODO()
                 Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> TODO()
                 Type.OMGJOERINGSKRAV -> TODO()
+                Type.BEGJAERING_OM_GJENOPPTAK -> TODO()
+                Type.BEGJAERING_OM_GJENOPPTAK_TRYGDERETTEN -> TODO()
             }
         return mottak
     }
@@ -323,9 +326,9 @@ class MottakService(
     }
 
     @Transactional
-    fun createOmgjoeringskravBasedOnJournalpost(input: CreateOmgjoeringskravBasedOnJournalpostInput): Behandling {
-        logger.debug("Prøver å lage mottak fra OmgjoeringskravBasedOnJournalpost fra Kabin. Se team-logs for detaljer.")
-        teamLogger.debug("Prøver å lage mottak fra OmgjoeringskravBasedOnJournalpost fra Kabin: {}", input)
+    fun createBehandlingBasedOnJournalpost(input: CreateBehandlingBasedOnJournalpostInput): Behandling {
+        logger.debug("Prøver å lage mottak fra CreateBehandlingBasedOnJournalpost fra Kabin. Se team-logs for detaljer.")
+        teamLogger.debug("Prøver å lage mottak fra CreateBehandlingBasedOnJournalpost fra Kabin: {}", input)
 
         input.validate()
 
@@ -334,7 +337,8 @@ class MottakService(
         logger.debug("Har opprettet mottak med id {}", mottak.id)
 
         val behandling = createBehandlingFromMottak.createBehandling(
-            mottak = mottak, isBasedOnJournalpost = true,
+            mottak = mottak,
+            isBasedOnJournalpost = true,
             gosysOppgaveRequired = true,
             gosysOppgaveId = input.gosysOppgaveId,
         )
@@ -404,6 +408,8 @@ class MottakService(
                     Type.ANKE_I_TRYGDERETTEN -> true//Ikke relevant for AnkeITrygderetten
                     Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> true//Ikke relevant for behandlingEtterTrygderettenOpphevet
                     Type.OMGJOERINGSKRAV -> omgjoeringskravbehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
+                    Type.BEGJAERING_OM_GJENOPPTAK -> gjenopptaksbehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
+                    Type.BEGJAERING_OM_GJENOPPTAK_TRYGDERETTEN -> true//Ikke relevant for BegjaeringOmGjenopptakTrygderetten
                 }
             }
             .flatMap { it.mottakDokument }
@@ -411,7 +417,8 @@ class MottakService(
                 it.type in listOf(
                     MottakDokumentType.BRUKERS_ANKE,
                     MottakDokumentType.BRUKERS_KLAGE,
-                    MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
+                    MottakDokumentType.BRUKERS_OMGJOERINGSKRAV,
+                    MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK,
                 )
             }
             .map { it.journalpostId }.toSet().toList()
@@ -555,13 +562,14 @@ class MottakService(
         )
     }
 
-    fun CreateOmgjoeringskravBasedOnJournalpostInput.validate() {
+    fun CreateBehandlingBasedOnJournalpostInput.validate() {
+        validateTypeInBehandlingBasedOnJournalpostInput(Type.of(typeId!!))
         validateDocumentNotAlreadyUsed(receivedDocumentJournalpostId, sakenGjelder.value)
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateDuplicate(Fagsystem.of(fagsystemId), kildereferanse, Type.ANKE)
+        validateDuplicate(Fagsystem.of(fagsystemId), kildereferanse, Type.of(typeId))
         validateJournalpostList(listOf(receivedDocumentJournalpostId))
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
@@ -573,6 +581,12 @@ class MottakService(
             sakenGjelderIdentifikator = sakenGjelder.value,
             prosessfullmektigIdentifikator = fullmektig?.value,
         )
+    }
+
+    private fun validateTypeInBehandlingBasedOnJournalpostInput(type: Type) {
+        if (type !in listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
+            throw OversendtKlageNotValidException("Kan kun opprette omgjøringskrav og begjæring om gjenopptak basert på journalpost.")
+        }
     }
 
     fun behandlingIsDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): BehandlingIsDuplicateResponse {
@@ -747,6 +761,7 @@ class MottakService(
                     type = when (type) {
                         Type.ANKE -> MottakDokumentType.BRUKERS_ANKE
                         Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
+                        Type.BEGJAERING_OM_GJENOPPTAK -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
                         else -> error("Ugyldig type $type")
                     },
                     journalpostId = input.receivedDocumentJournalpostId
@@ -926,7 +941,7 @@ class MottakService(
         )
     }
 
-    fun CreateOmgjoeringskravBasedOnJournalpostInput.toMottak(): Mottak {
+    fun CreateBehandlingBasedOnJournalpostInput.toMottak(): Mottak {
         val sakenGjelder = SakenGjelder(
             id = UUID.randomUUID(),
             partId = sakenGjelder.toPartId(),
@@ -971,7 +986,7 @@ class MottakService(
         }
 
         return Mottak(
-            type = Type.OMGJOERINGSKRAV,
+            type = Type.of(typeId!!),
             klager = klager,
             sakenGjelder = sakenGjelder,
             fagsystem = Fagsystem.of(fagsystemId),

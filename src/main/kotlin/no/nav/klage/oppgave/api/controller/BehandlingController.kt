@@ -254,7 +254,25 @@ class BehandlingController(
             logger
         )
 
-        behandlingService.validateAnkeITrygderettenbehandlingBeforeNyAnkebehandling(behandlingId)
+        behandlingService.validateTrygderettenbehandlingBeforeNyBehandling(behandlingId)
+        return ValidationPassedResponse()
+    }
+
+    /**
+     * Valgfri validering før ny gjenopptaksbehandling.
+     */
+    @GetMapping("/{behandlingId}/validate/nygjenopptaksbehandling")
+    fun validateGjenopptaksbehandling(
+        @PathVariable("behandlingId") behandlingId: UUID
+    ): ValidationPassedResponse {
+        logKlagebehandlingMethodDetails(
+            ::validateGjenopptaksbehandling.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        behandlingService.validateTrygderettenbehandlingBeforeNyBehandling(behandlingId)
         return ValidationPassedResponse()
     }
 
@@ -558,9 +576,27 @@ class BehandlingController(
             logger
         )
 
-        behandlingService.validateAnkeITrygderettenbehandlingBeforeNyAnkebehandling(behandlingId)
+        behandlingService.validateTrygderettenbehandlingBeforeNyBehandling(behandlingId)
 
-        behandlingService.setNyAnkebehandlingKAAndSetToAvsluttet(
+        behandlingService.setNyBehandlingKAAndSetToAvsluttet(
+            behandlingId = behandlingId,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+    }
+
+    @PostMapping("/{behandlingId}/nygjenopptaksbehandlingka")
+    fun nyGjenopptaksbehandlingKA(
+        @PathVariable("behandlingId") behandlingId: UUID,
+    ) {
+        logMethodDetails(
+            ::nyGjenopptaksbehandlingKA.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger
+        )
+
+        behandlingService.validateTrygderettenbehandlingBeforeNyBehandling(behandlingId)
+
+        behandlingService.setNyBehandlingKAAndSetToAvsluttet(
             behandlingId = behandlingId,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )
