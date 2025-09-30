@@ -11,7 +11,7 @@ enum class ExternalUtfall(val navn: String) {
     AVVIST("Avvist"),
     INNSTILLING_STADFESTELSE("Innstilling: Stadfestelse"),
     INNSTILLING_AVVIST("Innstilling: Avvist"),
-    INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES("Innstilling: Gjenopptas, men klageinstanses vedtak stadfestes"),
+    INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES("Innstilling: Gjenopptas, men klageinstansens vedtak stadfestes"),
     INNSTILLING_GJENOPPTAS_IKKE("Innstilling: Gjenopptas ikke"),
     HENVIST("Henvist"),
     HEVET("Hevet"),
