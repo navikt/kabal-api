@@ -502,7 +502,7 @@ class BehandlingService(
     fun validateTrygderettenbehandlingBeforeNyBehandling(behandlingId: UUID) {
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         if (!((behandling is AnkeITrygderettenbehandling) || (behandling is GjenopptakITrygderettenbehandling))) {
-            throw Exception("Ugyldig operasjon for behandling av typen ${behandling.type}")
+            throw RuntimeException("Ugyldig operasjon for behandling av typen ${behandling.type}")
         }
 
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
@@ -557,7 +557,7 @@ class BehandlingService(
                     behandlingValidationErrors.add(
                         InvalidProperty(
                             field = "utfall",
-                            reason = "Kan ikke lukke behandling. Dersom resultatet fra Trygderetten er «Gjenopptatt - Opphevet», må du først fullføre registrering av resultatet fra Trygderetten før du kan starte ny behandling. Når du trykker «Fullfør», vil du få mulighet til å opprette en ny gjenopptagsbegjæring."
+                            reason = "Kan ikke lukke behandling. Dersom resultatet fra Trygderetten er «Gjenopptatt - Opphevet», må du først fullføre registrering av resultatet fra Trygderetten før du kan starte ny behandling. Når du trykker «Fullfør», vil du få mulighet til å opprette en ny gjenopptaksbegjæring."
                         )
                     )
                 }
