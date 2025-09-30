@@ -43,3 +43,6 @@ acl:
   - team: yrkesskade
     application: yrkesskade-saksbehandling-backend
     access: read
+  - team: k9saksbehandling
+    application: ung-sak
+    access: read

@@ -62,6 +62,9 @@ inboundApplications:
   - application: yrkesskade-saksbehandling-backend
     namespace: yrkesskade
     cluster: dev-gcp
+  - application: ung-sak
+    namespace: k9saksbehandling
+    cluster: dev-gcp
 springProfile: dev-gcp
 tenant: trygdeetaten.no
 db_tier: db-custom-1-3840
