@@ -137,6 +137,22 @@ class GjenopptakITrygderettenbehandling(
     override fun hashCode(): Int {
         return id.hashCode()
     }
+
+    fun shouldCreateNewGjenopptaksbehandling(): Boolean {
+        return nyGjenopptaksbehandlingKA != null
+    }
+
+    fun shouldCreateNewBehandlingEtterTROpphevet(): Boolean {
+        return nyBehandlingEtterTROpphevet != null && utfall == Utfall.GJENOPPTATT_OPPHEVET
+    }
+
+    fun shouldNotCreateNewBehandling(): Boolean {
+        return (!shouldCreateNewGjenopptaksbehandling() && !shouldCreateNewBehandlingEtterTROpphevet())
+    }
+
+    fun shouldBeCompletedInKA(): Boolean {
+        return utfall in listOf(Utfall.HEVET, Utfall.IKKE_GJENOPPTATT, Utfall.AVVIST, Utfall.GJENOPPTATT_STADFESTET)
+    }
 }
 
 data class GjenopptakITrygderettenbehandlingInput(

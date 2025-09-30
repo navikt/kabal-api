@@ -141,4 +141,12 @@ abstract class Gjenopptaksbehandling(
     override fun hashCode(): Int {
         return id.hashCode()
     }
+
+    fun shouldBeSentToVedtaksinstans(): Boolean {
+        return utfall in listOf(Utfall.MEDHOLD_ETTER_FVL_35)
+    }
+
+    fun shouldBeCompletedInKA(): Boolean {
+        return utfall in listOf(Utfall.TRUKKET, Utfall.HENLAGT)
+    }
 }

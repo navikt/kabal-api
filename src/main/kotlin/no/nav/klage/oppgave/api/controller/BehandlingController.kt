@@ -243,31 +243,12 @@ class BehandlingController(
     /**
      * Valgfri validering før ny ankebehandling.
      */
-    @Deprecated("Use /{behandlingId}/validate/nybehandling")
-    @GetMapping("/{behandlingId}/validate/nyankebehandling")
+    @GetMapping(value = ["/{behandlingId}/validate/nyankebehandling", "/{behandlingId}/validate/nybehandlingfratrygderettbehandling"])
     fun validateAnkebehandling(
         @PathVariable("behandlingId") behandlingId: UUID
     ): ValidationPassedResponse {
         logKlagebehandlingMethodDetails(
             ::validateAnkebehandling.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
-        )
-
-        behandlingService.validateTrygderettenbehandlingBeforeNyBehandling(behandlingId)
-        return ValidationPassedResponse()
-    }
-
-    /**
-     * Valgfri validering før ny gjenopptaksbehandling.
-     */
-    @GetMapping("/{behandlingId}/validate/nybehandling")
-    fun validateBehandlingForNewBehandling(
-        @PathVariable("behandlingId") behandlingId: UUID
-    ): ValidationPassedResponse {
-        logKlagebehandlingMethodDetails(
-            ::validateBehandlingForNewBehandling.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             behandlingId,
             logger
@@ -567,31 +548,12 @@ class BehandlingController(
         return BehandlingEditedView(modified = modified)
     }
 
-    @Deprecated("Use /{behandlingId}/nybehandlingka")
-    @PostMapping("/{behandlingId}/nyankebehandlingka")
+    @PostMapping(value = ["/{behandlingId}/nyankebehandlingka", "/{behandlingId}/nybehandlingfratrygderettbehandling"])
     fun nyAnkebehandlingKA(
         @PathVariable("behandlingId") behandlingId: UUID,
     ) {
         logMethodDetails(
             ::nyAnkebehandlingKA.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger
-        )
-
-        behandlingService.validateTrygderettenbehandlingBeforeNyBehandling(behandlingId)
-
-        behandlingService.setNyBehandlingKAAndSetToAvsluttet(
-            behandlingId = behandlingId,
-            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        )
-    }
-
-    @PostMapping("/{behandlingId}/nybehandlingka")
-    fun nyBehandlingKA(
-        @PathVariable("behandlingId") behandlingId: UUID,
-    ) {
-        logMethodDetails(
-            ::nyBehandlingKA.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             logger
         )

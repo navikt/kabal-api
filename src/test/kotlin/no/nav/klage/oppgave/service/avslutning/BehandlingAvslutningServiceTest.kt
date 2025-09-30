@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.service.avslutning
 
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.spyk
 import io.mockk.verify
 import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
 import no.nav.klage.kodeverk.Fagsystem
@@ -16,10 +16,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.GosysOppgaveUpdate
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.service.*
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.*
 import org.springframework.context.ApplicationEventPublisher
 import java.time.LocalDateTime
 import java.util.*
@@ -37,7 +34,8 @@ class BehandlingAvslutningServiceTest {
     private val systembrukerIdent = "system"
     private val dokumentUnderArbeidCommonService = mockk<DokumentUnderArbeidCommonService>(relaxed = true)
     private val gjenopptaksbehandlingService = mockk<GjenopptaksbehandlingService>(relaxed = true)
-    private val gjenopptakITrygderettenbehandlingService = mockk<GjenopptakITrygderettenbehandlingService>(relaxed = true)
+    private val gjenopptakITrygderettenbehandlingService =
+        mockk<GjenopptakITrygderettenbehandlingService>(relaxed = true)
 
     private val behandlingAvslutningService = BehandlingAvslutningService(
         kafkaEventRepository = kafkaEventRepository,
@@ -71,9 +69,14 @@ class BehandlingAvslutningServiceTest {
         }
     }
 
+    @AfterEach
+    internal fun tearDown() {
+        clearAllMocks()
+    }
+
     @Test
     fun `Throws exception if already closed`() {
-        val behandling = mockk<Klagebehandling> {
+        val behandling = mockk<Klagebehandling>(relaxed = true) {
             every { ferdigstilling } returns mockk { every { avsluttet } returns now }
         }
 
@@ -86,7 +89,7 @@ class BehandlingAvslutningServiceTest {
 
     @Nested
     inner class KlagebehandlingTest {
-        val behandling = spyk<Klagebehandling> {
+        val behandling = mockk<Klagebehandling>(relaxed = true) {
             every { id } returns behandlingId
             every { ferdigstilling } returns Ferdigstilling(
                 avsluttet = null,
@@ -112,15 +115,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 1) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 1) { kafkaEventRepository.save(any()) }
         }
 
@@ -140,9 +155,17 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
@@ -159,14 +182,18 @@ class BehandlingAvslutningServiceTest {
                 )
             }
             verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
     }
 
     @Nested
     inner class AnkebehandlingTest {
-        val behandling = spyk<Ankebehandling> {
+        val behandling = mockk<Ankebehandling>(relaxed = true) {
             every { id } returns behandlingId
             every { ferdigstilling } returns Ferdigstilling(
                 avsluttet = null,
@@ -176,6 +203,7 @@ class BehandlingAvslutningServiceTest {
             )
             every { tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
             every { kildeReferanse } returns "kildereferanse"
+            every { shouldBeSentToTrygderetten() } answers { callOriginal() }
         }
 
         @BeforeEach
@@ -200,9 +228,17 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
@@ -219,7 +255,11 @@ class BehandlingAvslutningServiceTest {
                 )
             }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -233,15 +273,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 1) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any())}
+            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -254,15 +306,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 1) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 1) { kafkaEventRepository.save(any()) }
         }
 
@@ -282,9 +346,17 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
@@ -301,14 +373,18 @@ class BehandlingAvslutningServiceTest {
                 )
             }
             verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
     }
 
     @Nested
     inner class AnkeITrygderettenbehandlingTest {
-        val behandling = spyk<AnkeITrygderettenbehandling> {
+        val behandling = mockk<AnkeITrygderettenbehandling>(relaxed = true) {
             every { id } returns behandlingId
             every { ferdigstilling } returns Ferdigstilling(
                 avsluttet = null,
@@ -318,6 +394,11 @@ class BehandlingAvslutningServiceTest {
             )
             every { tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
             every { kildeReferanse } returns "kildereferanse"
+            every { nyAnkebehandlingKA } returns null
+            every { shouldCreateNewAnkebehandling() } answers { callOriginal() }
+            every { shouldCreateNewBehandlingEtterTROpphevet() } answers { callOriginal() }
+            every { shouldNotCreateNewBehandling() } answers { callOriginal() }
+
         }
 
         @BeforeEach
@@ -334,15 +415,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -358,9 +451,17 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 1) {
                 gosysOppgaveService.addKommentar(
                     any(),
@@ -373,7 +474,11 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -386,15 +491,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -409,9 +526,17 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 1) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 1) {
                 gosysOppgaveService.addKommentar(
                     any(),
@@ -424,7 +549,11 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -438,15 +567,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 1) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 1) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -462,9 +603,17 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 1) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 1) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 1) {
                 gosysOppgaveService.addKommentar(
                     any(),
@@ -477,7 +626,11 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -490,15 +643,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any())}
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 1) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 1) { kafkaEventRepository.save(any()) }
         }
 
@@ -511,15 +676,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any())}
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
+            verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 1) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 1) { kafkaEventRepository.save(any()) }
         }
 
@@ -539,9 +716,17 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
@@ -558,14 +743,18 @@ class BehandlingAvslutningServiceTest {
                 )
             }
             verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
     }
 
     @Nested
     inner class OmgjoeringskravbehandlingTest {
-        val behandling = spyk<Omgjoeringskravbehandling> {
+        val behandling = mockk<Omgjoeringskravbehandling>(relaxed = true) {
             every { id } returns behandlingId
             every { ferdigstilling } returns Ferdigstilling(
                 avsluttet = null,
@@ -575,6 +764,8 @@ class BehandlingAvslutningServiceTest {
             )
             every { tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
             every { kildeReferanse } returns "kildereferanse"
+            every { shouldBeSentToVedtaksinstans() } answers { callOriginal() }
+            every { shouldBeCompletedInKA() } answers { callOriginal() }
         }
 
         @BeforeEach
@@ -598,15 +789,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -619,15 +822,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 1) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 1) { kafkaEventRepository.save(any()) }
         }
 
@@ -646,15 +861,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -672,20 +899,33 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
+
         @Test
         fun `OmgjoeringskravbehandlingBasedOnJournalpost should not update infotrygd, only Gosys`() {
-            val behandling = spyk<OmgjoeringskravbehandlingBasedOnJournalpost> {
+            val behandling = mockk<OmgjoeringskravbehandlingBasedOnJournalpost>(relaxed = true) {
                 every { id } returns behandlingId
                 every { ferdigstilling } returns Ferdigstilling(
                     avsluttet = null,
@@ -699,6 +939,8 @@ class BehandlingAvslutningServiceTest {
                 every { utfall } returns Utfall.MEDHOLD_ETTER_FVL_35
                 every { fagsystem } returns Fagsystem.BISYS
                 every { tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
+                every { shouldBeSentToVedtaksinstans() } answers { callOriginal() }
+                every { shouldBeCompletedInKA() } answers { callOriginal() }
             }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
 
@@ -706,15 +948,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -722,7 +976,7 @@ class BehandlingAvslutningServiceTest {
 
     @Nested
     inner class BehandlingEtterTrygderettenOpphevetTest {
-        val behandling = spyk<BehandlingEtterTrygderettenOpphevet> {
+        val behandling = mockk<BehandlingEtterTrygderettenOpphevet>(relaxed = true) {
             every { id } returns behandlingId
             every { ferdigstilling } returns Ferdigstilling(
                 avsluttet = null,
@@ -748,15 +1002,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 1) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 1) { kafkaEventRepository.save(any()) }
         }
 
@@ -776,9 +1042,17 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
@@ -795,14 +1069,18 @@ class BehandlingAvslutningServiceTest {
                 )
             }
             verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
     }
 
     @Nested
     inner class GjenopptaksbehandlingTest {
-        val behandling = spyk<Gjenopptaksbehandling> {
+        val behandling = mockk<Gjenopptaksbehandling>(relaxed = true) {
             every { id } returns behandlingId
             every { ferdigstilling } returns Ferdigstilling(
                 avsluttet = null,
@@ -812,6 +1090,9 @@ class BehandlingAvslutningServiceTest {
             )
             every { tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
             every { kildeReferanse } returns "kildereferanse"
+            every { shouldBeSentToTrygderetten() } answers { callOriginal() }
+            every { shouldBeSentToVedtaksinstans() } answers { callOriginal() }
+            every { shouldBeCompletedInKA() } answers { callOriginal() }
         }
 
         @BeforeEach
@@ -821,7 +1102,7 @@ class BehandlingAvslutningServiceTest {
 
         @Test
         fun `GjenopptaksbehandlingBasedOnJournalpost with utfall MEDHOLD_ETTER_FVL_35 should update Gosys`() {
-            val behandling = spyk<GjenopptaksbehandlingBasedOnJournalpost> {
+            val behandling = mockk<GjenopptaksbehandlingBasedOnJournalpost>(relaxed = true) {
                 every { id } returns behandlingId
                 every { ferdigstilling } returns Ferdigstilling(
                     avsluttet = null,
@@ -835,6 +1116,9 @@ class BehandlingAvslutningServiceTest {
                 every { utfall } returns Utfall.MEDHOLD_ETTER_FVL_35
                 every { fagsystem } returns Fagsystem.BISYS
                 every { tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
+                every { shouldBeSentToTrygderetten() } answers { callOriginal() }
+                every { shouldBeSentToVedtaksinstans() } answers { callOriginal() }
+                every { shouldBeCompletedInKA() } answers { callOriginal() }
             }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
 
@@ -842,21 +1126,33 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
         @Test
         fun `GjenopptaksbehandlingBasedOnKabalBehandling with utfall MEDHOLD_ETTER_FVL_35 should create Kafka message`() {
-            val behandling = spyk<GjenopptaksbehandlingBasedOnKabalBehandling> {
+            val behandling = mockk<GjenopptaksbehandlingBasedOnKabalBehandling>(relaxed = true) {
                 every { id } returns behandlingId
                 every { ferdigstilling } returns Ferdigstilling(
                     avsluttet = null,
@@ -869,6 +1165,9 @@ class BehandlingAvslutningServiceTest {
                 every { fagsystem } returns Fagsystem.BISYS
                 every { tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
                 every { kildeReferanse } returns "kildereferanse"
+                every { shouldBeSentToTrygderetten() } answers { callOriginal() }
+                every { shouldBeSentToVedtaksinstans() } answers { callOriginal() }
+                every { shouldBeCompletedInKA() } answers { callOriginal() }
             }
             every { behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(any()) } returns behandling
 
@@ -876,15 +1175,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 1) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 1) { kafkaEventRepository.save(any()) }
         }
 
@@ -906,15 +1217,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 1) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -929,15 +1252,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 1) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -958,15 +1293,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -981,22 +1328,34 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
     }
 
     @Nested
     inner class GjenopptakITrygderettenbehandlingTest {
-        val behandling = spyk<GjenopptakITrygderettenbehandling> {
+        val behandling = mockk<GjenopptakITrygderettenbehandling>(relaxed = true) {
             every { id } returns behandlingId
             every { ferdigstilling } returns Ferdigstilling(
                 avsluttet = null,
@@ -1006,6 +1365,9 @@ class BehandlingAvslutningServiceTest {
             )
             every { tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
             every { kildeReferanse } returns "kildereferanse"
+            every { shouldCreateNewGjenopptaksbehandling() } answers { callOriginal() }
+            every { shouldCreateNewBehandlingEtterTROpphevet() } answers { callOriginal() }
+            every { shouldBeCompletedInKA() } answers { callOriginal() }
         }
 
         @BeforeEach
@@ -1024,15 +1386,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -1053,15 +1427,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -1077,20 +1463,32 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 1) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 1) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
         @Test
-        fun `GjenopptakITrygderettenbehandling with gosysoppgave and utfall opphevet new behandling KA creates new behandling and updates GosysOppgave`() {
+        fun `GjenopptakITrygderettenbehandling with gosysoppgave and utfall opphevet and new behandling KA creates new behandling and updates GosysOppgave`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns true
             every { behandling.gosysOppgaveId } returns 123L
@@ -1107,15 +1505,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 1) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 1) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 1) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -1131,15 +1541,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 1) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 1) { kafkaEventRepository.save(any()) }
         }
 
@@ -1161,15 +1583,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -1184,15 +1618,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 1) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 1) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 1) { kafkaEventRepository.save(any()) }
         }
 
@@ -1213,15 +1659,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 0) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 0) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -1234,15 +1692,27 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 1) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 1) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
 
@@ -1257,9 +1727,17 @@ class BehandlingAvslutningServiceTest {
 
             verify(exactly = 0) { ankebehandlingService.createAnkebehandlingFromAnkeITrygderettenbehandling(any()) }
             verify(exactly = 0) { ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(any()) }
-            verify(exactly = 0) { behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(any()) }
+            verify(exactly = 0) {
+                behandlingEtterTrygderettenOpphevetService.createBehandlingEtterTrygderettenOpphevet(
+                    any()
+                )
+            }
             verify(exactly = 0) { gjenopptakITrygderettenbehandlingService.createGjenopptakITrygderettenbehandling(any()) }
-            verify(exactly = 1) { gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(any()) }
+            verify(exactly = 1) {
+                gjenopptaksbehandlingService.createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(
+                    any()
+                )
+            }
             verify(exactly = 1) {
                 gosysOppgaveService.addKommentar(
                     any(),
@@ -1272,7 +1750,11 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
             verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
-            verify(exactly = 0) { dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(any()) }
+            verify(exactly = 0) {
+                dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
+                    any()
+                )
+            }
             verify(exactly = 0) { kafkaEventRepository.save(any()) }
         }
     }

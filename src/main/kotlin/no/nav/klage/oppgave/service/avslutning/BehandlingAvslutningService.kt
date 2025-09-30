@@ -102,7 +102,7 @@ class BehandlingAvslutningService(
         return behandling
     }
 
-    private fun handleKlagebehandling(klagebehandling: Behandling) {
+    private fun handleKlagebehandling(klagebehandling: Klagebehandling) {
         if (klagebehandling.fagsystem == Fagsystem.IT01) {
             logger.debug("Klage med id ${klagebehandling.id} kommer fra Infotrygd, oppdaterer der.")
             updateInfotrygd(klagebehandling)
@@ -125,7 +125,7 @@ class BehandlingAvslutningService(
         }
     }
 
-    private fun handleAnkebehandling(ankebehandling: Behandling) {
+    private fun handleAnkebehandling(ankebehandling: Ankebehandling) {
         if (ankebehandling.shouldBeSentToTrygderetten()) {
             logger.debug("Anke med id ${ankebehandling.id} sendes til trygderetten. Oppretter AnkeITrygderettenbehandling.")
             createAnkeITrygderettenbehandling(ankebehandling)
@@ -166,10 +166,10 @@ class BehandlingAvslutningService(
         }
     }
 
-    private fun handleAnkeITrygderettenbehandling(ankeITrygderettenbehandling: Behandling) {
-        if (ankeITrygderettenbehandling.shouldCreateNewAnkebehandlingFromAnkeITrygderettenbehandling()) {
+    private fun handleAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling) {
+        if (ankeITrygderettenbehandling.shouldCreateNewAnkebehandling()) {
             logger.debug("Oppretter ny Ankebehandling basert på AnkeITrygderettenbehandling fra ankeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id}")
-            createNewAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling as AnkeITrygderettenbehandling)
+            createNewAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
             if (ankeITrygderettenbehandling.gosysOppgaveRequired) {
                 logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
                 val kommentar = if (ankeITrygderettenbehandling.nyAnkebehandlingKA != null) {
@@ -187,9 +187,9 @@ class BehandlingAvslutningService(
                     throwExceptionIfFerdigstilt = false,
                 )
             }
-        } else if (ankeITrygderettenbehandling.shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling()) {
+        } else if (ankeITrygderettenbehandling.shouldCreateNewBehandlingEtterTROpphevet()) {
             logger.debug("Oppretter ny behandling, etter TR opphevet, basert på AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id}")
-            createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling as AnkeITrygderettenbehandling)
+            createNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling)
             if (ankeITrygderettenbehandling.gosysOppgaveRequired) {
                 logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
                 val kommentar =
@@ -212,7 +212,7 @@ class BehandlingAvslutningService(
             throw BehandlingAvsluttetException("Ugyldig tilstand på ankeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id}. Undersøk.")
         }
 
-        if (ankeITrygderettenbehandling.gosysOppgaveRequired && ankeITrygderettenbehandling.shouldNotCreateNewBehandlingFromAnkeITrygderettenbehandling()) {
+        if (ankeITrygderettenbehandling.gosysOppgaveRequired && ankeITrygderettenbehandling.shouldNotCreateNewBehandling()) {
             if (ankeITrygderettenbehandling.gosysOppgaveId != null && ankeITrygderettenbehandling.gosysOppgaveUpdate != null && !ankeITrygderettenbehandling.ignoreGosysOppgave) {
                 logger.debug("AnkeITrygderetten med id ${ankeITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
                 gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(
@@ -224,8 +224,7 @@ class BehandlingAvslutningService(
         }
     }
 
-    //Same as klagebehandling
-    private fun handleBehandlingEtterTrygderettenOpprettet(behandlingEtterTrygderettenOpphevet: Behandling) {
+    private fun handleBehandlingEtterTrygderettenOpprettet(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet) {
         if (behandlingEtterTrygderettenOpphevet.fagsystem == Fagsystem.IT01) {
             logger.debug("BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Infotrygd, oppdaterer der.")
             updateInfotrygd(behandlingEtterTrygderettenOpphevet)
@@ -248,8 +247,8 @@ class BehandlingAvslutningService(
         }
     }
 
-    private fun handleOmgjoeringskravbehandling(omgjoeringskravbehandling: Behandling) {
-        if (omgjoeringskravbehandling.utfall == Utfall.MEDHOLD_ETTER_FVL_35) {
+    private fun handleOmgjoeringskravbehandling(omgjoeringskravbehandling: Omgjoeringskravbehandling) {
+        if (omgjoeringskravbehandling.shouldBeSentToVedtaksinstans()) {
             logger.debug("Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} har utfall som skal formidles til førsteinstans.")
             if (omgjoeringskravbehandling.gosysOppgaveRequired) {
                 logger.debug("Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} har Gosys-oppgave, oppdaterer den.")
@@ -262,7 +261,7 @@ class BehandlingAvslutningService(
                 logger.debug("Omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} er basert på Kabal-behandling, og resultatet skal formidles til førsteinstans via en Kafka-melding.")
                 createKafkaEventForModernizedFagsystem(omgjoeringskravbehandling)
             }
-        } else {
+        } else if (omgjoeringskravbehandling.shouldBeCompletedInKA()) {
             logger.debug("Avslutter omgjøringskravbehandling med id ${omgjoeringskravbehandling.id} med utfall som ikke skal formidles til førsteinstans.")
             if (omgjoeringskravbehandling.gosysOppgaveRequired) {
                 logger.debug("Avslutter oppgave i Gosys for omgjøringskravbehandling med id ${omgjoeringskravbehandling.id}.")
@@ -271,11 +270,13 @@ class BehandlingAvslutningService(
                     throwExceptionIfFerdigstilt = false,
                 )
             }
+        }  else {
+            throw BehandlingAvsluttetException("Ugyldig tilstand i behandling med id ${omgjoeringskravbehandling.id}, undersøk.")
         }
     }
 
-    private fun handleGjenopptaksbehandling(gjenopptaksbehandling: Behandling) {
-        if (gjenopptaksbehandling.utfall == Utfall.MEDHOLD_ETTER_FVL_35) {
+    private fun handleGjenopptaksbehandling(gjenopptaksbehandling: Gjenopptaksbehandling) {
+        if (gjenopptaksbehandling.shouldBeSentToVedtaksinstans()) {
             logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har utfall som skal formidles til førsteinstans.")
             if (gjenopptaksbehandling.gosysOppgaveRequired) {
                 logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} har Gosys-oppgave, oppdaterer den.")
@@ -300,7 +301,7 @@ class BehandlingAvslutningService(
                     )
                 }
             }
-        } else {
+        } else if (gjenopptaksbehandling.shouldBeCompletedInKA()) {
             //Saken avsluttes ved "Trukket" og "Henlagt"
             logger.debug("Gjenopptaksbehandling med id ${gjenopptaksbehandling.id} er avsluttet med utfall som ikke fører til videre behandling.")
             if (gjenopptaksbehandling.gosysOppgaveRequired) {
@@ -310,13 +311,15 @@ class BehandlingAvslutningService(
                     throwExceptionIfFerdigstilt = false,
                 )
             }
+        } else {
+            throw BehandlingAvsluttetException("Ugyldig tilstand i behandling med id ${gjenopptaksbehandling.id}, undersøk.")
         }
     }
 
-    private fun handleGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling: Behandling) {
-        if (gjenopptakITrygderettenbehandling.shouldCreateNewGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling()) {
+    private fun handleGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling: GjenopptakITrygderettenbehandling) {
+        if (gjenopptakITrygderettenbehandling.shouldCreateNewGjenopptaksbehandling()) {
             logger.debug("Oppretter ny Gjenopptaksbehandling basert på GjenopptakITrygderettenbehandling fra gjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id}")
-            createNewGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling as GjenopptakITrygderettenbehandling)
+            createNewGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling)
             if (gjenopptakITrygderettenbehandling.gosysOppgaveRequired) {
                 logger.debug("AnkeITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
                 val kommentar = if (gjenopptakITrygderettenbehandling.nyGjenopptaksbehandlingKA != null) {
@@ -332,9 +335,9 @@ class BehandlingAvslutningService(
                     throwExceptionIfFerdigstilt = false,
                 )
             }
-        } else if (gjenopptakITrygderettenbehandling.shouldCreateNewBehandlingEtterTROpphevetFromGjenopptakITrygderettenbehandling()) {
+        } else if (gjenopptakITrygderettenbehandling.shouldCreateNewBehandlingEtterTROpphevet()) {
             logger.debug("Oppretter ny behandling, etter TR opphevet, basert på GjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id}")
-            createNewBehandlingEtterTROpphevetFromGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling as GjenopptakITrygderettenbehandling)
+            createNewBehandlingEtterTROpphevetFromGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling)
             if (gjenopptakITrygderettenbehandling.gosysOppgaveRequired) {
                 logger.debug("GjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id} har Gosys-oppgave, oppdaterer den.")
                 val kommentar =
@@ -347,7 +350,7 @@ class BehandlingAvslutningService(
                     throwExceptionIfFerdigstilt = false,
                 )
             }
-        } else if (gjenopptakITrygderettenbehandling.gjenopptaksbehandlingITrygderettenShouldNotNotifyVedtaksinstans()) {
+        } else if (gjenopptakITrygderettenbehandling.shouldBeCompletedInKA()) {
             logger.debug("Avslutter gjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id} med utfall som ikke skal formidles til førsteinstans.")
             if (gjenopptakITrygderettenbehandling.gosysOppgaveRequired) {
                 logger.debug("Avslutter oppgave i Gosys for gjenopptakITrygderettenbehandling med id ${gjenopptakITrygderettenbehandling.id}.")

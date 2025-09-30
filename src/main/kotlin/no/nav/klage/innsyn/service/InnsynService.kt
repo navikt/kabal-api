@@ -151,7 +151,7 @@ class InnsynService(
             )
         }
 
-        if (ferdigstilling != null && shouldNotCreateNewBehandlingFromAnkeITrygderettenbehandling()) {
+        if (ferdigstilling != null && shouldNotCreateNewBehandling()) {
             events += SakView.Event(
                 type = SakView.Event.EventType.ANKE_AVSLUTTET_I_TRYGDERETTEN,
                 date = ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -175,7 +175,7 @@ class InnsynService(
             //If created in Kabal, don't show to user.
         }
 
-        if (ferdigstilling != null && !shouldBeSentToTrygderetten() && !shouldCreateNewAnkebehandlingFromAnkeITrygderettenbehandling() && !shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling()) {
+        if (ferdigstilling != null && !shouldBeSentToTrygderetten()) {
             events += SakView.Event(
                 type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
                 date = ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -211,7 +211,7 @@ class InnsynService(
             //If created in Kabal, don't show to user.
         }
 
-        if (ferdigstilling != null && !shouldBeSentToTrygderetten() && shouldNotCreateNewBehandlingFromGjenopptakITrygderettenbehandling()) {
+        if (ferdigstilling != null && !shouldBeSentToTrygderetten()) {
             events += SakView.Event(
                 type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_AVSLUTTET_I_KLAGEINSTANS,
                 date = ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -237,7 +237,7 @@ class InnsynService(
             )
         }
 
-        if (ferdigstilling != null && shouldNotCreateNewBehandlingFromGjenopptakITrygderettenbehandling()) {
+        if (ferdigstilling != null && shouldNotCreateNewBehandling()) {
             events += SakView.Event(
                 type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_AVSLUTTET_I_TRYGDERETTEN,
                 date = ferdigstilling!!.avsluttetAvSaksbehandler,

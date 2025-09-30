@@ -136,6 +136,18 @@ class AnkeITrygderettenbehandling(
     override fun hashCode(): Int {
         return id.hashCode()
     }
+
+    fun shouldCreateNewAnkebehandling(): Boolean {
+        return nyAnkebehandlingKA != null || utfall in utfallToNewAnkebehandling
+    }
+
+    fun shouldCreateNewBehandlingEtterTROpphevet(): Boolean {
+        return nyBehandlingEtterTROpphevet != null && utfall == Utfall.OPPHEVET
+    }
+
+    fun shouldNotCreateNewBehandling(): Boolean {
+        return (!shouldCreateNewAnkebehandling() && !shouldCreateNewBehandlingEtterTROpphevet())
+    }
 }
 
 data class AnkeITrygderettenbehandlingInput(

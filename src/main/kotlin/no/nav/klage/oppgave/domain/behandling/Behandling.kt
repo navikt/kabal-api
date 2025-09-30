@@ -279,46 +279,6 @@ sealed class Behandling(
         return utfall in utfallToTrygderetten
     }
 
-    fun shouldCreateNewAnkebehandlingFromAnkeITrygderettenbehandling(): Boolean {
-        return if (this is AnkeITrygderettenbehandling) {
-            nyAnkebehandlingKA != null || utfall in utfallToNewAnkebehandling
-        } else {
-            false
-        }
-    }
-
-    fun shouldCreateNewGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(): Boolean {
-        return if (this is GjenopptakITrygderettenbehandling) {
-            nyGjenopptaksbehandlingKA != null
-        } else {
-            false
-        }
-    }
-
-    fun shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(): Boolean {
-        return if (this is AnkeITrygderettenbehandling) {
-            nyBehandlingEtterTROpphevet != null && utfall == Utfall.OPPHEVET
-        } else {
-            false
-        }
-    }
-
-    fun shouldCreateNewBehandlingEtterTROpphevetFromGjenopptakITrygderettenbehandling(): Boolean {
-        return if (this is GjenopptakITrygderettenbehandling) {
-            nyBehandlingEtterTROpphevet != null && utfall == Utfall.GJENOPPTATT_OPPHEVET
-        } else {
-            false
-        }
-    }
-
-    fun shouldNotCreateNewBehandlingFromAnkeITrygderettenbehandling(): Boolean {
-        return (!shouldCreateNewAnkebehandlingFromAnkeITrygderettenbehandling() && !shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling())
-    }
-
-    fun shouldNotCreateNewBehandlingFromGjenopptakITrygderettenbehandling(): Boolean {
-        return (!shouldCreateNewGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling() && !shouldCreateNewBehandlingEtterTROpphevetFromGjenopptakITrygderettenbehandling())
-    }
-
     fun isFerdigstiltOrFeilregistrert(): Boolean {
         return ferdigstilling != null || feilregistrering != null
     }
@@ -341,10 +301,6 @@ sealed class Behandling(
         return fagsystem == Fagsystem.IT01 && type !in listOf(
             Type.OMGJOERINGSKRAV
         )
-    }
-
-    fun gjenopptaksbehandlingITrygderettenShouldNotNotifyVedtaksinstans(): Boolean {
-        return this is GjenopptakITrygderettenbehandling && utfall in listOf(Utfall.HEVET, Utfall.IKKE_GJENOPPTATT, Utfall.AVVIST, Utfall.GJENOPPTATT_STADFESTET)
     }
 
     fun getTimesPreviouslyExtended(): Int {

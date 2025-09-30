@@ -139,4 +139,12 @@ abstract class Omgjoeringskravbehandling(
     override fun hashCode(): Int {
         return id.hashCode()
     }
+
+    fun shouldBeSentToVedtaksinstans(): Boolean {
+        return utfall in listOf(Utfall.MEDHOLD_ETTER_FVL_35)
+    }
+
+    fun shouldBeCompletedInKA(): Boolean {
+        return utfall in listOf(Utfall.BESLUTNING_IKKE_OMGJOERE, Utfall.STADFESTET_ANNEN_BEGRUNNELSE, Utfall.TRUKKET, Utfall.HENLAGT)
+    }
 }
