@@ -176,12 +176,12 @@ class KabinApiController(
         )
     }
 
-    @PostMapping("/create-omgjoeringskrav-based-on-journalpost")
-    fun createOmgjoeringskravBasedOnJournalpost(
+    @PostMapping(value = ["/create-omgjoeringskrav-based-on-journalpost", "/create-behandling-based-on-journalpost"])
+    fun createBehandlingBasedOnJournalpost(
         @RequestBody input: CreateBehandlingBasedOnJournalpostInput
     ): CreatedBehandlingResponse {
         logMethodDetails(
-            methodName = ::createOmgjoeringskravBasedOnJournalpost.name,
+            methodName = ::createBehandlingBasedOnJournalpost.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             logger = logger
         )
