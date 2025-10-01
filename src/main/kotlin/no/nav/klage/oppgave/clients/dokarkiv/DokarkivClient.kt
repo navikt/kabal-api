@@ -74,47 +74,37 @@ class DokarkivClient(
         logiskVedleggId: String,
         title: String,
     ) {
-        try {
-            dokarkivWebClient.post()
-                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}"
+        dokarkivWebClient.post()
+            .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}"
+            )
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(
+                LogiskVedleggPayload(
+                    tittel = title,
                 )
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(
-                    LogiskVedleggPayload(
-                        tittel = title,
-                    )
-                )
-                .retrieve()
-                .bodyToMono<Void>()
-                .block()
-                ?: throw RuntimeException("Could not update logisk vedlegg $logiskVedleggId for documentInfoId $dokumentInfoId.")
-            logger.debug("Updated logisk vedlegg $logiskVedleggId for document $dokumentInfoId successfully.")
-        } catch (e: Exception) {
-            logger.error("Error updating logisk vedlegg $dokumentInfoId for document $dokumentInfoId:", e)
-        }
+            )
+            .retrieve()
+            .bodyToMono<Void>()
+            .block()
+        logger.debug("Updated logisk vedlegg $logiskVedleggId for document $dokumentInfoId successfully.")
     }
 
     fun deleteLogiskVedleggOnBehalfOf(
         dokumentInfoId: String,
         logiskVedleggId: String
     ) {
-        try {
-            dokarkivWebClient.delete()
-                .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}"
-                )
-                .retrieve()
-                .bodyToMono<Void>()
-                .block()
-                ?: throw RuntimeException("Could not delete logisk vedlegg $logiskVedleggId for documentInfoId $dokumentInfoId.")
-            logger.debug("Deleted logisk vedlegg $logiskVedleggId for document $dokumentInfoId successfully.")
-        } catch (e: Exception) {
-            logger.error("Error deleting logisk vedlegg $dokumentInfoId for document $dokumentInfoId:", e)
-        }
+        dokarkivWebClient.delete()
+            .uri("/dokumentInfo/${dokumentInfoId}/logiskVedlegg/${logiskVedleggId}")
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope()}"
+            )
+            .retrieve()
+            .bodyToMono<Void>()
+            .block()
+        logger.debug("Deleted logisk vedlegg $logiskVedleggId for document $dokumentInfoId successfully.")
     }
 }
