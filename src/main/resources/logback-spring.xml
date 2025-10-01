@@ -75,6 +75,8 @@
         <logger name="org.hibernate.SQL_SLOW" level="debug"/>
 
         <logger name="org.apache.kafka" level="warn"/>
+
+        <logger name="org.apache.pdfbox.pdfparser.BaseParser" level="error"/>
     </springProfile>
 
     <logger name="no.nav.klage" level="debug"/>
