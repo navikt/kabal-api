@@ -385,6 +385,8 @@ class BehandlingService(
                 Type.ANKE_I_TRYGDERETTEN,
                 Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
                 Type.OMGJOERINGSKRAV,
+                Type.BEGJAERING_OM_GJENOPPTAK,
+                Type.BEGJAERING_OM_GJENOPPTAK_TRYGDERETTEN,
             ) && behandling.utfall !in noKvalitetsvurderingNeeded
         ) {
             val kvalitetsvurderingValidationErrors = kakaApiGateway.getValidationErrors(behandling)
