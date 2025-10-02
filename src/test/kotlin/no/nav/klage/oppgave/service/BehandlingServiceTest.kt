@@ -494,7 +494,6 @@ class BehandlingServiceTest {
             fagsystem = Fagsystem.K9,
             fagsakId = "123",
             kildeReferanse = "abc",
-            mottakId = mottak.id,
             mottattVedtaksinstans = LocalDate.now(),
             avsenderEnhetFoersteinstans = "enhet",
             kakaKvalitetsvurderingId = UUID.randomUUID(),

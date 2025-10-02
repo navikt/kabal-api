@@ -14,7 +14,7 @@ import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.config.incrementMottattKlageAnke
-import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
@@ -29,7 +29,8 @@ import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException
 import no.nav.klage.oppgave.exceptions.PreviousBehandlingNotFinalizedException
 import no.nav.klage.oppgave.gateway.AzureGateway
-import no.nav.klage.oppgave.repositories.*
+import no.nav.klage.oppgave.repositories.BehandlingRepository
+import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.klage.oppgave.util.isValidFnrOrDnr
@@ -44,11 +45,7 @@ import java.util.*
 @Service
 class MottakService(
     environment: Environment,
-    private val mottakRepository: MottakRepository,
     private val klagebehandlingRepository: KlagebehandlingRepository,
-    private val ankebehandlingRepository: AnkebehandlingRepository,
-    private val omgjoeringskravbehandlingRepository: OmgjoeringskravbehandlingRepository,
-    private val gjenopptaksbehandlingRepository: GjenopptaksbehandlingRepository,
     private val behandlingRepository: BehandlingRepository,
     private val dokumentService: DokumentService,
     private val norg2Client: Norg2Client,
@@ -74,9 +71,7 @@ class MottakService(
         teamLogger.debug("Prøver å lagre oversendtKlageV2: {}", oversendtKlage)
         oversendtKlage.validate()
 
-        val mottak = mottakRepository.save(oversendtKlage.toMottak())
-
-        logger.debug("Har opprettet mottak med id {}", mottak.id)
+        val mottak = oversendtKlage.toMottak()
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
@@ -101,8 +96,6 @@ class MottakService(
 
         val mottak = validateAndSaveMottak(oversendtKlageAnke)
 
-        logger.debug("Har opprettet mottak med id {}", mottak.id)
-
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
             isBasedOnJournalpost = false,
@@ -124,8 +117,6 @@ class MottakService(
         teamLogger.debug("Prøver å lagre oversendtKlageAnkeV4: {}", oversendtKlageAnke)
 
         val mottak = validateAndSaveMottak(oversendtKlageAnke)
-
-        logger.debug("Har opprettet mottak med id {}", mottak.id)
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
@@ -191,7 +182,7 @@ class MottakService(
 
         val mottak =
             when (oversendtKlageAnke.type) {
-                Type.KLAGE -> mottakRepository.save(oversendtKlageAnke.toMottak())
+                Type.KLAGE -> oversendtKlageAnke.toMottak()
                 Type.ANKE -> {
                     val previousHandledKlage =
                         klagebehandlingRepository.findByKildeReferanseAndYtelseAndFeilregistreringIsNull(
@@ -210,9 +201,9 @@ class MottakService(
                                 logger.debug("dvhReferanse ${oversendtKlageAnke.dvhReferanse} matcher ikke med klage. Godtar, fordi det er anke fra Pesys.")
                             }
                         }
-                        mottakRepository.save(oversendtKlageAnke.toMottak(previousHandledKlage.id))
+                        oversendtKlageAnke.toMottak(previousHandledKlage.id)
                     } else {
-                        mottakRepository.save(oversendtKlageAnke.toMottak())
+                        oversendtKlageAnke.toMottak()
                     }
                 }
 
@@ -230,7 +221,7 @@ class MottakService(
 
         val mottak =
             when (oversendtKlageAnke.type) {
-                OversendtType.KLAGE -> mottakRepository.save(oversendtKlageAnke.toMottak())
+                OversendtType.KLAGE -> oversendtKlageAnke.toMottak()
                 OversendtType.ANKE -> {
                     val previousHandledKlage =
                         klagebehandlingRepository.findByKildeReferanseAndYtelseAndFeilregistreringIsNull(
@@ -249,9 +240,9 @@ class MottakService(
                                 logger.debug("dvhReferanse ${oversendtKlageAnke.dvhReferanse} matcher ikke med klage. Godtar, fordi det er anke fra Pesys.")
                             }
                         }
-                        mottakRepository.save(oversendtKlageAnke.toMottak(previousHandledKlage.id))
+                        oversendtKlageAnke.toMottak(previousHandledKlage.id)
                     } else {
-                        mottakRepository.save(oversendtKlageAnke.toMottak())
+                        oversendtKlageAnke.toMottak()
                     }
                 }
             }
@@ -274,7 +265,7 @@ class MottakService(
             prosessfullmektigIdentifikator = input.fullmektig?.value,
         )
 
-        val mottak = mottakRepository.save(sourceBehandling.toMottak(input))
+        val mottak = sourceBehandling.toMottak(input)
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
@@ -290,8 +281,8 @@ class MottakService(
         )
 
         logger.debug(
-            "Har lagret mottak {}, basert på innsendt behandlingId: {} fra Kabin",
-            mottak.id,
+            "Har lagret behandling {}, basert på innsendt behandlingId: {} fra Kabin",
+            behandling.id,
             sourceBehandlingId
         )
 
@@ -305,9 +296,7 @@ class MottakService(
 
         input.validate()
 
-        val mottak = mottakRepository.save(input.toMottak())
-
-        logger.debug("Har opprettet mottak med id {}", mottak.id)
+        val mottak = input.toMottak()
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
@@ -332,9 +321,7 @@ class MottakService(
 
         input.validate()
 
-        val mottak = mottakRepository.save(input.toMottak())
-
-        logger.debug("Har opprettet mottak med id {}", mottak.id)
+        val mottak = input.toMottak()
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
@@ -359,9 +346,7 @@ class MottakService(
 
         klageInput.validate()
 
-        val mottak = mottakRepository.save(klageInput.toMottak())
-
-        logger.debug("Har opprettet mottak med id {}", mottak.id)
+        val mottak = klageInput.toMottak()
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
@@ -399,20 +384,17 @@ class MottakService(
     }
 
     fun getUsedJournalpostIdList(sakenGjelder: String): List<String> {
-        return mottakRepository.findBySakenGjelderOrKlager(sakenGjelder)
+        return behandlingRepository.findBySakenGjelderPartIdValueAndFeilregistreringIsNull(sakenGjelder)
             .asSequence()
-            .filter {
-                when (it.type) {
-                    Type.KLAGE -> klagebehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
-                    Type.ANKE -> ankebehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
-                    Type.ANKE_I_TRYGDERETTEN -> true//Ikke relevant for AnkeITrygderetten
-                    Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> true//Ikke relevant for behandlingEtterTrygderettenOpphevet
-                    Type.OMGJOERINGSKRAV -> omgjoeringskravbehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
-                    Type.BEGJAERING_OM_GJENOPPTAK -> gjenopptaksbehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
-                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> true//Ikke relevant for BegjaeringOmGjenopptakTrygderetten
+            .map { behandling ->
+                when (behandling) {
+                    is Klagebehandling -> behandling.mottakDokument
+                    is Ankebehandling -> behandling.mottakDokument
+                    is Omgjoeringskravbehandling -> behandling.mottakDokument
+                    is Gjenopptaksbehandling -> behandling.mottakDokument
+                    else -> emptyList()
                 }
-            }
-            .flatMap { it.mottakDokument }
+            }.flatten()
             .filter {
                 it.type in listOf(
                     MottakDokumentType.BRUKERS_ANKE,
@@ -1012,6 +994,4 @@ class MottakService(
             forrigeSaksbehandlerident = null,
         )
     }
-
-    fun getMottak(mottakId: UUID): Mottak = mottakRepository.getReferenceById(mottakId)
 }

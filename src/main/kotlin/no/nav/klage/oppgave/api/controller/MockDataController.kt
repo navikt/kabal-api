@@ -157,7 +157,7 @@ class MockDataController(
                 forrigeBehandlendeEnhet = "0104", //NAV Moss
                 tilknyttedeJournalposter = listOf(
                     OversendtDokumentReferanse(
-                        randomMottakDokumentType(),
+                        MottakDokumentType.BRUKERS_KLAGE,
                         journalpostId
                     )
                 ),
@@ -376,13 +376,6 @@ class MockDataController(
         }
         return kvalitetsvurderingVersion
     }
-
-    private fun randomMottakDokumentType() = listOf(
-        MottakDokumentType.OVERSENDELSESBREV,
-        MottakDokumentType.ANNET,
-        MottakDokumentType.BRUKERS_KLAGE,
-        MottakDokumentType.OPPRINNELIG_VEDTAK
-    ).shuffled().first()
 
     data class MockInput(
         val ytelse: Ytelse?,
