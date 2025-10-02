@@ -50,7 +50,6 @@ class KlagebehandlingService(
                 mottattKlageinstans = mottak.sakMottattKaDato,
                 tildeling = null,
                 frist = mottak.generateFrist(),
-                mottakId = mottak.id,
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
@@ -63,7 +62,7 @@ class KlagebehandlingService(
                 gosysOppgaveRequired = gosysOppgaveRequired,
             )
         )
-        logger.debug("Created klagebehandling {} for mottak {}", klagebehandling.id, mottak.id)
+        logger.debug("Created klagebehandling {}", klagebehandling.id)
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(

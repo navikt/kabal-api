@@ -270,7 +270,7 @@ class KabinApiService(
             fagsakId = omgjoeringskravbehandling.fagsakId,
             fagsystemId = omgjoeringskravbehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
-                journalpostId = mottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_OMGJOERINGSKRAV }!!.journalpostId,
+                journalpostId = omgjoeringskravbehandling.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_OMGJOERINGSKRAV }!!.journalpostId,
                 behandling = omgjoeringskravbehandling
             ),
             tildeltSaksbehandler = omgjoeringskravbehandling.tildeling?.saksbehandlerident?.let {
@@ -343,7 +343,7 @@ class KabinApiService(
             fagsakId = ankebehandling.fagsakId,
             fagsystemId = ankebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
-                journalpostId = mottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_ANKE }!!.journalpostId,
+                journalpostId = ankebehandling.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_ANKE }!!.journalpostId,
                 behandling = ankebehandling
             ),
             tildeltSaksbehandler = ankebehandling.tildeling?.saksbehandlerident?.let {
@@ -416,7 +416,7 @@ class KabinApiService(
             fagsakId = klagebehandling.fagsakId,
             fagsystemId = klagebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
-                journalpostId = mottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_KLAGE }!!.journalpostId,
+                journalpostId = klagebehandling.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_KLAGE }!!.journalpostId,
                 behandling = klagebehandling
             ),
             tildeltSaksbehandler = klagebehandling.tildeling?.saksbehandlerident?.let {

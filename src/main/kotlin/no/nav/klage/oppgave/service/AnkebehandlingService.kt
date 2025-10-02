@@ -55,7 +55,6 @@ class AnkebehandlingService(
                 mottattKlageinstans = mottak.sakMottattKaDato,
                 tildeling = null,
                 frist = mottak.generateFrist(),
-                mottakId = mottak.id,
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = 2,

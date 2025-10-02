@@ -48,7 +48,6 @@ class GjenopptaksbehandlingService(
                     mottattKlageinstans = mottak.sakMottattKaDato,
                     tildeling = null,
                     frist = mottak.generateFrist(),
-                    mottakId = mottak.id,
                     saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = 2,
@@ -77,7 +76,6 @@ class GjenopptaksbehandlingService(
                     mottattKlageinstans = mottak.sakMottattKaDato,
                     tildeling = null,
                     frist = mottak.generateFrist(),
-                    mottakId = mottak.id,
                     saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = 2,
@@ -187,7 +185,6 @@ class GjenopptaksbehandlingService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
-                    mottakId = originalGjenopptaksbehandling.mottakId!!
                 )
             )
         } else {
@@ -216,7 +213,6 @@ class GjenopptaksbehandlingService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
-                    mottakId = originalGjenopptaksbehandling.mottakId!!,
                     sourceBehandlingId = gjenopptakITrygderettenbehandling.id,
                 )
             )

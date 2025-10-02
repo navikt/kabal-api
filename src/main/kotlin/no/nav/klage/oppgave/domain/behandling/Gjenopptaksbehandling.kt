@@ -12,6 +12,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.behandling.historikk.*
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import no.nav.klage.oppgave.domain.mottak.MottakDokument
 import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
 import java.time.LocalDate
@@ -27,8 +28,6 @@ abstract class Gjenopptaksbehandling(
     val klageVedtaksDato: LocalDate? = null,
     @Column(name = "klage_behandlende_enhet")
     val klageBehandlendeEnhet: String,
-    @Column(name = "mottak_id")
-    val mottakId: UUID? = null,
     @Column(name = "kaka_kvalitetsvurdering_id")
     var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = true)
@@ -39,6 +38,10 @@ abstract class Gjenopptaksbehandling(
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
+    @NotAudited
+    val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
 
     //Common properties
     id: UUID = UUID.randomUUID(),

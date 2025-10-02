@@ -6,7 +6,4 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface OmgjoeringskravbehandlingRepository : JpaRepository<Omgjoeringskravbehandling, UUID> {
-
-    fun findByMottakId(mottakId: UUID): Omgjoeringskravbehandling?
-}
+interface OmgjoeringskravbehandlingRepository : JpaRepository<Omgjoeringskravbehandling, UUID>
