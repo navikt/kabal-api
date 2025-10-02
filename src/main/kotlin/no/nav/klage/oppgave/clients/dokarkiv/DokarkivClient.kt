@@ -35,6 +35,7 @@ class DokarkivClient(
                 ?: throw RuntimeException("Journalpost could not be updated.")
         } catch (e: Exception) {
             logger.error("Error updating journalpost $journalpostId:", e)
+            throw RuntimeException("Feil ved oppdatering av dokumenttittel på journalpost: $journalpostId", e)
         }
 
         logger.debug("Documents from journalpost $journalpostId were successfully updated.")
