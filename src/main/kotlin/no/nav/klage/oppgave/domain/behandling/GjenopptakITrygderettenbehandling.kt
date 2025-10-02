@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.domain.behandling
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.Type
@@ -10,33 +12,30 @@ import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.behandling.historikk.*
-import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import org.hibernate.envers.Audited
-import org.hibernate.envers.NotAudited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
+//TODO: Denne er basert på AnkeITrygderettenbehandling, tilpass etter behov.
 @Entity
+@DiscriminatorValue("gjenopptak_i_trygderetten")
 @Audited
-abstract class Omgjoeringskravbehandling(
-    @Column(name = "klage_behandlende_enhet")
-    val klageBehandlendeEnhet: String,
-    @Column(name = "mottak_id")
-    val mottakId: UUID,
-    @Column(name = "kaka_kvalitetsvurdering_id")
-    var kakaKvalitetsvurderingId: UUID?,
-    @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
-    val kakaKvalitetsvurderingVersion: Int,
-    @Embedded
-    override var varsletBehandlingstid: VarsletBehandlingstid?,
-    @OneToOne(cascade = [CascadeType.ALL], optional = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
-    @NotAudited
-    override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
+class GjenopptakITrygderettenbehandling(
+    @Column(name = "sendt_til_trygderetten")
+    var sendtTilTrygderetten: LocalDateTime,
+    @Column(name = "kjennelse_mottatt")
+    var kjennelseMottatt: LocalDateTime? = null,
+    /** Tatt over av KA mens den er i TR */
+    @Column(name = "ny_gjenopptaksbehandling_ka")
+    var nyGjenopptaksbehandlingKA: LocalDateTime? = null,
+    /** Skal det opprettes ny behandling etter TR har opphevet? */
+    @Column(name = "ny_behandling_etter_tr_opphevet")
+    var nyBehandlingEtterTROpphevet: LocalDateTime? = null,
 
-    //Common properties between klage/anke
+    //Common properties
     id: UUID = UUID.randomUUID(),
     klager: Klager,
     sakenGjelder: SakenGjelder,
@@ -48,7 +47,8 @@ abstract class Omgjoeringskravbehandling(
     fagsystem: Fagsystem,
     fagsakId: String,
     mottattKlageinstans: LocalDateTime,
-    frist: LocalDate,
+    //TODO: Trenger denne være nullable? Den blir da alltid satt i createKlagebehandlingFromMottak?
+    frist: LocalDate? = null,
     tildeling: Tildeling? = null,
     created: LocalDateTime = LocalDateTime.now(),
     modified: LocalDateTime = LocalDateTime.now(),
@@ -57,7 +57,7 @@ abstract class Omgjoeringskravbehandling(
     sattPaaVent: SattPaaVent? = null,
     feilregistrering: Feilregistrering? = null,
     utfall: Utfall? = null,
-    extraUtfallSet: Set<Utfall> = emptySet(),
+    extraUtfallSet: Set<Utfall> = setOf(),
     registreringshjemler: MutableSet<Registreringshjemmel> = mutableSetOf(),
     medunderskriver: MedunderskriverTildeling? = null,
     medunderskriverFlowState: FlowState = FlowState.NOT_SENT,
@@ -72,13 +72,12 @@ abstract class Omgjoeringskravbehandling(
     fullmektigHistorikk: MutableSet<FullmektigHistorikk> = mutableSetOf(),
     sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     previousSaksbehandlerident: String?,
-    oppgaveId: Long?,
     gosysOppgaveId: Long?,
     gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
-) : BehandlingWithVarsletBehandlingstid, Behandling(
+) : Behandling(
     id = id,
     klager = klager,
     sakenGjelder = sakenGjelder,
@@ -120,9 +119,8 @@ abstract class Omgjoeringskravbehandling(
     ignoreGosysOppgave = ignoreGosysOppgave,
     gosysOppgaveRequired = gosysOppgaveRequired,
 ) {
-
     override fun toString(): String {
-        return "Omgjoeringskravbehandling(id=$id, " +
+        return "GjenopptakITrygderettenbehandling(id=$id, " +
                 "modified=$modified, " +
                 "created=$created)"
     }
@@ -131,7 +129,7 @@ abstract class Omgjoeringskravbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Omgjoeringskravbehandling
+        other as GjenopptakITrygderettenbehandling
 
         return id == other.id
     }
@@ -140,11 +138,41 @@ abstract class Omgjoeringskravbehandling(
         return id.hashCode()
     }
 
-    fun shouldBeSentToVedtaksinstans(): Boolean {
-        return utfall in listOf(Utfall.MEDHOLD_ETTER_FVL_35)
+    fun shouldCreateNewGjenopptaksbehandling(): Boolean {
+        return nyGjenopptaksbehandlingKA != null
+    }
+
+    fun shouldCreateNewBehandlingEtterTROpphevet(): Boolean {
+        return nyBehandlingEtterTROpphevet != null && utfall == Utfall.GJENOPPTATT_OPPHEVET
+    }
+
+    fun shouldNotCreateNewBehandling(): Boolean {
+        return (!shouldCreateNewGjenopptaksbehandling() && !shouldCreateNewBehandlingEtterTROpphevet())
     }
 
     fun shouldBeCompletedInKA(): Boolean {
-        return utfall in listOf(Utfall.BESLUTNING_IKKE_OMGJOERE, Utfall.STADFESTET_ANNEN_BEGRUNNELSE, Utfall.TRUKKET, Utfall.HENLAGT)
+        return utfall in listOf(Utfall.HEVET, Utfall.IKKE_GJENOPPTATT, Utfall.AVVIST, Utfall.GJENOPPTATT_STADFESTET)
     }
 }
+
+data class GjenopptakITrygderettenbehandlingInput(
+    val klager: Klager,
+    val sakenGjelder: SakenGjelder? = null,
+    val prosessfullmektig: Prosessfullmektig?,
+    val ytelse: Ytelse,
+    val type: Type,
+    val kildeReferanse: String,
+    val dvhReferanse: String?,
+    val fagsystem: Fagsystem,
+    val fagsakId: String,
+    val sakMottattKlageinstans: LocalDateTime,
+    val saksdokumenter: MutableSet<Saksdokument>,
+    val innsendingsHjemler: Set<Hjemmel>?,
+    val sendtTilTrygderetten: LocalDateTime,
+    val registreringsHjemmelSet: Set<Registreringshjemmel>? = null,
+    val gjenopptakbehandlingUtfall: ExternalUtfall,
+    val previousSaksbehandlerident: String?,
+    val gosysOppgaveId: Long?,
+    val tilbakekreving: Boolean,
+    val gosysOppgaveRequired: Boolean,
+)

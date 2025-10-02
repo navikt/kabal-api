@@ -21,6 +21,9 @@ enum class BehandlingEventType {
     BEHANDLING_FEILREGISTRERT,
     BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET,
     OMGJOERINGSKRAVBEHANDLING_AVSLUTTET,
+    GJENOPPTAKSBEHANDLING_OPPRETTET,
+    GJENOPPTAKSBEHANDLING_AVSLUTTET,
+    GJENOPPTAK_I_TRYGDERETTENBEHANDLING_OPPRETTET,
 }
 
 data class BehandlingDetaljer(
@@ -31,6 +34,9 @@ data class BehandlingDetaljer(
     val behandlingFeilregistrert: BehandlingFeilregistrertDetaljer? = null,
     val behandlingEtterTrygderettenOpphevetAvsluttet: BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer? = null,
     val omgjoeringskravbehandlingAvsluttet: OmgjoeringskravbehandlingAvsluttetDetaljer? = null,
+    val gjenopptaksbehandlingOpprettet: GjenopptaksbehandlingOpprettetDetaljer? = null,
+    val gjenopptaksbehandlingAvsluttet: GjenopptaksbehandlingAvsluttetDetaljer? = null,
+    val gjenopptakITrygderettenbehandlingOpprettet: GjenopptakITrygderettenbehandlingOpprettetDetaljer? = null,
 )
 
 data class KlagebehandlingAvsluttetDetaljer(
@@ -71,4 +77,19 @@ data class BehandlingFeilregistrertDetaljer(
     val navIdent: String,
     val reason: String,
     val type: Type,
+)
+
+data class GjenopptaksbehandlingOpprettetDetaljer(
+    val mottattKlageinstans: LocalDateTime
+)
+
+data class GjenopptaksbehandlingAvsluttetDetaljer(
+    val avsluttet: LocalDateTime,
+    val utfall: ExternalUtfall,
+    val journalpostReferanser: List<String>,
+)
+
+data class GjenopptakITrygderettenbehandlingOpprettetDetaljer(
+    val sendtTilTrygderetten: LocalDateTime,
+    val utfall: ExternalUtfall?,
 )

@@ -59,7 +59,7 @@ class OmgjoeringskravbehandlingService(
                     tilbakekreving = false,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = gosysOppgaveRequired
+                    gosysOppgaveRequired = gosysOppgaveRequired,
                 )
             )
         } else {

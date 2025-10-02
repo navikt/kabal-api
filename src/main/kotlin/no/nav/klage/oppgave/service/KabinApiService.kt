@@ -48,6 +48,12 @@ class KabinApiService(
             .map { it.toMulighet(mulighetType = Type.OMGJOERINGSKRAV) }
     }
 
+    fun getGjenopptaksmuligheter(partIdValue: String): List<Mulighet> {
+        behandlingService.checkLesetilgangForPerson(partIdValue)
+        return behandlingService.getGjenopptaksmuligheterByPartIdValue(partIdValue = partIdValue)
+            .map { it.toMulighet(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK) }
+    }
+
     fun createBehandlingFromPreviousKabalBehandling(input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling): CreatedBehandlingResponse {
         val behandling = mottakService.createMottakAndBehandlingFromKabinInputWithPreviousKabalBehandling(input = input)
 
@@ -72,8 +78,8 @@ class KabinApiService(
         return CreatedBehandlingResponse(behandlingId = behandling.id)
     }
 
-    fun createOmgjoeringskravBasedOnJournalpost(input: CreateOmgjoeringskravBasedOnJournalpostInput): CreatedBehandlingResponse {
-        val behandling = mottakService.createOmgjoeringskravBasedOnJournalpost(input = input)
+    fun createBehandlingBasedOnJournalpost(input: CreateBehandlingBasedOnJournalpostInput): CreatedBehandlingResponse {
+        val behandling = mottakService.createBehandlingBasedOnJournalpost(input = input)
 
         setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,

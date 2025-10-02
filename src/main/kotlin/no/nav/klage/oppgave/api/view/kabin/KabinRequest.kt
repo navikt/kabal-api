@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.api.view.kabin
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import java.time.LocalDate
 import java.util.*
@@ -92,7 +93,8 @@ data class CreateKlageBasedOnKabinInput(
     val gosysOppgaveId: Long,
 )
 
-data class CreateOmgjoeringskravBasedOnJournalpostInput(
+data class CreateBehandlingBasedOnJournalpostInput(
+    val typeId: String? = Type.OMGJOERINGSKRAV.id,
     val sakenGjelder: OversendtPartId,
     val klager: OversendtPartId?,
     val fullmektig: OversendtPartId?,

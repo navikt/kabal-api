@@ -18,25 +18,29 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
+//TODO: Denne er basert på Ankebehandling, tilpass etter behov.
 @Entity
+@DiscriminatorValue("gjenopptak")
 @Audited
-abstract class Omgjoeringskravbehandling(
+abstract class Gjenopptaksbehandling(
+    @Column(name = "klage_vedtaks_dato")
+    val klageVedtaksDato: LocalDate? = null,
     @Column(name = "klage_behandlende_enhet")
     val klageBehandlendeEnhet: String,
     @Column(name = "mottak_id")
-    val mottakId: UUID,
+    val mottakId: UUID? = null,
     @Column(name = "kaka_kvalitetsvurdering_id")
     var kakaKvalitetsvurderingId: UUID?,
-    @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
+    @Column(name = "kaka_kvalitetsvurdering_version", nullable = true)
     val kakaKvalitetsvurderingVersion: Int,
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
-    @OneToOne(cascade = [CascadeType.ALL], optional = true, fetch = FetchType.LAZY)
+    @OneToOne(cascade = [CascadeType.ALL], optional = true)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
 
-    //Common properties between klage/anke
+    //Common properties
     id: UUID = UUID.randomUUID(),
     klager: Klager,
     sakenGjelder: SakenGjelder,
@@ -72,7 +76,6 @@ abstract class Omgjoeringskravbehandling(
     fullmektigHistorikk: MutableSet<FullmektigHistorikk> = mutableSetOf(),
     sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     previousSaksbehandlerident: String?,
-    oppgaveId: Long?,
     gosysOppgaveId: Long?,
     gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
@@ -120,9 +123,8 @@ abstract class Omgjoeringskravbehandling(
     ignoreGosysOppgave = ignoreGosysOppgave,
     gosysOppgaveRequired = gosysOppgaveRequired,
 ) {
-
     override fun toString(): String {
-        return "Omgjoeringskravbehandling(id=$id, " +
+        return "Gjenopptaksbehandling(id=$id, " +
                 "modified=$modified, " +
                 "created=$created)"
     }
@@ -131,7 +133,7 @@ abstract class Omgjoeringskravbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Omgjoeringskravbehandling
+        other as Gjenopptaksbehandling
 
         return id == other.id
     }
@@ -145,6 +147,6 @@ abstract class Omgjoeringskravbehandling(
     }
 
     fun shouldBeCompletedInKA(): Boolean {
-        return utfall in listOf(Utfall.BESLUTNING_IKKE_OMGJOERE, Utfall.STADFESTET_ANNEN_BEGRUNNELSE, Utfall.TRUKKET, Utfall.HENLAGT)
+        return utfall in listOf(Utfall.TRUKKET, Utfall.HENLAGT)
     }
 }

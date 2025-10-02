@@ -187,6 +187,13 @@ class CleanupAfterBehandlingEventListener(
                 {} //Do nothing
             }
 
+            is GjenopptakITrygderettenbehandling -> {
+                {} //Do nothing
+            }
+
+            is Gjenopptaksbehandling -> {
+                {} //Do nothing
+            }
         }
     }
 }

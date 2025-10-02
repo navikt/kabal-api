@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.domain.behandling
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.Type
@@ -13,28 +15,16 @@ import no.nav.klage.oppgave.domain.behandling.historikk.*
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import org.hibernate.envers.Audited
-import org.hibernate.envers.NotAudited
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
+@DiscriminatorValue("gjenopptak-based-on-kabal-behandling")
 @Audited
-abstract class Omgjoeringskravbehandling(
-    @Column(name = "klage_behandlende_enhet")
-    val klageBehandlendeEnhet: String,
-    @Column(name = "mottak_id")
-    val mottakId: UUID,
-    @Column(name = "kaka_kvalitetsvurdering_id")
-    var kakaKvalitetsvurderingId: UUID?,
-    @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
-    val kakaKvalitetsvurderingVersion: Int,
-    @Embedded
-    override var varsletBehandlingstid: VarsletBehandlingstid?,
-    @OneToOne(cascade = [CascadeType.ALL], optional = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
-    @NotAudited
-    override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
+class GjenopptaksbehandlingBasedOnKabalBehandling(
+    @Column(name = "source_behandling_id")
+    var sourceBehandlingId: UUID?,
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),
@@ -72,13 +62,18 @@ abstract class Omgjoeringskravbehandling(
     fullmektigHistorikk: MutableSet<FullmektigHistorikk> = mutableSetOf(),
     sattPaaVentHistorikk: MutableSet<SattPaaVentHistorikk> = mutableSetOf(),
     previousSaksbehandlerident: String?,
-    oppgaveId: Long?,
     gosysOppgaveId: Long?,
     gosysOppgaveUpdate: GosysOppgaveUpdate? = null,
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
+    klageBehandlendeEnhet: String,
+    mottakId: UUID,
+    kakaKvalitetsvurderingId: UUID,
+    kakaKvalitetsvurderingVersion: Int,
+    varsletBehandlingstid: VarsletBehandlingstid?,
+    forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
     gosysOppgaveRequired: Boolean,
-) : BehandlingWithVarsletBehandlingstid, Behandling(
+) : BehandlingWithVarsletBehandlingstid, Gjenopptaksbehandling(
     id = id,
     klager = klager,
     sakenGjelder = sakenGjelder,
@@ -118,11 +113,18 @@ abstract class Omgjoeringskravbehandling(
     gosysOppgaveUpdate = gosysOppgaveUpdate,
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
+    klageBehandlendeEnhet = klageBehandlendeEnhet,
+    mottakId = mottakId,
+    kakaKvalitetsvurderingId = kakaKvalitetsvurderingId,
+    kakaKvalitetsvurderingVersion = kakaKvalitetsvurderingVersion,
+    varsletBehandlingstid = varsletBehandlingstid,
+    forlengetBehandlingstidDraft = forlengetBehandlingstidDraft,
+    klageVedtaksDato = null,
     gosysOppgaveRequired = gosysOppgaveRequired,
 ) {
 
     override fun toString(): String {
-        return "Omgjoeringskravbehandling(id=$id, " +
+        return "GjenopptaksbehandlingBasedOnKabalBehandling(id=$id, " +
                 "modified=$modified, " +
                 "created=$created)"
     }
@@ -131,20 +133,12 @@ abstract class Omgjoeringskravbehandling(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Omgjoeringskravbehandling
+        other as GjenopptaksbehandlingBasedOnKabalBehandling
 
         return id == other.id
     }
 
     override fun hashCode(): Int {
         return id.hashCode()
-    }
-
-    fun shouldBeSentToVedtaksinstans(): Boolean {
-        return utfall in listOf(Utfall.MEDHOLD_ETTER_FVL_35)
-    }
-
-    fun shouldBeCompletedInKA(): Boolean {
-        return utfall in listOf(Utfall.BESLUTNING_IKKE_OMGJOERE, Utfall.STADFESTET_ANNEN_BEGRUNNELSE, Utfall.TRUKKET, Utfall.HENLAGT)
     }
 }

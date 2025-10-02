@@ -243,7 +243,7 @@ class BehandlingController(
     /**
      * Valgfri validering før ny ankebehandling.
      */
-    @GetMapping("/{behandlingId}/validate/nyankebehandling")
+    @GetMapping(value = ["/{behandlingId}/validate/nyankebehandling", "/{behandlingId}/validate/nybehandlingfratrygderettbehandling"])
     fun validateAnkebehandling(
         @PathVariable("behandlingId") behandlingId: UUID
     ): ValidationPassedResponse {
@@ -254,7 +254,7 @@ class BehandlingController(
             logger
         )
 
-        behandlingService.validateAnkeITrygderettenbehandlingBeforeNyAnkebehandling(behandlingId)
+        behandlingService.validateTrygderettenbehandlingBeforeNyBehandling(behandlingId)
         return ValidationPassedResponse()
     }
 
@@ -548,7 +548,7 @@ class BehandlingController(
         return BehandlingEditedView(modified = modified)
     }
 
-    @PostMapping("/{behandlingId}/nyankebehandlingka")
+    @PostMapping(value = ["/{behandlingId}/nyankebehandlingka", "/{behandlingId}/nybehandlingfratrygderettbehandling"])
     fun nyAnkebehandlingKA(
         @PathVariable("behandlingId") behandlingId: UUID,
     ) {
@@ -558,9 +558,9 @@ class BehandlingController(
             logger
         )
 
-        behandlingService.validateAnkeITrygderettenbehandlingBeforeNyAnkebehandling(behandlingId)
+        behandlingService.validateTrygderettenbehandlingBeforeNyBehandling(behandlingId)
 
-        behandlingService.setNyAnkebehandlingKAAndSetToAvsluttet(
+        behandlingService.setNyBehandlingKAAndSetToAvsluttet(
             behandlingId = behandlingId,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         )

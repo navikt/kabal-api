@@ -33,7 +33,7 @@ class SvarbrevSettingsService(
 
     fun getSvarbrevSettingsViewForYtelseAndType(ytelse: Ytelse, type: Type): SvarbrevSettingsConsumerView {
         val settings = svarbrevSettingsRepository.findAll().find { it.ytelse == ytelse && it.type == type }
-        return if (settings == null && type == Type.OMGJOERINGSKRAV) {
+        return if (settings == null && type in listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
             SvarbrevSettingsConsumerView(
                 behandlingstidUnits = 12,
                 behandlingstidUnitTypeId = TimeUnitType.WEEKS.id,

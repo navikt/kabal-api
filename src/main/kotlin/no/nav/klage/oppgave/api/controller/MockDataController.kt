@@ -353,6 +353,8 @@ class MockDataController(
                     input = input
                 )
             }
+            Type.BEGJAERING_OM_GJENOPPTAK -> TODO()
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> TODO()
         }
         logger.debug("Behandling with id {} was returned", behandling.id)
 

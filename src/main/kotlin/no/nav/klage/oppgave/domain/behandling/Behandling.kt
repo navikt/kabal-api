@@ -279,26 +279,6 @@ sealed class Behandling(
         return utfall in utfallToTrygderetten
     }
 
-    fun shouldCreateNewAnkebehandlingFromAnkeITrygderettenbehandling(): Boolean {
-        return if (this is AnkeITrygderettenbehandling) {
-            nyAnkebehandlingKA != null || utfall in utfallToNewAnkebehandling
-        } else {
-            false
-        }
-    }
-
-    fun shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling(): Boolean {
-        return if (this is AnkeITrygderettenbehandling) {
-            nyBehandlingEtterTROpphevet != null && utfall == Utfall.OPPHEVET
-        } else {
-            false
-        }
-    }
-
-    fun shouldNotCreateNewBehandlingFromAnkeITrygderettenbehandling(): Boolean {
-        return (!shouldCreateNewAnkebehandlingFromAnkeITrygderettenbehandling() && !shouldCreateNewBehandlingEtterTROpphevetFromAnkeITrygderettenbehandling())
-    }
-
     fun isFerdigstiltOrFeilregistrert(): Boolean {
         return ferdigstilling != null || feilregistrering != null
     }
@@ -370,6 +350,30 @@ sealed class Behandling(
             gosysOppgaveRequired = gosysOppgaveRequired,
         )
     }
+
+    fun createGjenopptakITrygderettenbehandlingInput(): GjenopptakITrygderettenbehandlingInput {
+        return GjenopptakITrygderettenbehandlingInput(
+            klager = klager,
+            sakenGjelder = sakenGjelder,
+            prosessfullmektig = prosessfullmektig,
+            ytelse = ytelse,
+            type = Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+            kildeReferanse = kildeReferanse,
+            dvhReferanse = dvhReferanse,
+            fagsystem = fagsystem,
+            fagsakId = fagsakId,
+            sakMottattKlageinstans = mottattKlageinstans,
+            saksdokumenter = saksdokumenter,
+            innsendingsHjemler = hjemler,
+            sendtTilTrygderetten = ferdigstilling!!.avsluttetAvSaksbehandler,
+            registreringsHjemmelSet = registreringshjemler,
+            gjenopptakbehandlingUtfall = ExternalUtfall.valueOf(utfall!!.name),
+            previousSaksbehandlerident = tildeling!!.saksbehandlerident,
+            gosysOppgaveId = gosysOppgaveId,
+            tilbakekreving = tilbakekreving,
+            gosysOppgaveRequired = gosysOppgaveRequired,
+        )
+    }
 }
 
 enum class BehandlingRole {
@@ -388,7 +392,9 @@ val utfallToNewAnkebehandling = setOf(
 val utfallToTrygderetten = setOf(
     Utfall.DELVIS_MEDHOLD,
     Utfall.INNSTILLING_AVVIST,
-    Utfall.INNSTILLING_STADFESTELSE
+    Utfall.INNSTILLING_STADFESTELSE,
+    Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES,
+    Utfall.INNSTILLING_GJENOPPTAS_IKKE,
 )
 
 val noRegistringshjemmelNeeded = listOf(Utfall.TRUKKET, Utfall.RETUR, Utfall.HENLAGT)

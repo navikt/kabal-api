@@ -32,6 +32,8 @@ class StatistikkTilDVHService(
         const val TR_ENHET = "TR0000"
     }
 
+    //TODO: Håndter gjenopptak her
+
     fun process(behandlingChangedEvent: BehandlingChangedEvent) {
         if (shouldSendStats(behandlingChangedEvent)) {
             val behandling = behandlingChangedEvent.behandling

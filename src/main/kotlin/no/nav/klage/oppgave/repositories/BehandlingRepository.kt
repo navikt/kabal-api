@@ -73,6 +73,23 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         """
             SELECT b
             FROM Behandling b
+            WHERE b.ferdigstilling.avsluttet IS NOT null
+            AND b.sakenGjelder.partId.value = :partIdValue            
+            AND b.type IN :includedTypes
+        """
+    )
+    fun getGjenopptaksmuligheter(
+        partIdValue: String,
+        includedTypes: List<Type> = listOf(
+            Type.ANKE_I_TRYGDERETTEN,
+        )
+    ): List<Behandling>
+
+    @EntityGraph(attributePaths = ["hjemler"])
+    @Query(
+        """
+            SELECT b
+            FROM Behandling b
             WHERE b.ferdigstilling.avsluttet IS NOT null            
             AND b.fagsystem != :infotrygdFagsystem
             AND b.sakenGjelder.partId.value = :partIdValue
