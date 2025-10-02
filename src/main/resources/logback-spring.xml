@@ -78,6 +78,7 @@
 
         <logger name="org.apache.pdfbox.pdfparser.BaseParser" level="error"/>
         <logger name="org.apache.pdfbox.pdfparser.COSParser" level="error"/>
+        <logger name="org.apache.pdfbox.multipdf.PDFMergerUtility" level="error"/>
     </springProfile>
 
     <logger name="no.nav.klage" level="debug"/>
