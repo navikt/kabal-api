@@ -58,6 +58,9 @@ import java.util.*
 sealed class Behandling(
     @Id
     open val id: UUID = UUID.randomUUID(),
+    /** If this behandling is created due to a "continuation" of a previous behandling, this is the id of that behandling. */
+    @Column(name = "previous_behandling_id")
+    open var previousBehandlingId: UUID?,
     @Embedded
     open var klager: Klager,
     @Embedded

@@ -28,6 +28,7 @@ class OmgjoeringskravbehandlingBasedOnKabalBehandling(
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),
+    previousBehandlingId: UUID?,
     klager: Klager,
     sakenGjelder: SakenGjelder,
     prosessfullmektig: Prosessfullmektig?,
@@ -76,6 +77,7 @@ class OmgjoeringskravbehandlingBasedOnKabalBehandling(
     initiatingSystem: InitiatingSystem,
 ) : BehandlingWithVarsletBehandlingstid, Omgjoeringskravbehandling(
     id = id,
+    previousBehandlingId = previousBehandlingId,
     klager = klager,
     sakenGjelder = sakenGjelder,
     prosessfullmektig = prosessfullmektig,

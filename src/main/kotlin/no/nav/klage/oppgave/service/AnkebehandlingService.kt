@@ -140,6 +140,7 @@ class AnkebehandlingService(
     fun createAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): Ankebehandling {
         val ankebehandling = ankebehandlingRepository.save(
             Ankebehandling(
+                previousBehandlingId = ankeITrygderettenbehandling.id,
                 klager = ankeITrygderettenbehandling.klager.copy(),
                 sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.copy(),
                 prosessfullmektig = ankeITrygderettenbehandling.prosessfullmektig,

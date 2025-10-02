@@ -41,6 +41,7 @@ class BehandlingEtterTrygderettenOpphevet(
 
     //Common properties
     id: UUID = UUID.randomUUID(),
+    previousBehandlingId: UUID?,
     klager: Klager,
     sakenGjelder: SakenGjelder,
     prosessfullmektig: Prosessfullmektig?,
@@ -83,6 +84,7 @@ class BehandlingEtterTrygderettenOpphevet(
     initiatingSystem: InitiatingSystem,
 ) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
+    previousBehandlingId = previousBehandlingId,
     klager = klager,
     sakenGjelder = sakenGjelder,
     prosessfullmektig = prosessfullmektig,
