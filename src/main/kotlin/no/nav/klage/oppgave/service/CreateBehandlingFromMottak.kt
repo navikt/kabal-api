@@ -74,7 +74,7 @@ class CreateBehandlingFromMottak(
                     gosysOppgaveRequired = gosysOppgaveRequired,
                 )
             }
-            Type.BEGJAERING_OM_GJENOPPTAK_TRYGDERETTEN -> TODO()
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> TODO()
         }
     }
 

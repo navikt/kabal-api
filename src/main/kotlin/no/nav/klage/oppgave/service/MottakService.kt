@@ -220,7 +220,7 @@ class MottakService(
                 Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> TODO()
                 Type.OMGJOERINGSKRAV -> TODO()
                 Type.BEGJAERING_OM_GJENOPPTAK -> TODO()
-                Type.BEGJAERING_OM_GJENOPPTAK_TRYGDERETTEN -> TODO()
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> TODO()
             }
         return mottak
     }
@@ -409,7 +409,7 @@ class MottakService(
                     Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> true//Ikke relevant for behandlingEtterTrygderettenOpphevet
                     Type.OMGJOERINGSKRAV -> omgjoeringskravbehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
                     Type.BEGJAERING_OM_GJENOPPTAK -> gjenopptaksbehandlingRepository.findByMottakId(it.id)?.feilregistrering == null
-                    Type.BEGJAERING_OM_GJENOPPTAK_TRYGDERETTEN -> true//Ikke relevant for BegjaeringOmGjenopptakTrygderetten
+                    Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> true//Ikke relevant for BegjaeringOmGjenopptakTrygderetten
                 }
             }
             .flatMap { it.mottakDokument }

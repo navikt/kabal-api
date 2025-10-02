@@ -44,7 +44,7 @@ class InnsynService(
             is BehandlingEtterTrygderettenOpphevet -> Type.ANKE
             is Omgjoeringskravbehandling -> Type.OMGJOERINGSKRAV
             is Gjenopptaksbehandling -> Type.BEGJAERING_OM_GJENOPPTAK
-            is GjenopptakITrygderettenbehandling -> Type.BEGJAERING_OM_GJENOPPTAK_TRYGDERETTEN
+            is GjenopptakITrygderettenbehandling -> Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN
         }
     }
 
