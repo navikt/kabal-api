@@ -42,6 +42,7 @@ abstract class Gjenopptaksbehandling(
 
     //Common properties
     id: UUID = UUID.randomUUID(),
+    previousBehandlingId: UUID?,
     klager: Klager,
     sakenGjelder: SakenGjelder,
     prosessfullmektig: Prosessfullmektig?,
@@ -83,6 +84,7 @@ abstract class Gjenopptaksbehandling(
     gosysOppgaveRequired: Boolean,
 ) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
+    previousBehandlingId = previousBehandlingId,
     klager = klager,
     sakenGjelder = sakenGjelder,
     prosessfullmektig = prosessfullmektig,

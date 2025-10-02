@@ -48,6 +48,7 @@ class Ankebehandling(
 
     //Common properties
     id: UUID = UUID.randomUUID(),
+    previousBehandlingId: UUID?,
     klager: Klager,
     sakenGjelder: SakenGjelder,
     prosessfullmektig: Prosessfullmektig?,
@@ -89,6 +90,7 @@ class Ankebehandling(
     gosysOppgaveRequired: Boolean,
 ) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
+    previousBehandlingId = previousBehandlingId,
     klager = klager,
     sakenGjelder = sakenGjelder,
     prosessfullmektig = prosessfullmektig,

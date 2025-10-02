@@ -38,6 +38,7 @@ abstract class Omgjoeringskravbehandling(
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),
+    previousBehandlingId: UUID?,
     klager: Klager,
     sakenGjelder: SakenGjelder,
     prosessfullmektig: Prosessfullmektig?,
@@ -80,6 +81,7 @@ abstract class Omgjoeringskravbehandling(
     gosysOppgaveRequired: Boolean,
 ) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
+    previousBehandlingId = previousBehandlingId,
     klager = klager,
     sakenGjelder = sakenGjelder,
     prosessfullmektig = prosessfullmektig,

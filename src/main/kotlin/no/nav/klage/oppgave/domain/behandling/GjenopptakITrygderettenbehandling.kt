@@ -37,6 +37,7 @@ class GjenopptakITrygderettenbehandling(
 
     //Common properties
     id: UUID = UUID.randomUUID(),
+    previousBehandlingId: UUID?,
     klager: Klager,
     sakenGjelder: SakenGjelder,
     prosessfullmektig: Prosessfullmektig?,
@@ -79,6 +80,7 @@ class GjenopptakITrygderettenbehandling(
     gosysOppgaveRequired: Boolean,
 ) : Behandling(
     id = id,
+    previousBehandlingId = previousBehandlingId,
     klager = klager,
     sakenGjelder = sakenGjelder,
     prosessfullmektig = prosessfullmektig,

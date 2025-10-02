@@ -36,6 +36,7 @@ class AnkeITrygderettenbehandling(
 
     //Common properties
     id: UUID = UUID.randomUUID(),
+    previousBehandlingId: UUID?,
     klager: Klager,
     sakenGjelder: SakenGjelder,
     prosessfullmektig: Prosessfullmektig?,
@@ -78,6 +79,7 @@ class AnkeITrygderettenbehandling(
     gosysOppgaveRequired: Boolean,
 ) : Behandling(
     id = id,
+    previousBehandlingId = previousBehandlingId,
     klager = klager,
     sakenGjelder = sakenGjelder,
     prosessfullmektig = prosessfullmektig,
