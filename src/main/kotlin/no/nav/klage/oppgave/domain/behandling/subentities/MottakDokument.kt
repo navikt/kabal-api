@@ -1,4 +1,4 @@
-package no.nav.klage.oppgave.domain.mottak
+package no.nav.klage.oppgave.domain.behandling.subentities
 
 import jakarta.persistence.*
 import java.util.*

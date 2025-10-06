@@ -19,10 +19,10 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentType
 import no.nav.klage.oppgave.domain.kodeverk.LovligeTyper
 import no.nav.klage.oppgave.domain.mottak.Mottak
-import no.nav.klage.oppgave.domain.mottak.MottakDokument
-import no.nav.klage.oppgave.domain.mottak.MottakDokumentType
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException
