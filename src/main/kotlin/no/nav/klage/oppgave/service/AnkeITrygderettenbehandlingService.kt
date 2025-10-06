@@ -71,6 +71,7 @@ class AnkeITrygderettenbehandlingService(
                 gosysOppgaveId = input.gosysOppgaveId,
                 tilbakekreving = input.tilbakekreving,
                 gosysOppgaveRequired = input.gosysOppgaveRequired,
+                initiatingSystem = input.initiatingSystem,
             )
         )
         logger.debug("Created ankeITrygderettenbehandling {}", ankeITrygderettenbehandling.id)

@@ -77,20 +77,6 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @PostMapping("/generatemissingankeitrygderettendev", produces = ["application/json"])
-    @ResponseStatus(HttpStatus.OK)
-    fun generateMissingAnkeITrygderetten() {
-        logger.debug("generateMissingAnkeITrygderetten is called in dev")
-
-        try {
-            adminService.generateMissingAnkeITrygderetten()
-        } catch (e: Exception) {
-            logger.warn("Failed to generate missing AnkeITrygderetten", e)
-            throw e
-        }
-    }
-
-    @Unprotected
     @PostMapping("/migratedvh")
     fun migrateDvhEvents() {
         logger.debug("migrateDvhEvents is called")

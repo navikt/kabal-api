@@ -21,7 +21,7 @@ data class Mottak(
     val fagsakId: String,
     val kildeReferanse: String,
     val dvhReferanse: String?,
-    val hjemler: Set<MottakHjemmel>,
+    val hjemler: Set<Hjemmel>,
     val forrigeSaksbehandlerident: String?,
     val forrigeBehandlendeEnhet: String,
     val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
@@ -35,9 +35,8 @@ data class Mottak(
     val forrigeBehandlingId: UUID?,
     val sentFrom: Sender
 ) {
-
     enum class Sender {
-        FAGSYSTEM, KABIN, BRUKER
+        FAGSYSTEM, KABIN
     }
 
     fun generateFrist(): LocalDate {
@@ -50,11 +49,4 @@ data class Mottak(
             else -> (sakMottattKaDato.toLocalDate() + Period.ofWeeks(12))
         }
     }
-
-    fun mapToBehandlingHjemler(): Set<Hjemmel> =
-        if (hjemler.isEmpty()) {
-            error("Hjemler kan ikke være tomme")
-        } else {
-            hjemler.map { Hjemmel.of(it.hjemmelId) }.toSet()
-        }
 }

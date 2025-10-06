@@ -7,12 +7,12 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.behandling.subentities.Melding
-import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -49,42 +49,12 @@ class MeldingRepositoryTest {
     @Autowired
     lateinit var meldingRepository: MeldingRepository
 
-    @Autowired
-    lateinit var mottakRepository: MottakRepository
-
     //Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
     @Test
     fun `add meldinger works`() {
-
-        val mottak = Mottak(
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.KLAGE,
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            kildeReferanse = "1234234",
-            sakMottattKaDato = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            forrigeBehandlendeEnhet = "0101",
-            brukersKlageMottattVedtaksinstans = LocalDate.now(),
-            kommentar = null,
-            hjemler = emptySet(),
-            prosessfullmektig = null,
-            sakenGjelder = null,
-            dvhReferanse = null,
-            forrigeSaksbehandlerident = null,
-            frist = null,
-            forrigeBehandlingId = null,
-            sentFrom = Mottak.Sender.FAGSYSTEM,
-        )
-
-        mottakRepository.save(mottak)
-
         val klage = Klagebehandling(
             klager = Klager(
                 id = UUID.randomUUID(),
@@ -107,7 +77,6 @@ class MeldingRepositoryTest {
             fagsystem = Fagsystem.K9,
             fagsakId = "123",
             kildeReferanse = "abc",
-            mottakId = mottak.id,
             avsenderEnhetFoersteinstans = "0101",
             mottattVedtaksinstans = LocalDate.now(),
             kakaKvalitetsvurderingId = UUID.randomUUID(),
@@ -117,6 +86,7 @@ class MeldingRepositoryTest {
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
         )
 
         klagebehandlingRepository.save(klage)

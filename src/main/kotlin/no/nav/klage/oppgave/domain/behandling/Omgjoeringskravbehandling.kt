@@ -81,6 +81,7 @@ abstract class Omgjoeringskravbehandling(
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
+    initiatingSystem: InitiatingSystem,
 ) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
     klager = klager,
@@ -122,6 +123,7 @@ abstract class Omgjoeringskravbehandling(
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
     gosysOppgaveRequired = gosysOppgaveRequired,
+    initiatingSystem = initiatingSystem,
 ) {
 
     override fun toString(): String {

@@ -29,11 +29,9 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
-import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.repositories.MottakRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -67,9 +65,6 @@ class BehandlingServiceTest {
 
     @Autowired
     lateinit var testEntityManager: TestEntityManager
-
-    @Autowired
-    lateinit var mottakRepository: MottakRepository
 
     @Autowired
     lateinit var behandlingRepository: BehandlingRepository
@@ -437,32 +432,6 @@ class BehandlingServiceTest {
         hjemler: Boolean = true,
         trukket: Boolean = false
     ): Behandling {
-        val mottak = Mottak(
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.KLAGE,
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            kildeReferanse = "1234234",
-            sakMottattKaDato = LocalDateTime.now(),
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            forrigeBehandlendeEnhet = "0101",
-            brukersKlageMottattVedtaksinstans = LocalDate.now(),
-            kommentar = null,
-            hjemler = emptySet(),
-            prosessfullmektig = null,
-            sakenGjelder = null,
-            dvhReferanse = null,
-            forrigeSaksbehandlerident = null,
-            frist = null,
-            forrigeBehandlingId = null,
-            sentFrom = Mottak.Sender.FAGSYSTEM,
-        )
-
-        mottakRepository.save(mottak)
-
         val now = LocalDateTime.now()
 
         val ferdigstilling = Ferdigstilling(
@@ -518,6 +487,7 @@ class BehandlingServiceTest {
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
         )
 
         behandlingRepository.save(behandling)

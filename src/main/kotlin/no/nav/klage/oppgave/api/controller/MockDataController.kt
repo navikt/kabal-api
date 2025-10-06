@@ -10,6 +10,7 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.behandling.utfallToTrygderetten
@@ -347,6 +348,7 @@ class MockDataController(
                     gosysOppgaveId = null,
                     tilbakekreving = false,
                     gosysOppgaveRequired = false,
+                    initiatingSystem = Behandling.InitiatingSystem.FAGSYSTEM,
                 )
 
                 ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(

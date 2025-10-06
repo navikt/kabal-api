@@ -6,6 +6,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
@@ -64,6 +65,7 @@ class GjenopptakITrygderettenbehandlingService(
                 gosysOppgaveId = input.gosysOppgaveId,
                 tilbakekreving = input.tilbakekreving,
                 gosysOppgaveRequired = input.gosysOppgaveRequired,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
             )
         )
         logger.debug("Created gjenopptakITrygderettenbehandling {}", gjenopptakITrygderettenbehandling.id)

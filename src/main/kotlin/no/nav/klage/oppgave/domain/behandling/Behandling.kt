@@ -251,7 +251,14 @@ sealed class Behandling(
     @Column(name = "gosys_oppgave_required")
     @NotAudited
     val gosysOppgaveRequired: Boolean,
+    @Column(name = "initiating_system")
+    @Enumerated(EnumType.STRING)
+    val initiatingSystem: InitiatingSystem,
 ) {
+
+    enum class InitiatingSystem {
+        FAGSYSTEM, KABIN, KABAL
+    }
 
     /**
      * Brukes til ES og statistikk per nå
@@ -348,6 +355,7 @@ sealed class Behandling(
             gosysOppgaveId = gosysOppgaveId,
             tilbakekreving = tilbakekreving,
             gosysOppgaveRequired = gosysOppgaveRequired,
+            initiatingSystem = InitiatingSystem.KABAL,
         )
     }
 

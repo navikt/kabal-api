@@ -225,8 +225,6 @@ class KabinApiService(
     }
 
     private fun getCreatedOmgjoeringskravbehandlingStatusForKabin(omgjoeringskravbehandling: Omgjoeringskravbehandling): CreatedBehandlingStatusForKabin {
-        val mottak = mottakService.getMottak(omgjoeringskravbehandling.mottakId)
-
         val dokumentUnderArbeid =
             dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = omgjoeringskravbehandling.id)
 
@@ -298,8 +296,6 @@ class KabinApiService(
     private fun getCreatedAnkebehandlingStatusForKabin(
         ankebehandling: Ankebehandling,
     ): CreatedBehandlingStatusForKabin {
-        val mottak = mottakService.getMottak(ankebehandling.mottakId!!)
-
         val dokumentUnderArbeid =
             dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = ankebehandling.id)
 
@@ -371,8 +367,6 @@ class KabinApiService(
     private fun getCreatedKlagebehandlingStatusForKabin(
         klagebehandling: Klagebehandling,
     ): CreatedBehandlingStatusForKabin {
-        val mottak = mottakService.getMottak(mottakId = klagebehandling.mottakId)
-
         val dokumentUnderArbeid =
             dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = klagebehandling.id)
 

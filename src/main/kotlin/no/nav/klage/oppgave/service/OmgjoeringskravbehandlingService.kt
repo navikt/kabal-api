@@ -50,7 +50,7 @@ class OmgjoeringskravbehandlingService(
                     saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = 2,
-                    hjemler = mottak.mapToBehandlingHjemler(),
+                    hjemler = mottak.hjemler,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     oppgaveId = null,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
@@ -59,6 +59,7 @@ class OmgjoeringskravbehandlingService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
                 )
             )
         } else {
@@ -79,7 +80,7 @@ class OmgjoeringskravbehandlingService(
                     saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = 2,
-                    hjemler = mottak.mapToBehandlingHjemler(),
+                    hjemler = mottak.hjemler,
                     sourceBehandlingId = mottak.forrigeBehandlingId,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     oppgaveId = null,
@@ -89,11 +90,12 @@ class OmgjoeringskravbehandlingService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
                 )
             )
         }
 
-        logger.debug("Created {} with id {} for mottak with id {}", omgjoeringskravbehandling::javaClass.name, omgjoeringskravbehandling.id, mottak.id)
+        logger.debug("Created {} with id {}", omgjoeringskravbehandling::javaClass.name, omgjoeringskravbehandling.id)
 
         if (mottak.forrigeBehandlingId != null) {
             val behandling = behandlingRepository.findById(mottak.forrigeBehandlingId).get()

@@ -9,13 +9,13 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
-import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -54,20 +54,13 @@ class KlagebehandlingRepositoryTest {
     @Autowired
     lateinit var behandlingRepository: BehandlingRepository
 
-    @Autowired
-    lateinit var mottakRepository: MottakRepository
-
     //Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
     @Test
     fun `persist klage works`() {
-
-        val mottak = getMottak()
-        mottakRepository.save(mottak)
-
-        val klage = getKlagebehandling(mottak.id)
+        val klage = getKlagebehandling()
         klagebehandlingRepository.save(klage)
 
         testEntityManager.flush()
@@ -78,12 +71,7 @@ class KlagebehandlingRepositoryTest {
 
     @Test
     fun `persist klage with saksdokumenter works`() {
-
-        val mottak = getMottak()
-        mottakRepository.save(mottak)
-
         val klagebehandling = getKlagebehandling(
-            mottakId = mottak.id,
             saksdokumenter = mutableSetOf(
                 Saksdokument(journalpostId = "REF1", dokumentInfoId = "123"),
                 Saksdokument(journalpostId = "REF2", dokumentInfoId = "321"),
@@ -100,13 +88,7 @@ class KlagebehandlingRepositoryTest {
 
     @Test
     fun `remove saksdokument on saved klage works`() {
-        testEntityManager.flush()
-        testEntityManager.clear()
-
-        val mottak = getMottak()
-        mottakRepository.save(mottak)
         val klagebehandling = getKlagebehandling(
-            mottakId = mottak.id,
             saksdokumenter = mutableSetOf(
                 Saksdokument(journalpostId = "REF1", dokumentInfoId = "123"),
                 Saksdokument(journalpostId = "REF2", dokumentInfoId = "321"),
@@ -131,15 +113,7 @@ class KlagebehandlingRepositoryTest {
 
     @Test
     fun `get ankemuligheter returns all three instances`() {
-        val mottak1 = getMottak()
-        val mottak2 = getMottak()
-        val mottak3 = getMottak()
-
-        mottakRepository.saveAll(listOf(mottak1, mottak2, mottak3))
-
-        val klageWithNoAnke = getKlagebehandling(
-            mottakId = mottak1.id,
-        )
+        val klageWithNoAnke = getKlagebehandling()
         klageWithNoAnke.ferdigstilling = Ferdigstilling(
             avsluttet = LocalDateTime.now(),
             avsluttetAvSaksbehandler = LocalDateTime.now(),
@@ -148,9 +122,7 @@ class KlagebehandlingRepositoryTest {
         )
         klageWithNoAnke.utfall = Utfall.STADFESTELSE
 
-        val klageWithNoAnke2 = getKlagebehandling(
-            mottakId = mottak1.id
-        )
+        val klageWithNoAnke2 = getKlagebehandling()
         klageWithNoAnke2.ferdigstilling = Ferdigstilling(
             avsluttet = LocalDateTime.now(),
             avsluttetAvSaksbehandler = LocalDateTime.now(),
@@ -160,9 +132,7 @@ class KlagebehandlingRepositoryTest {
 
         klageWithNoAnke2.utfall = Utfall.RETUR
 
-        val klageWithAnke = getKlagebehandling(
-            mottakId = mottak2.id
-        )
+        val klageWithAnke = getKlagebehandling()
         klageWithAnke.ferdigstilling = Ferdigstilling(
             avsluttet = LocalDateTime.now(),
             avsluttetAvSaksbehandler = LocalDateTime.now(),
@@ -202,6 +172,7 @@ class KlagebehandlingRepositoryTest {
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
         )
 
         ankebehandlingRepository.save(ankebehandling)
@@ -216,32 +187,7 @@ class KlagebehandlingRepositoryTest {
         )
     }
 
-    fun getMottak(): Mottak = Mottak(
-        ytelse = Ytelse.OMS_OMP,
-        type = Type.KLAGE,
-        klager = Klager(
-            id = UUID.randomUUID(),
-            partId = PartId(type = PartIdType.PERSON, value = "23452354")
-        ),
-        kildeReferanse = "1234234",
-        sakMottattKaDato = LocalDateTime.now(),
-        fagsystem = Fagsystem.K9,
-        fagsakId = "123",
-        forrigeBehandlendeEnhet = "0101",
-        brukersKlageMottattVedtaksinstans = LocalDate.now(),
-        kommentar = null,
-        hjemler = emptySet(),
-        prosessfullmektig = null,
-        sakenGjelder = null,
-        dvhReferanse = null,
-        forrigeSaksbehandlerident = null,
-        frist = null,
-        forrigeBehandlingId = null,
-        sentFrom = Mottak.Sender.FAGSYSTEM,
-    )
-
     fun getKlagebehandling(
-        mottakId: UUID,
         saksdokumenter: MutableSet<Saksdokument>? = null,
     ): Klagebehandling = Klagebehandling(
         klager = Klager(
@@ -265,7 +211,6 @@ class KlagebehandlingRepositoryTest {
         fagsystem = Fagsystem.K9,
         fagsakId = "123",
         kildeReferanse = "abc",
-        mottakId = mottakId,
         avsenderEnhetFoersteinstans = "0101",
         mottattVedtaksinstans = LocalDate.now(),
         saksdokumenter = saksdokumenter ?: mutableSetOf(),
@@ -276,5 +221,6 @@ class KlagebehandlingRepositoryTest {
         varsletBehandlingstid = null,
         forlengetBehandlingstidDraft = null,
         gosysOppgaveRequired = false,
+        initiatingSystem = Behandling.InitiatingSystem.KABAL,
     )
 }

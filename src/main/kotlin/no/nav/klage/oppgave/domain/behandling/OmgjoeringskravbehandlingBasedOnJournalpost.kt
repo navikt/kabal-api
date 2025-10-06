@@ -70,6 +70,7 @@ class OmgjoeringskravbehandlingBasedOnJournalpost(
     varsletBehandlingstid: VarsletBehandlingstid?,
     forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
     gosysOppgaveRequired: Boolean,
+    initiatingSystem: InitiatingSystem,
 ) : BehandlingWithVarsletBehandlingstid, Omgjoeringskravbehandling(
     id = id,
     klager = klager,
@@ -117,6 +118,7 @@ class OmgjoeringskravbehandlingBasedOnJournalpost(
     forlengetBehandlingstidDraft = forlengetBehandlingstidDraft,
     oppgaveId = oppgaveId,
     gosysOppgaveRequired = gosysOppgaveRequired,
+    initiatingSystem = initiatingSystem,
 ) {
 
     override fun toString(): String {

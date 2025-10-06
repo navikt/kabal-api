@@ -33,7 +33,6 @@ internal class KlagebehandlingTest {
                 partId = PartId(PartIdType.PERSON, fnr),
             ),
             prosessfullmektig = null,
-            mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
@@ -47,6 +46,7 @@ internal class KlagebehandlingTest {
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
         )
     }
 

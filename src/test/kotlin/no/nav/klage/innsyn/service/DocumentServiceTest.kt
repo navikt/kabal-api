@@ -179,7 +179,6 @@ internal class DocumentServiceTest {
             mottattVedtaksinstans = LocalDate.now(),
             avsenderEnhetFoersteinstans = "",
             kommentarFraFoersteinstans = null,
-            mottakId = UUID.randomUUID(),
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
             varsletBehandlingstid = null,
@@ -235,6 +234,7 @@ internal class DocumentServiceTest {
             ignoreGosysOppgave = false,
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
         )
     }
 }

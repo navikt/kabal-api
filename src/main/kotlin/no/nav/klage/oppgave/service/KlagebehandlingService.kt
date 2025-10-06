@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
@@ -53,13 +54,14 @@ class KlagebehandlingService(
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                hjemler = mottak.mapToBehandlingHjemler(),
+                hjemler = mottak.hjemler,
                 kommentarFraFoersteinstans = mottak.kommentar,
                 gosysOppgaveId = gosysOppgaveId,
                 tilbakekreving = false,
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
                 gosysOppgaveRequired = gosysOppgaveRequired,
+                initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
             )
         )
         logger.debug("Created klagebehandling {}", klagebehandling.id)

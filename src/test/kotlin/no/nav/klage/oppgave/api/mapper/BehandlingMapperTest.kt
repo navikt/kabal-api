@@ -12,6 +12,7 @@ import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.MedunderskriverTildeling
@@ -106,7 +107,6 @@ class BehandlingMapperTest {
                 partId = PartId(PartIdType.PERSON, FNR),
             ),
             prosessfullmektig = null,
-            mottakId = UUID.randomUUID(),
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
@@ -120,6 +120,7 @@ class BehandlingMapperTest {
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
         )
     }
 

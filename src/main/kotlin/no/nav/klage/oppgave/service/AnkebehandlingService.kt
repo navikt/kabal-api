@@ -5,6 +5,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.mottak.Mottak
@@ -40,7 +41,11 @@ class AnkebehandlingService(
         return ankebehandlingRepository.findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId = sourceBehandlingId)
     }
 
-    fun createAnkebehandlingFromMottak(mottak: Mottak, gosysOppgaveRequired: Boolean, gosysOppgaveId: Long?): Ankebehandling {
+    fun createAnkebehandlingFromMottak(
+        mottak: Mottak,
+        gosysOppgaveRequired: Boolean,
+        gosysOppgaveId: Long?
+    ): Ankebehandling {
         val ankebehandling = ankebehandlingRepository.save(
             Ankebehandling(
                 klager = mottak.klager.copy(),
@@ -58,7 +63,7 @@ class AnkebehandlingService(
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = 2,
-                hjemler = mottak.mapToBehandlingHjemler(),
+                hjemler = mottak.hjemler,
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
                 sourceBehandlingId = mottak.forrigeBehandlingId,
                 previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
@@ -67,9 +72,10 @@ class AnkebehandlingService(
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
                 gosysOppgaveRequired = gosysOppgaveRequired,
+                initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
             )
         )
-        logger.debug("Created ankebehandling {} for mottak {}", ankebehandling.id, mottak.id)
+        logger.debug("Created ankebehandling {}", ankebehandling.id)
 
         if (mottak.forrigeBehandlingId != null) {
             val behandling = behandlingRepository.findById(mottak.forrigeBehandlingId).get()
@@ -156,6 +162,7 @@ class AnkebehandlingService(
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
                 gosysOppgaveRequired = ankeITrygderettenbehandling.gosysOppgaveRequired,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
             )
         )
         logger.debug(

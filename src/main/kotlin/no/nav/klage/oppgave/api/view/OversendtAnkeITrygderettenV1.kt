@@ -5,6 +5,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import java.time.LocalDateTime
@@ -92,5 +93,6 @@ fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingInput(inputDoc
         gosysOppgaveId = null,
         tilbakekreving = false,
         gosysOppgaveRequired = false,
+        initiatingSystem = Behandling.InitiatingSystem.KABAL,
     )
 }

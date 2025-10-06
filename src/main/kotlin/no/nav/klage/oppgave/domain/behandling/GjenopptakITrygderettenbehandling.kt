@@ -77,6 +77,7 @@ class GjenopptakITrygderettenbehandling(
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
+    initiatingSystem: InitiatingSystem,
 ) : Behandling(
     id = id,
     klager = klager,
@@ -118,6 +119,7 @@ class GjenopptakITrygderettenbehandling(
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
     gosysOppgaveRequired = gosysOppgaveRequired,
+    initiatingSystem = initiatingSystem,
 ) {
     override fun toString(): String {
         return "GjenopptakITrygderettenbehandling(id=$id, " +

@@ -74,12 +74,10 @@ class AdminService(
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
     private val kafkaEventRepository: KafkaEventRepository,
     private val fileApiClient: FileApiClient,
-    private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val safFacade: SafFacade,
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingService: BehandlingService,
-    private val mottakRepository: MottakRepository,
     private val klageFssProxyClient: KlageFssProxyClient,
     private val tokenUtil: TokenUtil,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
@@ -160,28 +158,9 @@ class AdminService(
 
         dokumentUnderArbeidRepository.deleteAll(hoveddokumenter)
 
-        //delete mottak also
         val behandling = behandlingRepository.findById(behandlingId).get()
-        val mottakId = when (behandling) {
-            is Klagebehandling -> {
-                behandling.mottakId
-            }
-
-            is Ankebehandling -> {
-                behandling.mottakId
-            }
-
-            is Omgjoeringskravbehandling ->
-                behandling.mottakId
-
-            else -> null
-        }
 
         behandlingRepository.deleteById(behandlingId)
-
-        if (mottakId != null) {
-            mottakRepository.deleteById(mottakId)
-        }
 
         //Delete in search
         behandlingEndretKafkaProducer.sendBehandlingDeleted(behandlingId)
@@ -207,64 +186,6 @@ class AdminService(
             EventType.STATS_DVH,
             listOf(UtsendingStatus.IKKE_SENDT, UtsendingStatus.FEILET, UtsendingStatus.SENDT)
         )
-    }
-
-    @Transactional
-    fun generateMissingAnkeITrygderetten() {
-        logger.debug("Attempting generate missing AnkeITrygderettenBehandling")
-
-        val candidates =
-            ankebehandlingRepository.findByFerdigstillingAvsluttetIsNotNullAndFeilregistreringIsNullAndUtfallIn(
-                utfallToTrygderetten
-            )
-
-        val existingAnkeITrygderettenBehandlingKildereferanseAndFagsystem =
-            ankeITrygderettenbehandlingRepository.findAll().map { it.kildeReferanse to it.fagsystem }
-
-        val ankebehandlingerWithouthAnkeITrygderetten =
-            candidates.filter { it.kildeReferanse to it.fagsystem !in existingAnkeITrygderettenBehandlingKildereferanseAndFagsystem }
-
-        val ankebehandlingerWithAnkeITrygderetten =
-            candidates.filter { it.kildeReferanse to it.fagsystem in existingAnkeITrygderettenBehandlingKildereferanseAndFagsystem }
-
-        var logString = ""
-
-        logString += "Antall kandidater blant Ankebehandlinger: ${candidates.size} \n"
-
-        logString += "Antall manglende ankeITrygderetten: ${ankebehandlingerWithouthAnkeITrygderetten.size} \n"
-        logString += "Antall tidligere opprettede ankeITrygderetten: ${ankebehandlingerWithAnkeITrygderetten.size} \n\n"
-
-        ankebehandlingerWithouthAnkeITrygderetten.forEach {
-            try {
-                ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
-                    it.createAnkeITrygderettenbehandlingInput()
-                )
-                logString += "Mangler: ankeBehandlingId: ${it.id},  kildeReferanse: ${it.kildeReferanse} \n"
-            } catch (e: Exception) {
-                logger.warn(
-                    "Klarte ikke å opprette ankeITrygderettenbehandling basert på ankebehandling ${it.id}. Undersøk!",
-                    e
-                )
-            }
-        }
-
-        ankebehandlingerWithAnkeITrygderetten.forEach {
-            logString += "Finnes fra før: ankeBehandlingId: ${it.id},  kildeReferanse: ${it.kildeReferanse} \n"
-        }
-
-        val existingAnkeITrygderettenBehandlingKildereferanseAndFagsystemAfter =
-            ankeITrygderettenbehandlingRepository.findAll().map { it.kildeReferanse to it.fagsystem }
-
-        val ankebehandlingerWithouthAnkeITrygderettenAfter =
-            candidates.filter { it.kildeReferanse to it.fagsystem !in existingAnkeITrygderettenBehandlingKildereferanseAndFagsystemAfter }
-
-        val ankebehandlingerWithAnkeITrygderettenAfter =
-            candidates.filter { it.kildeReferanse to it.fagsystem in existingAnkeITrygderettenBehandlingKildereferanseAndFagsystemAfter }
-
-        logString += "Antall manglende ankeITrygderetten etter operasjonen: ${ankebehandlingerWithouthAnkeITrygderettenAfter.size} \n"
-        logString += "Antall opprettede ankeITrygderetten etter operasjonen: ${ankebehandlingerWithAnkeITrygderettenAfter.size} \n"
-
-        logger.debug(logString)
     }
 
     @Transactional

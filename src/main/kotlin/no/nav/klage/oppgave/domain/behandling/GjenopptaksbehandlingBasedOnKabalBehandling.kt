@@ -72,6 +72,7 @@ class GjenopptaksbehandlingBasedOnKabalBehandling(
     varsletBehandlingstid: VarsletBehandlingstid?,
     forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
     gosysOppgaveRequired: Boolean,
+    initiatingSystem: InitiatingSystem,
 ) : BehandlingWithVarsletBehandlingstid, Gjenopptaksbehandling(
     id = id,
     klager = klager,
@@ -119,6 +120,7 @@ class GjenopptaksbehandlingBasedOnKabalBehandling(
     forlengetBehandlingstidDraft = forlengetBehandlingstidDraft,
     klageVedtaksDato = null,
     gosysOppgaveRequired = gosysOppgaveRequired,
+    initiatingSystem = initiatingSystem,
 ) {
 
     override fun toString(): String {

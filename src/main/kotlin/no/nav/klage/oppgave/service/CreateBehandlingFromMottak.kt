@@ -30,11 +30,14 @@ class CreateBehandlingFromMottak(
         )
     }
 
-    fun createBehandling(mottak: Mottak, isBasedOnJournalpost: Boolean = false, gosysOppgaveRequired: Boolean, gosysOppgaveId: Long?): Behandling {
-        logger.debug(
-            "Received mottak {} in CreateBehandlingFromMottak",
-            mottak.id
-        )
+    //TODO: Ta inn gosysoppgaverequired i mottak
+    fun createBehandling(
+        mottak: Mottak,
+        isBasedOnJournalpost: Boolean = false,
+        gosysOppgaveRequired: Boolean,
+        gosysOppgaveId: Long?
+    ): Behandling {
+        logger.debug("Received mottak in CreateBehandlingFromMottak")
 
         return when (mottak.type) {
             Type.KLAGE -> klagebehandlingService.createKlagebehandlingFromMottak(
@@ -42,6 +45,7 @@ class CreateBehandlingFromMottak(
                 gosysOppgaveRequired = gosysOppgaveRequired,
                 gosysOppgaveId = gosysOppgaveId
             )
+
             Type.ANKE -> {
                 val ankebehandling = ankebehandlingService.createAnkebehandlingFromMottak(
                     mottak = mottak,
@@ -55,6 +59,7 @@ class CreateBehandlingFromMottak(
 
                 ankebehandling
             }
+
             Type.OMGJOERINGSKRAV -> {
                 omgjoeringskravbehandlingService.createOmgjoeringskravbehandlingFromMottak(
                     mottak = mottak,
@@ -74,6 +79,7 @@ class CreateBehandlingFromMottak(
                     gosysOppgaveRequired = gosysOppgaveRequired,
                 )
             }
+
             Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> TODO()
         }
     }
@@ -88,9 +94,9 @@ class CreateBehandlingFromMottak(
             type = BehandlingEventType.ANKEBEHANDLING_OPPRETTET,
             detaljer = BehandlingDetaljer(
                 ankebehandlingOpprettet =
-                AnkebehandlingOpprettetDetaljer(
-                    mottattKlageinstans = ankebehandling.mottattKlageinstans
-                )
+                    AnkebehandlingOpprettetDetaljer(
+                        mottattKlageinstans = ankebehandling.mottattKlageinstans
+                    )
             )
         )
         kafkaEventRepository.save(
