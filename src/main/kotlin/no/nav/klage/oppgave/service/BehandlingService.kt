@@ -1166,8 +1166,7 @@ class BehandlingService(
                 from = LocalDate.now(),
                 to = input.to,
                 reason = input.reason,
-                //TODO: Remove elvis operator when input always includes reasonId.
-                reasonId = input.reasonId ?: SattPaaVentReason.ANNET.id
+                reasonId = input.reasonId,
             )
         } else null
 
@@ -1178,6 +1177,24 @@ class BehandlingService(
                         utfoerendeSaksbehandlerIdent
                     )
         )
+
+        if (sattPaaVent != null && typeToSattPaaVentReason[behandling.type]?.contains(SattPaaVentReason.of(sattPaaVent.reasonId)) != true) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = listOf(
+                            InvalidProperty(
+                                field = "sattPaaVent",
+                                reason = "Ugyldig grunn for å sette på vent for ${behandling.type}."
+                            )
+                        )
+                    )
+                )
+            )
+        }
+
         val event =
             behandling.setSattPaaVent(
                 nyVerdi = sattPaaVent,
