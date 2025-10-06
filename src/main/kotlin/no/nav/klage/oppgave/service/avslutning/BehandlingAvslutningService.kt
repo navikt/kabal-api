@@ -548,27 +548,29 @@ class BehandlingAvslutningService(
                 )
             }
 
-            is Gjenopptaksbehandling -> {
-                BehandlingDetaljer(
-                    gjenopptaksbehandlingAvsluttet = GjenopptaksbehandlingAvsluttetDetaljer(
-                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
-                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
-                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
-                            .map { it.journalpostId }
-                    )
-                )
-            }
+            is Gjenopptaksbehandling -> TODO()
+//                {
+//                BehandlingDetaljer(
+//                    gjenopptaksbehandlingAvsluttet = GjenopptaksbehandlingAvsluttetDetaljer(
+//                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+//                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
+//                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+//                            .map { it.journalpostId }
+//                    )
+//                )
+//            }
 
-            is GjenopptakITrygderettenbehandling -> {
-                BehandlingDetaljer(
-                    gjenopptaksbehandlingAvsluttet = GjenopptaksbehandlingAvsluttetDetaljer(
-                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
-                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
-                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
-                            .map { it.journalpostId }
-                    )
-                )
-            }
+            is GjenopptakITrygderettenbehandling -> TODO()
+//                {
+//                BehandlingDetaljer(
+//                    gjenopptaksbehandlingAvsluttet = GjenopptaksbehandlingAvsluttetDetaljer(
+//                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+//                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
+//                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+//                            .map { it.journalpostId }
+//                    )
+//                )
+//            }
         }
     }
 }

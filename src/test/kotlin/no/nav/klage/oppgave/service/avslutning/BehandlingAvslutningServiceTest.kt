@@ -1151,6 +1151,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
+        @Disabled
         fun `GjenopptaksbehandlingBasedOnKabalBehandling with utfall MEDHOLD_ETTER_FVL_35 should create Kafka message`() {
             val behandling = mockk<GjenopptaksbehandlingBasedOnKabalBehandling>(relaxed = true) {
                 every { id } returns behandlingId
@@ -1530,6 +1531,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
+        @Disabled
         fun `GjenopptakITrygderettenbehandling without gosysoppgave and utfall opphevet new behandling VL sends Kafka message`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns false
@@ -1608,6 +1610,7 @@ class BehandlingAvslutningServiceTest {
         }
 
         @Test
+        @Disabled
         fun `GjenopptakITrygderettenbehandling without gosysoppgave and utfall gjenopptatt - delvis eller fullt medhold sends Kafka message`() {
             every { behandling.fagsystem } returns Fagsystem.IT01
             every { behandling.gosysOppgaveRequired } returns false

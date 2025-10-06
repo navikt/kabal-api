@@ -10,7 +10,6 @@ import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
-import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.repositories.GjenopptakITrygderettenbehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -19,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 @Service
 @Transactional
@@ -112,30 +110,31 @@ class GjenopptakITrygderettenbehandlingService(
         )
 
         //Publiser Kafka-event, infomelding om opprettelse
-        val behandlingEvent = BehandlingEvent(
-            eventId = UUID.randomUUID(),
-            kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse,
-            kilde = gjenopptakITrygderettenbehandling.fagsystem.navn,
-            kabalReferanse = gjenopptakITrygderettenbehandling.id.toString(),
-            type = BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET,
-            detaljer = BehandlingDetaljer(
-                gjenopptakITrygderettenbehandlingOpprettet =
-                GjenopptakITrygderettenbehandlingOpprettetDetaljer(
-                    sendtTilTrygderetten = gjenopptakITrygderettenbehandling.sendtTilTrygderetten,
-                    utfall = input.gjenopptakbehandlingUtfall,
-                )
-            )
-        )
-        kafkaEventRepository.save(
-            KafkaEvent(
-                id = UUID.randomUUID(),
-                behandlingId = gjenopptakITrygderettenbehandling.id,
-                kilde = gjenopptakITrygderettenbehandling.fagsystem.navn,
-                kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse,
-                jsonPayload = objectMapperBehandlingEvents.writeValueAsString(behandlingEvent),
-                type = EventType.BEHANDLING_EVENT
-            )
-        )
+        //TODO: Vurder sammen med vurderingen i BehandlingEvent.kt
+//        val behandlingEvent = BehandlingEvent(
+//            eventId = UUID.randomUUID(),
+//            kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse,
+//            kilde = gjenopptakITrygderettenbehandling.fagsystem.navn,
+//            kabalReferanse = gjenopptakITrygderettenbehandling.id.toString(),
+//            type = BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET,
+//            detaljer = BehandlingDetaljer(
+//                gjenopptakITrygderettenbehandlingOpprettet =
+//                GjenopptakITrygderettenbehandlingOpprettetDetaljer(
+//                    sendtTilTrygderetten = gjenopptakITrygderettenbehandling.sendtTilTrygderetten,
+//                    utfall = input.gjenopptakbehandlingUtfall,
+//                )
+//            )
+//        )
+//        kafkaEventRepository.save(
+//            KafkaEvent(
+//                id = UUID.randomUUID(),
+//                behandlingId = gjenopptakITrygderettenbehandling.id,
+//                kilde = gjenopptakITrygderettenbehandling.fagsystem.navn,
+//                kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse,
+//                jsonPayload = objectMapperBehandlingEvents.writeValueAsString(behandlingEvent),
+//                type = EventType.BEHANDLING_EVENT
+//            )
+//        )
 
         return gjenopptakITrygderettenbehandling
     }

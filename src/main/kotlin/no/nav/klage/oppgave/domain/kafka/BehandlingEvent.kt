@@ -34,9 +34,10 @@ data class BehandlingDetaljer(
     val behandlingFeilregistrert: BehandlingFeilregistrertDetaljer? = null,
     val behandlingEtterTrygderettenOpphevetAvsluttet: BehandlingEtterTrygderettenOpphevetAvsluttetDetaljer? = null,
     val omgjoeringskravbehandlingAvsluttet: OmgjoeringskravbehandlingAvsluttetDetaljer? = null,
-    val gjenopptaksbehandlingOpprettet: GjenopptaksbehandlingOpprettetDetaljer? = null,
-    val gjenopptaksbehandlingAvsluttet: GjenopptaksbehandlingAvsluttetDetaljer? = null,
-    val gjenopptakITrygderettenbehandlingOpprettet: GjenopptakITrygderettenbehandlingOpprettetDetaljer? = null,
+    //TODO: Vurder hva vi skal formidle til VL i disse tilfellene.
+//    val gjenopptaksbehandlingOpprettet: GjenopptaksbehandlingOpprettetDetaljer? = null,
+//    val gjenopptaksbehandlingAvsluttet: GjenopptaksbehandlingAvsluttetDetaljer? = null,
+//    val gjenopptakITrygderettenbehandlingOpprettet: GjenopptakITrygderettenbehandlingOpprettetDetaljer? = null,
 )
 
 data class KlagebehandlingAvsluttetDetaljer(
