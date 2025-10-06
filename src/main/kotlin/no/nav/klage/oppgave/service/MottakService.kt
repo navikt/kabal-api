@@ -19,7 +19,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
-import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentType
 import no.nav.klage.oppgave.domain.kodeverk.LovligeTyper
 import no.nav.klage.oppgave.domain.mottak.Mottak
@@ -738,7 +738,7 @@ class MottakService(
         val type = Type.of(input.typeId)
         val innsendtDokument =
             mutableSetOf(
-                MottakDokument(
+                MottakDokumentDTO(
                     type = when (type) {
                         Type.ANKE -> MottakDokumentType.BRUKERS_ANKE
                         Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
@@ -833,7 +833,7 @@ class MottakService(
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),
             forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
             mottakDokument = mutableSetOf(
-                MottakDokument(
+                MottakDokumentDTO(
                     type = MottakDokumentType.BRUKERS_KLAGE,
                     journalpostId = klageJournalpostId
                 )
@@ -905,7 +905,7 @@ class MottakService(
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),
             forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
             mottakDokument = mutableSetOf(
-                MottakDokument(
+                MottakDokumentDTO(
                     type = MottakDokumentType.BRUKERS_ANKE,
                     journalpostId = ankeJournalpostId
                 )
@@ -977,7 +977,7 @@ class MottakService(
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),
             forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
             mottakDokument = mutableSetOf(
-                MottakDokument(
+                MottakDokumentDTO(
                     type = MottakDokumentType.BRUKERS_OMGJOERINGSKRAV,
                     journalpostId = receivedDocumentJournalpostId
                 )

@@ -40,8 +40,12 @@ class Ankebehandling(
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
-    @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
+    @OneToMany(
+        mappedBy = "behandling",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
     @NotAudited
     val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
 

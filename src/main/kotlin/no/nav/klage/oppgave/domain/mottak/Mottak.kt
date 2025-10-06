@@ -7,7 +7,7 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
-import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
@@ -25,7 +25,7 @@ data class Mottak(
     val hjemler: Set<Hjemmel>,
     val forrigeSaksbehandlerident: String?,
     val forrigeBehandlendeEnhet: String,
-    val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
+    val mottakDokument: MutableSet<MottakDokumentDTO> = mutableSetOf(),
     val brukersKlageMottattVedtaksinstans: LocalDate?,
     val sakMottattKaDato: LocalDateTime,
     val frist: LocalDate?,

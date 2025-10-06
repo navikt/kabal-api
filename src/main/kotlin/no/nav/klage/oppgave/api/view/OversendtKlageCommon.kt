@@ -7,7 +7,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
-import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentType
 import java.util.*
 
@@ -98,7 +98,7 @@ data class OversendtDokumentReferanse(
     )
     val journalpostId: String
 ) {
-    fun toMottakDokument() = MottakDokument(
+    fun toMottakDokument() = MottakDokumentDTO(
         type = type,
         journalpostId = journalpostId
     )

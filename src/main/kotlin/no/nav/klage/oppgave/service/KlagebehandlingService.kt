@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.mottak.Mottak
@@ -61,9 +62,20 @@ class KlagebehandlingService(
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
                 gosysOppgaveRequired = gosysOppgaveRequired,
-                initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
+                initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
             )
         )
+        //TODO find all places do this
+        mottak.mottakDokument.forEach { mottakDokument ->
+            klagebehandling.mottakDokument.add(
+                MottakDokument(
+                    type = mottakDokument.type,
+                    journalpostId = mottakDokument.journalpostId,
+                    behandling = klagebehandling,
+                )
+            )
+        }
+
         logger.debug("Created klagebehandling {}", klagebehandling.id)
 
         applicationEventPublisher.publishEvent(
