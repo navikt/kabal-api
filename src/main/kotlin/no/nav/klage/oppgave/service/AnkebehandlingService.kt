@@ -43,8 +43,6 @@ class AnkebehandlingService(
 
     fun createAnkebehandlingFromMottak(
         mottak: Mottak,
-        gosysOppgaveRequired: Boolean,
-        gosysOppgaveId: Long?
     ): Ankebehandling {
         val ankebehandling = ankebehandlingRepository.save(
             Ankebehandling(
@@ -67,11 +65,11 @@ class AnkebehandlingService(
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
                 sourceBehandlingId = mottak.forrigeBehandlingId,
                 previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
-                gosysOppgaveId = gosysOppgaveId,
+                gosysOppgaveId = mottak.gosysOppgaveId,
                 tilbakekreving = false,
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
-                gosysOppgaveRequired = gosysOppgaveRequired,
+                gosysOppgaveRequired = mottak.gosysOppgaveRequired,
                 initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
             )
         )

@@ -33,24 +33,17 @@ class CreateBehandlingFromMottak(
     //TODO: Ta inn gosysoppgaverequired i mottak
     fun createBehandling(
         mottak: Mottak,
-        isBasedOnJournalpost: Boolean = false,
-        gosysOppgaveRequired: Boolean,
-        gosysOppgaveId: Long?
     ): Behandling {
         logger.debug("Received mottak in CreateBehandlingFromMottak")
 
         return when (mottak.type) {
             Type.KLAGE -> klagebehandlingService.createKlagebehandlingFromMottak(
                 mottak = mottak,
-                gosysOppgaveRequired = gosysOppgaveRequired,
-                gosysOppgaveId = gosysOppgaveId
             )
 
             Type.ANKE -> {
                 val ankebehandling = ankebehandlingService.createAnkebehandlingFromMottak(
                     mottak = mottak,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
-                    gosysOppgaveId = gosysOppgaveId
                 )
 
                 if (!ankebehandling.gosysOppgaveRequired) {
@@ -63,9 +56,6 @@ class CreateBehandlingFromMottak(
             Type.OMGJOERINGSKRAV -> {
                 omgjoeringskravbehandlingService.createOmgjoeringskravbehandlingFromMottak(
                     mottak = mottak,
-                    isBasedOnJournalpost = isBasedOnJournalpost,
-                    gosysOppgaveId = gosysOppgaveId,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
                 )
             }
 
@@ -74,9 +64,6 @@ class CreateBehandlingFromMottak(
             Type.BEGJAERING_OM_GJENOPPTAK -> {
                 gjenopptaksbehandlingService.createGjenopptaksbehandlingFromMottak(
                     mottak = mottak,
-                    isBasedOnJournalpost = isBasedOnJournalpost,
-                    gosysOppgaveId = gosysOppgaveId,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
                 )
             }
 

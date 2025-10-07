@@ -124,5 +124,8 @@ fun OversendtKlageV2.toMottak(): Mottak {
         prosessfullmektig = prosessfullmektigPart,
         forrigeBehandlingId = null,
         sentFrom = Mottak.Sender.FAGSYSTEM,
+        isBasedOnJournalpost = false,
+        gosysOppgaveRequired = false,
+        gosysOppgaveId = null,
     )
 }

@@ -74,9 +74,6 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
-            isBasedOnJournalpost = false,
-            gosysOppgaveRequired = false,
-            gosysOppgaveId = null
         )
 
         updateMetrics(
@@ -97,9 +94,6 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
-            isBasedOnJournalpost = false,
-            gosysOppgaveRequired = false,
-            gosysOppgaveId = null,
         )
 
         updateMetrics(
@@ -119,9 +113,6 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
-            isBasedOnJournalpost = false,
-            gosysOppgaveRequired = false,
-            gosysOppgaveId = null,
         )
 
         updateMetrics(
@@ -264,13 +255,13 @@ class MottakService(
             prosessfullmektigIdentifikator = input.fullmektig?.value,
         )
 
-        val mottak = sourceBehandling.toMottak(input)
+        val mottak = sourceBehandling.toMottak(
+            input = input,
+            gosysOppgaveRequired = sourceBehandling.gosysOppgaveRequired,
+        )
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
-            isBasedOnJournalpost = false,
-            gosysOppgaveRequired = sourceBehandling.gosysOppgaveRequired,
-            gosysOppgaveId = input.gosysOppgaveId
         )
 
         updateMetrics(
@@ -299,9 +290,6 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
-            isBasedOnJournalpost = false,
-            gosysOppgaveRequired = true,
-            gosysOppgaveId = input.gosysOppgaveId
         )
 
         updateMetrics(
@@ -324,9 +312,6 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
-            isBasedOnJournalpost = true,
-            gosysOppgaveRequired = true,
-            gosysOppgaveId = input.gosysOppgaveId,
         )
 
         updateMetrics(
@@ -349,9 +334,6 @@ class MottakService(
 
         val behandling = createBehandlingFromMottak.createBehandling(
             mottak = mottak,
-            isBasedOnJournalpost = false,
-            gosysOppgaveRequired = true,
-            gosysOppgaveId = klageInput.gosysOppgaveId,
         )
 
         updateMetrics(
@@ -696,7 +678,7 @@ class MottakService(
         }
     }
 
-    private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling): Mottak {
+    private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling, gosysOppgaveRequired: Boolean): Mottak {
         val klager = if (input.klager == null || input.klager.value == sakenGjelder.partId.value) {
             Klager(
                 id = sakenGjelder.id,
@@ -774,8 +756,10 @@ class MottakService(
             forrigeBehandlingId = id,
             sentFrom = Mottak.Sender.KABIN,
             prosessfullmektig = prosessfullmektig,
-
-            )
+            isBasedOnJournalpost = false,
+            gosysOppgaveRequired = gosysOppgaveRequired,
+            gosysOppgaveId = input.gosysOppgaveId,
+        )
     }
 
     fun CreateKlageBasedOnKabinInput.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
@@ -847,6 +831,9 @@ class MottakService(
             kommentar = null,
             prosessfullmektig = prosessfullmektig,
             forrigeSaksbehandlerident = null,
+            isBasedOnJournalpost = false,
+            gosysOppgaveRequired = true,
+            gosysOppgaveId = gosysOppgaveId,
         )
     }
 
@@ -919,6 +906,9 @@ class MottakService(
             kommentar = null,
             prosessfullmektig = prosessfullmektig,
             forrigeSaksbehandlerident = null,
+            isBasedOnJournalpost = false,
+            gosysOppgaveRequired = true,
+            gosysOppgaveId = gosysOppgaveId,
         )
     }
 
@@ -991,6 +981,9 @@ class MottakService(
             kommentar = null,
             prosessfullmektig = prosessfullmektig,
             forrigeSaksbehandlerident = null,
+            isBasedOnJournalpost = true,
+            gosysOppgaveRequired = true,
+            gosysOppgaveId = gosysOppgaveId,
         )
     }
 }

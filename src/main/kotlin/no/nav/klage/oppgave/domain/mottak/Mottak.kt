@@ -34,7 +34,10 @@ data class Mottak(
     val ytelse: Ytelse,
     val kommentar: String?,
     val forrigeBehandlingId: UUID?,
-    val sentFrom: Sender
+    val sentFrom: Sender,
+    val isBasedOnJournalpost: Boolean,
+    val gosysOppgaveRequired: Boolean,
+    val gosysOppgaveId: Long?
 ) {
     enum class Sender {
         FAGSYSTEM, KABIN

@@ -33,8 +33,6 @@ class KlagebehandlingService(
 
     fun createKlagebehandlingFromMottak(
         mottak: Mottak,
-        gosysOppgaveRequired: Boolean,
-        gosysOppgaveId: Long?
     ): Klagebehandling {
         val kvalitetsvurderingVersion = getKakaVersion()
 
@@ -60,11 +58,11 @@ class KlagebehandlingService(
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                 hjemler = mottak.hjemler,
                 kommentarFraFoersteinstans = mottak.kommentar,
-                gosysOppgaveId = gosysOppgaveId,
+                gosysOppgaveId = mottak.gosysOppgaveId,
                 tilbakekreving = false,
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
-                gosysOppgaveRequired = gosysOppgaveRequired,
+                gosysOppgaveRequired = mottak.gosysOppgaveRequired,
                 initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
             )
         )

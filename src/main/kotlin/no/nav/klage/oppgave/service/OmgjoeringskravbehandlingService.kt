@@ -31,8 +31,8 @@ class OmgjoeringskravbehandlingService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createOmgjoeringskravbehandlingFromMottak(mottak: Mottak, isBasedOnJournalpost: Boolean = false, gosysOppgaveRequired: Boolean, gosysOppgaveId: Long?): Behandling {
-        val omgjoeringskravbehandling = if (isBasedOnJournalpost) {
+    fun createOmgjoeringskravbehandlingFromMottak(mottak: Mottak): Behandling {
+        val omgjoeringskravbehandling = if (mottak.isBasedOnJournalpost) {
             omgjoeringskravbehandlingRepository.save(
                 OmgjoeringskravbehandlingBasedOnJournalpost(
                     klager = mottak.klager.copy(),
@@ -54,11 +54,11 @@ class OmgjoeringskravbehandlingService(
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     oppgaveId = null,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                    gosysOppgaveId = gosysOppgaveId,
+                    gosysOppgaveId = mottak.gosysOppgaveId,
                     tilbakekreving = false,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
+                    gosysOppgaveRequired = mottak.gosysOppgaveRequired,
                     initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
                 )
             )
@@ -85,11 +85,11 @@ class OmgjoeringskravbehandlingService(
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     oppgaveId = null,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                    gosysOppgaveId = gosysOppgaveId,
+                    gosysOppgaveId = mottak.gosysOppgaveId,
                     tilbakekreving = false,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
+                    gosysOppgaveRequired = mottak.gosysOppgaveRequired,
                     initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
                 )
             )
