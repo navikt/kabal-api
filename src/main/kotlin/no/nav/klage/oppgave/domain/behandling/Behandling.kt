@@ -255,6 +255,7 @@ sealed class Behandling(
     val gosysOppgaveRequired: Boolean,
     @Column(name = "initiating_system")
     @Enumerated(EnumType.STRING)
+    @NotAudited
     val initiatingSystem: InitiatingSystem,
 ) {
 
