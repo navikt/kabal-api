@@ -15,6 +15,8 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentType
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -70,11 +72,19 @@ class KlagebehandlingRepositoryTest {
     }
 
     @Test
-    fun `persist klage with saksdokumenter works`() {
+    fun `persist klage with saksdokumenter and mottakDokument works`() {
         val klagebehandling = getKlagebehandling(
             saksdokumenter = mutableSetOf(
                 Saksdokument(journalpostId = "REF1", dokumentInfoId = "123"),
                 Saksdokument(journalpostId = "REF2", dokumentInfoId = "321"),
+            )
+        )
+
+        klagebehandling.mottakDokument.add(
+            MottakDokument(
+                type = MottakDokumentType.BRUKERS_KLAGE,
+                journalpostId = "123456789",
+                behandling = klagebehandling,
             )
         )
 
