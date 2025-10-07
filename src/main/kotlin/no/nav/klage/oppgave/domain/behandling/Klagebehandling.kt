@@ -51,7 +51,7 @@ class Klagebehandling(
         fetch = FetchType.LAZY
     )
     @NotAudited
-    val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
+    override val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),
@@ -95,7 +95,7 @@ class Klagebehandling(
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : BehandlingWithVarsletBehandlingstid, Behandling(
+) : BehandlingWithVarsletBehandlingstid, BehandlingWithMottakDokument, Behandling(
     id = id,
     klager = klager,
     prosessfullmektig = prosessfullmektig,

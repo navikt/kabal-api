@@ -75,6 +75,9 @@ class AnkebehandlingService(
                 initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
             )
         )
+
+        ankebehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+
         logger.debug("Created ankebehandling {}", ankebehandling.id)
 
         if (mottak.forrigeBehandlingId != null) {

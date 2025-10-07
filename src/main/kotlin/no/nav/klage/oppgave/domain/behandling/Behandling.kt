@@ -11,6 +11,8 @@ import no.nav.klage.kodeverk.ytelse.YtelseConverter
 import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.behandling.historikk.*
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import org.hibernate.annotations.BatchSize
@@ -414,4 +416,20 @@ interface BehandlingWithVarsletBehandlingstid {
     var varsletBehandlingstid: VarsletBehandlingstid?
     val varsletBehandlingstidHistorikk: MutableSet<VarsletBehandlingstidHistorikk>
     var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?
+}
+
+interface BehandlingWithMottakDokument {
+    val mottakDokument: MutableSet<MottakDokument>
+
+    fun addMottakDokument(mottakDokumentSet: Set<MottakDokumentDTO>) {
+        mottakDokumentSet.forEach { mottakDokumentDTO ->
+            mottakDokument.add(
+                MottakDokument(
+                    type = mottakDokumentDTO.type,
+                    journalpostId = mottakDokumentDTO.journalpostId,
+                    behandling = this as Behandling,
+                )
+            )
+        }
+    }
 }

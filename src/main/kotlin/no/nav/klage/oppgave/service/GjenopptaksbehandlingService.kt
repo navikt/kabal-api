@@ -94,6 +94,8 @@ class GjenopptaksbehandlingService(
             )
         }
 
+        gjenopptaksbehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+
         logger.debug("Created {} with id {}", gjenopptaksbehandling::javaClass.name, gjenopptaksbehandling.id)
 
         if (mottak.forrigeBehandlingId != null) {

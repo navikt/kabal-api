@@ -47,7 +47,7 @@ class Ankebehandling(
         fetch = FetchType.LAZY
     )
     @NotAudited
-    val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
+    override val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
 
 //    Finn ut hvordan dette skal fungere i anker etter hvert
 //    @Column(name = "dato_behandling_avsluttet_av_saksbehandler")
@@ -95,7 +95,7 @@ class Ankebehandling(
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : BehandlingWithVarsletBehandlingstid, Behandling(
+) : BehandlingWithVarsletBehandlingstid, BehandlingWithMottakDokument, Behandling(
     id = id,
     klager = klager,
     sakenGjelder = sakenGjelder,

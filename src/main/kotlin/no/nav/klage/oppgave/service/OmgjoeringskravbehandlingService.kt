@@ -95,6 +95,8 @@ class OmgjoeringskravbehandlingService(
             )
         }
 
+        omgjoeringskravbehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+
         logger.debug("Created {} with id {}", omgjoeringskravbehandling::javaClass.name, omgjoeringskravbehandling.id)
 
         if (mottak.forrigeBehandlingId != null) {

@@ -45,7 +45,7 @@ abstract class Gjenopptaksbehandling(
         fetch = FetchType.LAZY
     )
     @NotAudited
-    val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
+    override val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
 
     //Common properties
     id: UUID = UUID.randomUUID(),
@@ -89,7 +89,7 @@ abstract class Gjenopptaksbehandling(
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : BehandlingWithVarsletBehandlingstid, Behandling(
+) : BehandlingWithVarsletBehandlingstid, BehandlingWithMottakDokument, Behandling(
     id = id,
     klager = klager,
     sakenGjelder = sakenGjelder,
