@@ -164,8 +164,8 @@ class InnsynService(
     private fun Ankebehandling.getEvents(): List<SakView.Event> {
         val events = mutableListOf<SakView.Event>()
 
-        //if from Kabin or created in Kabal
-        if (mottakId != null) {
+        if (initiatingSystem != Behandling.InitiatingSystem.KABAL) {
+            //if from Kabin or sent from vedtaksløsning
             events += SakView.Event(
                 type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
                 date = mottattKlageinstans,
@@ -200,8 +200,8 @@ class InnsynService(
     private fun Gjenopptaksbehandling.getEvents(): List<SakView.Event> {
         val events = mutableListOf<SakView.Event>()
 
-        //if from Kabin or created in Kabal
-        if (mottakId != null) {
+        if (initiatingSystem != Behandling.InitiatingSystem.KABAL) {
+            //if from Kabin or sent from vedtaksløsning
             events += SakView.Event(
                 type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_MOTTATT_KLAGEINSTANS,
                 date = mottattKlageinstans,

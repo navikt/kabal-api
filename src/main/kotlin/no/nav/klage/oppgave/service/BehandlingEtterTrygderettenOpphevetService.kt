@@ -66,6 +66,7 @@ class BehandlingEtterTrygderettenOpphevetService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = behandling.gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 )
             )
         } else if (behandling is GjenopptakITrygderettenbehandling) {
@@ -95,6 +96,7 @@ class BehandlingEtterTrygderettenOpphevetService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = behandling.gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 )
             )
         } else {

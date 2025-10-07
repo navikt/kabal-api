@@ -16,10 +16,8 @@ import no.nav.klage.oppgave.api.view.Sortering
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.*
-import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.repositories.MottakRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -52,9 +50,6 @@ class OppgaveServiceTest {
 
     @Autowired
     lateinit var behandlingRepository: BehandlingRepository
-
-    @Autowired
-    lateinit var mottakRepository: MottakRepository
 
     @MockkBean
     lateinit var innloggetSaksbehandlerService: InnloggetSaksbehandlerService
@@ -459,31 +454,6 @@ class OppgaveServiceTest {
         ferdigstilt: Boolean = true,
     ): Behandling {
         val now = LocalDateTime.now()
-        val mottak = Mottak(
-            ytelse = ytelse,
-            type = type,
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = fnr)
-            ),
-            kildeReferanse = "1234234",
-            sakMottattKaDato = now,
-            fagsystem = fagsystem,
-            fagsakId = saksId,
-            forrigeBehandlendeEnhet = "0101",
-            brukersKlageMottattVedtaksinstans = LocalDate.now(),
-            kommentar = null,
-            hjemler = emptySet(),
-            prosessfullmektig = null,
-            sakenGjelder = null,
-            dvhReferanse = null,
-            forrigeSaksbehandlerident = null,
-            frist = null,
-            forrigeBehandlingId = null,
-            sentFrom = Mottak.Sender.FAGSYSTEM,
-        )
-
-        mottakRepository.save(mottak)
 
         val ferdigstilling = Ferdigstilling(
             avsluttet = avsluttetAvSaksbehandler,
@@ -514,7 +484,6 @@ class OppgaveServiceTest {
                     fagsystem = fagsystem,
                     fagsakId = saksId,
                     kildeReferanse = "abc",
-                    mottakId = mottak.id,
                     mottattVedtaksinstans = LocalDate.now(),
                     avsenderEnhetFoersteinstans = "enhet",
                     kakaKvalitetsvurderingId = UUID.randomUUID(),
@@ -533,6 +502,7 @@ class OppgaveServiceTest {
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = false,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 )
             }
 
@@ -557,7 +527,6 @@ class OppgaveServiceTest {
                     fagsystem = fagsystem,
                     fagsakId = saksId,
                     kildeReferanse = "abc",
-                    mottakId = mottak.id,
                     kakaKvalitetsvurderingId = UUID.randomUUID(),
                     kakaKvalitetsvurderingVersion = 2,
                     utfall = Utfall.STADFESTELSE,
@@ -576,6 +545,7 @@ class OppgaveServiceTest {
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = false,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 )
             }
 
@@ -612,6 +582,7 @@ class OppgaveServiceTest {
                     sendtTilTrygderetten = LocalDateTime.now(),
                     gosysOppgaveId = null,
                     gosysOppgaveRequired = false,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 )
             }
 
@@ -655,6 +626,7 @@ class OppgaveServiceTest {
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = false,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 )
             }
 

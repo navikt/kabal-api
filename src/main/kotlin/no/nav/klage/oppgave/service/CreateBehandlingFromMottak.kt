@@ -30,23 +30,19 @@ class CreateBehandlingFromMottak(
         )
     }
 
-    fun createBehandling(mottak: Mottak, isBasedOnJournalpost: Boolean = false, gosysOppgaveRequired: Boolean, gosysOppgaveId: Long?): Behandling {
-        logger.debug(
-            "Received mottak {} in CreateBehandlingFromMottak",
-            mottak.id
-        )
+    fun createBehandling(
+        mottak: Mottak,
+    ): Behandling {
+        logger.debug("Received mottak in CreateBehandlingFromMottak")
 
         return when (mottak.type) {
             Type.KLAGE -> klagebehandlingService.createKlagebehandlingFromMottak(
                 mottak = mottak,
-                gosysOppgaveRequired = gosysOppgaveRequired,
-                gosysOppgaveId = gosysOppgaveId
             )
+
             Type.ANKE -> {
                 val ankebehandling = ankebehandlingService.createAnkebehandlingFromMottak(
                     mottak = mottak,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
-                    gosysOppgaveId = gosysOppgaveId
                 )
 
                 if (!ankebehandling.gosysOppgaveRequired) {
@@ -55,12 +51,10 @@ class CreateBehandlingFromMottak(
 
                 ankebehandling
             }
+
             Type.OMGJOERINGSKRAV -> {
                 omgjoeringskravbehandlingService.createOmgjoeringskravbehandlingFromMottak(
                     mottak = mottak,
-                    isBasedOnJournalpost = isBasedOnJournalpost,
-                    gosysOppgaveId = gosysOppgaveId,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
                 )
             }
 
@@ -69,11 +63,9 @@ class CreateBehandlingFromMottak(
             Type.BEGJAERING_OM_GJENOPPTAK -> {
                 gjenopptaksbehandlingService.createGjenopptaksbehandlingFromMottak(
                     mottak = mottak,
-                    isBasedOnJournalpost = isBasedOnJournalpost,
-                    gosysOppgaveId = gosysOppgaveId,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
                 )
             }
+
             Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> TODO()
         }
     }
@@ -88,9 +80,9 @@ class CreateBehandlingFromMottak(
             type = BehandlingEventType.ANKEBEHANDLING_OPPRETTET,
             detaljer = BehandlingDetaljer(
                 ankebehandlingOpprettet =
-                AnkebehandlingOpprettetDetaljer(
-                    mottattKlageinstans = ankebehandling.mottattKlageinstans
-                )
+                    AnkebehandlingOpprettetDetaljer(
+                        mottattKlageinstans = ankebehandling.mottattKlageinstans
+                    )
             )
         )
         kafkaEventRepository.save(

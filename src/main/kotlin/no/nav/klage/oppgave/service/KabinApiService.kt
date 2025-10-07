@@ -15,7 +15,7 @@ import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerNavn
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerPartId
-import no.nav.klage.oppgave.domain.mottak.MottakDokumentType
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentType
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -225,8 +225,6 @@ class KabinApiService(
     }
 
     private fun getCreatedOmgjoeringskravbehandlingStatusForKabin(omgjoeringskravbehandling: Omgjoeringskravbehandling): CreatedBehandlingStatusForKabin {
-        val mottak = mottakService.getMottak(omgjoeringskravbehandling.mottakId)
-
         val dokumentUnderArbeid =
             dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = omgjoeringskravbehandling.id)
 
@@ -270,7 +268,7 @@ class KabinApiService(
             fagsakId = omgjoeringskravbehandling.fagsakId,
             fagsystemId = omgjoeringskravbehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
-                journalpostId = mottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_OMGJOERINGSKRAV }!!.journalpostId,
+                journalpostId = omgjoeringskravbehandling.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_OMGJOERINGSKRAV }!!.journalpostId,
                 behandling = omgjoeringskravbehandling
             ),
             tildeltSaksbehandler = omgjoeringskravbehandling.tildeling?.saksbehandlerident?.let {
@@ -298,8 +296,6 @@ class KabinApiService(
     private fun getCreatedAnkebehandlingStatusForKabin(
         ankebehandling: Ankebehandling,
     ): CreatedBehandlingStatusForKabin {
-        val mottak = mottakService.getMottak(ankebehandling.mottakId!!)
-
         val dokumentUnderArbeid =
             dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = ankebehandling.id)
 
@@ -343,7 +339,7 @@ class KabinApiService(
             fagsakId = ankebehandling.fagsakId,
             fagsystemId = ankebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
-                journalpostId = mottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_ANKE }!!.journalpostId,
+                journalpostId = ankebehandling.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_ANKE }!!.journalpostId,
                 behandling = ankebehandling
             ),
             tildeltSaksbehandler = ankebehandling.tildeling?.saksbehandlerident?.let {
@@ -371,8 +367,6 @@ class KabinApiService(
     private fun getCreatedKlagebehandlingStatusForKabin(
         klagebehandling: Klagebehandling,
     ): CreatedBehandlingStatusForKabin {
-        val mottak = mottakService.getMottak(mottakId = klagebehandling.mottakId)
-
         val dokumentUnderArbeid =
             dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = klagebehandling.id)
 
@@ -416,7 +410,7 @@ class KabinApiService(
             fagsakId = klagebehandling.fagsakId,
             fagsystemId = klagebehandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
-                journalpostId = mottak.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_KLAGE }!!.journalpostId,
+                journalpostId = klagebehandling.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_KLAGE }!!.journalpostId,
                 behandling = klagebehandling
             ),
             tildeltSaksbehandler = klagebehandling.tildeling?.saksbehandlerident?.let {

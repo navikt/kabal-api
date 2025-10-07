@@ -31,8 +31,8 @@ class OmgjoeringskravbehandlingService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createOmgjoeringskravbehandlingFromMottak(mottak: Mottak, isBasedOnJournalpost: Boolean = false, gosysOppgaveRequired: Boolean, gosysOppgaveId: Long?): Behandling {
-        val omgjoeringskravbehandling = if (isBasedOnJournalpost) {
+    fun createOmgjoeringskravbehandlingFromMottak(mottak: Mottak): Behandling {
+        val omgjoeringskravbehandling = if (mottak.isBasedOnJournalpost) {
             omgjoeringskravbehandlingRepository.save(
                 OmgjoeringskravbehandlingBasedOnJournalpost(
                     klager = mottak.klager.copy(),
@@ -47,19 +47,19 @@ class OmgjoeringskravbehandlingService(
                     mottattKlageinstans = mottak.sakMottattKaDato,
                     tildeling = null,
                     frist = mottak.generateFrist(),
-                    mottakId = mottak.id,
                     saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = 2,
-                    hjemler = mottak.mapToBehandlingHjemler(),
+                    hjemler = mottak.hjemler,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     oppgaveId = null,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                    gosysOppgaveId = gosysOppgaveId,
+                    gosysOppgaveId = mottak.gosysOppgaveId,
                     tilbakekreving = false,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
+                    gosysOppgaveRequired = mottak.gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
                 )
             )
         } else {
@@ -77,25 +77,27 @@ class OmgjoeringskravbehandlingService(
                     mottattKlageinstans = mottak.sakMottattKaDato,
                     tildeling = null,
                     frist = mottak.generateFrist(),
-                    mottakId = mottak.id,
                     saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = 2,
-                    hjemler = mottak.mapToBehandlingHjemler(),
+                    hjemler = mottak.hjemler,
                     sourceBehandlingId = mottak.forrigeBehandlingId,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     oppgaveId = null,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                    gosysOppgaveId = gosysOppgaveId,
+                    gosysOppgaveId = mottak.gosysOppgaveId,
                     tilbakekreving = false,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
+                    gosysOppgaveRequired = mottak.gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
                 )
             )
         }
 
-        logger.debug("Created {} with id {} for mottak with id {}", omgjoeringskravbehandling::javaClass.name, omgjoeringskravbehandling.id, mottak.id)
+        omgjoeringskravbehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+
+        logger.debug("Created {} with id {}", omgjoeringskravbehandling::javaClass.name, omgjoeringskravbehandling.id)
 
         if (mottak.forrigeBehandlingId != null) {
             val behandling = behandlingRepository.findById(mottak.forrigeBehandlingId).get()

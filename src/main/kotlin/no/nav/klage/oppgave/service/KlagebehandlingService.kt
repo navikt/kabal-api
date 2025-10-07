@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
@@ -30,7 +31,9 @@ class KlagebehandlingService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createKlagebehandlingFromMottak(mottak: Mottak, gosysOppgaveRequired: Boolean, gosysOppgaveId: Long?): Klagebehandling {
+    fun createKlagebehandlingFromMottak(
+        mottak: Mottak,
+    ): Klagebehandling {
         val kvalitetsvurderingVersion = getKakaVersion()
 
         val klagebehandling = klagebehandlingRepository.save(
@@ -50,20 +53,23 @@ class KlagebehandlingService(
                 mottattKlageinstans = mottak.sakMottattKaDato,
                 tildeling = null,
                 frist = mottak.generateFrist(),
-                mottakId = mottak.id,
                 saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                 kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
-                hjemler = mottak.mapToBehandlingHjemler(),
+                hjemler = mottak.hjemler,
                 kommentarFraFoersteinstans = mottak.kommentar,
-                gosysOppgaveId = gosysOppgaveId,
+                gosysOppgaveId = mottak.gosysOppgaveId,
                 tilbakekreving = false,
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
-                gosysOppgaveRequired = gosysOppgaveRequired,
+                gosysOppgaveRequired = mottak.gosysOppgaveRequired,
+                initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
             )
         )
-        logger.debug("Created klagebehandling {} for mottak {}", klagebehandling.id, mottak.id)
+
+        klagebehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+
+        logger.debug("Created klagebehandling {}", klagebehandling.id)
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(

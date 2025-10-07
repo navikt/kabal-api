@@ -1,6 +1,7 @@
-package no.nav.klage.oppgave.domain.mottak
+package no.nav.klage.oppgave.domain.behandling.subentities
 
 import jakarta.persistence.*
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import java.util.*
 
 @Entity
@@ -12,7 +13,10 @@ class MottakDokument(
     @Enumerated(EnumType.STRING)
     var type: MottakDokumentType,
     @Column(name = "journalpost_id")
-    var journalpostId: String
+    var journalpostId: String,
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "behandling_id", nullable = false)
+    var behandling: Behandling,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -39,3 +43,8 @@ enum class MottakDokumentType {
     KLAGE_VEDTAK,
     ANNET
 }
+
+data class MottakDokumentDTO(
+    val type: MottakDokumentType,
+    val journalpostId: String,
+)

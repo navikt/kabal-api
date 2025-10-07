@@ -8,6 +8,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.person.Beskyttelsesbehov
@@ -257,7 +258,6 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     fagsystem = Fagsystem.K9,
     fagsakId = "123",
     kildeReferanse = "abc",
-    mottakId = UUID.randomUUID(),
     avsenderEnhetFoersteinstans = "4100",
     mottattVedtaksinstans = LocalDate.now(),
     kakaKvalitetsvurderingId = UUID.randomUUID(),
@@ -267,6 +267,7 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     varsletBehandlingstid = null,
     forlengetBehandlingstidDraft = null,
     gosysOppgaveRequired = false,
+    initiatingSystem = Behandling.InitiatingSystem.KABAL,
 )
 
 fun getPerson(): Person = Person(

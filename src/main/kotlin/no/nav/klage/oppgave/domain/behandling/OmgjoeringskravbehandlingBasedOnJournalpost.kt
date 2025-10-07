@@ -65,12 +65,12 @@ class OmgjoeringskravbehandlingBasedOnJournalpost(
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
     klageBehandlendeEnhet: String,
-    mottakId: UUID,
     kakaKvalitetsvurderingId: UUID,
     kakaKvalitetsvurderingVersion: Int,
     varsletBehandlingstid: VarsletBehandlingstid?,
     forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
     gosysOppgaveRequired: Boolean,
+    initiatingSystem: InitiatingSystem,
 ) : BehandlingWithVarsletBehandlingstid, Omgjoeringskravbehandling(
     id = id,
     klager = klager,
@@ -112,13 +112,13 @@ class OmgjoeringskravbehandlingBasedOnJournalpost(
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
     klageBehandlendeEnhet = klageBehandlendeEnhet,
-    mottakId = mottakId,
     kakaKvalitetsvurderingId = kakaKvalitetsvurderingId,
     kakaKvalitetsvurderingVersion = kakaKvalitetsvurderingVersion,
     varsletBehandlingstid = varsletBehandlingstid,
     forlengetBehandlingstidDraft = forlengetBehandlingstidDraft,
     oppgaveId = oppgaveId,
     gosysOppgaveRequired = gosysOppgaveRequired,
+    initiatingSystem = initiatingSystem,
 ) {
 
     override fun toString(): String {

@@ -7,6 +7,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
@@ -130,7 +131,6 @@ class StatistikkTilDVHServiceTest {
         previousSaksbehandlerident = null,
         avsenderEnhetFoersteinstans = "",
         kommentarFraFoersteinstans = null,
-        mottakId = UUID.randomUUID(),
         klager = Klager(
             id = UUID.randomUUID(),
             partId = PartId(
@@ -167,6 +167,7 @@ class StatistikkTilDVHServiceTest {
         varsletBehandlingstid = null,
         forlengetBehandlingstidDraft = null,
         gosysOppgaveRequired = false,
+        initiatingSystem = Behandling.InitiatingSystem.KABAL,
     )
 
     private val klagebehandlingHJE = Klagebehandling(
@@ -174,7 +175,6 @@ class StatistikkTilDVHServiceTest {
         previousSaksbehandlerident = null,
         avsenderEnhetFoersteinstans = "",
         kommentarFraFoersteinstans = null,
-        mottakId = UUID.randomUUID(),
         klager = Klager(
             id = UUID.randomUUID(),
             partId = PartId(
@@ -211,10 +211,10 @@ class StatistikkTilDVHServiceTest {
         varsletBehandlingstid = null,
         forlengetBehandlingstidDraft = null,
         gosysOppgaveRequired = true,
+        initiatingSystem = Behandling.InitiatingSystem.KABAL,
     )
 
     private val ankebehandlingOMP = Ankebehandling(
-        mottakId = UUID.randomUUID(),
         klager = Klager(
             id = UUID.randomUUID(),
             partId = PartId(
@@ -255,6 +255,7 @@ class StatistikkTilDVHServiceTest {
         varsletBehandlingstid = null,
         forlengetBehandlingstidDraft = null,
         gosysOppgaveRequired = false,
+        initiatingSystem = Behandling.InitiatingSystem.KABAL,
     )
 
     private val ankeITrygderettenbehandlingOMP = AnkeITrygderettenbehandling(
@@ -293,5 +294,6 @@ class StatistikkTilDVHServiceTest {
         previousSaksbehandlerident = "C78901",
         gosysOppgaveId = null,
         gosysOppgaveRequired = false,
+        initiatingSystem = Behandling.InitiatingSystem.KABAL,
     )
 }

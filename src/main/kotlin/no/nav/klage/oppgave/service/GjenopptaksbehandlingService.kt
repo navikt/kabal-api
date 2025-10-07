@@ -32,8 +32,8 @@ class GjenopptaksbehandlingService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createGjenopptaksbehandlingFromMottak(mottak: Mottak, isBasedOnJournalpost: Boolean = false, gosysOppgaveRequired: Boolean, gosysOppgaveId: Long?): Behandling {
-        val gjenopptaksbehandling = if (isBasedOnJournalpost) {
+    fun createGjenopptaksbehandlingFromMottak(mottak: Mottak): Behandling {
+        val gjenopptaksbehandling = if (mottak.isBasedOnJournalpost) {
             gjenopptaksbehandlingRepository.save(
                 GjenopptaksbehandlingBasedOnJournalpost(
                     klager = mottak.klager.copy(),
@@ -48,18 +48,18 @@ class GjenopptaksbehandlingService(
                     mottattKlageinstans = mottak.sakMottattKaDato,
                     tildeling = null,
                     frist = mottak.generateFrist(),
-                    mottakId = mottak.id,
                     saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = 2,
-                    hjemler = mottak.mapToBehandlingHjemler(),
+                    hjemler = mottak.hjemler,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                    gosysOppgaveId = gosysOppgaveId,
+                    gosysOppgaveId = mottak.gosysOppgaveId,
                     tilbakekreving = false,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
+                    gosysOppgaveRequired = mottak.gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
                 )
             )
         } else {
@@ -77,24 +77,26 @@ class GjenopptaksbehandlingService(
                     mottattKlageinstans = mottak.sakMottattKaDato,
                     tildeling = null,
                     frist = mottak.generateFrist(),
-                    mottakId = mottak.id,
                     saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = 2,
-                    hjemler = mottak.mapToBehandlingHjemler(),
+                    hjemler = mottak.hjemler,
                     sourceBehandlingId = mottak.forrigeBehandlingId,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                    gosysOppgaveId = gosysOppgaveId,
+                    gosysOppgaveId = mottak.gosysOppgaveId,
                     tilbakekreving = false,
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = gosysOppgaveRequired,
+                    gosysOppgaveRequired = mottak.gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
                 )
             )
         }
 
-        logger.debug("Created {} with id {} for mottak with id {}", gjenopptaksbehandling::javaClass.name, gjenopptaksbehandling.id, mottak.id)
+        gjenopptaksbehandling.addMottakDokument(mottakDokumentSet = mottak.mottakDokument)
+
+        logger.debug("Created {} with id {}", gjenopptaksbehandling::javaClass.name, gjenopptaksbehandling.id)
 
         if (mottak.forrigeBehandlingId != null) {
             val behandling = behandlingRepository.findById(mottak.forrigeBehandlingId).get()
@@ -187,7 +189,7 @@ class GjenopptaksbehandlingService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
-                    mottakId = originalGjenopptaksbehandling.mottakId!!
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 )
             )
         } else {
@@ -216,8 +218,8 @@ class GjenopptaksbehandlingService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
-                    mottakId = originalGjenopptaksbehandling.mottakId!!,
                     sourceBehandlingId = gjenopptakITrygderettenbehandling.id,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 )
             )
         }

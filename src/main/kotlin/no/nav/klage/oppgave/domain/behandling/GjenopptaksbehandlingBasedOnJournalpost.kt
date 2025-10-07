@@ -62,12 +62,12 @@ class GjenopptaksbehandlingBasedOnJournalpost(
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
     klageBehandlendeEnhet: String,
-    mottakId: UUID,
     kakaKvalitetsvurderingId: UUID,
     kakaKvalitetsvurderingVersion: Int,
     varsletBehandlingstid: VarsletBehandlingstid?,
     forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
     gosysOppgaveRequired: Boolean,
+    initiatingSystem: InitiatingSystem,
 ) : BehandlingWithVarsletBehandlingstid, Gjenopptaksbehandling(
     id = id,
     klager = klager,
@@ -109,13 +109,13 @@ class GjenopptaksbehandlingBasedOnJournalpost(
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
     klageBehandlendeEnhet = klageBehandlendeEnhet,
-    mottakId = mottakId,
     kakaKvalitetsvurderingId = kakaKvalitetsvurderingId,
     kakaKvalitetsvurderingVersion = kakaKvalitetsvurderingVersion,
     varsletBehandlingstid = varsletBehandlingstid,
     forlengetBehandlingstidDraft = forlengetBehandlingstidDraft,
     klageVedtaksDato = null,
     gosysOppgaveRequired = gosysOppgaveRequired,
+    initiatingSystem = initiatingSystem,
 ) {
 
     override fun toString(): String {

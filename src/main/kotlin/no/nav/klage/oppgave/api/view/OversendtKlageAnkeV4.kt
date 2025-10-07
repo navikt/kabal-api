@@ -9,7 +9,6 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.mottak.Mottak
-import no.nav.klage.oppgave.domain.mottak.MottakHjemmel
 import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -157,7 +156,7 @@ fun OversendtKlageAnkeV4.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
         fagsakId = fagsak.fagsakId,
         kildeReferanse = kildeReferanse,
         dvhReferanse = dvhReferanse,
-        hjemler = hjemler.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
+        hjemler = hjemler.toSet(),
         forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
         mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
         brukersKlageMottattVedtaksinstans = brukersKlageMottattVedtaksinstans,
@@ -169,6 +168,9 @@ fun OversendtKlageAnkeV4.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
         prosessfullmektig = prosessfullmektigPart,
         forrigeSaksbehandlerident = null,
         sentFrom = Mottak.Sender.FAGSYSTEM,
+        isBasedOnJournalpost = false,
+        gosysOppgaveRequired = false,
+        gosysOppgaveId = null,
     )
 }
 

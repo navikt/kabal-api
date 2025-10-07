@@ -52,7 +52,6 @@ internal class InnsynServiceTest {
         val klagebehandling = Klagebehandling(
             mottattVedtaksinstans = klageMottattVedtaksinstans,
             avsenderEnhetFoersteinstans = "1200",
-            mottakId = UUID.randomUUID(),
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
             klager = Klager(
@@ -90,11 +89,10 @@ internal class InnsynServiceTest {
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
-
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
             )
 
         val ankebehandling = Ankebehandling(
-            mottakId = UUID.randomUUID(),
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
             klager = Klager(
@@ -134,6 +132,7 @@ internal class InnsynServiceTest {
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
         )
 
         val ankeITRBehandling = AnkeITrygderettenbehandling(
@@ -173,10 +172,10 @@ internal class InnsynServiceTest {
             sendtTilTrygderetten = ankeMottattKA.plusDays(1),
             kjennelseMottatt = kjennelseMottattFraTR,
             gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
         )
 
         val ankebehandling2KA = Ankebehandling(
-            mottakId = null,
             kakaKvalitetsvurderingId = null,
             kakaKvalitetsvurderingVersion = 0,
             klager = Klager(
@@ -216,6 +215,7 @@ internal class InnsynServiceTest {
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
         )
 
         return listOf(

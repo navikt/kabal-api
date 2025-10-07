@@ -8,10 +8,10 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.db.TestPostgresqlContainer
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
-import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -44,9 +44,6 @@ class BehandlingRepositoryTest {
     @Autowired
     lateinit var behandlingRepository: BehandlingRepository
 
-    @Autowired
-    lateinit var mottakRepository: MottakRepository
-
     //Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
@@ -56,11 +53,7 @@ class BehandlingRepositoryTest {
 
     @Test
     fun `store Klagebehandling works`() {
-
-        val mottak = getMottak()
-        mottakRepository.save(mottak)
-
-        val klage = getKlagebehandling(mottak.id)
+        val klage = getKlagebehandling()
 
         val forlengetBehandlingstidDraft = ForlengetBehandlingstidDraft()
         forlengetBehandlingstidDraft.title = "title"
@@ -89,11 +82,7 @@ class BehandlingRepositoryTest {
 
     @Test
     fun `store Klagebehandling with feilregistrering works`() {
-
-        val mottak = getMottak()
-        mottakRepository.save(mottak)
-
-        val klagebehandling = getKlagebehandling(mottak.id)
+        val klagebehandling = getKlagebehandling()
 
         klagebehandling.feilregistrering = Feilregistrering(
             navIdent = "navIdent",
@@ -115,25 +104,18 @@ class BehandlingRepositoryTest {
 
     @Test
     fun `enhet based query works`() {
-
-        val mottak1 = getMottak()
-        val mottak2 = getMottak()
-        val mottak3 = getMottak()
-        val mottak4 = getMottak()
-        mottakRepository.saveAll(listOf(mottak1, mottak2, mottak3, mottak4))
-
-        val klageTildeltEnhet1 = getKlagebehandling(mottak1.id)
+        val klageTildeltEnhet1 = getKlagebehandling()
         klageTildeltEnhet1.tildeling = Tildeling(
             saksbehandlerident = "1", enhet = ENHET_1, tidspunkt = LocalDateTime.now()
         )
 
-        val klageTildeltEnhet2 = getKlagebehandling(mottak2.id)
+        val klageTildeltEnhet2 = getKlagebehandling()
         klageTildeltEnhet2.tildeling = Tildeling(
             saksbehandlerident = "1", enhet = ENHET_2, tidspunkt = LocalDateTime.now()
         )
 
-        val klageUtenTildeling = getKlagebehandling(mottak3.id)
-        val fullfoertKlage = getKlagebehandling(mottak4.id)
+        val klageUtenTildeling = getKlagebehandling()
+        val fullfoertKlage = getKlagebehandling()
         fullfoertKlage.tildeling = Tildeling(
             saksbehandlerident = "1", enhet = ENHET_1, tidspunkt = LocalDateTime.now()
         )
@@ -153,32 +135,7 @@ class BehandlingRepositoryTest {
         assertThat(result).isEqualTo(listOf(klageTildeltEnhet1))
     }
 
-    fun getMottak(): Mottak = Mottak(
-        ytelse = Ytelse.OMS_OMP,
-        type = Type.KLAGE,
-        klager = Klager(
-            id = UUID.randomUUID(),
-            partId = PartId(type = PartIdType.PERSON, value = "23452354")
-        ),
-        kildeReferanse = "1234234",
-        sakMottattKaDato = LocalDateTime.now(),
-        fagsystem = Fagsystem.K9,
-        fagsakId = "123",
-        forrigeBehandlendeEnhet = "0101",
-        brukersKlageMottattVedtaksinstans = LocalDate.now(),
-        kommentar = null,
-        hjemler = emptySet(),
-        prosessfullmektig = null,
-        sakenGjelder = null,
-        dvhReferanse = null,
-        forrigeSaksbehandlerident = null,
-        frist = null,
-        forrigeBehandlingId = null,
-        sentFrom = Mottak.Sender.FAGSYSTEM,
-
-        )
-
-    fun getKlagebehandling(mottakId: UUID) = Klagebehandling(
+    fun getKlagebehandling() = Klagebehandling(
         klager = Klager(
             id = UUID.randomUUID(),
             partId = PartId(type = PartIdType.PERSON, value = "23452354")
@@ -200,7 +157,6 @@ class BehandlingRepositoryTest {
         fagsystem = Fagsystem.K9,
         fagsakId = "123",
         kildeReferanse = "abc",
-        mottakId = mottakId,
         avsenderEnhetFoersteinstans = "0101",
         mottattVedtaksinstans = LocalDate.now(),
         kakaKvalitetsvurderingVersion = 2,
@@ -210,6 +166,7 @@ class BehandlingRepositoryTest {
         varsletBehandlingstid = null,
         forlengetBehandlingstidDraft = null,
         gosysOppgaveRequired = false,
+        initiatingSystem = Behandling.InitiatingSystem.KABAL,
     )
 
 }

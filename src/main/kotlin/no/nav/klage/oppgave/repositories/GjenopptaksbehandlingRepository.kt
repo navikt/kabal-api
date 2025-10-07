@@ -8,7 +8,5 @@ import java.util.*
 @Repository
 interface GjenopptaksbehandlingRepository : JpaRepository<Gjenopptaksbehandling, UUID> {
 
-    fun findByMottakId(mottakId: UUID): Gjenopptaksbehandling?
-
     fun findByKildeReferanseOrderByCreatedDesc(kildeReferanse: String): List<Gjenopptaksbehandling>
 }

@@ -7,7 +7,6 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.mottak.Mottak
-import no.nav.klage.oppgave.domain.mottak.MottakHjemmel
 import org.springframework.format.annotation.DateTimeFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -113,7 +112,7 @@ fun OversendtKlageV2.toMottak(): Mottak {
         fagsakId = fagsak.fagsakId,
         kildeReferanse = kildeReferanse,
         dvhReferanse = dvhReferanse,
-        hjemler = hjemler!!.map { MottakHjemmel(hjemmelId = it.id) }.toSet(),
+        hjemler = hjemler!!.toSet(),
         forrigeSaksbehandlerident = avsenderSaksbehandlerIdent,
         forrigeBehandlendeEnhet = avsenderEnhet,
         mottakDokument = tilknyttedeJournalposter.map { it.toMottakDokument() }.toMutableSet(),
@@ -125,5 +124,8 @@ fun OversendtKlageV2.toMottak(): Mottak {
         prosessfullmektig = prosessfullmektigPart,
         forrigeBehandlingId = null,
         sentFrom = Mottak.Sender.FAGSYSTEM,
+        isBasedOnJournalpost = false,
+        gosysOppgaveRequired = false,
+        gosysOppgaveId = null,
     )
 }

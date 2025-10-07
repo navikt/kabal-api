@@ -11,6 +11,7 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.behandling.historikk.*
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
@@ -29,8 +30,6 @@ class Ankebehandling(
     //Fins i noen tilfeller, men ikke alle.
     @Column(name = "source_behandling_id")
     var sourceBehandlingId: UUID?,
-    @Column(name = "mottak_id")
-    val mottakId: UUID? = null,
     @Column(name = "kaka_kvalitetsvurdering_id")
     var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = true)
@@ -41,6 +40,14 @@ class Ankebehandling(
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")
     @NotAudited
     override var forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft?,
+    @OneToMany(
+        mappedBy = "behandling",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    @NotAudited
+    override val mottakDokument: MutableSet<MottakDokument> = mutableSetOf(),
 
 //    Finn ut hvordan dette skal fungere i anker etter hvert
 //    @Column(name = "dato_behandling_avsluttet_av_saksbehandler")
@@ -87,7 +94,8 @@ class Ankebehandling(
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
-) : BehandlingWithVarsletBehandlingstid, Behandling(
+    initiatingSystem: InitiatingSystem,
+) : BehandlingWithVarsletBehandlingstid, BehandlingWithMottakDokument, Behandling(
     id = id,
     klager = klager,
     sakenGjelder = sakenGjelder,
@@ -128,6 +136,7 @@ class Ankebehandling(
     tilbakekreving = tilbakekreving,
     ignoreGosysOppgave = ignoreGosysOppgave,
     gosysOppgaveRequired = gosysOppgaveRequired,
+    initiatingSystem = initiatingSystem,
 ) {
     override fun toString(): String {
         return "Ankebehandling(id=$id, " +

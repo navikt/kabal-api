@@ -10,8 +10,6 @@ import java.util.*
 @Repository
 interface KlagebehandlingRepository : JpaRepository<Klagebehandling, UUID> {
 
-    fun findByMottakId(mottakId: UUID): Klagebehandling?
-
     fun findByKildeReferanseAndYtelseAndFeilregistreringIsNull(kildeReferanse: String, ytelse: Ytelse): Klagebehandling?
 
     fun findByKakaKvalitetsvurderingVersionIs(version: Int): List<Klagebehandling>

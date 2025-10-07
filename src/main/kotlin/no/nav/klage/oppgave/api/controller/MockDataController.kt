@@ -10,11 +10,12 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentType
 import no.nav.klage.oppgave.domain.behandling.utfallToTrygderetten
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
-import no.nav.klage.oppgave.domain.mottak.MottakDokumentType
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.ExternalMottakFacade
 import no.nav.klage.oppgave.util.getLogger
@@ -157,7 +158,7 @@ class MockDataController(
                 forrigeBehandlendeEnhet = "0104", //NAV Moss
                 tilknyttedeJournalposter = listOf(
                     OversendtDokumentReferanse(
-                        randomMottakDokumentType(),
+                        MottakDokumentType.BRUKERS_KLAGE,
                         journalpostId
                     )
                 ),
@@ -347,6 +348,7 @@ class MockDataController(
                     gosysOppgaveId = null,
                     tilbakekreving = false,
                     gosysOppgaveRequired = false,
+                    initiatingSystem = Behandling.InitiatingSystem.FAGSYSTEM,
                 )
 
                 ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
@@ -376,13 +378,6 @@ class MockDataController(
         }
         return kvalitetsvurderingVersion
     }
-
-    private fun randomMottakDokumentType() = listOf(
-        MottakDokumentType.OVERSENDELSESBREV,
-        MottakDokumentType.ANNET,
-        MottakDokumentType.BRUKERS_KLAGE,
-        MottakDokumentType.OPPRINNELIG_VEDTAK
-    ).shuffled().first()
 
     data class MockInput(
         val ytelse: Ytelse?,
