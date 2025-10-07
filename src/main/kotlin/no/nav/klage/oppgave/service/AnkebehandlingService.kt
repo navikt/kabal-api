@@ -70,7 +70,8 @@ class AnkebehandlingService(
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
                 gosysOppgaveRequired = mottak.gosysOppgaveRequired,
-                initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
+                initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
+                previousBehandlingId = mottak.forrigeBehandlingId,
             )
         )
 

@@ -179,4 +179,5 @@ data class GjenopptakITrygderettenbehandlingInput(
     val gosysOppgaveId: Long?,
     val tilbakekreving: Boolean,
     val gosysOppgaveRequired: Boolean,
+    val previousBehandlingId: UUID,
 )

@@ -59,7 +59,8 @@ class GjenopptaksbehandlingService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = mottak.gosysOppgaveRequired,
-                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
+                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
+                    previousBehandlingId = mottak.forrigeBehandlingId,
                 )
             )
         } else {
@@ -89,7 +90,8 @@ class GjenopptaksbehandlingService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = mottak.gosysOppgaveRequired,
-                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
+                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
+                    previousBehandlingId = mottak.forrigeBehandlingId,
                 )
             )
         }
@@ -160,8 +162,7 @@ class GjenopptaksbehandlingService(
     fun createGjenopptaksbehandlingFromGjenopptakITrygderettenbehandling(gjenopptakITrygderettenbehandling: GjenopptakITrygderettenbehandling): Gjenopptaksbehandling {
         //Dette er en midlertidig versjon, inntil vi får en direkte lenke til forrige behandling.
         val originalGjenopptaksbehandling =
-            gjenopptaksbehandlingRepository.findByKildeReferanseOrderByCreatedDesc(kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse)
-                .firstOrNull() ?: throw Exception("Couldn't find previous behandling, investigate")
+            gjenopptaksbehandlingRepository.findById(gjenopptakITrygderettenbehandling.previousBehandlingId!!).get()
 
         val gjenopptaksbehandling = if (originalGjenopptaksbehandling is GjenopptaksbehandlingBasedOnJournalpost) {
             gjenopptaksbehandlingRepository.save(
@@ -190,6 +191,7 @@ class GjenopptaksbehandlingService(
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
                     initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                    previousBehandlingId = gjenopptakITrygderettenbehandling.id,
                 )
             )
         } else {
@@ -220,6 +222,7 @@ class GjenopptaksbehandlingService(
                     gosysOppgaveRequired = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
                     sourceBehandlingId = gjenopptakITrygderettenbehandling.id,
                     initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                    previousBehandlingId = gjenopptakITrygderettenbehandling.id,
                 )
             )
         }

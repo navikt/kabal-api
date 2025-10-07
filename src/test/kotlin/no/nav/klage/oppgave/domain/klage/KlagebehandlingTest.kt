@@ -47,6 +47,7 @@ internal class KlagebehandlingTest {
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
             initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
         )
     }
 

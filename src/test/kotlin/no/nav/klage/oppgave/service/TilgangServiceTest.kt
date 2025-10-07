@@ -268,6 +268,7 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     forlengetBehandlingstidDraft = null,
     gosysOppgaveRequired = false,
     initiatingSystem = Behandling.InitiatingSystem.KABAL,
+    previousBehandlingId = null,
 )
 
 fun getPerson(): Person = Person(

@@ -66,6 +66,7 @@ class GjenopptakITrygderettenbehandlingService(
                 tilbakekreving = input.tilbakekreving,
                 gosysOppgaveRequired = input.gosysOppgaveRequired,
                 initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = input.previousBehandlingId,
             )
         )
         logger.debug("Created gjenopptakITrygderettenbehandling {}", gjenopptakITrygderettenbehandling.id)

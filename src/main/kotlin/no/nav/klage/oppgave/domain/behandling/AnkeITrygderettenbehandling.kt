@@ -175,4 +175,5 @@ data class AnkeITrygderettenbehandlingInput(
     val tilbakekreving: Boolean,
     val gosysOppgaveRequired: Boolean,
     val initiatingSystem: Behandling.InitiatingSystem,
+    val previousBehandlingId: UUID?,
 )

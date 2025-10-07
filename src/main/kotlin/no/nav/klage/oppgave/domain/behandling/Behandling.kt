@@ -362,6 +362,7 @@ sealed class Behandling(
             tilbakekreving = tilbakekreving,
             gosysOppgaveRequired = gosysOppgaveRequired,
             initiatingSystem = InitiatingSystem.KABAL,
+            previousBehandlingId = id,
         )
     }
 
@@ -386,6 +387,7 @@ sealed class Behandling(
             gosysOppgaveId = gosysOppgaveId,
             tilbakekreving = tilbakekreving,
             gosysOppgaveRequired = gosysOppgaveRequired,
+            previousBehandlingId = id,
         )
     }
 }
