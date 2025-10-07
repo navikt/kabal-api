@@ -29,7 +29,7 @@ class BehandlingEtterTrygderettenOpphevet(
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
     @Column(name = "source_behandling_id")
-    var sourceBehandlingId: UUID?,
+    var sourceBehandlingId: UUID,
     @Column(name = "kjennelse_mottatt")
     val kjennelseMottatt: LocalDateTime,
     @Column(name = "anke_behandlende_enhet")

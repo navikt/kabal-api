@@ -860,4 +860,59 @@ class AdminService(
 
         logger.debug("setIdOnParterWithBehandlinger is done. Processed $behandlingerSize behandlinger")
     }
+
+    @Transactional
+    fun setPreviousBehandlingId() {
+        val behandlinger = behandlingRepository.findAll()
+        logger.debug("Found ${behandlinger.size} behandlinger to set previousBehandlingId on if possible")
+
+        var updatedCount = 0
+        var skippedCount = 0
+        var nullCount = 0
+
+        behandlinger.forEach { behandling ->
+            val previousBehandlingId = when (behandling) {
+                is Klagebehandling -> null
+                is Ankebehandling -> TODO()
+                is Omgjoeringskravbehandling -> {
+                    when (behandling) {
+                        is OmgjoeringskravbehandlingBasedOnJournalpost -> null
+                        is OmgjoeringskravbehandlingBasedOnKabalBehandling -> behandling.sourceBehandlingId
+                        else -> error("Unknown Omgjoeringskravbehandling subtype: ${behandling::class.java}")
+                    }
+                }
+                is AnkeITrygderettenbehandling -> {
+
+//                    ankebehandlingRepository.
+                    //find by kildereferanse, sakenGjelder, dato < ankeITR opprettet, order by dato desc, take first
+
+                    //anke
+                    //ankeITR
+                    //anke
+                    //ankeITR
+
+
+
+                }
+                is BehandlingEtterTrygderettenOpphevet -> {
+                    behandling.sourceBehandlingId
+                }
+                is GjenopptakITrygderettenbehandling -> TODO()
+                is Gjenopptaksbehandling -> TODO()
+            }
+
+            if (previousBehandlingId != null) {
+                if (behandling.previousBehandlingId == null) {
+                    behandling.previousBehandlingId = previousBehandlingId
+                    updatedCount++
+                } else {
+                    skippedCount++
+                }
+            } else {
+                nullCount++
+            }
+        }
+
+        logger.debug("setPreviousBehandlingId is done. Updated $updatedCount behandlinger, skipped $skippedCount behandlinger that already had previousBehandlingId set, and $nullCount behandlinger had no previousBehandlingId to set.")
+    }
 }

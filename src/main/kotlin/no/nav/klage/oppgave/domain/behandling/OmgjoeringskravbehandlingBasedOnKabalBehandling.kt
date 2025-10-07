@@ -24,7 +24,7 @@ import java.util.*
 @Audited
 class OmgjoeringskravbehandlingBasedOnKabalBehandling(
     @Column(name = "source_behandling_id")
-    var sourceBehandlingId: UUID?,
+    var sourceBehandlingId: UUID,
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),
