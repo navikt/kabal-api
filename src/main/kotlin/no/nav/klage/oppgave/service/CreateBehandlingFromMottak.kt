@@ -30,7 +30,6 @@ class CreateBehandlingFromMottak(
         )
     }
 
-    //TODO: Ta inn gosysoppgaverequired i mottak
     fun createBehandling(
         mottak: Mottak,
     ): Behandling {
