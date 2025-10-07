@@ -364,6 +364,7 @@ class MottakService(
         }
     }
 
+    @Transactional
     fun getUsedJournalpostIdList(sakenGjelder: String): List<String> {
         return behandlingRepository.findBySakenGjelderPartIdValueAndFeilregistreringIsNull(sakenGjelder)
             .asSequence()
