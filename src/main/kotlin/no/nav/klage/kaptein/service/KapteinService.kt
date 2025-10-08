@@ -128,6 +128,8 @@ class KapteinService(
             kjennelseMottatt = null,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
             tildeltEnhet = behandling.tildeling?.enhet,
+            previousTildeltEnhet = null,
+            previousRegistreringshjemmelIdList = null,
         )
     }
 
@@ -158,6 +160,8 @@ class KapteinService(
             kjennelseMottatt = behandling.kjennelseMottatt,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
             tildeltEnhet = behandling.tildeling?.enhet,
+            previousTildeltEnhet = null,
+            previousRegistreringshjemmelIdList = null,
         )
     }
 
@@ -188,10 +192,13 @@ class KapteinService(
             kjennelseMottatt = null,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
             tildeltEnhet = behandling.tildeling?.enhet,
+            previousTildeltEnhet = null,
+            previousRegistreringshjemmelIdList = null,
         )
     }
 
     private fun mapAnkeITrygderettenbehandlingToAnonymousBehandlingView(behandling: AnkeITrygderettenbehandling): AnonymousBehandlingView {
+        val previousBehandling = behandling.previousBehandlingId?.let { behandlingRepository.findById(it).get() }
         return AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = null,
@@ -218,6 +225,8 @@ class KapteinService(
             kjennelseMottatt = behandling.kjennelseMottatt,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
             tildeltEnhet = behandling.tildeling?.enhet,
+            previousTildeltEnhet = previousBehandling?.tildeling?.enhet,
+            previousRegistreringshjemmelIdList = previousBehandling?.registreringshjemler?.map { it.id },
         )
     }
 
@@ -248,6 +257,8 @@ class KapteinService(
             kjennelseMottatt = null,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
             tildeltEnhet = behandling.tildeling?.enhet,
+            previousTildeltEnhet = null,
+            previousRegistreringshjemmelIdList = null,
         )
     }
 
@@ -278,10 +289,13 @@ class KapteinService(
             kjennelseMottatt = null,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
             tildeltEnhet = behandling.tildeling?.enhet,
+            previousTildeltEnhet = null,
+            previousRegistreringshjemmelIdList = null,
         )
     }
 
     private fun mapGjenopptakITrygderettenbehandlingToAnonymousBehandlingView(behandling: GjenopptakITrygderettenbehandling): AnonymousBehandlingView {
+        val previousBehandling = behandlingRepository.findById(behandling.previousBehandlingId!!).get()
         return AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = null,
@@ -308,6 +322,8 @@ class KapteinService(
             kjennelseMottatt = behandling.kjennelseMottatt,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
             tildeltEnhet = behandling.tildeling?.enhet,
+            previousTildeltEnhet = previousBehandling.tildeling?.enhet,
+            previousRegistreringshjemmelIdList = previousBehandling.registreringshjemler.map { it.id },
         )
     }
 
