@@ -260,5 +260,13 @@ class DevOnlyAdminController(
         }
     }
 
-    data class Fnr(val fnr: String)
+    @Unprotected
+    @GetMapping("/set-previous-behandling-id")
+    @ResponseStatus(HttpStatus.OK)
+    fun setPreviousBehandlingId(
+        @RequestParam(value = "dryRun", required = false, defaultValue = "true") dryRun: Boolean = true,
+    ) {
+        logger.debug("setPreviousBehandlingId is called")
+        adminService.setPreviousBehandlingId(dryRun = dryRun)
+    }
 }

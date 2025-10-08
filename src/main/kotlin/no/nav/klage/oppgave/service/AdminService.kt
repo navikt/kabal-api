@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import jakarta.persistence.EntityManager
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
@@ -89,6 +90,7 @@ class AdminService(
     private val kabalInnstillingerService: KabalInnstillingerService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val personCacheService: PersonCacheService,
+    private val entityManager: EntityManager,
 ) {
 
     @Value("\${KLAGE_BACKEND_GROUP_ID}")
@@ -868,70 +870,63 @@ class AdminService(
 
     @Transactional
     fun setPreviousBehandlingId(dryRun: Boolean) {
-        val behandlinger = behandlingRepository.findAll()
-        logger.debug("Found ${behandlinger.size} behandlinger to set previousBehandlingId on if possible")
-
         var updatedCount = 0
         var skippedCount = 0
         var nullCount = 0
+        var count = 0
+        val total = behandlingRepository.count()
 
-        behandlinger.forEach { behandling ->
-            val previousBehandlingId = when (behandling) {
-                is Klagebehandling -> null
-                is Ankebehandling -> {
+        behandlingRepository.findAllForAdminStreamed().use { streamed ->
+            streamed.forEach { behandling ->
+                val previousBehandlingId = when (behandling) {
+                    is Klagebehandling -> null
+                    is Ankebehandling -> {
+                        behandling.sourceBehandlingId
+                    }
 
-                    //Hvordan kan anker opprettes?
-
-
-                    //Fra Kabin, basert på noe i Kabal - Vil ha initiator KABIN. Får previous på opprettelse, verifiser at vi kan ta disse fra db-verdi
-                    //Fra Kabin, basert på Infotrygd - Vil ha initiator KABIN. Får ikke previous på opprettelse, verifiser at disse sammen med gruppa over utgjør alle anker med initiator KABIN.
-                    //Fra modernisert løsning - sjeldent, har ikke. Kan finne disse basert på initiator, sett null.
-                    //Fra anke i TR - Vil ha initiator KABAL.
-                    when (behandling.initiatingSystem) {
-                        Behandling.InitiatingSystem.FAGSYSTEM -> TODO()
-                        Behandling.InitiatingSystem.KABIN -> TODO()
-                        Behandling.InitiatingSystem.KABAL -> {
-                            behandling.sourceBehandlingId
+                    is Omgjoeringskravbehandling -> {
+                        when (behandling) {
+                            is OmgjoeringskravbehandlingBasedOnJournalpost -> null
+                            is OmgjoeringskravbehandlingBasedOnKabalBehandling -> behandling.sourceBehandlingId
+                            else -> error("Unknown Omgjoeringskravbehandling subtype: ${behandling::class.java}")
                         }
                     }
 
-
-                }
-                is Omgjoeringskravbehandling -> {
-                    when (behandling) {
-                        is OmgjoeringskravbehandlingBasedOnJournalpost -> null
-                        is OmgjoeringskravbehandlingBasedOnKabalBehandling -> behandling.sourceBehandlingId
-                        else -> error("Unknown Omgjoeringskravbehandling subtype: ${behandling::class.java}")
+                    is AnkeITrygderettenbehandling -> {
+                        ankebehandlingRepository.findPreviousAnker(
+                            sakenGjelder = behandling.sakenGjelder.partId.value,
+                            kildeReferanse = behandling.kildeReferanse,
+                            dateLimit = behandling.created,
+                        ).firstOrNull()?.id
                     }
-                }
 
-                is AnkeITrygderettenbehandling -> {
-                    ankebehandlingRepository.findPreviousAnker(
-                        sakenGjelder = behandling.sakenGjelder.partId.value,
-                        kildeReferanse = behandling.kildeReferanse,
-                        dateLimit = behandling.created,
-                    ).firstOrNull()?.id
-                }
-
-                is BehandlingEtterTrygderettenOpphevet -> {
-                    behandling.sourceBehandlingId
-                }
-
-                is GjenopptakITrygderettenbehandling -> TODO()
-                is Gjenopptaksbehandling -> TODO()
-            }
-
-            if (previousBehandlingId != null) {
-                if (behandling.previousBehandlingId == null) {
-                    if (!dryRun) {
-                        behandling.previousBehandlingId = previousBehandlingId
+                    is BehandlingEtterTrygderettenOpphevet -> {
+                        behandling.sourceBehandlingId
                     }
-                    updatedCount++
+
+                    is GjenopptakITrygderettenbehandling -> TODO()
+                    is Gjenopptaksbehandling -> TODO()
+                }
+
+                if (previousBehandlingId != null) {
+                    if (behandling.previousBehandlingId == null) {
+                        if (!dryRun) {
+                            behandling.previousBehandlingId = previousBehandlingId
+                        }
+                        updatedCount++
+                    } else if (behandling.previousBehandlingId != previousBehandlingId) {
+                        logger.warn("Previous behandling was already set but differs. Behandling: ${behandling.id}, set value: ${behandling.previousBehandlingId}, new value: $previousBehandlingId")
+                    } else {
+                        skippedCount++
+                    }
                 } else {
-                    skippedCount++
+                    nullCount++
                 }
-            } else {
-                nullCount++
+                if (count++ % 100 == 0) {
+                    logger.debug("Handled $count behandlinger out of ca. $total")
+                }
+
+                entityManager.detach(behandling)
             }
         }
 
