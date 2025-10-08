@@ -293,14 +293,16 @@ class AdminService(
             unfinishedBehandlinger.size
         )
 
-        val resultMessage = checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput = unfinishedBehandlinger) +
-                checkForUnavailableDueToHjemler(unfinishedBehandlingerInput = unfinishedBehandlinger)
+        val resultMessage =
+            checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput = unfinishedBehandlinger) +
+                    checkForUnavailableDueToHjemler(unfinishedBehandlingerInput = unfinishedBehandlinger)
         slackClient.postMessage("<!subteam^$klageBackendGroupId>: \n$resultMessage")
         teamLogger.debug(resultMessage)
     }
 
     fun checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput: List<Behandling>?): String {
-        val unfinishedBehandlinger = unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        val unfinishedBehandlinger =
+            unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val start = System.currentTimeMillis()
 
         val strengtFortroligBehandlinger = mutableSetOf<String>()
@@ -358,7 +360,8 @@ class AdminService(
     }
 
     fun checkForUnavailableDueToHjemler(unfinishedBehandlingerInput: List<Behandling>?): String {
-        val unfinishedBehandlinger = unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        val unfinishedBehandlinger =
+            unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val start = System.currentTimeMillis()
         val unavailableBehandlinger = mutableSetOf<UUID>()
         val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
@@ -429,7 +432,8 @@ class AdminService(
             .map { it.prosessfullmektig?.partId?.value }
             .distinct()
 
-        val allPersonsInOpenBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
+        val allPersonsInOpenBehandlingerFnr =
+            (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
 
         logger.debug("Found all distinct persons: ${allPersonsInOpenBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
 
@@ -458,7 +462,8 @@ class AdminService(
             .map { it.prosessfullmektig?.partId?.value }
             .distinct()
 
-        val allPersonsInAllBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
+        val allPersonsInAllBehandlingerFnr =
+            (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
 
         logger.debug("Found all distinct persons: ${allPersonsInAllBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
 
@@ -862,7 +867,7 @@ class AdminService(
     }
 
     @Transactional
-    fun setPreviousBehandlingId() {
+    fun setPreviousBehandlingId(dryRun: Boolean) {
         val behandlinger = behandlingRepository.findAll()
         logger.debug("Found ${behandlinger.size} behandlinger to set previousBehandlingId on if possible")
 
@@ -873,7 +878,25 @@ class AdminService(
         behandlinger.forEach { behandling ->
             val previousBehandlingId = when (behandling) {
                 is Klagebehandling -> null
-                is Ankebehandling -> TODO()
+                is Ankebehandling -> {
+
+                    //Hvordan kan anker opprettes?
+
+
+                    //Fra Kabin, basert på noe i Kabal - Vil ha initiator KABIN. Får previous på opprettelse, verifiser at vi kan ta disse fra db-verdi
+                    //Fra Kabin, basert på Infotrygd - Vil ha initiator KABIN. Får ikke previous på opprettelse, verifiser at disse sammen med gruppa over utgjør alle anker med initiator KABIN.
+                    //Fra modernisert løsning - sjeldent, har ikke. Kan finne disse basert på initiator, sett null.
+                    //Fra anke i TR - Vil ha initiator KABAL.
+                    when (behandling.initiatingSystem) {
+                        Behandling.InitiatingSystem.FAGSYSTEM -> TODO()
+                        Behandling.InitiatingSystem.KABIN -> TODO()
+                        Behandling.InitiatingSystem.KABAL -> {
+                            behandling.sourceBehandlingId
+                        }
+                    }
+
+
+                }
                 is Omgjoeringskravbehandling -> {
                     when (behandling) {
                         is OmgjoeringskravbehandlingBasedOnJournalpost -> null
@@ -881,29 +904,28 @@ class AdminService(
                         else -> error("Unknown Omgjoeringskravbehandling subtype: ${behandling::class.java}")
                     }
                 }
+
                 is AnkeITrygderettenbehandling -> {
-
-//                    ankebehandlingRepository.
-                    //find by kildereferanse, sakenGjelder, dato < ankeITR opprettet, order by dato desc, take first
-
-                    //anke
-                    //ankeITR
-                    //anke
-                    //ankeITR
-
-
-
+                    ankebehandlingRepository.findPreviousAnker(
+                        sakenGjelder = behandling.sakenGjelder.partId.value,
+                        kildeReferanse = behandling.kildeReferanse,
+                        dateLimit = behandling.created,
+                    ).firstOrNull()?.id
                 }
+
                 is BehandlingEtterTrygderettenOpphevet -> {
                     behandling.sourceBehandlingId
                 }
+
                 is GjenopptakITrygderettenbehandling -> TODO()
                 is Gjenopptaksbehandling -> TODO()
             }
 
             if (previousBehandlingId != null) {
                 if (behandling.previousBehandlingId == null) {
-                    behandling.previousBehandlingId = previousBehandlingId
+                    if (!dryRun) {
+                        behandling.previousBehandlingId = previousBehandlingId
+                    }
                     updatedCount++
                 } else {
                     skippedCount++
