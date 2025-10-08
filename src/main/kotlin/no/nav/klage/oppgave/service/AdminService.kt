@@ -913,6 +913,7 @@ class AdminService(
                 if (previousBehandlingId != null) {
                     if (behandling.previousBehandlingId == null) {
                         if (!dryRun) {
+                            logger.debug("Setting previousBehandlingId for behandling ${behandling.id} to $previousBehandlingId")
                             behandling.previousBehandlingId = previousBehandlingId
                             entityManager.flush()
                         }
