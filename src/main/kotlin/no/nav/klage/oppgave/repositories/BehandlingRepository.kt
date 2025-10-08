@@ -137,4 +137,8 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
     @Query("select b from Behandling b where b.id = :id")
     fun findByIdForOppgave(id: UUID): Behandling
 
+    @EntityGraph("Behandling.kapteinProperties")
+    @Query("select b from Behandling b where b.id = :id")
+    fun findByIdForKaptein(id: UUID): Behandling
+
 }

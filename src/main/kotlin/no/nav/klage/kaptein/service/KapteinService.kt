@@ -198,7 +198,7 @@ class KapteinService(
     }
 
     private fun mapAnkeITrygderettenbehandlingToAnonymousBehandlingView(behandling: AnkeITrygderettenbehandling): AnonymousBehandlingView {
-        val previousBehandling = behandling.previousBehandlingId?.let { behandlingRepository.findById(it).get() }
+        val previousBehandling = behandling.previousBehandlingId?.let { behandlingRepository.findByIdForKaptein(it) }
         return AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = null,
@@ -295,7 +295,7 @@ class KapteinService(
     }
 
     private fun mapGjenopptakITrygderettenbehandlingToAnonymousBehandlingView(behandling: GjenopptakITrygderettenbehandling): AnonymousBehandlingView {
-        val previousBehandling = behandlingRepository.findById(behandling.previousBehandlingId!!).get()
+        val previousBehandling = behandlingRepository.findByIdForKaptein(behandling.previousBehandlingId!!)
         return AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = null,
