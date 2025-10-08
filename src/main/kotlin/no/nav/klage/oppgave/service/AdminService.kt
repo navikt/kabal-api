@@ -870,6 +870,8 @@ class AdminService(
 
     @Transactional
     fun setPreviousBehandlingId(dryRun: Boolean) {
+        logger.debug("setPreviousBehandlingId is called with dryRun={}", dryRun)
+
         var updatedCount = 0
         var skippedCount = 0
         var nullCount = 0
