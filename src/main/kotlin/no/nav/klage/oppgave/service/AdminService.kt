@@ -913,6 +913,7 @@ class AdminService(
                 if (previousBehandlingId != null) {
                     if (behandling.previousBehandlingId == null) {
                         if (!dryRun) {
+                            logger.debug("Actually setting previousBehandlingId")
                             behandling.previousBehandlingId = previousBehandlingId
                         }
                         updatedCount++
