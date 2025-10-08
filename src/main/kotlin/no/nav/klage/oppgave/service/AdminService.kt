@@ -912,9 +912,10 @@ class AdminService(
 
                 if (previousBehandlingId != null) {
                     if (behandling.previousBehandlingId == null) {
+                        logger.debug("Will set previousBehandlingId for behandling ${behandling.id} to $previousBehandlingId")
                         if (!dryRun) {
-                            logger.debug("Setting previousBehandlingId for behandling ${behandling.id} to $previousBehandlingId")
                             behandling.previousBehandlingId = previousBehandlingId
+                            behandling.modified = LocalDateTime.now()
                             entityManager.flush()
                         }
                         updatedCount++
