@@ -70,7 +70,8 @@ class AnkebehandlingService(
                 varsletBehandlingstid = null,
                 forlengetBehandlingstidDraft = null,
                 gosysOppgaveRequired = mottak.gosysOppgaveRequired,
-                initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
+                initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
+                previousBehandlingId = mottak.forrigeBehandlingId,
             )
         )
 
@@ -140,6 +141,7 @@ class AnkebehandlingService(
     fun createAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): Ankebehandling {
         val ankebehandling = ankebehandlingRepository.save(
             Ankebehandling(
+                previousBehandlingId = ankeITrygderettenbehandling.id,
                 klager = ankeITrygderettenbehandling.klager.copy(),
                 sakenGjelder = ankeITrygderettenbehandling.sakenGjelder.copy(),
                 prosessfullmektig = ankeITrygderettenbehandling.prosessfullmektig,

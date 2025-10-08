@@ -90,6 +90,7 @@ internal class InnsynServiceTest {
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
             initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
             )
 
         val ankebehandling = Ankebehandling(
@@ -133,6 +134,7 @@ internal class InnsynServiceTest {
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
             initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
         )
 
         val ankeITRBehandling = AnkeITrygderettenbehandling(
@@ -173,6 +175,7 @@ internal class InnsynServiceTest {
             kjennelseMottatt = kjennelseMottattFraTR,
             gosysOppgaveRequired = false,
             initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
         )
 
         val ankebehandling2KA = Ankebehandling(
@@ -216,6 +219,7 @@ internal class InnsynServiceTest {
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
             initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
         )
 
         return listOf(

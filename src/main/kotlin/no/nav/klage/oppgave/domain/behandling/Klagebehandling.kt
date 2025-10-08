@@ -55,6 +55,7 @@ class Klagebehandling(
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),
+    previousBehandlingId: UUID?,
     klager: Klager,
     sakenGjelder: SakenGjelder,
     prosessfullmektig: Prosessfullmektig?,
@@ -97,6 +98,7 @@ class Klagebehandling(
     initiatingSystem: InitiatingSystem,
 ) : BehandlingWithVarsletBehandlingstid, BehandlingWithMottakDokument, Behandling(
     id = id,
+    previousBehandlingId = previousBehandlingId,
     klager = klager,
     prosessfullmektig = prosessfullmektig,
     sakenGjelder = sakenGjelder,

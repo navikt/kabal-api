@@ -59,7 +59,8 @@ class OmgjoeringskravbehandlingService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = mottak.gosysOppgaveRequired,
-                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
+                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
+                    previousBehandlingId = mottak.forrigeBehandlingId,
                 )
             )
         } else {
@@ -81,7 +82,7 @@ class OmgjoeringskravbehandlingService(
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = 2,
                     hjemler = mottak.hjemler,
-                    sourceBehandlingId = mottak.forrigeBehandlingId,
+                    sourceBehandlingId = mottak.forrigeBehandlingId!!,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     oppgaveId = null,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
@@ -90,7 +91,8 @@ class OmgjoeringskravbehandlingService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = mottak.gosysOppgaveRequired,
-                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name)
+                    initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
+                    previousBehandlingId = mottak.forrigeBehandlingId,
                 )
             )
         }

@@ -23,6 +23,7 @@ import java.util.*
 @Audited
 class GjenopptaksbehandlingBasedOnJournalpost(
     id: UUID = UUID.randomUUID(),
+    previousBehandlingId: UUID?,
     klager: Klager,
     sakenGjelder: SakenGjelder,
     prosessfullmektig: Prosessfullmektig?,
@@ -70,6 +71,7 @@ class GjenopptaksbehandlingBasedOnJournalpost(
     initiatingSystem: InitiatingSystem,
 ) : BehandlingWithVarsletBehandlingstid, Gjenopptaksbehandling(
     id = id,
+    previousBehandlingId = previousBehandlingId,
     klager = klager,
     sakenGjelder = sakenGjelder,
     prosessfullmektig = prosessfullmektig,

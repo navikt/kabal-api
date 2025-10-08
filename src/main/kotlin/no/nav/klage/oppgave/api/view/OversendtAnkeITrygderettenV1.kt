@@ -94,5 +94,6 @@ fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingInput(inputDoc
         tilbakekreving = false,
         gosysOppgaveRequired = false,
         initiatingSystem = Behandling.InitiatingSystem.KABAL,
+        previousBehandlingId = null,
     )
 }

@@ -284,6 +284,16 @@ class AdminController(
         }
     }
 
+    @GetMapping("/set-previous-behandling-id")
+    @ResponseStatus(HttpStatus.OK)
+    fun setPreviousBehandlingId(
+        @RequestParam(value = "dryRun", required = false, defaultValue = "true") dryRun: Boolean = true,
+    ) {
+        logger.debug("setPreviousBehandlingId is called")
+        krevAdminTilgang()
+        adminService.setPreviousBehandlingId(dryRun = dryRun)
+    }
+
     @GetMapping("/reload-cache-all-behandlinger")
     @ResponseStatus(HttpStatus.OK)
     fun reloadCacheAllBehandlinger() {

@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import jakarta.persistence.EntityManager
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
@@ -89,6 +90,7 @@ class AdminService(
     private val kabalInnstillingerService: KabalInnstillingerService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val personCacheService: PersonCacheService,
+    private val entityManager: EntityManager,
 ) {
 
     @Value("\${KLAGE_BACKEND_GROUP_ID}")
@@ -293,14 +295,16 @@ class AdminService(
             unfinishedBehandlinger.size
         )
 
-        val resultMessage = checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput = unfinishedBehandlinger) +
-                checkForUnavailableDueToHjemler(unfinishedBehandlingerInput = unfinishedBehandlinger)
+        val resultMessage =
+            checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput = unfinishedBehandlinger) +
+                    checkForUnavailableDueToHjemler(unfinishedBehandlingerInput = unfinishedBehandlinger)
         slackClient.postMessage("<!subteam^$klageBackendGroupId>: \n$resultMessage")
         teamLogger.debug(resultMessage)
     }
 
     fun checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput: List<Behandling>?): String {
-        val unfinishedBehandlinger = unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        val unfinishedBehandlinger =
+            unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val start = System.currentTimeMillis()
 
         val strengtFortroligBehandlinger = mutableSetOf<String>()
@@ -358,7 +362,8 @@ class AdminService(
     }
 
     fun checkForUnavailableDueToHjemler(unfinishedBehandlingerInput: List<Behandling>?): String {
-        val unfinishedBehandlinger = unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        val unfinishedBehandlinger =
+            unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val start = System.currentTimeMillis()
         val unavailableBehandlinger = mutableSetOf<UUID>()
         val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
@@ -429,7 +434,8 @@ class AdminService(
             .map { it.prosessfullmektig?.partId?.value }
             .distinct()
 
-        val allPersonsInOpenBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
+        val allPersonsInOpenBehandlingerFnr =
+            (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
 
         logger.debug("Found all distinct persons: ${allPersonsInOpenBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
 
@@ -458,7 +464,8 @@ class AdminService(
             .map { it.prosessfullmektig?.partId?.value }
             .distinct()
 
-        val allPersonsInAllBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
+        val allPersonsInAllBehandlingerFnr =
+            (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
 
         logger.debug("Found all distinct persons: ${allPersonsInAllBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
 
@@ -859,5 +866,73 @@ class AdminService(
         }
 
         logger.debug("setIdOnParterWithBehandlinger is done. Processed $behandlingerSize behandlinger")
+    }
+
+    @Transactional
+    fun setPreviousBehandlingId(dryRun: Boolean) {
+        logger.debug("setPreviousBehandlingId is called with dryRun={}", dryRun)
+
+        var updatedCount = 0
+        var skippedCount = 0
+        var nullCount = 0
+        var count = 0
+        val total = behandlingRepository.count()
+
+        behandlingRepository.findAllForAdminStreamed().use { streamed ->
+            streamed.forEach { behandling ->
+                val previousBehandlingId = when (behandling) {
+                    is Klagebehandling -> null
+                    is Ankebehandling -> {
+                        behandling.sourceBehandlingId
+                    }
+
+                    is Omgjoeringskravbehandling -> {
+                        when (behandling) {
+                            is OmgjoeringskravbehandlingBasedOnJournalpost -> null
+                            is OmgjoeringskravbehandlingBasedOnKabalBehandling -> behandling.sourceBehandlingId
+                            else -> error("Unknown Omgjoeringskravbehandling subtype: ${behandling::class.java}")
+                        }
+                    }
+
+                    is AnkeITrygderettenbehandling -> {
+                        ankebehandlingRepository.findPreviousAnker(
+                            sakenGjelder = behandling.sakenGjelder.partId.value,
+                            kildeReferanse = behandling.kildeReferanse,
+                            dateLimit = behandling.created,
+                        ).firstOrNull()?.id
+                    }
+
+                    is BehandlingEtterTrygderettenOpphevet -> {
+                        behandling.sourceBehandlingId
+                    }
+
+                    is GjenopptakITrygderettenbehandling -> TODO()
+                    is Gjenopptaksbehandling -> TODO()
+                }
+
+                if (previousBehandlingId != null) {
+                    if (behandling.previousBehandlingId == null) {
+                        if (!dryRun) {
+                            behandling.previousBehandlingId = previousBehandlingId
+                            entityManager.flush()
+                        }
+                        updatedCount++
+                    } else if (behandling.previousBehandlingId != previousBehandlingId) {
+                        logger.warn("Previous behandling was already set but differs. Behandling: ${behandling.id}, set value: ${behandling.previousBehandlingId}, new value: $previousBehandlingId")
+                    } else {
+                        skippedCount++
+                    }
+                } else {
+                    nullCount++
+                }
+                if (count++ % 100 == 0) {
+                    logger.debug("Handled $count behandlinger out of ca. $total")
+                }
+
+                entityManager.detach(behandling)
+            }
+        }
+
+        logger.debug("setPreviousBehandlingId is done. Updated $updatedCount behandlinger, skipped $skippedCount behandlinger that already had previousBehandlingId set, and $nullCount behandlinger had no previousBehandlingId to set.")
     }
 }

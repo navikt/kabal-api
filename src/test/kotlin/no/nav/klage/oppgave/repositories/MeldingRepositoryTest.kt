@@ -87,6 +87,7 @@ class MeldingRepositoryTest {
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
             initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
         )
 
         klagebehandlingRepository.save(klage)

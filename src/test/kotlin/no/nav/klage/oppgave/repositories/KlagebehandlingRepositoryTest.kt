@@ -183,6 +183,7 @@ class KlagebehandlingRepositoryTest {
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
             initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
         )
 
         ankebehandlingRepository.save(ankebehandling)
@@ -232,5 +233,6 @@ class KlagebehandlingRepositoryTest {
         forlengetBehandlingstidDraft = null,
         gosysOppgaveRequired = false,
         initiatingSystem = Behandling.InitiatingSystem.KABAL,
+        previousBehandlingId = null,
     )
 }

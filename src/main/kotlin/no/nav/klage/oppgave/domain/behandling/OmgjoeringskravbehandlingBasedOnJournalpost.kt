@@ -25,6 +25,7 @@ class OmgjoeringskravbehandlingBasedOnJournalpost(
 
     //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),
+    previousBehandlingId: UUID?,
     klager: Klager,
     sakenGjelder: SakenGjelder,
     prosessfullmektig: Prosessfullmektig?,
@@ -73,6 +74,7 @@ class OmgjoeringskravbehandlingBasedOnJournalpost(
     initiatingSystem: InitiatingSystem,
 ) : BehandlingWithVarsletBehandlingstid, Omgjoeringskravbehandling(
     id = id,
+    previousBehandlingId = previousBehandlingId,
     klager = klager,
     sakenGjelder = sakenGjelder,
     prosessfullmektig = prosessfullmektig,

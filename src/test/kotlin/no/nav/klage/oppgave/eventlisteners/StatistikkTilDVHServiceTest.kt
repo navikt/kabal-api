@@ -168,6 +168,7 @@ class StatistikkTilDVHServiceTest {
         forlengetBehandlingstidDraft = null,
         gosysOppgaveRequired = false,
         initiatingSystem = Behandling.InitiatingSystem.KABAL,
+        previousBehandlingId = null,
     )
 
     private val klagebehandlingHJE = Klagebehandling(
@@ -212,6 +213,7 @@ class StatistikkTilDVHServiceTest {
         forlengetBehandlingstidDraft = null,
         gosysOppgaveRequired = true,
         initiatingSystem = Behandling.InitiatingSystem.KABAL,
+        previousBehandlingId = null,
     )
 
     private val ankebehandlingOMP = Ankebehandling(
@@ -256,6 +258,7 @@ class StatistikkTilDVHServiceTest {
         forlengetBehandlingstidDraft = null,
         gosysOppgaveRequired = false,
         initiatingSystem = Behandling.InitiatingSystem.KABAL,
+        previousBehandlingId = null,
     )
 
     private val ankeITrygderettenbehandlingOMP = AnkeITrygderettenbehandling(
@@ -295,5 +298,6 @@ class StatistikkTilDVHServiceTest {
         gosysOppgaveId = null,
         gosysOppgaveRequired = false,
         initiatingSystem = Behandling.InitiatingSystem.KABAL,
+        previousBehandlingId = null,
     )
 }

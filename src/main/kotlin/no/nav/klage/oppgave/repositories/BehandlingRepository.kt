@@ -123,6 +123,16 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
     )
     fun findAllForKapteinStreamed(): Stream<Behandling>
 
+    @QueryHints(QueryHint(name = HINT_FETCH_SIZE, value = "2000"))
+    @Query(
+        """
+            select b
+            from Behandling b
+            where b.feilregistrering is null            
+        """
+    )
+    fun findAllForAdminStreamed(): Stream<Behandling>
+
     @EntityGraph("Behandling.oppgaveProperties")
     @Query("select b from Behandling b where b.id = :id")
     fun findByIdForOppgave(id: UUID): Behandling

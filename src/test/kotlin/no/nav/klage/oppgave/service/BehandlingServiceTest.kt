@@ -488,6 +488,7 @@ class BehandlingServiceTest {
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
             initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
         )
 
         behandlingRepository.save(behandling)

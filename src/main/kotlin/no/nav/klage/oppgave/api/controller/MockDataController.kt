@@ -349,6 +349,7 @@ class MockDataController(
                     tilbakekreving = false,
                     gosysOppgaveRequired = false,
                     initiatingSystem = Behandling.InitiatingSystem.FAGSYSTEM,
+                    previousBehandlingId = null,
                 )
 
                 ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(

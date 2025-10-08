@@ -64,6 +64,7 @@ class KlagebehandlingService(
                 forlengetBehandlingstidDraft = null,
                 gosysOppgaveRequired = mottak.gosysOppgaveRequired,
                 initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
+                previousBehandlingId = mottak.forrigeBehandlingId,
             )
         )
 

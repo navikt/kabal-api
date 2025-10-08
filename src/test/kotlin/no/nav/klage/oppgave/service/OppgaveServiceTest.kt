@@ -503,6 +503,7 @@ class OppgaveServiceTest {
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = false,
                     initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                    previousBehandlingId = null,
                 )
             }
 
@@ -546,6 +547,7 @@ class OppgaveServiceTest {
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = false,
                     initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                    previousBehandlingId = null,
                 )
             }
 
@@ -583,6 +585,7 @@ class OppgaveServiceTest {
                     gosysOppgaveId = null,
                     gosysOppgaveRequired = false,
                     initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                    previousBehandlingId = null,
                 )
             }
 
@@ -627,6 +630,7 @@ class OppgaveServiceTest {
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = false,
                     initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                    previousBehandlingId = null,
                 )
             }
 

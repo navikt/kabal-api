@@ -763,7 +763,7 @@ class MottakService(
         )
     }
 
-    fun CreateKlageBasedOnKabinInput.toMottak(forrigeBehandlingId: UUID? = null): Mottak {
+    fun CreateKlageBasedOnKabinInput.toMottak(): Mottak {
         val sakenGjelder = SakenGjelder(
             id = UUID.randomUUID(),
             partId = sakenGjelder.toPartId(),
@@ -827,7 +827,7 @@ class MottakService(
             sakMottattKaDato = sakMottattKa.atStartOfDay(),
             frist = frist,
             ytelse = Ytelse.of(ytelseId),
-            forrigeBehandlingId = forrigeBehandlingId,
+            forrigeBehandlingId = null,
             sentFrom = Mottak.Sender.KABIN,
             kommentar = null,
             prosessfullmektig = prosessfullmektig,

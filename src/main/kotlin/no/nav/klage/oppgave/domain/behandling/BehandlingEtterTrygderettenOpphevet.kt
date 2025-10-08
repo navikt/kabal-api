@@ -29,7 +29,7 @@ class BehandlingEtterTrygderettenOpphevet(
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
     @Column(name = "source_behandling_id")
-    var sourceBehandlingId: UUID?,
+    var sourceBehandlingId: UUID,
     @Column(name = "kjennelse_mottatt")
     val kjennelseMottatt: LocalDateTime,
     @Column(name = "anke_behandlende_enhet")
@@ -41,6 +41,7 @@ class BehandlingEtterTrygderettenOpphevet(
 
     //Common properties
     id: UUID = UUID.randomUUID(),
+    previousBehandlingId: UUID?,
     klager: Klager,
     sakenGjelder: SakenGjelder,
     prosessfullmektig: Prosessfullmektig?,
@@ -83,6 +84,7 @@ class BehandlingEtterTrygderettenOpphevet(
     initiatingSystem: InitiatingSystem,
 ) : BehandlingWithVarsletBehandlingstid, Behandling(
     id = id,
+    previousBehandlingId = previousBehandlingId,
     klager = klager,
     sakenGjelder = sakenGjelder,
     prosessfullmektig = prosessfullmektig,
