@@ -25,7 +25,7 @@ data class Journalpost(
     val journalpostId: String,
     val journalposttype: Journalposttype?,
     val journalstatus: Journalstatus?,
-    val tema: Tema?,
+    val tema: Tema,
     val sak: Sak?,
     val bruker: Bruker,
     val avsenderMottaker: AvsenderMottaker?,

@@ -1610,6 +1610,16 @@ class DokumentUnderArbeidService(
                 }
 
                 is JournalfoertDokumentUnderArbeidAsVedlegg -> {
+                    val journalpost = safFacade.getJournalpostAsSaksbehandler(
+                        journalpostId = dokumentUnderArbeid.journalpostId,
+                    )
+
+                    val dokument = journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+                        ?: throw RuntimeException("Document not found in Dokarkiv")
+                    if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
+                        throw NoAccessToDocumentException("Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.")
+                    }
+
                     val fysiskDokument = dokumentService.getFysiskDokument(
                         journalpostId = dokumentUnderArbeid.journalpostId,
                         dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
@@ -2093,7 +2103,7 @@ class DokumentUnderArbeidService(
                 val dokument = journalpost?.dokumenter?.find { it.dokumentInfoId == journalfoerteVedlegg.dokumentInfoId }
                     ?: throw RuntimeException("Document not found in Dokarkiv")
                 if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
-                    throw NoAccessToDocumentException("Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i SAF.")
+                    throw NoAccessToDocumentException("Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.")
                 }
             }
         }
