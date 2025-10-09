@@ -2083,6 +2083,24 @@ class DokumentUnderArbeidService(
         }
 
         val journalfoerteVedlegg = vedleggList.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+
+        if (journalfoerteVedlegg.isNotEmpty()) {
+            val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId)
+            val journalpostListFromSaf = safFacade.getJournalposter(
+                journalpostIdSet = journalfoerteVedlegg.map { it.journalpostId }.toSet(),
+                fnr = behandling.sakenGjelder.partId.value,
+                saksbehandlerContext = true,
+            )
+            journalfoerteVedlegg.forEach { journalfoerteVedlegg ->
+                val journalpost = journalpostListFromSaf.find { it.journalpostId == journalfoerteVedlegg.journalpostId }
+                val dokument = journalpost?.dokumenter?.find { it.dokumentInfoId == journalfoerteVedlegg.dokumentInfoId }
+                    ?: throw RuntimeException("Document not found in Dokarkiv")
+                if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
+                    throw DokumentValidationException("Mangler tilgang til tema ${journalpost.tema} i SAF.")
+                }
+            }
+        }
+
         val journalfoertePath = if (journalfoerteVedlegg.isNotEmpty()) {
             dokumentService.mergeJournalfoerteDocuments(
                 documentsToMerge = journalfoerteVedlegg
