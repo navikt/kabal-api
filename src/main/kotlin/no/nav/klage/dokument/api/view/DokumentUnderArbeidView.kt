@@ -60,6 +60,7 @@ data class DokumentView(
     )
 
     data class JournalfoertDokumentReference(
+        val temaId: String,
         val journalpostId: String,
         val dokumentInfoId: String,
         val harTilgangTilArkivvariant: Boolean,

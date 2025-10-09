@@ -8,10 +8,7 @@ import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.SmartDocumentAccessDocumentEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
-import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
-import no.nav.klage.dokument.exceptions.DocumentDoesNotExistException
-import no.nav.klage.dokument.exceptions.DokumentValidationException
-import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
+import no.nav.klage.dokument.exceptions.*
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.dokument.util.DuaAccessPolicy
@@ -1613,6 +1610,16 @@ class DokumentUnderArbeidService(
                 }
 
                 is JournalfoertDokumentUnderArbeidAsVedlegg -> {
+                    val journalpost = safFacade.getJournalpostAsSaksbehandler(
+                        journalpostId = dokumentUnderArbeid.journalpostId,
+                    )
+
+                    val dokument = journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+                        ?: throw RuntimeException("Document not found in Dokarkiv")
+                    if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
+                        throw NoAccessToDocumentException("Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.")
+                    }
+
                     val fysiskDokument = dokumentService.getFysiskDokument(
                         journalpostId = dokumentUnderArbeid.journalpostId,
                         dokumentInfoId = dokumentUnderArbeid.dokumentInfoId,
@@ -2083,6 +2090,24 @@ class DokumentUnderArbeidService(
         }
 
         val journalfoerteVedlegg = vedleggList.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+
+        if (journalfoerteVedlegg.isNotEmpty()) {
+            val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId)
+            val journalpostListFromSaf = safFacade.getJournalposter(
+                journalpostIdSet = journalfoerteVedlegg.map { it.journalpostId }.toSet(),
+                fnr = behandling.sakenGjelder.partId.value,
+                saksbehandlerContext = true,
+            )
+            journalfoerteVedlegg.forEach { journalfoerteVedlegg ->
+                val journalpost = journalpostListFromSaf.find { it.journalpostId == journalfoerteVedlegg.journalpostId }
+                val dokument = journalpost?.dokumenter?.find { it.dokumentInfoId == journalfoerteVedlegg.dokumentInfoId }
+                    ?: throw RuntimeException("Document not found in Dokarkiv")
+                if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
+                    throw NoAccessToDocumentException("Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.")
+                }
+            }
+        }
+
         val journalfoertePath = if (journalfoerteVedlegg.isNotEmpty()) {
             dokumentService.mergeJournalfoerteDocuments(
                 documentsToMerge = journalfoerteVedlegg

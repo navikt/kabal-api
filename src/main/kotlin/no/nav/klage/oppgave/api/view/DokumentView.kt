@@ -22,8 +22,9 @@ data class DokumentReferanse(
     val journalpostId: String,
     val dokumentInfoId: String,
     val tittel: String?,
+    @Deprecated("Use temaId instead")
     val tema: String?,
-    val temaId: String?,
+    val temaId: String,
     val harTilgangTilArkivvariant: Boolean,
     val hasAccess: Boolean,
     val valgt: Boolean,

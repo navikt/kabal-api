@@ -11,3 +11,5 @@ class SmartDocumentValidationException(msg: String, val errors: List<DocumentVal
 class SvarbrevPreviewException(msg: String) : RuntimeException(msg)
 
 class DocumentDoesNotExistException(msg: String) : RuntimeException(msg)
+
+class NoAccessToDocumentException(msg: String) : RuntimeException(msg)

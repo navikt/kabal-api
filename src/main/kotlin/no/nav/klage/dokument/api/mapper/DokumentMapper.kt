@@ -99,7 +99,7 @@ class DokumentMapper(
 
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentInDokarkiv.tittel ?: "Tittel ikke funnet i SAF",
-            tema = Tema.fromNavn(journalpost.tema?.name).beskrivelse,
+            tema = Tema.fromNavn(journalpost.tema.name).beskrivelse,
             dato = journalpost.datoSortering.toLocalDate(),
             avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
             saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
@@ -132,6 +132,7 @@ class DokumentMapper(
             tittel = (dokument.tittel ?: "Tittel ikke funnet i SAF")
 
             journalfoertDokumentReference = DokumentView.JournalfoertDokumentReference(
+                temaId = Tema.fromNavn(journalpost.tema.name).id,
                 journalpostId = unproxiedDUA.journalpostId,
                 dokumentInfoId = unproxiedDUA.dokumentInfoId,
                 harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(dokument),
@@ -310,8 +311,8 @@ class DokumentMapper(
 
         val dokumentReferanse = DokumentReferanse(
             tittel = hoveddokument.tittel,
-            tema = Tema.fromNavn(journalpost.tema?.name).id,
-            temaId = Tema.fromNavn(journalpost.tema?.name).id,
+            tema = Tema.fromNavn(journalpost.tema.name).id,
+            temaId = Tema.fromNavn(journalpost.tema.name).id,
             dokumentInfoId = hoveddokument.dokumentInfoId,
             journalpostId = journalpost.journalpostId,
             harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(hoveddokument),
