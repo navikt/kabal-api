@@ -15,11 +15,11 @@ import java.time.LocalDateTime
 private fun SakenGjelder.mapToSkjemaV2(): BehandlingSkjemaV2.PersonEllerOrganisasjon {
     return if (this.erPerson()) {
         BehandlingSkjemaV2.PersonEllerOrganisasjon(
-            BehandlingSkjemaV2.Person(fnr = this.partId.value)
+            person = BehandlingSkjemaV2.Person(fnr = this.partId.value)
         )
     } else {
         BehandlingSkjemaV2.PersonEllerOrganisasjon(
-            BehandlingSkjemaV2.Organisasjon(orgnr = this.partId.value)
+            organisasjon = BehandlingSkjemaV2.Organisasjon(orgnr = this.partId.value)
         )
     }
 }
@@ -170,10 +170,7 @@ data class BehandlingSkjemaV2(
         val orgnr: String,
     )
 
-    data class PersonEllerOrganisasjon private constructor(val person: Person?, val organisasjon: Organisasjon?) {
-        constructor(person: Person) : this(person, null)
-        constructor(organisasjon: Organisasjon) : this(null, organisasjon)
-    }
+    data class PersonEllerOrganisasjon(val person: Person? = null, val organisasjon: Organisasjon? = null)
 
     data class Kode(
         val id: String,
