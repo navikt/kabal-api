@@ -36,7 +36,7 @@ class KabalDocumentMapper(
         private const val BREVKODE_KJENNELSE_FRA_TR = "NAV96-01.01"
         private const val BREVKODE_ANNET = "NAV 00-03.00"
         private val DATE_FORMAT =
-            DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
+            DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale.of("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
     }
 
     fun mapBehandlingToDokumentEnhetWithDokumentreferanser(

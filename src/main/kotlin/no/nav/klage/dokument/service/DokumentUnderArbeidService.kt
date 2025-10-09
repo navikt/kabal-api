@@ -104,7 +104,7 @@ class DokumentUnderArbeidService(
         private val logger = getLogger(javaClass.enclosingClass)
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
         private val DATE_FORMAT =
-            DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
+            DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale.of("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
     }
 
     private val metricForSmartDocumentVersions = meterRegistry.getHistogram(
