@@ -195,6 +195,12 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     ): ProblemDetail =
         createSmartDocumentValidationProblem(ex)
 
+    @ExceptionHandler
+    fun handleNoAccessToDocumentException(
+        ex: NoAccessToDocumentException,
+    ): ProblemDetail =
+        create(HttpStatus.FORBIDDEN, ex)
+
     private fun createSmartDocumentValidationProblem(ex: SmartDocumentValidationException): ProblemDetail {
         logError(
             httpStatus = HttpStatus.BAD_REQUEST,

@@ -8,10 +8,7 @@ import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.SmartDocumentAccessDocumentEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
-import no.nav.klage.dokument.exceptions.AttachmentTooLargeException
-import no.nav.klage.dokument.exceptions.DocumentDoesNotExistException
-import no.nav.klage.dokument.exceptions.DokumentValidationException
-import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
+import no.nav.klage.dokument.exceptions.*
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.dokument.util.DuaAccessPolicy
@@ -2096,7 +2093,7 @@ class DokumentUnderArbeidService(
                 val dokument = journalpost?.dokumenter?.find { it.dokumentInfoId == journalfoerteVedlegg.dokumentInfoId }
                     ?: throw RuntimeException("Document not found in Dokarkiv")
                 if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
-                    throw RuntimeException("Mangler tilgang til tema ${journalpost.tema} i SAF.")
+                    throw NoAccessToDocumentException("Kan ikke vise dokument med journalpost-id ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i SAF.")
                 }
             }
         }
