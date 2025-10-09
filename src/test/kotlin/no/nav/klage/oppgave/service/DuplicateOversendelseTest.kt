@@ -10,7 +10,7 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
-import no.nav.klage.oppgave.db.TestPostgresqlContainer
+import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
 import no.nav.klage.oppgave.domain.saksbehandler.Enhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
@@ -19,31 +19,19 @@ import no.nav.klage.oppgave.util.TokenUtil
 import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.domain.EntityScan
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase
 import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.test.context.ActiveProfiles
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
 import java.time.LocalDate
-
 
 @ActiveProfiles("local")
 @SpringBootTest(classes = [MottakService::class])
 @EnableJpaRepositories(basePackages = ["no.nav.klage.oppgave.repositories", "no.nav.klage.dokument.repositories"])
 @EntityScan("no.nav.klage.oppgave.domain", "no.nav.klage.dokument.domain")
 @AutoConfigureDataJpa
-@Testcontainers
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-internal class DuplicateOversendelseTest {
-
-    companion object {
-        @Container
-        @JvmField
-        val postgreSQLContainer: TestPostgresqlContainer = TestPostgresqlContainer.instance
-    }
+internal class DuplicateOversendelseTest : PostgresIntegrationTestBase() {
 
     @MockkBean(relaxed = true)
     lateinit var dokumentService: DokumentService

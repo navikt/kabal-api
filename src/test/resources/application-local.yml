@@ -1,10 +1,6 @@
 spring:
   datasource:
-    platform: postgresql
     driver-class-name: org.postgresql.Driver
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
   kafka:
     consumer:
       auto-offset-reset: earliest
@@ -13,6 +9,9 @@ spring:
     show-sql: true
     properties:
       hibernate.format_sql: true
+  sql:
+    init:
+      platform: postgresql
 
 VEDTAK_FATTET_TOPIC: klage.vedtak-fattet.v1
 KAKA_VERSION_2_DATE: 2022-12-06
