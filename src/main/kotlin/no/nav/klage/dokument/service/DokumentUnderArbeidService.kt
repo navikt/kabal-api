@@ -2096,7 +2096,7 @@ class DokumentUnderArbeidService(
                 val dokument = journalpost?.dokumenter?.find { it.dokumentInfoId == journalfoerteVedlegg.dokumentInfoId }
                     ?: throw RuntimeException("Document not found in Dokarkiv")
                 if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
-                    throw DokumentValidationException("Mangler tilgang til tema ${journalpost.tema} i SAF.")
+                    throw RuntimeException("Mangler tilgang til tema ${journalpost.tema} i SAF.")
                 }
             }
         }
