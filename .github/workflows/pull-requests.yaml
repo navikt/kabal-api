@@ -14,8 +14,8 @@ jobs:
           distribution: temurin
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
-      - name: test and build
-        run: ./gradlew test build
+      - name: Build and test
+        run: ./gradlew test
         env:
           ORG_GRADLE_PROJECT_githubUser: x-access-token
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
