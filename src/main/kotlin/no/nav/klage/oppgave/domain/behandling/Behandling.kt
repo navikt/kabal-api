@@ -41,7 +41,6 @@ import java.util.*
     NamedEntityGraph(
         name = "Behandling.kapteinProperties",
         attributeNodes = [
-            NamedAttributeNode("hjemler"),
             NamedAttributeNode("registreringshjemler"),
         ]
     ),

@@ -36,6 +36,8 @@ data class AnonymousBehandlingView(
     val fagsystemId: String,
     val varsletFrist: LocalDate?,
     val tilbakekreving: Boolean,
+    val previousTildeltEnhet: String?,
+    val previousRegistreringshjemmelIdList: List<String>?,
 ) {
     data class VedtakView(
         val id: UUID,
