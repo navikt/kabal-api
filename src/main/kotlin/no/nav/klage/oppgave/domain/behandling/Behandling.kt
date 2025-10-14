@@ -10,7 +10,10 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.kodeverk.ytelse.YtelseConverter
 import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.behandling.historikk.*
-import no.nav.klage.oppgave.domain.behandling.subentities.*
+import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
+import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
@@ -434,9 +437,5 @@ interface BehandlingWithMottakDokument {
                 )
             )
         }
-    }
-
-    fun getMottakDokumentType(): MottakDokumentType {
-        return this.getMottakDokumentType()
     }
 }

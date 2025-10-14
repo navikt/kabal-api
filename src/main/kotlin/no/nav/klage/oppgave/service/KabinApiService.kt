@@ -14,6 +14,7 @@ import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerNavn
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerPartId
+import no.nav.klage.oppgave.domain.behandling.subentities.getMottakDokumentType
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -257,7 +258,7 @@ class KabinApiService(
             fagsakId = behandling.fagsakId,
             fagsystemId = behandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
-                journalpostId = behandling.mottakDokument.find { it.type == behandling.getMottakDokumentType() }!!.journalpostId,
+                journalpostId = behandling.mottakDokument.find { it.type == behandling.type.getMottakDokumentType() }!!.journalpostId,
                 behandling = behandling
             ),
             tildeltSaksbehandler = behandling.tildeling?.saksbehandlerident?.let {
