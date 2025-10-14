@@ -9,13 +9,11 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
 import no.nav.klage.oppgave.domain.behandling.Behandling
-import no.nav.klage.oppgave.domain.behandling.Klagebehandling
-import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerNavn
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerPartId
-import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentType
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -207,213 +205,62 @@ class KabinApiService(
         val behandling =
             behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId = behandlingId)
 
-        return when (behandling) {
-            is Klagebehandling -> getCreatedKlagebehandlingStatusForKabin(
-                klagebehandling = behandling
-            )
+        return getCreatedBehandlingStatusForKabin(behandling = behandling)
+    }
 
-            is Ankebehandling -> getCreatedAnkebehandlingStatusForKabin(
-                ankebehandling = behandling
-            )
-
-            is Omgjoeringskravbehandling -> getCreatedOmgjoeringskravbehandlingStatusForKabin(
-                omgjoeringskravbehandling = behandling
-            )
-
-            else -> error("Unsupported type")
+    private fun getCreatedBehandlingStatusForKabin(
+        behandling: Behandling,
+    ): CreatedBehandlingStatusForKabin {
+        if (behandling !is BehandlingWithMottakDokument || behandling !is BehandlingWithVarsletBehandlingstid) {
+            error("Unsupported type")
         }
-    }
-
-    private fun getCreatedOmgjoeringskravbehandlingStatusForKabin(omgjoeringskravbehandling: Omgjoeringskravbehandling): CreatedBehandlingStatusForKabin {
         val dokumentUnderArbeid =
-            dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = omgjoeringskravbehandling.id)
+            dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = behandling.id)
 
         val dokumentView: DokumentView? = if (dokumentUnderArbeid != null) {
             dokumentMapper.mapToDokumentView(
                 dokumentUnderArbeid = dokumentUnderArbeid,
-                behandling = omgjoeringskravbehandling,
+                behandling = behandling,
                 journalpost = null,
                 smartEditorDocument = null,
             )
         } else null
 
         return CreatedBehandlingStatusForKabin(
-            typeId = Type.OMGJOERINGSKRAV.id,
-            ytelseId = omgjoeringskravbehandling.ytelse.id,
-            sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = omgjoeringskravbehandling)
+            typeId = behandling.type.id,
+            ytelseId = behandling.ytelse.id,
+            sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = behandling)
                 .toKabinPartView(),
             klager = behandlingMapper.getPartViewWithUtsendingskanal(
-                technicalPartId = omgjoeringskravbehandling.klager.id,
-                partId = omgjoeringskravbehandling.klager.partId,
-                behandling = omgjoeringskravbehandling,
+                technicalPartId = behandling.klager.id,
+                partId = behandling.klager.partId,
+                behandling = behandling,
                 navn = null,
-                address = null
+                address = null,
             ).toKabinPartView(),
-            fullmektig = if (omgjoeringskravbehandling.prosessfullmektig?.partId != null) {
-                val prosessfullmektig = omgjoeringskravbehandling.prosessfullmektig!!
+            fullmektig = if (behandling.prosessfullmektig?.partId != null) {
+                val prosessfullmektig = behandling.prosessfullmektig!!
                 behandlingMapper.getPartViewWithUtsendingskanal(
                     technicalPartId = prosessfullmektig.id,
                     partId = prosessfullmektig.partId,
-                    behandling = omgjoeringskravbehandling,
+                    behandling = behandling,
                     navn = prosessfullmektig.navn,
                     address = prosessfullmektig.address
                 ).toKabinPartView()
             } else null,
-            mottattKlageinstans = omgjoeringskravbehandling.mottattKlageinstans.toLocalDate(),
+            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
             mottattVedtaksinstans = null,
-            frist = omgjoeringskravbehandling.frist!!,
-            varsletFrist = omgjoeringskravbehandling.varsletBehandlingstid?.varsletFrist,
-            varsletFristUnits = omgjoeringskravbehandling.varsletBehandlingstid?.varsletBehandlingstidUnits,
-            varsletFristUnitTypeId = omgjoeringskravbehandling.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
-            fagsakId = omgjoeringskravbehandling.fagsakId,
-            fagsystemId = omgjoeringskravbehandling.fagsystem.id,
+            frist = behandling.frist!!,
+            varsletFrist = behandling.varsletBehandlingstid?.varsletFrist,
+            varsletFristUnits = behandling.varsletBehandlingstid?.varsletBehandlingstidUnits,
+            varsletFristUnitTypeId = behandling.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
+            fagsakId = behandling.fagsakId,
+            fagsystemId = behandling.fagsystem.id,
             journalpost = dokumentService.getDokumentReferanse(
-                journalpostId = omgjoeringskravbehandling.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_OMGJOERINGSKRAV }!!.journalpostId,
-                behandling = omgjoeringskravbehandling
+                journalpostId = behandling.mottakDokument.find { it.type == behandling.getMottakDokumentType() }!!.journalpostId,
+                behandling = behandling
             ),
-            tildeltSaksbehandler = omgjoeringskravbehandling.tildeling?.saksbehandlerident?.let {
-                TildeltSaksbehandler(
-                    navIdent = it,
-                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
-                )
-            },
-            svarbrev = dokumentView?.let { document ->
-                KabinResponseSvarbrev(
-                    dokumentUnderArbeidId = document.id,
-                    title = document.tittel,
-                    receivers = document.mottakerList.map { mottaker ->
-                        KabinResponseSvarbrev.Receiver(
-                            part = mottaker.part,
-                            overriddenAddress = mottaker.overriddenAddress,
-                            handling = mottaker.handling,
-                        )
-                    }
-                )
-            }
-        )
-    }
-
-    private fun getCreatedAnkebehandlingStatusForKabin(
-        ankebehandling: Ankebehandling,
-    ): CreatedBehandlingStatusForKabin {
-        val dokumentUnderArbeid =
-            dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = ankebehandling.id)
-
-        val dokumentView: DokumentView? = if (dokumentUnderArbeid != null) {
-            dokumentMapper.mapToDokumentView(
-                dokumentUnderArbeid = dokumentUnderArbeid,
-                behandling = ankebehandling,
-                journalpost = null,
-                smartEditorDocument = null,
-            )
-        } else null
-
-        return CreatedBehandlingStatusForKabin(
-            typeId = Type.ANKE.id,
-            ytelseId = ankebehandling.ytelse.id,
-            sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = ankebehandling)
-                .toKabinPartView(),
-            klager = behandlingMapper.getPartViewWithUtsendingskanal(
-                technicalPartId = ankebehandling.klager.id,
-                partId = ankebehandling.klager.partId,
-                behandling = ankebehandling,
-                navn = null,
-                address = null,
-            ).toKabinPartView(),
-            fullmektig = if (ankebehandling.prosessfullmektig?.partId != null) {
-                val prosessfullmektig = ankebehandling.prosessfullmektig!!
-                behandlingMapper.getPartViewWithUtsendingskanal(
-                    technicalPartId = prosessfullmektig.id,
-                    partId = prosessfullmektig.partId,
-                    behandling = ankebehandling,
-                    navn = prosessfullmektig.navn,
-                    address = prosessfullmektig.address
-                ).toKabinPartView()
-            } else null,
-            mottattKlageinstans = ankebehandling.mottattKlageinstans.toLocalDate(),
-            mottattVedtaksinstans = null,
-            frist = ankebehandling.frist!!,
-            varsletFrist = ankebehandling.varsletBehandlingstid?.varsletFrist,
-            varsletFristUnits = ankebehandling.varsletBehandlingstid?.varsletBehandlingstidUnits,
-            varsletFristUnitTypeId = ankebehandling.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
-            fagsakId = ankebehandling.fagsakId,
-            fagsystemId = ankebehandling.fagsystem.id,
-            journalpost = dokumentService.getDokumentReferanse(
-                journalpostId = ankebehandling.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_ANKE }!!.journalpostId,
-                behandling = ankebehandling
-            ),
-            tildeltSaksbehandler = ankebehandling.tildeling?.saksbehandlerident?.let {
-                TildeltSaksbehandler(
-                    navIdent = it,
-                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),
-                )
-            },
-            svarbrev = dokumentView?.let { document ->
-                KabinResponseSvarbrev(
-                    dokumentUnderArbeidId = document.id,
-                    title = document.tittel,
-                    receivers = document.mottakerList.map { mottaker ->
-                        KabinResponseSvarbrev.Receiver(
-                            part = mottaker.part,
-                            overriddenAddress = mottaker.overriddenAddress,
-                            handling = mottaker.handling,
-                        )
-                    }
-                )
-            }
-        )
-    }
-
-    private fun getCreatedKlagebehandlingStatusForKabin(
-        klagebehandling: Klagebehandling,
-    ): CreatedBehandlingStatusForKabin {
-        val dokumentUnderArbeid =
-            dokumentUnderArbeidService.getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId = klagebehandling.id)
-
-        val dokumentView: DokumentView? = if (dokumentUnderArbeid != null) {
-            dokumentMapper.mapToDokumentView(
-                dokumentUnderArbeid = dokumentUnderArbeid,
-                behandling = klagebehandling,
-                journalpost = null,
-                smartEditorDocument = null,
-            )
-        } else null
-
-        return CreatedBehandlingStatusForKabin(
-            typeId = Type.KLAGE.id,
-            ytelseId = klagebehandling.ytelse.id,
-            sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = klagebehandling)
-                .toKabinPartView(),
-            klager = behandlingMapper.getPartViewWithUtsendingskanal(
-                technicalPartId = klagebehandling.klager.id,
-                partId = klagebehandling.klager.partId,
-                behandling = klagebehandling,
-                navn = null,
-                address = null,
-            ).toKabinPartView(),
-            fullmektig = if (klagebehandling.prosessfullmektig?.partId != null) {
-                val prosessfullmektig = klagebehandling.prosessfullmektig!!
-                behandlingMapper.getPartViewWithUtsendingskanal(
-                    technicalPartId = prosessfullmektig.id,
-                    partId = prosessfullmektig.partId,
-                    behandling = klagebehandling,
-                    navn = prosessfullmektig.navn,
-                    address = prosessfullmektig.address,
-                ).toKabinPartView()
-            } else null,
-            mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
-            mottattKlageinstans = klagebehandling.mottattKlageinstans.toLocalDate(),
-            frist = klagebehandling.frist!!,
-            varsletFrist = klagebehandling.varsletBehandlingstid?.varsletFrist,
-            varsletFristUnits = klagebehandling.varsletBehandlingstid?.varsletBehandlingstidUnits,
-            varsletFristUnitTypeId = klagebehandling.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
-            fagsakId = klagebehandling.fagsakId,
-            fagsystemId = klagebehandling.fagsystem.id,
-            journalpost = dokumentService.getDokumentReferanse(
-                journalpostId = klagebehandling.mottakDokument.find { it.type == MottakDokumentType.BRUKERS_KLAGE }!!.journalpostId,
-                behandling = klagebehandling
-            ),
-            tildeltSaksbehandler = klagebehandling.tildeling?.saksbehandlerident?.let {
+            tildeltSaksbehandler = behandling.tildeling?.saksbehandlerident?.let {
                 TildeltSaksbehandler(
                     navIdent = it,
                     navn = saksbehandlerService.getNameForIdentDefaultIfNull(it),

@@ -10,10 +10,7 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.kodeverk.ytelse.YtelseConverter
 import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.behandling.historikk.*
-import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
-import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
-import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
-import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import no.nav.klage.oppgave.domain.behandling.subentities.*
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
@@ -436,6 +433,16 @@ interface BehandlingWithMottakDokument {
                     behandling = this as Behandling,
                 )
             )
+        }
+    }
+
+    fun getMottakDokumentType(): MottakDokumentType {
+        return when (this) {
+            is Klagebehandling -> MottakDokumentType.BRUKERS_KLAGE
+            is Ankebehandling -> MottakDokumentType.BRUKERS_ANKE
+            is Omgjoeringskravbehandling -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
+            is Gjenopptaksbehandling -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
+            else -> throw IllegalArgumentException("Behandling av type ${this::class.simpleName} støttes ikke.")
         }
     }
 }
