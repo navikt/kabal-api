@@ -437,12 +437,6 @@ interface BehandlingWithMottakDokument {
     }
 
     fun getMottakDokumentType(): MottakDokumentType {
-        return when (this) {
-            is Klagebehandling -> MottakDokumentType.BRUKERS_KLAGE
-            is Ankebehandling -> MottakDokumentType.BRUKERS_ANKE
-            is Omgjoeringskravbehandling -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
-            is Gjenopptaksbehandling -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
-            else -> throw IllegalArgumentException("Behandling av type ${this::class.simpleName} støttes ikke.")
-        }
+        return this.getMottakDokumentType()
     }
 }

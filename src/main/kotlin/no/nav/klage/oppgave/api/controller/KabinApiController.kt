@@ -176,7 +176,7 @@ class KabinApiController(
         )
     }
 
-    @PostMapping(value = ["/create-omgjoeringskrav-based-on-journalpost", "/create-behandling-based-on-journalpost"])
+    @PostMapping("/create-behandling-based-on-journalpost")
     fun createBehandlingBasedOnJournalpost(
         @RequestBody input: CreateBehandlingBasedOnJournalpostInput
     ): CreatedBehandlingResponse {
