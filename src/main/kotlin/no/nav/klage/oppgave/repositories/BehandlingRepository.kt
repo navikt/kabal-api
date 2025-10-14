@@ -82,6 +82,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         partIdValue: String,
         includedTypes: List<Type> = listOf(
             Type.ANKE_I_TRYGDERETTEN,
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
         )
     ): List<Behandling>
 
