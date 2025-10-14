@@ -21,6 +21,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentType
+import no.nav.klage.oppgave.domain.behandling.subentities.getMottakDokumentType
 import no.nav.klage.oppgave.domain.kodeverk.LovligeTyper
 import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
@@ -957,8 +958,9 @@ class MottakService(
             null
         }
 
+        val type = Type.of(typeId!!)
         return Mottak(
-            type = Type.of(typeId!!),
+            type = type,
             klager = klager,
             sakenGjelder = sakenGjelder,
             fagsystem = Fagsystem.of(fagsystemId),
@@ -969,7 +971,7 @@ class MottakService(
             forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
             mottakDokument = mutableSetOf(
                 MottakDokumentDTO(
-                    type = MottakDokumentType.BRUKERS_OMGJOERINGSKRAV,
+                    type = type.getMottakDokumentType(),
                     journalpostId = receivedDocumentJournalpostId
                 )
             ),

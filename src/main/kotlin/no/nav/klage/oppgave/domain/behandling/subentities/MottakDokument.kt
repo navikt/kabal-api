@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.domain.behandling.subentities
 
 import jakarta.persistence.*
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import java.util.*
 
@@ -42,6 +43,16 @@ enum class MottakDokumentType {
     OVERSENDELSESBREV,
     KLAGE_VEDTAK,
     ANNET
+}
+
+fun Type.getMottakDokumentType(): MottakDokumentType {
+    return when (this) {
+        Type.KLAGE -> MottakDokumentType.BRUKERS_KLAGE
+        Type.ANKE -> MottakDokumentType.BRUKERS_ANKE
+        Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
+        Type.BEGJAERING_OM_GJENOPPTAK -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
+        else -> throw IllegalArgumentException("Type $this has no MottakDokumentType.")
+    }
 }
 
 data class MottakDokumentDTO(
