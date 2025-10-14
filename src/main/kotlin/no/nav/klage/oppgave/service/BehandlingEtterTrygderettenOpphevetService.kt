@@ -72,7 +72,7 @@ class BehandlingEtterTrygderettenOpphevetService(
             )
 
         logger.debug(
-            "Created BehandlingEtterTrygderettenOpphevet {} from ankeITrygderettenbehandling {}",
+            "Created BehandlingEtterTrygderettenOpphevet {} from behandlingITrygderetten {}",
             behandlingEtterTrygderettenOpphevet.id,
             behandling.id
         )
