@@ -5,14 +5,12 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
-import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.repositories.GjenopptakITrygderettenbehandlingRepository
-import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
@@ -26,10 +24,7 @@ class GjenopptakITrygderettenbehandlingService(
     private val gjenopptakITrygderettenbehandlingRepository: GjenopptakITrygderettenbehandlingRepository,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val kafkaEventRepository: KafkaEventRepository,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
-    private val mottakService: MottakService,
-    private val dokumentService: DokumentService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -71,18 +66,11 @@ class GjenopptakITrygderettenbehandlingService(
         )
         logger.debug("Created gjenopptakITrygderettenbehandling {}", gjenopptakITrygderettenbehandling.id)
 
-        if (input.registreringsHjemmelSet != null) {
-            val washedRegistreringshjemmelSet = input.registreringsHjemmelSet.filter {
-                ytelseToRegistreringshjemlerV2[input.ytelse]?.contains(it) ?: false
-            }.toSet()
-
-            behandlingService.setRegistreringshjemler(
-                behandlingId = gjenopptakITrygderettenbehandling.id,
-                registreringshjemler = washedRegistreringshjemmelSet,
-                utfoerendeSaksbehandlerIdent = systembrukerIdent,
-                systemUserContext = true,
-            )
-        }
+        behandlingService.washAndSetRegistreringshjemler(
+            input.registreringsHjemmelSet,
+            input.ytelse,
+            gjenopptakITrygderettenbehandling.id
+        )
 
         behandlingService.connectDocumentsToBehandling(
             behandlingId = gjenopptakITrygderettenbehandling.id,

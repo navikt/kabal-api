@@ -1,13 +1,11 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.mottak.Mottak
-import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.GjenopptaksbehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -21,7 +19,6 @@ class GjenopptaksbehandlingService(
     private val gjenopptaksbehandlingRepository: GjenopptaksbehandlingRepository,
     private val dokumentService: DokumentService,
     private val behandlingService: BehandlingService,
-    private val behandlingRepository: BehandlingRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kakaApiGateway: KakaApiGateway,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
@@ -100,29 +97,12 @@ class GjenopptaksbehandlingService(
 
         logger.debug("Created {} with id {}", gjenopptaksbehandling::javaClass.name, gjenopptaksbehandling.id)
 
-        if (mottak.forrigeBehandlingId != null) {
-            val behandling = behandlingRepository.findById(mottak.forrigeBehandlingId).get()
-            val dokumenter = behandling.saksdokumenter
-
-            logger.debug(
-                "Adding saksdokumenter from behandling {} to omgjoeringskravbehandling {}",
-                mottak.forrigeBehandlingId,
-                gjenopptaksbehandling.id
-            )
-
-            behandlingService.connectDocumentsToBehandling(
-                behandlingId = gjenopptaksbehandling.id,
-                journalfoertDokumentReferenceSet = dokumenter.map {
-                    JournalfoertDokumentReference(
-                        journalpostId = it.journalpostId,
-                        dokumentInfoId = it.dokumentInfoId
-                    )
-                }.toSet(),
-                saksbehandlerIdent = systembrukerIdent,
-                systemUserContext = true,
-                ignoreCheckSkrivetilgang = true
-            )
-        }
+        behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
+            behandlingId = gjenopptaksbehandling.id,
+            saksbehandlerIdent = systembrukerIdent,
+            systemUserContext = true,
+            ignoreCheckSkrivetilgang = true
+        )
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
@@ -233,14 +213,8 @@ class GjenopptaksbehandlingService(
             gjenopptakITrygderettenbehandling.id
         )
 
-        behandlingService.connectDocumentsToBehandling(
+        behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
             behandlingId = gjenopptaksbehandling.id,
-            journalfoertDokumentReferenceSet = gjenopptakITrygderettenbehandling.saksdokumenter.map {
-                JournalfoertDokumentReference(
-                    journalpostId = it.journalpostId,
-                    dokumentInfoId = it.dokumentInfoId
-                )
-            }.toSet(),
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true

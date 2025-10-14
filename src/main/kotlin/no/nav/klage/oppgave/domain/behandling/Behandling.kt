@@ -439,3 +439,9 @@ interface BehandlingWithMottakDokument {
         }
     }
 }
+
+interface BehandlingITrygderetten {
+    var sendtTilTrygderetten: LocalDateTime
+    var kjennelseMottatt: LocalDateTime?
+    var nyBehandlingEtterTROpphevet: LocalDateTime?
+}
