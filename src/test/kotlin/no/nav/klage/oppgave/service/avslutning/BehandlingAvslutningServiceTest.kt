@@ -636,6 +636,7 @@ class BehandlingAvslutningServiceTest {
 
         @Test
         fun `AnkeITrygderettenbehandling from modern fagsystem with utfall Opphevet but no nyBehandling tag sends Kafka event to fagsystem`() {
+            every { behandling.nyBehandlingEtterTROpphevet } returns null
             every { behandling.utfall } returns Utfall.OPPHEVET
             every { behandling.fagsystem } returns Fagsystem.FS36
 

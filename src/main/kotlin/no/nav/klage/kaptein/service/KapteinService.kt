@@ -93,11 +93,11 @@ class KapteinService(
         return when (this) {
             is Klagebehandling -> mapKlagebehandlingToAnonymousBehandlingView(this)
             is Ankebehandling -> mapAnkebehandlingToAnonymousBehandlingView(this)
-            is AnkeITrygderettenbehandling -> mapAnkeITrygderettenbehandlingToAnonymousBehandlingView(this)
+            is AnkeITrygderettenbehandling -> mapBehandlingITrygderettenToAnonymousBehandlingView(this)
             is BehandlingEtterTrygderettenOpphevet -> mapBehandlingEtterTROpphevetToAnonymousBehandlingView(this)
             is Omgjoeringskravbehandling -> mapOmgjoeringskravbehandlingToAnonymousBehandlingView(this)
             is Gjenopptaksbehandling -> mapGjenopptaksbehandlingToAnonymousBehandlingView(this)
-            is GjenopptakITrygderettenbehandling -> mapGjenopptakITrygderettenbehandlingToAnonymousBehandlingView(this)
+            is GjenopptakITrygderettenbehandling -> mapBehandlingITrygderettenToAnonymousBehandlingView(this)
         }
     }
 
@@ -200,40 +200,6 @@ class KapteinService(
         )
     }
 
-    private fun mapAnkeITrygderettenbehandlingToAnonymousBehandlingView(behandling: AnkeITrygderettenbehandling): AnonymousBehandlingView {
-        val previousBehandling = behandling.previousBehandlingId?.let { behandlingRepository.findByIdForKaptein(it) }
-        return AnonymousBehandlingView(
-            id = behandling.id,
-            fraNAVEnhet = null,
-            mottattVedtaksinstans = null,
-            temaId = behandling.ytelse.toTema().id,
-            ytelseId = behandling.ytelse.id,
-            typeId = behandling.type.id,
-            mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate(),
-            avsluttetAvSaksbehandlerDate = behandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate(),
-            isAvsluttetAvSaksbehandler = behandling.ferdigstilling != null,
-            frist = behandling.frist,
-            ageKA = behandling.toAgeInDays(),
-            datoSendtMedunderskriver = behandling.medunderskriver?.tidspunkt?.toLocalDate(),
-            hjemmelIdList = behandling.hjemler.map { it.id },
-            modified = behandling.modified,
-            created = behandling.created,
-            resultat = behandling.mapToVedtakView(),
-            sattPaaVent = behandling.sattPaaVent,
-            feilregistrering = behandling.feilregistrering.toView(),
-            fagsystemId = behandling.fagsystem.id,
-            varsletFrist = null,
-            tilbakekreving = behandling.tilbakekreving,
-            sendtTilTrygderetten = behandling.sendtTilTrygderetten,
-            kjennelseMottatt = behandling.kjennelseMottatt,
-            isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
-            tildeltEnhet = behandling.tildeling?.enhet,
-            previousTildeltEnhet = previousBehandling?.tildeling?.enhet,
-            previousRegistreringshjemmelIdList = previousBehandling?.registreringshjemler?.map { it.id },
-            initiatingSystem = behandling.initiatingSystem,
-        )
-    }
-
     private fun mapKlagebehandlingToAnonymousBehandlingView(behandling: Klagebehandling): AnonymousBehandlingView {
         return AnonymousBehandlingView(
             id = behandling.id,
@@ -300,7 +266,8 @@ class KapteinService(
         )
     }
 
-    private fun mapGjenopptakITrygderettenbehandlingToAnonymousBehandlingView(behandling: GjenopptakITrygderettenbehandling): AnonymousBehandlingView {
+    private fun mapBehandlingITrygderettenToAnonymousBehandlingView(behandling: BehandlingITrygderetten): AnonymousBehandlingView {
+        behandling as Behandling
         val previousBehandling = behandlingRepository.findByIdForKaptein(behandling.previousBehandlingId!!)
         return AnonymousBehandlingView(
             id = behandling.id,

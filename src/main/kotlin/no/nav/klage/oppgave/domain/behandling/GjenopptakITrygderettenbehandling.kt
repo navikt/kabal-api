@@ -19,22 +19,20 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-//TODO: Denne er basert på AnkeITrygderettenbehandling, tilpass etter behov.
 @Entity
 @DiscriminatorValue("gjenopptak_i_trygderetten")
 @Audited
 class GjenopptakITrygderettenbehandling(
     @Column(name = "sendt_til_trygderetten")
-    var sendtTilTrygderetten: LocalDateTime,
+    override var sendtTilTrygderetten: LocalDateTime,
     @Column(name = "kjennelse_mottatt")
-    var kjennelseMottatt: LocalDateTime? = null,
+    override var kjennelseMottatt: LocalDateTime? = null,
     /** Tatt over av KA mens den er i TR */
     @Column(name = "ny_gjenopptaksbehandling_ka")
     var nyGjenopptaksbehandlingKA: LocalDateTime? = null,
     /** Skal det opprettes ny behandling etter TR har opphevet? */
     @Column(name = "ny_behandling_etter_tr_opphevet")
-    var nyBehandlingEtterTROpphevet: LocalDateTime? = null,
-
+    override var nyBehandlingEtterTROpphevet: LocalDateTime? = null,
     //Common properties
     id: UUID = UUID.randomUUID(),
     previousBehandlingId: UUID?,
@@ -79,7 +77,7 @@ class GjenopptakITrygderettenbehandling(
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : Behandling(
+) : BehandlingITrygderetten , Behandling(
     id = id,
     previousBehandlingId = previousBehandlingId,
     klager = klager,

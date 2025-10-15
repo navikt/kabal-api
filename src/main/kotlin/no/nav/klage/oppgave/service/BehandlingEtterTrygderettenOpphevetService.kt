@@ -3,13 +3,11 @@ package no.nav.klage.oppgave.service
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
-import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.repositories.BehandlingEtterTrygderettenOpphevetRepository
@@ -38,9 +36,9 @@ class BehandlingEtterTrygderettenOpphevetService(
         )
     }
 
-    fun createBehandlingEtterTrygderettenOpphevet(behandling: Behandling): BehandlingEtterTrygderettenOpphevet {
-        val behandlingEtterTrygderettenOpphevet = if (behandling is AnkeITrygderettenbehandling) {
-            behandlingEtterTrygderettenOpphevetRepository.save(
+    fun createBehandlingEtterTrygderettenOpphevet(behandling: BehandlingITrygderetten): BehandlingEtterTrygderettenOpphevet {
+        behandling as Behandling
+        val behandlingEtterTrygderettenOpphevet = behandlingEtterTrygderettenOpphevetRepository.save(
                 BehandlingEtterTrygderettenOpphevet(
                     klager = behandling.klager.copy(),
                     sakenGjelder = behandling.sakenGjelder.copy(),
@@ -70,55 +68,15 @@ class BehandlingEtterTrygderettenOpphevetService(
                     previousBehandlingId = behandling.id,
                 )
             )
-        } else if (behandling is GjenopptakITrygderettenbehandling) {
-            behandlingEtterTrygderettenOpphevetRepository.save(
-                BehandlingEtterTrygderettenOpphevet(
-                    klager = behandling.klager.copy(),
-                    sakenGjelder = behandling.sakenGjelder.copy(),
-                    prosessfullmektig = behandling.prosessfullmektig?.copy(),
-                    ytelse = behandling.ytelse,
-                    type = Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
-                    kildeReferanse = behandling.kildeReferanse,
-                    dvhReferanse = behandling.dvhReferanse,
-                    fagsystem = behandling.fagsystem,
-                    fagsakId = behandling.fagsakId,
-                    mottattKlageinstans = behandling.kjennelseMottatt!!,
-                    tildeling = behandling.tildeling?.copy(tidspunkt = LocalDateTime.now()),
-                    frist = LocalDate.now(),
-                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = 2,
-                    hjemler = behandling.hjemler,
-                    sourceBehandlingId = behandling.id,
-                    previousSaksbehandlerident = behandling.tildeling?.saksbehandlerident,
-                    gosysOppgaveId = behandling.gosysOppgaveId,
-                    kjennelseMottatt = behandling.kjennelseMottatt!!,
-                    ankeBehandlendeEnhet = behandling.tildeling?.enhet!!,
-                    tilbakekreving = behandling.tilbakekreving,
-                    varsletBehandlingstid = null,
-                    forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = behandling.gosysOppgaveRequired,
-                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
-                    previousBehandlingId = behandling.id,
-                )
-            )
-        } else {
-            throw Exception("Wrong input class for behandling ${behandling.id}")
-        }
 
         logger.debug(
-            "Created BehandlingEtterTrygderettenOpphevet {} from ankeITrygderettenbehandling {}",
+            "Created BehandlingEtterTrygderettenOpphevet {} from behandlingITrygderetten {}",
             behandlingEtterTrygderettenOpphevet.id,
             behandling.id
         )
 
-        behandlingService.connectDocumentsToBehandling(
+        behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
             behandlingId = behandlingEtterTrygderettenOpphevet.id,
-            journalfoertDokumentReferenceSet = behandling.saksdokumenter.map {
-                JournalfoertDokumentReference(
-                    journalpostId = it.journalpostId,
-                    dokumentInfoId = it.dokumentInfoId
-                )
-            }.toSet(),
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true

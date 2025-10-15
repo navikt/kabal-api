@@ -24,16 +24,15 @@ import java.util.*
 @Audited
 class AnkeITrygderettenbehandling(
     @Column(name = "sendt_til_trygderetten")
-    var sendtTilTrygderetten: LocalDateTime,
+    override var sendtTilTrygderetten: LocalDateTime,
     @Column(name = "kjennelse_mottatt")
-    var kjennelseMottatt: LocalDateTime? = null,
+    override var kjennelseMottatt: LocalDateTime? = null,
     /** Tatt over av KA mens den er i TR */
     @Column(name = "ny_ankebehandling_ka")
     var nyAnkebehandlingKA: LocalDateTime? = null,
     /** Skal det opprettes ny behandling etter TR har opphevet? */
     @Column(name = "ny_behandling_etter_tr_opphevet")
-    var nyBehandlingEtterTROpphevet: LocalDateTime? = null,
-
+    override var nyBehandlingEtterTROpphevet: LocalDateTime? = null,
     //Common properties
     id: UUID = UUID.randomUUID(),
     previousBehandlingId: UUID?,
@@ -78,7 +77,7 @@ class AnkeITrygderettenbehandling(
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : Behandling(
+) : BehandlingITrygderetten, Behandling(
     id = id,
     previousBehandlingId = previousBehandlingId,
     klager = klager,

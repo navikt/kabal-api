@@ -9,6 +9,8 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
+import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.api.view.kabin.CompletedBehandling
@@ -25,10 +27,10 @@ import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.*
-import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
-import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setNyBehandlingEtterTROpphevet
-import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setSendtTilTrygderetten
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setKjennelseMottatt
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setNyBehandlingEtterTROpphevet
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setSendtTilTrygderetten
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.addSaksdokumenter
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.clearSaksdokumenter
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.removeSaksdokument
@@ -55,10 +57,7 @@ import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setTilba
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setTildeling
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingWithVarsletBehandlingstidSetters.setVarsletBehandlingstid
-import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setKjennelseMottatt
-import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setNyBehandlingEtterTROpphevet
 import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setNyGjenopptaksbehandlingKA
-import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setSendtTilTrygderetten
 import no.nav.klage.oppgave.domain.behandling.setters.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
@@ -1371,7 +1370,8 @@ class BehandlingService(
 
             return behandling
         } else if (behandling is GjenopptakITrygderettenbehandling) {
-            val eventNyBehandling = behandling.setNyGjenopptaksbehandlingKA(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
+            val eventNyBehandling =
+                behandling.setNyGjenopptaksbehandlingKA(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
             val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
                 saksbehandlerident = utfoerendeSaksbehandlerIdent,
                 saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
@@ -1862,6 +1862,39 @@ class BehandlingService(
 //        )
 //        return behandling.modified
 //    }
+
+    fun connectDocumentsFromPreviousBehandlingToBehandling(
+        behandlingId: UUID,
+        saksbehandlerIdent: String,
+        systemUserContext: Boolean = false,
+        ignoreCheckSkrivetilgang: Boolean,
+    ) {
+        val behandling = behandlingRepository.findById(behandlingId).get()
+        if (behandling.previousBehandlingId != null) {
+            val previousBehandling = behandlingRepository.findById(behandling.previousBehandlingId!!).get()
+            val documentsFromPreviousBehandling = previousBehandling.saksdokumenter
+            logger.debug(
+                "Adding saksdokumenter from behandling {} to behandling {}",
+                previousBehandling.id,
+                behandlingId
+            )
+
+            connectDocumentsToBehandling(
+                behandlingId = behandlingId,
+                journalfoertDokumentReferenceSet = documentsFromPreviousBehandling.map {
+                    JournalfoertDokumentReference(
+                        journalpostId = it.journalpostId,
+                        dokumentInfoId = it.dokumentInfoId
+                    )
+                }.toSet(),
+                saksbehandlerIdent = saksbehandlerIdent,
+                systemUserContext = systemUserContext,
+                ignoreCheckSkrivetilgang = ignoreCheckSkrivetilgang
+            )
+        } else {
+            logger.debug("No previous behandling found. Returning.")
+        }
+    }
 
     fun connectDocumentsToBehandling(
         behandlingId: UUID,
@@ -2455,6 +2488,22 @@ class BehandlingService(
             modified = behandling.modified,
             extraUtfallIdSet = behandling.extraUtfallSet.map { it.id }.toSet(),
         )
+    }
+
+    fun washAndSetRegistreringshjemler(registreringsHjemmelSet: Set<Registreringshjemmel>?, ytelse: Ytelse, behandlingId: UUID) {
+        if (registreringsHjemmelSet != null) {
+            //TODO: Oppdater om det kommer ny versjon
+            val washedRegistreringshjemmelSet = registreringsHjemmelSet.filter {
+                ytelseToRegistreringshjemlerV2[ytelse]?.contains(it) ?: false
+            }.toSet()
+
+            setRegistreringshjemler(
+                behandlingId = behandlingId,
+                registreringshjemler = washedRegistreringshjemmelSet,
+                utfoerendeSaksbehandlerIdent = systembrukerIdent,
+                systemUserContext = true,
+            )
+        }
     }
 
     fun setRegistreringshjemler(

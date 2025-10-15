@@ -7,7 +7,6 @@ import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
-import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
@@ -77,20 +76,11 @@ class AnkeITrygderettenbehandlingService(
         )
         logger.debug("Created ankeITrygderettenbehandling {}", ankeITrygderettenbehandling.id)
 
-        if (input.registreringsHjemmelSet != null) {
-
-            //TODO: Oppdater om det kommer ny versjon
-            val washedRegistreringshjemmelSet = input.registreringsHjemmelSet.filter {
-                ytelseToRegistreringshjemlerV2[input.ytelse]?.contains(it) ?: false
-            }.toSet()
-
-            behandlingService.setRegistreringshjemler(
-                behandlingId = ankeITrygderettenbehandling.id,
-                registreringshjemler = washedRegistreringshjemmelSet,
-                utfoerendeSaksbehandlerIdent = systembrukerIdent,
-                systemUserContext = true,
-            )
-        }
+        behandlingService.washAndSetRegistreringshjemler(
+            registreringsHjemmelSet = input.registreringsHjemmelSet,
+            ytelse = input.ytelse,
+            behandlingId = ankeITrygderettenbehandling.id
+        )
 
         behandlingService.connectDocumentsToBehandling(
             behandlingId = ankeITrygderettenbehandling.id,
