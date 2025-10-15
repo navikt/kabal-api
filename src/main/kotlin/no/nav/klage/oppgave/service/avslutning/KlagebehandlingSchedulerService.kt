@@ -44,7 +44,7 @@ class KlagebehandlingSchedulerService(
         val behandlingIdList: List<Pair<UUID, Type>> = behandlingService.findBehandlingerForAvslutning()
 
         behandlingIdList.forEach { (id, type) ->
-            if (type != Type.ANKE_I_TRYGDERETTEN) {
+            if (type !in listOf(Type.ANKE_I_TRYGDERETTEN, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)) {
                 kakaApiGateway.finalizeBehandling(
                     behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
                         id
