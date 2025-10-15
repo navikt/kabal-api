@@ -36,10 +36,8 @@ class BehandlingEtterTrygderettenOpphevetService(
         )
     }
 
-    fun createBehandlingEtterTrygderettenOpphevet(behandling: Behandling): BehandlingEtterTrygderettenOpphevet {
-        if (behandling !is BehandlingITrygderetten) {
-            error("Wrong behandling type")
-        }
+    fun createBehandlingEtterTrygderettenOpphevet(behandling: BehandlingITrygderetten): BehandlingEtterTrygderettenOpphevet {
+        behandling as Behandling
         val behandlingEtterTrygderettenOpphevet = behandlingEtterTrygderettenOpphevetRepository.save(
                 BehandlingEtterTrygderettenOpphevet(
                     klager = behandling.klager.copy(),

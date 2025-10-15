@@ -261,10 +261,8 @@ class KapteinService(
         )
     }
 
-    private fun mapBehandlingITrygderettenToAnonymousBehandlingView(behandling: Behandling): AnonymousBehandlingView {
-        if (behandling !is BehandlingITrygderetten) {
-            error("Wrong behandling type")
-        }
+    private fun mapBehandlingITrygderettenToAnonymousBehandlingView(behandling: BehandlingITrygderetten): AnonymousBehandlingView {
+        behandling as Behandling
         val previousBehandling = behandlingRepository.findByIdForKaptein(behandling.previousBehandlingId!!)
         return AnonymousBehandlingView(
             id = behandling.id,

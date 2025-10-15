@@ -323,10 +323,9 @@ class BehandlingMapper(
         )
     }
 
-    fun mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(behandling: Behandling): BehandlingDetaljerView {
-        if (behandling !is BehandlingITrygderetten) {
-            error("Wrong behandling type")
-        }
+    fun mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(behandling: BehandlingITrygderetten): BehandlingDetaljerView {
+        behandling as Behandling
+
         return BehandlingDetaljerView(
             id = behandling.id,
             fraNAVEnhet = null,

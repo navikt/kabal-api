@@ -27,10 +27,10 @@ import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.*
-import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
-import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setNyBehandlingEtterTROpphevet
-import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setSendtTilTrygderetten
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setKjennelseMottatt
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setNyBehandlingEtterTROpphevet
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setSendtTilTrygderetten
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.addSaksdokumenter
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.clearSaksdokumenter
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.removeSaksdokument
@@ -57,10 +57,7 @@ import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setTilba
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setTildeling
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setUtfall
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingWithVarsletBehandlingstidSetters.setVarsletBehandlingstid
-import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setKjennelseMottatt
-import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setNyBehandlingEtterTROpphevet
 import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setNyGjenopptaksbehandlingKA
-import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setSendtTilTrygderetten
 import no.nav.klage.oppgave.domain.behandling.setters.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
