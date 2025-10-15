@@ -130,6 +130,7 @@ class KapteinService(
             tildeltEnhet = behandling.tildeling?.enhet,
             previousTildeltEnhet = null,
             previousRegistreringshjemmelIdList = null,
+            initiatingSystem = behandling.initiatingSystem,
         )
     }
 
@@ -162,6 +163,7 @@ class KapteinService(
             tildeltEnhet = behandling.tildeling?.enhet,
             previousTildeltEnhet = null,
             previousRegistreringshjemmelIdList = null,
+            initiatingSystem = behandling.initiatingSystem,
         )
     }
 
@@ -194,6 +196,7 @@ class KapteinService(
             tildeltEnhet = behandling.tildeling?.enhet,
             previousTildeltEnhet = null,
             previousRegistreringshjemmelIdList = null,
+            initiatingSystem = behandling.initiatingSystem,
         )
     }
 
@@ -227,6 +230,7 @@ class KapteinService(
             tildeltEnhet = behandling.tildeling?.enhet,
             previousTildeltEnhet = previousBehandling?.tildeling?.enhet,
             previousRegistreringshjemmelIdList = previousBehandling?.registreringshjemler?.map { it.id },
+            initiatingSystem = behandling.initiatingSystem,
         )
     }
 
@@ -259,6 +263,7 @@ class KapteinService(
             tildeltEnhet = behandling.tildeling?.enhet,
             previousTildeltEnhet = null,
             previousRegistreringshjemmelIdList = null,
+            initiatingSystem = behandling.initiatingSystem,
         )
     }
 
@@ -291,6 +296,7 @@ class KapteinService(
             tildeltEnhet = behandling.tildeling?.enhet,
             previousTildeltEnhet = null,
             previousRegistreringshjemmelIdList = null,
+            initiatingSystem = behandling.initiatingSystem,
         )
     }
 
@@ -324,6 +330,7 @@ class KapteinService(
             tildeltEnhet = behandling.tildeling?.enhet,
             previousTildeltEnhet = previousBehandling.tildeling?.enhet,
             previousRegistreringshjemmelIdList = previousBehandling.registreringshjemler.map { it.id },
+            initiatingSystem = behandling.initiatingSystem,
         )
     }
 
