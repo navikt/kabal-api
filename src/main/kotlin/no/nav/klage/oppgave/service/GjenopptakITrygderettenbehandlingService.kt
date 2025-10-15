@@ -67,9 +67,9 @@ class GjenopptakITrygderettenbehandlingService(
         logger.debug("Created gjenopptakITrygderettenbehandling {}", gjenopptakITrygderettenbehandling.id)
 
         behandlingService.washAndSetRegistreringshjemler(
-            input.registreringsHjemmelSet,
-            input.ytelse,
-            gjenopptakITrygderettenbehandling.id
+            registreringsHjemmelSet = input.registreringsHjemmelSet,
+            ytelse = input.ytelse,
+            behandlingId = gjenopptakITrygderettenbehandling.id
         )
 
         behandlingService.connectDocumentsToBehandling(

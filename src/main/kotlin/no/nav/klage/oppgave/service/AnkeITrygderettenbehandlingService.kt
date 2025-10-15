@@ -77,9 +77,9 @@ class AnkeITrygderettenbehandlingService(
         logger.debug("Created ankeITrygderettenbehandling {}", ankeITrygderettenbehandling.id)
 
         behandlingService.washAndSetRegistreringshjemler(
-            input.registreringsHjemmelSet,
-            input.ytelse,
-            ankeITrygderettenbehandling.id
+            registreringsHjemmelSet = input.registreringsHjemmelSet,
+            ytelse = input.ytelse,
+            behandlingId = ankeITrygderettenbehandling.id
         )
 
         behandlingService.connectDocumentsToBehandling(
