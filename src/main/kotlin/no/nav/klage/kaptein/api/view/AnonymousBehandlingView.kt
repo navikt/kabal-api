@@ -1,5 +1,6 @@
 package no.nav.klage.kaptein.api.view
 
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -38,6 +39,7 @@ data class AnonymousBehandlingView(
     val tilbakekreving: Boolean,
     val previousTildeltEnhet: String?,
     val previousRegistreringshjemmelIdList: List<String>?,
+    val initiatingSystem: Behandling.InitiatingSystem
 ) {
     data class VedtakView(
         val id: UUID,
