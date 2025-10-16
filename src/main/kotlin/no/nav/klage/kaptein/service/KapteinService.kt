@@ -55,7 +55,8 @@ class KapteinService(
             var count = 0
             streamed.forEach { behandling ->
                 val view = behandling.toAnonymousBehandlingView()
-                behandlingYtelseCounter[behandling.ytelse.id] = behandlingYtelseCounter.getOrDefault(behandling.ytelse.id, 0) + 1
+                behandlingYtelseCounter[behandling.ytelse.id] =
+                    behandlingYtelseCounter.getOrDefault(behandling.ytelse.id, 0) + 1
                 viewYtelseCounter[view.ytelseId] = viewYtelseCounter.getOrDefault(view.ytelseId, 0) + 1
                 writer.write(objectMapper.writeValueAsString(view) + "\n")
                 entityManager.detach(behandling)
@@ -268,7 +269,10 @@ class KapteinService(
 
     private fun mapBehandlingITrygderettenToAnonymousBehandlingView(behandling: BehandlingITrygderetten): AnonymousBehandlingView {
         behandling as Behandling
-        val previousBehandling = behandlingRepository.findByIdForKaptein(behandling.previousBehandlingId!!)
+
+        val previousBehandling: Behandling? =
+            behandling.previousBehandlingId?.let { id -> behandlingRepository.findByIdForKaptein(id) }
+
         return AnonymousBehandlingView(
             id = behandling.id,
             fraNAVEnhet = null,
@@ -295,8 +299,8 @@ class KapteinService(
             kjennelseMottatt = behandling.kjennelseMottatt,
             isTildelt = !behandling.isFerdigstiltOrFeilregistrert() && behandling.tildeling != null,
             tildeltEnhet = behandling.tildeling?.enhet,
-            previousTildeltEnhet = previousBehandling.tildeling?.enhet,
-            previousRegistreringshjemmelIdList = previousBehandling.registreringshjemler.map { it.id },
+            previousTildeltEnhet = previousBehandling?.tildeling?.enhet,
+            previousRegistreringshjemmelIdList = previousBehandling?.registreringshjemler?.map { it.id },
             initiatingSystem = behandling.initiatingSystem,
         )
     }
