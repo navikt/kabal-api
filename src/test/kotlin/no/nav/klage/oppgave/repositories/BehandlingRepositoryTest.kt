@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
+import org.springframework.test.annotation.Commit
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -39,6 +40,19 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
 
     private val ENHET_1 = "ENHET_1"
     private val ENHET_2 = "ENHET_2"
+
+    @Test
+    @Commit
+    fun `trigger possible Hibernate envers errors for behandling`() {
+        val klage = getKlagebehandling()
+
+        behandlingRepository.save(klage)
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        assertThat(behandlingRepository.findById(klage.id).get()).isEqualTo(klage)
+    }
 
     @Test
     fun `store Klagebehandling works`() {
