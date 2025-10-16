@@ -152,7 +152,7 @@ class GjenopptakITrygderettenbehandling(
         return (!shouldCreateNewGjenopptaksbehandling() && !shouldCreateNewBehandlingEtterTROpphevet())
     }
 
-    fun shouldBeCompletedInKA(): Boolean {
+    override fun shouldBeCompletedInKA(): Boolean {
         return utfall in listOf(Utfall.HEVET, Utfall.IKKE_GJENOPPTATT, Utfall.AVVIST, Utfall.GJENOPPTATT_STADFESTET)
     }
 }
