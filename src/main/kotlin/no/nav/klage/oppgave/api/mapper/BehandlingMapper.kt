@@ -933,7 +933,7 @@ class BehandlingMapper(
             fagsystemId = behandling.fagsystem.id,
             saksnummer = behandling.fagsakId,
             previousSaksbehandler = behandling.toPreviousSaksbehandlerView(),
-            datoSendtTilTR = if (behandling is AnkeITrygderettenbehandling) behandling.sendtTilTrygderetten.toLocalDate() else null,
+            datoSendtTilTR = if (behandling is AnkeITrygderettenbehandling || behandling is GjenopptakITrygderettenbehandling) behandling.sendtTilTrygderetten.toLocalDate() else null,
             varsletFrist = if (behandling is BehandlingWithVarsletBehandlingstid) {
                 behandling.varsletBehandlingstid?.varsletFrist
             } else null,
