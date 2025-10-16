@@ -325,6 +325,7 @@ class KabinApiService(
                     completed = it.ferdigstilling?.avsluttetAvSaksbehandler,
                 )
             },
+            gosysOppgaveRequired = gosysOppgaveRequired,
         )
     }
 }
