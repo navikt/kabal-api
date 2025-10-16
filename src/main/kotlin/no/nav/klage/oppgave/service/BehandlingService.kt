@@ -160,10 +160,9 @@ class BehandlingService(
             )
         }
 
-        val omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling = behandling is Omgjoeringskravbehandling &&
-                behandling.utfall in listOf(Utfall.STADFESTET_ANNEN_BEGRUNNELSE, Utfall.BESLUTNING_IKKE_OMGJOERE)
+        val behandlingShouldBeCompletedInKA = behandling.shouldBeCompletedInKA()
 
-        if (omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling && gosysOppgaveInput != null) {
+        if (behandlingShouldBeCompletedInKA && gosysOppgaveInput != null) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
                 sections = listOf(
@@ -199,8 +198,8 @@ class BehandlingService(
 
         validateAndUpdateGosysOppgaveInput(
             behandling = behandling,
+            behandlingShouldBeCompletedInKA = behandlingShouldBeCompletedInKA,
             ankeITRHenvist = ankeITRHenvist,
-            omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling = omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling,
             gosysOppgaveInput = gosysOppgaveInput,
             innloggetIdent = innloggetIdent
         )
@@ -218,15 +217,15 @@ class BehandlingService(
 
     private fun validateAndUpdateGosysOppgaveInput(
         behandling: Behandling,
-        ankeITRHenvist: Boolean,
-        omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling: Boolean,
         gosysOppgaveInput: GosysOppgaveInput?,
-        innloggetIdent: String
+        innloggetIdent: String,
+        behandlingShouldBeCompletedInKA: Boolean,
+        ankeITRHenvist: Boolean
     ) {
         if (behandling.gosysOppgaveId != null) {
-            if (ankeITRHenvist || omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling) {
+            if (behandlingShouldBeCompletedInKA || ankeITRHenvist) {
                 //Ikke relevant å håndtere Gosys-oppgave her
-                logger.debug("Not updating Gosys oppgave, not relevant for this case. ankeITRHenvist: $ankeITRHenvist, omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling: $omgjoeringskravWithUtfallThatLeadsToAutomaticFerdigstilling")
+                logger.debug("Not updating Gosys oppgave, not relevant for this case.")
                 return
             } else {
                 val gosysOppgave = gosysOppgaveService.getGosysOppgave(behandling.gosysOppgaveId!!)

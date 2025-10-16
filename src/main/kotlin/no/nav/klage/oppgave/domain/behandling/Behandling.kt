@@ -338,6 +338,19 @@ sealed class Behandling(
         }
     }
 
+    open fun shouldBeCompletedInKA(): Boolean {
+        return when (this) {
+            is Klagebehandling -> false
+            is AnkeITrygderettenbehandling -> false
+            is Ankebehandling -> false
+            is BehandlingEtterTrygderettenOpphevet -> false
+            is GjenopptakITrygderettenbehandling -> shouldBeCompletedInKA()
+            is Gjenopptaksbehandling -> shouldBeCompletedInKA()
+            is Omgjoeringskravbehandling -> shouldBeCompletedInKA()
+        }
+    }
+
+
     fun toAgeInDays() = ChronoUnit.DAYS.between(this.mottattKlageinstans.toLocalDate(), LocalDate.now()).toInt()
 
     fun createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehandlingInput {

@@ -154,7 +154,7 @@ abstract class Omgjoeringskravbehandling(
         return utfall in listOf(Utfall.MEDHOLD_ETTER_FVL_35)
     }
 
-    fun shouldBeCompletedInKA(): Boolean {
+    override fun shouldBeCompletedInKA(): Boolean {
         return utfall in listOf(Utfall.BESLUTNING_IKKE_OMGJOERE, Utfall.STADFESTET_ANNEN_BEGRUNNELSE, Utfall.TRUKKET, Utfall.HENLAGT)
     }
 }
