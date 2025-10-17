@@ -350,7 +350,13 @@ sealed class Behandling(
         }
     }
 
-    fun toAgeInDays() = ChronoUnit.DAYS.between(this.mottattKlageinstans.toLocalDate(), LocalDate.now()).toInt()
+    fun toAgeInDays(): Int {
+        val startDate = when (this) {
+            is BehandlingITrygderetten -> this.sendtTilTrygderetten
+            else -> mottattKlageinstans
+        }
+        return ChronoUnit.DAYS.between(startDate.toLocalDate(), LocalDate.now()).toInt()
+    }
 
     fun createAnkeITrygderettenbehandlingInput(): AnkeITrygderettenbehandlingInput {
         return AnkeITrygderettenbehandlingInput(
