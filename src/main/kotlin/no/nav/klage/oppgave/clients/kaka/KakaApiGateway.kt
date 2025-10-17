@@ -100,6 +100,13 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
                     klageBehandlendeEnhet to kakaKvalitetsvurderingId
                 }
 
+                is Gjenopptaksbehandling -> {
+                    if (Enhet.entries.none { it.navn == klageBehandlendeEnhet }) {
+                        logger.error("klageBehandlendeEnhet $klageBehandlendeEnhet not found in internal kodeverk")
+                    }
+                    klageBehandlendeEnhet to kakaKvalitetsvurderingId
+                }
+
                 else -> {
                     throw RuntimeException("Wrong behandling type")
                 }

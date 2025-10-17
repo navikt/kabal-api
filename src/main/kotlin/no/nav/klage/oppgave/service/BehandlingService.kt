@@ -419,7 +419,7 @@ class BehandlingService(
             )
         }
 
-        if (behandling is AnkeITrygderettenbehandling) {
+        if (behandling is AnkeITrygderettenbehandling || behandling is GjenopptakITrygderettenbehandling) {
             if (behandling.kjennelseMottatt == null) {
                 behandlingValidationErrors.add(
                     InvalidProperty(
