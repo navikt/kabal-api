@@ -9,7 +9,7 @@ fun PdlPerson.toPerson(fnr: String): Person {
     val preferredName = if (navn.size == 1) {
         navn.first()
     } else {
-        navn.firstOrNull { it.metadata.master == PdlPerson.Navn.Metadata.Master.PDL } ?: navn.first()
+        navn.firstOrNull { it.metadata.master.uppercase() == "PDL" } ?: navn.first()
     }
     return Person(
         foedselsnr = fnr,

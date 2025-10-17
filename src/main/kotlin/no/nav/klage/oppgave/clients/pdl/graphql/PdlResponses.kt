@@ -50,9 +50,7 @@ data class PdlPerson(
         val etternavn: String,
         val metadata: Metadata,
     ) {
-        data class Metadata(val master: Master) {
-            enum class Master { PDL, FREG }
-        }
+        data class Metadata(val master: String)
     }
 
     data class Kjoenn(val kjoenn: KjoennType?) {
