@@ -6,7 +6,10 @@ query($ident: ID!){
         navn {
             fornavn,
             mellomnavn,
-            etternavn
+            etternavn,
+            metadata {
+                master
+            }
         },
         kjoenn {
             kjoenn

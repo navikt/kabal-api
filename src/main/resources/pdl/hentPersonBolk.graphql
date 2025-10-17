@@ -8,7 +8,10 @@ query($identer: [ID!]!){
             navn {
                 fornavn,
                 mellomnavn,
-                etternavn
+                etternavn,
+                metadata {
+                    master
+                }
             },
             kjoenn {
                 kjoenn

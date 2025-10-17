@@ -47,8 +47,13 @@ data class PdlPerson(
     data class Navn(
         val fornavn: String,
         val mellomnavn: String?,
-        val etternavn: String
-    )
+        val etternavn: String,
+        val metadata: Metadata,
+    ) {
+        data class Metadata(val master: Master) {
+            enum class Master { PDL, FREG }
+        }
+    }
 
     data class Kjoenn(val kjoenn: KjoennType?) {
         enum class KjoennType { MANN, KVINNE, UKJENT }

@@ -49,7 +49,10 @@ internal class PdlClientTest {
                 {
                   "fornavn": "AREMARK",
                   "mellomnavn": null,
-                  "etternavn": "TESTFAMILIEN"
+                  "etternavn": "TESTFAMILIEN",
+                    "metadata": {
+                        "master": "PDL"
+                    }
                 }
               ],
               "kjoenn": [
