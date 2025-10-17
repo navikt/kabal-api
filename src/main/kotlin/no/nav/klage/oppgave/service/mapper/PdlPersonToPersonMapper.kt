@@ -6,11 +6,16 @@ import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.domain.person.Sikkerhetstiltak
 
 fun PdlPerson.toPerson(fnr: String): Person {
+    val preferredName = if (navn.size == 1) {
+        navn.first()
+    } else {
+        navn.firstOrNull { it.metadata.master == PdlPerson.Navn.Metadata.Master.PDL } ?: navn.first()
+    }
     return Person(
         foedselsnr = fnr,
-        fornavn = navn.first().fornavn,
-        mellomnavn = navn.first().mellomnavn,
-        etternavn = navn.first().etternavn,
+        fornavn = preferredName.fornavn,
+        mellomnavn = preferredName.mellomnavn,
+        etternavn = preferredName.etternavn,
         beskyttelsesbehov = adressebeskyttelse.firstOrNull()?.gradering?.mapToBeskyttelsesbehov(),
         kjoenn = kjoenn.firstOrNull()?.kjoenn?.name,
         vergemaalEllerFremtidsfullmakt = vergemaalEllerFremtidsfullmakt.isNotEmpty(),
