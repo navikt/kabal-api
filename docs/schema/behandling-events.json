@@ -30,7 +30,8 @@
         "ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET",
         "BEHANDLING_FEILREGISTRERT",
         "BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET_AVSLUTTET",
-        "OMGJOERINGSKRAVBEHANDLING_AVSLUTTET"
+        "OMGJOERINGSKRAVBEHANDLING_AVSLUTTET",
+        "GJENOPPTAKSBEHANDLING_AVSLUTTET"
       ],
       "description": "Typen event som har skjedd. Matcher et av feltene i BehandlingDetaljer, typen her vil vise hvilket felt som ikke er null. Kan og vil utvides med flere verdier på sikt."
     },
@@ -71,6 +72,9 @@
         },
         "omgjoeringskravbehandlingAvsluttet": {
           "$ref": "#/definitions/OmgjoeringskravbehandlingAvsluttetDetaljer"
+        },
+        "gjenopptaksbehandlingAvsluttet": {
+          "$ref": "#/definitions/GjenopptaksbehandlingAvsluttetDetaljer"
         }
       }
     },
@@ -265,6 +269,35 @@
           "type": "string",
           "enum": [
             "MEDHOLD_ETTER_FVL_35"
+          ]
+        },
+        "journalpostReferanser": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "avsluttet",
+        "utfall",
+        "journalpostReferanser"
+      ]
+    },
+    "GjenopptaksbehandlingAvsluttetDetaljer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "avsluttet": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "utfall": {
+          "type": "string",
+          "enum": [
+            "MEDHOLD_ETTER_FVL_35",
+            "GJENOPPTATT_DELVIS_ELLER_FULLT_MEDHOLD",
+            "GJENOPPTATT_OPPHEVET"
           ]
         },
         "journalpostReferanser": {
