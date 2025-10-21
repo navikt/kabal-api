@@ -1816,6 +1816,8 @@ class BehandlingService(
             type = InternalEventType.MEDUNDERSKRIVER,
         )
 
+        applicationEventPublisher.publishEvent(SmartDocumentAccessBehandlingEvent(behandling))
+
         return medunderskriverWrapped
     }
 
@@ -2664,6 +2666,8 @@ class BehandlingService(
             behandlingId = behandlingId,
             type = InternalEventType.ROL,
         )
+
+        applicationEventPublisher.publishEvent(SmartDocumentAccessBehandlingEvent(behandling))
 
         return rolView
     }
