@@ -319,12 +319,12 @@ class BehandlingService(
         val sectionList = mutableListOf<ValidationSection>()
 
         if (nyBehandlingEtterTROpphevet) {
-            if (behandling is AnkeITrygderettenbehandling) {
+            if (behandling is BehandlingITrygderetten) {
                 if (behandling.utfall != Utfall.OPPHEVET) {
-                    throw IllegalOperation("Ny ankebehandling kan kun opprettes hvis utfall er 'Opphevet'.")
+                    throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun opprettes hvis utfall er 'Opphevet'.")
                 }
             } else {
-                throw IllegalOperation("Ny ankebehandling kan kun brukes på en Anke i trygderetten-sak.")
+                throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun brukes på behandlinger i Trygderetten.")
             }
         }
 
