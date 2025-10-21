@@ -14,7 +14,10 @@ import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
-import no.nav.klage.oppgave.clients.saf.graphql.*
+import no.nav.klage.oppgave.clients.saf.graphql.DokumentInfo
+import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
+import no.nav.klage.oppgave.clients.saf.graphql.Utsendingsinfo
+import no.nav.klage.oppgave.clients.saf.graphql.Variantformat
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.service.DokDistKanalService
@@ -540,10 +543,6 @@ class DokumentMapper(
         any {
             it.journalpostId == journalpostId && it.dokumentInfoId == dokumentInfoId
         }
-
-    fun Journalpost.getRelevantDato(datotype: Datotype): LocalDateTime? {
-        return this.relevanteDatoer?.find { it.datotype == datotype }?.dato
-    }
 
     private fun getHandlingEnum(
         markLocalPrint: Boolean,

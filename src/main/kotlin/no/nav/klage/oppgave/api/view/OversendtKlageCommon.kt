@@ -36,13 +36,7 @@ data class OversendtKlagerLegacy(
         required = false
     )
     val klagersProsessfullmektig: OversendtProsessfullmektigLegacy? = null
-) {
-
-    fun toProsessfullmektig(): Prosessfullmektig? {
-        if (klagersProsessfullmektig == null) return null
-        return klagersProsessfullmektig.toProsessfullmektig()
-    }
-}
+)
 
 data class OversendtProsessfullmektigLegacy(
     @Schema(

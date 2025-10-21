@@ -130,10 +130,6 @@ class DuaAccessPolicy {
             throw RuntimeException("Ferdigstilt dokument kan ikke endres. Kontakt Team Klage.")
         }
 
-        fun throwMissingRolesException() {
-            throw MissingTilgangException("Bruker mangler nødvendige roller. Kontakt Team Klage.")
-        }
-
         fun throwFeilregistrertException() {
             throw RuntimeException("Behandlingen er feilregistrert.")
         }

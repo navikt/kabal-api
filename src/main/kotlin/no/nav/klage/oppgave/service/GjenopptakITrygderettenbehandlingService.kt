@@ -1,8 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -12,7 +9,6 @@ import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.repositories.GjenopptakITrygderettenbehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
@@ -29,10 +25,6 @@ class GjenopptakITrygderettenbehandlingService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapper = ourJacksonObjectMapper()
-        private val objectMapperBehandlingEvents = ObjectMapper().registerModule(JavaTimeModule()).configure(
-            SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false
-        )
     }
 
     fun createGjenopptakITrygderettenbehandling(input: GjenopptakITrygderettenbehandlingInput): GjenopptakITrygderettenbehandling {

@@ -8,7 +8,6 @@ import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.PartSearchService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
@@ -18,7 +17,6 @@ import java.time.LocalDate
 class PreviewService(
     private val partSearchService: PartSearchService,
     private val kabalJsonToPdfService: KabalJsonToPdfService,
-    private val behandlingService: BehandlingService
 ) {
 
     companion object {

@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.repositories
 
-import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.domain.behandling.Ankebehandling
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -12,8 +11,6 @@ import java.util.*
 interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
 
     fun findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId: UUID): List<Ankebehandling>
-
-    fun findByFerdigstillingAvsluttetIsNotNullAndFeilregistreringIsNullAndUtfallIn(utfallSet: Set<Utfall>): List<Ankebehandling>
 
     fun findByKakaKvalitetsvurderingVersionIs(version: Int): List<Ankebehandling>
 

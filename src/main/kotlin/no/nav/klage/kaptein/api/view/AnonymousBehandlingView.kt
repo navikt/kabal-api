@@ -6,11 +6,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
-data class AnonymousBehandlingListView(
-    val anonymizedBehandlingList: List<AnonymousBehandlingView>,
-    val total: Int,
-)
-
 data class AnonymousBehandlingView(
     val id: UUID,
     val fraNAVEnhet: String?,

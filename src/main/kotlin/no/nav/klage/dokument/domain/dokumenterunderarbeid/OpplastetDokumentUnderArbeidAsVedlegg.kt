@@ -3,7 +3,6 @@ package no.nav.klage.dokument.domain.dokumenterunderarbeid
 import jakarta.persistence.Column
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
-import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
@@ -45,26 +44,4 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
     parentId = parentId,
     creatorIdent = creatorIdent,
     creatorRole = creatorRole,
-){
-    fun asHoveddokument(dokumentType: DokumentType): OpplastetDokumentUnderArbeidAsHoveddokument {
-        return OpplastetDokumentUnderArbeidAsHoveddokument(
-            size = size,
-            mellomlagerId = mellomlagerId,
-            mellomlagretDate = mellomlagretDate,
-            id = id,
-            name = name,
-            behandlingId = behandlingId,
-            created = created,
-            modified = modified,
-            markertFerdig = markertFerdig,
-            markertFerdigBy = markertFerdigBy,
-            ferdigstilt = ferdigstilt,
-            creatorIdent = creatorIdent,
-            creatorRole = creatorRole,
-            dokumentType = dokumentType,
-            datoMottatt = null,
-            journalfoerendeEnhetId = null,
-            inngaaendeKanal = null,
-        )
-    }
-}
+)

@@ -324,7 +324,6 @@ class AdminController(
         }
     }
 
-    data class Fnr(val fnr: String)
     data class Comment(val comment: String)
 
     private fun krevAdminTilgang() {

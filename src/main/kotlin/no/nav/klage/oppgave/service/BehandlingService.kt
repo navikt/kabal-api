@@ -814,28 +814,6 @@ class BehandlingService(
         return getSaksbehandlerViewWrapped(behandling)
     }
 
-    fun setGosysOppgaveIdFromKabin(
-        behandlingId: UUID,
-        gosysOppgaveId: Long,
-        utfoerendeSaksbehandlerIdent: String,
-    ): LocalDateTime {
-        if (!innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
-            throw MissingTilgangException("$utfoerendeSaksbehandlerIdent does not have the right to modify oppgaveId")
-        }
-
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = true
-        )
-        val event = behandling.setGosysOppgaveId(
-            nyVerdi = gosysOppgaveId,
-            saksbehandlerident = utfoerendeSaksbehandlerIdent
-        )
-
-        applicationEventPublisher.publishEvent(event)
-        return behandling.modified
-    }
-
     fun setOpprinneligVarsletFrist(
         behandlingstidUnitType: TimeUnitType,
         behandlingstidUnits: Int,

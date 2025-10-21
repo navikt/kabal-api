@@ -39,7 +39,6 @@ class AutomaticSvarbrevService(
     private val partSearchService: PartSearchService,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
-    private val mottakService: MottakService,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     private val environment: Environment,
     private val taskListMerkantilService: TaskListMerkantilService,

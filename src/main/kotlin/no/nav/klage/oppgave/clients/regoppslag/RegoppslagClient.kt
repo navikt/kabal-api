@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.clients.regoppslag
 
 
-import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.http.HttpHeaders
@@ -14,7 +13,6 @@ import reactor.core.publisher.Mono
 @Component
 class RegoppslagClient(
     private val regoppslagWebClient: WebClient,
-    private val tokenUtil: TokenUtil,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")

@@ -41,9 +41,4 @@ class KodeverkService(
             )
         }
     }
-
-
-    data class Poststed(
-        val poststed: String,
-    )
 }
