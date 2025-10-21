@@ -319,9 +319,13 @@ class BehandlingService(
         val sectionList = mutableListOf<ValidationSection>()
 
         if (nyBehandlingEtterTROpphevet) {
-            if (behandling is BehandlingITrygderetten) {
+            if (behandling is AnkeITrygderettenbehandling) {
                 if (behandling.utfall != Utfall.OPPHEVET) {
-                    throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun opprettes hvis utfall er 'Opphevet'.")
+                    throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun opprettes på Anke i Trygderetten hvis utfall er 'Opphevet'.")
+                }
+            } else if (behandling is GjenopptakITrygderettenbehandling) {
+                if (behandling.utfall != Utfall.GJENOPPTATT_OPPHEVET) {
+                    throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun opprettes på Gjenopptak i Trygderetten hvis utfall er 'Gjenopptatt - Opphevet'.")
                 }
             } else {
                 throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun brukes på behandlinger i Trygderetten.")
