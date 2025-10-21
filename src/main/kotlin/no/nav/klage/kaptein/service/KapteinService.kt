@@ -94,11 +94,10 @@ class KapteinService(
         return when (this) {
             is Klagebehandling -> mapKlagebehandlingToAnonymousBehandlingView(this)
             is Ankebehandling -> mapAnkebehandlingToAnonymousBehandlingView(this)
-            is AnkeITrygderettenbehandling -> mapBehandlingITrygderettenToAnonymousBehandlingView(this)
+            is AnkeITrygderettenbehandling, is GjenopptakITrygderettenbehandling -> mapBehandlingITrygderettenToAnonymousBehandlingView(this)
             is BehandlingEtterTrygderettenOpphevet -> mapBehandlingEtterTROpphevetToAnonymousBehandlingView(this)
             is Omgjoeringskravbehandling -> mapOmgjoeringskravbehandlingToAnonymousBehandlingView(this)
             is Gjenopptaksbehandling -> mapGjenopptaksbehandlingToAnonymousBehandlingView(this)
-            is GjenopptakITrygderettenbehandling -> mapBehandlingITrygderettenToAnonymousBehandlingView(this)
         }
     }
 

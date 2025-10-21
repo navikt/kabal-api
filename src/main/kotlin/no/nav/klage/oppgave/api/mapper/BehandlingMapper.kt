@@ -44,11 +44,10 @@ class BehandlingMapper(
         return when (behandling) {
             is Klagebehandling -> mapKlagebehandlingToBehandlingDetaljerView(behandling)
             is Ankebehandling -> mapAnkebehandlingToBehandlingDetaljerView(behandling)
-            is AnkeITrygderettenbehandling -> mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(behandling)
+            is AnkeITrygderettenbehandling, is GjenopptakITrygderettenbehandling -> mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(behandling)
             is BehandlingEtterTrygderettenOpphevet -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandling)
             is Omgjoeringskravbehandling -> mapOmgjoeringskravbehandlingToBehandlingDetaljerView(behandling)
             is Gjenopptaksbehandling -> mapGjenopptaksbehandlingToBehandlingDetaljerView(behandling)
-            is GjenopptakITrygderettenbehandling -> mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(behandling)
         }
     }
 
@@ -933,7 +932,7 @@ class BehandlingMapper(
             fagsystemId = behandling.fagsystem.id,
             saksnummer = behandling.fagsakId,
             previousSaksbehandler = behandling.toPreviousSaksbehandlerView(),
-            datoSendtTilTR = if (behandling is AnkeITrygderettenbehandling || behandling is GjenopptakITrygderettenbehandling) behandling.sendtTilTrygderetten.toLocalDate() else null,
+            datoSendtTilTR = if (behandling is BehandlingITrygderetten) behandling.sendtTilTrygderetten.toLocalDate() else null,
             varsletFrist = if (behandling is BehandlingWithVarsletBehandlingstid) {
                 behandling.varsletBehandlingstid?.varsletFrist
             } else null,
