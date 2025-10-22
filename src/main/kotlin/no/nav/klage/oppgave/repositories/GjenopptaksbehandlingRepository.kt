@@ -6,7 +6,4 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface GjenopptaksbehandlingRepository : JpaRepository<Gjenopptaksbehandling, UUID> {
-
-    fun findByKildeReferanseOrderByCreatedDesc(kildeReferanse: String): List<Gjenopptaksbehandling>
-}
+interface GjenopptaksbehandlingRepository : JpaRepository<Gjenopptaksbehandling, UUID>

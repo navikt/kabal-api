@@ -107,8 +107,6 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
     lateinit var behandlingService: BehandlingService
 
     private val SAKSBEHANDLER_IDENT = "SAKSBEHANDLER_IDENT"
-    private val MEDUNDERSKRIVER_IDENT = "MEDUNDERSKRIVER_IDENT"
-    private val DOKUMENTENHET_ID = UUID.randomUUID()
 
     lateinit var behandlingId: UUID
 

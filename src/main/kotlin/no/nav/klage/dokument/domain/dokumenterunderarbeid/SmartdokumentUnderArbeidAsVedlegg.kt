@@ -1,7 +1,6 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
 import jakarta.persistence.*
-import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
@@ -52,29 +51,4 @@ class SmartdokumentUnderArbeidAsVedlegg(
     parentId = parentId,
     creatorIdent = creatorIdent,
     creatorRole = creatorRole,
-){
-    fun asHoveddokument(dokumentType: DokumentType ): SmartdokumentUnderArbeidAsHoveddokument {
-        return SmartdokumentUnderArbeidAsHoveddokument(
-            size = size,
-            smartEditorId = smartEditorId,
-            smartEditorTemplateId = smartEditorTemplateId,
-            mellomlagerId = mellomlagerId,
-            mellomlagretDate = mellomlagretDate,
-            id = id,
-            name = name,
-            behandlingId = behandlingId,
-            created = created,
-            modified = modified,
-            markertFerdig = markertFerdig,
-            markertFerdigBy = markertFerdigBy,
-            ferdigstilt = ferdigstilt,
-            creatorIdent = creatorIdent,
-            creatorRole = creatorRole,
-            dokumentType = dokumentType,
-            dokumentEnhetId = null,
-            journalfoerendeEnhetId = null,
-            language = language,
-            mellomlagretVersion = mellomlagretVersion,
-        )
-    }
-}
+)

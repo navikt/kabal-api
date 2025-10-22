@@ -91,23 +91,4 @@ class PdlClient(
                 .block() ?: throw RuntimeException("Person not found")
         }
     }
-
-    @Retryable
-    fun hentAktoerIdent(fnr: String): String {
-        return runWithTiming {
-            pdlWebClient.post()
-                .header(HttpHeaders.AUTHORIZATION, "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithPdlScope()}")
-                .bodyValue(hentAktorIdQuery(fnr))
-                .retrieve()
-                .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(
-                        response = response,
-                        functionName = ::hentAktoerIdent.name,
-                        classLogger = logger,
-                    )
-                }
-                .bodyToMono<HentIdenterResponse>()
-                .block()?.data?.hentIdenter?.identer?.firstOrNull()?.ident ?: throw RuntimeException("Person not found")
-        }
-    }
 }

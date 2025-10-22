@@ -83,12 +83,6 @@ class TokenUtil(
         return response.access_token!!
     }
 
-    fun getSaksbehandlerAccessTokenWithKabalDocumentScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["kabal-document-onbehalfof"]!!
-        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-        return response.access_token!!
-    }
-
     fun getSaksbehandlerAccessTokenWithKabalSmartEditorApiScope(): String {
         val clientProperties = clientConfigurationProperties.registration["kabal-smart-editor-api-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
@@ -133,12 +127,6 @@ class TokenUtil(
 
     fun getAppAccessTokenWithKabalInnstillingerScope(): String {
         val clientProperties = clientConfigurationProperties.registration["kabal-innstillinger-maskintilmaskin"]!!
-        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
-        return response.access_token!!
-    }
-
-    fun getSkjermedeAccessToken(): String {
-        val clientProperties = clientConfigurationProperties.registration["skjermede-maskintilmaskin"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
     }

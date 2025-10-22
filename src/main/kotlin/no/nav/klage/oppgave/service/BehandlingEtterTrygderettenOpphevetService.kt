@@ -1,8 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -31,9 +28,6 @@ class BehandlingEtterTrygderettenOpphevetService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapperBehandlingEvents = ObjectMapper().registerModule(JavaTimeModule()).configure(
-            SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false
-        )
     }
 
     fun createBehandlingEtterTrygderettenOpphevet(behandling: BehandlingITrygderetten): BehandlingEtterTrygderettenOpphevet {
