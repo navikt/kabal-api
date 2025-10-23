@@ -521,18 +521,7 @@ class BehandlingAvslutningService(
                 )
             }
 
-            is Ankebehandling -> {
-                BehandlingDetaljer(
-                    ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
-                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
-                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
-                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
-                            .map { it.journalpostId }
-                    )
-                )
-            }
-
-            is AnkeITrygderettenbehandling -> {
+            is Ankebehandling, is AnkeITrygderettenbehandling -> {
                 BehandlingDetaljer(
                     ankebehandlingAvsluttet = AnkebehandlingAvsluttetDetaljer(
                         avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
@@ -565,29 +554,16 @@ class BehandlingAvslutningService(
                 )
             }
 
-            is Gjenopptaksbehandling -> TODO()
-//                {
-//                BehandlingDetaljer(
-//                    gjenopptaksbehandlingAvsluttet = GjenopptaksbehandlingAvsluttetDetaljer(
-//                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
-//                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
-//                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
-//                            .map { it.journalpostId }
-//                    )
-//                )
-//            }
-
-            is GjenopptakITrygderettenbehandling -> TODO()
-//                {
-//                BehandlingDetaljer(
-//                    gjenopptaksbehandlingAvsluttet = GjenopptaksbehandlingAvsluttetDetaljer(
-//                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
-//                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
-//                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
-//                            .map { it.journalpostId }
-//                    )
-//                )
-//            }
+            is Gjenopptaksbehandling, is GjenopptakITrygderettenbehandling -> {
+                BehandlingDetaljer(
+                    gjenopptaksbehandlingAvsluttet = GjenopptaksbehandlingAvsluttetDetaljer(
+                        avsluttet = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                        utfall = ExternalUtfall.valueOf(behandling.utfall!!.name),
+                        journalpostReferanser = hoveddokumenter.flatMap { it.dokarkivReferences }
+                            .map { it.journalpostId }
+                    )
+                )
+            }
         }
     }
 }

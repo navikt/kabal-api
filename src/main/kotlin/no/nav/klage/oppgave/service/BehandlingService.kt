@@ -321,10 +321,14 @@ class BehandlingService(
         if (nyBehandlingEtterTROpphevet) {
             if (behandling is AnkeITrygderettenbehandling) {
                 if (behandling.utfall != Utfall.OPPHEVET) {
-                    throw IllegalOperation("Ny ankebehandling kan kun opprettes hvis utfall er 'Opphevet'.")
+                    throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun opprettes på Anke i Trygderetten hvis utfall er 'Opphevet'.")
+                }
+            } else if (behandling is GjenopptakITrygderettenbehandling) {
+                if (behandling.utfall != Utfall.GJENOPPTATT_OPPHEVET) {
+                    throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun opprettes på Gjenopptak i Trygderetten hvis utfall er 'Gjenopptatt - Opphevet'.")
                 }
             } else {
-                throw IllegalOperation("Ny ankebehandling kan kun brukes på en Anke i trygderetten-sak.")
+                throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun brukes på behandlinger i Trygderetten.")
             }
         }
 
@@ -419,7 +423,7 @@ class BehandlingService(
             )
         }
 
-        if (behandling is AnkeITrygderettenbehandling) {
+        if (behandling is BehandlingITrygderetten) {
             if (behandling.kjennelseMottatt == null) {
                 behandlingValidationErrors.add(
                     InvalidProperty(
@@ -501,7 +505,7 @@ class BehandlingService(
 
     fun validateTrygderettenbehandlingBeforeNyBehandling(behandlingId: UUID) {
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
-        if (!((behandling is AnkeITrygderettenbehandling) || (behandling is GjenopptakITrygderettenbehandling))) {
+        if (behandling !is BehandlingITrygderetten) {
             throw RuntimeException("Ugyldig operasjon for behandling av typen ${behandling.type}")
         }
 
@@ -573,26 +577,14 @@ class BehandlingService(
             }
         }
 
-        if (behandling is AnkeITrygderettenbehandling) {
-            if (behandling.kjennelseMottatt != null) {
-                behandlingValidationErrors.add(
-                    InvalidProperty(
-                        field = "kjennelseMottatt",
-                        reason = getErrorText("kjennelse mottatt")
-                    )
+        if (behandling.kjennelseMottatt != null) {
+            behandlingValidationErrors.add(
+                InvalidProperty(
+                    field = "kjennelseMottatt",
+                    reason = getErrorText("kjennelse mottatt")
                 )
-            }
-        } else if (behandling is GjenopptakITrygderettenbehandling) {
-            if (behandling.kjennelseMottatt != null) {
-                behandlingValidationErrors.add(
-                    InvalidProperty(
-                        field = "kjennelseMottatt",
-                        reason = getErrorText("kjennelse mottatt")
-                    )
-                )
-            }
+            )
         }
-
 
         if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
@@ -1288,17 +1280,12 @@ class BehandlingService(
             behandlingId
         )
 
-        if (behandling is AnkeITrygderettenbehandling) {
+        if (behandling is BehandlingITrygderetten) {
             val event =
                 behandling.setSendtTilTrygderetten(date, utfoerendeSaksbehandlerIdent)
             applicationEventPublisher.publishEvent(event)
             return behandling.modified
-        } else if (behandling is GjenopptakITrygderettenbehandling) {
-            val event =
-                behandling.setSendtTilTrygderetten(date, utfoerendeSaksbehandlerIdent)
-            applicationEventPublisher.publishEvent(event)
-            return behandling.modified
-        } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
+        } else throw IllegalOperation("Dette feltet kan bare settes i saker i Trygderetten")
     }
 
     fun setKjennelseMottatt(
@@ -1310,17 +1297,12 @@ class BehandlingService(
             behandlingId
         )
 
-        if (behandling is AnkeITrygderettenbehandling) {
+        if (behandling is BehandlingITrygderetten) {
             val event =
                 behandling.setKjennelseMottatt(date, utfoerendeSaksbehandlerIdent)
             applicationEventPublisher.publishEvent(event)
             return behandling.modified
-        } else if (behandling is GjenopptakITrygderettenbehandling) {
-            val event =
-                behandling.setKjennelseMottatt(date, utfoerendeSaksbehandlerIdent)
-            applicationEventPublisher.publishEvent(event)
-            return behandling.modified
-        } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
+        } else throw IllegalOperation("Dette feltet kan bare settes i saker i Trygderetten")
     }
 
     fun setNyBehandlingKAAndSetToAvsluttet(
@@ -1373,25 +1355,7 @@ class BehandlingService(
     ): Behandling {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
-        if (behandling is AnkeITrygderettenbehandling) {
-            val eventNyBehandling =
-                behandling.setNyBehandlingEtterTROpphevet(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
-            val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
-                saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
-            )
-            val changeListsinnslaginnslag =
-                eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
-
-            applicationEventPublisher.publishEvent(
-                BehandlingChangedEvent(
-                    behandling = behandling,
-                    changeList = changeListsinnslaginnslag
-                )
-            )
-
-            return behandling
-        } else if (behandling is GjenopptakITrygderettenbehandling) {
+        if (behandling is BehandlingITrygderetten) {
             val eventNyBehandling =
                 behandling.setNyBehandlingEtterTROpphevet(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
             val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
@@ -2469,7 +2433,11 @@ class BehandlingService(
         )
     }
 
-    fun washAndSetRegistreringshjemler(registreringsHjemmelSet: Set<Registreringshjemmel>?, ytelse: Ytelse, behandlingId: UUID) {
+    fun washAndSetRegistreringshjemler(
+        registreringsHjemmelSet: Set<Registreringshjemmel>?,
+        ytelse: Ytelse,
+        behandlingId: UUID
+    ) {
         if (registreringsHjemmelSet != null) {
             //TODO: Oppdater om det kommer ny versjon
             val washedRegistreringshjemmelSet = registreringsHjemmelSet.filter {
