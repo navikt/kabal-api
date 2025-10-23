@@ -297,7 +297,8 @@ class MockDataController(
             }
 
             Type.ANKE_I_TRYGDERETTEN -> {
-                val registreringsHjemmelSet = when (kakaVersionUtil.getKakaVersion()) {
+                val kakaVersion = kakaVersionUtil.getKakaVersion()
+                val registreringsHjemmelSet = when (kakaVersion) {
                     1 -> {
                         mutableSetOf(ytelseToRegistreringshjemlerV1[ytelse]!!.random())
                     }
@@ -307,7 +308,7 @@ class MockDataController(
                     }
 
                     else ->
-                        error("wrong version")
+                        error("Invalid kaka version: $kakaVersion")
                 }
 
                 val sakenGjelderPart = SakenGjelder(
