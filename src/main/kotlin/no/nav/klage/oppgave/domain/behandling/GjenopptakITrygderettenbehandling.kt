@@ -77,7 +77,7 @@ class GjenopptakITrygderettenbehandling(
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : BehandlingITrygderetten , Behandling(
+) : BehandlingITrygderetten, Behandling(
     id = id,
     previousBehandlingId = previousBehandlingId,
     klager = klager,

@@ -463,3 +463,8 @@ interface BehandlingITrygderetten {
     var kjennelseMottatt: LocalDateTime?
     var nyBehandlingEtterTROpphevet: LocalDateTime?
 }
+
+interface BehandlingWithKvalitetsvurdering {
+    var kakaKvalitetsvurderingId: UUID?
+    val kakaKvalitetsvurderingVersion: Int
+}

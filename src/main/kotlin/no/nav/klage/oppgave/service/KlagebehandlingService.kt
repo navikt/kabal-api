@@ -7,12 +7,12 @@ import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
+import no.nav.klage.oppgave.util.KakaVersionUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 
 @Service
 @Transactional
@@ -21,9 +21,8 @@ class KlagebehandlingService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val dokumentService: DokumentService,
     private val kakaApiGateway: KakaApiGateway,
-    @Value("#{T(java.time.LocalDate).parse('\${KAKA_VERSION_2_DATE}')}")
-    private val kakaVersion2Date: LocalDate,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val kakaVersionUtil: KakaVersionUtil,
 ) {
 
     companion object {
@@ -34,7 +33,7 @@ class KlagebehandlingService(
     fun createKlagebehandlingFromMottak(
         mottak: Mottak,
     ): Klagebehandling {
-        val kvalitetsvurderingVersion = getKakaVersion()
+        val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
 
         val klagebehandling = klagebehandlingRepository.save(
             Klagebehandling(
@@ -104,14 +103,5 @@ class KlagebehandlingService(
         klagebehandling.opprettetSendt = true
 
         return klagebehandling
-    }
-
-    private fun getKakaVersion(): Int {
-        val kvalitetsvurderingVersion = if (LocalDate.now() >= kakaVersion2Date) {
-            2
-        } else {
-            1
-        }
-        return kvalitetsvurderingVersion
     }
 }

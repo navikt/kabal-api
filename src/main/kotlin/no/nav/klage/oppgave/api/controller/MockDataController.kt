@@ -18,9 +18,9 @@ import no.nav.klage.oppgave.domain.behandling.utfallToTrygderetten
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import no.nav.klage.oppgave.service.AnkeITrygderettenbehandlingService
 import no.nav.klage.oppgave.service.ExternalMottakFacade
+import no.nav.klage.oppgave.util.KakaVersionUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.Unprotected
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -37,9 +37,8 @@ import java.util.concurrent.ThreadLocalRandom
 class MockDataController(
     private val mottakFacade: ExternalMottakFacade,
     private val ankeITrygderettenbehandlingService: AnkeITrygderettenbehandlingService,
-    @Value("#{T(java.time.LocalDate).parse('\${KAKA_VERSION_2_DATE}')}")
-    private val kakaVersion2Date: LocalDate,
-    private val safFacade: SafFacade
+    private val safFacade: SafFacade,
+    private val kakaVersionUtil: KakaVersionUtil,
 ) {
 
     companion object {
@@ -298,17 +297,17 @@ class MockDataController(
             }
 
             Type.ANKE_I_TRYGDERETTEN -> {
-                val registreringsHjemmelSet = when (getKakaVersion()) {
+                val registreringsHjemmelSet = when (kakaVersionUtil.getKakaVersion()) {
                     1 -> {
                         mutableSetOf(ytelseToRegistreringshjemlerV1[ytelse]!!.random())
                     }
 
-                    2 -> {
+                    2, 3 -> {
                         mutableSetOf(ytelseToRegistreringshjemlerV2[ytelse]!!.random())
                     }
 
                     else ->
-                        throw error("wrong version")
+                        error("wrong version")
                 }
 
                 val sakenGjelderPart = SakenGjelder(
@@ -369,15 +368,6 @@ class MockDataController(
             ytelseId = behandling.ytelse.id,
             hjemmelId = behandling.hjemler.first().id
         )
-    }
-
-    private fun getKakaVersion(): Int {
-        val kvalitetsvurderingVersion = if (LocalDate.now() >= kakaVersion2Date) {
-            2
-        } else {
-            1
-        }
-        return kvalitetsvurderingVersion
     }
 
     data class MockInput(
