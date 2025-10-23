@@ -7,7 +7,8 @@ import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
-import no.nav.klage.oppgave.domain.behandling.*
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.repositories.*
@@ -30,7 +31,7 @@ class CleanupAfterBehandlingEventListener(
     private val kakaApiGateway: KakaApiGateway,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val klagebehandlingRepository: KlagebehandlingRepository,
-    private val ankebehandlingRepository: AnkebehandlingRepository,
+    private val behandlingRepository: BehandlingRepository,
     private val fssProxyClient: KlageFssProxyClient,
     private val behandlingService: BehandlingService,
     private val mergedDocumentRepository: MergedDocumentRepository,
@@ -106,22 +107,23 @@ class CleanupAfterBehandlingEventListener(
     }
 
     private fun deleteDokumenterUnderBehandling(behandling: Behandling) {
-        dokumentUnderArbeidService.findDokumenterNotFinished(behandlingId = behandling.id, checkReadAccess = false).forEach {
-            try {
-                if (!it.erMarkertFerdig()) {
-                    dokumentUnderArbeidService.slettDokument(
-                        dokumentId = it.id,
-                        innloggetIdent = behandling.feilregistrering!!.navIdent,
-                    )
-                } else {
-                    //Don't delete since it's marked as finished, and is being sent.
-                    //This will probably only happen during E2E-tests (which will delete the behandling anyway).
+        dokumentUnderArbeidService.findDokumenterNotFinished(behandlingId = behandling.id, checkReadAccess = false)
+            .forEach {
+                try {
+                    if (!it.erMarkertFerdig()) {
+                        dokumentUnderArbeidService.slettDokument(
+                            dokumentId = it.id,
+                            innloggetIdent = behandling.feilregistrering!!.navIdent,
+                        )
+                    } else {
+                        //Don't delete since it's marked as finished, and is being sent.
+                        //This will probably only happen during E2E-tests (which will delete the behandling anyway).
+                    }
+                } catch (e: Exception) {
+                    //best effort
+                    logger.warn("Couldn't clean up dokumenter under arbeid", e)
                 }
-            } catch (e: Exception) {
-                //best effort
-                logger.warn("Couldn't clean up dokumenter under arbeid", e)
             }
-        }
     }
 
     private fun notifyVedtaksinstansThroughKafka(behandling: Behandling) {
@@ -133,12 +135,12 @@ class CleanupAfterBehandlingEventListener(
             type = BehandlingEventType.BEHANDLING_FEILREGISTRERT,
             detaljer = BehandlingDetaljer(
                 behandlingFeilregistrert =
-                BehandlingFeilregistrertDetaljer(
-                    feilregistrert = behandling.feilregistrering!!.registered,
-                    navIdent = behandling.feilregistrering!!.navIdent,
-                    reason = behandling.feilregistrering!!.reason,
-                    type = behandling.type,
-                )
+                    BehandlingFeilregistrertDetaljer(
+                        feilregistrert = behandling.feilregistrering!!.registered,
+                        navIdent = behandling.feilregistrering!!.navIdent,
+                        reason = behandling.feilregistrering!!.reason,
+                        type = behandling.type,
+                    )
             )
         )
         kafkaEventRepository.save(
@@ -154,46 +156,13 @@ class CleanupAfterBehandlingEventListener(
     }
 
     private fun deleteFromKaka(behandling: Behandling) {
-        when (behandling) {
-            is Klagebehandling -> {
-                when (behandling.kakaKvalitetsvurderingVersion) {
-                    2 -> {
-                        kakaApiGateway.deleteKvalitetsvurderingV2(behandling.kakaKvalitetsvurderingId!!)
-                        behandling.kakaKvalitetsvurderingId = null
-                        klagebehandlingRepository.save(behandling)
-                    }
-                }
-            }
-
-            is Ankebehandling -> {
-                when (behandling.kakaKvalitetsvurderingVersion) {
-                    2 -> {
-                        kakaApiGateway.deleteKvalitetsvurderingV2(behandling.kakaKvalitetsvurderingId!!)
-                        behandling.kakaKvalitetsvurderingId = null
-                        ankebehandlingRepository.save(behandling)
-                    }
-                }
-            }
-
-            is Omgjoeringskravbehandling -> {
-                {} //Do nothing
-            }
-
-            is AnkeITrygderettenbehandling -> {
-                {} //Do nothing
-            }
-
-            is BehandlingEtterTrygderettenOpphevet -> {
-                {} //Do nothing
-            }
-
-            is GjenopptakITrygderettenbehandling -> {
-                {} //Do nothing
-            }
-
-            is Gjenopptaksbehandling -> {
-                {} //Do nothing
-            }
+        if (behandling is BehandlingWithKvalitetsvurdering) {
+            kakaApiGateway.deleteKvalitetsvurdering(
+                kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
+                kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
+            )
+            behandling.kakaKvalitetsvurderingId = null
+            behandlingRepository.save(behandling)
         }
     }
 }

@@ -45,6 +45,7 @@ DOKARKIV_BASE_URL: https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1
 CLAM_AV_URL: http://clamav.nais-system/scan
 
 KAKA_VERSION_2_DATE: 2023-01-01
+KAKA_VERSION_3_DATE: 2026-01-01
 
 ARBEID_OG_INNTEKT_URL: https://arbeid-og-inntekt.prod-fss-pub.nais.io/
 

@@ -66,9 +66,9 @@ class KakaApiClient(
             .block()
     }
 
-    fun deleteKvalitetsvurderingV2(kvalitetsvurderingId: UUID) {
+    fun deleteKvalitetsvurdering(kvalitetsvurderingId: UUID, kvalitetsvurderingVersion: Int) {
         kakaApiWebClient.delete()
-            .uri { it.path("/kabal/kvalitetsvurderinger/v2/$kvalitetsvurderingId").build() }
+            .uri { it.path("/kabal/kvalitetsvurderinger/v$kvalitetsvurderingVersion/$kvalitetsvurderingId").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
                 "Bearer ${tokenUtil.getAppAccessTokenWithKakaApiScope()}"
@@ -77,7 +77,7 @@ class KakaApiClient(
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
-                    functionName = ::deleteKvalitetsvurderingV2.name,
+                    functionName = ::deleteKvalitetsvurdering.name,
                     classLogger = logger,
                 )
             }
