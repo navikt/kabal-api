@@ -31,7 +31,7 @@ abstract class Gjenopptaksbehandling(
     @Column(name = "kaka_kvalitetsvurdering_id")
     override var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = true)
-    override val kakaKvalitetsvurderingVersion: Int,
+    override var kakaKvalitetsvurderingVersion: Int,
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
     @OneToOne(cascade = [CascadeType.ALL], optional = true)

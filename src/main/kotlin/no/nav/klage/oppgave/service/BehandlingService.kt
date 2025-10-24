@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.domain.SmartDocumentAccessBehandlingEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
@@ -74,8 +75,10 @@ import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -2881,5 +2884,43 @@ class BehandlingService(
                 logger.error("Failed to index behandling ${behandling.id}", e)
             }
         }
+    }
+
+    //TODO: Delete after run
+    @Scheduled(cron = "\${MIGRATE_CRON}", zone = "Europe/Oslo")
+    @SchedulerLock(name = "migrateKvalitetsvurderingerFromV2ToV3")
+    fun migrateKvalitetsvurderingerFromV2ToV3() {
+        val candidates =
+            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull().filter {
+                it is BehandlingWithKvalitetsvurdering && it.kakaKvalitetsvurderingVersion == 2
+            }
+
+        logger.debug("Migrating kvalitetsvurdering from v2 to v3.")
+        logger.debug("Number of candidates: ${candidates.size}")
+
+        candidates.forEach {
+            it as BehandlingWithKvalitetsvurdering
+            val oldKvalitetsvurderingId = it.kakaKvalitetsvurderingId
+
+            logger.debug("Migrating behandling ${it.id}, kvalitetsvurdering ${it.kakaKvalitetsvurderingId}")
+            val newKvalitetsvurderingId =
+                kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 3).kvalitetsvurderingId
+            it.kakaKvalitetsvurderingId = newKvalitetsvurderingId
+            it.kakaKvalitetsvurderingVersion = 3
+            it.modified = LocalDateTime.now()
+
+            try {
+                kakaApiGateway.deleteKvalitetsvurdering(kvalitetsvurderingId = oldKvalitetsvurderingId!!, kvalitetsvurderingVersion = 2)
+            } catch (notFound: WebClientResponseException.NotFound) {
+                logger.warn("Got a 404 deleting kvalitetsvurdering with id $oldKvalitetsvurderingId. Continuing.")
+            }
+        }
+
+        val candidatesAfterMigration =
+            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull().filter {
+                it is BehandlingWithKvalitetsvurdering && it.kakaKvalitetsvurderingVersion == 2
+            }
+
+        logger.debug("Number of candidates after migration: ${candidatesAfterMigration.size}")
     }
 }

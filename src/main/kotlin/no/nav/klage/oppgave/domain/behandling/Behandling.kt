@@ -466,5 +466,5 @@ interface BehandlingITrygderetten {
 
 interface BehandlingWithKvalitetsvurdering {
     var kakaKvalitetsvurderingId: UUID?
-    val kakaKvalitetsvurderingVersion: Int
+    var kakaKvalitetsvurderingVersion: Int
 }
