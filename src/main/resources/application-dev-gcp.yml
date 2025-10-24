@@ -49,6 +49,9 @@ FERDIGSTILLE_DOKUMENTER_DELAY_MILLIS: 20000
 KAKA_VERSION_2_DATE: 2022-12-20
 KAKA_VERSION_3_DATE: 2025-10-23
 
+# TODO: Delete after run
+MIGRATE_CRON: 0 0 12 1 DEC *
+
 ARBEID_OG_INNTEKT_URL: https://arbeid-og-inntekt-q2.dev-fss-pub.nais.io/
 
 KLAGE_FSS_PROXY_URL: https://klage-fss-proxy.dev-fss-pub.nais.io

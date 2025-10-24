@@ -47,6 +47,9 @@ CLAM_AV_URL: http://clamav.nais-system/scan
 KAKA_VERSION_2_DATE: 2023-01-01
 KAKA_VERSION_3_DATE: 2026-01-01
 
+# TODO: Delete after run
+MIGRATE_CRON: 0 0 0 1 JAN *
+
 ARBEID_OG_INNTEKT_URL: https://arbeid-og-inntekt.prod-fss-pub.nais.io/
 
 KLAGE_FSS_PROXY_URL: https://klage-fss-proxy.prod-fss-pub.nais.io
