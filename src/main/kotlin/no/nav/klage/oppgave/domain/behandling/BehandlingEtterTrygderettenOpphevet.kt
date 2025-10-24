@@ -23,9 +23,9 @@ import java.util.*
 @Audited
 class BehandlingEtterTrygderettenOpphevet(
     @Column(name = "kaka_kvalitetsvurdering_id")
-    var kakaKvalitetsvurderingId: UUID?,
+    override var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
-    val kakaKvalitetsvurderingVersion: Int,
+    override val kakaKvalitetsvurderingVersion: Int,
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
     @Column(name = "source_behandling_id")
@@ -82,7 +82,7 @@ class BehandlingEtterTrygderettenOpphevet(
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : BehandlingWithVarsletBehandlingstid, Behandling(
+) : BehandlingWithVarsletBehandlingstid, BehandlingWithKvalitetsvurdering, Behandling(
     id = id,
     previousBehandlingId = previousBehandlingId,
     klager = klager,

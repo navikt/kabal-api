@@ -1,8 +1,9 @@
 package no.nav.klage.oppgave.service.avslutning
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus.FEILET
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus.IKKE_SENDT
@@ -12,7 +13,6 @@ import no.nav.klage.oppgave.service.KafkaDispatcher
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 @Service
@@ -41,17 +41,17 @@ class KlagebehandlingSchedulerService(
     @SchedulerLock(name = "avsluttBehandling")
     fun avsluttBehandling() {
         logSchedulerMessage(functionName = ::avsluttBehandling.name)
-        val behandlingIdList: List<Pair<UUID, Type>> = behandlingService.findBehandlingerForAvslutning()
+        val behandlingList: List<Behandling> = behandlingService.findBehandlingerForAvslutning()
 
-        behandlingIdList.forEach { (id, type) ->
-            if (type !in listOf(Type.ANKE_I_TRYGDERETTEN, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN)) {
+        behandlingList.forEach { behandling ->
+            if (behandling is BehandlingWithKvalitetsvurdering) {
                 kakaApiGateway.finalizeBehandling(
                     behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
-                        id
-                    )
+                        behandling.id
+                    ) as BehandlingWithKvalitetsvurdering
                 )
             }
-            behandlingAvslutningService.avsluttBehandling(id)
+            behandlingAvslutningService.avsluttBehandling(behandling.id)
         }
     }
 
