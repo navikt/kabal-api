@@ -383,15 +383,12 @@ class BehandlingService(
             }
         }
 
-        if (behandling.type !in listOf(
-                Type.ANKE_I_TRYGDERETTEN,
-                Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET,
-                Type.OMGJOERINGSKRAV,
-                Type.BEGJAERING_OM_GJENOPPTAK,
-                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN,
+        if (behandling.type in listOf(
+                Type.ANKE,
+                Type.KLAGE,
             ) && behandling.utfall !in noKvalitetsvurderingNeeded
         ) {
-            val kvalitetsvurderingValidationErrors = kakaApiGateway.getValidationErrors(behandling)
+            val kvalitetsvurderingValidationErrors = kakaApiGateway.getValidationErrors(behandling as BehandlingWithKvalitetsvurdering)
 
             if (kvalitetsvurderingValidationErrors.isNotEmpty()) {
                 sectionList.add(
@@ -2165,10 +2162,9 @@ class BehandlingService(
             .also { checkLesetilgangForPerson(it) }
 
     @Transactional(readOnly = true)
-    fun findBehandlingerForAvslutning(): List<Pair<UUID, Type>> =
+    fun findBehandlingerForAvslutning(): List<Behandling> =
         behandlingRepository.findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull()
             .sortedByDescending { it.ferdigstilling?.avsluttetAvSaksbehandler }
-            .map { it.id to it.type }
 
     fun getPotentialSaksbehandlereForBehandling(behandlingId: UUID): Saksbehandlere {
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)

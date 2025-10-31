@@ -25,9 +25,9 @@ abstract class Omgjoeringskravbehandling(
     @Column(name = "klage_behandlende_enhet")
     val klageBehandlendeEnhet: String,
     @Column(name = "kaka_kvalitetsvurdering_id")
-    var kakaKvalitetsvurderingId: UUID?,
+    override var kakaKvalitetsvurderingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_version", nullable = false)
-    val kakaKvalitetsvurderingVersion: Int,
+    override val kakaKvalitetsvurderingVersion: Int,
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
     @OneToOne(cascade = [CascadeType.ALL], optional = true, fetch = FetchType.LAZY)
@@ -87,7 +87,7 @@ abstract class Omgjoeringskravbehandling(
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : BehandlingWithVarsletBehandlingstid, BehandlingWithMottakDokument, Behandling(
+) : BehandlingWithVarsletBehandlingstid, BehandlingWithMottakDokument, BehandlingWithKvalitetsvurdering, Behandling(
     id = id,
     previousBehandlingId = previousBehandlingId,
     klager = klager,

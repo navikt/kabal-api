@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.repositories.BehandlingEtterTrygderettenOpphevetRepository
+import no.nav.klage.oppgave.util.KakaVersionUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
@@ -24,6 +25,7 @@ class BehandlingEtterTrygderettenOpphevetService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kakaApiGateway: KakaApiGateway,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val kakaVersionUtil: KakaVersionUtil,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -32,6 +34,9 @@ class BehandlingEtterTrygderettenOpphevetService(
 
     fun createBehandlingEtterTrygderettenOpphevet(behandling: BehandlingITrygderetten): BehandlingEtterTrygderettenOpphevet {
         behandling as Behandling
+
+        val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
+
         val behandlingEtterTrygderettenOpphevet = behandlingEtterTrygderettenOpphevetRepository.save(
                 BehandlingEtterTrygderettenOpphevet(
                     klager = behandling.klager.copy(),
@@ -46,8 +51,8 @@ class BehandlingEtterTrygderettenOpphevetService(
                     mottattKlageinstans = behandling.kjennelseMottatt!!,
                     tildeling = behandling.tildeling?.copy(tidspunkt = LocalDateTime.now()),
                     frist = LocalDate.now(),
-                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = 2,
+                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = behandling.hjemler,
                     sourceBehandlingId = behandling.id,
                     previousSaksbehandlerident = behandling.tildeling?.saksbehandlerident,

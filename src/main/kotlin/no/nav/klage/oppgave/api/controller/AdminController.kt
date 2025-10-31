@@ -239,20 +239,6 @@ class AdminController(
         }
     }
 
-    @GetMapping("/missing-in-kaka", produces = ["application/json"])
-    @ResponseStatus(HttpStatus.OK)
-    fun fixMissingInKaka() {
-        logger.debug("fixMissingInKaka is called")
-        krevAdminTilgang()
-        try {
-            logger.info("Finishing missing in kaka")
-            adminService.fixMissingInKaka()
-        } catch (e: Exception) {
-            logger.warn("Failed to finishing missing in kaka", e)
-            throw e
-        }
-    }
-
     @GetMapping("/set-id-on-parter")
     @ResponseStatus(HttpStatus.OK)
     fun setIdOnParter() {
