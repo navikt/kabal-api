@@ -17,7 +17,7 @@ class OverfoeringsdataParserServiceTest {
         
         
             --- 09.10.2020 16:25 Duck, Dolly (D112233, 4416) ---
-            Klageinnstilling sendt klager. Sak (hel-elektronisk) overført NAV Klageinstans Oslo og Akershus  for videre behandling av klagen.
+            Klageinnstilling sendt klager. Sak (hel-elektronisk) overført Klageinstans Oslo for videre behandling av klagen.
             Oppgaven er flyttet fra enhet 4416 til 4291, fra saksbehandler D112233 til <ingen>, fra mappe <ingen> til <ingen>
         
         
@@ -29,7 +29,7 @@ class OverfoeringsdataParserServiceTest {
         
         
             --- 09.03.2020 10:40 McDuck, Skrue (M887766, 4416) ---
-            Klageinnstilling sendt klager. Sak (hel-elektronisk) overført NAV Klageinstans Oslo og Akershus  for videre behandling av klagen.
+            Klageinnstilling sendt klager. Sak (hel-elektronisk) overført Klageinstans Oslo for videre behandling av klagen.
         
             Oppgaven er flyttet fra enhet 4416 til 4291, fra saksbehandler M887766 til <ingen>, fra mappe <ingen> til <ingen>
         """.trimIndent()
@@ -56,7 +56,7 @@ class OverfoeringsdataParserServiceTest {
             Oppgaven er flyttet , fra saksbehandler <ingen> til N987654, fra mappe <ingen> til Sykepenger klager
              
             --- 09.03.2020 10:40 Førsteinstansansatt, Kari (F123456, 4416) ---
-            Klageinnstilling sendt klager. Sak (hel-elektronisk) overført NAV Klageinstans Oslo og Akershus  for videre behandling av klagen.
+            Klageinnstilling sendt klager. Sak (hel-elektronisk) overført Klageinstans Oslo for videre behandling av klagen.
              
             Oppgaven er flyttet fra enhet 4416 til 4291, fra saksbehandler F123456 til <ingen>, fra mappe <ingen> til <ingen>
              
