@@ -350,5 +350,6 @@ fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
         Ytelse.FOS_FOS -> Innsendingsytelse.FORSIKRING
         Ytelse.PAR_PAR -> null //no matching innsendingsytelse/tema
         Ytelse.UNG_UNG -> Innsendingsytelse.UNGDOMSPROGRAMMET
+        Ytelse.PEN_GYS -> null
     }
 }
