@@ -140,7 +140,7 @@ class KabalSmartEditorApiClient(
             .uri { it.path("/documents/$documentId").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKabalSmartEditorApiScope()}"
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalSmartEditorApiScope()}"
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
