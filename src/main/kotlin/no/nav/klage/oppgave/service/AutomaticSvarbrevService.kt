@@ -46,7 +46,7 @@ class AutomaticSvarbrevService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val svarbrevTitle = "Nav klageinstans orienterer om saksbehandlingen"
+        private val svarbrevTitle = "Klageinstans orienterer om saksbehandlingen"
     }
 
     @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 2, initialDelay = 2)

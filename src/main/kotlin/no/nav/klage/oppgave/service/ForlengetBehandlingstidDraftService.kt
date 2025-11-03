@@ -255,7 +255,7 @@ class ForlengetBehandlingstidDraftService(
 
         behandling as BehandlingWithVarsletBehandlingstid
 
-        behandling.forlengetBehandlingstidDraft!!.title = "Nav klageinstans orienterer om forlenget behandlingstid"
+        behandling.forlengetBehandlingstidDraft!!.title = "Klageinstans orienterer om forlenget behandlingstid"
 
         val previousBehandlingstidInfo = getVarsletBehandlingstidInfo(
             varsletBehandlingstid = behandling.varsletBehandlingstid,
@@ -527,7 +527,7 @@ class ForlengetBehandlingstidDraftService(
                 }
 
                 if (lastBehandlingstidHadLetter) {
-                    "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingstid var $lastVarsletBehandlingstidText"
+                    "I brev fra klageinstansen sendt $previousDate fikk du informasjon om at forventet behandlingstid var $lastVarsletBehandlingstidText"
                 } else {
                     "Den $previousDate ble forventet saksbehandlingstid endret til $lastVarsletBehandlingstidText"
                 }
