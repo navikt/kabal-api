@@ -131,6 +131,13 @@ class FerdigstillDokumentService(
         }
     }
 
+    /**
+     * Deletes smart documents and any smart document attachments associated with the given hoveddokument.
+     *
+     * This cleanup is performed after a document has been successfully finalized, to free up resources.
+     * If deletion fails (e.g., due to network or API errors), the error is logged but does not affect the finalization process.
+     * The finalization is considered complete regardless of the outcome of this cleanup.
+     */
     private fun deleteSmartdokumentAndPossibleVedlegg(hoveddokument: DokumentUnderArbeidAsHoveddokument) {
 
         fun attemptToDeleteSmartdokument(smartEditorId: UUID) {
