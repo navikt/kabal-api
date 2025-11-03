@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.DocumentFinishedEvent
@@ -33,6 +36,7 @@ class FerdigstillDokumentService(
     private val safFacade: SafFacade,
     private val dokumentMapper: DokumentMapper,
     private val behandlingService: BehandlingService,
+    private val smartEditorApiGateway: DefaultKabalSmartEditorApiGateway,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -56,14 +60,14 @@ class FerdigstillDokumentService(
     @SchedulerLock(name = "ferdigstillDokumenter")
     fun listenToFerdigstilteDokumenterAvSaksbehandler(dokumentFerdigstiltAvSaksbehandler: DokumentFerdigstiltAvSaksbehandler) {
         logger.debug("listenToFerdigstilteDokumenterAvSaksbehandler called")
-        val dua =
+        val hoveddokument =
             Hibernate.unproxy(dokumentFerdigstiltAvSaksbehandler.dokumentUnderArbeid) as DokumentUnderArbeidAsHoveddokument
-        ferdigstill(dua)
+        ferdigstill(hoveddokument = hoveddokument)
     }
 
-    private fun ferdigstill(it: DokumentUnderArbeidAsHoveddokument) {
-        logger.debug("ferdigstill hoveddokument with id {}", it.id)
-        var updatedDokument = it
+    private fun ferdigstill(hoveddokument: DokumentUnderArbeidAsHoveddokument) {
+        logger.debug("ferdigstill hoveddokument with id {}", hoveddokument.id)
+        var updatedDokument = hoveddokument
         try {
             if (updatedDokument.dokumentEnhetId == null) {
                 updatedDokument = dokumentUnderArbeidService.opprettDokumentEnhet(updatedDokument.id)
@@ -116,12 +120,48 @@ class FerdigstillDokumentService(
             )
             logger.debug("ferdigstill for document with id {} successful", updatedDokument.id)
 
+            deleteSmartdokumentAndPossibleVedlegg(hoveddokument = updatedDokument)
+
         } catch (e: Exception) {
             logger.error("Could not 'ferdigstillHovedDokumenter' with dokumentEnhetId: ${updatedDokument.dokumentEnhetId}. See team-logs for more details.")
             teamLogger.error(
                 "Could not 'ferdigstillHovedDokumenter' with dokumentEnhetId: ${updatedDokument.dokumentEnhetId}",
                 e
             )
+        }
+    }
+
+    /**
+     * Deletes smart documents and any smart document attachments associated with the given hoveddokument.
+     *
+     * This cleanup is performed after a document has been successfully finalized, to free up resources.
+     * If deletion fails (e.g., due to network or API errors), the error is logged but does not affect the finalization process.
+     * The finalization is considered complete regardless of the outcome of this cleanup.
+     */
+    private fun deleteSmartdokumentAndPossibleVedlegg(hoveddokument: DokumentUnderArbeidAsHoveddokument) {
+
+        fun attemptToDeleteSmartdokument(smartEditorId: UUID) {
+            try {
+                logger.debug("Deleting smartdocument with smartEditorId {}", smartEditorId)
+                smartEditorApiGateway.deleteDocument(smartEditorId)
+            } catch (e: Exception) {
+                logger.error("Could not delete smartdocument with smartEditorId $smartEditorId. See team-logs for more details.")
+                teamLogger.error(
+                    "Could not delete smartdocument with smartEditorId $smartEditorId",
+                    e
+                )
+            }
+        }
+
+        val vedleggAsSmartdokument = dokumentUnderArbeidCommonService.findVedleggByParentId(hoveddokument.id)
+            .filterIsInstance<SmartdokumentUnderArbeidAsVedlegg>()
+
+        vedleggAsSmartdokument.forEach { vedlegg ->
+            attemptToDeleteSmartdokument(vedlegg.smartEditorId)
+        }
+
+        if (hoveddokument is SmartdokumentUnderArbeidAsHoveddokument) {
+            attemptToDeleteSmartdokument(hoveddokument.smartEditorId)
         }
     }
 
