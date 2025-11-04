@@ -170,6 +170,15 @@ class ForlengetBehandlingstidDraftService(
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
 
+    fun setVarselTypeIsOriginal(
+        behandlingId: UUID,
+        input: ForlengetBehandlingstidVarselTypeIsOriginal
+    ): ForlengetBehandlingstidDraftView {
+        val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal = input.varselTypeIsOriginal
+        return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
+    }
+
     private fun removeLetterValues(behandling: BehandlingWithVarsletBehandlingstid) {
         behandling.forlengetBehandlingstidDraft!!.title = null
         behandling.forlengetBehandlingstidDraft!!.receivers.clear()
@@ -460,11 +469,11 @@ class ForlengetBehandlingstidDraftService(
             removeLetterValues(behandling)
         }
 
-        behandlingService.setForlengetBehandlingstid(
+        behandlingService.setVarsletFrist(
             varsletFrist = behandling.forlengetBehandlingstidDraft!!.varsletFrist,
             varsletBehandlingstidUnits = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits,
             varsletBehandlingstidUnitType = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnitType,
-            behandling = behandling,
+            behandlingId = behandling.id,
             systemUserContext = false,
             mottakere = behandling.forlengetBehandlingstidDraft!!.receivers.map {
                 if (it.identifikator != null) {
@@ -479,6 +488,8 @@ class ForlengetBehandlingstidDraftService(
             },
             doNotSendLetter = behandling.forlengetBehandlingstidDraft!!.doNotSendLetter,
             reasonNoLetter = behandling.forlengetBehandlingstidDraft!!.reasonNoLetter,
+            varselType = if (behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal) VarsletBehandlingstid.VarselType.OPPRINNELIG else VarsletBehandlingstid.VarselType.FORLENGET,
+            fromDate = LocalDate.now(),
         )
         //TODO: Possible to do in single operation?
         val idForDeletion = behandling.forlengetBehandlingstidDraft!!.id
@@ -588,6 +599,7 @@ class ForlengetBehandlingstidDraftService(
                 )
             },
             timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
+            varselTypeIsOriginal = varselTypeIsOriginal,
         )
     }
 

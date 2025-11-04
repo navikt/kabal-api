@@ -17,6 +17,8 @@ data class ForlengetBehandlingstidReasonNoLetterInput(val reasonNoLetter: String
 
 data class ForlengetBehandlingstidDoNotSendLetterInput(val doNotSendLetter: Boolean)
 
+data class ForlengetBehandlingstidVarselTypeIsOriginal(val varselTypeIsOriginal: Boolean)
+
 data class ForlengetBehandlingstidVarsletBehandlingstidUnitsInput(val varsletBehandlingstidUnits: Int)
 
 data class ForlengetBehandlingstidVarsletBehandlingstidUnitTypeIdInput(val varsletBehandlingstidUnitTypeId: String)
@@ -32,6 +34,7 @@ data class ForlengetBehandlingstidDraftView(
     val behandlingstid: ForlengetBehandlingstidVarsletBehandlingstidView,
     val reasonNoLetter: String?,
     val doNotSendLetter: Boolean,
+    val varselTypeIsOriginal: Boolean,
     val receivers: List<DokumentView.Mottaker>,
     val timesPreviouslyExtended: Int,
 )

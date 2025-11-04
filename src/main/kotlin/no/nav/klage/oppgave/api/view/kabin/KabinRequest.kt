@@ -121,6 +121,8 @@ data class SvarbrevInput(
     val varsletBehandlingstidUnits: Int,
     val varsletBehandlingstidUnitTypeId: String?,
     val varsletBehandlingstidUnitType: TimeUnitType?,
+    val doNotSendLetter: Boolean = false,
+    val reasonNoLetter: String?,
 ) {
 
     data class Receiver(

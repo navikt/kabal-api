@@ -14,6 +14,7 @@ import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerNavn
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerPartId
+import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.subentities.getMottakDokumentType
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
@@ -108,19 +109,21 @@ class KabinApiService(
 
         //Create DokumentUnderArbeid from input based on svarbrevInput.
         if (svarbrevInput != null) {
-            dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
-                svarbrev = svarbrevInput.toSvarbrev(behandling = behandling),
-                behandling = behandling,
-                //Hardkodes til KA Oslo
-                avsenderEnhetId = Enhet.E4291.navn,
-            )
+            if (!svarbrevInput.doNotSendLetter) {
+                dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
+                    svarbrev = svarbrevInput.toSvarbrev(behandling = behandling),
+                    behandling = behandling,
+                    //Hardkodes til KA Oslo
+                    avsenderEnhetId = Enhet.E4291.navn,
+                )
+            }
 
-            behandlingService.setOpprinneligVarsletFrist(
-                behandlingstidUnitType = getTimeUnitType(
+            behandlingService.setVarsletFrist(
+                varsletBehandlingstidUnitType = getTimeUnitType(
                     varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId,
                     varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType
                 ),
-                behandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
+                varsletBehandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
                 behandlingId = behandling.id,
                 systemUserContext = false,
                 mottakere = svarbrevInput.receivers.map {
@@ -133,7 +136,12 @@ class KabinApiService(
                             value = it.navn
                         )
                     } else throw IllegalArgumentException("Missing values in receiver: $it")
-                }
+                },
+                fromDate = behandling.mottattKlageinstans.toLocalDate(),
+                varselType = VarsletBehandlingstid.VarselType.OPPRINNELIG,
+                varsletFrist = null,
+                doNotSendLetter = svarbrevInput.doNotSendLetter,
+                reasonNoLetter = svarbrevInput.reasonNoLetter,
             )
         } else if (behandling.gosysOppgaveId != null) {
             gosysOppgaveService.updateInternalFristInGosysOppgave(
