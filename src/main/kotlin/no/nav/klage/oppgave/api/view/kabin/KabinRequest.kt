@@ -125,6 +125,16 @@ data class SvarbrevInput(
     val reasonNoLetter: String?,
 ) {
 
+    init {
+        if (doNotSendLetter) {
+            require(!reasonNoLetter.isNullOrBlank()) {
+                "reasonNoLetter must be provided when doNotSendLetter is true"
+            }
+        } else {
+            require(reasonNoLetter == null) { "reasonNoLetter must be null when doNotSendLetter is false" }
+        }
+    }
+
     data class Receiver(
         val identifikator: String?,
         val handling: HandlingEnum,
