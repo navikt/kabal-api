@@ -197,6 +197,12 @@ class TokenUtil(
         return response.access_token!!
     }
 
+    fun getSaksbehandlerAccessTokenWithTilgangsmaskinenScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["tilgangsmaskinen-onbehalfof"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.access_token!!
+    }
+
     fun getAccessTokenFrontendSent(): String =
         tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)!!.encodedToken
 

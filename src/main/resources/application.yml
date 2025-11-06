@@ -337,6 +337,14 @@ no.nav.security.jwt:
           client-id: ${AZURE_APP_CLIENT_ID}
           client-jwk: ${AZURE_APP_JWK}
           client-auth-method: private_key_jwt
+      tilgangsmaskinen-onbehalfof:
+        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
+        grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
+        scope: api://${TILGANGSMASKINEN_SCOPE}/.default
+        authentication:
+          client-id: ${AZURE_APP_CLIENT_ID}
+          client-jwk: ${AZURE_APP_JWK}
+          client-auth-method: private_key_jwt
 
 MICROSOFT_GRAPH_URL: https://graph.microsoft.com/v1.0
 
@@ -372,6 +380,8 @@ KABAL_FILE_API_APP_NAME: kabal-file-api
 
 KABAL_INNSTILLINGER_BASE_URL: http://kabal-innstillinger
 KABAL_INNSTILLINGER_APP_NAME: kabal-innstillinger
+
+TILGANGSMASKINEN_BASE_URL: http://populasjonstilgangskontroll.tilgangsmaskin
 
 FERDIGSTILLE_DOKUMENTER_DELAY_MILLIS: 30000
 
