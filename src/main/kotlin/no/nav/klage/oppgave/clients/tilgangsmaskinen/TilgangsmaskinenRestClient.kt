@@ -56,7 +56,7 @@ class TilgangsmaskinenRestClient(
             return block.invoke()
         } finally {
             val end = System.currentTimeMillis()
-            logger.debug("Time it took to call tilgangmaskinen: ${end - start} millis")
+            logger.debug("Time it took to call tilgangsmaskinen: ${end - start} millis")
         }
     }
 

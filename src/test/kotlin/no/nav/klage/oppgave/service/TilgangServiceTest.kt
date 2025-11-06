@@ -232,19 +232,7 @@ class TilgangServiceTest {
         every { innloggetSaksbehandlerService.kanBehandleEgenAnsatt() }.returns(false)
         every { innloggetSaksbehandlerService.kanBehandleFortrolig() }.returns(true)
         every { innloggetSaksbehandlerService.kanBehandleStrengtFortrolig() }.returns(false)
-        every { tilgangsmaskinenRestClient.getTilgangsmaskinenErrorResponse(any())}.returns(
-            TilgangsmaskinenErrorResponse(
-                type = URI("/"),
-                title = TilgangsmaskinenErrorResponse.AvvisningsKode.AVVIST_FORTROLIG_ADRESSE,
-                status = 2985,
-                instance = "dicunt",
-                brukerIdent = "graeci",
-                navIdent = "euripidis",
-                begrunnelse = "volumus",
-                traceId = "vivamus",
-                kanOverstyres = false,
-            )
-        )
+        every { tilgangsmaskinenRestClient.getTilgangsmaskinenErrorResponse(any())}.returns(null)
         every { innloggetSaksbehandlerService.getInnloggetIdent() }.returns("Z123456")
         every { egenAnsattService.erEgenAnsatt(any()) }.returns(false)
         assertThat(tilgangService.harInnloggetSaksbehandlerTilgangTil("")).isEqualTo(
@@ -269,7 +257,7 @@ class TilgangServiceTest {
         every { tilgangsmaskinenRestClient.getTilgangsmaskinenErrorResponse(any())}.returns(
             TilgangsmaskinenErrorResponse(
                 type = URI("/"),
-                title = TilgangsmaskinenErrorResponse.AvvisningsKode.AVVIST_STRENGT_FORTROLIG_ADRESSE,
+                title = TilgangsmaskinenErrorResponse.AvvisningsKode.AVVIST_FORTROLIG_ADRESSE,
                 status = 2985,
                 instance = "dicunt",
                 brukerIdent = "graeci",
