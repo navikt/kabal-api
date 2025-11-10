@@ -36,7 +36,7 @@ data class CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling(
     val fullmektig: OversendtPartId?,
     val receivedDocumentJournalpostId: String,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
     val hjemmelIdList: List<String>,
     val gosysOppgaveId: Long?,
 )
@@ -56,7 +56,7 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
 )
 data class OversendtPartId(
@@ -89,7 +89,7 @@ data class CreateKlageBasedOnKabinInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
 )
 
@@ -108,7 +108,7 @@ data class CreateBehandlingBasedOnJournalpostInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
 )
 

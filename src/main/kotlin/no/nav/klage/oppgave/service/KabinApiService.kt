@@ -93,7 +93,7 @@ class KabinApiService(
     private fun setSaksbehandlerAndCreateSvarbrev(
         behandling: Behandling,
         saksbehandlerIdent: String?,
-        svarbrevInput: SvarbrevInput?,
+        svarbrevInput: SvarbrevInput,
     ) {
         if (saksbehandlerIdent != null) {
             behandlingService.setSaksbehandler(
@@ -108,42 +108,42 @@ class KabinApiService(
         }
 
         //Create DokumentUnderArbeid from input based on svarbrevInput.
-        if (svarbrevInput != null) {
-            if (!svarbrevInput.doNotSendLetter) {
-                dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
-                    svarbrev = svarbrevInput.toSvarbrev(behandling = behandling),
-                    behandling = behandling,
-                    //Hardkodes til KA Oslo
-                    avsenderEnhetId = Enhet.E4291.navn,
-                )
-            }
-
-            behandlingService.setVarsletFrist(
-                varsletBehandlingstidUnitType = getTimeUnitType(
-                    varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId,
-                    varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType
-                ),
-                varsletBehandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
-                behandlingId = behandling.id,
-                systemUserContext = false,
-                mottakere = svarbrevInput.receivers.map {
-                    if (it.identifikator != null) {
-                        MottakerPartId(
-                            value = getPartIdFromIdentifikator(it.identifikator)
-                        )
-                    } else if (it.navn != null) {
-                        MottakerNavn(
-                            value = it.navn
-                        )
-                    } else throw IllegalArgumentException("Missing values in receiver: $it")
-                },
-                fromDate = behandling.mottattKlageinstans.toLocalDate(),
-                varselType = VarsletBehandlingstid.VarselType.OPPRINNELIG,
-                varsletFrist = null,
-                doNotSendLetter = svarbrevInput.doNotSendLetter,
-                reasonNoLetter = svarbrevInput.reasonNoLetter,
+        if (!svarbrevInput.doNotSendLetter) {
+            dokumentUnderArbeidService.createAndFinalizeDokumentUnderArbeidFromSvarbrev(
+                svarbrev = svarbrevInput.toSvarbrev(behandling = behandling),
+                behandling = behandling,
+                //Hardkodes til KA Oslo
+                avsenderEnhetId = Enhet.E4291.navn,
             )
-        } else if (behandling.gosysOppgaveId != null) {
+        }
+
+        behandlingService.setVarsletFrist(
+            varsletBehandlingstidUnitType = getTimeUnitType(
+                varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId,
+                varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType
+            ),
+            varsletBehandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
+            behandlingId = behandling.id,
+            systemUserContext = false,
+            mottakere = svarbrevInput.receivers.map {
+                if (it.identifikator != null) {
+                    MottakerPartId(
+                        value = getPartIdFromIdentifikator(it.identifikator)
+                    )
+                } else if (it.navn != null) {
+                    MottakerNavn(
+                        value = it.navn
+                    )
+                } else throw IllegalArgumentException("Missing values in receiver: $it")
+            },
+            fromDate = behandling.mottattKlageinstans.toLocalDate(),
+            varselType = VarsletBehandlingstid.VarselType.OPPRINNELIG,
+            varsletFrist = null,
+            doNotSendLetter = svarbrevInput.doNotSendLetter,
+            reasonNoLetter = svarbrevInput.reasonNoLetter,
+        )
+
+        if (behandling.gosysOppgaveId != null) {
             gosysOppgaveService.updateInternalFristInGosysOppgave(
                 behandling = behandling,
                 systemContext = false,
