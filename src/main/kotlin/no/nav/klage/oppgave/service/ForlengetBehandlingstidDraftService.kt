@@ -178,6 +178,9 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidVarselTypeIsOriginal
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        if (!behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            error("Kan ikke endre varseltype når brev skal sendes ut")
+        }
         behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal = input.varselTypeIsOriginal
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
