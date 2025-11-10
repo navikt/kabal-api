@@ -167,6 +167,9 @@ class ForlengetBehandlingstidDraftService(
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
         behandling.forlengetBehandlingstidDraft!!.doNotSendLetter = input.doNotSendLetter
+        if (!input.doNotSendLetter) {
+            behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal = false
+        }
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
 
