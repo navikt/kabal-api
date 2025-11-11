@@ -191,6 +191,19 @@ class ForlengetBehandlingstidDraftController(
         return forlengetBehandlingstidDraftService.setDoNotSendLetter(behandlingId = behandlingId, input = input)
     }
 
+    @PutMapping("/varsel-type-is-original")
+    fun setVarselTypeIsOriginal(
+        @PathVariable behandlingId: UUID,
+        @RequestBody input: ForlengetBehandlingstidVarselTypeIsOriginal
+    ): ForlengetBehandlingstidDraftView {
+        logMethodDetails(
+            methodName = ::setVarselTypeIsOriginal.name,
+            innloggetIdent = tokenUtil.getIdent(),
+            logger = logger,
+        )
+        return forlengetBehandlingstidDraftService.setVarselTypeIsOriginal(behandlingId = behandlingId, input = input)
+    }
+
     @PutMapping("/receivers")
     fun setReceivers(
         @PathVariable behandlingId: UUID,
