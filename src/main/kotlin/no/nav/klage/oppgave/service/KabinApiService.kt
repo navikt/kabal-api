@@ -118,7 +118,7 @@ class KabinApiService(
         }
 
         //TODO: remove check after client adjusts.
-        if (!svarbrevInput.doNotSendLetter) {
+        if (!svarbrevInput.doNotSendLetter || svarbrevInput.reasonNoLetter != null) {
             behandlingService.setVarsletFrist(
                 varsletBehandlingstidUnitType = getTimeUnitType(
                     varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId,
