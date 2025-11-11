@@ -117,38 +117,40 @@ class KabinApiService(
             )
         }
 
-        behandlingService.setVarsletFrist(
-            varsletBehandlingstidUnitType = getTimeUnitType(
-                varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId,
-                varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType
-            ),
-            varsletBehandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
-            behandlingId = behandling.id,
-            systemUserContext = false,
-            mottakere = svarbrevInput.receivers.map {
-                if (it.identifikator != null) {
-                    MottakerPartId(
-                        value = getPartIdFromIdentifikator(it.identifikator)
-                    )
-                } else if (it.navn != null) {
-                    MottakerNavn(
-                        value = it.navn
-                    )
-                } else throw IllegalArgumentException("Missing values in receiver: $it")
-            },
-            fromDate = behandling.mottattKlageinstans.toLocalDate(),
-            varselType = VarsletBehandlingstid.VarselType.OPPRINNELIG,
-            varsletFrist = null,
-            doNotSendLetter = svarbrevInput.doNotSendLetter,
-            reasonNoLetter = svarbrevInput.reasonNoLetter,
-        )
-
-        if (behandling.gosysOppgaveId != null) {
-            gosysOppgaveService.updateInternalFristInGosysOppgave(
-                behandling = behandling,
-                systemContext = false,
-                throwExceptionIfFerdigstilt = false,
+        //TODO: remove check after client adjusts.
+        if (!svarbrevInput.doNotSendLetter) {
+            behandlingService.setVarsletFrist(
+                varsletBehandlingstidUnitType = getTimeUnitType(
+                    varsletBehandlingstidUnitTypeId = svarbrevInput.varsletBehandlingstidUnitTypeId,
+                    varsletBehandlingstidUnitType = svarbrevInput.varsletBehandlingstidUnitType
+                ),
+                varsletBehandlingstidUnits = svarbrevInput.varsletBehandlingstidUnits,
+                behandlingId = behandling.id,
+                systemUserContext = false,
+                mottakere = svarbrevInput.receivers.map {
+                    if (it.identifikator != null) {
+                        MottakerPartId(
+                            value = getPartIdFromIdentifikator(it.identifikator)
+                        )
+                    } else if (it.navn != null) {
+                        MottakerNavn(
+                            value = it.navn
+                        )
+                    } else throw IllegalArgumentException("Missing values in receiver: $it")
+                },
+                fromDate = behandling.mottattKlageinstans.toLocalDate(),
+                varselType = VarsletBehandlingstid.VarselType.OPPRINNELIG,
+                varsletFrist = null,
+                doNotSendLetter = svarbrevInput.doNotSendLetter,
+                reasonNoLetter = svarbrevInput.reasonNoLetter,
             )
+            if (behandling.gosysOppgaveId != null) {
+                gosysOppgaveService.updateInternalFristInGosysOppgave(
+                    behandling = behandling,
+                    systemContext = false,
+                    throwExceptionIfFerdigstilt = false,
+                )
+            }
         }
     }
 
