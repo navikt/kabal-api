@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.repositories.OmgjoeringskravbehandlingRepository
+import no.nav.klage.oppgave.util.KakaVersionUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
@@ -21,6 +22,7 @@ class OmgjoeringskravbehandlingService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kakaApiGateway: KakaApiGateway,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val kakaVersionUtil: KakaVersionUtil,
 ) {
 
     companion object {
@@ -29,6 +31,7 @@ class OmgjoeringskravbehandlingService(
     }
 
     fun createOmgjoeringskravbehandlingFromMottak(mottak: Mottak): Behandling {
+        val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
         val omgjoeringskravbehandling = if (mottak.isBasedOnJournalpost) {
             omgjoeringskravbehandlingRepository.save(
                 OmgjoeringskravbehandlingBasedOnJournalpost(
@@ -45,8 +48,8 @@ class OmgjoeringskravbehandlingService(
                     tildeling = null,
                     frist = mottak.generateFrist(),
                     saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
-                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = 2,
+                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = mottak.hjemler,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     oppgaveId = null,
@@ -76,8 +79,8 @@ class OmgjoeringskravbehandlingService(
                     tildeling = null,
                     frist = mottak.generateFrist(),
                     saksdokumenter = dokumentService.createSaksdokumenterFromJournalpostIdList(mottak.mottakDokument.map { it.journalpostId }),
-                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = 2).kvalitetsvurderingId,
-                    kakaKvalitetsvurderingVersion = 2,
+                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = mottak.hjemler,
                     sourceBehandlingId = mottak.forrigeBehandlingId!!,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,

@@ -23,44 +23,33 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
         return kakaOutput
     }
 
-    fun finalizeBehandling(behandling: Behandling) {
+    fun finalizeBehandling(behandling: BehandlingWithKvalitetsvurdering) {
         logger.debug("Sending saksdata to Kaka because behandling is finished.")
-
-        val kvalitetsvurderingVersion = 2
 
         kakaApiClient.finalizeBehandling(
             saksdataInput = behandling.toSaksdataInput(),
-            kvalitetsvurderingVersion = kvalitetsvurderingVersion
+            kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
         )
     }
 
-    fun deleteKvalitetsvurderingV2(kvalitetsvurderingId: UUID) {
+    fun deleteKvalitetsvurdering(kvalitetsvurderingId: UUID, kvalitetsvurderingVersion: Int) {
         logger.debug("Deleting kvalitetsvurdering with id {} in Kaka.", kvalitetsvurderingId)
-        kakaApiClient.deleteKvalitetsvurderingV2(
-            kvalitetsvurderingId = kvalitetsvurderingId
+        kakaApiClient.deleteKvalitetsvurdering(
+            kvalitetsvurderingId = kvalitetsvurderingId,
+            kvalitetsvurderingVersion = kvalitetsvurderingVersion,
         )
     }
 
-    fun getValidationErrors(behandling: Behandling): List<InvalidProperty> {
+    fun getValidationErrors(behandling: BehandlingWithKvalitetsvurdering): List<InvalidProperty> {
         logger.debug("Getting kvalitetsvurdering validation errors")
 
-        val (kvalitetsvurderingId, kvalitetsvurderingVersion) = when (behandling) {
-            is Klagebehandling -> {
-                behandling.kakaKvalitetsvurderingId to behandling.kakaKvalitetsvurderingVersion
-            }
-
-            is Ankebehandling -> {
-                behandling.kakaKvalitetsvurderingId to behandling.kakaKvalitetsvurderingVersion
-            }
-
-            else -> error("Not valid type")
-        }
+        behandling as Behandling
 
         return kakaApiClient.getValidationErrors(
-            kvalitetsvurderingId = kvalitetsvurderingId!!,
+            kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
             ytelseId = behandling.ytelse.id,
             typeId = behandling.type.id,
-            kvalitetsvurderingVersion = kvalitetsvurderingVersion,
+            kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
         ).validationErrors.map {
             InvalidProperty(
                 field = it.field,
@@ -69,7 +58,7 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
         }
     }
 
-    private fun Behandling.toSaksdataInput(): SaksdataInput {
+    private fun BehandlingWithKvalitetsvurdering.toSaksdataInput(): SaksdataInput {
         val (vedtaksinstansEnhet, kvalitetsvurderingId) =
             when (this) {
                 is Klagebehandling -> {
@@ -131,4 +120,3 @@ class KakaApiGateway(private val kakaApiClient: KakaApiClient) {
         )
     }
 }
-
