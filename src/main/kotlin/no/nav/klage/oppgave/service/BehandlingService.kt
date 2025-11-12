@@ -803,35 +803,42 @@ class BehandlingService(
         return getSaksbehandlerViewWrapped(behandling)
     }
 
-    fun setOpprinneligVarsletFrist(
-        behandlingstidUnitType: TimeUnitType,
-        behandlingstidUnits: Int,
+    fun setVarsletFrist(
+        varsletFrist: LocalDate?,
+        varsletBehandlingstidUnitType: TimeUnitType,
+        varsletBehandlingstidUnits: Int?,
         behandlingId: UUID,
         systemUserContext: Boolean,
         mottakere: List<Mottaker>,
+        doNotSendLetter: Boolean,
+        reasonNoLetter: String?,
+        fromDate: LocalDate,
+        varselType: VarsletBehandlingstid.VarselType
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(
             behandlingId = behandlingId,
             ignoreCheckSkrivetilgang = true,
             systemUserContext = systemUserContext
         )
-        //TODO differentiate between mottatt and now.
-        val varsletFrist = findDateBasedOnTimeUnitTypeAndUnits(
-            timeUnitType = behandlingstidUnitType,
-            units = behandlingstidUnits,
-            fromDate = behandling.mottattKlageinstans.toLocalDate()
-        )
+
+        val newVarsletFrist =
+            (varsletFrist
+                ?: findDateBasedOnTimeUnitTypeAndUnits(
+                    timeUnitType = varsletBehandlingstidUnitType,
+                    units = varsletBehandlingstidUnits!!,
+                    fromDate = fromDate,
+                ))
 
         return privateSetVarsletFrist(
             systemUserContext = systemUserContext,
-            varsletFrist = varsletFrist,
-            behandlingstidUnits = behandlingstidUnits,
-            behandlingstidUnitType = behandlingstidUnitType,
+            varsletFrist = newVarsletFrist,
+            behandlingstidUnits = varsletBehandlingstidUnits,
+            behandlingstidUnitType = varsletBehandlingstidUnitType,
             behandling = behandling,
             mottakere = mottakere,
-            varselType = VarsletBehandlingstid.VarselType.OPPRINNELIG,
-            doNotSendLetter = false,
-            reasonNoLetter = null,
+            varselType = varselType,
+            doNotSendLetter = doNotSendLetter,
+            reasonNoLetter = reasonNoLetter,
         )
     }
 
@@ -895,37 +902,6 @@ class BehandlingService(
         }
 
         return behandling.modified
-    }
-
-    fun setForlengetBehandlingstid(
-        varsletFrist: LocalDate?,
-        varsletBehandlingstidUnits: Int?,
-        varsletBehandlingstidUnitType: TimeUnitType,
-        behandling: Behandling,
-        systemUserContext: Boolean,
-        mottakere: List<Mottaker>,
-        doNotSendLetter: Boolean,
-        reasonNoLetter: String?,
-    ): LocalDateTime {
-        val newVarsletFrist =
-            (varsletFrist
-                ?: findDateBasedOnTimeUnitTypeAndUnits(
-                    timeUnitType = varsletBehandlingstidUnitType,
-                    units = varsletBehandlingstidUnits!!,
-                    fromDate = LocalDate.now(),
-                ))
-
-        return privateSetVarsletFrist(
-            systemUserContext = systemUserContext,
-            varsletFrist = newVarsletFrist,
-            behandlingstidUnits = varsletBehandlingstidUnits,
-            behandlingstidUnitType = varsletBehandlingstidUnitType,
-            behandling = behandling,
-            mottakere = mottakere,
-            varselType = VarsletBehandlingstid.VarselType.FORLENGET,
-            doNotSendLetter = doNotSendLetter,
-            reasonNoLetter = reasonNoLetter,
-        )
     }
 
     fun setExpiredTildeltSaksbehandlerToNullInSystemContext(

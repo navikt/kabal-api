@@ -15,6 +15,8 @@ data class VarsletBehandlingstidEvent(
     val varsletBehandlingstidUnits: Int?,
     val varsletBehandlingstidUnitTypeId: String?,
     val varsletFrist: LocalDate?,
+    val doNotSendLetter: Boolean,
+    val reasonNoLetter: String?,
 )
 
 data class ForlengetBehandlingstidEvent(

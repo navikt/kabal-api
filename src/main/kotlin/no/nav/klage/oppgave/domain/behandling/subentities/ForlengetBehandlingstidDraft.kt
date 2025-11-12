@@ -40,6 +40,8 @@ class ForlengetBehandlingstidDraft(
     var reasonNoLetter: String? = null,
     @Column(name = "do_not_send_letter")
     var doNotSendLetter: Boolean = false,
+    @Column(name = "varsel_type_is_original")
+    var varselTypeIsOriginal: Boolean = false,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
