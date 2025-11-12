@@ -50,7 +50,7 @@ KAKA_VERSION_2_DATE: 2022-12-20
 KAKA_VERSION_3_DATE: 2025-11-11
 
 # TODO: Delete after run
-MIGRATE_CRON: 0 0 12 1 DEC *
+MIGRATE_CRON: 0 40 14 1 NOV *
 
 ARBEID_OG_INNTEKT_URL: https://arbeid-og-inntekt-q2.dev-fss-pub.nais.io/
 
