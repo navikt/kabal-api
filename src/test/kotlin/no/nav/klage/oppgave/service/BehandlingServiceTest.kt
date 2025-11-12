@@ -21,6 +21,7 @@ import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
+import no.nav.klage.oppgave.clients.tilgangsmaskinen.TilgangsmaskinenRestClient
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole.KABAL_SAKSBEHANDLING
@@ -63,6 +64,9 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 
     @MockkBean
     lateinit var innloggetSaksbehandlerService: InnloggetSaksbehandlerService
+
+    @MockkBean
+    lateinit var tilgangsmaskinenRestClient: TilgangsmaskinenRestClient
 
     @MockkBean(relaxed = true)
     lateinit var applicationEventPublisher: ApplicationEventPublisher

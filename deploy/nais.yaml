@@ -104,6 +104,8 @@ spec:
           namespace: nais-system
         - application: logging
           namespace: nais-system
+        - application: populasjonstilgangskontroll
+          namespace: tilgangsmaskin
       external:
       {{#each externalHosts}}
         - host: {{host}}
