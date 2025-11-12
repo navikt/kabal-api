@@ -16,6 +16,7 @@ import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerNavn
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerPartId
+import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
 import no.nav.klage.oppgave.domain.events.AutomaticSvarbrevEvent
 import no.nav.klage.oppgave.domain.svarbrevsettings.SvarbrevSettings
 import no.nav.klage.oppgave.repositories.AutomaticSvarbrevEventRepository
@@ -46,7 +47,7 @@ class AutomaticSvarbrevService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val svarbrevTitle = "Nav klageinstans orienterer om saksbehandlingen"
+        private val svarbrevTitle = "Klageinstans orienterer om saksbehandlingen"
     }
 
     @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 2, initialDelay = 2)
@@ -183,9 +184,9 @@ class AutomaticSvarbrevService(
             }
 
             if (!automaticSvarbrevEvent.varsletFristIsSetInBehandling) {
-                behandlingService.setOpprinneligVarsletFrist(
-                    behandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
-                    behandlingstidUnits = svarbrevSettings.behandlingstidUnits,
+                behandlingService.setVarsletFrist(
+                    varsletBehandlingstidUnitType = svarbrevSettings.behandlingstidUnitType,
+                    varsletBehandlingstidUnits = svarbrevSettings.behandlingstidUnits,
                     behandlingId = behandling.id,
                     systemUserContext = true,
                     mottakere = listOf(
@@ -198,7 +199,12 @@ class AutomaticSvarbrevService(
                                 value = receiver.navn
                             )
                         } else throw IllegalArgumentException("Missing values in receiver: $receiver")
-                    )
+                    ),
+                    fromDate = behandling.mottattKlageinstans.toLocalDate(),
+                    varselType = VarsletBehandlingstid.VarselType.OPPRINNELIG,
+                    varsletFrist = null,
+                    doNotSendLetter = false,
+                    reasonNoLetter = null,
                 )
                 automaticSvarbrevEvent.varsletFristIsSetInBehandling = true
                 automaticSvarbrevEvent.modified = LocalDateTime.now()

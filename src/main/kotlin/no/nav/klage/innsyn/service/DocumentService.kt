@@ -5,10 +5,7 @@ import no.nav.klage.innsyn.api.view.SakView
 import no.nav.klage.innsyn.client.safselvbetjening.SafSelvbetjeningGraphQlClient
 import no.nav.klage.innsyn.client.safselvbetjening.SafSelvbetjeningRestClient
 import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.oppgave.domain.behandling.Ankebehandling
-import no.nav.klage.oppgave.domain.behandling.Behandling
-import no.nav.klage.oppgave.domain.behandling.Klagebehandling
-import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
+import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.util.getLogger
 import org.apache.pdfbox.io.MemoryUsageSetting
 import org.apache.pdfbox.io.RandomAccessStreamCache
@@ -139,7 +136,7 @@ class DocumentService(
             archiveDate = svarbrev.ferdigstilt!!.toLocalDate(),
             journalpostId = journalpostId,
             eventDocumentType = when (behandling) {
-                is Klagebehandling, is Ankebehandling, is Omgjoeringskravbehandling -> SakView.Event.EventDocument.EventDocumentType.SVARBREV
+                is Klagebehandling, is Ankebehandling, is Omgjoeringskravbehandling, is Gjenopptaksbehandling -> SakView.Event.EventDocument.EventDocumentType.SVARBREV
                 else -> throw RuntimeException(
                     "Wrong behandling type"
                 )

@@ -284,7 +284,7 @@ class MockDataController(
                         kildeReferanse = mockInput?.kildeReferanse ?: UUID.randomUUID().toString(),
                         dvhReferanse = mockInput?.dvhReferanse,
                         hjemler = listOf(ytelseToHjemler[ytelse]!!.random()),
-                        forrigeBehandlendeEnhet = mockInput?.forrigeBehandlendeEnhet ?: "4295", //NAV Klageinstans nord
+                        forrigeBehandlendeEnhet = mockInput?.forrigeBehandlendeEnhet ?: "4295", //Klageinstans Tromsø
                         sakMottattKaTidspunkt = dato,
                         kommentar = mockInput?.kommentar,
                         hindreAutomatiskSvarbrev = mockInput?.hindreAutomatiskSvarbrev,

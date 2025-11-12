@@ -167,6 +167,21 @@ class ForlengetBehandlingstidDraftService(
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
         behandling.forlengetBehandlingstidDraft!!.doNotSendLetter = input.doNotSendLetter
+        if (!input.doNotSendLetter) {
+            behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal = false
+        }
+        return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
+    }
+
+    fun setVarselTypeIsOriginal(
+        behandlingId: UUID,
+        input: ForlengetBehandlingstidVarselTypeIsOriginal
+    ): ForlengetBehandlingstidDraftView {
+        val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        if (!behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
+            error("Kan ikke endre varseltype når brev skal sendes ut")
+        }
+        behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal = input.varselTypeIsOriginal
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
     }
 
@@ -255,7 +270,7 @@ class ForlengetBehandlingstidDraftService(
 
         behandling as BehandlingWithVarsletBehandlingstid
 
-        behandling.forlengetBehandlingstidDraft!!.title = "Nav klageinstans orienterer om forlenget behandlingstid"
+        behandling.forlengetBehandlingstidDraft!!.title = "Klageinstans orienterer om forlenget behandlingstid"
 
         val previousBehandlingstidInfo = getVarsletBehandlingstidInfo(
             varsletBehandlingstid = behandling.varsletBehandlingstid,
@@ -460,11 +475,11 @@ class ForlengetBehandlingstidDraftService(
             removeLetterValues(behandling)
         }
 
-        behandlingService.setForlengetBehandlingstid(
+        behandlingService.setVarsletFrist(
             varsletFrist = behandling.forlengetBehandlingstidDraft!!.varsletFrist,
             varsletBehandlingstidUnits = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits,
             varsletBehandlingstidUnitType = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnitType,
-            behandling = behandling,
+            behandlingId = behandling.id,
             systemUserContext = false,
             mottakere = behandling.forlengetBehandlingstidDraft!!.receivers.map {
                 if (it.identifikator != null) {
@@ -479,6 +494,8 @@ class ForlengetBehandlingstidDraftService(
             },
             doNotSendLetter = behandling.forlengetBehandlingstidDraft!!.doNotSendLetter,
             reasonNoLetter = behandling.forlengetBehandlingstidDraft!!.reasonNoLetter,
+            varselType = if (behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal) VarsletBehandlingstid.VarselType.OPPRINNELIG else VarsletBehandlingstid.VarselType.FORLENGET,
+            fromDate = LocalDate.now(),
         )
         //TODO: Possible to do in single operation?
         val idForDeletion = behandling.forlengetBehandlingstidDraft!!.id
@@ -527,7 +544,7 @@ class ForlengetBehandlingstidDraftService(
                 }
 
                 if (lastBehandlingstidHadLetter) {
-                    "I brev fra Nav klageinstans sendt $previousDate fikk du informasjon om at forventet behandlingstid var $lastVarsletBehandlingstidText"
+                    "I brev fra klageinstansen sendt $previousDate fikk du informasjon om at forventet behandlingstid var $lastVarsletBehandlingstidText"
                 } else {
                     "Den $previousDate ble forventet saksbehandlingstid endret til $lastVarsletBehandlingstidText"
                 }
@@ -588,6 +605,7 @@ class ForlengetBehandlingstidDraftService(
                 )
             },
             timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
+            varselTypeIsOriginal = varselTypeIsOriginal,
         )
     }
 

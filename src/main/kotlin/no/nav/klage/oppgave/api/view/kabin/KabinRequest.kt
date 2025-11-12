@@ -36,7 +36,7 @@ data class CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling(
     val fullmektig: OversendtPartId?,
     val receivedDocumentJournalpostId: String,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
     val hjemmelIdList: List<String>,
     val gosysOppgaveId: Long?,
 )
@@ -56,7 +56,7 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
 )
 data class OversendtPartId(
@@ -89,7 +89,7 @@ data class CreateKlageBasedOnKabinInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
 )
 
@@ -108,7 +108,7 @@ data class CreateBehandlingBasedOnJournalpostInput(
     val ytelseId: String,
     val kildereferanse: String,
     val saksbehandlerIdent: String?,
-    val svarbrevInput: SvarbrevInput?,
+    val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
 )
 
@@ -121,7 +121,20 @@ data class SvarbrevInput(
     val varsletBehandlingstidUnits: Int,
     val varsletBehandlingstidUnitTypeId: String?,
     val varsletBehandlingstidUnitType: TimeUnitType?,
+    val doNotSendLetter: Boolean = false,
+    val reasonNoLetter: String?,
 ) {
+
+    //TODO: Introduce after client adjusts.
+//    init {
+//        if (doNotSendLetter) {
+//            require(!reasonNoLetter.isNullOrBlank()) {
+//                "reasonNoLetter must be provided when doNotSendLetter is true"
+//            }
+//        } else {
+//            require(reasonNoLetter == null) { "reasonNoLetter must be null when doNotSendLetter is false" }
+//        }
+//    }
 
     data class Receiver(
         val identifikator: String?,
