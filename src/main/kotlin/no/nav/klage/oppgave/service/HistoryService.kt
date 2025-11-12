@@ -405,8 +405,8 @@ class HistoryService(
                         varsletBehandlingstidUnits = current.varsletBehandlingstid?.varsletBehandlingstidUnits,
                         varsletBehandlingstidUnitTypeId = current.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
                         varsletFrist = current.varsletBehandlingstid?.varsletFrist,
-                        doNotSendLetter = previous.varsletBehandlingstid?.doNotSendLetter ?: false,
-                        reasonNoLetter = previous.varsletBehandlingstid?.reasonNoLetter,
+                        doNotSendLetter = current.varsletBehandlingstid?.doNotSendLetter ?: false,
+                        reasonNoLetter = current.varsletBehandlingstid?.reasonNoLetter,
                     ),
                     previous = previousEvent,
                 )
