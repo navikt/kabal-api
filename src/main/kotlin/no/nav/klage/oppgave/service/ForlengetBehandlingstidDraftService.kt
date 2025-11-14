@@ -178,9 +178,7 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidVarselTypeIsOriginal
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
-        if (input.varselTypeIsOriginal && behandling.varsletBehandlingstid != null) {
-            error("Kan ikke sette opprinnelig varslet frist når varslet frist fins fra før.")
-        }
+        
         if (!behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
             error("Kan ikke endre varseltype når brev skal sendes ut")
         }
