@@ -178,6 +178,9 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidVarselTypeIsOriginal
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        if (input.varselTypeIsOriginal && behandling.varsletBehandlingstid != null) {
+            error("Kan ikke sette opprinnelig varslet frist når varslet frist fins fra før.")
+        }
         if (!behandling.forlengetBehandlingstidDraft!!.doNotSendLetter) {
             error("Kan ikke endre varseltype når brev skal sendes ut")
         }
@@ -403,11 +406,14 @@ class ForlengetBehandlingstidDraftService(
                 reason = "Trenger enten dato eller antall uker/måneder"
             )
         } else {
+            val fromDate =
+                if (behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal) behandling.mottattKlageinstans.toLocalDate() else LocalDate.now()
+
             val currentFrist =
                 behandling.forlengetBehandlingstidDraft!!.varsletFrist ?: findDateBasedOnTimeUnitTypeAndUnits(
                     timeUnitType = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnitType,
                     units = behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits!!,
-                    fromDate = LocalDate.now(),
+                    fromDate = fromDate,
                 )
 
             validationErrors.addAll(
@@ -495,7 +501,7 @@ class ForlengetBehandlingstidDraftService(
             doNotSendLetter = behandling.forlengetBehandlingstidDraft!!.doNotSendLetter,
             reasonNoLetter = behandling.forlengetBehandlingstidDraft!!.reasonNoLetter,
             varselType = if (behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal) VarsletBehandlingstid.VarselType.OPPRINNELIG else VarsletBehandlingstid.VarselType.FORLENGET,
-            fromDate = LocalDate.now(),
+            fromDate = if (behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal) behandling.mottattKlageinstans.toLocalDate() else LocalDate.now()
         )
         //TODO: Possible to do in single operation?
         val idForDeletion = behandling.forlengetBehandlingstidDraft!!.id
@@ -590,6 +596,10 @@ class ForlengetBehandlingstidDraftService(
                 varsletBehandlingstidUnits = varsletBehandlingstidUnits,
                 varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitType.id,
                 varsletFrist = varsletFrist,
+                calculatedFrist = getCalculatedFrist(
+                    draft = this,
+                    mottattKlageinstans = behandling.mottattKlageinstans.toLocalDate()
+                )
             ),
             reasonNoLetter = reasonNoLetter,
             doNotSendLetter = doNotSendLetter,
@@ -607,6 +617,19 @@ class ForlengetBehandlingstidDraftService(
             timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
             varselTypeIsOriginal = varselTypeIsOriginal,
         )
+    }
+
+    private fun getCalculatedFrist(draft: ForlengetBehandlingstidDraft, mottattKlageinstans: LocalDate): LocalDate? {
+        return if (draft.varsletFrist != null) {
+            draft.varsletFrist
+        } else if (draft.varsletBehandlingstidUnits != null) {
+            val fromDate = if (draft.varselTypeIsOriginal) mottattKlageinstans else LocalDate.now()
+            findDateBasedOnTimeUnitTypeAndUnits(
+                timeUnitType = draft.varsletBehandlingstidUnitType,
+                units = draft.varsletBehandlingstidUnits!!,
+                fromDate = fromDate,
+            )
+        } else null
     }
 
     private fun validateNewFrist(newFrist: LocalDate, oldFrist: LocalDate?): List<InvalidProperty> {

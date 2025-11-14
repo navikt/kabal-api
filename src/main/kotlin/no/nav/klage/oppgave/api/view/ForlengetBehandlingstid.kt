@@ -43,4 +43,5 @@ data class ForlengetBehandlingstidVarsletBehandlingstidView(
     val varsletBehandlingstidUnits: Int?,
     val varsletBehandlingstidUnitTypeId: String,
     val varsletFrist: LocalDate?,
+    val calculatedFrist: LocalDate?,
 )
