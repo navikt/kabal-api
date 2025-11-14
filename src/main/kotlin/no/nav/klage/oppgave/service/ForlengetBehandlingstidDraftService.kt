@@ -633,6 +633,13 @@ class ForlengetBehandlingstidDraftService(
     private fun validateNewFrist(newFrist: LocalDate, oldFrist: LocalDate?): List<InvalidProperty> {
         val validationErrors = mutableListOf<InvalidProperty>()
 
+        if (newFrist.isBefore(LocalDate.now())) {
+            validationErrors += InvalidProperty(
+                field = "behandlingstid",
+                reason = "Ny frist er i fortiden"
+            )
+        }
+
         if (newFrist.isAfter(LocalDate.now().plusMonths(4))) {
             validationErrors += InvalidProperty(
                 field = "behandlingstid",
