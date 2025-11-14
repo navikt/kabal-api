@@ -421,6 +421,7 @@ class ForlengetBehandlingstidDraftService(
                 validateNewFrist(
                     newFrist = currentFrist,
                     oldFrist = behandling.varsletBehandlingstid?.varsletFrist,
+                    varselTypeIsOriginal = behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal,
                 )
             )
         }
@@ -633,7 +634,7 @@ class ForlengetBehandlingstidDraftService(
         } else null
     }
 
-    private fun validateNewFrist(newFrist: LocalDate, oldFrist: LocalDate?): List<InvalidProperty> {
+    private fun validateNewFrist(newFrist: LocalDate, oldFrist: LocalDate?, varselTypeIsOriginal: Boolean): List<InvalidProperty> {
         val validationErrors = mutableListOf<InvalidProperty>()
 
         if (newFrist.isBefore(LocalDate.now())) {
@@ -643,7 +644,7 @@ class ForlengetBehandlingstidDraftService(
             )
         }
 
-        if (newFrist.isAfter(LocalDate.now().plusMonths(4))) {
+        if (!varselTypeIsOriginal && newFrist.isAfter(LocalDate.now().plusMonths(4))) {
             validationErrors += InvalidProperty(
                 field = "behandlingstid",
                 reason = "Ny frist er lengre frem i tid enn 4 måneder"
