@@ -132,6 +132,9 @@ class ForlengetBehandlingstidDraftService(
         input: ForlengetBehandlingstidBehandlingstidDateInput
     ): ForlengetBehandlingstidDraftView {
         val behandling = getBehandlingWithForlengetBehandlingstidDraft(behandlingId = behandlingId)
+        if (behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal) {
+            error("Kan ikke sette direkte dato på opprinnelig varsel")
+        }
         behandling.forlengetBehandlingstidDraft!!.varsletFrist = input.behandlingstidDate
         behandling.forlengetBehandlingstidDraft!!.varsletBehandlingstidUnits = null
         return behandling.forlengetBehandlingstidDraft!!.toView(behandling = behandling as Behandling)
