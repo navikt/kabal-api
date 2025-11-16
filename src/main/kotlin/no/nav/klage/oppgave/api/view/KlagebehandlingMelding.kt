@@ -6,7 +6,7 @@ import java.util.*
 
 data class MeldingInput(
     val text: String,
-    val notify: Boolean?,
+    val notify: Boolean = false,
 )
 
 data class MeldingModified(

@@ -55,7 +55,7 @@ class BehandlingMeldingController(
             behandlingId = behandlingId,
             innloggetIdent = innloggetIdent,
             text = input.text,
-            notify = input.notify ?: false,
+            notify = input.notify,
         )
     }
 
