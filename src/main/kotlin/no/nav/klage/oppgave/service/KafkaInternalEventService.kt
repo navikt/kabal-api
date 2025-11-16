@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
+import java.util.*
 
 @Service
 class KafkaInternalEventService(
@@ -54,13 +55,13 @@ class KafkaInternalEventService(
         }
     }
 
-    fun publishNotificationEvent(jsonNode: JsonNode) {
+    fun publishNotificationEvent(id: UUID, jsonNode: JsonNode) {
         runCatching {
             logger.debug("Publishing notificationEvent to Kafka for subscribers")
 
             aivenKafkaTemplate.send(
                 notificationEventTopic,
-                jsonNode.get("id").asText(),
+                id.toString(),
                 objectMapper.writeValueAsString(jsonNode)
             ).get()
             logger.debug("Published notificationEvent to Kafka for subscribers")

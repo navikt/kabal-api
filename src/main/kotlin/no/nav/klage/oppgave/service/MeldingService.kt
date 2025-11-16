@@ -183,7 +183,8 @@ class MeldingService(
         ytelse: Ytelse,
     ) {
         kafkaInternalEventService.publishNotificationEvent(
-            objectMapper.valueToTree(
+            id = melding.id,
+            jsonNode = objectMapper.valueToTree(
                 CreateMeldingNotificationEvent(
                     type = CreateMeldingNotificationEvent.NotificationType.MELDING,
                     message = melding.text,
