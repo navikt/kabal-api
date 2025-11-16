@@ -2,6 +2,8 @@ package no.nav.klage.oppgave.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.EntityNotFoundException
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.mapper.MeldingMapper
 import no.nav.klage.oppgave.api.view.MeldingModified
 import no.nav.klage.oppgave.api.view.MeldingView
@@ -41,7 +43,8 @@ class MeldingService(
     fun addMelding(
         behandlingId: UUID,
         innloggetIdent: String,
-        text: String
+        text: String,
+        notify: Boolean,
     ): MeldingView {
         logger.debug("saving new melding by $innloggetIdent")
 
@@ -51,6 +54,7 @@ class MeldingService(
                 behandlingId = behandlingId,
                 saksbehandlerident = innloggetIdent,
                 created = LocalDateTime.now(),
+                notify = notify,
             )
         )
 
@@ -60,6 +64,20 @@ class MeldingService(
             utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
             timestamp = melding.modified ?: melding.created,
         )
+
+        val behandling = behandlingRepository.getReferenceById(behandlingId)
+
+        if (notify && behandling.tildeling?.saksbehandlerident != null) {
+            publishNotificationEvent(
+                melding = melding,
+                utfoerendeIdent = innloggetIdent,
+                utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                tildeltSaksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!,
+                behandlingType = behandling.type,
+                saksnummer = behandling.fagsakId,
+                ytelse = behandling.ytelse,
+            )
+        }
 
         return meldingMapper.toMeldingView(melding)
     }
@@ -148,9 +166,63 @@ class MeldingService(
                         timestamp = timestamp,
                         id = melding.id.toString(),
                         text = melding.text,
+                        notify = melding.notify,
                     )
                 )
             )
         )
+    }
+
+    private fun publishNotificationEvent(
+        melding: Melding,
+        utfoerendeIdent: String,
+        utfoerendeName: String,
+        tildeltSaksbehandlerIdent: String,
+        behandlingType: Type,
+        saksnummer: String,
+        ytelse: Ytelse,
+    ) {
+        kafkaInternalEventService.publishNotificationEvent(
+            objectMapper.valueToTree(
+                CreateMeldingNotificationEvent(
+                    type = CreateMeldingNotificationEvent.NotificationType.MELDING,
+                    message = melding.text,
+                    recipientNavIdent = tildeltSaksbehandlerIdent,
+                    source = CreateMeldingNotificationEvent.NotificationSource.KABAL,
+                    meldingId = melding.id,
+                    behandlingId = melding.behandlingId,
+                    behandlingType = behandlingType,
+                    actorNavIdent = utfoerendeIdent,
+                    actorNavn = utfoerendeName,
+                    saksnummer = saksnummer,
+                    ytelse = ytelse,
+                    sourceCreatedAt = melding.created,
+                )
+            )
+        )
+    }
+}
+
+data class CreateMeldingNotificationEvent(
+    val type: NotificationType,
+    val message: String,
+    val recipientNavIdent: String,
+    val source: NotificationSource,
+    val meldingId: UUID,
+    val behandlingId: UUID,
+    val behandlingType: Type,
+    val actorNavIdent: String,
+    val actorNavn: String,
+    val saksnummer: String,
+    val ytelse: Ytelse,
+    val sourceCreatedAt: LocalDateTime,
+) {
+    enum class NotificationSource {
+        OPPGAVE,
+        KABAL,
+    }
+
+    enum class NotificationType {
+        MELDING, LOST_ACCESS
     }
 }

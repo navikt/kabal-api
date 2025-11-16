@@ -94,13 +94,15 @@ class MeldingRepositoryTest : PostgresIntegrationTestBase() {
             text = meldingTil1,
             saksbehandlerident = "abc123",
             created = LocalDateTime.of(LocalDate.now(), LocalTime.of(10, 10)),
-            behandlingId = foundKlagebehandling.id
+            behandlingId = foundKlagebehandling.id,
+            notify = true,
         )
         val melding2 = Melding(
             text = meldingTil2,
             saksbehandlerident = "abc456",
             created = LocalDateTime.of(LocalDate.now(), LocalTime.of(20, 20)),
-            behandlingId = foundKlagebehandling.id
+            behandlingId = foundKlagebehandling.id,
+            notify = false,
         )
 
         meldingRepository.save(melding1)

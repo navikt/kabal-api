@@ -120,6 +120,7 @@ data class MeldingEvent(
     override val timestamp: LocalDateTime,
     val id: String,
     val text: String,
+    val notify: Boolean,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class UtfallEvent(

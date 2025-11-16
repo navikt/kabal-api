@@ -52,9 +52,10 @@ class BehandlingMeldingController(
         validateAccessToBehandling(behandlingId)
 
         return meldingService.addMelding(
-            behandlingId,
-            innloggetIdent,
-            input.text
+            behandlingId = behandlingId,
+            innloggetIdent = innloggetIdent,
+            text = input.text,
+            notify = input.notify ?: false,
         )
     }
 
