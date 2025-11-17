@@ -12,6 +12,7 @@ import no.nav.klage.oppgave.domain.kafka.Employee
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.domain.kafka.MeldingEvent
+import no.nav.klage.oppgave.exceptions.IllegalOperation
 import no.nav.klage.oppgave.exceptions.MeldingNotFoundException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
@@ -63,6 +64,7 @@ class MeldingService(
             utfoerendeIdent = innloggetIdent,
             utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
             timestamp = melding.modified ?: melding.created,
+            type = InternalEventType.MESSAGE,
         )
 
         val behandling = behandlingRepository.getReferenceById(behandlingId)
@@ -82,42 +84,47 @@ class MeldingService(
         return meldingMapper.toMeldingView(melding)
     }
 
-    fun deleteMelding(
-        behandlingId: UUID,
-        innloggetIdent: String,
-        meldingId: UUID
-    ) {
-        try {
-            val melding = meldingRepository.getReferenceById(meldingId)
-            validateRightsToDeleteMelding(melding, innloggetIdent)
-
-            meldingRepository.delete(melding)
-
-            logger.debug("melding ({}) deleted by {}", meldingId, innloggetIdent)
-
-//            publishInternalEvent(melding = melding, type = "message_deleted")
-        } catch (enfe: EntityNotFoundException) {
-            throw MeldingNotFoundException("couldn't find melding with id $meldingId")
-        }
-    }
-
-    fun modifyMelding(
+    fun notifyMelding(
         behandlingId: UUID,
         innloggetIdent: String,
         meldingId: UUID,
-        text: String
     ): MeldingModified {
         try {
             val melding = meldingRepository.getReferenceById(meldingId)
             validateRightsToModifyMelding(melding, innloggetIdent)
 
-            melding.text = text
+            if (melding.notify) {
+                throw IllegalOperation("Man kan ikke skru på varsel på en melding som allerede blitt varslet.")
+            }
+
+            melding.notify = true
             melding.modified = LocalDateTime.now()
 
             meldingRepository.save(melding)
-            logger.debug("melding ({}) modified by {}", meldingId, innloggetIdent)
 
-//            publishInternalEvent(melding = melding, type = "message_modified")
+            publishInternalEvent(
+                melding = melding,
+                utfoerendeIdent = innloggetIdent,
+                utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                timestamp = melding.modified!!,
+                type = InternalEventType.MESSAGE_CHANGED,
+            )
+
+            val behandling = behandlingRepository.getReferenceById(behandlingId)
+
+            if (behandling.tildeling?.saksbehandlerident != null) {
+                publishNotificationEvent(
+                    melding = melding,
+                    utfoerendeIdent = innloggetIdent,
+                    utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                    tildeltSaksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!,
+                    behandlingType = behandling.type,
+                    saksnummer = behandling.fagsakId,
+                    ytelse = behandling.ytelse,
+                )
+            }
+
+            logger.debug("melding ({}) modified by {}", meldingId, innloggetIdent)
 
             return meldingMapper.toModifiedView(melding)
         } catch (enfe: EntityNotFoundException) {
@@ -155,11 +162,12 @@ class MeldingService(
         utfoerendeIdent: String,
         utfoerendeName: String,
         timestamp: LocalDateTime,
+        type: InternalEventType,
     ) {
         kafkaInternalEventService.publishInternalBehandlingEvent(
             InternalBehandlingEvent(
                 behandlingId = melding.behandlingId.toString(),
-                type = InternalEventType.MESSAGE,
+                type = type,
                 data = objectMapper.writeValueAsString(
                     MeldingEvent(
                         actor = Employee(navIdent = utfoerendeIdent, navn = utfoerendeName),
@@ -197,7 +205,7 @@ class MeldingService(
                     actorNavn = utfoerendeName,
                     saksnummer = saksnummer,
                     ytelse = ytelse,
-                    sourceCreatedAt = melding.created,
+                    sourceCreatedAt = melding.modified ?: melding.created,
                 )
             )
         )

@@ -81,44 +81,17 @@ class BehandlingMeldingController(
     }
 
     @Operation(
-        summary = "Slett melding på en behandling",
-        description = "Sletter en melding på en behandling"
+        summary = "Skru på varsel for melding",
+        description = "Skru på varsel for melding"
     )
-    @DeleteMapping("/{behandlingId}/meldinger/{meldingId}")
-    fun deleteMelding(
-        @PathVariable("behandlingId") behandlingId: UUID,
-        @PathVariable("meldingId") meldingId: UUID
-    ) {
-        val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        logBehandlingMethodDetails(
-            ::deleteMelding.name,
-            innloggetIdent,
-            behandlingId,
-            logger
-        )
-
-        validateAccessToBehandling(behandlingId)
-
-        meldingService.deleteMelding(
-            behandlingId,
-            innloggetIdent,
-            meldingId
-        )
-    }
-
-    @Operation(
-        summary = "Endre meldingstekst på en melding i en behandling",
-        description = "Endrer tekst på en melding"
-    )
-    @PutMapping("/{behandlingId}/meldinger/{meldingId}")
-    fun modifyMelding(
+    @PostMapping("/{behandlingId}/meldinger/{meldingId}/notify")
+    fun notifyMelding(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("meldingId") meldingId: UUID,
-        @RequestBody input: MeldingInput
     ): MeldingModified {
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         logBehandlingMethodDetails(
-            ::modifyMelding.name,
+            ::notifyMelding.name,
             innloggetIdent,
             behandlingId,
             logger
@@ -126,11 +99,10 @@ class BehandlingMeldingController(
 
         validateAccessToBehandling(behandlingId)
 
-        return meldingService.modifyMelding(
-            behandlingId,
-            innloggetIdent,
-            meldingId,
-            input.text
+        return meldingService.notifyMelding(
+            behandlingId = behandlingId,
+            innloggetIdent = innloggetIdent,
+            meldingId = meldingId,
         )
     }
 
