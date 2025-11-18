@@ -36,7 +36,6 @@ enum class InternalEventType {
     SMART_DOCUMENT_COMMENT_CHANGED,
     SMART_DOCUMENT_COMMENT_REMOVED,
     MESSAGE,
-    MESSAGE_CHANGED,
     ROL, // Polling
     MEDUNDERSKRIVER, // Polling
     KLAGER,

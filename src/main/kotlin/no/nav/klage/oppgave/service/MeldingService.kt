@@ -107,7 +107,7 @@ class MeldingService(
                 utfoerendeIdent = innloggetIdent,
                 utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
                 timestamp = melding.modified!!,
-                type = InternalEventType.MESSAGE_CHANGED,
+                type = InternalEventType.MESSAGE,
             )
 
             val behandling = behandlingRepository.getReferenceById(behandlingId)
