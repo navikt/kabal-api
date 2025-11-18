@@ -12,7 +12,6 @@ import no.nav.klage.oppgave.domain.kafka.Employee
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.domain.kafka.MeldingEvent
-import no.nav.klage.oppgave.exceptions.IllegalOperation
 import no.nav.klage.oppgave.exceptions.MeldingNotFoundException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
@@ -93,8 +92,16 @@ class MeldingService(
             val melding = meldingRepository.getReferenceById(meldingId)
             validateRightsToModifyMelding(melding, innloggetIdent)
 
+            /* No need for this says FE. They will handle it in the UI. They don't want an error message in case of weird retry situations.
             if (melding.notify) {
                 throw IllegalOperation("Man kan ikke skru på varsel på en melding som allerede blitt varslet.")
+            }
+             */
+            if (melding.notify) {
+                logger.warn("Melding ($meldingId) already has notify=true, skipping setting it again.")
+                return MeldingModified(
+                    modified = melding.modified ?: throw RuntimeException("modified on melding not set")
+                )
             }
 
             melding.notify = true
