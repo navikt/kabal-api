@@ -410,8 +410,7 @@ class ForlengetBehandlingstidDraftService(
             val varselTypeIsOriginal = behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal
 
             if (!varselTypeIsOriginal) {
-                val fromDate =
-                    if (behandling.forlengetBehandlingstidDraft!!.varselTypeIsOriginal) behandling.mottattKlageinstans.toLocalDate() else LocalDate.now()
+                val fromDate = LocalDate.now()
 
                 val currentFrist =
                     behandling.forlengetBehandlingstidDraft!!.varsletFrist ?: findDateBasedOnTimeUnitTypeAndUnits(
