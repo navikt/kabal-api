@@ -7,7 +7,6 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.mapper.MeldingMapper
 import no.nav.klage.oppgave.api.view.MeldingModified
 import no.nav.klage.oppgave.api.view.MeldingView
-import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.subentities.Melding
 import no.nav.klage.oppgave.domain.kafka.Employee
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
@@ -49,7 +48,10 @@ class MeldingService(
         notify: Boolean,
     ): MeldingView {
         val behandling = behandlingRepository.getReferenceById(behandlingId)
-        validate(behandling)
+
+        if ((behandling.ferdigstilling != null || behandling.feilregistrering != null || behandling.tildeling?.saksbehandlerident == null) && notify) {
+            throw IllegalOperation("Kan ikke sende varsel om melding på en ferdigstilt eller feilregistrert behandling, eller en behandling uten tildelt saksbehandler.")
+        }
 
         logger.debug("saving new melding by $innloggetIdent")
 
@@ -97,7 +99,9 @@ class MeldingService(
             validateRightsToModifyMelding(melding, innloggetIdent)
 
             val behandling = behandlingRepository.getReferenceById(behandlingId)
-            validate(behandling)
+            if (behandling.ferdigstilling != null || behandling.feilregistrering != null || behandling.tildeling?.saksbehandlerident == null) {
+                throw IllegalOperation("Kan ikke sende varsel om melding på en ferdigstilt eller feilregistrert behandling, eller en behandling uten tildelt saksbehandler.")
+            }
 
             /* No need for this says FE. They will handle it in the UI. They don't want an error message in case of weird retry situations.
             if (melding.notify) {
@@ -141,12 +145,6 @@ class MeldingService(
             return meldingMapper.toModifiedView(melding)
         } catch (_: EntityNotFoundException) {
             throw MeldingNotFoundException("couldn't find melding with id $meldingId")
-        }
-    }
-
-    private fun validate(behandling: Behandling) {
-        if (behandling.ferdigstilling != null || behandling.feilregistrering != null || behandling.tildeling?.saksbehandlerident == null) {
-            throw IllegalOperation("Kan ikke legge til melding på en ferdigstilt eller feilregistrert behandling, eller en behandling uten tildelt saksbehandler.")
         }
     }
 
