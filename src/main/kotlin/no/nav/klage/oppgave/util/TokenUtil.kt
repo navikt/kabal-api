@@ -155,6 +155,12 @@ class TokenUtil(
         return response.access_token!!
     }
 
+    fun getAppAccessTokenWithKlageNotificationsApiScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["klage-notifications-api-maskintilmaskin"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.access_token!!
+    }
+
     fun getOnBehalfOfTokenWithKrrProxyScope(): String {
         val clientProperties = clientConfigurationProperties.registration["krr-proxy-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)

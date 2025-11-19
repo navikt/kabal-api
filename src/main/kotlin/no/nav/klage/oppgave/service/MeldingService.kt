@@ -73,7 +73,6 @@ class MeldingService(
             type = InternalEventType.MESSAGE,
         )
 
-
         if (notify && behandling.tildeling?.saksbehandlerident != null) {
             publishNotificationEvent(
                 melding = melding,
