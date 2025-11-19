@@ -488,16 +488,7 @@ class BehandlingService(
             )
         }
 
-        try {
-            klageNotificationsApiClient.validateNoUnreadNotifications(behandlingId.toString())
-        } catch (e: WebClientResponseException.BadRequest) {
-            behandlingValidationErrors.add(
-                InvalidProperty(
-                    field = "notifications",
-                    reason = e.responseBodyAsString.ifBlank { "Det finnes uleste varslinger på behandlingen." }
-                )
-            )
-        }
+        validateNotifications(behandlingId, behandlingValidationErrors)
 
         if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
@@ -512,6 +503,28 @@ class BehandlingService(
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
                 sections = sectionList
+            )
+        }
+    }
+
+    private fun validateNotifications(
+        behandlingId: UUID,
+        behandlingValidationErrors: MutableList<InvalidProperty>
+    ) {
+        try {
+            klageNotificationsApiClient.validateNoUnreadNotifications(behandlingId.toString())
+        } catch (e: WebClientResponseException.BadRequest) {
+            val errorMessage = try {
+                val jsonNode = objectMapper.readTree(e.responseBodyAsString)
+                jsonNode.get("title")?.asText() ?: "Det finnes uleste varslinger på behandlingen."
+            } catch (_: Exception) {
+                "Det finnes uleste varslinger på behandlingen."
+            }
+            behandlingValidationErrors.add(
+                InvalidProperty(
+                    field = "notifications",
+                    reason = errorMessage
+                )
             )
         }
     }
