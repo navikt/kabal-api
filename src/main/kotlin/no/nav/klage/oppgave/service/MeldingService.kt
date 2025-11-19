@@ -7,11 +7,13 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.mapper.MeldingMapper
 import no.nav.klage.oppgave.api.view.MeldingModified
 import no.nav.klage.oppgave.api.view.MeldingView
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.subentities.Melding
 import no.nav.klage.oppgave.domain.kafka.Employee
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.domain.kafka.MeldingEvent
+import no.nav.klage.oppgave.exceptions.IllegalOperation
 import no.nav.klage.oppgave.exceptions.MeldingNotFoundException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
@@ -46,6 +48,9 @@ class MeldingService(
         text: String,
         notify: Boolean,
     ): MeldingView {
+        val behandling = behandlingRepository.getReferenceById(behandlingId)
+        validate(behandling)
+
         logger.debug("saving new melding by $innloggetIdent")
 
         val melding = meldingRepository.save(
@@ -66,7 +71,6 @@ class MeldingService(
             type = InternalEventType.MESSAGE,
         )
 
-        val behandling = behandlingRepository.getReferenceById(behandlingId)
 
         if (notify && behandling.tildeling?.saksbehandlerident != null) {
             publishNotificationEvent(
@@ -91,6 +95,9 @@ class MeldingService(
         try {
             val melding = meldingRepository.getReferenceById(meldingId)
             validateRightsToModifyMelding(melding, innloggetIdent)
+
+            val behandling = behandlingRepository.getReferenceById(behandlingId)
+            validate(behandling)
 
             /* No need for this says FE. They will handle it in the UI. They don't want an error message in case of weird retry situations.
             if (melding.notify) {
@@ -117,8 +124,6 @@ class MeldingService(
                 type = InternalEventType.MESSAGE,
             )
 
-            val behandling = behandlingRepository.getReferenceById(behandlingId)
-
             if (behandling.tildeling?.saksbehandlerident != null) {
                 publishNotificationEvent(
                     melding = melding,
@@ -134,8 +139,14 @@ class MeldingService(
             logger.debug("melding ({}) modified by {}", meldingId, innloggetIdent)
 
             return meldingMapper.toModifiedView(melding)
-        } catch (enfe: EntityNotFoundException) {
+        } catch (_: EntityNotFoundException) {
             throw MeldingNotFoundException("couldn't find melding with id $meldingId")
+        }
+    }
+
+    private fun validate(behandling: Behandling) {
+        if (behandling.ferdigstilling != null || behandling.feilregistrering != null || behandling.tildeling?.saksbehandlerident == null) {
+            throw IllegalOperation("Kan ikke legge til melding på en ferdigstilt eller feilregistrert behandling, eller en behandling uten tildelt saksbehandler.")
         }
     }
 
@@ -147,18 +158,6 @@ class MeldingService(
         if (melding.saksbehandlerident != innloggetIdent) {
             throw MissingTilgangException(
                 "Saksbehandler ($innloggetIdent) is not the author of melding (${melding.id}), and is not allowed to modify it."
-            )
-        }
-    }
-
-    private fun validateRightsToDeleteMelding(melding: Melding, innloggetIdent: String) {
-        val behandling = behandlingRepository.findById(melding.behandlingId).get()
-
-        if (behandling.tildeling?.saksbehandlerident == innloggetIdent || melding.saksbehandlerident == innloggetIdent) {
-            return
-        } else {
-            throw MissingTilgangException(
-                "Saksbehandler ($innloggetIdent) is not allowed to delete melding ${melding.id}."
             )
         }
     }
