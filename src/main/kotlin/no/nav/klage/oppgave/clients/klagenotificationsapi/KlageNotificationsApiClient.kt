@@ -32,4 +32,20 @@ class KlageNotificationsApiClient(
             .block()
     }
 
+    @Retryable
+    fun validateNoUnreadNotifications(behandlingId: String) {
+        logger.debug("Validating no unread notifications for behandling {}", behandlingId)
+
+        klageNotificationsApiWebClient.get()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/admin/notifications/behandling/{behandlingId}/validate-no-unread")
+                    .build(behandlingId)
+            }
+            .header("Authorization", "Bearer ${tokenUtil.getAppAccessTokenWithKlageNotificationsApiScope()}")
+            .retrieve()
+            .toBodilessEntity()
+            .block()
+    }
+
 }

@@ -24,6 +24,7 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
+import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.domain.behandling.*
@@ -109,6 +110,7 @@ class BehandlingService(
     private val gosysOppgaveService: GosysOppgaveService,
     private val kodeverkService: KodeverkService,
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
+    private val klageNotificationsApiClient: KlageNotificationsApiClient,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -482,6 +484,17 @@ class BehandlingService(
                 InvalidProperty(
                     field = "rol",
                     reason = "Behandlingen er sendt til rådgivende overlege og kan ikke fullføres før den er tilbake."
+                )
+            )
+        }
+
+        try {
+            klageNotificationsApiClient.validateNoUnreadNotifications(behandlingId.toString())
+        } catch (e: WebClientResponseException.BadRequest) {
+            behandlingValidationErrors.add(
+                InvalidProperty(
+                    field = "notifications",
+                    reason = e.responseBodyAsString.ifBlank { "Det finnes uleste varslinger på behandlingen." }
                 )
             )
         }
