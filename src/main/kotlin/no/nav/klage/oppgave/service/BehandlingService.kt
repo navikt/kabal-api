@@ -514,11 +514,12 @@ class BehandlingService(
         try {
             klageNotificationsApiClient.validateNoUnreadNotifications(behandlingId.toString())
         } catch (e: WebClientResponseException.BadRequest) {
+            val unknownErrorMessage = "Noe gikk galt ved validering av varsler. Kontakt Team klage."
             val errorMessage = try {
                 val jsonNode = objectMapper.readTree(e.responseBodyAsString)
-                jsonNode.get("title")?.asText() ?: "Det finnes uleste varslinger på behandlingen."
+                jsonNode.get("title")?.asText() ?: unknownErrorMessage
             } catch (_: Exception) {
-                "Det finnes uleste varslinger på behandlingen."
+                unknownErrorMessage
             }
             behandlingValidationErrors.add(
                 InvalidProperty(
