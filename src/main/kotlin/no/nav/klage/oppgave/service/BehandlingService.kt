@@ -321,6 +321,7 @@ class BehandlingService(
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
         val behandlingValidationErrors = mutableListOf<InvalidProperty>()
+        val notificationValidationErrors = mutableListOf<InvalidProperty>()
         val sectionList = mutableListOf<ValidationSection>()
 
         if (nyBehandlingEtterTROpphevet) {
@@ -488,7 +489,16 @@ class BehandlingService(
             )
         }
 
-        validateNotifications(behandlingId, behandlingValidationErrors)
+        validateNotifications(behandlingId = behandlingId, notificationValidationErrors = notificationValidationErrors)
+
+        if (notificationValidationErrors.isNotEmpty()) {
+            sectionList.add(
+                ValidationSection(
+                    section = "notifications",
+                    properties = notificationValidationErrors
+                )
+            )
+        }
 
         if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
@@ -509,7 +519,7 @@ class BehandlingService(
 
     private fun validateNotifications(
         behandlingId: UUID,
-        behandlingValidationErrors: MutableList<InvalidProperty>
+        notificationValidationErrors: MutableList<InvalidProperty>
     ) {
         try {
             klageNotificationsApiClient.validateNoUnreadNotifications(behandlingId.toString())
@@ -521,7 +531,7 @@ class BehandlingService(
             } catch (_: Exception) {
                 unknownErrorMessage
             }
-            behandlingValidationErrors.add(
+            notificationValidationErrors.add(
                 InvalidProperty(
                     field = "notifications",
                     reason = errorMessage
