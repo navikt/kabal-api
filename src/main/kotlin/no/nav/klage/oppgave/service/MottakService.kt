@@ -248,7 +248,6 @@ class MottakService(
 
         validateBehandlingCreationBasedOnSourceBehandling(
             sourceBehandling = sourceBehandling,
-            receivedDocumentJournalpostId = input.receivedDocumentJournalpostId
         )
 
         validateParts(
@@ -348,20 +347,9 @@ class MottakService(
 
     private fun validateBehandlingCreationBasedOnSourceBehandling(
         sourceBehandling: Behandling,
-        receivedDocumentJournalpostId: String,
     ) {
-        if (sourceBehandling.ferdigstilling?.avsluttet == null) {
+        if (sourceBehandling.ferdigstilling == null) {
             throw PreviousBehandlingNotFinalizedException("Behandling med id ${sourceBehandling.id} er ikke fullført")
-        }
-        validateDocumentNotAlreadyUsed(receivedDocumentJournalpostId, sourceBehandling.sakenGjelder.partId.value)
-    }
-
-    private fun validateDocumentNotAlreadyUsed(journalpostId: String, sakenGjelder: String) {
-        if (getUsedJournalpostIdList(sakenGjelder).any { it == journalpostId }) {
-            val message =
-                "Journalpost med id $journalpostId har allerede blitt brukt for å opprette klage/anke"
-            logger.warn(message)
-            throw DuplicateOversendelseException(message)
         }
     }
 
@@ -487,7 +475,6 @@ class MottakService(
     }
 
     fun CreateKlageBasedOnKabinInput.validate() {
-        validateDocumentNotAlreadyUsed(klageJournalpostId, sakenGjelder.value)
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
@@ -508,7 +495,6 @@ class MottakService(
     }
 
     fun CreateAnkeBasedOnCompleteKabinInput.validate() {
-        validateDocumentNotAlreadyUsed(ankeJournalpostId, sakenGjelder.value)
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
@@ -529,7 +515,6 @@ class MottakService(
 
     fun CreateBehandlingBasedOnJournalpostInput.validate() {
         validateTypeInBehandlingBasedOnJournalpostInput(Type.of(typeId!!))
-        validateDocumentNotAlreadyUsed(receivedDocumentJournalpostId, sakenGjelder.value)
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
