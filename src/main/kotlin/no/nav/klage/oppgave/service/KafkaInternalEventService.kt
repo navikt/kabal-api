@@ -13,7 +13,7 @@ import java.util.*
 @Service
 class KafkaInternalEventService(
     private val aivenKafkaTemplate: KafkaTemplate<String, String>,
-    @Value("\${INTERNAL_BEHANDLING_EVENT_TOPIC}")
+    @Value($$"${INTERNAL_BEHANDLING_EVENT_TOPIC}")
     private val internalBehandlingEventTopic: String,
     @Value($$"${INTERNAL_IDENTITY_EVENT_TOPIC}")
     private val internalIdentityEventTopic: String,
