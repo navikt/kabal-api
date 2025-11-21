@@ -79,6 +79,7 @@ class SvarbrevSettingsService(
 
     fun getSvarbrevSettingsHistory(id: UUID): List<SvarbrevSettingsView> {
         return svarbrevSettingsRepository.findById(id).get().history
+            //Sjekket, trenger ikke endre
             .sortedByDescending { it.created }
             .map { it.toView() }
     }

@@ -597,8 +597,10 @@ class BehandlingController(
 
         return RelevantBehandlingerResponse(
             aapneBehandlinger = behandlinger.filter { it.id != behandlingId && it.sattPaaVent == null }
+                //Sjekket, skal ikke endres.
                 .sortedByDescending { it.mottattKlageinstans }.map { it.id },
             paaVentBehandlinger = behandlinger.filter { it.id != behandlingId && it.sattPaaVent != null }
+                //Sjekket, skal ikke endres.
                 .sortedByDescending { it.mottattKlageinstans }.map { it.id },
         )
     }

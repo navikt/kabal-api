@@ -54,7 +54,8 @@ class DokumentMapper(
             it !is JournalfoertDokumentUnderArbeidAsVedlegg
         } as Pair<List<DokumentUnderArbeidAsVedlegg>, List<JournalfoertDokumentUnderArbeidAsVedlegg>>
 
-        return dokumenterUnderArbeid.sortedByDescending { it.created }
+        //Sjekket, blir snudd.
+        return dokumenterUnderArbeid.sortedBy { it.created }
             .map {
                 mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
                     vedlegg = it,
@@ -63,7 +64,8 @@ class DokumentMapper(
                 )
             } +
                 journalfoerteDokumenterUnderArbeid
-                    .sortedByDescending { (it).sortKey }
+                    //Sjekket, blir snudd
+                    .sortedBy { (it).sortKey }
                     .map { journalfoertDokumentUnderArbeid ->
                         mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
                             journalfoertDokumentUnderArbeidAsVedlegg = journalfoertDokumentUnderArbeid,

@@ -465,7 +465,8 @@ class DokumentUnderArbeidService(
         behandling: Behandling,
         journalpostList: List<Journalpost>
     ): List<DokumentView> {
-        return dokumentUnderArbeidList.sortedByDescending { it.sortKey }
+        //Sjekket, må endres.
+        return dokumentUnderArbeidList.sortedBy { it.sortKey }
             .map { journalfoertVedlegg ->
                 dokumentMapper.mapToDokumentView(
                     dokumentUnderArbeid = journalfoertVedlegg,
@@ -1901,7 +1902,8 @@ class DokumentUnderArbeidService(
                 )
             } else emptyList()
 
-        return dokumenterUnderArbeid.sortedByDescending { it.created }
+        //Sjekket, må endres
+        return dokumenterUnderArbeid.sortedBy { it.created }
             .map {
                 val smartEditorDocument = if (it is DokumentUnderArbeidAsSmartdokument) {
                     smartEditorApiGateway.getSmartDocumentResponse(smartEditorId = it.smartEditorId)
@@ -2059,7 +2061,8 @@ class DokumentUnderArbeidService(
         val vedleggList = getVedlegg(dokumentUnderArbeidId)
 
         val vedleggAsResourceList: List<Resource> =
-            vedleggList.sortedByDescending { it.created }.mapNotNull { vedlegg ->
+            //Sjekket, må endres
+            vedleggList.sortedBy { it.created }.mapNotNull { vedlegg ->
                 when (vedlegg) {
                     is SmartdokumentUnderArbeidAsVedlegg -> {
                         if (vedlegg.isPDFGenerationNeeded()) {
@@ -2109,7 +2112,8 @@ class DokumentUnderArbeidService(
         val journalfoertePath = if (journalfoerteVedlegg.isNotEmpty()) {
             dokumentService.mergeJournalfoerteDocuments(
                 documentsToMerge = journalfoerteVedlegg
-                    .sortedByDescending { it.sortKey }
+                    //Sjekket, må endres
+                    .sortedBy { it.sortKey }
                     .map {
                         it.journalpostId to it.dokumentInfoId
                     },

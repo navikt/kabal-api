@@ -53,6 +53,7 @@ class TaskListMerkantilService(
     }
 
     fun getTaskListMerkantil(): List<TaskListMerkantilView> {
+        //sjekket, trenger ikke endres
         return taskListMerkantilRepository.findAll().sortedByDescending { it.created }
             .map { it.toTaskListMerkantilView() }
     }
