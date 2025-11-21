@@ -5,7 +5,8 @@ import java.time.LocalDateTime
 import java.util.*
 
 data class MeldingInput(
-    val text: String
+    val text: String,
+    val notify: Boolean = false,
 )
 
 data class MeldingModified(
@@ -16,6 +17,7 @@ data class MeldingView(
     val id: UUID,
     val text: String,
     val author: SaksbehandlerView,
+    val notify: Boolean,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
     val created: LocalDateTime,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)

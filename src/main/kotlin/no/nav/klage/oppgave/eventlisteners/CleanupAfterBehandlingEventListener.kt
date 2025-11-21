@@ -7,11 +7,15 @@ import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
+import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.repositories.*
+import no.nav.klage.oppgave.repositories.BehandlingRepository
+import no.nav.klage.oppgave.repositories.KafkaEventRepository
+import no.nav.klage.oppgave.repositories.MeldingRepository
+import no.nav.klage.oppgave.repositories.MergedDocumentRepository
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -30,11 +34,11 @@ class CleanupAfterBehandlingEventListener(
     private val kafkaEventRepository: KafkaEventRepository,
     private val kakaApiGateway: KakaApiGateway,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
-    private val klagebehandlingRepository: KlagebehandlingRepository,
     private val behandlingRepository: BehandlingRepository,
     private val fssProxyClient: KlageFssProxyClient,
     private val behandlingService: BehandlingService,
     private val mergedDocumentRepository: MergedDocumentRepository,
+    private val klageNotificationsApiClient: KlageNotificationsApiClient,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -57,8 +61,8 @@ class CleanupAfterBehandlingEventListener(
     fun cleanupAfterBehandling(behandlingChangedEvent: BehandlingChangedEvent) {
         val behandling = behandlingChangedEvent.behandling
 
-        if (behandling.ferdigstilling?.avsluttet != null) {
-            logger.debug("Received behandlingEndretEvent for avsluttet behandling. Deleting meldinger and sattPaaVent.")
+        if (behandling.ferdigstilling?.avsluttetAvSaksbehandler != null) {
+            logger.debug("Received behandlingEndretEvent for avsluttetAvSaksbehandler. Deleting meldinger and sattPaaVent.")
 
             if (behandling.sattPaaVent != null) {
                 try {
@@ -81,6 +85,13 @@ class CleanupAfterBehandlingEventListener(
                         logger.error("Could not delete melding with id ${melding.id}", exception)
                     }
                 }
+
+            try {
+                klageNotificationsApiClient.deleteNotificationsForBehandling(behandlingId = behandling.id.toString())
+            } catch (e: Exception) {
+                logger.error("couldn't delete notifications for behandling ${behandling.id}", e)
+            }
+
         } else if (behandlingChangedEvent.changeList.any { it.felt == BehandlingChangedEvent.Felt.FEILREGISTRERING } && behandling.feilregistrering != null) {
             logger.debug(
                 "Cleanup and notifying vedtaksinstans after feilregistrering. Behandling.id: {}",

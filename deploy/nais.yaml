@@ -100,6 +100,7 @@ spec:
         - application: kaka-api
         - application: kabal-file-api
         - application: kabal-json-to-pdf
+        - application: klage-notifications-api
         - application: clamav
           namespace: nais-system
         - application: logging

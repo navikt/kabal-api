@@ -22,6 +22,8 @@ class Melding(
     val created: LocalDateTime,
     @Column(name = "modified")
     var modified: LocalDateTime? = null,
+    @Column(name = "notify")
+    var notify: Boolean,
 ) : Comparable<Melding> {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -32,12 +34,12 @@ class Melding(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
+    override fun toString(): String {
+        return "Melding(id=$id, behandlingId=$behandlingId, text='$text', saksbehandlerident='$saksbehandlerident', created=$created, modified=$modified, notify=$notify)"
     }
 
-    override fun toString(): String {
-        return "Melding(id=$id, text=$text, created=$created, modified=$modified)"
+    override fun hashCode(): Int {
+        return id.hashCode()
     }
 
     override fun compareTo(other: Melding): Int {

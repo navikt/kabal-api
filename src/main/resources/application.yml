@@ -225,6 +225,14 @@ no.nav.security.jwt:
           client-id: ${AZURE_APP_CLIENT_ID}
           client-jwk: ${AZURE_APP_JWK}
           client-auth-method: private_key_jwt
+      klage-notifications-api-maskintilmaskin:
+        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
+        grant-type: client_credentials
+        scope: api://${NAIS_CLUSTER_NAME}.${NAIS_NAMESPACE}.${KLAGE_NOTIFICATIONS_API_APP_NAME}/.default
+        authentication:
+          client-id: ${AZURE_APP_CLIENT_ID}
+          client-jwk: ${AZURE_APP_JWK}
+          client-auth-method: private_key_jwt
       app:
         token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
         grant-type: client_credentials
@@ -354,6 +362,7 @@ LEESAH_KAFKA_TOPIC: pdl.leesah-v1
 
 INTERNAL_BEHANDLING_EVENT_TOPIC: klage.internal-behandling-events.v1
 INTERNAL_IDENTITY_EVENT_TOPIC: klage.internal-identity-events.v1
+NOTIFICATION_EVENT_TOPIC: klage.klage-notification-events.v1
 
 SMART_DOCUMENT_WRITE_ACCESS_TOPIC: klage.smart-document-write-access.v1
 
@@ -380,6 +389,9 @@ KABAL_FILE_API_APP_NAME: kabal-file-api
 
 KABAL_INNSTILLINGER_BASE_URL: http://kabal-innstillinger
 KABAL_INNSTILLINGER_APP_NAME: kabal-innstillinger
+
+KLAGE_NOTIFICATIONS_API_BASE_URL: http://klage-notifications-api
+KLAGE_NOTIFICATIONS_API_APP_NAME: klage-notifications-api
 
 TILGANGSMASKINEN_BASE_URL: http://populasjonstilgangskontroll.tilgangsmaskin
 

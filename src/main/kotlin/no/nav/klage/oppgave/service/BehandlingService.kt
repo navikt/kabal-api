@@ -24,6 +24,7 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
+import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.domain.behandling.*
@@ -109,6 +110,7 @@ class BehandlingService(
     private val gosysOppgaveService: GosysOppgaveService,
     private val kodeverkService: KodeverkService,
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
+    private val klageNotificationsApiClient: KlageNotificationsApiClient,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -319,6 +321,7 @@ class BehandlingService(
         val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
         val behandlingValidationErrors = mutableListOf<InvalidProperty>()
+        val notificationValidationErrors = mutableListOf<InvalidProperty>()
         val sectionList = mutableListOf<ValidationSection>()
 
         if (nyBehandlingEtterTROpphevet) {
@@ -486,6 +489,17 @@ class BehandlingService(
             )
         }
 
+        validateNotifications(behandlingId = behandlingId, notificationValidationErrors = notificationValidationErrors)
+
+        if (notificationValidationErrors.isNotEmpty()) {
+            sectionList.add(
+                ValidationSection(
+                    section = "notifications",
+                    properties = notificationValidationErrors
+                )
+            )
+        }
+
         if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
                 ValidationSection(
@@ -499,6 +513,29 @@ class BehandlingService(
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
                 sections = sectionList
+            )
+        }
+    }
+
+    private fun validateNotifications(
+        behandlingId: UUID,
+        notificationValidationErrors: MutableList<InvalidProperty>
+    ) {
+        try {
+            klageNotificationsApiClient.validateNoUnreadNotifications(behandlingId.toString())
+        } catch (e: WebClientResponseException.BadRequest) {
+            val unknownErrorMessage = "Noe gikk galt ved validering av varsler. Kontakt Team klage."
+            val errorMessage = try {
+                val jsonNode = objectMapper.readTree(e.responseBodyAsString)
+                jsonNode.get("title")?.asText() ?: unknownErrorMessage
+            } catch (_: Exception) {
+                unknownErrorMessage
+            }
+            notificationValidationErrors.add(
+                InvalidProperty(
+                    field = "notifications",
+                    reason = errorMessage
+                )
             )
         }
     }

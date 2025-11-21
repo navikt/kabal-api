@@ -20,6 +20,7 @@ class MeldingMapper(
                 navIdent = melding.saksbehandlerident,
                 navn = saksbehandlerService.getNameForIdentDefaultIfNull(melding.saksbehandlerident),
             ),
+            notify = melding.notify,
             created = melding.created,
             modified = melding.modified
         )
@@ -40,6 +41,7 @@ class MeldingMapper(
                     navIdent = melding.saksbehandlerident,
                     navn = saksbehandlerService.getNameForIdentDefaultIfNull(melding.saksbehandlerident),
                 ),
+                notify = melding.notify,
                 created = melding.created,
                 modified = melding.modified
             )

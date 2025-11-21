@@ -1,0 +1,2 @@
+ALTER TABLE klage.melding
+    ADD COLUMN notify BOOLEAN NOT NULL DEFAULT false;

@@ -35,7 +35,7 @@ enum class InternalEventType {
     SMART_DOCUMENT_COMMENT_ADDED,
     SMART_DOCUMENT_COMMENT_CHANGED,
     SMART_DOCUMENT_COMMENT_REMOVED,
-    MESSAGE, // Polling
+    MESSAGE,
     ROL, // Polling
     MEDUNDERSKRIVER, // Polling
     KLAGER,
@@ -120,6 +120,7 @@ data class MeldingEvent(
     override val timestamp: LocalDateTime,
     val id: String,
     val text: String,
+    val notify: Boolean,
 ) : BaseEvent(actor = actor, timestamp = timestamp)
 
 data class UtfallEvent(
