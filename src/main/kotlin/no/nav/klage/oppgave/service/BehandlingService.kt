@@ -2180,6 +2180,7 @@ class BehandlingService(
     @Transactional(readOnly = true)
     fun findBehandlingerForAvslutning(): List<Behandling> =
         behandlingRepository.findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull()
+            //Sjekket, triks for å håndtere avslutning. Trenger ingen endring.
             .sortedByDescending { it.ferdigstilling?.avsluttetAvSaksbehandler }
 
     fun getPotentialSaksbehandlereForBehandling(behandlingId: UUID): Saksbehandlere {

@@ -66,7 +66,8 @@ class KabalDocumentMapper(
                 }.toMutableList()
         } else {
             vedlegg.filter { it !is JournalfoertDokumentUnderArbeidAsVedlegg }
-                .sortedByDescending { it.created }
+                //Sjekket, må endres
+                .sortedBy { it.created }
                 .map { currentVedlegg ->
                     mapDokumentUnderArbeidToDokumentReferanse(
                         dokument = currentVedlegg,
@@ -79,7 +80,8 @@ class KabalDocumentMapper(
 
         val journalfoerteVedlegg =
             vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-                .sortedByDescending { it.sortKey }
+                //Sjekket, må endres
+                .sortedBy { it.sortKey }
 
         val datoMottatt = if (hovedDokument.isInngaaende()) {
             hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument
