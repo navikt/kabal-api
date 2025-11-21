@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'kafka-aiven/**'
-      - '.github/dependabot.yml'
+      - "kafka-aiven/**"
+      - ".github/dependabot.yml"
 
 jobs:
   deploy_to_dev:
@@ -15,12 +15,10 @@ jobs:
       contents: write
       id-token: write
     uses: ./.github/workflows/deploy-to-dev.yaml
-    with:
-      e2e_tag: latest
     secrets:
       NAIS_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
       STATUS_API_KEY: ${{ secrets.STATUS_API_KEY }}
-  
+
   deploy_to_prod:
     name: Prod
     permissions:
