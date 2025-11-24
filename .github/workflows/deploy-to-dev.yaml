@@ -4,9 +4,9 @@ on:
   workflow_call:
     inputs:
       e2e_tag:
-        description: "Tag of E2E image to run"
+        description: "Git ref (branch, tag or commit) of E2E image to run"
         required: false
-        default: latest
+        default: main
         type: string
     secrets:
       NAIS_WORKLOAD_IDENTITY_PROVIDER:
@@ -18,9 +18,9 @@ on:
   workflow_dispatch:
     inputs:
       e2e_tag:
-        description: "Tag of E2E image to run"
+        description: "Git ref (branch, tag or commit) of E2E image to run"
         required: false
-        default: latest
+        default: main
         type: string
 
 run-name: Dev deploy of ${{ github.ref_name }}
@@ -52,7 +52,7 @@ jobs:
         env:
           ORG_GRADLE_PROJECT_githubUser: x-access-token
           ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Build & push Docker image
         uses: nais/docker-build-push@v0
         id: docker-build-push
@@ -69,7 +69,7 @@ jobs:
           project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }} # required, but is defined as an organization variable
           build_args: |
             VERSION=${CI}
-      
+
       - name: Post failures to Slack
         if: failure()
         run: |
@@ -78,7 +78,7 @@ jobs:
           MESSAGE: "Bygg feilet"
           CHANNEL: "#klage-notifications"
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-  
+
   deploy_to_dev:
     name: Deploy
     needs: build
@@ -89,7 +89,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         name: Checkout code
-      
+
       - name: Deploy to dev
         uses: nais/deploy/actions/deploy@v2
         env:
@@ -108,7 +108,7 @@ jobs:
           MESSAGE: "Deploy til dev feilet"
           CHANNEL: "#klage-notifications"
           WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
-  
+
   e2e_test:
     name: E2E
     needs: deploy_to_dev
