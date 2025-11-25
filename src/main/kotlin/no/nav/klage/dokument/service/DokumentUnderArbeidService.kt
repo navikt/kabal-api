@@ -465,7 +465,7 @@ class DokumentUnderArbeidService(
         behandling: Behandling,
         journalpostList: List<Journalpost>
     ): List<DokumentView> {
-        return dokumentUnderArbeidList.sortedByDescending { it.sortKey }
+        return dokumentUnderArbeidList.sortedBy { it.sortKey }
             .map { journalfoertVedlegg ->
                 dokumentMapper.mapToDokumentView(
                     dokumentUnderArbeid = journalfoertVedlegg,
@@ -2109,7 +2109,7 @@ class DokumentUnderArbeidService(
         val journalfoertePath = if (journalfoerteVedlegg.isNotEmpty()) {
             dokumentService.mergeJournalfoerteDocuments(
                 documentsToMerge = journalfoerteVedlegg
-                    .sortedByDescending { it.sortKey }
+                    .sortedBy { it.sortKey }
                     .map {
                         it.journalpostId to it.dokumentInfoId
                     },

@@ -63,7 +63,7 @@ class DokumentMapper(
                 )
             } +
                 journalfoerteDokumenterUnderArbeid
-                    .sortedByDescending { (it).sortKey }
+                    .sortedBy { (it).sortKey }
                     .map { journalfoertDokumentUnderArbeid ->
                         mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
                             journalfoertDokumentUnderArbeidAsVedlegg = journalfoertDokumentUnderArbeid,
