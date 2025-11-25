@@ -79,7 +79,7 @@ class KabalDocumentMapper(
 
         val journalfoerteVedlegg =
             vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-                .sortedByDescending { it.sortKey }
+                .sortedBy { it.sortKey }
 
         val datoMottatt = if (hovedDokument.isInngaaende()) {
             hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument
