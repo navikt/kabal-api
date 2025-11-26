@@ -906,11 +906,14 @@ class BehandlingService(
 
         if (behandling is BehandlingWithVarsletBehandlingstid) {
             applicationEventPublisher.publishEvent(
-                behandling.setVarsletBehandlingstid(
-                    varsletBehandlingstid = varsletBehandlingstid,
-                    saksbehandlerident = saksbehandlerIdent,
-                    saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
-                    mottakere = mottakere,
+                BehandlingChangedEvent(
+                    behandling = behandling,
+                    changeList = behandling.setVarsletBehandlingstid(
+                        varsletBehandlingstid = varsletBehandlingstid,
+                        saksbehandlerident = saksbehandlerIdent,
+                        saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
+                        mottakere = mottakere,
+                    )
                 )
             )
         } else {
