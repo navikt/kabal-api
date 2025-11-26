@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.domain.behandling.setters
 
+import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.embedded.Mottaker
 import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
@@ -15,7 +16,7 @@ object BehandlingWithVarsletBehandlingstidSetters {
         saksbehandlerident: String,
         saksbehandlernavn: String,
         mottakere: List<Mottaker>,
-    ): List<BehandlingChangedEvent.Change> {
+    ): BehandlingChangedEvent {
         val gammelVerdi = this.varsletBehandlingstid
 
         val tidspunkt = LocalDateTime.now()
@@ -47,7 +48,7 @@ object BehandlingWithVarsletBehandlingstidSetters {
             behandlingId = this.id,
         )?.let { changeList.add(it) }
 
-        return changeList
+        return BehandlingChangedEvent(behandling = this as Behandling, changeList = changeList)
     }
 
     private fun BehandlingWithVarsletBehandlingstid.recordVarsletBehandlingstidHistory(
