@@ -1,10 +1,13 @@
 package no.nav.klage.oppgave.clients.klagenotificationsapi
 
+import no.nav.klage.oppgave.clients.klagenotificationsapi.domain.TransferNotificationOwnershipRequest
+import no.nav.klage.oppgave.clients.klagenotificationsapi.domain.UnreadCountResponse
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import java.util.*
 
 @Component
 class KlageNotificationsApiClient(
@@ -17,7 +20,7 @@ class KlageNotificationsApiClient(
     }
 
     @Retryable
-    fun deleteNotificationsForBehandling(behandlingId: String) {
+    fun deleteNotificationsForBehandling(behandlingId: UUID) {
         logger.debug("Deleting notifications for behandling {}", behandlingId)
 
         klageNotificationsApiWebClient.delete()
@@ -33,16 +36,33 @@ class KlageNotificationsApiClient(
     }
 
     @Retryable
-    fun validateNoUnreadNotifications(behandlingId: String) {
-        logger.debug("Validating no unread notifications for behandling {}", behandlingId)
+    fun getUnreadCount(behandlingId: UUID): Int {
+        logger.debug("Getting unread count for behandling {}", behandlingId)
 
-        klageNotificationsApiWebClient.get()
+        return klageNotificationsApiWebClient.get()
             .uri { uriBuilder ->
                 uriBuilder
-                    .path("/admin/notifications/behandling/{behandlingId}/validate-no-unread")
+                    .path("/notifications/behandling/{behandlingId}/unread-count")
                     .build(behandlingId)
             }
             .header("Authorization", "Bearer ${tokenUtil.getAppAccessTokenWithKlageNotificationsApiScope()}")
+            .retrieve()
+            .bodyToMono(UnreadCountResponse::class.java)
+            .block()!!.unreadMessageCount
+    }
+
+    @Retryable
+    fun transferNotificationOwnership(behandlingId: UUID, newNavIdent: String) {
+        logger.debug("Transferring notification ownership for behandling {} to {}", behandlingId, newNavIdent)
+
+        klageNotificationsApiWebClient.post()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/admin/notifications/behandling/{behandlingId}/transfer-ownership")
+                    .build(behandlingId)
+            }
+            .header("Authorization", "Bearer ${tokenUtil.getAppAccessTokenWithKlageNotificationsApiScope()}")
+            .bodyValue(TransferNotificationOwnershipRequest(newNavIdent = newNavIdent))
             .retrieve()
             .toBodilessEntity()
             .block()

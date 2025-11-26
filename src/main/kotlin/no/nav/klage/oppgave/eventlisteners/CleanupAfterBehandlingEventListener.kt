@@ -77,20 +77,7 @@ class CleanupAfterBehandlingEventListener(
                 }
             }
 
-            meldingRepository.findByBehandlingIdOrderByCreatedDesc(behandlingId = behandling.id)
-                .forEach { melding ->
-                    try {
-                        meldingRepository.delete(melding)
-                    } catch (exception: Exception) {
-                        logger.error("Could not delete melding with id ${melding.id}", exception)
-                    }
-                }
-
-            try {
-                klageNotificationsApiClient.deleteNotificationsForBehandling(behandlingId = behandling.id.toString())
-            } catch (e: Exception) {
-                logger.error("couldn't delete notifications for behandling ${behandling.id}", e)
-            }
+            cleanupMessagesAndNotifications(behandling)
 
         } else if (behandlingChangedEvent.changeList.any { it.felt == BehandlingChangedEvent.Felt.FEILREGISTRERING } && behandling.feilregistrering != null) {
             logger.debug(
@@ -114,6 +101,22 @@ class CleanupAfterBehandlingEventListener(
             if (!behandling.gosysOppgaveRequired) {
                 notifyVedtaksinstansThroughKafka(behandling)
             }
+
+            cleanupMessagesAndNotifications(behandling)
+        }
+    }
+
+    private fun cleanupMessagesAndNotifications(behandling: Behandling) {
+        try {
+            meldingRepository.deleteAllById(meldingRepository.findByBehandlingIdOrderByCreatedDesc(behandlingId = behandling.id).map { it.id })
+        } catch (e: Exception) {
+            logger.error("Could not delete meldinger from behandling ${behandling.id}", e)
+        }
+
+        try {
+            klageNotificationsApiClient.deleteNotificationsForBehandling(behandlingId = behandling.id)
+        } catch (e: Exception) {
+            logger.error("couldn't delete notifications for behandling ${behandling.id}", e)
         }
     }
 
