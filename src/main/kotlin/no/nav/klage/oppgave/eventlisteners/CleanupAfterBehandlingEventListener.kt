@@ -61,8 +61,8 @@ class CleanupAfterBehandlingEventListener(
     fun cleanupAfterBehandling(behandlingChangedEvent: BehandlingChangedEvent) {
         val behandling = behandlingChangedEvent.behandling
 
-        if (behandling.ferdigstilling?.avsluttetAvSaksbehandler != null) {
-            logger.debug("Received behandlingEndretEvent for avsluttetAvSaksbehandler. Deleting meldinger and sattPaaVent.")
+        if (behandlingChangedEvent.changeList.any { it.felt == BehandlingChangedEvent.Felt.AVSLUTTET_AV_SAKSBEHANDLER_TIDSPUNKT }) {
+            logger.debug("Received behandlingEndretEvent for avsluttetAvSaksbehandler. Deleting meldinger (and belonging notifications) and sattPaaVent.")
 
             if (behandling.sattPaaVent != null) {
                 try {
