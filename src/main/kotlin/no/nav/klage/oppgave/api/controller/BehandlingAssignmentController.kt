@@ -72,8 +72,6 @@ class BehandlingAssignmentController(
 
         behandlingService.fradelSaksbehandlerAndMaybeSetHjemler(
             behandlingId = behandlingId,
-            tildeltSaksbehandlerIdent = null,
-            enhetId = null,
             fradelingReason = FradelingReason.of(saksbehandlerInput.reasonId),
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             hjemmelIdList = saksbehandlerInput.hjemmelIdList,

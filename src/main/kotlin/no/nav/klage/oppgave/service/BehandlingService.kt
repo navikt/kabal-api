@@ -522,19 +522,21 @@ class BehandlingService(
         notificationValidationErrors: MutableList<InvalidProperty>
     ) {
         try {
-            klageNotificationsApiClient.validateNoUnreadNotifications(behandlingId.toString())
-        } catch (e: WebClientResponseException.BadRequest) {
-            val unknownErrorMessage = "Noe gikk galt ved validering av varsler. Kontakt Team klage."
-            val errorMessage = try {
-                val jsonNode = objectMapper.readTree(e.responseBodyAsString)
-                jsonNode.get("title")?.asText() ?: unknownErrorMessage
-            } catch (_: Exception) {
-                unknownErrorMessage
+            val unreadCount = klageNotificationsApiClient.getUnreadCount(behandlingId)
+            if (unreadCount > 0) {
+                notificationValidationErrors.add(
+                    InvalidProperty(
+                        field = "notifications",
+                        reason = "Du må markere alle varsler knyttet til behandlingen som lest før du kan fullføre. Uleste varsler: $unreadCount."
+                    )
+                )
             }
+        } catch (e: Exception) {
+            logger.error("Noe gikk galt ved validering av varsler for behandling $behandlingId", e)
             notificationValidationErrors.add(
                 InvalidProperty(
                     field = "notifications",
-                    reason = errorMessage
+                    reason = "Noe gikk galt ved validering av varsler. Kontakt Team klage."
                 )
             )
         }
@@ -687,8 +689,6 @@ class BehandlingService(
 
     fun fradelSaksbehandlerAndMaybeSetHjemler(
         behandlingId: UUID,
-        tildeltSaksbehandlerIdent: String?,
-        enhetId: String?,
         fradelingReason: FradelingReason,
         utfoerendeSaksbehandlerIdent: String,
         hjemmelIdList: List<String>?,
@@ -767,6 +767,14 @@ class BehandlingService(
                     navIdent = null,
                 )
             }
+
+            //Transfer notification ownership if there are any notifications, and the behandling was previously assigned
+            if (behandling.tildeling?.saksbehandlerident != null) {
+                klageNotificationsApiClient.transferNotificationOwnership(
+                    behandlingId = behandlingId,
+                    newNavIdent = tildeltSaksbehandlerIdent,
+                )
+            }
         } else {
             if (fradelingReason == null &&
                 !innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole() &&
@@ -777,6 +785,11 @@ class BehandlingService(
 
             if (behandling.medunderskriverFlowState == FlowState.SENT) {
                 throw IllegalOperation("Kan ikke fradele behandling sendt til medunderskriver.")
+            }
+
+            val unreadNotificationsForBehandling = klageNotificationsApiClient.getUnreadCount(behandlingId = behandlingId)
+            if (behandling.tildeling?.saksbehandlerident == utfoerendeSaksbehandlerIdent && unreadNotificationsForBehandling > 0) {
+                throw IllegalOperation("Du må markere alle varsler knyttet til behandlingen som lest før du kan fradele behandlingen. Uleste varsler: $unreadNotificationsForBehandling.")
             }
 
             //if fagsystem is Infotrygd also do this.
@@ -803,6 +816,7 @@ class BehandlingService(
                 )
             }
 
+            klageNotificationsApiClient.deleteNotificationsForBehandling(behandlingId = behandlingId)
         }
 
         val event =
