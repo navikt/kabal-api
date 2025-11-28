@@ -1024,7 +1024,11 @@ class BehandlingService(
         behandlingId: UUID,
         systemUserContext: Boolean,
     ) {
-        val behandling = getBehandlingForUpdate(behandlingId = behandlingId, systemUserContext = systemUserContext)
+        val behandling = getBehandlingForUpdate(
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = true,
+            systemUserContext = systemUserContext
+        )
         val utfoerendeIdent = if (systemUserContext) systembrukerIdent else innloggetSaksbehandlerService.getInnloggetIdent()
         val utfoerendeNavn = if (systemUserContext) systembrukerIdent else getUtfoerendeNavn(utfoerendeIdent)
 
