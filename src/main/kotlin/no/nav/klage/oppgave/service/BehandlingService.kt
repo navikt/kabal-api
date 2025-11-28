@@ -756,15 +756,15 @@ class BehandlingService(
             }
 
             if (tildeltSaksbehandlerIdent == behandling.medunderskriver?.saksbehandlerident) {
-                setMedunderskriverFlowState(
-                    behandlingId = behandlingId,
-                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-                    flowState = FlowState.NOT_SENT,
-                )
                 setMedunderskriverNavIdent(
                     behandlingId = behandlingId,
                     utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
                     navIdent = null,
+                )
+                setMedunderskriverFlowState(
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+                    flowState = FlowState.NOT_SENT,
                 )
             }
 
@@ -1735,7 +1735,7 @@ class BehandlingService(
             if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
                 val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
                 if (behandling.medunderskriverFlowState != FlowState.SENT && behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent) {
-                    throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre medunderskriver når den ikke er sent.")
+                    throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre medunderskriver når den ikke er sendt.")
                 }
 
                 if (behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent && navIdent == null) {
