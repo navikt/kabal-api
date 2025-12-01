@@ -31,6 +31,9 @@ inboundApplications:
   - application: su-se-bakover
     namespace: supstonad
     cluster: prod-fss
+  - application: su-se-bakover
+    namespace: supstonad
+    cluster: prod-gcp
   - application: fpsak
     namespace: teamforeldrepenger
     cluster: prod-fss

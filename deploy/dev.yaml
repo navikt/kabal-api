@@ -32,6 +32,9 @@ inboundApplications:
   - application: su-se-bakover
     namespace: supstonad
     cluster: dev-fss
+  - application: su-se-bakover
+    namespace: supstonad
+    cluster: dev-gcp
   - application: fpsak
     namespace: teamforeldrepenger
     cluster: dev-fss
