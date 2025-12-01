@@ -366,10 +366,15 @@ class AdminService(
     }
 
 
-    @Transactional
+    /**
+     * Scheduled task that creates "lost access"-notifications for saksbehandlere who have lost access to behandlinger.
+     * Note that klage-notifications-api is idempotent when it comes to creating notifications.
+     */
+    @Transactional(readOnly = true)
     @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 2, initialDelay = 3)
     @SchedulerLock(name = "createLostAccessNotifications")
     fun createLostAccessNotifications() {
+        logger.debug("Checking for lost access notifications to create")
         val start = System.currentTimeMillis()
         val tildelteBehandlinger =
             behandlingRepository.findByTildelingIsNotNullAndFerdigstillingIsNullAndFeilregistreringIsNull()
