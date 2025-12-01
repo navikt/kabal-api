@@ -392,7 +392,7 @@ class AdminService(
                                     useCache = true
                                 )
                             ) {
-                                "Du har mistet tilgangen til en behandling fordi den gjelder en person med strengt fortrolig adresse."
+                                "Du har mistet tilgang til oppgaven fordi den gjelder en person med strengt fortrolig adresse. Be lederen din om å tildele saken til noen andre eller gi deg tilgang."
                             } else null
                         }
 
@@ -402,7 +402,7 @@ class AdminService(
                                     useCache = true
                                 )
                             ) {
-                                "Du har mistet tilgangen til en behandling fordi den gjelder en person med fortrolig adresse."
+                                "Du har mistet tilgang til oppgaven fordi den gjelder en person med fortrolig adresse. Be lederen din om å tildele saken til noen andre eller gi deg tilgang."
                             } else null
                         }
 
@@ -412,7 +412,7 @@ class AdminService(
                                     useCache = true
                                 )
                             ) {
-                                "Du har mistet tilgangen til en behandling fordi den gjelder en egen ansatt."
+                                "Du har mistet tilgang til oppgaven fordi den gjelder egen ansatt. Be lederen din om å tildele saken til noen andre eller gi deg tilgang."
                             } else null
                         }
 
