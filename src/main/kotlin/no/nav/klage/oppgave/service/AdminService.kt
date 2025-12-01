@@ -9,9 +9,11 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
@@ -42,6 +44,8 @@ import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
+import no.nav.klage.oppgave.domain.notifications.CreateLostAccessNotificationEvent
+import no.nav.klage.oppgave.domain.notifications.CreateNotificationEvent
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.util.*
@@ -59,6 +63,7 @@ import java.net.InetAddress
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @Service
 @Transactional
@@ -89,6 +94,7 @@ class AdminService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val personCacheService: PersonCacheService,
     private val entityManager: EntityManager,
+    private val kafkaInternalEventService: KafkaInternalEventService,
 ) {
 
     @Value("\${KLAGE_BACKEND_GROUP_ID}")
@@ -357,6 +363,107 @@ class AdminService(
         teamLogger.debug("Time it took to process unavailableDueToBeskyttelseAndSkjerming: ${end - start} millis")
 
         return resultMessage
+    }
+
+
+    @Transactional
+    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 2, initialDelay = 3)
+    @SchedulerLock(name = "createLostAccessNotifications")
+    fun createLostAccessNotifications() {
+        val start = System.currentTimeMillis()
+        val tildelteBehandlinger =
+            behandlingRepository.findByTildelingIsNotNullAndFerdigstillingIsNullAndFeilregistreringIsNull()
+
+        tildelteBehandlinger.forEach { behandling ->
+            val tildeltSaksbehandlerIdent = behandling.tildeling?.saksbehandlerident!!
+            val message: String? = if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
+                try {
+                    val person = personService.getPersonInfo(behandling.sakenGjelder.partId.value)
+
+                    when {
+                        person.harBeskyttelsesbehovStrengtFortrolig() -> {
+                            if (!saksbehandlerService.hasStrengtFortroligRole(
+                                    ident = tildeltSaksbehandlerIdent,
+                                    useCache = true
+                                )
+                            ) {
+                                "Du har mistet tilgangen til en behandling fordi den gjelder en person med strengt fortrolig adresse."
+                            } else null
+                        }
+
+                        person.harBeskyttelsesbehovFortrolig() -> {
+                            if (!saksbehandlerService.hasFortroligRole(
+                                    ident = tildeltSaksbehandlerIdent,
+                                    useCache = true
+                                )
+                            ) {
+                                "Du har mistet tilgangen til en behandling fordi den gjelder en person med fortrolig adresse."
+                            } else null
+                        }
+
+                        egenAnsattService.erEgenAnsatt(person.foedselsnr) -> {
+                            if (!saksbehandlerService.hasEgenAnsattRole(
+                                    ident = tildeltSaksbehandlerIdent,
+                                    useCache = true
+                                )
+                            ) {
+                                "Du har mistet tilgangen til en behandling fordi den gjelder en egen ansatt."
+                            } else null
+                        }
+
+                        else -> null
+                    }
+
+                } catch (e: Exception) {
+                    teamLogger.debug("Couldn't check person", e)
+                    null
+                }
+            } else null
+
+            if (message != null) {
+                publishLostAccessNotificationEvent(
+                    message = message,
+                    utfoerendeIdent = systembrukerIdent,
+                    utfoerendeName = systembrukerIdent,
+                    tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent,
+                    behandlingId = behandling.id,
+                    behandlingType = behandling.type,
+                    saksnummer = behandling.fagsakId,
+                    ytelse = behandling.ytelse,
+                )
+            }
+        }
+        val end = System.currentTimeMillis()
+        logger.debug("Time it took to check and create lost access notifications: ${end - start} millis")
+    }
+
+    private fun publishLostAccessNotificationEvent(
+        message: String,
+        utfoerendeIdent: String,
+        utfoerendeName: String,
+        tildeltSaksbehandlerIdent: String,
+        behandlingId: UUID,
+        behandlingType: Type,
+        saksnummer: String,
+        ytelse: Ytelse,
+    ) {
+        kafkaInternalEventService.publishNotificationEvent(
+            id = UUID.randomUUID(),
+            jsonNode = objectMapper.valueToTree(
+                CreateLostAccessNotificationEvent(
+                    type = CreateNotificationEvent.NotificationType.LOST_ACCESS,
+                    message = message,
+                    recipientNavIdent = tildeltSaksbehandlerIdent,
+                    behandlingId = behandlingId,
+                    behandlingType = behandlingType,
+                    actorNavIdent = utfoerendeIdent,
+                    actorNavn = utfoerendeName,
+                    saksnummer = saksnummer,
+                    ytelse = ytelse,
+                    sourceCreatedAt = LocalDateTime.now(),
+                )
+            )
+        )
     }
 
     fun checkForUnavailableDueToHjemler(unfinishedBehandlingerInput: List<Behandling>?): String {
