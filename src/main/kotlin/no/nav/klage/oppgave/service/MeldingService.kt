@@ -200,7 +200,6 @@ class MeldingService(
                     type = CreateMeldingNotificationEvent.NotificationType.MELDING,
                     message = melding.text,
                     recipientNavIdent = tildeltSaksbehandlerIdent,
-                    source = CreateMeldingNotificationEvent.NotificationSource.KABAL,
                     meldingId = melding.id,
                     behandlingId = melding.behandlingId,
                     behandlingType = behandlingType,
@@ -219,7 +218,6 @@ data class CreateMeldingNotificationEvent(
     val type: NotificationType,
     val message: String,
     val recipientNavIdent: String,
-    val source: NotificationSource,
     val meldingId: UUID,
     val behandlingId: UUID,
     val behandlingType: Type,
@@ -229,11 +227,6 @@ data class CreateMeldingNotificationEvent(
     val ytelse: Ytelse,
     val sourceCreatedAt: LocalDateTime,
 ) {
-    enum class NotificationSource {
-        OPPGAVE,
-        KABAL,
-    }
-
     enum class NotificationType {
         MELDING, LOST_ACCESS
     }
