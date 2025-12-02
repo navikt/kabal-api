@@ -21,6 +21,7 @@ val otelVersion = "1.53.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.0.0"
 val confluentVersion = "8.0.0"
+val scalaLibraryVersion = "2.13.9"
 
 plugins {
     val kotlinVersion = "2.2.10"
@@ -108,6 +109,8 @@ dependencies {
     implementation("org.apache.tika:tika-core:$tikaVersion")
     implementation("no.nav.tms.mikrofrontend.selector:builder:$mikrofrontendSelectorVersion")
 
+    //Must be specified to avoid vulnerability. Remove after Spring is updated.
+    implementation("org.scala-lang:scala-library:$scalaLibraryVersion")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage")
