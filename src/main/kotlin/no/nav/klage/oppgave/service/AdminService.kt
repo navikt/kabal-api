@@ -9,11 +9,9 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
-import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
@@ -45,9 +43,6 @@ import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
-import no.nav.klage.oppgave.domain.notifications.CreateGainedAccessNotificationEvent
-import no.nav.klage.oppgave.domain.notifications.CreateLostAccessNotificationEvent
-import no.nav.klage.oppgave.domain.notifications.CreateNotificationEvent
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.util.*
@@ -65,7 +60,6 @@ import java.net.InetAddress
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 @Service
 @Transactional
@@ -366,169 +360,6 @@ class AdminService(
         teamLogger.debug("Time it took to process unavailableDueToBeskyttelseAndSkjerming: ${end - start} millis")
 
         return resultMessage
-    }
-
-
-    /**
-     * Scheduled task that creates "lost access"-notifications for saksbehandlere who have lost access to behandlinger.
-     * Note that klage-notifications-api is idempotent when it comes to creating notifications.
-     */
-    @Transactional(readOnly = true)
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 2, initialDelay = 3)
-    @SchedulerLock(name = "createLostAccessNotifications")
-    fun createLostAccessNotifications() {
-        logger.debug("Checking for lost access notifications to create")
-        val start = System.currentTimeMillis()
-        val tildelteBehandlinger =
-            behandlingRepository.findByTildelingIsNotNullAndFerdigstillingIsNullAndFeilregistreringIsNull()
-
-        val lostAccessNotifications = klageNotificationsApiClient.getLostAccessNotifications()
-        logger.debug("Number of lost-access notifications already in the system: ${lostAccessNotifications.size}")
-
-        tildelteBehandlinger.forEach { behandling ->
-            val tildeltSaksbehandlerIdent = behandling.tildeling?.saksbehandlerident!!
-            val (lostAccessMessage, gainedAccessMessage) = if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
-                try {
-                    val person = personService.getPersonInfo(behandling.sakenGjelder.partId.value)
-
-                    val hasLostAccessNotification = lostAccessNotifications.any {
-                        it.behandlingId == behandling.id && it.navIdent == tildeltSaksbehandlerIdent
-                    }
-
-                    logger.debug("Has lost-access notification: $hasLostAccessNotification")
-
-                    when {
-                        person.harBeskyttelsesbehovStrengtFortrolig() -> {
-                            if (!saksbehandlerService.hasStrengtFortroligRole(
-                                    ident = tildeltSaksbehandlerIdent,
-                                    useCache = true
-                                )
-                            ) {
-                                "Du har mistet tilgang til oppgaven fordi den gjelder en person med strengt fortrolig adresse. Be lederen din om å tildele saken til noen andre eller gi deg tilgang." to null
-                            } else {
-                                if (hasLostAccessNotification) {
-                                    logger.debug("Gained access for strengt fortrolig behandling ${behandling.id}")
-                                    null to "Du har nå tilgang til oppgaven."
-                                } else {
-                                    null to null
-                                }
-                            }
-                        }
-
-                        person.harBeskyttelsesbehovFortrolig() -> {
-                            if (!saksbehandlerService.hasFortroligRole(
-                                    ident = tildeltSaksbehandlerIdent,
-                                    useCache = true
-                                )
-                            ) {
-                                "Du har mistet tilgang til oppgaven fordi den gjelder en person med fortrolig adresse. Be lederen din om å tildele saken til noen andre eller gi deg tilgang." to null
-                            } else {
-                                if (hasLostAccessNotification) {
-                                    logger.debug("Gained access for fortrolig behandling ${behandling.id}")
-                                    null to "Du har nå tilgang til oppgaven."
-                                } else {
-                                    null to null
-                                }
-                            }
-                        }
-
-                        egenAnsattService.erEgenAnsatt(person.foedselsnr) -> {
-                            if (!saksbehandlerService.hasEgenAnsattRole(
-                                    ident = tildeltSaksbehandlerIdent,
-                                    useCache = true
-                                )
-                            ) {
-                                "Du har mistet tilgang til oppgaven fordi den gjelder egen ansatt. Be lederen din om å tildele saken til noen andre eller gi deg tilgang." to null
-                            }  else {
-                                if (hasLostAccessNotification) {
-                                    logger.debug("Gained access for egen ansatt behandling ${behandling.id}")
-                                    null to "Du har nå tilgang til oppgaven."
-                                } else {
-                                    null to null
-                                }
-                            }
-                        }
-
-                        else -> null to null
-                    }
-
-                } catch (e: Exception) {
-                    teamLogger.debug("Couldn't check person", e)
-                    null to null
-                }
-            } else null to null
-
-            if (lostAccessMessage != null && gainedAccessMessage != null) {
-                throw IllegalStateException("Both lostAccessMessage and gainedAccessMessage are not null for behandling ${behandling.id}")
-            }
-
-            if (lostAccessMessage != null || gainedAccessMessage != null) {
-                publishLostAccessNotificationEvent(
-                    message = lostAccessMessage ?: gainedAccessMessage!!,
-                    utfoerendeIdent = systembrukerIdent,
-                    utfoerendeName = systembrukerIdent,
-                    tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent,
-                    behandlingId = behandling.id,
-                    behandlingType = behandling.type,
-                    saksnummer = behandling.fagsakId,
-                    ytelse = behandling.ytelse,
-                    isLostAccess = lostAccessMessage != null,
-                )
-            }
-        }
-        val end = System.currentTimeMillis()
-        logger.debug("Time it took to check and create lost/gained access notifications: ${end - start} millis")
-    }
-
-    private fun publishLostAccessNotificationEvent(
-        message: String,
-        utfoerendeIdent: String,
-        utfoerendeName: String,
-        tildeltSaksbehandlerIdent: String,
-        behandlingId: UUID,
-        behandlingType: Type,
-        saksnummer: String,
-        ytelse: Ytelse,
-        isLostAccess: Boolean,
-    ) {
-        logger.debug(
-            "Publishing {}-access notification event for behandling {} ",
-            if (isLostAccess) "lost" else "gained",
-            behandlingId,
-        )
-
-        val createEvent = if (isLostAccess) {
-            CreateLostAccessNotificationEvent(
-                type = CreateNotificationEvent.NotificationType.LOST_ACCESS,
-                message = message,
-                recipientNavIdent = tildeltSaksbehandlerIdent,
-                behandlingId = behandlingId,
-                behandlingType = behandlingType,
-                actorNavIdent = utfoerendeIdent,
-                actorNavn = utfoerendeName,
-                saksnummer = saksnummer,
-                ytelse = ytelse,
-                sourceCreatedAt = LocalDateTime.now(),
-            )
-        } else {
-            CreateGainedAccessNotificationEvent(
-                type = CreateNotificationEvent.NotificationType.GAINED_ACCESS,
-                message = message,
-                recipientNavIdent = tildeltSaksbehandlerIdent,
-                behandlingId = behandlingId,
-                behandlingType = behandlingType,
-                actorNavIdent = utfoerendeIdent,
-                actorNavn = utfoerendeName,
-                saksnummer = saksnummer,
-                ytelse = ytelse,
-                sourceCreatedAt = LocalDateTime.now(),
-            )
-        }
-
-        kafkaInternalEventService.publishNotificationEvent(
-            id = UUID.randomUUID(),
-            jsonNode = objectMapper.valueToTree(createEvent)
-        )
     }
 
     fun checkForUnavailableDueToHjemler(unfinishedBehandlingerInput: List<Behandling>?): String {
