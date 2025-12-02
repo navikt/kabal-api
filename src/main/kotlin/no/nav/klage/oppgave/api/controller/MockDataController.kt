@@ -220,7 +220,7 @@ class MockDataController(
             )
 
             Ytelse.SYK_SYK -> Fnr(
-                fnr = "08509328251"
+                fnr = "27528510332"
             )
 
             Ytelse.SUP_UFF -> Fnr(
