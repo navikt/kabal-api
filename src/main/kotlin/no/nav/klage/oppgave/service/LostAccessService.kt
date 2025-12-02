@@ -43,7 +43,7 @@ class LostAccessService(
      * Note that klage-notifications-api is idempotent when it comes to creating notifications.
      */
     @Transactional(readOnly = true)
-    @Scheduled(cron = "0 0/3 * * * ?", initialDelay = 3)
+    @Scheduled(cron = "0 0/3 * * * ?")
     @SchedulerLock(name = "createLostAccessNotifications")
     fun createLostAccessNotifications() {
         logger.debug("Checking for lost access notifications to create")
