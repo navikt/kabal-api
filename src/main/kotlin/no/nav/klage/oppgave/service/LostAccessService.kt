@@ -70,7 +70,7 @@ class LostAccessService(
                         person.harBeskyttelsesbehovStrengtFortrolig() -> {
                             if (!saksbehandlerService.hasStrengtFortroligRole(
                                     ident = tildeltSaksbehandlerIdent,
-                                    useCache = true
+                                    useCache = false
                                 )
                             ) {
                                 "Du har mistet tilgang til oppgaven fordi den gjelder en person med strengt fortrolig adresse. Be lederen din om å tildele saken til noen andre eller gi deg tilgang." to null
@@ -87,7 +87,7 @@ class LostAccessService(
                         person.harBeskyttelsesbehovFortrolig() -> {
                             if (!saksbehandlerService.hasFortroligRole(
                                     ident = tildeltSaksbehandlerIdent,
-                                    useCache = true
+                                    useCache = false
                                 )
                             ) {
                                 "Du har mistet tilgang til oppgaven fordi den gjelder en person med fortrolig adresse. Be lederen din om å tildele saken til noen andre eller gi deg tilgang." to null
