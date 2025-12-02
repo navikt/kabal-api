@@ -383,6 +383,7 @@ class AdminService(
             behandlingRepository.findByTildelingIsNotNullAndFerdigstillingIsNullAndFeilregistreringIsNull()
 
         val lostAccessNotifications = klageNotificationsApiClient.getLostAccessNotifications()
+        logger.debug("Number of lost-access notifications already in the system: ${lostAccessNotifications.size}")
 
         tildelteBehandlinger.forEach { behandling ->
             val tildeltSaksbehandlerIdent = behandling.tildeling?.saksbehandlerident!!
@@ -393,6 +394,9 @@ class AdminService(
                     val hasLostAccessNotification = lostAccessNotifications.any {
                         it.behandlingId == behandling.id && it.navIdent == tildeltSaksbehandlerIdent
                     }
+
+                    logger.debug("Has lost-access notification: $hasLostAccessNotification")
+
                     when {
                         person.harBeskyttelsesbehovStrengtFortrolig() -> {
                             if (!saksbehandlerService.hasStrengtFortroligRole(
@@ -403,6 +407,7 @@ class AdminService(
                                 "Du har mistet tilgang til oppgaven fordi den gjelder en person med strengt fortrolig adresse. Be lederen din om å tildele saken til noen andre eller gi deg tilgang." to null
                             } else {
                                 if (hasLostAccessNotification) {
+                                    logger.debug("Gained access for strengt fortrolig behandling ${behandling.id}")
                                     null to "Du har nå tilgang til oppgaven."
                                 } else {
                                     null to null
@@ -419,6 +424,7 @@ class AdminService(
                                 "Du har mistet tilgang til oppgaven fordi den gjelder en person med fortrolig adresse. Be lederen din om å tildele saken til noen andre eller gi deg tilgang." to null
                             } else {
                                 if (hasLostAccessNotification) {
+                                    logger.debug("Gained access for fortrolig behandling ${behandling.id}")
                                     null to "Du har nå tilgang til oppgaven."
                                 } else {
                                     null to null
@@ -435,6 +441,7 @@ class AdminService(
                                 "Du har mistet tilgang til oppgaven fordi den gjelder egen ansatt. Be lederen din om å tildele saken til noen andre eller gi deg tilgang." to null
                             }  else {
                                 if (hasLostAccessNotification) {
+                                    logger.debug("Gained access for egen ansatt behandling ${behandling.id}")
                                     null to "Du har nå tilgang til oppgaven."
                                 } else {
                                     null to null
@@ -484,6 +491,12 @@ class AdminService(
         ytelse: Ytelse,
         isLostAccess: Boolean,
     ) {
+        logger.debug(
+            "Publishing {}-access notification event for behandling {} ",
+            if (isLostAccess) "lost" else "gained",
+            behandlingId,
+        )
+
         val createEvent = if (isLostAccess) {
             CreateLostAccessNotificationEvent(
                 type = CreateNotificationEvent.NotificationType.LOST_ACCESS,
