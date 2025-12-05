@@ -209,6 +209,12 @@ class TokenUtil(
         return response.access_token!!
     }
 
+    fun getAppAccessTokenWithTilgangsmaskinenScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["tilgangsmaskinen-maskintilmaskin"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.access_token!!
+    }
+
     fun getAccessTokenFrontendSent(): String =
         tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)!!.encodedToken
 

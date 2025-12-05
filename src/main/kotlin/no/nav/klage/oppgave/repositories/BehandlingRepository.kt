@@ -32,6 +32,8 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
 
     fun findByTildelingEnhetAndFerdigstillingIsNullAndFeilregistreringIsNull(enhet: String): List<Behandling>
 
+    fun findByTildelingIsNotNullAndFerdigstillingIsNullAndFeilregistreringIsNull(): List<Behandling>
+
     fun findByIdAndFerdigstillingAvsluttetIsNotNull(id: UUID): Behandling?
 
     fun findBySakenGjelderPartIdValueAndFerdigstillingIsNullAndFeilregistreringIsNull(partIdValue: String): List<Behandling>

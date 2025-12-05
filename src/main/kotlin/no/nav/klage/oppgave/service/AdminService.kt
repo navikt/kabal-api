@@ -17,6 +17,7 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
+import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
 import no.nav.klage.oppgave.clients.pdl.PersonCacheService
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.DOK_DIST_KANAL
@@ -89,6 +90,8 @@ class AdminService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val personCacheService: PersonCacheService,
     private val entityManager: EntityManager,
+    private val kafkaInternalEventService: KafkaInternalEventService,
+    private val klageNotificationsApiClient: KlageNotificationsApiClient,
 ) {
 
     @Value("\${KLAGE_BACKEND_GROUP_ID}")

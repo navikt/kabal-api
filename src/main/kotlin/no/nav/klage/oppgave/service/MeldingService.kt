@@ -12,6 +12,8 @@ import no.nav.klage.oppgave.domain.kafka.Employee
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.domain.kafka.MeldingEvent
+import no.nav.klage.oppgave.domain.notifications.CreateMeldingNotificationEvent
+import no.nav.klage.oppgave.domain.notifications.CreateNotificationEvent
 import no.nav.klage.oppgave.exceptions.IllegalOperation
 import no.nav.klage.oppgave.exceptions.MeldingNotFoundException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
@@ -197,7 +199,7 @@ class MeldingService(
             id = melding.id,
             jsonNode = objectMapper.valueToTree(
                 CreateMeldingNotificationEvent(
-                    type = CreateMeldingNotificationEvent.NotificationType.MELDING,
+                    type = CreateNotificationEvent.NotificationType.MELDING,
                     message = melding.text,
                     recipientNavIdent = tildeltSaksbehandlerIdent,
                     meldingId = melding.id,
@@ -211,23 +213,5 @@ class MeldingService(
                 )
             )
         )
-    }
-}
-
-data class CreateMeldingNotificationEvent(
-    val type: NotificationType,
-    val message: String,
-    val recipientNavIdent: String,
-    val meldingId: UUID,
-    val behandlingId: UUID,
-    val behandlingType: Type,
-    val actorNavIdent: String,
-    val actorNavn: String,
-    val saksnummer: String,
-    val ytelse: Ytelse,
-    val sourceCreatedAt: LocalDateTime,
-) {
-    enum class NotificationType {
-        MELDING, LOST_ACCESS
     }
 }

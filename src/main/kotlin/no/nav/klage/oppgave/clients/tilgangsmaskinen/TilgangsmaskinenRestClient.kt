@@ -25,14 +25,25 @@ class TilgangsmaskinenRestClient(
     fun getTilgangsmaskinenErrorResponse(
         /** fnr, dnr or aktorId */
         brukerId: String,
+        navIdent: String?
     ): TilgangsmaskinenErrorResponse? {
         return runWithTimingAndLogging {
+            val uri: String
+            val token: String
+            if (navIdent != null) {
+                uri = "/api/v1/ccf/komplett/$navIdent"
+                token = "Bearer ${tokenUtil.getAppAccessTokenWithTilgangsmaskinenScope()}"
+            } else {
+                uri = "/api/v1/komplett"
+                token = "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithTilgangsmaskinenScope()}"
+            }
+
             tilgangsmaskinenWebClient.post()
-                .uri("/api/v1/komplett")
+                .uri(uri)
                 .bodyValue(brukerId)
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithTilgangsmaskinenScope()}"
+                    token,
                 )
                 .retrieve()
                 .onStatus({ it.value() == HttpStatus.FORBIDDEN.value() }) { response ->
