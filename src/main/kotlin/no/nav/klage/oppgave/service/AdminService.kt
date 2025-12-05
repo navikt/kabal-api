@@ -483,7 +483,7 @@ class AdminService(
             if (assignedMedunderskriver != null) {
                 if (checkIfAssigneeIsExpired(navIdent = assignedMedunderskriver)) {
                     logger.info("Behandling ${it.id} has expired medunderskriver: $assignedMedunderskriver, setting to null.")
-                    behandlingService.setMedunderskriverToNullInSystemContext(it.id)
+                    behandlingService.setMedunderskriverAndMedunderskriverFlowToNull(behandlingId = it.id, systemUserContext = true)
                 }
             }
 
