@@ -742,6 +742,21 @@ class BehandlingService(
                 checkYtelseAccess(tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent, behandling = behandling)
             }
 
+            if (tildeltSaksbehandlerIdent == behandling.medunderskriver?.saksbehandlerident) {
+                setMedunderskriverAndMedunderskriverFlowToNull(
+                    behandlingId = behandlingId,
+                    systemUserContext = systemUserContext
+                )
+            }
+
+            //Transfer notification ownership if there are any notifications, and the behandling was previously assigned
+            if (behandling.tildeling?.saksbehandlerident != null) {
+                klageNotificationsApiClient.transferNotificationOwnership(
+                    behandlingId = behandlingId,
+                    newNavIdent = tildeltSaksbehandlerIdent,
+                )
+            }
+
             //if fagsystem is Infotrygd also do this.
             if (behandling.shouldUpdateInfotrygd()) {
                 logger.debug("Tildeling av behandling skal registreres i Infotrygd.")
@@ -753,27 +768,6 @@ class BehandlingService(
                     )
                 )
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
-            }
-
-            if (tildeltSaksbehandlerIdent == behandling.medunderskriver?.saksbehandlerident) {
-                setMedunderskriverFlowState(
-                    behandlingId = behandlingId,
-                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-                    flowState = FlowState.NOT_SENT,
-                )
-                setMedunderskriverNavIdent(
-                    behandlingId = behandlingId,
-                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-                    navIdent = null,
-                )
-            }
-
-            //Transfer notification ownership if there are any notifications, and the behandling was previously assigned
-            if (behandling.tildeling?.saksbehandlerident != null) {
-                klageNotificationsApiClient.transferNotificationOwnership(
-                    behandlingId = behandlingId,
-                    newNavIdent = tildeltSaksbehandlerIdent,
-                )
             }
         } else {
             if (fradelingReason == null &&
@@ -965,7 +959,7 @@ class BehandlingService(
 
         if (behandling.medunderskriver != null) {
             logger.debug("Setter medunderskriver til null fordi saksbehandler settes til null i opprydding")
-            setMedunderskriverToNullInSystemContext(behandlingId)
+            setMedunderskriverAndMedunderskriverFlowToNull(behandlingId = behandlingId, systemUserContext = true)
         }
 
         if (behandling.rolIdent != null) {
@@ -1026,17 +1020,24 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(SmartDocumentAccessBehandlingEvent(behandling))
     }
 
-    fun setMedunderskriverToNullInSystemContext(
+    fun setMedunderskriverAndMedunderskriverFlowToNull(
         behandlingId: UUID,
+        systemUserContext: Boolean,
     ) {
-        val behandling = getBehandlingForUpdate(behandlingId = behandlingId, systemUserContext = true)
+        val behandling = getBehandlingForUpdate(
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = true,
+            systemUserContext = systemUserContext
+        )
+        val utfoerendeIdent = if (systemUserContext) systembrukerIdent else innloggetSaksbehandlerService.getInnloggetIdent()
+        val utfoerendeNavn = if (systemUserContext) systembrukerIdent else getUtfoerendeNavn(utfoerendeIdent)
 
         if (behandling.medunderskriverFlowState != FlowState.RETURNED) {
             val medunderskriverFlowEvent =
                 behandling.setMedunderskriverFlowState(
                     nyMedunderskriverFlowState = FlowState.NOT_SENT,
-                    utfoerendeIdent = systembrukerIdent,
-                    utfoerendeNavn = systembrukerIdent
+                    utfoerendeIdent = utfoerendeIdent,
+                    utfoerendeNavn = utfoerendeNavn,
                 )
             applicationEventPublisher.publishEvent(medunderskriverFlowEvent)
         }
@@ -1044,8 +1045,8 @@ class BehandlingService(
         val medunderskriverIdentEvent =
             behandling.setMedunderskriverNavIdent(
                 nyMedunderskriverNavIdent = null,
-                utfoerendeIdent = systembrukerIdent,
-                utfoerendeNavn = systembrukerIdent
+                utfoerendeIdent = utfoerendeIdent,
+                utfoerendeNavn = utfoerendeNavn,
             )
         applicationEventPublisher.publishEvent(medunderskriverIdentEvent)
 
@@ -1053,8 +1054,8 @@ class BehandlingService(
             data = objectMapper.writeValueAsString(
                 MedunderskriverEvent(
                     actor = Employee(
-                        navIdent = systembrukerIdent,
-                        navn = systembrukerIdent,
+                        navIdent = utfoerendeIdent,
+                        navn = utfoerendeNavn,
                     ),
                     timestamp = behandling.modified,
                     medunderskriver = null,
@@ -1735,7 +1736,7 @@ class BehandlingService(
             if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
                 val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
                 if (behandling.medunderskriverFlowState != FlowState.SENT && behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent) {
-                    throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre medunderskriver når den ikke er sent.")
+                    throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre medunderskriver når den ikke er sendt.")
                 }
 
                 if (behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent && navIdent == null) {
