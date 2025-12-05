@@ -410,8 +410,8 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
 
         behandlingRepository.saveAll(listOf(klagebehandling1, klagebehandling2, klagebehandling3))
 
-        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR) } returns TilgangService.Access(true, "Test")
-        every { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR2) } returns TilgangService.Access(
+        every { tilgangService.hasSaksbehandlerAccessTo(FNR) } returns TilgangService.Access(true, "Test")
+        every { tilgangService.hasSaksbehandlerAccessTo(FNR2) } returns TilgangService.Access(
             access = false,
             reason = "Ikke tilgang"
         )
@@ -420,8 +420,8 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
             fagsakId = SAKS_ID
         )
 
-        verify(exactly = 1) { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR) }
-        verify(exactly = 1) { tilgangService.harInnloggetSaksbehandlerTilgangTil(FNR2) }
+        verify(exactly = 1) { tilgangService.hasSaksbehandlerAccessTo(FNR) }
+        verify(exactly = 1) { tilgangService.hasSaksbehandlerAccessTo(FNR2) }
 
         assertThat(output.aapneBehandlinger).containsExactlyInAnyOrder(klagebehandling1.id)
         assertThat(output.avsluttedeBehandlinger).containsExactlyInAnyOrder(klagebehandling3.id)
