@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.clients.klagenotificationsapi
 
+import no.nav.klage.oppgave.clients.klagenotificationsapi.domain.LostAccessNotificationResponse
 import no.nav.klage.oppgave.clients.klagenotificationsapi.domain.TransferNotificationOwnershipRequest
 import no.nav.klage.oppgave.clients.klagenotificationsapi.domain.UnreadCountResponse
 import no.nav.klage.oppgave.util.TokenUtil
@@ -66,6 +67,23 @@ class KlageNotificationsApiClient(
             .retrieve()
             .toBodilessEntity()
             .block()
+    }
+
+    @Retryable
+    fun getLostAccessNotifications(): List<LostAccessNotificationResponse> {
+        logger.debug("Getting lost access notifications")
+
+        return klageNotificationsApiWebClient.get()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/admin/notifications/lost-access")
+                    .build()
+            }
+            .header("Authorization", "Bearer ${tokenUtil.getAppAccessTokenWithKlageNotificationsApiScope()}")
+            .retrieve()
+            .bodyToFlux(LostAccessNotificationResponse::class.java)
+            .collectList()
+            .block()!!
     }
 
 }

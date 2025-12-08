@@ -95,7 +95,7 @@ class OppgaveService(
 
         val individualPartIdValues = behandlinger.map { it.sakenGjelder.partId.value }.toSet()
         val accessiblePartIdValues = individualPartIdValues.filter {
-            tilgangService.harInnloggetSaksbehandlerTilgangTil(it).access
+            tilgangService.hasSaksbehandlerAccessTo(it).access
         }
 
         behandlinger.forEach {

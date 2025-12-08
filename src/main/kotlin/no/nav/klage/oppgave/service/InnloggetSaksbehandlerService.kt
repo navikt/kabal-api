@@ -19,14 +19,6 @@ class InnloggetSaksbehandlerService(
 
     fun isKabalOppgavestyringAlleEnheter(): Boolean = saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(tokenUtil.getIdent())
 
-    fun kanBehandleFortrolig(): Boolean = saksbehandlerService.hasFortroligRole(tokenUtil.getIdent())
-
-    fun kanBehandleStrengtFortrolig(): Boolean =
-        saksbehandlerService.hasStrengtFortroligRole(tokenUtil.getIdent())
-
-    fun kanBehandleEgenAnsatt(): Boolean =
-        saksbehandlerService.hasEgenAnsattRole(tokenUtil.getIdent())
-
     fun hasKabalInnsynEgenEnhetRole(): Boolean =
         saksbehandlerService.hasKabalInnsynEgenEnhetRole(tokenUtil.getIdent())
 }

@@ -31,7 +31,7 @@ class PartSearchService(
     fun searchPart(identifikator: String, systemUserContext: Boolean = false): BehandlingDetaljerView.SearchPartView =
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
-                if (systemUserContext || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator).access) {
+                if (systemUserContext || tilgangService.hasSaksbehandlerAccessTo(identifikator).access) {
                     val person = personService.getPersonInfo(identifikator)
                     val krrInfo = if (systemUserContext) {
                         krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
@@ -52,7 +52,7 @@ class PartSearchService(
                         }
                     )
                 } else {
-                    val access = tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator)
+                    val access = tilgangService.hasSaksbehandlerAccessTo(identifikator)
                     logger.warn("Saksbehandler does not have access to view person due to: {}", access.reason)
                     throw MissingTilgangException(access.reason)
                 }
@@ -82,7 +82,7 @@ class PartSearchService(
     ): BehandlingDetaljerView.SearchPartViewWithUtsendingskanal =
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
-                if (systemUserContext || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator).access) {
+                if (systemUserContext || tilgangService.hasSaksbehandlerAccessTo(identifikator).access) {
                     val person = personService.getPersonInfo(identifikator)
                     val krrInfo = if (systemUserContext) {
                         krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
@@ -105,7 +105,7 @@ class PartSearchService(
                         )
                     )
                 } else {
-                    val access = tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator)
+                    val access = tilgangService.hasSaksbehandlerAccessTo(identifikator)
                     logger.warn("Saksbehandler does not have access to view person due to: {}", access.reason)
                     throw MissingTilgangException(access.reason)
                 }
@@ -137,7 +137,7 @@ class PartSearchService(
     ): BehandlingDetaljerView.SearchPersonView =
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
-                if (systemUserContext || tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator).access) {
+                if (systemUserContext || tilgangService.hasSaksbehandlerAccessTo(identifikator).access) {
                     val person = personService.getPersonInfo(identifikator)
                     val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
                     BehandlingDetaljerView.SearchPersonView(
@@ -152,7 +152,7 @@ class PartSearchService(
                         address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = identifikator),
                     )
                 } else {
-                    val access = tilgangService.harInnloggetSaksbehandlerTilgangTil(identifikator)
+                    val access = tilgangService.hasSaksbehandlerAccessTo(identifikator)
                     logger.warn("Saksbehandler does not have access to view person due to: {}", access.reason)
                     throw MissingTilgangException(access.reason)
                 }
