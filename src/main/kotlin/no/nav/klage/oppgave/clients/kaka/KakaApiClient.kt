@@ -9,6 +9,7 @@ import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -24,6 +25,7 @@ class KakaApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    @Retryable
     fun createKvalitetsvurdering(kvalitetsvurderingVersion: Int): KakaOutput {
         logger.debug("Creating kvalitetsvurdering i kaka")
         return kakaApiWebClient.post()
@@ -45,6 +47,7 @@ class KakaApiClient(
             .block() ?: throw RuntimeException("Kvalitetsvurdering could not be created")
     }
 
+    @Retryable
     fun finalizeBehandling(saksdataInput: SaksdataInput, kvalitetsvurderingVersion: Int) {
         kakaApiWebClient.post()
             .uri { it.path("/kabal/saksdata/v$kvalitetsvurderingVersion").build() }
@@ -66,6 +69,7 @@ class KakaApiClient(
             .block()
     }
 
+    @Retryable
     fun deleteKvalitetsvurdering(kvalitetsvurderingId: UUID, kvalitetsvurderingVersion: Int) {
         kakaApiWebClient.delete()
             .uri { it.path("/kabal/kvalitetsvurderinger/v$kvalitetsvurderingVersion/$kvalitetsvurderingId").build() }
@@ -85,6 +89,7 @@ class KakaApiClient(
             .block()
     }
 
+    @Retryable
     fun getValidationErrors(
         kvalitetsvurderingId: UUID,
         ytelseId: String,
