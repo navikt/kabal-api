@@ -26,7 +26,7 @@ class LoggingRetryListener : RetryListener {
         val methodName = context.getAttribute("method")?.toString() ?: "unknown method"
         val retryCount = context.retryCount
 
-        logger.warn("Retry attempt $retryCount for $methodName due to: ${throwable.javaClass.name}")
+        logger.debug("Retry attempt $retryCount for $methodName due to: ${throwable.javaClass.name}")
 
         super.onError(context, callback, throwable)
     }
