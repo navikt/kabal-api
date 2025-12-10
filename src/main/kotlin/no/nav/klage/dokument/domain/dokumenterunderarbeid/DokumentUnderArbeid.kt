@@ -1,6 +1,7 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
 import jakarta.persistence.*
+import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.Hibernate
 import org.hibernate.annotations.BatchSize
@@ -21,7 +22,7 @@ import java.util.*
 abstract class DokumentUnderArbeid(
     @Id
     open val id: UUID = UUID.randomUUID(),
-    @Column(name = "name")
+    @Column(name = "name", length = MAX_NAME_LENGTH)
     open var name: String,
     @Column(name = "behandling_id")
     open var behandlingId: UUID,
@@ -47,6 +48,16 @@ abstract class DokumentUnderArbeid(
     @AuditJoinTable(name = "dua_dokument_under_arbeid_dokarkiv_reference_aud")
     open var dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
 ) : Comparable<DokumentUnderArbeid> {
+
+    companion object {
+        const val MAX_NAME_LENGTH = 196
+    }
+
+    init {
+        if (name.length > MAX_NAME_LENGTH) {
+            throw DokumentValidationException("Dokumentnavnet kan ikke være lenger enn $MAX_NAME_LENGTH tegn")
+        }
+    }
 
     override fun compareTo(other: DokumentUnderArbeid): Int =
         created.compareTo(other.created)
