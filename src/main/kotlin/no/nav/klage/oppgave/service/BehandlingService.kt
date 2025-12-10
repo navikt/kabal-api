@@ -712,7 +712,7 @@ class BehandlingService(
         }
 
         if (dokumentUnderArbeidRepository.findByBehandlingIdAndMarkertFerdigIsNull(behandlingId).isNotEmpty()) {
-            throw IllegalOperation("Påbegynte dokumenter må slettes/arkiveres før du kan legge tilbake saken.")
+            throw IllegalOperation("Dokumenter under arbeid må ferdigstilles eller slettes før du kan legge tilbake oppgaven.")
         }
 
         setSaksbehandler(
