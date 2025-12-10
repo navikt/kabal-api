@@ -711,6 +711,10 @@ class BehandlingService(
             }
         }
 
+        if (dokumentUnderArbeidRepository.findByBehandlingIdAndMarkertFerdigIsNull(behandlingId).isNotEmpty()) {
+            throw IllegalOperation("Dokumenter under arbeid må ferdigstilles eller slettes før du kan legge tilbake oppgaven.")
+        }
+
         setSaksbehandler(
             behandlingId = behandlingId,
             tildeltSaksbehandlerIdent = null,
@@ -770,6 +774,8 @@ class BehandlingService(
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
             }
         } else {
+            //Means fradeling
+
             if (fradelingReason == null &&
                 !innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole() &&
                 !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()
@@ -798,6 +804,8 @@ class BehandlingService(
                 logger.debug("Fradeling av behandling ble registrert i Infotrygd.")
             }
 
+            //Perform cleanup
+
             if (behandling.sattPaaVent != null) {
                 //Fjern på vent-status
                 setSattPaaVent(
@@ -809,6 +817,23 @@ class BehandlingService(
                     input = null,
                 )
             }
+
+            if (behandling is BehandlingWithKvalitetsvurdering) {
+                kakaApiGateway.deleteKvalitetsvurdering(
+                    kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
+                    kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
+                )
+
+                val kakaOutput = kakaApiGateway.createKvalitetsvurdering(
+                    kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
+                )
+
+                behandling.kakaKvalitetsvurderingId = kakaOutput.kvalitetsvurderingId
+            }
+
+            behandling.utfall = null
+            behandling.registreringshjemler.clear()
+            behandling.tilbakekreving = false
 
             klageNotificationsApiClient.deleteNotificationsForBehandling(behandlingId = behandlingId)
         }
