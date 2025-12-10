@@ -8,6 +8,7 @@ import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.PDFDocument
 import no.nav.klage.dokument.domain.SmartDocumentAccessDocumentEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid.Companion.MAX_NAME_LENGTH
 import no.nav.klage.dokument.exceptions.*
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
@@ -1089,6 +1090,10 @@ class DokumentUnderArbeidService(
             "Validated updateDokumentTitle action. Duration: {} ms",
             duration.inWholeMilliseconds
         )
+
+        if (dokumentTitle.length > MAX_NAME_LENGTH) {
+            throw DokumentValidationException("Dokumentnavnet kan ikke være lenger enn $MAX_NAME_LENGTH tegn")
+        }
 
         dokumentUnderArbeid.name = dokumentTitle
 
@@ -2349,5 +2354,3 @@ class DokumentUnderArbeidService(
         )
     }
 }
-
-
