@@ -145,6 +145,8 @@ class DokumentUnderArbeidService(
             duration.inWholeMilliseconds
         )
 
+        //File gets deleted when uploading, so keep this for later.
+        val fileSize = file.length()
         val mellomlagerId = mellomlagerService.uploadFile(file = file, systemContext = systemContext)
 
         val now = LocalDateTime.now()
@@ -154,7 +156,7 @@ class DokumentUnderArbeidService(
                 OpplastetDokumentUnderArbeidAsHoveddokument(
                     mellomlagerId = mellomlagerId,
                     mellomlagretDate = now,
-                    size = file.length(),
+                    size = fileSize,
                     name = title,
                     dokumentType = dokumentType,
                     behandlingId = behandlingId,
