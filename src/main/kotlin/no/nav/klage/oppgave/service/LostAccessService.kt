@@ -37,9 +37,16 @@ class LostAccessService(
      * Note that klage-notifications-api is idempotent when it comes to creating notifications.
      *
      * Would have used events (instead of cron) if they were available for all cases.
+     *
+     * Schedule:
+     * - Every 15 minutes, Mon-Fri, 6:00-17:59
+     * - Every hour, Mon-Fri, 18:00-21:00
+     * - At 10:00, 12:00, 16:00, 19:00 on Sat-Sun
      */
     @Transactional(readOnly = true)
-    @Scheduled(cron = "0 0/3 * * * ?")
+    @Scheduled(cron = "0 0/15 6-17 * * MON-FRI")
+    @Scheduled(cron = "0 0 19-21 * * MON-FRI")
+    @Scheduled(cron = "0 0 10,12,16,19 * * SAT-SUN")
     @SchedulerLock(name = "createLostAccessNotifications")
     fun createLostAccessNotifications() {
         logger.debug("Checking for lost access notifications to create")
