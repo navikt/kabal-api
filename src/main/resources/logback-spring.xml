@@ -4,6 +4,8 @@
 
     <turboFilter class="no.nav.klage.oppgave.config.SseBrokenPipeLogFilter" />
     <turboFilter class="no.nav.klage.oppgave.config.InternalLogFilter" />
+    <turboFilter class="no.nav.klage.oppgave.config.HibernateProxyWarningLogFilter" />
+    <turboFilter class="no.nav.klage.oppgave.config.PdfBoxFallbackFontLogFilter" />
 
     <springProfile name="local">
         <appender name="text" class="ch.qos.logback.core.ConsoleAppender">
