@@ -4,26 +4,26 @@ import java.time.LocalDate
 
 abstract class UpdateOppgaveRequest(
     open val versjon: Int,
-    open val endretAvEnhetsnr: String,
+    open val endretAvEnhetsnr: String?,
 )
 
-data class TildelGosysOppgaveInput(
+data class TildelGosysOppgaveRequest(
     override val versjon: Int,
-    override val endretAvEnhetsnr: String,
+    override val endretAvEnhetsnr: String?,
     val tilordnetRessurs: String,
     val tildeltEnhetsnr: String,
     val mappeId: Long?,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
-data class FradelGosysOppgaveInput(
+data class FradelGosysOppgaveRequest(
     override val versjon: Int,
-    override val endretAvEnhetsnr: String,
+    override val endretAvEnhetsnr: String?,
     val tilordnetRessurs: String?,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
-data class UpdateGosysOppgaveOnCompletedBehandlingInput(
+data class UpdateGosysOppgaveOnCompletedBehandlingRequest(
     override val versjon: Int,
-    override val endretAvEnhetsnr: String,
+    override val endretAvEnhetsnr: String?,
     val fristFerdigstillelse: LocalDate,
     val mappeId: Long?,
     val tilordnetRessurs: String?,
@@ -31,9 +31,9 @@ data class UpdateGosysOppgaveOnCompletedBehandlingInput(
     val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
-data class UpdateFristInGosysOppgaveInput(
+data class UpdateFristInGosysOppgaveRequest(
     override val versjon: Int,
-    override val endretAvEnhetsnr: String,
+    override val endretAvEnhetsnr: String?,
     val fristFerdigstillelse: LocalDate,
     val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
@@ -43,15 +43,15 @@ data class Kommentar(
     val automatiskGenerert: Boolean,
 )
 
-data class AddKommentarToGosysOppgaveInput(
+data class AddKommentarToGosysOppgaveRequest(
     override val versjon: Int,
-    override val endretAvEnhetsnr: String,
+    override val endretAvEnhetsnr: String?,
     val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
-data class AvsluttGosysOppgaveInput(
+data class AvsluttGosysOppgaveRequest(
     override val versjon: Int,
-    override val endretAvEnhetsnr: String,
+    override val endretAvEnhetsnr: String?,
     val status: Status,
     val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
