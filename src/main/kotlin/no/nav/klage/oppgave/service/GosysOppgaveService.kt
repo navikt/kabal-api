@@ -42,8 +42,6 @@ class GosysOppgaveService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
-
-        const val ENDRET_AV_ENHETSNR_SYSTEM = "9999"
     }
 
     fun getGosysOppgave(gosysOppgaveId: Long, fnrToValidate: String? = null): GosysOppgaveView {
@@ -76,12 +74,11 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = if (systemContext) "9999" else {
-            microsoftGraphService.getDataOmInnloggetSaksbehandler().enhet.enhetId
-        }
+        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext)
+
         val updateGosysOppgaveRequest =
             if (tildeltSaksbehandlerIdent.isNullOrBlank()) {
-                FradelGosysOppgaveInput(
+                FradelGosysOppgaveRequest(
                     versjon = currentGosysOppgave.versjon,
                     endretAvEnhetsnr = endretAvEnhetsnr,
                     tilordnetRessurs = null,
@@ -90,7 +87,7 @@ class GosysOppgaveService(
                 val tildeltSaksbehandlerInfo =
                     microsoftGraphService.getPersonligDataOmSaksbehandlerMedIdent(tildeltSaksbehandlerIdent)
 
-                TildelGosysOppgaveInput(
+                TildelGosysOppgaveRequest(
                     versjon = currentGosysOppgave.versjon,
                     endretAvEnhetsnr = endretAvEnhetsnr,
                     tilordnetRessurs = tildeltSaksbehandlerIdent,
@@ -144,9 +141,11 @@ class GosysOppgaveService(
             return
         }
 
-        val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveInput(
+        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext)
+
+        val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveRequest(
             versjon = currentGosysOppgave.versjon,
-            endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
+            endretAvEnhetsnr = endretAvEnhetsnr,
             fristFerdigstillelse = behandling.frist!!,
             kommentar = Kommentar(
                 tekst = "Frist satt på bakgrunn av intern frist i Kabal.",
@@ -184,9 +183,11 @@ class GosysOppgaveService(
             return
         }
 
-        val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveInput(
+        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext)
+
+        val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveRequest(
             versjon = currentGosysOppgave.versjon,
-            endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
+            endretAvEnhetsnr = endretAvEnhetsnr,
             fristFerdigstillelse = behandling.varsletBehandlingstid!!.varsletFrist!!,
             kommentar = Kommentar(
                 tekst = "Frist satt på bakgrunn av varslet behandlingstid.",
@@ -219,9 +220,11 @@ class GosysOppgaveService(
             return
         }
 
-        val updateGosysOppgaveRequest = UpdateGosysOppgaveOnCompletedBehandlingInput(
+        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext)
+
+        val updateGosysOppgaveRequest = UpdateGosysOppgaveOnCompletedBehandlingRequest(
             versjon = currentGosysOppgave.versjon,
-            endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
+            endretAvEnhetsnr = endretAvEnhetsnr,
             fristFerdigstillelse = LocalDate.now(),
             mappeId = behandling.gosysOppgaveUpdate!!.oppgaveUpdateMappeId,
             tilordnetRessurs = null,
@@ -260,9 +263,11 @@ class GosysOppgaveService(
             return
         }
 
-        val updateGosysOppgaveRequest = AddKommentarToGosysOppgaveInput(
+        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext)
+
+        val updateGosysOppgaveRequest = AddKommentarToGosysOppgaveRequest(
             versjon = currentGosysOppgave.versjon,
-            endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
+            endretAvEnhetsnr = endretAvEnhetsnr,
             kommentar = Kommentar(
                 tekst = kommentar,
                 automatiskGenerert = false
@@ -272,7 +277,7 @@ class GosysOppgaveService(
         updateOppgaveAndPublishEvent(
             behandling = behandling,
             updateGosysOppgaveRequest = updateGosysOppgaveRequest,
-            systemContext = true
+            systemContext = systemContext,
         )
     }
 
@@ -292,9 +297,9 @@ class GosysOppgaveService(
             return
         }
 
-        val avsluttGosysOppgaveInput = AvsluttGosysOppgaveInput(
+        val avsluttGosysOppgaveRequest = AvsluttGosysOppgaveRequest(
             versjon = currentGosysOppgave.versjon,
-            endretAvEnhetsnr = ENDRET_AV_ENHETSNR_SYSTEM,
+            endretAvEnhetsnr = null,
             status = Status.FERDIGSTILT,
             kommentar = Kommentar(
                 tekst = "Klageinstansen har ferdigstilt behandlingen i Kabal med utfall: ${behandling.utfall!!.navn}.",
@@ -304,7 +309,7 @@ class GosysOppgaveService(
 
         updateOppgaveAndPublishEvent(
             behandling = behandling,
-            updateGosysOppgaveRequest = avsluttGosysOppgaveInput,
+            updateGosysOppgaveRequest = avsluttGosysOppgaveRequest,
             systemContext = true
         )
     }
@@ -479,8 +484,12 @@ class GosysOppgaveService(
                 throw GosysOppgaveNotEditableException("Gosys-oppgave $gosysOppgaveId kan ikke oppdateres fordi status er ${currentGosysOppgave.status}")
             } else {
                 logger.warn("Gosys-oppgave $gosysOppgaveId kan ikke oppdateres, returnerer")
-                return false
+                false
             }
         } else true
+    }
+
+    private fun getEndretAvEnhetsnr(systemContext: Boolean): String? = if (systemContext) null else {
+        microsoftGraphService.getDataOmInnloggetSaksbehandler().enhet.enhetId
     }
 }
