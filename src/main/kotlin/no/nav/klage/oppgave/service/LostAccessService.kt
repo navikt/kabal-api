@@ -44,9 +44,9 @@ class LostAccessService(
      * - At 10:00, 12:00, 16:00, 19:00 on Sat-Sun
      */
     @Transactional(readOnly = true)
-    @Scheduled(cron = "0 0/15 6-17 * * MON-FRI")
-    @Scheduled(cron = "0 0 19-21 * * MON-FRI")
-    @Scheduled(cron = "0 0 10,12,16,19 * * SAT-SUN")
+    @Scheduled(cron = "0 0/15 6-17 * * MON-FRI", initialDelay = 60_000)
+    @Scheduled(cron = "0 0 19-21 * * MON-FRI", initialDelay = 60_000)
+    @Scheduled(cron = "0 0 10,12,16,19 * * SAT-SUN", initialDelay = 60_000)
     @SchedulerLock(name = "createLostAccessNotifications")
     fun createLostAccessNotifications() {
         logger.debug("Checking for lost access notifications to create")

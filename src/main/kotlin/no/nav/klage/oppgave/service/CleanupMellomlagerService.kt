@@ -11,7 +11,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.util.concurrent.TimeUnit
 
 @Service
 class CleanupMellomlagerService(
@@ -27,7 +26,7 @@ class CleanupMellomlagerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 720, initialDelay = 10)
+    @Scheduled(cron = "0 0 6,18 * * *", initialDelay = 60_000)
     @SchedulerLock(name = "cleanupFinalizedDUAs")
     @Transactional
     fun cleanupFinalizedDUAs() {

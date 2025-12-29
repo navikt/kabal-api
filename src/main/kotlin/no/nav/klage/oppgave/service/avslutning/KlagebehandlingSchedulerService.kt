@@ -13,7 +13,6 @@ import no.nav.klage.oppgave.service.KafkaDispatcher
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import java.util.concurrent.TimeUnit
 
 @Service
 class KlagebehandlingSchedulerService(
@@ -29,7 +28,7 @@ class KlagebehandlingSchedulerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 60, initialDelay = 6)
+    @Scheduled(cron = "0 5 * * * *", initialDelay = 60_000)
     @SchedulerLock(name = "cleanupMergedDocuments")
     fun cleanupMergedDocuments() {
         logSchedulerMessage(functionName = ::cleanupMergedDocuments.name)
@@ -37,7 +36,7 @@ class KlagebehandlingSchedulerService(
     }
 
     //TODO: Hvorfor vente 2 minutter?
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 2, initialDelay = 4)
+    @Scheduled(cron = "0 */2 * * * *", initialDelay = 60_000)
     @SchedulerLock(name = "avsluttBehandling")
     fun avsluttBehandling() {
         logSchedulerMessage(functionName = ::avsluttBehandling.name)
@@ -55,7 +54,7 @@ class KlagebehandlingSchedulerService(
         }
     }
 
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 3)
+    @Scheduled(cron = "0 */4 * * * *", initialDelay = 60_000)
     @SchedulerLock(name = "dispatchUnsentVedtakToKafka")
     fun dispatchUnsentVedtakToKafka() {
         logSchedulerMessage(functionName = ::dispatchUnsentVedtakToKafka.name)
@@ -65,7 +64,7 @@ class KlagebehandlingSchedulerService(
         )
     }
 
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 7)
+    @Scheduled(cron = "0 1/4 * * * *", initialDelay = 60_000)
     @SchedulerLock(name = "dispatchUnsentDVHStatsToKafka")
     fun dispatchUnsentDVHStatsToKafka() {
         logSchedulerMessage(functionName = ::dispatchUnsentDVHStatsToKafka.name)
@@ -75,7 +74,7 @@ class KlagebehandlingSchedulerService(
         )
     }
 
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 10)
+    @Scheduled(cron = "0 2/4 * * * *", initialDelay = 60_000)
     @SchedulerLock(name = "dispatchUnsentBehandlingEventsToKafka")
     fun dispatchUnsentBehandlingEventsToKafka() {
         logSchedulerMessage(functionName = ::dispatchUnsentBehandlingEventsToKafka.name)
@@ -85,7 +84,7 @@ class KlagebehandlingSchedulerService(
         )
     }
 
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 4, initialDelay = 3)
+    @Scheduled(cron = "0 3/4 * * * *", initialDelay = 60_000)
     @SchedulerLock(name = "dispatchUnsentMinsideMicrofrontendEventsToKafka")
     fun dispatchUnsentMinsideMicrofrontendEventsToKafka() {
         logSchedulerMessage(functionName = ::dispatchUnsentMinsideMicrofrontendEventsToKafka.name)

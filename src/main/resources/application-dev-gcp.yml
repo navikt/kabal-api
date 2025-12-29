@@ -44,8 +44,6 @@ DOKARKIV_BASE_URL: https://dokarkiv-q2.dev-fss-pub.nais.io/rest/journalpostapi/v
 
 CLAM_AV_URL: http://clamav.nais-system/scan
 
-FERDIGSTILLE_DOKUMENTER_DELAY_MILLIS: 20000
-
 KAKA_VERSION_2_DATE: 2022-12-20
 KAKA_VERSION_3_DATE: 2025-11-11
 

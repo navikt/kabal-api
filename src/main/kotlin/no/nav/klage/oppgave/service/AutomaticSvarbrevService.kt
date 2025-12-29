@@ -29,7 +29,6 @@ import org.springframework.stereotype.Service
 import java.nio.file.Files
 import java.time.LocalDateTime
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 @Service
 class AutomaticSvarbrevService(
@@ -50,7 +49,7 @@ class AutomaticSvarbrevService(
         private val svarbrevTitle = "Klageinstans orienterer om saksbehandlingen"
     }
 
-    @Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 2, initialDelay = 2)
+    @Scheduled(cron = "0 */2 * * * *", initialDelay = 60_000)
     @SchedulerLock(name = "handleAutomaticSvarbrevEvent")
     fun handleAutomaticSvarbrevEvents() {
         logSchedulerMessage(functionName = ::handleAutomaticSvarbrevEvents.name)

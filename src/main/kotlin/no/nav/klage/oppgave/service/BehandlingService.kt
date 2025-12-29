@@ -2940,7 +2940,7 @@ class BehandlingService(
     }
 
     //TODO: Delete after run
-    @Scheduled(cron = "\${MIGRATE_CRON}", zone = "Europe/Oslo")
+    @Scheduled(cron = "\${MIGRATE_CRON}", zone = "Europe/Oslo", initialDelay = 60_000)
     @SchedulerLock(name = "migrateKvalitetsvurderingerFromV2ToV3")
     fun migrateKvalitetsvurderingerFromV2ToV3() {
         val candidates =

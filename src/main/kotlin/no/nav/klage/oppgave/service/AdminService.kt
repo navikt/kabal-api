@@ -287,7 +287,7 @@ class AdminService(
     }
 
     @Transactional
-    @Scheduled(cron = "\${FIND_INACCESSIBLE_BEHANDLINGER_CRON}", zone = "Europe/Oslo")
+    @Scheduled(cron = "\${FIND_INACCESSIBLE_BEHANDLINGER_CRON}", zone = "Europe/Oslo", initialDelay = 60_000)
     @SchedulerLock(name = "findInaccessibleBehandlinger")
     fun logInaccessibleBehandlinger() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
@@ -476,7 +476,7 @@ class AdminService(
     }
 
     @Transactional
-    @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo")
+    @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo", initialDelay = 60_000)
     @SchedulerLock(name = "cleanupExpiredAssignees")
     fun cleanupExpiredAssignees() {
         logger.info("Running scheduled expired assignee check.")

@@ -45,7 +45,7 @@ class FerdigstillDokumentService(
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
-    @Scheduled(fixedDelayString = "\${FERDIGSTILLE_DOKUMENTER_DELAY_MILLIS}", initialDelay = 45000)
+    @Scheduled(cron = "*/30 * * * * *", initialDelay = 60_000)
     @SchedulerLock(name = "ferdigstillDokumenter")
     fun ferdigstillHovedDokumenter() {
         val hovedDokumenterIkkeFerdigstilte =
