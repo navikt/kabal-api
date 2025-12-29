@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
+import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.notifications.CreateGainedAccessNotificationEvent
 import no.nav.klage.oppgave.domain.notifications.CreateLostAccessNotificationEvent
 import no.nav.klage.oppgave.domain.notifications.CreateNotificationEvent
@@ -23,6 +24,7 @@ class LostAccessService(
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
     private val tilgangService: TilgangService,
+    private val schedulerHealthGate: SchedulerHealthGate,
 ) {
 
     companion object {
@@ -44,11 +46,12 @@ class LostAccessService(
      * - At 10:00, 12:00, 16:00, 19:00 on Sat-Sun
      */
     @Transactional(readOnly = true)
-    @Scheduled(cron = "0 0/15 6-17 * * MON-FRI", initialDelay = 60_000)
-    @Scheduled(cron = "0 0 19-21 * * MON-FRI", initialDelay = 60_000)
-    @Scheduled(cron = "0 0 10,12,16,19 * * SAT-SUN", initialDelay = 60_000)
+    @Scheduled(cron = "0 0/15 6-17 * * MON-FRI")
+    @Scheduled(cron = "0 0 19-21 * * MON-FRI")
+    @Scheduled(cron = "0 0 10,12,16,19 * * SAT-SUN")
     @SchedulerLock(name = "createLostAccessNotifications")
     fun createLostAccessNotifications() {
+        if (!schedulerHealthGate.isReady()) return
         logger.debug("Checking for lost access notifications to create")
         val start = System.currentTimeMillis()
         val tildelteBehandlinger =

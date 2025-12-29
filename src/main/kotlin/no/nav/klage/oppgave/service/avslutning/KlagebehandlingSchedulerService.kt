@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service.avslutning
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
 import no.nav.klage.oppgave.domain.kafka.EventType
@@ -21,6 +22,7 @@ class KlagebehandlingSchedulerService(
     private val kafkaDispatcher: KafkaDispatcher,
     private val kakaApiGateway: KakaApiGateway,
     private val cleanupAfterBehandlingEventListener: CleanupAfterBehandlingEventListener,
+    private val schedulerHealthGate: SchedulerHealthGate,
 ) {
 
     companion object {
@@ -28,17 +30,18 @@ class KlagebehandlingSchedulerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Scheduled(cron = "0 5 * * * *", initialDelay = 60_000)
+    @Scheduled(cron = "0 5 * * * *")
     @SchedulerLock(name = "cleanupMergedDocuments")
     fun cleanupMergedDocuments() {
+        if (!schedulerHealthGate.isReady()) return
         logSchedulerMessage(functionName = ::cleanupMergedDocuments.name)
         cleanupAfterBehandlingEventListener.cleanupMergedDocuments()
     }
 
-    //TODO: Hvorfor vente 2 minutter?
-    @Scheduled(cron = "0 */2 * * * *", initialDelay = 60_000)
+    @Scheduled(cron = "0 */2 * * * *")
     @SchedulerLock(name = "avsluttBehandling")
     fun avsluttBehandling() {
+        if (!schedulerHealthGate.isReady()) return
         logSchedulerMessage(functionName = ::avsluttBehandling.name)
         val behandlingList: List<Behandling> = behandlingService.findBehandlingerForAvslutning()
 
@@ -54,9 +57,10 @@ class KlagebehandlingSchedulerService(
         }
     }
 
-    @Scheduled(cron = "0 */4 * * * *", initialDelay = 60_000)
+    @Scheduled(cron = "0 */4 * * * *")
     @SchedulerLock(name = "dispatchUnsentVedtakToKafka")
     fun dispatchUnsentVedtakToKafka() {
+        if (!schedulerHealthGate.isReady()) return
         logSchedulerMessage(functionName = ::dispatchUnsentVedtakToKafka.name)
         kafkaDispatcher.dispatchEventsToKafka(
             type = EventType.KLAGE_VEDTAK,
@@ -64,9 +68,10 @@ class KlagebehandlingSchedulerService(
         )
     }
 
-    @Scheduled(cron = "0 1/4 * * * *", initialDelay = 60_000)
+    @Scheduled(cron = "0 1/4 * * * *")
     @SchedulerLock(name = "dispatchUnsentDVHStatsToKafka")
     fun dispatchUnsentDVHStatsToKafka() {
+        if (!schedulerHealthGate.isReady()) return
         logSchedulerMessage(functionName = ::dispatchUnsentDVHStatsToKafka.name)
         kafkaDispatcher.dispatchEventsToKafka(
             type = EventType.STATS_DVH,
@@ -74,9 +79,10 @@ class KlagebehandlingSchedulerService(
         )
     }
 
-    @Scheduled(cron = "0 2/4 * * * *", initialDelay = 60_000)
+    @Scheduled(cron = "0 2/4 * * * *")
     @SchedulerLock(name = "dispatchUnsentBehandlingEventsToKafka")
     fun dispatchUnsentBehandlingEventsToKafka() {
+        if (!schedulerHealthGate.isReady()) return
         logSchedulerMessage(functionName = ::dispatchUnsentBehandlingEventsToKafka.name)
         kafkaDispatcher.dispatchEventsToKafka(
             type = EventType.BEHANDLING_EVENT,
@@ -84,9 +90,10 @@ class KlagebehandlingSchedulerService(
         )
     }
 
-    @Scheduled(cron = "0 3/4 * * * *", initialDelay = 60_000)
+    @Scheduled(cron = "0 3/4 * * * *")
     @SchedulerLock(name = "dispatchUnsentMinsideMicrofrontendEventsToKafka")
     fun dispatchUnsentMinsideMicrofrontendEventsToKafka() {
+        if (!schedulerHealthGate.isReady()) return
         logSchedulerMessage(functionName = ::dispatchUnsentMinsideMicrofrontendEventsToKafka.name)
         kafkaDispatcher.dispatchEventsToKafka(
             type = EventType.MINSIDE_MICROFRONTEND_EVENT,

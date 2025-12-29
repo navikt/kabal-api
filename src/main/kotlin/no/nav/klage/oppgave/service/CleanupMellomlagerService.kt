@@ -6,6 +6,7 @@ import no.nav.klage.dokument.repositories.OpplastetDokumentUnderArbeidAsVedleggR
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumentRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.MellomlagerService
+import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -19,6 +20,7 @@ class CleanupMellomlagerService(
     private val opplastetDokumentUnderArbeidAsVedleggRepository: OpplastetDokumentUnderArbeidAsVedleggRepository,
     private val smartdokumentUnderArbeidAsHoveddokumentRepository: SmartdokumentUnderArbeidAsHoveddokumentRepository,
     private val smartdokumentUnderArbeidAsVedleggRepository: SmartdokumentUnderArbeidAsVedleggRepository,
+    private val schedulerHealthGate: SchedulerHealthGate,
 ) {
 
     companion object {
@@ -26,10 +28,11 @@ class CleanupMellomlagerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Scheduled(cron = "0 0 6,18 * * *", initialDelay = 60_000)
+    @Scheduled(cron = "0 0 6,18 * * *")
     @SchedulerLock(name = "cleanupFinalizedDUAs")
     @Transactional
     fun cleanupFinalizedDUAs() {
+        if (!schedulerHealthGate.isReady()) return
         val oneWeekAgo = LocalDateTime.now().minusWeeks(1)
         logger.debug("cleanupFinalizedDUAs, getting candidates finalized before {}.", oneWeekAgo)
 

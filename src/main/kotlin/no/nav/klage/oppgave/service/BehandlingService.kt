@@ -27,6 +27,7 @@ import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
 import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
+import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
@@ -111,6 +112,7 @@ class BehandlingService(
     private val kodeverkService: KodeverkService,
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
+    private val schedulerHealthGate: SchedulerHealthGate,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -2940,9 +2942,10 @@ class BehandlingService(
     }
 
     //TODO: Delete after run
-    @Scheduled(cron = "\${MIGRATE_CRON}", zone = "Europe/Oslo", initialDelay = 60_000)
+    @Scheduled(cron = "\${MIGRATE_CRON}", zone = "Europe/Oslo")
     @SchedulerLock(name = "migrateKvalitetsvurderingerFromV2ToV3")
     fun migrateKvalitetsvurderingerFromV2ToV3() {
+        if (!schedulerHealthGate.isReady()) return
         val candidates =
             behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull().filter {
                 it is BehandlingWithKvalitetsvurdering && it.kakaKvalitetsvurderingVersion == 2

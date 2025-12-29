@@ -8,6 +8,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbe
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsVedlegg
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
+import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.DocumentFinishedEvent
 import no.nav.klage.oppgave.domain.kafka.Employee
@@ -37,6 +38,7 @@ class FerdigstillDokumentService(
     private val dokumentMapper: DokumentMapper,
     private val behandlingService: BehandlingService,
     private val smartEditorApiGateway: DefaultKabalSmartEditorApiGateway,
+    private val schedulerHealthGate: SchedulerHealthGate,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -45,9 +47,10 @@ class FerdigstillDokumentService(
         private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
     }
 
-    @Scheduled(cron = "*/30 * * * * *", initialDelay = 60_000)
+    @Scheduled(cron = "*/30 * * * * *")
     @SchedulerLock(name = "ferdigstillDokumenter")
     fun ferdigstillHovedDokumenter() {
+        if (!schedulerHealthGate.isReady()) return
         val hovedDokumenterIkkeFerdigstilte =
             dokumentUnderArbeidCommonService.findHoveddokumenterByMarkertFerdigNotNullAndFerdigstiltNull()
         for (it in hovedDokumenterIkkeFerdigstilte) {

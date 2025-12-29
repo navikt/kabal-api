@@ -36,6 +36,7 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ROLLER
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLERE_I_ENHET_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.TILGANGER_CACHE
+import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
@@ -92,6 +93,7 @@ class AdminService(
     private val entityManager: EntityManager,
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
+    private val schedulerHealthGate: SchedulerHealthGate,
 ) {
 
     @Value("\${KLAGE_BACKEND_GROUP_ID}")
@@ -287,9 +289,10 @@ class AdminService(
     }
 
     @Transactional
-    @Scheduled(cron = "\${FIND_INACCESSIBLE_BEHANDLINGER_CRON}", zone = "Europe/Oslo", initialDelay = 60_000)
+    @Scheduled(cron = "\${FIND_INACCESSIBLE_BEHANDLINGER_CRON}", zone = "Europe/Oslo")
     @SchedulerLock(name = "findInaccessibleBehandlinger")
     fun logInaccessibleBehandlinger() {
+        if (!schedulerHealthGate.isReady()) return
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         teamLogger.debug(
             "Checking for inaccessible behandlinger. Number of unfinished behandlinger: {}",
@@ -476,9 +479,10 @@ class AdminService(
     }
 
     @Transactional
-    @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo", initialDelay = 60_000)
+    @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo")
     @SchedulerLock(name = "cleanupExpiredAssignees")
     fun cleanupExpiredAssignees() {
+        if (!schedulerHealthGate.isReady()) return
         logger.info("Running scheduled expired assignee check.")
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         unfinishedBehandlinger.forEach {

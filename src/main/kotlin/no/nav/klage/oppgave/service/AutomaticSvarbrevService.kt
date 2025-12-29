@@ -13,6 +13,7 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
+import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerNavn
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerPartId
@@ -42,6 +43,7 @@ class AutomaticSvarbrevService(
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     private val environment: Environment,
     private val taskListMerkantilService: TaskListMerkantilService,
+    private val schedulerHealthGate: SchedulerHealthGate,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -49,9 +51,10 @@ class AutomaticSvarbrevService(
         private val svarbrevTitle = "Klageinstans orienterer om saksbehandlingen"
     }
 
-    @Scheduled(cron = "0 */2 * * * *", initialDelay = 60_000)
+    @Scheduled(cron = "0 */2 * * * *")
     @SchedulerLock(name = "handleAutomaticSvarbrevEvent")
     fun handleAutomaticSvarbrevEvents() {
+        if (!schedulerHealthGate.isReady()) return
         logSchedulerMessage(functionName = ::handleAutomaticSvarbrevEvents.name)
         val automaticSvarbrevEventList = automaticSvarbrevEventRepository.getAllByStatusInOrderByCreated(
             statuses = listOf(AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.NOT_HANDLED)
