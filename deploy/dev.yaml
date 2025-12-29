@@ -77,7 +77,7 @@ db_type: POSTGRES_15
 kafka_pool: nav-dev
 
 replicasMin: 2
-replicasMax: 4
+replicasMax: 2
 
 adRoles:
   - name: KABAL_OPPGAVESTYRING_ALLE_ENHETER_ROLE_ID
@@ -109,4 +109,4 @@ envs:
   - name: JAVA_TOOL_OPTIONS
     value: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005
   - name: JAVA_OPTS
-    value: "-Xms1m -Xmx4096m"
+    value: "-Xms256m -Xmx4096m"
