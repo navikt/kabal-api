@@ -142,6 +142,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             kodeverkService = mockk(),
             behandlingEndretKafkaProducer = mockk(),
             klageNotificationsApiClient = mockk(relaxed = true),
+            schedulerHealthGate = mockk(relaxed = true),
         )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
