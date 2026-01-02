@@ -32,7 +32,7 @@ acl:
     application: tilleggsstonader-klage
     access: read
   - team: teamdagpenger
-    application: dp-saksbehandling
+    application: dp-kabal-integrasjon
     access: read
   - team: aap
     application: behandlingsflyt
