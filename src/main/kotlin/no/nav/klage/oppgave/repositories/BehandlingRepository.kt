@@ -34,7 +34,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         """
             select b
             from Behandling b
-            left join b.hjemler h
+            left join fetch b.hjemler h
             where b.ferdigstilling is null
             and b.feilregistrering is null
         """
