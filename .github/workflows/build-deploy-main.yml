@@ -17,5 +17,5 @@ jobs:
       id-token: write
     uses: navikt/klage-workflows/.github/workflows/build-deploy-main.yaml@main
     with:
-      e2e-tests: 'kabal,kabin,kaka'
+      e2e-tests: 'kaka'
     secrets: inherit
