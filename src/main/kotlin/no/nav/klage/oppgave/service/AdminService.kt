@@ -294,7 +294,7 @@ class AdminService(
     @SchedulerLock(name = "findInaccessibleBehandlinger", lockAtLeastFor = "PT1M")
     fun logInaccessibleBehandlinger() {
         if (!schedulerHealthGate.isReady()) return
-        val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+        val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler()
         teamLogger.debug(
             "Checking for inaccessible behandlinger. Number of unfinished behandlinger: {}",
             unfinishedBehandlinger.size
@@ -370,7 +370,7 @@ class AdminService(
         val unfinishedBehandlinger =
             unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler()
         val start = System.currentTimeMillis()
-        val unavailableBehandlinger = mutableSetOf<UUID>()
+        val unavailableBehandlinger = mutableSetOf<Behandling>()
         val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
         val ytelseToHjemlerMap = mutableMapOf<Ytelse, Set<Hjemmel>>()
 
@@ -386,7 +386,7 @@ class AdminService(
                                 it !in hjemlerForYtelseInInnstillinger
                             }
                         ) {
-                            unavailableBehandlinger.add(behandling.id)
+                            unavailableBehandlinger.add(behandling)
                         } else if (behandling.hjemler.any { it !in hjemlerForYtelseInInnstillinger }) {
                             missingHjemmelInRegistryBehandling.add(
                                 Pair(
@@ -403,10 +403,8 @@ class AdminService(
         }
 
         var errorLog = "Utilgjengelige behandlinger på grunn av hjemler: \n"
-        unavailableBehandlinger.forEach { behandling ->
-            val foundBehandling = behandlingRepository.findById(behandling).get()
-            val hjemler = foundBehandling.hjemler
-            errorLog += "Behandling-id: ${foundBehandling.id}, Hjemler: $hjemler \n"
+        unavailableBehandlinger.forEach { foundBehandling ->
+            errorLog += "Behandling-id: ${foundBehandling.id}, Hjemler: ${foundBehandling.hjemler} \n"
         }
         errorLog += "Behandlinger med hjemler som ikke fins i innstillinger: \n"
         missingHjemmelInRegistryBehandling.forEach {
