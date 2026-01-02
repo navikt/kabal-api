@@ -378,10 +378,9 @@ class AdminService(
             when (behandling) {
                 is Klagebehandling, is Ankebehandling, is Omgjoeringskravbehandling -> {
                     if (behandling.tildeling == null) {
-                        if (!ytelseToHjemlerMap.containsKey(behandling.ytelse)) {
-                            ytelseToHjemlerMap[behandling.ytelse] = kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
+                        val hjemlerForYtelseInInnstillinger = ytelseToHjemlerMap.getOrPut(behandling.ytelse) {
+                            kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
                         }
-                        val hjemlerForYtelseInInnstillinger = ytelseToHjemlerMap[behandling.ytelse]!!
                         if (behandling.hjemler.all {
                                 it !in hjemlerForYtelseInInnstillinger
                             }
