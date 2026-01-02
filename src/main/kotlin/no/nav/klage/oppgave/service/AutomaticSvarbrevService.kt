@@ -70,7 +70,7 @@ class AutomaticSvarbrevService(
         val behandling = try {
             behandlingService.getBehandlingForReadWithoutCheckForAccess(automaticSvarbrevEvent.behandlingId)
         } catch (ex: Exception) {
-            if (environment.activeProfiles.contains("dev-gcp")) {
+            if (environment.activeProfiles.contains("dev")) {
                 logger.debug("Missing behandling with id {} in dev, skipping", automaticSvarbrevEvent.behandlingId)
                 automaticSvarbrevEventRepository.delete(automaticSvarbrevEvent)
                 return

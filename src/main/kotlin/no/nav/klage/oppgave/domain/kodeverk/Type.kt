@@ -8,8 +8,8 @@ import java.util.*
 object LovligeTyper {
     private val lovligeTyperIProdGcp = EnumSet.of(Type.KLAGE)
     private val lovligeTyperIDevGcp = EnumSet.of(Type.KLAGE)
-    
-    fun lovligeTyper(environment: Environment): EnumSet<Type> = if (environment.activeProfiles.contains("prod-gcp")) {
+
+    fun lovligeTyper(environment: Environment): EnumSet<Type> = if (environment.activeProfiles.contains("prod")) {
         lovligeTyperIProdGcp
     } else {
         lovligeTyperIDevGcp

@@ -1237,7 +1237,7 @@ class DokumentUnderArbeidService(
             throw RuntimeException("document is not hoveddokument")
         }
 
-        if (hovedDokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN && activeSpringProfile != "dev-gcp") {
+        if (hovedDokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN && activeSpringProfile != "dev") {
             throw DokumentValidationException("Ekspedisjonsbrev til Trygderetten er ikke tilgjengelig i prod enda.")
         }
 

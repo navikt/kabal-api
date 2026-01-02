@@ -121,7 +121,7 @@ class DokumentUnderArbeidServiceWithJPATest : PostgresIntegrationTestBase() {
             tokenUtil = mockk(),
             innsynsbegjaeringTemplateId = "templateId",
             organisasjonsnummerTrygderetten = "123456789",
-            activeSpringProfile = "dev-gcp",
+            activeSpringProfile = "dev",
             documentPolicyService = mockk(),
         )
 

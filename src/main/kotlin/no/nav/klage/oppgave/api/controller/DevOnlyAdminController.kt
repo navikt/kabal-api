@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*
 import java.net.InetAddress
 import java.util.*
 
-@Profile("dev-gcp")
+@Profile("dev")
 @RestController
 @RequestMapping("/internal/dev")
 class DevOnlyAdminController(

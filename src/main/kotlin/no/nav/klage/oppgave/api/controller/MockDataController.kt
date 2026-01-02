@@ -31,7 +31,7 @@ import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
-@Profile("dev-gcp")
+@Profile("dev")
 @RestController
 @RequestMapping("mockdata")
 class MockDataController(
