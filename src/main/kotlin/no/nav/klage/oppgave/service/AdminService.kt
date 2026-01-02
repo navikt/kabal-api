@@ -294,7 +294,6 @@ class AdminService(
     @SchedulerLock(name = "findInaccessibleBehandlinger", lockAtLeastFor = "PT1M")
     fun logInaccessibleBehandlinger() {
         if (!schedulerHealthGate.isReady()) return
-        logger.debug("Calling findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler()")
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler()
         teamLogger.debug(
             "Checking for inaccessible behandlinger. Number of unfinished behandlinger: {}",
