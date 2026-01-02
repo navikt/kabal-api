@@ -289,7 +289,7 @@ class AdminService(
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     @Scheduled(cron = $$"${FIND_INACCESSIBLE_BEHANDLINGER_CRON}", zone = "Europe/Oslo")
     @SchedulerLock(name = "findInaccessibleBehandlinger", lockAtLeastFor = "PT1M")
     fun logInaccessibleBehandlinger() {
