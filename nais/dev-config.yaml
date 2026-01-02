@@ -68,7 +68,7 @@ inboundApplications:
   - application: ung-sak
     namespace: k9saksbehandling
     cluster: dev-gcp
-springProfile: dev-gcp
+springProfile: dev
 tenant: trygdeetaten.no
 db_tier: db-custom-1-3840
 db_size: 10
