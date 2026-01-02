@@ -30,6 +30,17 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
 
     fun findByFerdigstillingIsNullAndFeilregistreringIsNull(): List<Behandling>
 
+    @Query(
+        """
+            select b
+            from Behandling b
+            left join b.hjemler h
+            where b.ferdigstilling is null
+            and b.feilregistrering is null
+        """
+    )
+    fun findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler(): List<Behandling>
+
     fun findByTildelingEnhetAndFerdigstillingIsNullAndFeilregistreringIsNull(enhet: String): List<Behandling>
 
     fun findByTildelingIsNotNullAndFerdigstillingIsNullAndFeilregistreringIsNull(): List<Behandling>
@@ -131,7 +142,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         """
             select b
             from Behandling b
-            where b.feilregistrering is null            
+            where b.feilregistrering is null
         """
     )
     fun findAllForAdminStreamed(): Stream<Behandling>

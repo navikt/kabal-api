@@ -12,6 +12,7 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
@@ -288,9 +289,9 @@ class AdminService(
         }
     }
 
-    @Transactional
-    @Scheduled(cron = "\${FIND_INACCESSIBLE_BEHANDLINGER_CRON}", zone = "Europe/Oslo")
-    @SchedulerLock(name = "findInaccessibleBehandlinger")
+    @Transactional(readOnly = true)
+    @Scheduled(cron = $$"${FIND_INACCESSIBLE_BEHANDLINGER_CRON}", zone = "Europe/Oslo")
+    @SchedulerLock(name = "findInaccessibleBehandlinger", lockAtLeastFor = "PT1M")
     fun logInaccessibleBehandlinger() {
         if (!schedulerHealthGate.isReady()) return
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
@@ -367,16 +368,20 @@ class AdminService(
 
     fun checkForUnavailableDueToHjemler(unfinishedBehandlingerInput: List<Behandling>?): String {
         val unfinishedBehandlinger =
-            unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+            unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler()
         val start = System.currentTimeMillis()
         val unavailableBehandlinger = mutableSetOf<UUID>()
         val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
+        val ytelseToHjemlerMap = mutableMapOf<Ytelse, Set<Hjemmel>>()
+
         unfinishedBehandlinger.forEach { behandling ->
             when (behandling) {
                 is Klagebehandling, is Ankebehandling, is Omgjoeringskravbehandling -> {
                     if (behandling.tildeling == null) {
-                        val hjemlerForYtelseInInnstillinger =
-                            kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
+                        if (!ytelseToHjemlerMap.containsKey(behandling.ytelse)) {
+                            ytelseToHjemlerMap[behandling.ytelse] = kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
+                        }
+                        val hjemlerForYtelseInInnstillinger = ytelseToHjemlerMap[behandling.ytelse]!!
                         if (behandling.hjemler.all {
                                 it !in hjemlerForYtelseInInnstillinger
                             }
