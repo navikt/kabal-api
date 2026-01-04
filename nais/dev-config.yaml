@@ -59,6 +59,9 @@ inboundApplications:
   - application: dp-behov-send-til-ka
     namespace: teamdagpenger
     cluster: dev-gcp
+  - application: dp-kabal-integrasjon
+    namespace: teamdagpenger
+    cluster: dev-gcp
   - application: behandlingsflyt
     namespace: aap
     cluster: dev-gcp

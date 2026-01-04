@@ -34,6 +34,9 @@ acl:
   - team: teamdagpenger
     application: dp-saksbehandling
     access: read
+  - team: teamdagpenger
+    application: dp-kabal-integrasjon
+    access: read
   - team: aap
     application: behandlingsflyt
     access: read
