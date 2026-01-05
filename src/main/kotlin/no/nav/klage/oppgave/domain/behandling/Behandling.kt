@@ -16,6 +16,7 @@ import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
 import org.hibernate.annotations.BatchSize
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.hibernate.envers.Audited
@@ -26,6 +27,7 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 
 @Entity
+@DynamicUpdate
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "behandling", schema = "klage")
 @DiscriminatorColumn(name = "behandling_type")
