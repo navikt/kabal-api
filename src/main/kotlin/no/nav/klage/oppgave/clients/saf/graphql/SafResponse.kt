@@ -177,6 +177,7 @@ enum class Tema {
     KTR, //Kontroll
     MED, //Medlemskap
     MOB, //Mobilitetsfremmende stønad
+    OLJ, //Oljepionerene
     OMS, //Omsorgspenger, pleiepenger og opplæringspenger
     OPA, //Oppfølging - Arbeidsgiver
     OPP, //Oppfølging
