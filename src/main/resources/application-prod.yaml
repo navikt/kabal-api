@@ -59,6 +59,8 @@ GOSYS_OPPGAVE_SCOPE: prod-fss.oppgavehandtering.oppgave
 
 TILGANGSMASKINEN_SCOPE: prod-gcp.tilgangsmaskin.populasjonstilgangskontroll
 
+SKJERMEDE_PERSONER_PIP_SCOPE: prod-gcp.nom.skjermede-personer-pip
+
 FSS_CLUSTER: prod-fss
 
 SETTINGS_CLEANUP_CRON: 0 15 16 * * WED

@@ -7,7 +7,6 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.tilgangsmaskinen.TilgangsmaskinenRestClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
@@ -36,8 +35,6 @@ class TilgangServiceTest {
 
     private val tilgangService =
         TilgangService(
-            personService = personService,
-            egenAnsattService = egenAnsattService,
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             saksbehandlerService = saksbehandlerService,
             tilgangsmaskinenRestClient = tilgangsmaskinenRestClient,

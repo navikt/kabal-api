@@ -36,6 +36,7 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
         const val GOSYSOPPGAVE_OPPGAVETYPE_CACHE = "gosysoppgave-oppgavetype"
         const val GOSYSOPPGAVE_ENHETSMAPPER_CACHE = "gosysoppgave-enhetmapper"
         const val GOSYSOPPGAVE_ENHETSMAPPE_CACHE = "gosysoppgave-enhetmappe"
+        const val PERSON_IS_SKJERMET_CACHE = "person-is-skjermet"
 
 
         val cacheKeys =
@@ -57,6 +58,7 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
                 GOSYSOPPGAVE_ENHETSMAPPER_CACHE,
                 GOSYSOPPGAVE_ENHETSMAPPE_CACHE,
                 HJEMLER_FOR_YTELSE_CACHE,
+                PERSON_IS_SKJERMET_CACHE,
             )
 
         @Suppress("JAVA_CLASS_ON_COMPANION")
