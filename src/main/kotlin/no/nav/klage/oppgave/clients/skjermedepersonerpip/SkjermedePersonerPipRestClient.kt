@@ -19,14 +19,19 @@ class SkjermedePersonerPipRestClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun personIsSkjermet(fnr: String): Boolean {
+    fun personIsSkjermet(fnr: String, systemContext: Boolean): Boolean {
         logger.debug("Calling personIsSkjermet")
+        val token = if (systemContext) {
+            tokenUtil.getAppAccessTokenWithSkjermedePersonerPipScope()
+        } else {
+            tokenUtil.getSaksbehandlerAccessTokenWithSkjermedePersonerPipScope()
+        }
         return runWithTimingAndLogging {
             skjermedePersonerPipWebClient.post()
                 .uri { it.path("/skjermet").build() }
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithSkjermedePersonerPipScope()}"
+                    "Bearer $token"
                 )
                 .bodyValue(Request(personident = fnr))
                 .retrieve()

@@ -39,7 +39,7 @@ class BehandlingEndretKafkaProducer(
 
         val erStrengtFortrolig = personInfo?.harBeskyttelsesbehovStrengtFortrolig() ?: false
         val erFortrolig = personInfo?.harBeskyttelsesbehovFortrolig() ?: false
-        val erEgenAnsatt = personInfo?.let { egenAnsattService.erEgenAnsatt(foedselsnr = it.foedselsnr) } ?: false
+        val erEgenAnsatt = personInfo?.let { egenAnsattService.erEgenAnsatt(foedselsnr = it.foedselsnr, systemContext = true) } ?: false
 
         val json = behandling.mapToSkjemaV2(
             erStrengtFortrolig = erStrengtFortrolig,

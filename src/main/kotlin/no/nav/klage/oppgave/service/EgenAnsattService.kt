@@ -9,6 +9,6 @@ class EgenAnsattService(
     private val skjermedePersonerPipRestClient: SkjermedePersonerPipRestClient
 ) {
     @Cacheable(CacheWithJCacheConfiguration.PERSON_IS_SKJERMET_CACHE)
-    fun erEgenAnsatt(foedselsnr: String): Boolean =
-        skjermedePersonerPipRestClient.personIsSkjermet(fnr = foedselsnr)
+    fun erEgenAnsatt(foedselsnr: String, systemContext: Boolean = false): Boolean =
+        skjermedePersonerPipRestClient.personIsSkjermet(fnr = foedselsnr, systemContext = systemContext)
 }

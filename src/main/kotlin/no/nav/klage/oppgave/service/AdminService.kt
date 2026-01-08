@@ -340,7 +340,7 @@ class AdminService(
                         }
                     }
 
-                    if (egenAnsattService.erEgenAnsatt(person.foedselsnr)) {
+                    if (egenAnsattService.erEgenAnsatt(person.foedselsnr, systemContext = true)) {
                         behandling.tildeling?.saksbehandlerident?.let {
                             if (!saksbehandlerService.hasEgenAnsattRole(ident = it, useCache = true)) {
                                 egenAnsattBehandlinger.add(behandling.id.toString())
