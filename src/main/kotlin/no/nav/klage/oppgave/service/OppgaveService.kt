@@ -225,7 +225,9 @@ class OppgaveService(
                     }
                 }
             }
-            specification = specification.and(typeSpecifications)
+            if (typeSpecifications != null) {
+                specification = specification.and(typeSpecifications)
+            }
         }
         return specification
     }
@@ -255,7 +257,9 @@ class OppgaveService(
                     }
                 }
             }
-            specification = specification.and(ytelseSpecifications)
+            if (ytelseSpecifications != null) {
+                specification = specification.and(ytelseSpecifications)
+            }
         }
         return specification
     }

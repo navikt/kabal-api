@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.config
 
 
 import no.nav.klage.oppgave.util.getLogger
-import org.springframework.boot.autoconfigure.cache.JCacheManagerCustomizer
+import org.springframework.boot.cache.autoconfigure.JCacheManagerCustomizer
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.env.Environment

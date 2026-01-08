@@ -16,6 +16,7 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
@@ -27,6 +28,7 @@ import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
 import java.time.Duration
 
 
+@EnableKafka
 @Configuration
 class AivenKafkaConfiguration(
     @Value("\${KAFKA_BROKERS}")
@@ -50,6 +52,12 @@ class AivenKafkaConfiguration(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    //Common config
+    @Bean
+    fun commonKafkaConfig() = mapOf(
+        BOOTSTRAP_SERVERS_CONFIG to kafkaBrokers
+    ) + securityConfig()
+
     //Producer bean
     @Bean
     fun aivenKafkaTemplate(): KafkaTemplate<String, String> {
@@ -58,7 +66,7 @@ class AivenKafkaConfiguration(
             ProducerConfig.ACKS_CONFIG to "1",
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
             ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-        ) + commonConfig()
+        ) + commonKafkaConfig()
 
         return KafkaTemplate(DefaultKafkaProducerFactory(config))
     }
@@ -67,7 +75,7 @@ class AivenKafkaConfiguration(
     @Bean
     fun egenAnsattKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
-        factory.consumerFactory = egenAnsattConsumerFactory()
+        factory.setConsumerFactory(egenAnsattConsumerFactory())
         factory.containerProperties.ackMode = AckMode.MANUAL
         factory.containerProperties.idleEventInterval = 3000L
         factory.setCommonErrorHandler(CommonLoggingErrorHandler())
@@ -84,7 +92,7 @@ class AivenKafkaConfiguration(
         aivenSchemaRegistryClient: SchemaRegistryClient,
     ): ConcurrentKafkaListenerContainerFactory<String, GenericRecord> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, GenericRecord>()
-        factory.consumerFactory = leesahConsumerFactory(aivenSchemaRegistryClient = aivenSchemaRegistryClient)
+        factory.setConsumerFactory(leesahConsumerFactory(aivenSchemaRegistryClient = aivenSchemaRegistryClient))
         factory.containerProperties.ackMode = AckMode.MANUAL
         factory.setCommonErrorHandler(CommonLoggingErrorHandler())
         factory.containerProperties.idleEventInterval = 3000L
@@ -120,7 +128,7 @@ class AivenKafkaConfiguration(
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
             "spring.deserializer.key.delegate.class" to StringDeserializer::class.java,
             "spring.deserializer.value.delegate.class" to StringDeserializer::class.java
-        ) + commonConfig()
+        ) + commonKafkaConfig()
     }
 
     private fun getAvroConsumerProps(): Map<String, Any> {
@@ -132,7 +140,7 @@ class AivenKafkaConfiguration(
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
-        ) + commonConfig()
+        ) + commonKafkaConfig()
     }
 
     @Bean
@@ -162,10 +170,6 @@ class AivenKafkaConfiguration(
         )
     }
 
-    //Common
-    private fun commonConfig() = mapOf(
-        BOOTSTRAP_SERVERS_CONFIG to kafkaBrokers
-    ) + securityConfig()
 
     private fun securityConfig() = mapOf(
         CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to "SSL",

@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.clients.gosysoppgave
 
+import io.opentelemetry.api.trace.Span
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.clients.gosysoppgave.OppgaveMapperResponse.OppgaveMappe
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
@@ -38,6 +39,7 @@ class GosysOppgaveClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                 )
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
@@ -60,6 +62,7 @@ class GosysOppgaveClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                 )
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
@@ -85,6 +88,7 @@ class GosysOppgaveClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                 )
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveMapperResponse>()
@@ -125,7 +129,7 @@ class GosysOppgaveClient(
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
-                        temaList?.let { uriBuilder.queryParam("tema", temaList.map { it.navn }) }
+                        temaList?.let { uriBuilder.queryParam("tema", temaList?.map { it.navn }) }
                         uriBuilder.queryParam("limit", 1000)
                         uriBuilder.queryParam("offset", 0)
                         uriBuilder.build()
@@ -134,6 +138,7 @@ class GosysOppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                     )
+                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<OppgaveListResponse>()
@@ -179,6 +184,7 @@ class GosysOppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                     )
+                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<Gjelder>>()
@@ -201,6 +207,7 @@ class GosysOppgaveClient(
                         HttpHeaders.AUTHORIZATION,
                         "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                     )
+                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<OppgavetypeResponse>>()

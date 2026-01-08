@@ -5,7 +5,7 @@ import no.nav.klage.oppgave.clients.klagenotificationsapi.domain.TransferNotific
 import no.nav.klage.oppgave.clients.klagenotificationsapi.domain.UnreadCountResponse
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import org.springframework.retry.annotation.Retryable
+import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import java.util.*
