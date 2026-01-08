@@ -19,8 +19,8 @@ class SkjermedePersonerPipRestClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun personIsSkjermet(fnr: String, systemContext: Boolean): Boolean {
-        logger.debug("Calling personIsSkjermet")
+    fun isSkjermet(fnr: String, systemContext: Boolean): Boolean {
+        logger.debug("Calling isSkjermet")
         val token = if (systemContext) {
             tokenUtil.getAppAccessTokenWithSkjermedePersonerPipScope()
         } else {
@@ -33,9 +33,31 @@ class SkjermedePersonerPipRestClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer $token"
                 )
-                .bodyValue(Request(personident = fnr))
+                .bodyValue(IsSkjermetRequest(personident = fnr))
                 .retrieve()
                 .bodyToMono<Boolean>()
+                .block()
+                ?: throw RuntimeException("Could not get skjermet status.")
+        }
+    }
+
+    fun isSkjermetBulk(fnrList: List<String>, systemContext: Boolean): Map<String, Boolean> {
+        logger.debug("Calling isSkjermetBulk")
+        val token = if (systemContext) {
+            tokenUtil.getAppAccessTokenWithSkjermedePersonerPipScope()
+        } else {
+            tokenUtil.getSaksbehandlerAccessTokenWithSkjermedePersonerPipScope()
+        }
+        return runWithTimingAndLogging {
+            skjermedePersonerPipWebClient.post()
+                .uri { it.path("/skjermetBulk").build() }
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer $token"
+                )
+                .bodyValue(IsSkjermetBulkRequest(personidenter = fnrList))
+                .retrieve()
+                .bodyToMono<Map<String, Boolean>>()
                 .block()
                 ?: throw RuntimeException("Could not get skjermet status.")
         }
@@ -51,7 +73,11 @@ class SkjermedePersonerPipRestClient(
         }
     }
 
-    data class Request(
+    data class IsSkjermetRequest(
         val personident: String,
+    )
+
+    data class IsSkjermetBulkRequest(
+        val personidenter: List<String>,
     )
 }
