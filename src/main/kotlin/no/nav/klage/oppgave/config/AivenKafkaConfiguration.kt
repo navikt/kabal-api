@@ -26,6 +26,7 @@ import org.springframework.kafka.listener.CommonLoggingErrorHandler
 import org.springframework.kafka.listener.ContainerProperties.AckMode
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
 import java.time.Duration
+import java.util.*
 
 
 @EnableKafka
@@ -121,7 +122,7 @@ class AivenKafkaConfiguration(
 
     private fun egenAnsattConsumerProps(): Map<String, Any> {
         return mapOf(
-            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api",
+            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api-${UUID.randomUUID()}" ,
             ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
@@ -135,7 +136,7 @@ class AivenKafkaConfiguration(
         return mapOf(
             KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to kafkaSchemaRegistryUrl,
             KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to false,
-            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api-leesah",
+            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api-leesah-${UUID.randomUUID()}",
             ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
@@ -154,22 +155,6 @@ class AivenKafkaConfiguration(
             ),
         )
 
-    @Bean
-    fun egenAnsattPartitionFinder(): PartitionFinder<String, String> {
-        return PartitionFinder(egenAnsattConsumerFactory())
-    }
-
-    @Bean
-    fun leesahPartitionFinder(
-        aivenSchemaRegistryClient: SchemaRegistryClient,
-    ): PartitionFinder<String, Any> {
-        return PartitionFinder(
-            leesahConsumerFactory(
-                aivenSchemaRegistryClient = aivenSchemaRegistryClient
-            )
-        )
-    }
-
 
     private fun securityConfig() = mapOf(
         CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to "SSL",
@@ -183,14 +168,4 @@ class AivenKafkaConfiguration(
         SslConfigs.SSL_KEY_PASSWORD_CONFIG to kafkaCredstorePassword,
     )
 
-}
-
-class PartitionFinder<K, V>(private val consumerFactory: ConsumerFactory<K, V>) {
-    fun partitions(topic: String): Array<String> {
-        consumerFactory.createConsumer().use { consumer ->
-            return consumer.partitionsFor(topic)
-                .map { pi -> "" + pi.partition() }
-                .toTypedArray()
-        }
-    }
 }

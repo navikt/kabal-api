@@ -8,8 +8,6 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.kafka.annotation.KafkaListener
-import org.springframework.kafka.annotation.PartitionOffset
-import org.springframework.kafka.annotation.TopicPartition
 import org.springframework.stereotype.Component
 
 
@@ -35,14 +33,9 @@ class EgenAnsattKafkaConsumer(
     }
 
     @KafkaListener(
-        id = "klageEgenAnsattListener",
-        idIsGroup = false,
+
         containerFactory = "egenAnsattKafkaListenerContainerFactory",
-        topicPartitions = [TopicPartition(
-            topic = "\${EGENANSATT_KAFKA_TOPIC}",
-            partitions = ["#{@egenAnsattPartitionFinder.partitions('\${EGENANSATT_KAFKA_TOPIC}')}"],
-            partitionOffsets = [PartitionOffset(partition = "*", initialOffset = "0")]
-        )]
+        topics = ["\${EGENANSATT_KAFKA_TOPIC}"],
     )
     fun listen(egenAnsattRecord: ConsumerRecord<String, String>) {
         runCatching {

@@ -2,9 +2,15 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
   kafka:
+    bootstrap-servers: ${spring.embedded.kafka.brokers}
     consumer:
       auto-offset-reset: earliest
-      group-id: kabal-api
+      group-id: test-group
+    properties:
+      security.protocol: PLAINTEXT
+    producer:
+      properties:
+        security.protocol: PLAINTEXT
   jpa:
     show-sql: true
     properties:

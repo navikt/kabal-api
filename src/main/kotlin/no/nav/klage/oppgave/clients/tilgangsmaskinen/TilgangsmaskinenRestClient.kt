@@ -53,7 +53,7 @@ class TilgangsmaskinenRestClient(
                         }
                 }
                 .toBodilessEntity()
-                .mapNotNull<TilgangsmaskinenErrorResponse?> { null }
+                .mapNotNull<TilgangsmaskinenErrorResponse> { null }
                 .onErrorResume(TilgangsmaskinenException::class.java) { ex ->
                     Mono.just(ex.errorResponse)
                 }

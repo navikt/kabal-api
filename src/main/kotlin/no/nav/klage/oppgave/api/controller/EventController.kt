@@ -58,7 +58,7 @@ class EventController(
     @GetMapping("/events", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun events(
         @PathVariable("behandlingId") behandlingId: UUID,
-    ): Flux<ServerSentEvent<JsonNode>?> {
+    ): Flux<ServerSentEvent<JsonNode>> {
         val behandlingView = behandlingService.getBehandlingDetaljerView(behandlingId = behandlingId)
 
         //https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-async-disconnects
@@ -82,7 +82,7 @@ class EventController(
 
     private fun getBehandlingEventPublisher(
         behandlingId: UUID,
-    ): Flux<ServerSentEvent<JsonNode>?> {
+    ): Flux<ServerSentEvent<JsonNode>> {
         val flux = aivenKafkaClientCreator.getNewKafkaInternalBehandlingEventReceiver().receive()
             .mapNotNull { consumerRecord ->
                 val internalBehandlingEvent = jsonToInternalBehandlingEvent(consumerRecord.value())
@@ -105,7 +105,7 @@ class EventController(
 
     private fun getIdentityEventPublisher(
         behandlingView: BehandlingDetaljerView,
-    ): Flux<ServerSentEvent<JsonNode>?> {
+    ): Flux<ServerSentEvent<JsonNode>> {
         val flux = aivenKafkaClientCreator.getNewKafkaInternalIdentityEventReceiver().receive()
             .mapNotNull { consumerRecord ->
                 val internalIdentityEvent = jsonToInternalIdentityEvent(consumerRecord.value())

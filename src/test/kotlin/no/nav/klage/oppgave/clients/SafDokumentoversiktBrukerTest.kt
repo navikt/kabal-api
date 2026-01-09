@@ -131,7 +131,9 @@ internal class SafDokumentoversiktBrukerTest {
               ],
               "sideInfo": {
                 "sluttpeker": "NDkyMzMwMDI5",
-                "finnesNesteSide": true
+                "finnesNesteSide": true,
+                "antall": 1,
+                "totaltAntall": 1
               }
             }
           }
@@ -146,7 +148,9 @@ internal class SafDokumentoversiktBrukerTest {
           "journalposter": [],
           "sideInfo": {
             "sluttpeker": null,
-            "finnesNesteSide": false
+            "finnesNesteSide": false,            
+            "antall": 0,
+            "totaltAntall": 0
           }
         }
       }

@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.service
 
 import com.ninjasquad.springmockk.MockkBean
-import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
 import io.mockk.mockk
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
@@ -40,8 +39,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
@@ -59,7 +58,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
     @Autowired
     lateinit var behandlingRepository: BehandlingRepository
 
-    @SpykBean
+    @MockkBean
     lateinit var tilgangService: TilgangService
 
     @MockkBean

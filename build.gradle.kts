@@ -117,6 +117,12 @@ dependencies {
         exclude(group = "org.junit.vintage")
         exclude(group = "org.mockito")
     }
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test") {
+        exclude(group = "org.junit.vintage")
+        exclude(group = "org.mockito")
+    }
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-kafka-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
 
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
