@@ -13,7 +13,6 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
@@ -341,7 +340,7 @@ class AdminService(
                         }
                     }
 
-                    if (egenAnsattService.erEgenAnsatt(person.foedselsnr)) {
+                    if (egenAnsattService.erEgenAnsatt(person.foedselsnr, systemContext = true)) {
                         behandling.tildeling?.saksbehandlerident?.let {
                             if (!saksbehandlerService.hasEgenAnsattRole(ident = it, useCache = true)) {
                                 egenAnsattBehandlinger.add(behandling.id.toString())

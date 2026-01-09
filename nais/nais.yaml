@@ -108,6 +108,8 @@ spec:
           namespace: nais-system
         - application: populasjonstilgangskontroll
           namespace: tilgangsmaskin
+        - application: skjermede-personer-pip
+          namespace: nom
       external:
       {{#each externalHosts}}
         - host: {{host}}

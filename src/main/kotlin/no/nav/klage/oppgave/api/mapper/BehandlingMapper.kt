@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.api.mapper
 
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.oppgave.api.view.*
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.ereg.NoekkelInfoOmOrganisasjon
 import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon

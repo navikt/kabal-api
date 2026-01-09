@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.tilgangsmaskinen.TilgangsmaskinenRestClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
@@ -12,8 +11,6 @@ import org.springframework.stereotype.Service
 
 @Service
 class TilgangService(
-    private val personService: PersonService,
-    private val egenAnsattService: EgenAnsattService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val saksbehandlerService: SaksbehandlerService,
     private val tilgangsmaskinenRestClient: TilgangsmaskinenRestClient,

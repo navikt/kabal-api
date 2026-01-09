@@ -23,7 +23,6 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.listener.CommonLoggingErrorHandler
 import org.springframework.kafka.listener.ContainerProperties.AckMode
-import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
 import java.time.Duration
 
 
@@ -63,22 +62,6 @@ class AivenKafkaConfiguration(
         return KafkaTemplate(DefaultKafkaProducerFactory(config))
     }
 
-    //Consumer beans
-    @Bean
-    fun egenAnsattKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
-        val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
-        factory.consumerFactory = egenAnsattConsumerFactory()
-        factory.containerProperties.ackMode = AckMode.MANUAL
-        factory.containerProperties.idleEventInterval = 3000L
-        factory.setCommonErrorHandler(CommonLoggingErrorHandler())
-        //Retry consumer/listener even if authorization fails at first
-        factory.setContainerCustomizer { container ->
-            container.containerProperties.setAuthExceptionRetryInterval(Duration.ofSeconds(10L))
-        }
-
-        return factory
-    }
-
     @Bean
     fun leesahKafkaListenerContainerFactory(
         aivenSchemaRegistryClient: SchemaRegistryClient,
@@ -98,29 +81,12 @@ class AivenKafkaConfiguration(
     }
 
     @Bean
-    fun egenAnsattConsumerFactory(): ConsumerFactory<String, String> {
-        return DefaultKafkaConsumerFactory(egenAnsattConsumerProps())
-    }
-
-    @Bean
     fun leesahConsumerFactory(aivenSchemaRegistryClient: SchemaRegistryClient): ConsumerFactory<String, Any> {
         return DefaultKafkaConsumerFactory(
             getAvroConsumerProps(),
             StringDeserializer(),
             KafkaAvroDeserializer(aivenSchemaRegistryClient)
         )
-    }
-
-    private fun egenAnsattConsumerProps(): Map<String, Any> {
-        return mapOf(
-            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api",
-            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
-            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
-            "spring.deserializer.key.delegate.class" to StringDeserializer::class.java,
-            "spring.deserializer.value.delegate.class" to StringDeserializer::class.java
-        ) + commonConfig()
     }
 
     private fun getAvroConsumerProps(): Map<String, Any> {
@@ -145,11 +111,6 @@ class AivenKafkaConfiguration(
                 KafkaAvroDeserializerConfig.USER_INFO_CONFIG to "$schemaRegistryUsername:$schemaRegistryPassword",
             ),
         )
-
-    @Bean
-    fun egenAnsattPartitionFinder(): PartitionFinder<String, String> {
-        return PartitionFinder(egenAnsattConsumerFactory())
-    }
 
     @Bean
     fun leesahPartitionFinder(

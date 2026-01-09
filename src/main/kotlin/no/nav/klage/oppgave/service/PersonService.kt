@@ -16,6 +16,7 @@ class PersonService(
     private val personCacheService: PersonCacheService,
     private val pdlFacade: PdlFacade,
     private val behandlingRepository: BehandlingRepository,
+    private val egenAnsattService: EgenAnsattService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -87,6 +88,7 @@ class PersonService(
         logger.debug("Found all distinct persons: ${allPersonsInOpenBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
 
         fillPersonCache(allPersonsInOpenBehandlingerFnr)
+        egenAnsattService.setIsSkjermetCache(fnrList = allPersonsInOpenBehandlingerFnr, systemContext = true)
 
         logger.debug("Finished inserting all persons from open behandlinger in cache in ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
     }
