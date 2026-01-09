@@ -59,6 +59,8 @@ GOSYS_OPPGAVE_SCOPE: dev-fss.oppgavehandtering.oppgave
 
 TILGANGSMASKINEN_SCOPE: dev-gcp.tilgangsmaskin.populasjonstilgangskontroll
 
+SKJERMEDE_PERSONER_PIP_SCOPE: dev-gcp.nom.skjermede-personer-pip
+
 FSS_CLUSTER: dev-fss
 
 SETTINGS_CLEANUP_CRON: 0 0 12 * * MON
