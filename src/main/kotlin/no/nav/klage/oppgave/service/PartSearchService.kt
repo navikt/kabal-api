@@ -9,7 +9,7 @@ import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
-import org.springframework.retry.annotation.Retryable
+import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Service
 
 @Service

@@ -4,7 +4,7 @@ import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.retry.annotation.Retryable
+import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
@@ -53,7 +53,7 @@ class TilgangsmaskinenRestClient(
                         }
                 }
                 .toBodilessEntity()
-                .mapNotNull<TilgangsmaskinenErrorResponse?> { null }
+                .mapNotNull<TilgangsmaskinenErrorResponse> { null }
                 .onErrorResume(TilgangsmaskinenException::class.java) { ex ->
                     Mono.just(ex.errorResponse)
                 }

@@ -16,6 +16,7 @@ import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.kafka.annotation.EnableKafka
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.ConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
@@ -25,8 +26,10 @@ import org.springframework.kafka.listener.CommonLoggingErrorHandler
 import org.springframework.kafka.listener.ContainerProperties.AckMode
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
 import java.time.Duration
+import java.util.*
 
 
+@EnableKafka
 @Configuration
 class AivenKafkaConfiguration(
     @Value("\${KAFKA_BROKERS}")
@@ -50,6 +53,12 @@ class AivenKafkaConfiguration(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    //Common config
+    @Bean
+    fun commonKafkaConfig() = mapOf(
+        BOOTSTRAP_SERVERS_CONFIG to kafkaBrokers
+    ) + securityConfig()
+
     //Producer bean
     @Bean
     fun aivenKafkaTemplate(): KafkaTemplate<String, String> {
@@ -58,7 +67,7 @@ class AivenKafkaConfiguration(
             ProducerConfig.ACKS_CONFIG to "1",
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
             ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-        ) + commonConfig()
+        ) + commonKafkaConfig()
 
         return KafkaTemplate(DefaultKafkaProducerFactory(config))
     }
@@ -67,7 +76,7 @@ class AivenKafkaConfiguration(
     @Bean
     fun egenAnsattKafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, String>()
-        factory.consumerFactory = egenAnsattConsumerFactory()
+        factory.setConsumerFactory(egenAnsattConsumerFactory())
         factory.containerProperties.ackMode = AckMode.MANUAL
         factory.containerProperties.idleEventInterval = 3000L
         factory.setCommonErrorHandler(CommonLoggingErrorHandler())
@@ -84,7 +93,7 @@ class AivenKafkaConfiguration(
         aivenSchemaRegistryClient: SchemaRegistryClient,
     ): ConcurrentKafkaListenerContainerFactory<String, GenericRecord> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, GenericRecord>()
-        factory.consumerFactory = leesahConsumerFactory(aivenSchemaRegistryClient = aivenSchemaRegistryClient)
+        factory.setConsumerFactory(leesahConsumerFactory(aivenSchemaRegistryClient = aivenSchemaRegistryClient))
         factory.containerProperties.ackMode = AckMode.MANUAL
         factory.setCommonErrorHandler(CommonLoggingErrorHandler())
         factory.containerProperties.idleEventInterval = 3000L
@@ -113,26 +122,26 @@ class AivenKafkaConfiguration(
 
     private fun egenAnsattConsumerProps(): Map<String, Any> {
         return mapOf(
-            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api",
+            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api-${UUID.randomUUID()}" ,
             ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to ErrorHandlingDeserializer::class.java,
             "spring.deserializer.key.delegate.class" to StringDeserializer::class.java,
             "spring.deserializer.value.delegate.class" to StringDeserializer::class.java
-        ) + commonConfig()
+        ) + commonKafkaConfig()
     }
 
     private fun getAvroConsumerProps(): Map<String, Any> {
         return mapOf(
             KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG to kafkaSchemaRegistryUrl,
             KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG to false,
-            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api-leesah",
+            ConsumerConfig.GROUP_ID_CONFIG to "kabal-api-leesah-${UUID.randomUUID()}",
             ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
             ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
             ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to KafkaAvroDeserializer::class.java,
-        ) + commonConfig()
+        ) + commonKafkaConfig()
     }
 
     @Bean
@@ -146,26 +155,6 @@ class AivenKafkaConfiguration(
             ),
         )
 
-    @Bean
-    fun egenAnsattPartitionFinder(): PartitionFinder<String, String> {
-        return PartitionFinder(egenAnsattConsumerFactory())
-    }
-
-    @Bean
-    fun leesahPartitionFinder(
-        aivenSchemaRegistryClient: SchemaRegistryClient,
-    ): PartitionFinder<String, Any> {
-        return PartitionFinder(
-            leesahConsumerFactory(
-                aivenSchemaRegistryClient = aivenSchemaRegistryClient
-            )
-        )
-    }
-
-    //Common
-    private fun commonConfig() = mapOf(
-        BOOTSTRAP_SERVERS_CONFIG to kafkaBrokers
-    ) + securityConfig()
 
     private fun securityConfig() = mapOf(
         CommonClientConfigs.SECURITY_PROTOCOL_CONFIG to "SSL",
@@ -179,14 +168,4 @@ class AivenKafkaConfiguration(
         SslConfigs.SSL_KEY_PASSWORD_CONFIG to kafkaCredstorePassword,
     )
 
-}
-
-class PartitionFinder<K, V>(private val consumerFactory: ConsumerFactory<K, V>) {
-    fun partitions(topic: String): Array<String> {
-        consumerFactory.createConsumer().use { consumer ->
-            return consumer.partitionsFor(topic)
-                .map { pi -> "" + pi.partition() }
-                .toTypedArray()
-        }
-    }
 }
