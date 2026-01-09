@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
+import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
@@ -30,6 +31,7 @@ class DevOnlyAdminController(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val personCacheService: PersonCacheService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    private val egenAnsattService: EgenAnsattService,
 ) {
 
     companion object {
@@ -268,5 +270,16 @@ class DevOnlyAdminController(
     ) {
         logger.debug("setPreviousBehandlingId is called")
         adminService.setPreviousBehandlingId(dryRun = dryRun)
+    }
+
+    @Unprotected
+    @GetMapping("/egenansatt/{fnr}")
+    @ResponseStatus(HttpStatus.OK)
+    fun getEgenAnsatt(
+        @PathVariable(required = true) fnr: String,
+        @RequestParam(value = "systemContext", required = false, defaultValue = "false") systemContext: Boolean = false,
+    ): Boolean {
+        logger.debug("getEgenAnsatt is called")
+        return egenAnsattService.directErEgen(foedselsnummer = fnr, systemContext = systemContext)
     }
 }

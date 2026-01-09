@@ -18,12 +18,12 @@ class EgenAnsattService(
 
     private val egenAnsattMap: ConcurrentMap<String, EgenAnsatt> = ConcurrentHashMap()
 
-    fun erEgenAnsatt(foedselsnr: String): Boolean {
-        return egenAnsattMap[foedselsnr]?.erGyldig() ?: skjermedePersonerPipRestClient.isSkjermet(
-            fnr = foedselsnr,
-            systemContext = true,
-        )
+    fun directErEgen(foedselsnummer: String, systemContext: Boolean): Boolean {
+        return skjermedePersonerPipRestClient.isSkjermet(fnr = foedselsnummer, systemContext = systemContext)
     }
+
+    fun erEgenAnsatt(foedselsnr: String): Boolean =
+        egenAnsattMap[foedselsnr]?.erGyldig() ?: false
 
     fun oppdaterEgenAnsatt(foedselsnr: String, egenAnsatt: EgenAnsatt) {
         logger.debug("Oppdaterer egenansatt. egenAnsattMap.size=${egenAnsattMap.size}")
