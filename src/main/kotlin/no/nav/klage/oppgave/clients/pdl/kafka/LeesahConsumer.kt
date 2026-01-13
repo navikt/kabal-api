@@ -27,7 +27,7 @@ class LeesahConsumer(
 
     @KafkaListener(
         id = "kabalApiLeesahListener",
-//        idIsGroup = false,
+        idIsGroup = false,
         containerFactory = "leesahKafkaListenerContainerFactory",
         topics = ["\${LEESAH_KAFKA_TOPIC}"],
     )

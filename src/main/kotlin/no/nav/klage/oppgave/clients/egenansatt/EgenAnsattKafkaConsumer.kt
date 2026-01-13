@@ -34,6 +34,7 @@ class EgenAnsattKafkaConsumer(
 
     @KafkaListener(
         id = "klageEgenAnsattListener",
+        idIsGroup = false,
         containerFactory = "egenAnsattKafkaListenerContainerFactory",
         topics = ["\${EGENANSATT_KAFKA_TOPIC}"],
     )
