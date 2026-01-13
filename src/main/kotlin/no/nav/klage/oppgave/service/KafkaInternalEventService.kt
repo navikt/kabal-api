@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import com.fasterxml.jackson.databind.JsonNode
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalIdentityEvent
 import no.nav.klage.oppgave.util.getLogger
@@ -8,6 +7,7 @@ import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
+import tools.jackson.databind.JsonNode
 import java.util.*
 
 @Service

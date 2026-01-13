@@ -9,8 +9,6 @@ import org.apache.avro.generic.GenericRecord
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.context.event.EventListener
 import org.springframework.kafka.annotation.KafkaListener
-import org.springframework.kafka.annotation.PartitionOffset
-import org.springframework.kafka.annotation.TopicPartition
 import org.springframework.kafka.event.ListenerContainerIdleEvent
 import org.springframework.stereotype.Component
 import java.net.InetAddress
@@ -27,25 +25,15 @@ class LeesahConsumer(
         private val teamLogger = getTeamLogger()
     }
 
-    var offset = 99999999L
-
     @KafkaListener(
         id = "kabalApiLeesahListener",
-        idIsGroup = false,
+//        idIsGroup = false,
         containerFactory = "leesahKafkaListenerContainerFactory",
-        topicPartitions = [TopicPartition(
-            topic = "\${LEESAH_KAFKA_TOPIC}",
-            partitions = ["#{@leesahPartitionFinder.partitions('\${LEESAH_KAFKA_TOPIC}')}"],
-            partitionOffsets = [PartitionOffset(partition = "*", initialOffset = "0")]
-        )]
+        topics = ["\${LEESAH_KAFKA_TOPIC}"],
     )
     fun listen(
         cr: ConsumerRecord<String, GenericRecord>,
     ) {
-        if (cr.offset() < offset) {
-            logger.debug("Personhendelse: Lowest offset found in pod ${InetAddress.getLocalHost().hostName}: ${cr.offset()}. Updating offset to this value.")
-            offset = cr.offset()
-        }
         processPersonhendelse(
             personhendelse = cr.value(),
         )

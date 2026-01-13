@@ -7,7 +7,7 @@ val logstashVersion = "9.0"
 val springRetryVersion = "2.0.12"
 val springMockkVersion = "5.0.1"
 val springDocVersion = "3.0.1"
-val testContainersVersion = "1.21.4"
+val testContainersVersion = "2.0.3"
 val shedlockVersion = "7.5.0"
 val archunitVersion = "1.4.1"
 val logbackSyslog4jVersion = "1.0.0"
@@ -22,6 +22,7 @@ val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.0.0"
 val confluentVersion = "8.1.1"
 val scalaLibraryVersion = "2.13.18"
+val reactorKafkaVersion = "1.3.25"
 
 plugins {
     val kotlinVersion = "2.3.0"
@@ -57,6 +58,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
 
     implementation("org.apache.commons:commons-fileupload2-jakarta:$commonsFileupload2JakartaVersion")
 
@@ -69,14 +71,13 @@ dependencies {
     implementation("org.springframework.data:spring-data-envers")
 
     implementation("org.springframework.kafka:spring-kafka")
-    implementation("io.projectreactor.kafka:reactor-kafka")
-    implementation("org.flywaydb:flyway-core")
+    implementation("io.projectreactor.kafka:reactor-kafka:${reactorKafkaVersion}")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("com.zaxxer:HikariCP")
     implementation("org.postgresql:postgresql")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
-    kapt("org.hibernate.orm:hibernate-jpamodelgen")
+    kapt("org.hibernate.orm:hibernate-processor")
 
     implementation("io.micrometer:micrometer-registry-prometheus")
 
@@ -116,11 +117,17 @@ dependencies {
         exclude(group = "org.junit.vintage")
         exclude(group = "org.mockito")
     }
+    testImplementation("org.springframework.boot:spring-boot-starter-data-jpa-test") {
+        exclude(group = "org.junit.vintage")
+        exclude(group = "org.mockito")
+    }
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-kafka-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")
 
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
-    testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
-    testImplementation("org.testcontainers:postgresql:$testContainersVersion")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:$testContainersVersion")
+    testImplementation("org.testcontainers:testcontainers-postgresql:$testContainersVersion")
     testImplementation("com.tngtech.archunit:archunit-junit5:$archunitVersion")
 
     testImplementation("io.mockk:mockk:$mockkVersion")

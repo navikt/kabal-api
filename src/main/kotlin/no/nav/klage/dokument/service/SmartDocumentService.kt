@@ -1,6 +1,5 @@
 package no.nav.klage.dokument.service
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
@@ -28,6 +27,8 @@ import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.jsonMapper
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.time.measureTime
@@ -247,7 +248,7 @@ class SmartDocumentService(
             version = version,
         )
 
-        return ourJacksonObjectMapper().readTree(document.json)
+        return jsonMapper().readTree(document.json)
     }
 
     fun findSmartDocumentVersions(
