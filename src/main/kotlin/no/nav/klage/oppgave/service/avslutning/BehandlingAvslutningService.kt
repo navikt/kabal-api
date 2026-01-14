@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 
 @Service
@@ -44,7 +44,7 @@ class BehandlingAvslutningService(
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
         private val objectMapperBehandlingEvents =
-            JsonMapper.builder().build()
+            jacksonObjectMapper()
     }
 
     @Transactional

@@ -22,10 +22,6 @@ class EgenAnsattKafkaConsumer(
         private val mapper =
             JsonMapper.builder().addModule(
             KotlinModule.Builder()
-                .withReflectionCacheSize(512)
-                .configure(KotlinFeature.NullToEmptyCollection, false)
-                .configure(KotlinFeature.NullToEmptyMap, false)
-                .configure(KotlinFeature.NullIsSameAsDefault, false)
                 .configure(KotlinFeature.SingletonSupport, false)
                 .configure(KotlinFeature.StrictNullChecks, false)
                 .build()

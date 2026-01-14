@@ -5,14 +5,12 @@ import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.service.BehandlingEndretKafkaProducer
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJsonMapper
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
-import tools.jackson.databind.json.JsonMapper
 
 @Service
 class SendBehandlingEndretToKafkaEventListener(
@@ -24,7 +22,6 @@ class SendBehandlingEndretToKafkaEventListener(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        val jsonMapper: JsonMapper = ourJsonMapper()
     }
 
     @EventListener

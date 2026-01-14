@@ -7,13 +7,13 @@ import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJsonMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.io.BufferedWriter
 import java.io.OutputStream
 import java.io.OutputStreamWriter
@@ -31,7 +31,7 @@ class KapteinService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapper = ourJsonMapper()
+        private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
     @Transactional(readOnly = true)
@@ -58,7 +58,7 @@ class KapteinService(
                 behandlingYtelseCounter[behandling.ytelse.id] =
                     behandlingYtelseCounter.getOrDefault(behandling.ytelse.id, 0) + 1
                 viewYtelseCounter[view.ytelseId] = viewYtelseCounter.getOrDefault(view.ytelseId, 0) + 1
-                writer.write(objectMapper.writeValueAsString(view) + "\n")
+                writer.write(jacksonObjectMapper.writeValueAsString(view) + "\n")
                 entityManager.detach(behandling)
                 if (count++ % 100 == 0) {
                     writer.flush()
@@ -76,7 +76,7 @@ class KapteinService(
     fun sendBehandlingChanged(behandling: Behandling) {
         publishToKafkaTopic(
             key = behandling.id.toString(),
-            json = objectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()),
+            json = jacksonObjectMapper.writeValueAsString(behandling.toAnonymousBehandlingView()),
         )
     }
 

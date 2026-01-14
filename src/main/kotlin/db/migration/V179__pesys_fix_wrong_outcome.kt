@@ -2,9 +2,9 @@ package db.migration
 
 import no.nav.klage.oppgave.domain.kafka.BehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
-import no.nav.klage.oppgave.util.ourJsonMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.util.*
 
@@ -34,7 +34,7 @@ class V179__pesys_fix_wrong_outcome : BaseJavaMigration() {
                         val type = rows.getString(5)
 
                         val behandlingEvent =
-                            ourJsonMapper().readValue(jsonPayload, BehandlingEvent::class.java)
+                            jacksonObjectMapper().readValue(jsonPayload, BehandlingEvent::class.java)
 
                         val behandlingEventDetaljerAnkebehandlingAvsluttet =
                             behandlingEvent.detaljer.ankebehandlingAvsluttet!!
@@ -56,7 +56,7 @@ class V179__pesys_fix_wrong_outcome : BaseJavaMigration() {
                         preparedStatement.setObject(2, behandlingId)
                         preparedStatement.setObject(3, kilde)
                         preparedStatement.setObject(4, kildeReferanse)
-                        preparedStatement.setString(5, ourJsonMapper().writeValueAsString(newBehandlingEvent))
+                        preparedStatement.setString(5, jacksonObjectMapper().writeValueAsString(newBehandlingEvent))
                         preparedStatement.setObject(6,"IKKE_SENDT")
                         preparedStatement.setObject(7, null)
                         preparedStatement.setObject(8, type)

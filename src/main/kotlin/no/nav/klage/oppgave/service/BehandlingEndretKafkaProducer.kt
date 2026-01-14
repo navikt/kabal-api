@@ -9,7 +9,7 @@ import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
-import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 
 @Service
@@ -26,7 +26,7 @@ class BehandlingEndretKafkaProducer(
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
         private val objectMapper =
-            JsonMapper.builder().build()
+            jacksonObjectMapper()
     }
 
     fun sendBehandlingEndret(behandling: Behandling) {

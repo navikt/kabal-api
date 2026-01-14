@@ -19,10 +19,9 @@ import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.MeldingRepository
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJsonMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.util.*
 
@@ -40,7 +39,7 @@ class MeldingService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
 
-        val jsonMapper: JsonMapper = ourJsonMapper()
+        private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
     fun addMelding(
@@ -173,7 +172,7 @@ class MeldingService(
             InternalBehandlingEvent(
                 behandlingId = melding.behandlingId.toString(),
                 type = type,
-                data = jsonMapper.writeValueAsString(
+                data = jacksonObjectMapper.writeValueAsString(
                     MeldingEvent(
                         actor = Employee(navIdent = utfoerendeIdent, navn = utfoerendeName),
                         timestamp = timestamp,
@@ -197,7 +196,7 @@ class MeldingService(
     ) {
         kafkaInternalEventService.publishNotificationEvent(
             id = melding.id,
-            jsonNode = jsonMapper.valueToTree(
+            jsonNode = jacksonObjectMapper.valueToTree(
                 CreateMeldingNotificationEvent(
                     type = CreateNotificationEvent.NotificationType.MELDING,
                     message = melding.text,

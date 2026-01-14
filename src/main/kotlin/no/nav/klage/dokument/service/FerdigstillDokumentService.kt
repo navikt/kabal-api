@@ -18,14 +18,13 @@ import no.nav.klage.oppgave.service.KafkaInternalEventService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
-import no.nav.klage.oppgave.util.ourJsonMapper
 import org.hibernate.Hibernate
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
-import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 
 @Service
@@ -44,7 +43,7 @@ class FerdigstillDokumentService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
-        private val jsonMapper: JsonMapper = ourJsonMapper()
+        private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
     @Scheduled(cron = "*/30 * * * * *")
@@ -95,7 +94,7 @@ class FerdigstillDokumentService(
             }
 
             publishInternalEvent(
-                data = jsonMapper.writeValueAsString(
+                data = jacksonObjectMapper.writeValueAsString(
                     DocumentFinishedEvent(
                         actor = Employee(
                             navIdent = updatedDokument.markertFerdigBy!!,

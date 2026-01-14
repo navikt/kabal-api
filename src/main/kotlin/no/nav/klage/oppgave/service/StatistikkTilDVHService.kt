@@ -9,9 +9,9 @@ import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJsonMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.util.*
 
@@ -24,7 +24,7 @@ class StatistikkTilDVHService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapper = ourJsonMapper()
+        private val jacksonObjectMapper = jacksonObjectMapper()
 
         const val TR_ENHET = "TR0000"
     }
@@ -54,7 +54,7 @@ class StatistikkTilDVHService(
         }
     }
 
-    private fun StatistikkTilDVH.toJson(): String = objectMapper.writeValueAsString(this)
+    private fun StatistikkTilDVH.toJson(): String = jacksonObjectMapper.writeValueAsString(this)
 
     fun shouldSendStats(behandlingChangedEvent: BehandlingChangedEvent): Boolean {
         return if (behandlingChangedEvent.behandling.gosysOppgaveRequired) {

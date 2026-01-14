@@ -31,7 +31,6 @@ import no.nav.klage.oppgave.repositories.MergedDocumentRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
-import no.nav.klage.oppgave.util.ourJsonMapper
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.io.MemoryUsageSetting
 import org.apache.pdfbox.io.RandomAccessReadBuffer
@@ -45,7 +44,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import reactor.core.publisher.Flux
-import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.io.File
 import java.io.IOException
 import java.math.BigInteger
@@ -75,7 +74,7 @@ class DokumentService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
-        private val jsonMapper: JsonMapper = ourJsonMapper()
+        private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
     fun fetchDokumentlisteForBehandling(
@@ -518,7 +517,7 @@ class DokumentService(
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         publishInternalEvent(
-            data = jsonMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 JournalfoertDocumentModified(
                     actor = Employee(
                         navIdent = innloggetIdent,

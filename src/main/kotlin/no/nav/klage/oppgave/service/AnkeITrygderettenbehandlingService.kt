@@ -14,12 +14,11 @@ import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJsonMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.util.*
 
@@ -37,9 +36,7 @@ class AnkeITrygderettenbehandlingService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapper = ourJsonMapper()
-        private val objectMapperBehandlingEvents =
-            JsonMapper.builder().build()
+        private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
     fun createAnkeITrygderettenbehandling(input: AnkeITrygderettenbehandlingInput): AnkeITrygderettenbehandling {
@@ -130,7 +127,7 @@ class AnkeITrygderettenbehandlingService(
                     behandlingId = ankeITrygderettenbehandling.id,
                     kilde = ankeITrygderettenbehandling.fagsystem.navn,
                     kildeReferanse = ankeITrygderettenbehandling.kildeReferanse,
-                    jsonPayload = objectMapperBehandlingEvents.writeValueAsString(behandlingEvent),
+                    jsonPayload = jacksonObjectMapper.writeValueAsString(behandlingEvent),
                     type = EventType.BEHANDLING_EVENT
                 )
             )
@@ -195,5 +192,5 @@ class AnkeITrygderettenbehandlingService(
         }
     }
 
-    private fun StatistikkTilDVH.toJson(): String = objectMapper.writeValueAsString(this)
+    private fun StatistikkTilDVH.toJson(): String = jacksonObjectMapper.writeValueAsString(this)
 }

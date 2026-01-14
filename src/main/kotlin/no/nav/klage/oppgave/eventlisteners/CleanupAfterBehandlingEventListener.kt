@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
-import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.util.*
 
@@ -44,7 +44,7 @@ class CleanupAfterBehandlingEventListener(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val objectMapperBehandlingEvents =
-            JsonMapper.builder().build()
+            jacksonObjectMapper()
     }
 
     @Transactional

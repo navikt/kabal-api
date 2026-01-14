@@ -4,9 +4,9 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.util.getSecureLogger
-import no.nav.klage.oppgave.util.ourJsonMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.util.*
 
@@ -43,7 +43,7 @@ class V151__dvh_use_codes_fix : BaseJavaMigration() {
                             val jsonPayload = rows.getString(2)
 
                             val statistikkTilDVH =
-                                ourJsonMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
+                                jacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
                             val modifiedVersion = statistikkTilDVH.copy(
                                 resultat = Utfall.entries.find { it.navn == statistikkTilDVH.resultat }?.name
@@ -52,7 +52,7 @@ class V151__dvh_use_codes_fix : BaseJavaMigration() {
                                 tekniskTid = LocalDateTime.now()
                             )
 
-                            preparedStatement.setString(1, ourJsonMapper().writeValueAsString(modifiedVersion))
+                            preparedStatement.setString(1, jacksonObjectMapper().writeValueAsString(modifiedVersion))
                             preparedStatement.setObject(2, kafkaEventId)
 
                             preparedStatement.executeUpdate()

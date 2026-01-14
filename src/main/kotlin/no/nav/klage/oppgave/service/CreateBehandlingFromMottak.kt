@@ -8,7 +8,7 @@ import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
-import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 
 @Service
@@ -23,8 +23,7 @@ class CreateBehandlingFromMottak(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapperBehandlingEvents =
-            JsonMapper.builder().build()
+        private val objectMapperBehandlingEvents = jacksonObjectMapper()
     }
 
     fun createBehandling(

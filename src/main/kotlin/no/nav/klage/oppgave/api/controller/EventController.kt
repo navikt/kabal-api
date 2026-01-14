@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
 import tools.jackson.databind.JsonNode
-import tools.jackson.module.kotlin.jsonMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -90,7 +90,7 @@ class EventController(
                     ServerSentEvent.builder<JsonNode>()
                         .id(consumerRecord.offset().toString())
                         .event(internalBehandlingEvent.type.name)
-                        .data(jsonMapper().readTree(internalBehandlingEvent.data))
+                        .data(jacksonObjectMapper().readTree(internalBehandlingEvent.data))
                         .build()
                 } else null
             }
@@ -113,7 +113,7 @@ class EventController(
                     ServerSentEvent.builder<JsonNode>()
                         .id(consumerRecord.offset().toString())
                         .event(internalIdentityEvent.type.name)
-                        .data(jsonMapper().readTree(internalIdentityEvent.data))
+                        .data(jacksonObjectMapper().readTree(internalIdentityEvent.data))
                         .build()
                 } else null
             }
@@ -156,8 +156,8 @@ class EventController(
     }
 
     private fun jsonToInternalBehandlingEvent(json: String?): InternalBehandlingEvent =
-        jsonMapper().readValue(json, InternalBehandlingEvent::class.java)
+        jacksonObjectMapper().readValue(json, InternalBehandlingEvent::class.java)
 
     private fun jsonToInternalIdentityEvent(json: String?): InternalIdentityEvent =
-        jsonMapper().readValue(json, InternalIdentityEvent::class.java)
+        jacksonObjectMapper().readValue(json, InternalIdentityEvent::class.java)
 }

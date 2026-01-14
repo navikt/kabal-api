@@ -3,11 +3,11 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
 import no.nav.klage.oppgave.domain.kafka.InternalIdentityEvent
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJsonMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 
 @Service
@@ -24,7 +24,7 @@ class KafkaInternalEventService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapper = ourJsonMapper()
+        private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
     fun publishInternalBehandlingEvent(internalBehandlingEvent: InternalBehandlingEvent) {
@@ -33,7 +33,7 @@ class KafkaInternalEventService(
 
             aivenKafkaTemplate.send(
                 internalBehandlingEventTopic,
-                objectMapper.writeValueAsString(internalBehandlingEvent)
+                jacksonObjectMapper.writeValueAsString(internalBehandlingEvent)
             ).get()
             logger.debug("Published internalBehandlingEvent to Kafka for subscribers")
         }.onFailure {
@@ -47,7 +47,7 @@ class KafkaInternalEventService(
 
             aivenKafkaTemplate.send(
                 internalIdentityEventTopic,
-                objectMapper.writeValueAsString(internalIdentityEvent)
+                jacksonObjectMapper.writeValueAsString(internalIdentityEvent)
             ).get()
             logger.debug("Published internalIdentityEvent to Kafka for subscribers")
         }.onFailure {
@@ -62,7 +62,7 @@ class KafkaInternalEventService(
             aivenKafkaTemplate.send(
                 notificationEventTopic,
                 id.toString(),
-                objectMapper.writeValueAsString(jsonNode)
+                jacksonObjectMapper.writeValueAsString(jsonNode)
             ).get()
             logger.debug("Published notificationEvent to Kafka for subscribers")
         }.onFailure {
