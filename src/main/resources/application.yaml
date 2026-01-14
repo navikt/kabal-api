@@ -6,8 +6,6 @@ spring:
   web:
     resources:
       add-mappings: false
-  mvc:
-    throw-exception-if-no-handler-found: true
   datasource:
     url: jdbc:postgresql://${NAIS_DATABASE_KABAL_API_KABAL_API_HOST}:${NAIS_DATABASE_KABAL_API_KABAL_API_PORT}/${NAIS_DATABASE_KABAL_API_KABAL_API_DATABASE}
     username: ${NAIS_DATABASE_KABAL_API_KABAL_API_USERNAME}
@@ -15,7 +13,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   flyway:
     enabled: true
-    clean-on-validation-error: false
+    clean-disabled: true
     schemas: flyway_history_schema,klage
     connect-retries: 2
   jpa:
@@ -35,8 +33,6 @@ spring:
   servlet:
     multipart:
       enabled: false
-  codec:
-    max-in-memory-size: 512MB
   sql:
     init:
       platform: postgresql

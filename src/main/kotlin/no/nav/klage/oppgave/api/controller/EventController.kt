@@ -1,7 +1,5 @@
 package no.nav.klage.oppgave.api.controller
 
-import com.fasterxml.jackson.databind.JsonNode
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
@@ -20,6 +18,8 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Flux
+import tools.jackson.databind.JsonNode
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -58,7 +58,7 @@ class EventController(
     @GetMapping("/events", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun events(
         @PathVariable("behandlingId") behandlingId: UUID,
-    ): Flux<ServerSentEvent<JsonNode>?> {
+    ): Flux<ServerSentEvent<JsonNode>> {
         val behandlingView = behandlingService.getBehandlingDetaljerView(behandlingId = behandlingId)
 
         //https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-async-disconnects
@@ -82,7 +82,7 @@ class EventController(
 
     private fun getBehandlingEventPublisher(
         behandlingId: UUID,
-    ): Flux<ServerSentEvent<JsonNode>?> {
+    ): Flux<ServerSentEvent<JsonNode>> {
         val flux = aivenKafkaClientCreator.getNewKafkaInternalBehandlingEventReceiver().receive()
             .mapNotNull { consumerRecord ->
                 val internalBehandlingEvent = jsonToInternalBehandlingEvent(consumerRecord.value())
@@ -105,7 +105,7 @@ class EventController(
 
     private fun getIdentityEventPublisher(
         behandlingView: BehandlingDetaljerView,
-    ): Flux<ServerSentEvent<JsonNode>?> {
+    ): Flux<ServerSentEvent<JsonNode>> {
         val flux = aivenKafkaClientCreator.getNewKafkaInternalIdentityEventReceiver().receive()
             .mapNotNull { consumerRecord ->
                 val internalIdentityEvent = jsonToInternalIdentityEvent(consumerRecord.value())

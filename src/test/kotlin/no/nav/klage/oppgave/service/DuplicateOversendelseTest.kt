@@ -18,8 +18,8 @@ import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.util.TokenUtil
 import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.autoconfigure.domain.EntityScan
-import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa
+import org.springframework.boot.data.jpa.test.autoconfigure.AutoConfigureDataJpa
+import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 import org.springframework.test.context.ActiveProfiles

@@ -9,11 +9,11 @@ import no.nav.klage.oppgave.domain.notifications.CreateNotificationEvent
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.util.*
 
@@ -31,7 +31,7 @@ class LostAccessService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
-        private val objectMapper = ourJacksonObjectMapper()
+        private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
     /**
@@ -135,7 +135,7 @@ class LostAccessService(
     ) {
         kafkaInternalEventService.publishNotificationEvent(
             id = UUID.randomUUID(),
-            jsonNode = objectMapper.valueToTree(createNotificationEvent)
+            jsonNode = jacksonObjectMapper.valueToTree(createNotificationEvent)
         )
     }
 }

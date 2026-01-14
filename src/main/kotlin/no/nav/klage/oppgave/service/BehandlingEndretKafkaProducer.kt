@@ -1,8 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
@@ -12,6 +9,7 @@ import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 
 @Service
@@ -27,9 +25,7 @@ class BehandlingEndretKafkaProducer(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
-        private val objectMapper = ObjectMapper().registerModule(JavaTimeModule()).configure(
-            SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false
-        )
+        private val objectMapper = jacksonObjectMapper()
     }
 
     fun sendBehandlingEndret(behandling: Behandling) {

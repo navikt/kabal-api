@@ -47,7 +47,10 @@ import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
-import no.nav.klage.oppgave.util.*
+import no.nav.klage.oppgave.util.TokenUtil
+import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSortKey
+import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.slackposter.SlackClient
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.CacheEvict
@@ -58,6 +61,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.net.InetAddress
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -104,7 +108,7 @@ class AdminService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
-        private val objectMapper = ourJacksonObjectMapper()
+        private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
     @Transactional
@@ -199,7 +203,7 @@ class AdminService(
         val events = kafkaEventRepository.findByType(EventType.STATS_DVH)
 
         val filteredEvents = events.filter {
-            val parsedStatistikkTilDVH = objectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)
+            val parsedStatistikkTilDVH = jacksonObjectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)
             parsedStatistikkTilDVH.behandlingType == "Anke" &&
                     parsedStatistikkTilDVH.behandlingStatus in listOf(
                 BehandlingState.AVSLUTTET,
@@ -217,12 +221,12 @@ class AdminService(
                     it.behandlingId,
                     it.jsonPayload
                 )
-                var parsedStatistikkTilDVH = objectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)
+                var parsedStatistikkTilDVH = jacksonObjectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)
                 parsedStatistikkTilDVH = parsedStatistikkTilDVH.copy(
                     ansvarligEnhetKode = TR_ENHET,
                     tekniskTid = LocalDateTime.now()
                 )
-                it.jsonPayload = objectMapper.writeValueAsString(parsedStatistikkTilDVH)
+                it.jsonPayload = jacksonObjectMapper.writeValueAsString(parsedStatistikkTilDVH)
                 it.status = UtsendingStatus.IKKE_SENDT
                 logger.debug(
                     "AFTER: Modified kafka event {}, behandling_id {}, payload: {}",

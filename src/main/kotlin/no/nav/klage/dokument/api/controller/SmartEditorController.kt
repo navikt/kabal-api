@@ -1,6 +1,5 @@
 package no.nav.klage.dokument.api.controller
 
-import com.fasterxml.jackson.databind.JsonNode
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.dokument.api.view.*
@@ -12,6 +11,7 @@ import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.web.bind.annotation.*
+import tools.jackson.databind.JsonNode
 import java.util.*
 
 

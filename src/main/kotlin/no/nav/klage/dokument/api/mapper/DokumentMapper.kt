@@ -1,6 +1,5 @@
 package no.nav.klage.dokument.api.mapper
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest.Document.Type
@@ -27,6 +26,7 @@ import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import no.nav.klage.oppgave.util.getSortKey
 import org.hibernate.Hibernate
 import org.springframework.stereotype.Component
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.util.*
 
