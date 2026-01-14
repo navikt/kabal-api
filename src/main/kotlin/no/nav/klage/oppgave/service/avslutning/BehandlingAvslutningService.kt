@@ -1,8 +1,5 @@
 package no.nav.klage.oppgave.service.avslutning
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
 import no.nav.klage.kodeverk.*
@@ -22,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.databind.json.JsonMapper
 import java.util.*
 
 @Service
@@ -45,9 +43,8 @@ class BehandlingAvslutningService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
-        private val objectMapperBehandlingEvents = ObjectMapper().registerModule(JavaTimeModule()).configure(
-            SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false
-        )
+        private val objectMapperBehandlingEvents =
+            JsonMapper.builder().build()
     }
 
     @Transactional

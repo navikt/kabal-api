@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.EntityNotFoundException
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -20,9 +19,10 @@ import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.MeldingRepository
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.ourJsonMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.databind.json.JsonMapper
 import java.time.LocalDateTime
 import java.util.*
 
@@ -40,7 +40,7 @@ class MeldingService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
 
-        val objectMapper: ObjectMapper = ourJacksonObjectMapper()
+        val jsonMapper: JsonMapper = ourJsonMapper()
     }
 
     fun addMelding(
@@ -173,7 +173,7 @@ class MeldingService(
             InternalBehandlingEvent(
                 behandlingId = melding.behandlingId.toString(),
                 type = type,
-                data = objectMapper.writeValueAsString(
+                data = jsonMapper.writeValueAsString(
                     MeldingEvent(
                         actor = Employee(navIdent = utfoerendeIdent, navn = utfoerendeName),
                         timestamp = timestamp,
@@ -197,7 +197,7 @@ class MeldingService(
     ) {
         kafkaInternalEventService.publishNotificationEvent(
             id = melding.id,
-            jsonNode = objectMapper.valueToTree(
+            jsonNode = jsonMapper.valueToTree(
                 CreateMeldingNotificationEvent(
                     type = CreateNotificationEvent.NotificationType.MELDING,
                     message = melding.text,

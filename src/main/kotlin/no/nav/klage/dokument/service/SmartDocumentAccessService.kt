@@ -21,7 +21,7 @@ import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.ourJsonMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.scheduling.annotation.Async
@@ -49,7 +49,7 @@ class SmartDocumentAccessService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapper = ourJacksonObjectMapper()
+        private val objectMapper = ourJsonMapper()
     }
 
     /**

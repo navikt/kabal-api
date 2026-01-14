@@ -1,7 +1,7 @@
 package db.migration
 
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.ourJsonMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import java.time.LocalDateTime
@@ -72,7 +72,7 @@ class V174__revert_errors_in_klage_migration_pesys : BaseJavaMigration() {
                         val jsonPayload = rows.getString(2)
 
                         val statistikkTilDVH =
-                            ourJacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
+                            ourJsonMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
                         //Only applicable for KLAGE entries.
                         if (statistikkTilDVH.behandlingType == "KLAGE") {
@@ -120,7 +120,7 @@ class V174__revert_errors_in_klage_migration_pesys : BaseJavaMigration() {
                                 else -> throw RuntimeException("Unknown behandlingId: ${statistikkTilDVH.behandlingId}")
                             }
 
-                            preparedStatement.setString(1, ourJacksonObjectMapper().writeValueAsString(modifiedVersion))
+                            preparedStatement.setString(1, ourJsonMapper().writeValueAsString(modifiedVersion))
                             preparedStatement.setObject(2,"IKKE_SENDT")
                             preparedStatement.setObject(3, kafkaEventId)
 

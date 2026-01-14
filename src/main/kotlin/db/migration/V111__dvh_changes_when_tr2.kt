@@ -2,7 +2,7 @@ package db.migration
 
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.ourJsonMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import java.util.*
@@ -31,13 +31,13 @@ class V111__dvh_changes_when_tr2: BaseJavaMigration() {
                     val kafkaEventId = rows.getObject(1, UUID::class.java)
                     val jsonPayload = rows.getString(2)
 
-                    val statistikkTilDVH = ourJacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
+                    val statistikkTilDVH = ourJsonMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
                     val modifiedVersion = statistikkTilDVH.copy(
                         behandlingStatus = BehandlingState.AVSLUTTET,
                     )
 
-                    preparedStatement.setString(1, ourJacksonObjectMapper().writeValueAsString(modifiedVersion))
+                    preparedStatement.setString(1, ourJsonMapper().writeValueAsString(modifiedVersion))
                     preparedStatement.setObject(2, kafkaEventId)
 
                     preparedStatement.executeUpdate()

@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.EnhetView
 import no.nav.klage.oppgave.api.view.GosysOppgaveMappeView
@@ -20,9 +19,10 @@ import no.nav.klage.oppgave.exceptions.GosysOppgaveClientException
 import no.nav.klage.oppgave.exceptions.GosysOppgaveNotEditableException
 import no.nav.klage.oppgave.exceptions.IllegalOperation
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.ourJsonMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import tools.jackson.databind.json.JsonMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -41,7 +41,7 @@ class GosysOppgaveService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
+        private val jsonMapper: JsonMapper = ourJsonMapper()
     }
 
     fun getGosysOppgave(gosysOppgaveId: Long, fnrToValidate: String? = null): GosysOppgaveView {
@@ -103,7 +103,7 @@ class GosysOppgaveService(
         )
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 GosysoppgaveEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -328,7 +328,7 @@ class GosysOppgaveService(
         val saksbehandlerident = behandling.tildeling?.saksbehandlerident ?: systembrukerIdent
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 GosysoppgaveEvent(
                     actor = Employee(
                         navIdent = saksbehandlerident,

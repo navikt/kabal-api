@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.dokument.domain.SmartDocumentAccessBehandlingEvent
@@ -81,6 +80,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.reactive.function.client.WebClientResponseException
+import tools.jackson.databind.json.JsonMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -118,7 +118,7 @@ class BehandlingService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
 
-        private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
+        private val jsonMapper: JsonMapper = ourJsonMapper()
     }
 
     fun ferdigstillBehandling(
@@ -302,7 +302,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 BehandlingFerdigstiltEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -852,7 +852,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 TildelingEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -953,7 +953,7 @@ class BehandlingService(
         }
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 VarsletFristEvent(
                     actor = Employee(
                         navIdent = saksbehandlerIdent,
@@ -1028,7 +1028,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 TildelingEvent(
                     actor = Employee(
                         navIdent = systembrukerIdent,
@@ -1078,7 +1078,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(medunderskriverIdentEvent)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 MedunderskriverEvent(
                     actor = Employee(
                         navIdent = utfoerendeIdent,
@@ -1127,7 +1127,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(rolIdentEvent)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 RolEvent(
                     actor = Employee(
                         navIdent = systembrukerIdent,
@@ -1227,7 +1227,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 SattPaaVentEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -1308,7 +1308,7 @@ class BehandlingService(
             applicationEventPublisher.publishEvent(event)
 
             publishInternalEvent(
-                data = objectMapper.writeValueAsString(
+                data = jsonMapper.writeValueAsString(
                     MottattVedtaksinstansEvent(
                         actor = Employee(
                             navIdent = utfoerendeSaksbehandlerIdent,
@@ -1453,7 +1453,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 InnsendingshjemlerEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -1587,7 +1587,7 @@ class BehandlingService(
         }
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 FullmektigEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -1647,7 +1647,7 @@ class BehandlingService(
             )
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 KlagerEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -1691,7 +1691,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 TilbakekrevingEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -1729,7 +1729,7 @@ class BehandlingService(
         val medunderskriverWrapped = behandlingMapper.mapToMedunderskriverWrapped(behandling)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 MedunderskriverEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -1793,7 +1793,7 @@ class BehandlingService(
         val medunderskriverWrapped = behandlingMapper.mapToMedunderskriverWrapped(behandling)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 MedunderskriverEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -1963,7 +1963,7 @@ class BehandlingService(
                 event.let { applicationEventPublisher.publishEvent(it) }
 
                 publishInternalEvent(
-                    data = objectMapper.writeValueAsString(
+                    data = jsonMapper.writeValueAsString(
                         MinimalEvent(
                             actor = Employee(
                                 navIdent = saksbehandlerIdent,
@@ -1998,7 +1998,7 @@ class BehandlingService(
                 event.let { applicationEventPublisher.publishEvent(it) }
 
                 publishInternalEvent(
-                    data = objectMapper.writeValueAsString(
+                    data = jsonMapper.writeValueAsString(
                         IncludedDocumentsChangedEvent(
                             actor = Employee(
                                 navIdent = saksbehandlerIdent,
@@ -2115,7 +2115,7 @@ class BehandlingService(
             event.let { applicationEventPublisher.publishEvent(it) }
 
             publishInternalEvent(
-                data = objectMapper.writeValueAsString(
+                data = jsonMapper.writeValueAsString(
                     IncludedDocumentsChangedEvent(
                         actor = Employee(
                             navIdent = saksbehandlerIdent,
@@ -2151,7 +2151,7 @@ class BehandlingService(
             event.let { applicationEventPublisher.publishEvent(it) }
 
             publishInternalEvent(
-                data = objectMapper.writeValueAsString(
+                data = jsonMapper.writeValueAsString(
                     IncludedDocumentsChangedEvent(
                         actor = Employee(
                             navIdent = saksbehandlerIdent,
@@ -2363,7 +2363,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 FeilregistreringEvent(
                     actor = Employee(
                         navIdent = navIdent,
@@ -2425,7 +2425,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(groupedEvent)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 UtfallEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -2467,7 +2467,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 ExtraUtfallEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -2523,7 +2523,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 RegistreringshjemlerEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -2573,7 +2573,7 @@ class BehandlingService(
         val rolView = behandlingMapper.mapToRolView(behandling)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 RolEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -2646,7 +2646,7 @@ class BehandlingService(
         val rolView = behandlingMapper.mapToRolView(behandling)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 RolEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,
@@ -2891,7 +2891,7 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 GosysoppgaveEvent(
                     actor = Employee(
                         navIdent = utfoerendeSaksbehandlerIdent,

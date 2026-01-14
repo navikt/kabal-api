@@ -1,7 +1,7 @@
 package db.migration
 
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.ourJsonMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import java.time.LocalDateTime
@@ -32,14 +32,14 @@ class V193__dvh_pesys_fix_migrated_anke_i_tr : BaseJavaMigration() {
                         val jsonPayload = rows.getString(2)
 
                         val statistikkTilDVH =
-                            ourJacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
+                            ourJsonMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
                         val modifiedVersion = when (statistikkTilDVH.behandlingId) {
                             "36263910" -> statistikkTilDVH.copy(behandlingId = "48270708", tekniskTid = LocalDateTime.now())
                             else -> throw RuntimeException("Unknown behandlingId: ${statistikkTilDVH.behandlingId}")
                         }
 
-                        preparedStatement.setString(1, ourJacksonObjectMapper().writeValueAsString(modifiedVersion))
+                        preparedStatement.setString(1, ourJsonMapper().writeValueAsString(modifiedVersion))
                         preparedStatement.setObject(2,"IKKE_SENDT")
                         preparedStatement.setObject(3, kafkaEventId)
 

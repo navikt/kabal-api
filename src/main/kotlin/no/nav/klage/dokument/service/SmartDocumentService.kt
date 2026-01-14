@@ -1,6 +1,5 @@
 package no.nav.klage.dokument.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.request.CommentInput
@@ -23,11 +22,12 @@ import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.service.KafkaInternalEventService
 import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.ourJsonMapper
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.JsonNode
+import tools.jackson.databind.json.JsonMapper
 import tools.jackson.module.kotlin.jsonMapper
 import java.time.LocalDateTime
 import java.util.*
@@ -52,7 +52,7 @@ class SmartDocumentService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
+        private val jsonMapper: JsonMapper = ourJsonMapper()
     }
 
     fun createSmartDocument(
@@ -147,7 +147,7 @@ class SmartDocumentService(
         )
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 DocumentsAddedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -191,7 +191,7 @@ class SmartDocumentService(
         )
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 DocumentPatched(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -285,7 +285,7 @@ class SmartDocumentService(
         val commentOutput = kabalSmartEditorApiGateway.createComment(smartEditorId, commentInput)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 CommentEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -336,7 +336,7 @@ class SmartDocumentService(
         )
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 CommentEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -398,7 +398,7 @@ class SmartDocumentService(
         )
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 CommentEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -461,7 +461,7 @@ class SmartDocumentService(
         )
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jsonMapper.writeValueAsString(
                 CommentEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,

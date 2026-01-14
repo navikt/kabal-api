@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.api.controller
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
@@ -157,8 +156,8 @@ class EventController(
     }
 
     private fun jsonToInternalBehandlingEvent(json: String?): InternalBehandlingEvent =
-        jacksonObjectMapper().readValue(json, InternalBehandlingEvent::class.java)
+        jsonMapper().readValue(json, InternalBehandlingEvent::class.java)
 
     private fun jsonToInternalIdentityEvent(json: String?): InternalIdentityEvent =
-        jacksonObjectMapper().readValue(json, InternalIdentityEvent::class.java)
+        jsonMapper().readValue(json, InternalIdentityEvent::class.java)
 }

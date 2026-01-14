@@ -2,7 +2,7 @@ package db.migration
 
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.ourJsonMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import java.util.*
@@ -33,14 +33,14 @@ class V112__dvh_utfall_rename : BaseJavaMigration() {
                         val jsonPayload = rows.getString(2)
 
                         val statistikkTilDVH =
-                            ourJacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
+                            ourJsonMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
                         if (statistikkTilDVH.resultat == "Stadfestelse") {
                             val modifiedVersion = statistikkTilDVH.copy(
                                 resultat = Utfall.STADFESTELSE.navn,
                             )
 
-                            preparedStatement.setString(1, ourJacksonObjectMapper().writeValueAsString(modifiedVersion))
+                            preparedStatement.setString(1, ourJsonMapper().writeValueAsString(modifiedVersion))
                             preparedStatement.setObject(2, kafkaEventId)
 
                             preparedStatement.executeUpdate()

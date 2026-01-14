@@ -1,10 +1,9 @@
 package no.nav.klage.oppgave.eventlisteners
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.service.GosysOppgaveService
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
+import no.nav.klage.oppgave.util.ourJsonMapper
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
@@ -12,6 +11,7 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
+import tools.jackson.databind.json.JsonMapper
 
 @Service
 class UpdateGosysOppgaveEventListener(
@@ -22,7 +22,7 @@ class UpdateGosysOppgaveEventListener(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        val objectMapper: ObjectMapper = ourJacksonObjectMapper()
+        val jsonMapper: JsonMapper = ourJsonMapper()
     }
 
     @EventListener

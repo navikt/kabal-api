@@ -104,7 +104,7 @@ class AdminService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
-        private val objectMapper = ourJacksonObjectMapper()
+        private val objectMapper = ourJsonMapper()
     }
 
     @Transactional
