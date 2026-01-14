@@ -25,8 +25,7 @@ class BehandlingEndretKafkaProducer(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
-        private val objectMapper =
-            jacksonObjectMapper()
+        private val objectMapper = jacksonObjectMapper()
     }
 
     fun sendBehandlingEndret(behandling: Behandling) {

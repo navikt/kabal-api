@@ -43,8 +43,7 @@ class BehandlingAvslutningService(
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
-        private val objectMapperBehandlingEvents =
-            jacksonObjectMapper()
+        private val objectMapperBehandlingEvents = jacksonObjectMapper()
     }
 
     @Transactional
