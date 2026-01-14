@@ -54,7 +54,6 @@ class AivenKafkaConfiguration(
     }
 
     //Common config
-    @Bean
     fun commonKafkaConfig() = mapOf(
         BOOTSTRAP_SERVERS_CONFIG to kafkaBrokers
     ) + securityConfig()
