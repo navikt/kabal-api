@@ -9,9 +9,9 @@ import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
 import no.nav.klage.oppgave.service.getDVHPart
-import no.nav.klage.oppgave.util.ourJacksonObjectMapper
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.sql.Timestamp
 import java.time.LocalDateTime
 import java.util.*
@@ -100,7 +100,7 @@ class V194__send_sendt_til_tr_to_dvh : BaseJavaMigration() {
                         preparedStatement.setString(3, Fagsystem.PP01.navn)
                         preparedStatement.setString(4, kildeReferanse)
                         preparedStatement.setString(5, UtsendingStatus.IKKE_SENDT.name)
-                        preparedStatement.setString(6, ourJacksonObjectMapper().writeValueAsString(statistikkTilDVH))
+                        preparedStatement.setString(6, jacksonObjectMapper().writeValueAsString(statistikkTilDVH))
                         preparedStatement.setString(7, EventType.STATS_DVH.name)
                         preparedStatement.setObject(8, now)
                         preparedStatement.setObject(9, null)

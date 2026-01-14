@@ -1,8 +1,5 @@
 package no.nav.klage.oppgave.eventlisteners
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
@@ -25,6 +22,7 @@ import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.event.TransactionPhase
 import org.springframework.transaction.event.TransactionalEventListener
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.util.*
 
@@ -45,9 +43,8 @@ class CleanupAfterBehandlingEventListener(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapperBehandlingEvents = ObjectMapper().registerModule(JavaTimeModule()).configure(
-            SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false
-        )
+        private val objectMapperBehandlingEvents =
+            jacksonObjectMapper()
     }
 
     @Transactional
@@ -108,7 +105,8 @@ class CleanupAfterBehandlingEventListener(
 
     private fun cleanupMessagesAndNotifications(behandling: Behandling) {
         try {
-            meldingRepository.deleteAllById(meldingRepository.findByBehandlingIdOrderByCreatedDesc(behandlingId = behandling.id).map { it.id })
+            meldingRepository.deleteAllById(
+                meldingRepository.findByBehandlingIdOrderByCreatedDesc(behandlingId = behandling.id).map { it.id })
         } catch (e: Exception) {
             logger.error("Could not delete meldinger from behandling ${behandling.id}", e)
         }

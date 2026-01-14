@@ -26,7 +26,7 @@ import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import no.nav.klage.oppgave.util.getSortKey
 import org.hibernate.Hibernate
 import org.springframework.stereotype.Component
-import tools.jackson.module.kotlin.jsonMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import java.util.*
 
@@ -201,7 +201,7 @@ class DokumentMapper(
             isSmartDokument = unproxiedDUA is DokumentUnderArbeidAsSmartdokument,
             templateId = if (unproxiedDUA is DokumentUnderArbeidAsSmartdokument) unproxiedDUA.smartEditorTemplateId else null,
             content = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
-                jsonMapper().readTree(smartEditorDocument!!.json)
+                jacksonObjectMapper().readTree(smartEditorDocument!!.json)
             } else null,
             data = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
                 smartEditorDocument?.data

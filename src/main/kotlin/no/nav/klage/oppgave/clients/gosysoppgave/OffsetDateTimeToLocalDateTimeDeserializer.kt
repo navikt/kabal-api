@@ -1,8 +1,8 @@
 package no.nav.klage.oppgave.clients.gosysoppgave
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
+import tools.jackson.core.JsonParser
+import tools.jackson.databind.DeserializationContext
+import tools.jackson.databind.deser.std.StdDeserializer
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 

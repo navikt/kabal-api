@@ -11,7 +11,6 @@ val testContainersVersion = "2.0.3"
 val shedlockVersion = "7.5.0"
 val archunitVersion = "1.4.1"
 val logbackSyslog4jVersion = "1.0.0"
-val jacksonJsonschemaVersion = "1.0.39"
 val pdfboxVersion = "3.0.6"
 val tikaVersion = "3.2.3"
 val verapdfVersion = "1.28.2"
@@ -75,7 +74,6 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("com.zaxxer:HikariCP")
     implementation("org.postgresql:postgresql")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("ch.qos.logback:logback-classic")
     kapt("org.hibernate.orm:hibernate-processor")
 
@@ -90,8 +88,6 @@ dependencies {
 
     implementation("net.logstash.logback:logstash-logback-encoder:$logstashVersion")
     implementation("com.papertrailapp:logback-syslog4j:$logbackSyslog4jVersion")
-
-    implementation("com.kjetland:mbknor-jackson-jsonschema_2.13:$jacksonJsonschemaVersion")
 
     implementation("no.nav.klage:klage-kodeverk:$klageKodeverkVersion")
 

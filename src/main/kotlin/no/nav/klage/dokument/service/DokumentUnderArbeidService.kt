@@ -1,6 +1,5 @@
 package no.nav.klage.dokument.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import io.micrometer.core.instrument.MeterRegistry
 import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
@@ -49,6 +48,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.io.BufferedReader
 import java.io.File
 import java.nio.file.Files
@@ -98,7 +98,7 @@ class DokumentUnderArbeidService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private val objectMapper: ObjectMapper = ourJacksonObjectMapper()
+        private val jacksonObjectMapper = jacksonObjectMapper()
         private val DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale.of("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
     }
@@ -194,7 +194,7 @@ class DokumentUnderArbeidService(
         )
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 DocumentsAddedEvent(
                     actor = Employee(
                         navIdent = utfoerendeIdent,
@@ -352,7 +352,7 @@ class DokumentUnderArbeidService(
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -442,7 +442,7 @@ class DokumentUnderArbeidService(
 
         if (addedJournalfoerteDokumenter.isNotEmpty()) {
             publishInternalEvent(
-                data = objectMapper.writeValueAsString(
+                data = jacksonObjectMapper.writeValueAsString(
                     DocumentsAddedEvent(
                         actor = Employee(
                             navIdent = innloggetIdent,
@@ -626,7 +626,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -678,7 +678,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -726,7 +726,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -799,7 +799,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -929,7 +929,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.modified = LocalDateTime.now()
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = utfoerendeIdent,
@@ -1100,7 +1100,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.name = dokumentTitle
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -1152,7 +1152,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.language = language
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 SmartDocumentChangedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -1329,7 +1329,7 @@ class DokumentUnderArbeidService(
         applicationEventPublisher.publishEvent(DokumentFerdigstiltAvSaksbehandler(hovedDokument))
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 DocumentsChangedEvent(
                     actor = Employee(
                         navIdent = utfoerendeIdent,
@@ -1712,7 +1712,7 @@ class DokumentUnderArbeidService(
         deleteDocuments(documents = documentsToRemove)
 
         publishInternalEvent(
-            data = objectMapper.writeValueAsString(
+            data = jacksonObjectMapper.writeValueAsString(
                 DocumentsRemovedEvent(
                     actor = Employee(
                         navIdent = innloggetIdent,
@@ -1994,7 +1994,7 @@ class DokumentUnderArbeidService(
                 }
 
                 publishInternalEvent(
-                    data = objectMapper.writeValueAsString(
+                    data = jacksonObjectMapper.writeValueAsString(
                         IncludedDocumentsChangedEvent(
                             actor = Employee(
                                 navIdent = saksbehandlerIdent,
