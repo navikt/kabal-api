@@ -112,6 +112,7 @@ class GosysOppgaveClient(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
                 )
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveMappe>()
