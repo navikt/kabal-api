@@ -52,7 +52,7 @@ class KabalJsonToPdfClient(
     fun getInnholdsfortegnelse(innholdsfortegnelseRequest: InnholdsfortegnelseRequest): PDFDocument {
         logger.debug("Getting innholdsfortegnelse from kabalJsontoPdf.")
         return kabalJsonToPdfWebClient.post()
-            .uri { it.path("/toinnholdsfortegnelse").build() }
+            .uri { it.path("/toinnholdsfortegnelse/v2").build() }
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(innholdsfortegnelseRequest)
             .retrieve()

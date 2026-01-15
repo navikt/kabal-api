@@ -18,16 +18,20 @@ data class InnholdsfortegnelseRequest(
 ) {
     data class Document(
         val tittel: String,
-        val tema: String,
-        val dato: LocalDate,
-        val avsenderMottaker: String,
-        val saksnummer: String,
-        val type: Type,
+        val journalpostMetadataList: List<JournalpostMetadata>,
     ) {
-        enum class Type {
-            I,
-            U,
-            N,
+        data class JournalpostMetadata(
+            val tema: String,
+            val dato: LocalDate,
+            val avsenderMottaker: String,
+            val saksnummer: String,
+            val type: Type,
+        ) {
+            enum class Type {
+                I,
+                U,
+                N,
+            }
         }
     }
 }
