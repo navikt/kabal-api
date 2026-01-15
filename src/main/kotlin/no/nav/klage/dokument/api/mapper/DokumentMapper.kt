@@ -2,7 +2,7 @@ package no.nav.klage.dokument.api.mapper
 
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
-import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest.Document.Type
+import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest.Document.JournalpostMetadata.Type
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
@@ -54,22 +54,29 @@ class DokumentMapper(
             it !is JournalfoertDokumentUnderArbeidAsVedlegg
         } as Pair<List<DokumentUnderArbeidAsVedlegg>, List<JournalfoertDokumentUnderArbeidAsVedlegg>>
 
-        return dokumenterUnderArbeid.sortedByDescending { it.created }
+        val dokumenterUnderArbeidMapped = dokumenterUnderArbeid.sortedByDescending { it.created }
             .map {
                 mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
                     vedlegg = it,
                     behandling = behandling,
                     hoveddokument = hoveddokument,
                 )
-            } +
-                journalfoerteDokumenterUnderArbeid
-                    .sortedBy { (it).sortKey }
-                    .map { journalfoertDokumentUnderArbeid ->
-                        mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
-                            journalfoertDokumentUnderArbeidAsVedlegg = journalfoertDokumentUnderArbeid,
-                            journalpost = journalpostList.find { it.journalpostId == journalfoertDokumentUnderArbeid.journalpostId }!!
-                        )
-                    }
+            }
+
+        // Group journalfoert documents by dokumentInfoId
+        val groupedByDokumentInfoId = journalfoerteDokumenterUnderArbeid
+            .sortedBy { it.sortKey }
+            .groupBy { it.dokumentInfoId }
+
+        val journalfoerteDokumenterMapped = groupedByDokumentInfoId.map { (dokumentInfoId, documents) ->
+            mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokumentGroup(
+                dokumentInfoId = dokumentInfoId,
+                journalfoerteDokumenter = documents,
+                journalpostList = journalpostList,
+            )
+        }
+
+        return dokumenterUnderArbeidMapped + journalfoerteDokumenterMapped
     }
 
     fun mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
@@ -77,38 +84,54 @@ class DokumentMapper(
         behandling: Behandling,
         hoveddokument: DokumentUnderArbeidAsHoveddokument,
     ): InnholdsfortegnelseRequest.Document {
+        val type = when (hoveddokument.dokumentType) {
+            DokumentType.KJENNELSE_FRA_TRYGDERETTEN, DokumentType.ANNEN_INNGAAENDE_POST -> throw RuntimeException("Inngående post kan ikke ha innholdsfortegnelse")
+            DokumentType.VEDTAK, DokumentType.BREV, DokumentType.BESLUTNING, DokumentType.SVARBREV, DokumentType.FORLENGET_BEHANDLINGSTIDSBREV, DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN -> Type.U
+            DokumentType.NOTAT -> Type.N
+        }
         return InnholdsfortegnelseRequest.Document(
             tittel = vedlegg.name,
-            tema = behandling.ytelse.toTema().navn,
-            dato = LocalDateTime.now().toLocalDate(),
-            avsenderMottaker = "",
-            saksnummer = behandling.fagsakId,
-            type = when (hoveddokument.dokumentType) {
-                DokumentType.KJENNELSE_FRA_TRYGDERETTEN, DokumentType.ANNEN_INNGAAENDE_POST -> throw RuntimeException("Inngående post kan ikke ha innholdsfortegnelse")
-                DokumentType.VEDTAK, DokumentType.BREV, DokumentType.BESLUTNING, DokumentType.SVARBREV, DokumentType.FORLENGET_BEHANDLINGSTIDSBREV, DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN -> Type.U
-                DokumentType.NOTAT -> Type.N
-            }
+            journalpostMetadataList = listOf(
+                InnholdsfortegnelseRequest.Document.JournalpostMetadata(
+                    tema = behandling.ytelse.toTema().navn,
+                    dato = LocalDateTime.now().toLocalDate(),
+                    avsenderMottaker = "",
+                    saksnummer = behandling.fagsakId,
+                    type = type,
+                )
+            )
         )
     }
 
-
-    private fun mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokument(
-        journalfoertDokumentUnderArbeidAsVedlegg: JournalfoertDokumentUnderArbeidAsVedlegg,
-        journalpost: Journalpost,
+    private fun mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokumentGroup(
+        dokumentInfoId: String,
+        journalfoerteDokumenter: List<JournalfoertDokumentUnderArbeidAsVedlegg>,
+        journalpostList: List<Journalpost>,
     ): InnholdsfortegnelseRequest.Document {
-        val dokumentInDokarkiv =
-            journalpost.dokumenter?.find { it.dokumentInfoId == journalfoertDokumentUnderArbeidAsVedlegg.dokumentInfoId }
-                ?: throw RuntimeException("Document not found in Dokarkiv")
+        val firstDokument = journalfoerteDokumenter.first()
+        val firstJournalpost = journalpostList.find { it.journalpostId == firstDokument.journalpostId }
+            ?: throw RuntimeException("Journalpost not found for journalpostId ${firstDokument.journalpostId}")
+        val dokumentInDokarkiv = firstJournalpost.dokumenter?.find { it.dokumentInfoId == dokumentInfoId }
+            ?: throw RuntimeException("Document not found in Dokarkiv for dokumentInfoId $dokumentInfoId")
+
+        val journalpostMetadataList = journalfoerteDokumenter.map { journalfoertDokument ->
+            val journalpost = journalpostList.find { it.journalpostId == journalfoertDokument.journalpostId }
+                ?: throw RuntimeException("Journalpost not found for journalpostId ${journalfoertDokument.journalpostId}")
+
+            InnholdsfortegnelseRequest.Document.JournalpostMetadata(
+                tema = Tema.fromNavn(journalpost.tema.name).beskrivelse,
+                dato = journalpost.datoSortering.toLocalDate(),
+                avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
+                saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
+                type = Type.valueOf(
+                    journalpost.journalposttype?.name ?: error("Type ikke funnet i SAF")
+                )
+            )
+        }
 
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentInDokarkiv.tittel ?: "Tittel ikke funnet i SAF",
-            tema = Tema.fromNavn(journalpost.tema.name).beskrivelse,
-            dato = journalpost.datoSortering.toLocalDate(),
-            avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
-            saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
-            type = Type.valueOf(
-                journalpost.journalposttype?.name ?: error("Type ikke funnet i SAF")
-            )
+            journalpostMetadataList = journalpostMetadataList,
         )
     }
 
