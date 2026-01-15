@@ -68,3 +68,9 @@ spring:
   datasource:
     hikari:
       maximum-pool-size: 15
+
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
