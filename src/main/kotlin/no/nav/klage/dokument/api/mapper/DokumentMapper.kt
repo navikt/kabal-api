@@ -164,6 +164,7 @@ class DokumentMapper(
                 harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(dokument),
                 hasAccess = harTilgangTilArkivEllerSladdetVariant(dokument),
                 datoOpprettet = unproxiedDUA.opprettet,
+                datoSortering = journalpost.datoSortering,
                 sortKey = unproxiedDUA.sortKey!!,
                 varianter = dokument.toVarianter(),
             )

@@ -66,6 +66,7 @@ data class DokumentView(
         val harTilgangTilArkivvariant: Boolean,
         val hasAccess: Boolean,
         val datoOpprettet: LocalDateTime,
+        val datoSortering: LocalDateTime,
         val sortKey: String,
         val varianter: List<Variant>,
     )
