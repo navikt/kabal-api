@@ -51,7 +51,7 @@ class SseBrokenPipeLogFilter : TurboFilter() {
         }
 
         if (level == Level.WARN &&
-            logger?.name == "org.eclipse.jetty.ee10.servlet.ServletChannel" &&
+            logger?.name == "org.eclipse.jetty.ee11.servlet.ServletChannel" &&
             throwable != null &&
             throwable.javaClass.name == "jakarta.servlet.ServletException" &&
             throwable.message?.contains("Request processing failed") == true &&
