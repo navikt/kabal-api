@@ -73,10 +73,7 @@ import no.nav.klage.oppgave.domain.kafka.SattPaaVentEvent
 import no.nav.klage.oppgave.domain.kafka.TildelingEvent
 import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.util.TokenUtil
-import no.nav.klage.oppgave.util.findDateBasedOnTimeUnitTypeAndUnits
-import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
+import no.nav.klage.oppgave.util.*
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
@@ -120,7 +117,7 @@ class BehandlingService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-
+        private val teamLogger = getTeamLogger()
         private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
@@ -2300,6 +2297,16 @@ class BehandlingService(
         navIdent: String,
         kildereferanse: String
     ): Behandling {
+        logger.debug("Fagsystem {} is attempting to feilregistrere behandling with kildereferanse: {}", fagsystem, kildereferanse)
+        teamLogger.debug(
+            "Fagsystem {} is attempting to feilregistrere {}, due to {}, with kildereferanse: {} by saksbehandler: {}",
+            fagsystem,
+            type,
+            reason,
+            kildereferanse,
+            navIdent
+        )
+
         var candidates = behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
             fagsystem = fagsystem,
             kildeReferanse = kildereferanse,
