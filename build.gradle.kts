@@ -109,6 +109,8 @@ dependencies {
     //Must be specified to avoid vulnerability. Remove after Spring is updated.
     implementation("org.scala-lang:scala-library:$scalaLibraryVersion")
 
+    implementation("com.github.gavlyukovskiy:flexy-pool-spring-boot-starter:2.0.0")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage")
         exclude(group = "org.mockito")
