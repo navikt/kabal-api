@@ -4,7 +4,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 val mockkVersion = "1.14.7"
 val tokenValidationVersion = "6.0.1"
 val logstashVersion = "9.0"
-val springRetryVersion = "2.0.12"
 val springMockkVersion = "5.0.1"
 val springDocVersion = "3.0.1"
 val testContainersVersion = "2.0.3"
@@ -94,7 +93,6 @@ dependencies {
     implementation("no.nav.security:token-validation-spring:$tokenValidationVersion")
     implementation("no.nav.security:token-client-spring:$tokenValidationVersion")
 
-    implementation("org.springframework.retry:spring-retry:$springRetryVersion")
     implementation("no.nav.slackposter:simple-slack-poster:$simpleSlackPosterVersion")
 
     implementation("io.confluent:kafka-connect-avro-converter:${confluentVersion}")
