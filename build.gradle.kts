@@ -95,7 +95,9 @@ dependencies {
 
     implementation("no.nav.slackposter:simple-slack-poster:$simpleSlackPosterVersion")
 
-    implementation("io.confluent:kafka-connect-avro-converter:${confluentVersion}")
+    implementation("io.confluent:kafka-connect-avro-converter:${confluentVersion}") {
+        exclude(group = "io.swagger.core.v3", module = "swagger-annotations")
+    }
 
     implementation("org.verapdf:validation-model:$verapdfVersion") {
         exclude(group = "com.sun.xml.bind")
