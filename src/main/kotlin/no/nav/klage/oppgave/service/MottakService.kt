@@ -567,15 +567,30 @@ class MottakService(
     }
 
     private fun isBehandlingDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): Boolean {
-        val potentialDuplicate = behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
+        val potentialDuplicateAllTypes = behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNull(
             fagsystem = fagsystem,
             kildeReferanse = kildeReferanse,
-            type = type,
         )
 
-        return (potentialDuplicate.any {
-            it.utfall !in listOf(Utfall.RETUR, Utfall.OPPHEVET)
-        })
+        //First of all, check if there are any open behandlinger with this kildeReferanse and fagsystem
+        if (potentialDuplicateAllTypes.any {
+                it.ferdigstilling != null
+            }) return true
+
+        val potentialDuplicateByType = potentialDuplicateAllTypes.filter { it.type == type }
+
+        return when (type) {
+            //These types only allow serial duplicates if previous behandling has utfall RETUR or OPPHEVET
+            Type.KLAGE, Type.ANKE, Type.ANKE_I_TRYGDERETTEN, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+                potentialDuplicateByType.any {
+                    it.utfall !in listOf(Utfall.RETUR, Utfall.OPPHEVET)
+                }
+            }
+            //These types allow serial duplicates
+            Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+                false
+            }
+        }
     }
 
     private fun validateOptionalDateTimeNotInFuture(inputDateTime: LocalDateTime?, parameterName: String) {
@@ -665,7 +680,10 @@ class MottakService(
         }
     }
 
-    private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling, gosysOppgaveRequired: Boolean): Mottak {
+    private fun Behandling.toMottak(
+        input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling,
+        gosysOppgaveRequired: Boolean
+    ): Mottak {
         val klager = if (input.klager == null || input.klager.value == sakenGjelder.partId.value) {
             Klager(
                 id = sakenGjelder.id,
