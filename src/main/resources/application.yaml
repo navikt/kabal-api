@@ -397,6 +397,8 @@ KABAL_INNSTILLINGER_APP_NAME: kabal-innstillinger
 KLAGE_NOTIFICATIONS_API_BASE_URL: http://klage-notifications-api
 KLAGE_NOTIFICATIONS_API_APP_NAME: klage-notifications-api
 
+KLAGE_UNLEASH_PROXY_URL: http://klage-unleash-proxy
+
 TILGANGSMASKINEN_BASE_URL: http://populasjonstilgangskontroll.tilgangsmaskin
 
 SYSTEMBRUKER_IDENT: SYSTEMBRUKER
