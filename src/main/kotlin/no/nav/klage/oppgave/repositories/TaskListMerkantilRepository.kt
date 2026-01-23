@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface TaskListMerkantilRepository : JpaRepository<TaskListMerkantil, UUID>
+interface TaskListMerkantilRepository : JpaRepository<TaskListMerkantil, UUID> {
+
+    fun findByBehandlingId(behandlingId: UUID): Optional<TaskListMerkantil>
+}
