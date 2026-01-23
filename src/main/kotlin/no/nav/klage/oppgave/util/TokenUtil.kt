@@ -203,14 +203,14 @@ class TokenUtil(
         return response.access_token!!
     }
 
-    fun getSaksbehandlerAccessTokenWithTilgangsmaskinenScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["tilgangsmaskinen-onbehalfof"]!!
+    fun getSaksbehandlerAccessTokenWithKlageLookupScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["klage-lookup-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
     }
 
-    fun getAppAccessTokenWithTilgangsmaskinenScope(): String {
-        val clientProperties = clientConfigurationProperties.registration["tilgangsmaskinen-maskintilmaskin"]!!
+    fun getAppAccessTokenWithKlageLookupScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["klage-lookup-maskintilmaskin"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
         return response.access_token!!
     }

@@ -16,6 +16,18 @@ class WebClientConfig {
 
     @Bean
     fun reactorNettyHttpClient(): HttpClient {
+        val timeoutInSeconds = 30L
+        return HttpClient.create()
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
+            .responseTimeout(Duration.ofSeconds(timeoutInSeconds))
+            .doOnConnected { conn ->
+                conn.addHandlerLast(ReadTimeoutHandler(timeoutInSeconds, TimeUnit.SECONDS))
+                conn.addHandlerLast(WriteTimeoutHandler(timeoutInSeconds, TimeUnit.SECONDS))
+            }
+    }
+
+    @Bean
+    fun kabalDocumentHttpClient(): HttpClient {
         val timeoutInSeconds = 240L
         return HttpClient.create()
             .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
@@ -27,8 +39,20 @@ class WebClientConfig {
     }
 
     @Bean
-    fun webClientBuilder(httpClient: HttpClient): WebClient.Builder {
-        val connector = ReactorClientHttpConnector(httpClient)
+    fun webClientBuilder(reactorNettyHttpClient: HttpClient): WebClient.Builder {
+        val connector = ReactorClientHttpConnector(reactorNettyHttpClient)
+        return WebClient.builder()
+            .codecs { configurer ->
+                configurer
+                    .defaultCodecs()
+                    .maxInMemorySize(512 * 1024 * 1024)
+            }
+            .clientConnector(connector)
+    }
+
+    @Bean
+    fun kabalDocumentWebClientBuilder(kabalDocumentHttpClient: HttpClient): WebClient.Builder {
+        val connector = ReactorClientHttpConnector(kabalDocumentHttpClient)
         return WebClient.builder()
             .codecs { configurer ->
                 configurer

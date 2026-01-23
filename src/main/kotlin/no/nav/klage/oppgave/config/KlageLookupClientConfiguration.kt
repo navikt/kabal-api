@@ -6,15 +6,15 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
-class TilgangsmaskinenClientConfiguration(private val webClientBuilder: WebClient.Builder) {
+class KlageLookupClientConfiguration(private val webClientBuilder: WebClient.Builder) {
 
-    @Value("\${TILGANGSMASKINEN_BASE_URL}")
-    private lateinit var tilgangsmaskinenUrl: String
+    @Value($$"${KLAGE_LOOKUP_BASE_URL}")
+    private lateinit var klageLookupUrl: String
 
     @Bean
-    fun tilgangsmaskinenWebClient(): WebClient {
+    fun klageLookupWebClient(): WebClient {
         return webClientBuilder
-            .baseUrl(tilgangsmaskinenUrl)
+            .baseUrl(klageLookupUrl)
             .build()
     }
 }

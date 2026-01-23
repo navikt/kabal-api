@@ -7,8 +7,7 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
-import no.nav.klage.oppgave.clients.tilgangsmaskinen.TilgangsmaskinenRestClient
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.*
@@ -23,24 +22,17 @@ import java.time.LocalDateTime
 import java.util.*
 
 class TilgangServiceTest {
-
-    private val personService: PersonService = mockk()
-
-    private val egenAnsattService: EgenAnsattService = mockk()
-
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService = mockk()
 
     private val saksbehandlerService: SaksbehandlerService = mockk()
 
-    private val tilgangsmaskinenRestClient: TilgangsmaskinenRestClient = mockk()
+    private val klageLookupClient: KlageLookupClient = mockk()
 
     private val tilgangService =
         TilgangService(
-            personService = personService,
-            egenAnsattService = egenAnsattService,
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             saksbehandlerService = saksbehandlerService,
-            tilgangsmaskinenRestClient = tilgangsmaskinenRestClient,
+            klageLookupClient = klageLookupClient,
         )
 
     @Test
