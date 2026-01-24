@@ -8,7 +8,7 @@ import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 abstract class PostgresIntegrationTestBase {
 
     companion object {
-        private val postgres = PostgreSQLContainer("postgres:16.0").apply {
+        private val postgres = PostgreSQLContainer("postgres:17.0").apply {
             waitingFor(HostPortWaitStrategy())
             withReuse(true)
             start()
