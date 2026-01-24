@@ -14,10 +14,10 @@ import java.util.*
 open class Innholdsfortegnelse(
     @Id
     open val id: UUID = UUID.randomUUID(),
-    @Column(name = "mellomlager_id")
-    open var mellomlagerId: String?,
-    @Column(name = "hoveddokument_id")
-    open var hoveddokumentId: UUID? = null,
+    @Column(name = "mellomlager_id", nullable = false)
+    open var mellomlagerId: String,
+    @Column(name = "hoveddokument_id", nullable = false)
+    open var hoveddokumentId: UUID,
     @Column(name = "created", nullable = false)
     open var created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "modified", nullable = false)

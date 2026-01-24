@@ -26,10 +26,10 @@ const val KLAGEENHET_PREFIX = "42"
 @Audited
 class Klagebehandling(
     //Brukes ikke i anke
-    @Column(name = "dato_mottatt_foersteinstans")
+    @Column(name = "dato_mottatt_foersteinstans", nullable = false)
     var mottattVedtaksinstans: LocalDate,
     //Vises i GUI.
-    @Column(name = "avsender_enhet_foersteinstans")
+    @Column(name = "avsender_enhet_foersteinstans", nullable = false)
     val avsenderEnhetFoersteinstans: String,
     //Kommer fra innsending
     @Column(name = "kommentar_fra_foersteinstans")

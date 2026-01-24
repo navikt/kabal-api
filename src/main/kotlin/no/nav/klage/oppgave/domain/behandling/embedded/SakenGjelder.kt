@@ -6,13 +6,13 @@ import java.util.*
 
 @Embeddable
 data class SakenGjelder(
-    @Column(name = "saken_gjelder_id")
+    @Column(name = "saken_gjelder_id", nullable = false)
     var id: UUID,
     @Embedded
     @AttributeOverrides(
         value = [
-            AttributeOverride(name = "type", column = Column(name = "saken_gjelder_type")),
-            AttributeOverride(name = "value", column = Column(name = "saken_gjelder_value"))
+            AttributeOverride(name = "type", column = Column(name = "saken_gjelder_type", nullable = false)),
+            AttributeOverride(name = "value", column = Column(name = "saken_gjelder_value", nullable = false))
         ]
     )
     val partId: PartId,

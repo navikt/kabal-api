@@ -8,6 +8,6 @@ import java.time.LocalDateTime
 data class MedunderskriverTildeling(
     @Column(name = "saksbehandlerident")
     val saksbehandlerident: String?,
-    @Column(name = "tidspunkt")
+    @Column(name = "tidspunkt", nullable = false)
     val tidspunkt: LocalDateTime
 )

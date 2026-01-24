@@ -23,7 +23,7 @@ import java.util.*
 @DiscriminatorValue("omgjoeringskrav-based-on-kabal-behandling")
 @Audited
 class OmgjoeringskravbehandlingBasedOnKabalBehandling(
-    @Column(name = "source_behandling_id")
+    @Column(name = "source_behandling_id", nullable = false)
     var sourceBehandlingId: UUID,
 
     //Common properties between klage/anke

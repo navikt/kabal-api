@@ -16,10 +16,10 @@ data class VarsletBehandlingstid(
     var varsletBehandlingstidUnitType: TimeUnitType? = null,
     @Column(name = "varslet_reason_no_letter")
     var reasonNoLetter: String?,
-    @Column(name = "varslet_varsel_type")
+    @Column(name = "varslet_varsel_type", nullable = false)
     @Enumerated(EnumType.STRING)
     val varselType: VarselType,
-    @Column(name = "varslet_do_not_send_letter")
+    @Column(name = "varslet_do_not_send_letter", nullable = false)
     var doNotSendLetter: Boolean,
 ) {
     enum class VarselType {

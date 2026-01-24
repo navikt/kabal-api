@@ -23,7 +23,7 @@ import java.util.*
 @DiscriminatorValue("gjenopptak_i_trygderetten")
 @Audited
 class GjenopptakITrygderettenbehandling(
-    @Column(name = "sendt_til_trygderetten")
+    @Column(name = "sendt_til_trygderetten", nullable = false)
     override var sendtTilTrygderetten: LocalDateTime,
     @Column(name = "kjennelse_mottatt")
     override var kjennelseMottatt: LocalDateTime? = null,

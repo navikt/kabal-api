@@ -15,6 +15,6 @@ class Adresse(
     val postnummer: String?,
     @Column(name = "poststed")
     val poststed: String?,
-    @Column(name = "landkode")
+    @Column(name = "landkode", nullable = false)
     val landkode: String,
 )

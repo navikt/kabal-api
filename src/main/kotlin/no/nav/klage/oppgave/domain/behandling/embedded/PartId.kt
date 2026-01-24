@@ -8,10 +8,10 @@ import no.nav.klage.kodeverk.PartIdTypeConverter
 
 @Embeddable
 data class PartId(
-    @Column(name = "type")
+    @Column(name = "type", nullable = false)
     @Convert(converter = PartIdTypeConverter::class)
     val type: PartIdType,
-    @Column(name = "value")
+    @Column(name = "value", nullable = false)
     val value: String,
 ) {
     fun isPerson() = type == PartIdType.PERSON
