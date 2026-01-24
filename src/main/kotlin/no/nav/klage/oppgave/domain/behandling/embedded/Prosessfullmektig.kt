@@ -6,7 +6,7 @@ import java.util.*
 
 @Embeddable
 data class Prosessfullmektig(
-    @Column(name = "prosessfullmektig_id", nullable = false)
+    @Column(name = "prosessfullmektig_id")
     var id: UUID,
     @Embedded
     @AttributeOverrides(
@@ -38,6 +38,5 @@ data class Prosessfullmektig(
         ]
     )
     val address: Adresse?,
-    @Column(name = "navn")
     val navn: String?,
 )

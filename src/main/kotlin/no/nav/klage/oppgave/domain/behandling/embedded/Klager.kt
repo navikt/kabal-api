@@ -5,13 +5,13 @@ import java.util.*
 
 @Embeddable
 data class Klager(
-    @Column(name = "klager_id", nullable = false)
+    @Column(name = "klager_id")
     var id: UUID,
     @Embedded
     @AttributeOverrides(
         value = [
-            AttributeOverride(name = "type", column = Column(name = "klager_type", nullable = false)),
-            AttributeOverride(name = "value", column = Column(name = "klager_value", nullable = false))
+            AttributeOverride(name = "type", column = Column(name = "klager_type")),
+            AttributeOverride(name = "value", column = Column(name = "klager_value"))
         ]
     )
     var partId: PartId,
