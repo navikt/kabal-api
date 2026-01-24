@@ -15,25 +15,25 @@ import java.util.*
 class SvarbrevSettings(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "ytelse_id")
+    @Column(name = "ytelse_id", nullable = false)
     @Convert(converter = YtelseConverter::class)
     val ytelse: Ytelse,
-    @Column(name = "behandlingstid_units")
+    @Column(name = "behandlingstid_units", nullable = false)
     var behandlingstidUnits: Int,
-    @Column(name = "behandlingstid_unit_type_id")
+    @Column(name = "behandlingstid_unit_type_id", nullable = false)
     @Convert(converter = TimeUnitTypeConverter::class)
     var behandlingstidUnitType: TimeUnitType,
     @Column(name = "custom_text")
     var customText: String?,
-    @Column(name = "should_send")
+    @Column(name = "should_send", nullable = false)
     var shouldSend: Boolean,
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     val created: LocalDateTime,
-    @Column(name = "modified")
+    @Column(name = "modified", nullable = false)
     var modified: LocalDateTime,
-    @Column(name = "created_by")
+    @Column(name = "created_by", nullable = false)
     var createdBy: String,
-    @Column(name = "type_id")
+    @Column(name = "type_id", nullable = false)
     @Convert(converter = TypeConverter::class)
     val type: Type,
     @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])

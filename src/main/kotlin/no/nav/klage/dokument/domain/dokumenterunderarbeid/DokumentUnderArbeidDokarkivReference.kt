@@ -13,7 +13,7 @@ import java.util.*
 class DokumentUnderArbeidDokarkivReference(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "journalpost_id")
+    @Column(name = "journalpost_id", nullable = false)
     val journalpostId: String,
     @Column(name = "dokument_info_id")
     val dokumentInfoId: String?,

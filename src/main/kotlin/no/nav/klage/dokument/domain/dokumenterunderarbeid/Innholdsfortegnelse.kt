@@ -18,9 +18,9 @@ open class Innholdsfortegnelse(
     open var mellomlagerId: String?,
     @Column(name = "hoveddokument_id")
     open var hoveddokumentId: UUID? = null,
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     open var created: LocalDateTime = LocalDateTime.now(),
-    @Column(name = "modified")
+    @Column(name = "modified", nullable = false)
     open var modified: LocalDateTime = LocalDateTime.now(),
 ) : Comparable<Innholdsfortegnelse> {
 

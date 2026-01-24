@@ -18,7 +18,9 @@ class OurRevision(
     var id: Long?,
     @RevisionTimestamp
     var timestamp: LocalDateTime?,
+    @Column(name = "actor", nullable = false)
     var actor: String,
+    @Column(name = "request")
     var request: String?,
     @Column(name = "trace_id")
     var traceId: String?,

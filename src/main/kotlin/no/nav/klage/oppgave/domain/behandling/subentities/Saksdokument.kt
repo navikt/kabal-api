@@ -13,9 +13,9 @@ import java.util.*
 class Saksdokument(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "journalpost_id")
+    @Column(name = "journalpost_id", nullable = false)
     val journalpostId: String,
-    @Column(name = "dokument_info_id")
+    @Column(name = "dokument_info_id", nullable = false)
     val dokumentInfoId: String
 ) {
     override fun toString(): String {

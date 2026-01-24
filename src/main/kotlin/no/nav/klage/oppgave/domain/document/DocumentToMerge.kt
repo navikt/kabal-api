@@ -11,11 +11,11 @@ import java.util.*
 class DocumentToMerge(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "journalpost_id")
+    @Column(name = "journalpost_id", nullable = false)
     val journalpostId: String,
-    @Column(name = "dokument_info_id")
+    @Column(name = "dokument_info_id", nullable = false)
     val dokumentInfoId: String,
-    @Column(name = "index")
+    @Column(name = "index", nullable = false)
     val index: Int,
 ) {
 

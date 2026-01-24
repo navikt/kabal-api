@@ -11,10 +11,13 @@ import java.util.*
 class TildelingHistorikk(
     @Id
     val id: UUID = UUID.randomUUID(),
+    @Column(name = "saksbehandlerident")
     val saksbehandlerident: String?,
+    @Column(name = "enhet")
     val enhet: String?,
     @Column(name = "hjemmel_id_list")
     val hjemmelIdList: String?,
+    @Column(name = "tidspunkt", nullable = false)
     val tidspunkt: LocalDateTime,
     @Convert(converter = FradelingReasonConverter::class)
     @Column(name = "fradeling_reason_id")

@@ -13,13 +13,13 @@ class RolHistorikk(
     val id: UUID = UUID.randomUUID(),
     @Column(name = "rol_ident")
     val rolIdent: String?,
-    @Column(name = "tidspunkt")
+    @Column(name = "tidspunkt", nullable = false)
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
     val utfoerendeIdent: String?,
     @Column(name = "utfoerende_navn")
     val utfoerendeNavn: String?,
-    @Column(name = "flow_state_id")
+    @Column(name = "flow_state_id", nullable = false)
     @Convert(converter = FlowStateConverter::class)
     val flowState: FlowState,
 ) {

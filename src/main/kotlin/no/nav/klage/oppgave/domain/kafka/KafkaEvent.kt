@@ -9,22 +9,22 @@ import java.util.*
 class KafkaEvent(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "behandling_id")
+    @Column(name = "behandling_id", nullable = false)
     val behandlingId: UUID,
-    @Column(name = "kilde_referanse")
+    @Column(name = "kilde_referanse", nullable = false)
     val kildeReferanse: String,
-    @Column(name = "kilde")
+    @Column(name = "kilde", nullable = false)
     val kilde: String,
-    @Column(name = "status_id")
+    @Column(name = "status_id", nullable = false)
     @Enumerated(EnumType.STRING)
     var status: UtsendingStatus = UtsendingStatus.IKKE_SENDT,
-    @Column(name = "json_payload")
+    @Column(name = "json_payload", nullable = false)
     var jsonPayload: String,
     @Column(name = "error_message")
     var errorMessage: String? = null,
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     val created: LocalDateTime = LocalDateTime.now(),
-    @Column(name = "type")
+    @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
     val type: EventType
 ) {

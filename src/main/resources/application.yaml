@@ -18,6 +18,8 @@ spring:
     connect-retries: 2
   jpa:
     open-in-view: false
+    hibernate:
+      ddl-auto: validate
     properties:
       org:
         hibernate:
