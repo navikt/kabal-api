@@ -246,14 +246,7 @@ class MottakService(
         logger.debug("Prøver å lagre behandling basert på Kabin-input med sourceBehandlingId {}", sourceBehandlingId)
         val sourceBehandling = behandlingRepository.findById(sourceBehandlingId).get()
 
-        validateBehandlingCreationBasedOnSourceBehandling(
-            sourceBehandling = sourceBehandling,
-        )
-
-        validateParts(
-            sakenGjelderIdentifikator = sourceBehandling.sakenGjelder.partId.value,
-            prosessfullmektigIdentifikator = input.fullmektig?.value,
-        )
+        input.validate(sourceBehandling = sourceBehandling)
 
         val mottak = sourceBehandling.toMottak(
             input = input,
@@ -531,6 +524,27 @@ class MottakService(
             sakenGjelderIdentifikator = sakenGjelder.value,
             prosessfullmektigIdentifikator = fullmektig?.value,
         )
+    }
+
+    fun CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling.validate(sourceBehandling: Behandling) {
+        validateBehandlingCreationBasedOnSourceBehandling(
+            sourceBehandling = sourceBehandling,
+        )
+        validateYtelseAndHjemler(
+            ytelse = sourceBehandling.ytelse,
+            hjemler = hjemmelIdList.map { Hjemmel.of(it) }
+        )
+        validateDuplicate(sourceBehandling.fagsystem, sourceBehandling.kildeReferanse, Type.of(typeId))
+        validateJournalpostList(listOf(receivedDocumentJournalpostId))
+        validateParts(
+            sakenGjelderIdentifikator = sourceBehandling.sakenGjelder.partId.value,
+            prosessfullmektigIdentifikator = fullmektig?.value,
+        )
+
+        klager?.toPartId()?.let { validatePartId(it) }
+        fullmektig?.toPartId()?.let { validatePartId(it) }
+
+        validateDateNotInFuture(mottattNav, ::mottattNav.name)
     }
 
     private fun validateTypeInBehandlingBasedOnJournalpostInput(type: Type) {
