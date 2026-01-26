@@ -574,7 +574,7 @@ class MottakService(
 
         //First of all, check if there are any open behandlinger with this kildeReferanse and fagsystem
         if (potentialDuplicateAllTypes.any {
-                it.ferdigstilling == null
+                it.ferdigstilling?.avsluttetAvSaksbehandler == null
             }) return true
 
         val potentialDuplicateByType = potentialDuplicateAllTypes.filter { it.type == type }
