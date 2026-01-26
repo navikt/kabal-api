@@ -13,13 +13,13 @@ val logbackSyslog4jVersion = "1.0.0"
 val pdfboxVersion = "3.0.6"
 val tikaVersion = "3.2.3"
 val verapdfVersion = "1.28.2"
-val klageKodeverkVersion = "2.0.5"
+val klageKodeverkVersion = "2.0.6"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
-val otelVersion = "1.57.0"
+val otelVersion = "1.58.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.0.0"
 val confluentVersion = "8.1.1"
-val scalaLibraryVersion = "2.13.18"
+val scalaLibraryVersion = "3.8.1"
 val reactorKafkaVersion = "1.3.25"
 
 plugins {
@@ -27,7 +27,7 @@ plugins {
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
-    id("org.springframework.boot") version "4.0.1"
+    id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
     idea
     kotlin("kapt") version kotlinVersion
