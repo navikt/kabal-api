@@ -27,7 +27,7 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     open val brevmottakere: MutableSet<Brevmottaker> = mutableSetOf(),
     @Column(name = "journalfoerende_enhet_id")
     open var journalfoerendeEnhetId: String?,
-    @Column(name = "dokument_type_id")
+    @Column(name = "dokument_type_id", nullable = false)
     @Convert(converter = DokumentTypeConverter::class)
     open var dokumentType: DokumentType,
 

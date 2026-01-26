@@ -10,10 +10,10 @@ import java.util.*
 class MottakDokument(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "type")
+    @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
     var type: MottakDokumentType,
-    @Column(name = "journalpost_id")
+    @Column(name = "journalpost_id", nullable = false)
     var journalpostId: String,
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "behandling_id", nullable = false)

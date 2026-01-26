@@ -12,17 +12,17 @@ import java.util.*
 class Melding(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "behandling_id")
+    @Column(name = "behandling_id", nullable = false)
     val behandlingId: UUID,
-    @Column(name = "text")
+    @Column(name = "text", nullable = false)
     var text: String,
-    @Column(name = "saksbehandlerident")
+    @Column(name = "saksbehandlerident", nullable = false)
     val saksbehandlerident: String,
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     val created: LocalDateTime,
     @Column(name = "modified")
     var modified: LocalDateTime? = null,
-    @Column(name = "notify")
+    @Column(name = "notify", nullable = false)
     var notify: Boolean,
 ) : Comparable<Melding> {
     override fun equals(other: Any?): Boolean {

@@ -13,7 +13,7 @@ class MedunderskriverHistorikk(
     val id: UUID = UUID.randomUUID(),
     @Column(name = "saksbehandlerident")
     val saksbehandlerident: String?,
-    @Column(name = "tidspunkt")
+    @Column(name = "tidspunkt", nullable = false)
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
     val utfoerendeIdent: String?,

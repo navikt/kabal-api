@@ -18,7 +18,7 @@ class KlagerHistorikk(
         ]
     )
     var partId: PartId,
-    @Column(name = "tidspunkt")
+    @Column(name = "tidspunkt", nullable = false)
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
     val utfoerendeIdent: String?,

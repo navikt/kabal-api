@@ -12,16 +12,16 @@ import java.util.*
 class MergedDocument(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "title")
+    @Column(name = "title", nullable = false)
     val title: String,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "merged_document_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 20)
     val documentsToMerge: Set<DocumentToMerge>,
-    @Column(name = "hash")
+    @Column(name = "hash", nullable = false)
     val hash: String,
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     val created: LocalDateTime,
 ) {
 

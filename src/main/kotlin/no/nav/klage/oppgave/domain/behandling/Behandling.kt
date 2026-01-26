@@ -64,8 +64,22 @@ sealed class Behandling(
     @NotAudited
     open var previousBehandlingId: UUID?,
     @Embedded
+    @AttributeOverrides(
+        value = [
+            AttributeOverride(name = "id", column = Column(name = "klager_id", nullable = false)),
+            AttributeOverride(name = "partId.type", column = Column(name = "klager_type", nullable = false)),
+            AttributeOverride(name = "partId.value", column = Column(name = "klager_value", nullable = false)),
+        ]
+    )
     open var klager: Klager,
     @Embedded
+    @AttributeOverrides(
+        value = [
+            AttributeOverride(name = "id", column = Column(name = "saken_gjelder_id", nullable = false)),
+            AttributeOverride(name = "partId.type", column = Column(name = "saken_gjelder_type", nullable = false)),
+            AttributeOverride(name = "partId.value", column = Column(name = "saken_gjelder_value", nullable = false)),
+        ]
+    )
     open var sakenGjelder: SakenGjelder,
     @Embedded
     @AttributeOverrides(
@@ -74,19 +88,19 @@ sealed class Behandling(
         ]
     )
     open var prosessfullmektig: Prosessfullmektig?,
-    @Column(name = "ytelse_id")
+    @Column(name = "ytelse_id", nullable = false)
     @Convert(converter = YtelseConverter::class)
     open val ytelse: Ytelse,
-    @Column(name = "type_id")
+    @Column(name = "type_id", nullable = false)
     @Convert(converter = TypeConverter::class)
     open var type: Type,
-    @Column(name = "kilde_referanse")
+    @Column(name = "kilde_referanse", nullable = false)
     open val kildeReferanse: String,
-    @Column(name = "dato_mottatt_klageinstans")
+    @Column(name = "dato_mottatt_klageinstans", nullable = false)
     open var mottattKlageinstans: LocalDateTime,
-    @Column(name = "modified")
+    @Column(name = "modified", nullable = false)
     open var modified: LocalDateTime = LocalDateTime.now(),
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     open val created: LocalDateTime = LocalDateTime.now(),
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
@@ -105,9 +119,9 @@ sealed class Behandling(
     open var tildeling: Tildeling? = null,
     @Column(name = "frist")
     open var frist: LocalDate? = null,
-    @Column(name = "sak_fagsak_id")
+    @Column(name = "sak_fagsak_id", nullable = false)
     open val fagsakId: String,
-    @Column(name = "sak_fagsystem")
+    @Column(name = "sak_fagsystem", nullable = false)
     @Convert(converter = FagsystemConverter::class)
     open val fagsystem: Fagsystem,
     @Column(name = "dvh_referanse")
@@ -126,7 +140,7 @@ sealed class Behandling(
         joinColumns = [JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)]
     )
     @Convert(converter = HjemmelConverter::class)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     open var hjemler: Set<Hjemmel> = emptySet(),
     @Embedded
     @AttributeOverrides(
@@ -161,7 +175,7 @@ sealed class Behandling(
         joinColumns = [JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)]
     )
     @Convert(converter = UtfallConverter::class)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     open var extraUtfallSet: Set<Utfall> = setOf(),
 
     //Overføres til neste behandling.
@@ -172,7 +186,7 @@ sealed class Behandling(
         joinColumns = [JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)]
     )
     @Convert(converter = RegistreringshjemmelConverter::class)
-    @Column(name = "id")
+    @Column(name = "id", nullable = false)
     open var registreringshjemler: MutableSet<Registreringshjemmel> = mutableSetOf(),
     @Embedded
     @AttributeOverrides(
@@ -206,7 +220,7 @@ sealed class Behandling(
     open var ferdigstilling: Ferdigstilling?,
     @Column(name = "rol_ident")
     open var rolIdent: String?,
-    @Column(name = "rol_flow_state_id")
+    @Column(name = "rol_flow_state_id", nullable = false)
     @Convert(converter = FlowStateConverter::class)
     open var rolFlowState: FlowState = FlowState.NOT_SENT,
     @Column(name = "rol_returned_date")
@@ -247,18 +261,18 @@ sealed class Behandling(
     open var gosysOppgaveId: Long?,
     @Embedded
     open var gosysOppgaveUpdate: GosysOppgaveUpdate?,
-    @Column(name = "ignore_gosys_oppgave")
+    @Column(name = "ignore_gosys_oppgave", nullable = false)
     open var ignoreGosysOppgave: Boolean,
-    @Column(name = "tilbakekreving")
+    @Column(name = "tilbakekreving", nullable = false)
     var tilbakekreving: Boolean,
-    @Column(name = "opprettet_sendt")
+    @Column(name = "opprettet_sendt", nullable = false)
     @NotAudited
     var opprettetSendt: Boolean = false,
     //Only set once, when instance of behandling is created.
-    @Column(name = "gosys_oppgave_required")
+    @Column(name = "gosys_oppgave_required", nullable = false)
     @NotAudited
     val gosysOppgaveRequired: Boolean,
-    @Column(name = "initiating_system")
+    @Column(name = "initiating_system", nullable = false)
     @Enumerated(EnumType.STRING)
     @NotAudited
     val initiatingSystem: InitiatingSystem,
