@@ -102,6 +102,7 @@ spec:
         - application: kabal-file-api
         - application: kabal-json-to-pdf
         - application: klage-notifications-api
+        - application: klage-unleash-proxy
         - application: clamav
           namespace: nais-system
         - application: logging

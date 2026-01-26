@@ -99,6 +99,7 @@ class AdminService(
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
     private val schedulerHealthGate: SchedulerHealthGate,
+    private val merkantilRepository: TaskListMerkantilRepository,
 ) {
 
     @Value("\${KLAGE_BACKEND_GROUP_ID}")
@@ -167,6 +168,10 @@ class AdminService(
         dokumentUnderArbeidRepository.deleteAll(vedlegg)
 
         dokumentUnderArbeidRepository.deleteAll(hoveddokumenter)
+
+        merkantilRepository.findByBehandlingId(behandlingId = behandlingId).ifPresent {
+            merkantilRepository.delete(it)
+        }
 
         val behandling = behandlingRepository.findById(behandlingId).get()
 
