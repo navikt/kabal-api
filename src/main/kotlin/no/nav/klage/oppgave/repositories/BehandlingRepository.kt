@@ -18,6 +18,11 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         type: Type,
     ): List<Behandling>
 
+    fun findByFagsystemAndKildeReferanseAndFeilregistreringIsNull(
+        fagsystem: Fagsystem,
+        kildeReferanse: String,
+    ): List<Behandling>
+
     fun findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
         gosysOppgaveId: Long,
     ): List<Behandling>

@@ -246,14 +246,7 @@ class MottakService(
         logger.debug("Prøver å lagre behandling basert på Kabin-input med sourceBehandlingId {}", sourceBehandlingId)
         val sourceBehandling = behandlingRepository.findById(sourceBehandlingId).get()
 
-        validateBehandlingCreationBasedOnSourceBehandling(
-            sourceBehandling = sourceBehandling,
-        )
-
-        validateParts(
-            sakenGjelderIdentifikator = sourceBehandling.sakenGjelder.partId.value,
-            prosessfullmektigIdentifikator = input.fullmektig?.value,
-        )
+        input.validate(sourceBehandling = sourceBehandling)
 
         val mottak = sourceBehandling.toMottak(
             input = input,
@@ -533,6 +526,27 @@ class MottakService(
         )
     }
 
+    fun CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling.validate(sourceBehandling: Behandling) {
+        validateBehandlingCreationBasedOnSourceBehandling(
+            sourceBehandling = sourceBehandling,
+        )
+        validateYtelseAndHjemler(
+            ytelse = sourceBehandling.ytelse,
+            hjemler = hjemmelIdList.map { Hjemmel.of(it) }
+        )
+        validateDuplicate(sourceBehandling.fagsystem, sourceBehandling.kildeReferanse, Type.of(typeId))
+        validateJournalpostList(listOf(receivedDocumentJournalpostId))
+        validateParts(
+            sakenGjelderIdentifikator = sourceBehandling.sakenGjelder.partId.value,
+            prosessfullmektigIdentifikator = fullmektig?.value,
+        )
+
+        klager?.toPartId()?.let { validatePartId(it) }
+        fullmektig?.toPartId()?.let { validatePartId(it) }
+
+        validateDateNotInFuture(mottattNav, ::mottattNav.name)
+    }
+
     private fun validateTypeInBehandlingBasedOnJournalpostInput(type: Type) {
         if (type !in listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
             throw OversendtKlageNotValidException("Kan kun opprette omgjøringskrav og begjæring om gjenopptak basert på journalpost.")
@@ -567,15 +581,30 @@ class MottakService(
     }
 
     private fun isBehandlingDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): Boolean {
-        val potentialDuplicate = behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
+        val potentialDuplicateAllTypes = behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNull(
             fagsystem = fagsystem,
             kildeReferanse = kildeReferanse,
-            type = type,
         )
 
-        return (potentialDuplicate.any {
-            it.utfall !in listOf(Utfall.RETUR, Utfall.OPPHEVET)
-        })
+        //First of all, check if there are any open behandlinger with this kildeReferanse and fagsystem
+        if (potentialDuplicateAllTypes.any {
+                it.ferdigstilling?.avsluttetAvSaksbehandler == null
+            }) return true
+
+        val potentialDuplicateByType = potentialDuplicateAllTypes.filter { it.type == type }
+
+        return when (type) {
+            //These types only allow serial duplicates if previous behandling has utfall RETUR or OPPHEVET
+            Type.KLAGE, Type.ANKE, Type.ANKE_I_TRYGDERETTEN, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+                potentialDuplicateByType.any {
+                    it.utfall !in listOf(Utfall.RETUR, Utfall.OPPHEVET)
+                }
+            }
+            //These types allow serial duplicates
+            Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+                false
+            }
+        }
     }
 
     private fun validateOptionalDateTimeNotInFuture(inputDateTime: LocalDateTime?, parameterName: String) {
@@ -665,7 +694,10 @@ class MottakService(
         }
     }
 
-    private fun Behandling.toMottak(input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling, gosysOppgaveRequired: Boolean): Mottak {
+    private fun Behandling.toMottak(
+        input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling,
+        gosysOppgaveRequired: Boolean
+    ): Mottak {
         val klager = if (input.klager == null || input.klager.value == sakenGjelder.partId.value) {
             Klager(
                 id = sakenGjelder.id,
