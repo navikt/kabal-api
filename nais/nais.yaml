@@ -103,12 +103,11 @@ spec:
         - application: kabal-json-to-pdf
         - application: klage-notifications-api
         - application: klage-unleash-proxy
+        - application: klage-lookup
         - application: clamav
           namespace: nais-system
         - application: logging
           namespace: nais-system
-        - application: populasjonstilgangskontroll
-          namespace: tilgangsmaskin
       external:
       {{#each externalHosts}}
         - host: {{host}}
