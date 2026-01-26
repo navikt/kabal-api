@@ -22,7 +22,7 @@ import java.util.*
 @Entity
 @Audited
 abstract class Omgjoeringskravbehandling(
-    @Column(name = "klage_behandlende_enhet")
+    @Column(name = "klage_behandlende_enhet", nullable = false)
     val klageBehandlendeEnhet: String,
     @Column(name = "kaka_kvalitetsvurdering_id")
     override var kakaKvalitetsvurderingId: UUID?,

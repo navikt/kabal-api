@@ -10,13 +10,13 @@ import java.util.*
 class Brevmottaker(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "technical_part_id")
+    @Column(name = "technical_part_id", nullable = false)
     var technicalPartId: UUID,
     @Column(name = "identifikator")
     val identifikator: String?,
-    @Column(name = "local_print")
+    @Column(name = "local_print", nullable = false)
     var localPrint: Boolean,
-    @Column(name = "force_central_print")
+    @Column(name = "force_central_print", nullable = false)
     var forceCentralPrint: Boolean,
     @Embedded
     @AttributeOverrides(

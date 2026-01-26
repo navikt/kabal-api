@@ -22,13 +22,13 @@ import java.util.*
 abstract class DokumentUnderArbeid(
     @Id
     open val id: UUID = UUID.randomUUID(),
-    @Column(name = "name", length = MAX_NAME_LENGTH)
+    @Column(name = "name", length = MAX_NAME_LENGTH, nullable = false)
     open var name: String,
-    @Column(name = "behandling_id")
+    @Column(name = "behandling_id", nullable = false)
     open var behandlingId: UUID,
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     open var created: LocalDateTime = LocalDateTime.now(),
-    @Column(name = "modified")
+    @Column(name = "modified", nullable = false)
     open var modified: LocalDateTime = LocalDateTime.now(),
     @Column(name = "markert_ferdig")
     open var markertFerdig: LocalDateTime? = null,
@@ -36,9 +36,9 @@ abstract class DokumentUnderArbeid(
     open var markertFerdigBy: String? = null,
     @Column(name = "ferdigstilt")
     open var ferdigstilt: LocalDateTime? = null,
-    @Column(name = "creator_ident")
+    @Column(name = "creator_ident", nullable = false)
     open var creatorIdent: String,
-    @Column(name = "creator_role")
+    @Column(name = "creator_role", nullable = false)
     @Enumerated(EnumType.STRING)
     open var creatorRole: BehandlingRole,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)

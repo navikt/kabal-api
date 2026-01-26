@@ -12,11 +12,11 @@ import java.util.*
 class TaskListMerkantil(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "behandling_id")
+    @Column(name = "behandling_id", nullable = false)
     val behandlingId: UUID,
-    @Column(name = "reason")
+    @Column(name = "reason", nullable = false)
     val reason: String,
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     val created: LocalDateTime,
     @Column(name = "date_handled")
     var dateHandled: LocalDateTime?,

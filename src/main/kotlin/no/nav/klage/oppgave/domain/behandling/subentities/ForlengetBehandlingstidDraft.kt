@@ -17,7 +17,7 @@ import java.util.*
 class ForlengetBehandlingstidDraft(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "title")
     var title: String? = null,
@@ -33,14 +33,14 @@ class ForlengetBehandlingstidDraft(
     var varsletFrist: LocalDate? = null,
     @Column(name = "behandlingstid_units")
     var varsletBehandlingstidUnits: Int? = null,
-    @Column(name = "behandlingstid_unit_type_id")
+    @Column(name = "behandlingstid_unit_type_id", nullable = false)
     @Convert(converter = TimeUnitTypeConverter::class)
     var varsletBehandlingstidUnitType: TimeUnitType = TimeUnitType.WEEKS,
     @Column(name = "reason_no_letter")
     var reasonNoLetter: String? = null,
-    @Column(name = "do_not_send_letter")
+    @Column(name = "do_not_send_letter", nullable = false)
     var doNotSendLetter: Boolean = false,
-    @Column(name = "varsel_type_is_original")
+    @Column(name = "varsel_type_is_original", nullable = false)
     var varselTypeIsOriginal: Boolean = false,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id", nullable = false)

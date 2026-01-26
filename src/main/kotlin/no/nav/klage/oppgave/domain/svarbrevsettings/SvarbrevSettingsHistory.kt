@@ -15,27 +15,27 @@ import java.util.*
 class SvarbrevSettingsHistory(
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "ytelse_id")
+    @Column(name = "ytelse_id", nullable = false)
     @Convert(converter = YtelseConverter::class)
     val ytelse: Ytelse,
-    @Column(name = "behandlingstid_units")
+    @Column(name = "behandlingstid_units", nullable = false)
     var behandlingstidUnits: Int,
-    @Column(name = "behandlingstid_unit_type_id")
+    @Column(name = "behandlingstid_unit_type_id", nullable = false)
     @Convert(converter = TimeUnitTypeConverter::class)
     var behandlingstidUnitType: TimeUnitType,
     @Column(name = "custom_text")
     val customText: String?,
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     val created: LocalDateTime,
-    @Column(name = "created_by")
+    @Column(name = "created_by", nullable = false)
     val createdBy: String,
-    @Column(name = "should_send")
+    @Column(name = "should_send", nullable = false)
     var shouldSend: Boolean,
-    @Column(name = "type_id")
+    @Column(name = "type_id", nullable = false)
     @Convert(converter = TypeConverter::class)
     val type: Type,
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "svarbrev_settings_id")
+    @JoinColumn(name = "svarbrev_settings_id", nullable = false)
     val svarbrevSettings: SvarbrevSettings
 ) {
     override fun equals(other: Any?): Boolean {

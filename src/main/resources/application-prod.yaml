@@ -57,8 +57,6 @@ KLAGE_FSS_PROXY_URL: https://klage-fss-proxy.prod-fss-pub.nais.io
 GOSYS_OPPGAVE_BASE_URL: https://oppgave.prod-fss-pub.nais.io/api/v1
 GOSYS_OPPGAVE_SCOPE: prod-fss.oppgavehandtering.oppgave
 
-TILGANGSMASKINEN_SCOPE: prod-gcp.tilgangsmaskin.populasjonstilgangskontroll
-
 FSS_CLUSTER: prod-fss
 
 SETTINGS_CLEANUP_CRON: 0 15 16 * * WED

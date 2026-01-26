@@ -10,7 +10,7 @@ import java.util.*
 @Entity
 @Audited
 abstract class DokumentUnderArbeidAsVedlegg(
-    @Column(name = "parent_id")
+    @Column(name = "parent_id", nullable = false)
     open var parentId: UUID,
 
     //Common properties

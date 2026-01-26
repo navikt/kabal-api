@@ -1,8 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
-import no.nav.klage.oppgave.clients.tilgangsmaskinen.TilgangsmaskinenRestClient
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
@@ -12,11 +11,9 @@ import org.springframework.stereotype.Service
 
 @Service
 class TilgangService(
-    private val personService: PersonService,
-    private val egenAnsattService: EgenAnsattService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val saksbehandlerService: SaksbehandlerService,
-    private val tilgangsmaskinenRestClient: TilgangsmaskinenRestClient,
+    private val klageLookupClient: KlageLookupClient,
     ) {
 
     companion object {
@@ -45,7 +42,7 @@ class TilgangService(
     fun verifyInnloggetSaksbehandlersTilgangTil(fnr: String) {
         val access = hasSaksbehandlerAccessTo(fnr)
         if (!access.access) {
-            throw MissingTilgangException(access.reason ?: "Saksbehandler har ikke tilgang til denne brukeren")
+            throw MissingTilgangException(access.reason)
         }
     }
 
@@ -72,33 +69,10 @@ class TilgangService(
         fnr: String,
         navIdent: String? = null,
     ): Access {
-        return getTilgangsmaskinenAccess(
+        return klageLookupClient.getAccess(
             brukerId = fnr,
             navIdent = navIdent,
         )
-    }
-
-    private fun getTilgangsmaskinenAccess(
-        brukerId: String,
-        navIdent: String?,
-    ): Access {
-        val tilgangsmaskinenStart = System.currentTimeMillis()
-
-        val tilgangsmaskinenErrorResponse = tilgangsmaskinenRestClient.getTilgangsmaskinenErrorResponse(brukerId = brukerId, navIdent = navIdent)
-
-        val tilgangsmaskinenAccess = if (tilgangsmaskinenErrorResponse != null) {
-            Access(
-                access = false,
-                reason = tilgangsmaskinenErrorResponse.begrunnelse
-            )
-        } else {
-            Access(
-                access = true,
-                reason = "Access granted",
-            )
-        }
-        logger.debug("Tilgangsmaskinen took ${System.currentTimeMillis() - tilgangsmaskinenStart} ms")
-        return tilgangsmaskinenAccess
     }
 
     data class Access(

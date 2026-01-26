@@ -18,7 +18,7 @@ class VarsletBehandlingstidHistorikk(
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 100)
     val mottakerList: List<VarsletBehandlingstidHistorikkMottaker> = listOf(),
-    @Column(name = "tidspunkt")
+    @Column(name = "tidspunkt", nullable = false)
     val tidspunkt: LocalDateTime,
     @Column(name = "utfoerende_ident")
     val utfoerendeIdent: String?,

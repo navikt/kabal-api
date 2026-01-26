@@ -10,22 +10,22 @@ import java.util.*
 class AutomaticSvarbrevEvent (
     @Id
     val id: UUID = UUID.randomUUID(),
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     var status: AutomaticSvarbrevStatus,
-    @Column(name = "created")
+    @Column(name = "created", nullable = false)
     val created: LocalDateTime,
-    @Column(name = "modified")
+    @Column(name = "modified", nullable = false)
     var modified: LocalDateTime,
-    @Column(name = "behandling_id")
+    @Column(name = "behandling_id", nullable = false)
     val behandlingId: UUID,
     @Column(name = "dokument_under_arbeid_id")
     var dokumentUnderArbeidId: UUID?,
-    @Column(name = "receivers_are_set")
+    @Column(name = "receivers_are_set", nullable = false)
     var receiversAreSet: Boolean,
-    @Column(name = "document_is_marked_as_finished")
+    @Column(name = "document_is_marked_as_finished", nullable = false)
     var documentIsMarkedAsFinished: Boolean,
-    @Column(name = "varslet_frist_is_set_in_behandling")
+    @Column(name = "varslet_frist_is_set_in_behandling", nullable = false)
     var varsletFristIsSetInBehandling: Boolean,
 ) {
     enum class AutomaticSvarbrevStatus {

@@ -14,16 +14,16 @@ import java.util.*
 class SmartdokumentUnderArbeidAsHoveddokument(
     @Column(name = "size")
     override var size: Long?,
-    @Column(name = "smarteditor_id")
+    @Column(name = "smarteditor_id", nullable = false)
     override val smartEditorId: UUID,
-    @Column(name = "smarteditor_template_id")
+    @Column(name = "smarteditor_template_id", nullable = false)
     override var smartEditorTemplateId: String,
     @Column(name = "mellomlager_id")
     override var mellomlagerId: String?,
     @Column(name = "mellomlagret_date")
     override var mellomlagretDate: LocalDateTime?,
     @Enumerated(EnumType.STRING)
-    @Column(name = "language")
+    @Column(name = "language", nullable = false)
     override var language: Language,
     @Column(name = "mellomlagret_version")
     override var mellomlagretVersion: Int?,

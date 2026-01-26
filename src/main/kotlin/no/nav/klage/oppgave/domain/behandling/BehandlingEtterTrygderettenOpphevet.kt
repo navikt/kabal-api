@@ -28,11 +28,11 @@ class BehandlingEtterTrygderettenOpphevet(
     override var kakaKvalitetsvurderingVersion: Int,
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
-    @Column(name = "source_behandling_id")
+    @Column(name = "source_behandling_id", nullable = false)
     var sourceBehandlingId: UUID,
-    @Column(name = "kjennelse_mottatt")
+    @Column(name = "kjennelse_mottatt", nullable = false)
     val kjennelseMottatt: LocalDateTime,
-    @Column(name = "anke_behandlende_enhet")
+    @Column(name = "anke_behandlende_enhet", nullable = false)
     val ankeBehandlendeEnhet: String,
     @OneToOne(cascade = [CascadeType.ALL], optional = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "forlenget_behandlingstid_draft_id", referencedColumnName = "id")

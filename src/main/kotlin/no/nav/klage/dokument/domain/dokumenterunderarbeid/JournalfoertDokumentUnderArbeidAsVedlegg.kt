@@ -12,11 +12,11 @@ import java.util.*
 @DiscriminatorValue("journalfoertdokument")
 @Audited
 class JournalfoertDokumentUnderArbeidAsVedlegg(
-    @Column(name = "opprettet")
+    @Column(name = "opprettet", nullable = false)
     var opprettet: LocalDateTime,
-    @Column(name = "journalfoert_dokument_journalpost_id")
+    @Column(name = "journalfoert_dokument_journalpost_id", nullable = false)
     val journalpostId: String,
-    @Column(name = "journalfoert_dokument_dokument_info_id")
+    @Column(name = "journalfoert_dokument_dokument_info_id", nullable = false)
     val dokumentInfoId: String,
     @Column(name = "sort_key")
     var sortKey: String?,
