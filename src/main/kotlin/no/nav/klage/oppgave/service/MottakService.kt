@@ -626,7 +626,7 @@ class MottakService(
         if (ytelse in ytelseToHjemler.keys) {
             if (!hjemler.isNullOrEmpty()) {
                 hjemler.forEach { hjemmel ->
-                    if (!ytelseToHjemler[ytelse]!!.map { it.hjemmel }.contains(hjemmel) && !ytelseToHjemler[ytelse]!!.first { it.hjemmel == hjemmel }.utfases)  {
+                    if (!ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }.contains(hjemmel))  {
                         throw OversendtKlageNotValidException("Behandling med ytelse ${ytelse.navn} kan ikke registreres med hjemmel $hjemmel. Ta kontakt med team klage dersom du mener hjemmelen skal være mulig å bruke for denne ytelsen.")
                     }
                 }
