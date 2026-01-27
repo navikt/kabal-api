@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val mockkVersion = "1.14.7"
+val mockkVersion = "1.14.9"
 val tokenValidationVersion = "6.0.1"
 val logstashVersion = "9.0"
 val springMockkVersion = "5.0.1"
@@ -15,11 +15,11 @@ val tikaVersion = "3.2.3"
 val verapdfVersion = "1.28.2"
 val klageKodeverkVersion = "3.0.0"
 val commonsFileupload2JakartaVersion = "2.0.0-M1"
-val otelVersion = "1.57.0"
+val otelVersion = "1.58.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.0.0"
 val confluentVersion = "8.1.1"
-val scalaLibraryVersion = "2.13.18"
+val scalaLibraryVersion = "3.8.1"
 val reactorKafkaVersion = "1.3.25"
 
 plugins {
