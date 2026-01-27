@@ -283,7 +283,7 @@ class MockDataController(
                         fagsak = oversendtSak,
                         kildeReferanse = mockInput?.kildeReferanse ?: UUID.randomUUID().toString(),
                         dvhReferanse = mockInput?.dvhReferanse,
-                        hjemler = listOf(ytelseToHjemler[ytelse]!!.random()),
+                        hjemler = listOf(ytelseToHjemler[ytelse]!!.map { it.hjemmel }.random()),
                         forrigeBehandlendeEnhet = mockInput?.forrigeBehandlendeEnhet ?: "4295", //Klageinstans Tromsø
                         sakMottattKaTidspunkt = dato,
                         kommentar = mockInput?.kommentar,
@@ -340,7 +340,7 @@ class MockDataController(
                     fagsakId = oversendtSak.fagsakId,
                     sakMottattKlageinstans = dato,
                     saksdokumenter = mutableSetOf(),
-                    innsendingsHjemler = mutableSetOf(ytelseToHjemler[ytelse]!!.random()),
+                    innsendingsHjemler = mutableSetOf(ytelseToHjemler[ytelse]!!.map { it.hjemmel }.random()),
                     sendtTilTrygderetten = LocalDateTime.now(),
                     registreringsHjemmelSet = registreringsHjemmelSet,
                     ankebehandlingUtfall = ExternalUtfall.valueOf(utfallToTrygderetten.random().name),
