@@ -23,6 +23,7 @@ import java.util.*
 @DiscriminatorValue("omgjoeringskrav-based-on-kabal-behandling")
 @Audited
 class OmgjoeringskravbehandlingBasedOnKabalBehandling(
+    //Kan fjernes, settes alltid lik previousBehandlingId
     @Column(name = "source_behandling_id", nullable = false)
     var sourceBehandlingId: UUID,
 

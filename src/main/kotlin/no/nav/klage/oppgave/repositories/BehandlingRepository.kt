@@ -80,9 +80,12 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         utfallWithoutAnkemulighet: List<Utfall> = listOf(
             Utfall.INNSTILLING_AVVIST,
             Utfall.INNSTILLING_STADFESTELSE,
+            Utfall.INNSTILLING_GJENOPPTAS_IKKE,
+            Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES
         ),
         excludedTypes: List<Type> = listOf(
             Type.ANKE_I_TRYGDERETTEN,
+            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN
         )
     ): List<Behandling>
 
@@ -160,4 +163,5 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
     @Query("select b from Behandling b where b.id = :id")
     fun findByIdForKaptein(id: UUID): Behandling
 
+    fun findByPreviousBehandlingIdAndFeilregistreringIsNull(previousBehandlingId: UUID): List<Behandling>
 }

@@ -28,6 +28,7 @@ class Ankebehandling(
     @Column(name = "klage_behandlende_enhet", nullable = false)
     val klageBehandlendeEnhet: String,
     //Fins i noen tilfeller, men ikke alle.
+    //Kan fjernes, settes alltid lik previousBehandlingId
     @Column(name = "source_behandling_id")
     var sourceBehandlingId: UUID?,
     @Column(name = "kaka_kvalitetsvurdering_id")

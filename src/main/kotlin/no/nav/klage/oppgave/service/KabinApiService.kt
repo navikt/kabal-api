@@ -297,6 +297,9 @@ class KabinApiService(
         val ankebehandlingerBasedOnThisBehandling =
             ankebehandlingService.getAnkebehandlingerBasedOnSourceBehandlingId(sourceBehandlingId = id)
 
+        val behandlingerBasedOnThisBehandling =
+            behandlingService.getBehandlingerWithPreviousBehandlingId(previousBehandlingId = id)
+
         return Mulighet(
             behandlingId = id,
             ytelseId = ytelse.id,
@@ -331,6 +334,14 @@ class KabinApiService(
             sourceOfExistingAnkebehandling = ankebehandlingerBasedOnThisBehandling.map {
                 ExistingAnkebehandling(
                     id = it.id,
+                    created = it.created,
+                    completed = it.ferdigstilling?.avsluttetAvSaksbehandler,
+                )
+            },
+            existingBehandlingList = behandlingerBasedOnThisBehandling.map {
+                ExistingBehandling(
+                    id = it.id,
+                    typeId = it.type.id,
                     created = it.created,
                     completed = it.ferdigstilling?.avsluttetAvSaksbehandler,
                 )

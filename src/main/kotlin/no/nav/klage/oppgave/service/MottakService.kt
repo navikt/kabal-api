@@ -472,7 +472,6 @@ class MottakService(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateDuplicate(Fagsystem.of(fagsystemId), kildereferanse, Type.KLAGE)
         validateJournalpostList(listOf(klageJournalpostId))
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
@@ -492,7 +491,6 @@ class MottakService(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateDuplicate(Fagsystem.of(fagsystemId), kildereferanse, Type.ANKE)
         validateJournalpostList(listOf(ankeJournalpostId))
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
@@ -512,7 +510,6 @@ class MottakService(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateDuplicate(Fagsystem.of(fagsystemId), kildereferanse, Type.of(typeId))
         validateJournalpostList(listOf(receivedDocumentJournalpostId))
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
@@ -534,7 +531,6 @@ class MottakService(
             ytelse = sourceBehandling.ytelse,
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateDuplicate(sourceBehandling.fagsystem, sourceBehandling.kildeReferanse, Type.of(typeId))
         validateJournalpostList(listOf(receivedDocumentJournalpostId))
         validateParts(
             sakenGjelderIdentifikator = sourceBehandling.sakenGjelder.partId.value,
@@ -594,14 +590,14 @@ class MottakService(
         val potentialDuplicateByType = potentialDuplicateAllTypes.filter { it.type == type }
 
         return when (type) {
-            //These types only allow serial duplicates if previous behandling has utfall RETUR or OPPHEVET
-            Type.KLAGE, Type.ANKE, Type.ANKE_I_TRYGDERETTEN, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+            //Klage only allows serial duplicates if previous behandling has utfall RETUR or OPPHEVET
+            Type.KLAGE -> {
                 potentialDuplicateByType.any {
                     it.utfall !in listOf(Utfall.RETUR, Utfall.OPPHEVET)
                 }
             }
-            //These types allow serial duplicates
-            Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK, Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+            //Other types allow serial duplicates
+            else -> {
                 false
             }
         }
