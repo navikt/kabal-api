@@ -58,7 +58,6 @@ data class ExistingBehandling(
     val completed: LocalDateTime?,
 )
 
-
 data class CreatedBehandlingResponse(
     val behandlingId: UUID,
 )
