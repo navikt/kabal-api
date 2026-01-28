@@ -23,6 +23,7 @@ import java.util.*
 @DiscriminatorValue("gjenopptak-based-on-kabal-behandling")
 @Audited
 class GjenopptaksbehandlingBasedOnKabalBehandling(
+    //Kan fjernes, settes alltid lik previousBehandlingId
     @Column(name = "source_behandling_id")
     var sourceBehandlingId: UUID?,
 
