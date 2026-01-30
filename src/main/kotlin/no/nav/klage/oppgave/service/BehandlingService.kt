@@ -3023,4 +3023,8 @@ class BehandlingService(
 
         logger.debug("Number of candidates after migration: ${candidatesAfterMigration.size}")
     }
+
+    fun getBehandlingerWithPreviousBehandlingId(previousBehandlingId: UUID): List<Behandling> {
+        return behandlingRepository.findByPreviousBehandlingIdAndFeilregistreringIsNull(previousBehandlingId = previousBehandlingId)
+    }
 }

@@ -29,6 +29,7 @@ data class Mulighet(
     val originalTypeId: String,
     val typeId: String,
     val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
+    val existingBehandlingList: List<ExistingBehandling>,
     val ytelseId: String,
     val hjemmelIdList: List<String>,
     val vedtakDate: LocalDateTime,
@@ -45,6 +46,13 @@ data class Mulighet(
 )
 
 data class ExistingAnkebehandling(
+    val id: UUID,
+    val created: LocalDateTime,
+    val completed: LocalDateTime?,
+)
+
+data class ExistingBehandling(
+    val typeId: String,
     val id: UUID,
     val created: LocalDateTime,
     val completed: LocalDateTime?,

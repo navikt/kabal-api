@@ -7,6 +7,7 @@ import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -294,10 +295,17 @@ class KabinApiService(
         val ankebehandlingerBasedOnThisBehandling =
             ankebehandlingService.getAnkebehandlingerBasedOnSourceBehandlingId(sourceBehandlingId = id)
 
+        //Exclude hjemler where utfases = true
+        val relevantHjemler = ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }
+        val filteredHjemmelList = hjemler.filter { it in relevantHjemler }
+
+        val behandlingerBasedOnThisBehandling =
+            behandlingService.getBehandlingerWithPreviousBehandlingId(previousBehandlingId = id)
+
         return Mulighet(
             behandlingId = id,
             ytelseId = ytelse.id,
-            hjemmelIdList = hjemler.map { it.id },
+            hjemmelIdList = filteredHjemmelList.map { it.id },
             vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
             sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
             klager = behandlingMapper.getPartViewWithUtsendingskanal(
@@ -328,6 +336,14 @@ class KabinApiService(
             sourceOfExistingAnkebehandling = ankebehandlingerBasedOnThisBehandling.map {
                 ExistingAnkebehandling(
                     id = it.id,
+                    created = it.created,
+                    completed = it.ferdigstilling?.avsluttetAvSaksbehandler,
+                )
+            },
+            existingBehandlingList = behandlingerBasedOnThisBehandling.map {
+                ExistingBehandling(
+                    id = it.id,
+                    typeId = it.type.id,
                     created = it.created,
                     completed = it.ferdigstilling?.avsluttetAvSaksbehandler,
                 )
