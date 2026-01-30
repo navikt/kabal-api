@@ -28,9 +28,6 @@ class BehandlingEtterTrygderettenOpphevet(
     override var kakaKvalitetsvurderingVersion: Int,
     @Embedded
     override var varsletBehandlingstid: VarsletBehandlingstid?,
-    //Kan fjernes, settes alltid lik previousBehandlingId
-    @Column(name = "source_behandling_id", nullable = false)
-    var sourceBehandlingId: UUID,
     @Column(name = "kjennelse_mottatt", nullable = false)
     val kjennelseMottatt: LocalDateTime,
     @Column(name = "anke_behandlende_enhet", nullable = false)

@@ -525,7 +525,6 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
                     ferdigstilling = if (ferdigstilt) ferdigstilling else null,
                     previousSaksbehandlerident = "C78901",
                     klageBehandlendeEnhet = "1000",
-                    sourceBehandlingId = UUID.randomUUID(),
                     tildeling = Tildeling(
                         saksbehandlerident = tildeltSaksbehandlerIdent,
                         enhet = enhetId,
@@ -610,7 +609,6 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
                     ),
                     kjennelseMottatt = LocalDateTime.now(),
                     gosysOppgaveId = null,
-                    sourceBehandlingId = UUID.randomUUID(),
                     frist = LocalDate.now().plusWeeks(12),
                     kakaKvalitetsvurderingId = UUID.randomUUID(),
                     kakaKvalitetsvurderingVersion = 2,

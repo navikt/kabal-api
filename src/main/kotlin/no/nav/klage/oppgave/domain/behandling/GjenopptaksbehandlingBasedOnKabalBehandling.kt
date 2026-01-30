@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.domain.behandling
 
-import jakarta.persistence.Column
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 import no.nav.klage.kodeverk.Fagsystem
@@ -23,11 +22,6 @@ import java.util.*
 @DiscriminatorValue("gjenopptak-based-on-kabal-behandling")
 @Audited
 class GjenopptaksbehandlingBasedOnKabalBehandling(
-    //Kan fjernes, settes alltid lik previousBehandlingId
-    @Column(name = "source_behandling_id")
-    var sourceBehandlingId: UUID?,
-
-    //Common properties between klage/anke
     id: UUID = UUID.randomUUID(),
     previousBehandlingId: UUID?,
     klager: Klager,

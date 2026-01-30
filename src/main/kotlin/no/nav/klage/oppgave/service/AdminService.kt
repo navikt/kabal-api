@@ -890,13 +890,13 @@ class AdminService(
                 val previousBehandlingId = when (behandling) {
                     is Klagebehandling -> null
                     is Ankebehandling -> {
-                        behandling.sourceBehandlingId
+                        behandling.previousBehandlingId
                     }
 
                     is Omgjoeringskravbehandling -> {
                         when (behandling) {
                             is OmgjoeringskravbehandlingBasedOnJournalpost -> null
-                            is OmgjoeringskravbehandlingBasedOnKabalBehandling -> behandling.sourceBehandlingId
+                            is OmgjoeringskravbehandlingBasedOnKabalBehandling -> behandling.previousBehandlingId
                             else -> error("Unknown Omgjoeringskravbehandling subtype: ${behandling::class.java}")
                         }
                     }
@@ -910,7 +910,7 @@ class AdminService(
                     }
 
                     is BehandlingEtterTrygderettenOpphevet -> {
-                        behandling.sourceBehandlingId
+                        behandling.previousBehandlingId
                     }
 
                     is GjenopptakITrygderettenbehandling -> TODO()

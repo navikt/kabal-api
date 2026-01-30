@@ -28,7 +28,6 @@ data class Mulighet(
     val behandlingId: UUID,
     val originalTypeId: String,
     val typeId: String,
-    val sourceOfExistingAnkebehandling: List<ExistingAnkebehandling>,
     val existingBehandlingList: List<ExistingBehandling>,
     val ytelseId: String,
     val hjemmelIdList: List<String>,

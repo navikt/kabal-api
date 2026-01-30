@@ -82,7 +82,6 @@ class OmgjoeringskravbehandlingService(
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = mottak.hjemler,
-                    sourceBehandlingId = mottak.forrigeBehandlingId!!,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     oppgaveId = null,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
