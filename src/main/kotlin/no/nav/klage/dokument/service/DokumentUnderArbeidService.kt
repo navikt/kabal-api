@@ -125,7 +125,7 @@ class DokumentUnderArbeidService(
         val behandling = if (systemContext) {
             behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
         } else {
-            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+            behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         }
         val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
 
@@ -299,7 +299,7 @@ class DokumentUnderArbeidService(
 
         val dua = getDokumentUnderArbeid(persistentDokumentId)
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId = behandlingId)
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetSaksbehandlerService.getInnloggetIdent())
 
@@ -397,7 +397,7 @@ class DokumentUnderArbeidService(
         journalfoerteDokumenterInput: JournalfoerteDokumenterInput,
         innloggetIdent: String
     ): JournalfoerteDokumenterResponse {
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
@@ -576,7 +576,7 @@ class DokumentUnderArbeidService(
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
 
         if (dokumentUnderArbeid !is DokumentUnderArbeidAsHoveddokument) {
             throw DokumentValidationException("Kan ikke endre dokumenttype på vedlegg")
@@ -659,7 +659,7 @@ class DokumentUnderArbeidService(
             getDokumentUnderArbeid(dokumentId) as OpplastetDokumentUnderArbeidAsHoveddokument
 
         //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke sette dato mottatt på et dokument som er ferdigstilt")
@@ -711,7 +711,7 @@ class DokumentUnderArbeidService(
     ): DokumentUnderArbeidAsHoveddokument {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId) as OpplastetDokumentUnderArbeidAsHoveddokument
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke sette inngående kanal på et dokument som er ferdigstilt")
@@ -772,7 +772,7 @@ class DokumentUnderArbeidService(
 
         dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
             throw DokumentValidationException("Kan ikke sette avsender på et dokument som er ferdigstilt")
@@ -848,7 +848,7 @@ class DokumentUnderArbeidService(
         val behandling = if (systemContext) {
             behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(behandlingId)
         } else {
-            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+            behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         }
 
         if (dokumentUnderArbeid.erMarkertFerdig()) {
@@ -1076,7 +1076,7 @@ class DokumentUnderArbeidService(
     ): DokumentUnderArbeid {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(dokumentUnderArbeid.behandlingId)
 
         val duration = measureTime {
             documentPolicyService.validateDokumentUnderArbeidAction(
@@ -1133,7 +1133,7 @@ class DokumentUnderArbeidService(
     ): DokumentUnderArbeid {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(dokumentUnderArbeid.behandlingId)
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
@@ -1244,7 +1244,7 @@ class DokumentUnderArbeidService(
         val behandling = if (systemContext) {
             behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(hovedDokument.behandlingId)
         } else {
-            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(hovedDokument.behandlingId)
+            behandlingService.getBehandlingAndCheckReadAccessToSak(hovedDokument.behandlingId)
         }
 
         val duration = measureTime {
@@ -1526,7 +1526,7 @@ class DokumentUnderArbeidService(
         innloggetIdent: String
     ): ResponseEntity<ByteArray> {
         //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         val dokument =
             getDokumentUnderArbeid(hoveddokumentId) as DokumentUnderArbeidAsHoveddokument
         if (dokument.dokumentType.isInngaaende()) {
@@ -1560,7 +1560,7 @@ class DokumentUnderArbeidService(
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
+        behandlingService.getBehandlingAndCheckReadAccessToSak(dokumentUnderArbeid.behandlingId)
 
         val (title, resourceOrLink, mediaType) = if (dokumentUnderArbeid.erFerdigstilt()) {
             if (dokumentUnderArbeid.dokarkivReferences.isEmpty()) {
@@ -1657,7 +1657,7 @@ class DokumentUnderArbeidService(
         val document = getDokumentUnderArbeid(dokumentId)
 
         //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(
             behandlingId = document.behandlingId,
         )
 
@@ -1769,7 +1769,7 @@ class DokumentUnderArbeidService(
         val parentDocument =
             getDokumentUnderArbeid(newParentId) as DokumentUnderArbeidAsHoveddokument
 
-        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
+        behandlingService.getBehandlingAndCheckReadAccessToSak(
             behandlingId = parentDocument.behandlingId,
         )
 
@@ -1857,7 +1857,7 @@ class DokumentUnderArbeidService(
     fun findDokumenterNotFinished(behandlingId: UUID, checkReadAccess: Boolean = true): List<DokumentUnderArbeid> {
         //Sjekker tilgang på behandlingsnivå:
         if (checkReadAccess) {
-            behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+            behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         }
 
         return dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId)
@@ -1865,7 +1865,7 @@ class DokumentUnderArbeidService(
 
     fun getDokumenterUnderArbeidViewList(behandlingId: UUID): List<DokumentView> {
         //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         return getDokumentViewList(
             dokumentUnderArbeidList = dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId),
             behandling = behandling,
@@ -1874,7 +1874,7 @@ class DokumentUnderArbeidService(
 
     fun getSvarbrevAsOpplastetDokumentUnderArbeidAsHoveddokument(behandlingId: UUID): OpplastetDokumentUnderArbeidAsHoveddokument? {
         //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         return opplastetDokumentUnderArbeidAsHoveddokumentRepository.findByBehandlingIdAndMarkertFerdigNotNull(
             behandlingId
         ).find { it.dokumentType == DokumentType.SVARBREV }
@@ -1882,7 +1882,7 @@ class DokumentUnderArbeidService(
 
     fun getDokumentUnderArbeidView(dokumentUnderArbeidId: UUID, behandlingId: UUID): DokumentView {
         //Sjekker tilgang på behandlingsnivå:
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentUnderArbeidId)
         return getDokumentViewList(
             dokumentUnderArbeidList = listOf(dokumentUnderArbeid),

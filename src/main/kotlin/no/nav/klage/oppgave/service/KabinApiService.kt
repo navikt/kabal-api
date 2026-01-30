@@ -37,19 +37,16 @@ class KabinApiService(
 ) {
 
     fun getAnkemuligheter(partIdValue: String): List<Mulighet> {
-        behandlingService.checkLesetilgangForPerson(partIdValue)
         return behandlingService.getAnkemuligheterByPartIdValue(partIdValue = partIdValue)
             .map { it.toMulighet(mulighetType = Type.ANKE) }
     }
 
     fun getOmgjoeringskravmuligheter(partIdValue: String): List<Mulighet> {
-        behandlingService.checkLesetilgangForPerson(partIdValue)
         return behandlingService.getOmgjoeringskravmuligheterByPartIdValue(partIdValue = partIdValue)
             .map { it.toMulighet(mulighetType = Type.OMGJOERINGSKRAV) }
     }
 
     fun getGjenopptaksmuligheter(partIdValue: String): List<Mulighet> {
-        behandlingService.checkLesetilgangForPerson(partIdValue)
         return behandlingService.getGjenopptaksmuligheterByPartIdValue(partIdValue = partIdValue)
             .map { it.toMulighet(mulighetType = Type.BEGJAERING_OM_GJENOPPTAK) }
     }
