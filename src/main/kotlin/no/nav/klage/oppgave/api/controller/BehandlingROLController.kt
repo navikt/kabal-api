@@ -51,7 +51,7 @@ class BehandlingROLController(
             behandlingId,
             logger
         )
-        return FlowStateView(flowState = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId).rolFlowState)
+        return FlowStateView(flowState = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId).rolFlowState)
     }
 
     @PutMapping("/{behandlingId}/rolnavident")

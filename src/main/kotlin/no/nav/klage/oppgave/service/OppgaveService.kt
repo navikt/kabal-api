@@ -87,30 +87,39 @@ class OppgaveService(
     }
 
     fun searchOppgaverByFagsakId(fagsakId: String): SearchSaksnummerResponse {
-        val behandlinger = behandlingRepository.findByFagsakId(fagsakId = fagsakId)
         val paaVentBehandlinger = mutableListOf<UUID>()
         val feilregistrerteBehandlinger = mutableListOf<UUID>()
         val avsluttedeBehandlinger = mutableListOf<UUID>()
         val aapneBehandlinger = mutableListOf<UUID>()
 
-        val individualPartIdValues = behandlinger.map { it.sakenGjelder.partId.value }.toSet()
-        val accessiblePartIdValues = individualPartIdValues.filter {
-            tilgangService.hasSaksbehandlerAccessTo(it).access
-        }
+        //There could be multiple behandlinger for a fagsak b/c fagsakId is not unique.
+        val behandlinger = behandlingRepository.findByFagsakId(fagsakId = fagsakId)
 
-        behandlinger.forEach {
-            if (it.sakenGjelder.partId.value !in accessiblePartIdValues) {
-                return@forEach
-            } else if (it.feilregistrering != null) {
-                feilregistrerteBehandlinger.add(it.id)
-            } else if (it.sattPaaVent != null) {
-                paaVentBehandlinger.add(it.id)
-            } else if (it.ferdigstilling != null) {
-                avsluttedeBehandlinger.add(it.id)
-            } else {
-                aapneBehandlinger.add(it.id)
+        behandlinger.forEach { behandling ->
+            val access = tilgangService.getSaksbehandlerAccessToSak(
+                fnr = behandling.sakenGjelder.partId.value,
+                sakId = behandling.fagsakId,
+                ytelse = behandling.ytelse,
+            )
+
+            if (access.access) {
+                when {
+                    behandling.feilregistrering != null -> {
+                        feilregistrerteBehandlinger.add(behandling.id)
+                    }
+                    behandling.sattPaaVent != null -> {
+                        paaVentBehandlinger.add(behandling.id)
+                    }
+                    behandling.ferdigstilling != null -> {
+                        avsluttedeBehandlinger.add(behandling.id)
+                    }
+                    else -> {
+                        aapneBehandlinger.add(behandling.id)
+                    }
+                }
             }
         }
+
 
         return SearchSaksnummerResponse(
             aapneBehandlinger = aapneBehandlinger,

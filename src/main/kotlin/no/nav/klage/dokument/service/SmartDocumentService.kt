@@ -65,7 +65,7 @@ class SmartDocumentService(
         val language = Language.valueOf(input.language.name)
         val smartEditorTemplateId = input.templateId
 
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
 
         val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
 
@@ -499,7 +499,7 @@ class SmartDocumentService(
         }
 
         //Sjekker tilgang på behandlingsnivå:
-        behandlingService.getBehandlingAndCheckLeseTilgangForPerson(dokumentUnderArbeid.behandlingId)
+        behandlingService.getBehandlingAndCheckReadAccessToSak(dokumentUnderArbeid.behandlingId)
 
         return dokumentUnderArbeid.smartEditorId
     }
@@ -509,7 +509,7 @@ class SmartDocumentService(
         smartEditorDocument: SmartDocumentResponse?,
         behandlingId: UUID
     ): DokumentView {
-        val behandling = behandlingService.getBehandlingAndCheckLeseTilgangForPerson(
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(
             behandlingId = behandlingId
         )
         return dokumentMapper.mapToDokumentView(

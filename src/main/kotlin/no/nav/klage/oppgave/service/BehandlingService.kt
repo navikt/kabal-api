@@ -320,7 +320,7 @@ class BehandlingService(
     }
 
     fun validateBehandlingBeforeFinalize(behandlingId: UUID, nyBehandlingEtterTROpphevet: Boolean) {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
         val behandlingValidationErrors = mutableListOf<InvalidProperty>()
         val notificationValidationErrors = mutableListOf<InvalidProperty>()
@@ -545,7 +545,7 @@ class BehandlingService(
     }
 
     fun validateTrygderettenbehandlingBeforeNyBehandling(behandlingId: UUID) {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         if (behandling !is BehandlingITrygderetten) {
             throw RuntimeException("Ugyldig operasjon for behandling av typen ${behandling.type}")
         }
@@ -645,7 +645,7 @@ class BehandlingService(
     }
 
     fun validateFeilregistrering(behandlingId: UUID) {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
         val behandlingValidationErrors = mutableListOf<InvalidProperty>()
         val sectionList = mutableListOf<ValidationSection>()
@@ -1146,7 +1146,7 @@ class BehandlingService(
 
 
     fun getSaksbehandler(behandlingId: UUID): SaksbehandlerViewWrapped {
-        return getSaksbehandlerViewWrapped(getBehandlingAndCheckLeseTilgangForPerson((behandlingId)))
+        return getSaksbehandlerViewWrapped(getBehandlingAndCheckReadAccessToSak((behandlingId)))
     }
 
     private fun getSaksbehandlerViewWrapped(behandling: Behandling): SaksbehandlerViewWrapped {
@@ -1169,12 +1169,12 @@ class BehandlingService(
     }
 
     fun getMedunderskriver(behandlingId: UUID): MedunderskriverWrapped {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return behandlingMapper.mapToMedunderskriverWrapped(behandling)
     }
 
     fun getMedunderskriverFlowState(behandlingId: UUID): FlowStateView {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return behandlingMapper.mapToMedunderskriverFlowStateView(behandling)
     }
 
@@ -1761,7 +1761,7 @@ class BehandlingService(
     ): MedunderskriverWrapped {
         val behandling =
             if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
-                val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+                val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
                 if (behandling.medunderskriverFlowState != FlowState.SENT && behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent) {
                     throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre medunderskriver når den ikke er sendt.")
                 }
@@ -1834,7 +1834,7 @@ class BehandlingService(
         pageSize: Int,
         previousPageRef: String?
     ): DokumenterResponse {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return dokumentService.fetchDokumentlisteForBehandling(behandling, temaer, pageSize, previousPageRef)
     }
 
@@ -2042,17 +2042,29 @@ class BehandlingService(
                     }
                 }
             }
-            .also { if (!systemUserContext) checkLesetilgangForPerson(it) }
+            .also { if (!systemUserContext) checkReadAccessToSak(it) }
             .also { if (!systemUserContext && !ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
 
-    fun checkLesetilgangForPerson(behandling: Behandling) {
+    fun checkReadAccessToSak(behandling: Behandling) {
         if (behandling.sakenGjelder.erPerson()) {
-            checkLesetilgangForPerson(behandling.sakenGjelder.partId.value)
+            checkReadAccessToSak(
+                fnr = behandling.sakenGjelder.partId.value,
+                sakId = behandling.fagsakId,
+                ytelse = behandling.ytelse,
+            )
         }
     }
 
-    fun checkLesetilgangForPerson(partIdValue: String) {
-        tilgangService.verifyInnloggetSaksbehandlersTilgangTil(partIdValue)
+    private fun checkReadAccessToSak(
+        fnr: String,
+        sakId: String,
+        ytelse: Ytelse,
+    ) {
+        tilgangService.verifyInnloggetSaksbehandlersTilgangTil(
+            fnr = fnr,
+            sakId = sakId,
+            ytelse = ytelse,
+        )
     }
 
     private fun checkSkrivetilgang(behandling: Behandling) {
@@ -2190,34 +2202,29 @@ class BehandlingService(
 
     fun getBehandlingDetaljerView(behandlingId: UUID): BehandlingDetaljerView {
         return behandlingMapper.mapBehandlingToBehandlingDetaljerView(
-            getBehandlingAndCheckLeseTilgangForPerson(
+            getBehandlingAndCheckReadAccessToSak(
                 behandlingId
             )
         )
     }
 
     fun getBehandlingROLView(behandlingId: UUID): RolView {
-        return behandlingMapper.mapToRolView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId))
+        return behandlingMapper.mapToRolView(getBehandlingAndCheckReadAccessToSak(behandlingId))
     }
 
     fun getBehandlingOppgaveView(behandlingId: UUID): OppgaveView {
         return behandlingMapper.mapBehandlingToOppgaveView(
-            getBehandlingAndCheckLeseTilgangForPersonForCreatingOppgave(
+            getBehandlingAndCheckReadAccessToSak(
                 behandlingId
             )
         )
     }
 
     @Transactional(readOnly = true)
-    fun getBehandlingAndCheckLeseTilgangForPerson(behandlingId: UUID): Behandling =
+    fun getBehandlingAndCheckReadAccessToSak(behandlingId: UUID): Behandling =
         behandlingRepository.findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
-            .also { checkLesetilgangForPerson(it) }
-
-    @Transactional(readOnly = true)
-    fun getBehandlingAndCheckLeseTilgangForPersonForCreatingOppgave(behandlingId: UUID): Behandling =
-        behandlingRepository.findByIdForOppgave(behandlingId)
-            .also { checkLesetilgangForPerson(it) }
+            .also { checkReadAccessToSak(it) }
 
     @Transactional(readOnly = true)
     fun findBehandlingerForAvslutning(): List<Behandling> =
@@ -2225,17 +2232,17 @@ class BehandlingService(
             .sortedByDescending { it.ferdigstilling?.avsluttetAvSaksbehandler }
 
     fun getPotentialSaksbehandlereForBehandling(behandlingId: UUID): Saksbehandlere {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return kabalInnstillingerService.getPotentialSaksbehandlere(behandling)
     }
 
     fun getPotentialMedunderskrivereForBehandling(behandlingId: UUID): Medunderskrivere {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return kabalInnstillingerService.getPotentialMedunderskrivere(behandling)
     }
 
     fun getPotentialROLForBehandling(behandlingId: UUID): Rols {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return Rols(
             rols = kabalInnstillingerService.getPotentialROL(behandling).saksbehandlere.map {
                 Rols.Rol(
@@ -2253,18 +2260,18 @@ class BehandlingService(
     }
 
     fun getAInntektUrl(behandlingId: UUID): String {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId = behandlingId)
         return arbeidOgInntektClient.getAInntektUrl(behandling.sakenGjelder.partId.value)
     }
 
     fun getAARegisterUrl(behandlingId: UUID): String {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId = behandlingId)
         return arbeidOgInntektClient.getAARegisterUrl(behandling.sakenGjelder.partId.value)
     }
 
     fun feilregistrer(behandlingId: UUID, reason: String, fagsystem: Fagsystem): FeilregistreringResponse {
         val navIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-        val behandlingForCheck = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandlingForCheck = getBehandlingAndCheckReadAccessToSak(behandlingId)
 
         val behandling =
             if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(navIdent) || behandlingForCheck.tildeling == null) {
@@ -2615,7 +2622,7 @@ class BehandlingService(
         utfoerendeSaksbehandlerIdent: String,
         systemUserContext: Boolean = false
     ): RolView {
-        val behandlingForCheck = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandlingForCheck = getBehandlingAndCheckReadAccessToSak(behandlingId)
         val behandling =
             if (saksbehandlerService.isKROL(utfoerendeSaksbehandlerIdent)) {
                 if (behandlingForCheck.rolFlowState == FlowState.RETURNED) {
@@ -2685,7 +2692,7 @@ class BehandlingService(
     fun findCompletedBehandlingById(behandlingId: UUID): CompletedBehandling {
         val behandling = behandlingRepository.findByIdAndFerdigstillingAvsluttetIsNotNull(id = behandlingId)
         if (behandling != null) {
-            checkLesetilgangForPerson(behandling)
+            checkReadAccessToSak(behandling)
             return behandling.toCompletedBehandling()
         } else {
             throw BehandlingNotFoundException("Completed behandling with id $behandlingId not found")
@@ -2723,7 +2730,7 @@ class BehandlingService(
     )
 
     fun getHistory(behandlingId: UUID): HistoryResponse {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId = behandlingId)
 
         return HistoryResponse(
             tildeling = historyService.createTildelingHistory(
@@ -2764,14 +2771,14 @@ class BehandlingService(
     }
 
     fun findRelevantBehandlinger(behandlingId: UUID): List<Behandling> {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return behandlingRepository.findBySakenGjelderPartIdValueAndFerdigstillingIsNullAndFeilregistreringIsNull(
             partIdValue = behandling.sakenGjelder.partId.value
         )
     }
 
     fun findRelevantGosysOppgaver(behandlingId: UUID): List<GosysOppgaveView> {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return gosysOppgaveService.getGosysOppgaveList(
             fnr = behandling.sakenGjelder.partId.value,
             tema = behandling.ytelse.toTema(),
@@ -2783,11 +2790,11 @@ class BehandlingService(
     }
 
     fun getSakenGjelderView(behandlingId: UUID): BehandlingDetaljerView.SakenGjelderView {
-        return behandlingMapper.getSakenGjelderView(getBehandlingAndCheckLeseTilgangForPerson(behandlingId).sakenGjelder)
+        return behandlingMapper.getSakenGjelderView(getBehandlingAndCheckReadAccessToSak(behandlingId).sakenGjelder)
     }
 
     fun getFradelingReason(behandlingId: UUID): WithPrevious<no.nav.klage.oppgave.api.view.TildelingEvent>? {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
 
         val tildelingHistory = historyService.createTildelingHistory(
             tildelingHistorikkSet = behandling.tildelingHistorikk,
@@ -2840,19 +2847,46 @@ class BehandlingService(
     fun getAnkemuligheterByPartIdValue(
         partIdValue: String,
     ): List<Behandling> {
-        return behandlingRepository.getAnkemuligheter(partIdValue)
+        return behandlingRepository.getAnkemuligheter(partIdValue).filter {
+            try {
+                checkReadAccessToSak(
+                    behandling = it
+                )
+                true
+            } catch (e: MissingTilgangException) {
+                false
+            }
+        }
     }
 
     fun getOmgjoeringskravmuligheterByPartIdValue(
         partIdValue: String,
     ): List<Behandling> {
-        return behandlingRepository.getOmgjoeringskravmuligheter(partIdValue)
+        return behandlingRepository.getOmgjoeringskravmuligheter(partIdValue).filter {
+            try {
+                checkReadAccessToSak(
+                    behandling = it
+                )
+                true
+            } catch (e: MissingTilgangException) {
+                false
+            }
+        }
     }
 
     fun getGjenopptaksmuligheterByPartIdValue(
         partIdValue: String,
     ): List<Behandling> {
-        return behandlingRepository.getGjenopptaksmuligheter(partIdValue)
+        return behandlingRepository.getGjenopptaksmuligheter(partIdValue).filter {
+            try {
+                checkReadAccessToSak(
+                    behandling = it
+                )
+                true
+            } catch (e: MissingTilgangException) {
+                false
+            }
+        }
     }
 
     private fun getUtfoerendeNavn(utfoerendeSaksbehandlerIdent: String): String {
@@ -2922,7 +2956,7 @@ class BehandlingService(
     }
 
     fun getGosysOppgave(behandlingId: UUID): GosysOppgaveView {
-        val behandling = getBehandlingAndCheckLeseTilgangForPerson(behandlingId = behandlingId)
+        val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId = behandlingId)
 
         if (behandling.gosysOppgaveId == null) {
             throw GosysOppgaveNotFoundException("Behandlingen har ingen gosysoppgave")

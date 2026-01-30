@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.service.TilgangService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
@@ -27,7 +28,9 @@ class KlageLookupClient(
     fun getAccess(
         /** fnr, dnr or aktorId */
         brukerId: String,
-        navIdent: String?
+        navIdent: String?,
+        sakId: String?,
+        ytelse: Ytelse?,
     ): TilgangService.Access {
         return runWithTimingAndLogging {
             val token = if (navIdent != null) {
@@ -39,6 +42,7 @@ class KlageLookupClient(
             val accessRequest = AccessRequest(
                 brukerId = brukerId,
                 navIdent = navIdent,
+                sak = if (sakId != null && ytelse != null) AccessRequest.Sak(sakId = sakId, ytelse = ytelse) else null,
             )
 
             klageLookupWebClient.post()
