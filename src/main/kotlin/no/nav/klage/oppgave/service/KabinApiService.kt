@@ -29,7 +29,6 @@ class KabinApiService(
     private val dokumentService: DokumentService,
     private val saksbehandlerService: SaksbehandlerService,
     private val mottakService: MottakService,
-    private val ankebehandlingService: AnkebehandlingService,
     private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
@@ -295,9 +294,6 @@ class KabinApiService(
     }
 
     private fun Behandling.toMulighet(mulighetType: Type): Mulighet {
-        val ankebehandlingerBasedOnThisBehandling =
-            ankebehandlingService.getAnkebehandlingerBasedOnPreviousBehandlingId(previousBehandlingId = id)
-
         //Exclude hjemler where utfases = true
         val relevantHjemler = ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }
         val filteredHjemmelList = hjemler.filter { it in relevantHjemler }
@@ -336,13 +332,6 @@ class KabinApiService(
             tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdentDefaultIfNull(tildeling!!.saksbehandlerident!!),
             originalTypeId = type.id,
             typeId = mulighetType.id,
-            sourceOfExistingAnkebehandling = ankebehandlingerBasedOnThisBehandling.map {
-                ExistingAnkebehandling(
-                    id = it.id,
-                    created = it.created,
-                    completed = it.ferdigstilling?.avsluttetAvSaksbehandler,
-                )
-            },
             existingBehandlingList = behandlingerBasedOnThisBehandling.map {
                 ExistingBehandling(
                     id = it.id,

@@ -9,9 +9,6 @@ import java.util.*
 
 @Repository
 interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
-
-    fun findByPreviousBehandlingIdAndFeilregistreringIsNull(previousBehandlingId: UUID): List<Ankebehandling>
-
     fun findByKakaKvalitetsvurderingVersionIs(version: Int): List<Ankebehandling>
 
     @Query("""

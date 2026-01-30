@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.Period
-import java.util.*
 
 @Service
 @Transactional
@@ -34,10 +33,6 @@ class AnkebehandlingService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-    }
-
-    fun getAnkebehandlingerBasedOnPreviousBehandlingId(previousBehandlingId: UUID): List<Ankebehandling> {
-        return ankebehandlingRepository.findByPreviousBehandlingIdAndFeilregistreringIsNull(previousBehandlingId = previousBehandlingId)
     }
 
     fun createAnkebehandlingFromMottak(
