@@ -144,7 +144,6 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
 
         val ankebehandling = Ankebehandling(
             klageBehandlendeEnhet = "",
-            sourceBehandlingId = klageWithAnke.id,
             klager = Klager(
                 id = UUID.randomUUID(),
                 partId = PartId(type = PartIdType.PERSON, value = "23452354")
@@ -172,7 +171,7 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
             forlengetBehandlingstidDraft = null,
             gosysOppgaveRequired = false,
             initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
+            previousBehandlingId = klageWithAnke.id,
         )
 
         ankebehandlingRepository.save(ankebehandling)

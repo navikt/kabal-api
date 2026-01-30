@@ -54,7 +54,6 @@ class BehandlingEtterTrygderettenOpphevetService(
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = behandling.hjemler,
-                    sourceBehandlingId = behandling.id,
                     previousSaksbehandlerident = behandling.tildeling?.saksbehandlerident,
                     gosysOppgaveId = behandling.gosysOppgaveId,
                     kjennelseMottatt = behandling.kjennelseMottatt!!,

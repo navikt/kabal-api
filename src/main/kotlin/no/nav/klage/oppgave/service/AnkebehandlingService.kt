@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.Period
-import java.util.*
 
 @Service
 @Transactional
@@ -34,10 +33,6 @@ class AnkebehandlingService(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-    }
-
-    fun getAnkebehandlingerBasedOnSourceBehandlingId(sourceBehandlingId: UUID): List<Ankebehandling> {
-        return ankebehandlingRepository.findBySourceBehandlingIdAndFeilregistreringIsNull(sourceBehandlingId = sourceBehandlingId)
     }
 
     fun createAnkebehandlingFromMottak(
@@ -64,7 +59,6 @@ class AnkebehandlingService(
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                 hjemler = mottak.hjemler,
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
-                sourceBehandlingId = mottak.forrigeBehandlingId,
                 previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                 gosysOppgaveId = mottak.gosysOppgaveId,
                 tilbakekreving = false,
@@ -142,7 +136,6 @@ class AnkebehandlingService(
                 kakaKvalitetsvurderingVersion = 2,
                 hjemler = ankeITrygderettenbehandling.hjemler,
                 klageBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
-                sourceBehandlingId = ankeITrygderettenbehandling.id,
                 previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
                 gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
                 tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,

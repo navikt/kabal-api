@@ -251,7 +251,6 @@ class StatistikkTilDVHServiceTest {
         sattPaaVent = null,
         klageVedtaksDato = null,
         klageBehandlendeEnhet = "",
-        sourceBehandlingId = null,
         previousSaksbehandlerident = "C78901",
         gosysOppgaveId = null,
         varsletBehandlingstid = null,
