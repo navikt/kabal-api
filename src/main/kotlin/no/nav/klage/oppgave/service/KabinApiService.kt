@@ -296,7 +296,7 @@ class KabinApiService(
 
     private fun Behandling.toMulighet(mulighetType: Type): Mulighet {
         val ankebehandlingerBasedOnThisBehandling =
-            ankebehandlingService.getAnkebehandlingerBasedOnSourceBehandlingId(sourceBehandlingId = id)
+            ankebehandlingService.getAnkebehandlingerBasedOnPreviousBehandlingId(previousBehandlingId = id)
 
         //Exclude hjemler where utfases = true
         val relevantHjemler = ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }

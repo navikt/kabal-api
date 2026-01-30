@@ -82,7 +82,6 @@ class GjenopptaksbehandlingService(
                     kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = mottak.hjemler,
-                    sourceBehandlingId = mottak.forrigeBehandlingId,
                     previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                     klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
                     gosysOppgaveId = mottak.gosysOppgaveId,
@@ -205,7 +204,6 @@ class GjenopptaksbehandlingService(
                     varsletBehandlingstid = null,
                     forlengetBehandlingstidDraft = null,
                     gosysOppgaveRequired = gjenopptakITrygderettenbehandling.gosysOppgaveRequired,
-                    sourceBehandlingId = gjenopptakITrygderettenbehandling.id,
                     initiatingSystem = Behandling.InitiatingSystem.KABAL,
                     previousBehandlingId = gjenopptakITrygderettenbehandling.id,
                 )
