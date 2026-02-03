@@ -103,6 +103,8 @@ class DevOnlyAdminController(
             "getOnBehalfOfTokenWithKrrProxyScope" to tokenUtil.getOnBehalfOfTokenWithKrrProxyScope(),
             "getAppAccessTokenWithPdlScope" to tokenUtil.getAppAccessTokenWithPdlScope(),
             "getAppAccessTokenWithKlageFSSProxyScope" to tokenUtil.getAppAccessTokenWithKlageFSSProxyScope(),
+            "getOnbehalfOfTokenWithKlageLookupScope" to tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope(),
+            "getAppAccessTokenWithKlageLookupScope" to tokenUtil.getAppAccessTokenWithKlageLookupScope(),
         )
     }
 
