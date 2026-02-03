@@ -80,6 +80,8 @@ class KabalDocumentMapper(
         val journalfoerteVedlegg =
             vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
                 .sortedBy { it.sortKey }
+                .groupBy { it.dokumentInfoId }
+                .map { it.value.first() }
 
         val datoMottatt = if (hovedDokument.isInngaaende()) {
             hovedDokument as OpplastetDokumentUnderArbeidAsHoveddokument
