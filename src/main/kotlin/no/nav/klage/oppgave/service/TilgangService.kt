@@ -39,8 +39,16 @@ class TilgangService(
     private fun saksbehandlerHarSkrivetilgang(behandling: Behandling, ident: String): Boolean =
         ident == behandling.tildeling?.saksbehandlerident
 
-    fun verifyInnloggetSaksbehandlersTilgangTil(fnr: String) {
-        val access = hasSaksbehandlerAccessTo(fnr)
+    fun verifyInnloggetSaksbehandlersTilgangTil(
+        fnr: String,
+        sakId: String,
+        ytelse: Ytelse,
+    ) {
+        val access = getSaksbehandlerAccessToSak(
+            fnr = fnr,
+            sakId = sakId,
+            ytelse = ytelse,
+        )
         if (!access.access) {
             throw MissingTilgangException(access.reason)
         }
@@ -65,13 +73,29 @@ class TilgangService(
         }
     }
 
-    fun hasSaksbehandlerAccessTo(
+    fun getSaksbehandlerAccessToPerson(
         fnr: String,
         navIdent: String? = null,
     ): Access {
         return klageLookupClient.getAccess(
             brukerId = fnr,
             navIdent = navIdent,
+            sakId = null,
+            ytelse = null,
+        )
+    }
+
+    fun getSaksbehandlerAccessToSak(
+        fnr: String,
+        navIdent: String? = null,
+        sakId: String,
+        ytelse: Ytelse,
+    ): Access {
+        return klageLookupClient.getAccess(
+            brukerId = fnr,
+            navIdent = navIdent,
+            sakId = sakId,
+            ytelse = ytelse,
         )
     }
 

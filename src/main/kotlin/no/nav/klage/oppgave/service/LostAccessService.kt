@@ -68,9 +68,11 @@ class LostAccessService(
                 return@forEach
             }
 
-            val access = tilgangService.hasSaksbehandlerAccessTo(
+            val access = tilgangService.getSaksbehandlerAccessToSak(
                 fnr = behandling.sakenGjelder.partId.value,
                 navIdent = tildeltSaksbehandlerIdent,
+                sakId = behandling.fagsakId,
+                ytelse = behandling.ytelse,
             )
 
             if (!access.access) {
@@ -100,9 +102,11 @@ class LostAccessService(
             if (behandling != null) {
                 val tildeltSaksbehandlerIdent = behandling.tildeling?.saksbehandlerident!!
 
-                val access = tilgangService.hasSaksbehandlerAccessTo(
+                val access = tilgangService.getSaksbehandlerAccessToSak(
                     fnr = behandling.sakenGjelder.partId.value,
                     navIdent = tildeltSaksbehandlerIdent,
+                    sakId = behandling.fagsakId,
+                    ytelse = behandling.ytelse,
                 )
 
                 if (access.access) {
