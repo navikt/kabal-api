@@ -43,7 +43,6 @@ import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import reactor.core.publisher.Flux
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.io.File
 import java.io.IOException
@@ -381,26 +380,31 @@ class DokumentService(
                 saksbehandlerContext = true,
             )
 
-        Flux.fromIterable(documentsWithPaths).flatMapSequential { (document, path) ->
-            safRestClient.downloadDocumentAsMono(
-                journalpostId = document.first,
-                dokumentInfoId = document.second,
-                pathToFile = path,
-                token = userToken,
-                variantFormat = getPreferredVariantFormatAsString(
-                    document = document,
-                    journalposter = journalposter,
-                    preferArkivvariantIfAccess = preferArkivvariantIfAccess,
-                )
-            )
-        }.collectList().block()
+        //Download in parallel with controlled concurrency for performance
+        val concurrency = 20
+        documentsWithPaths.chunked(concurrency).forEach { batch ->
+            batch.parallelStream().forEach { (document, path) ->
+                safRestClient.downloadDocumentAsMono(
+                    journalpostId = document.first,
+                    dokumentInfoId = document.second,
+                    pathToFile = path,
+                    token = userToken,
+                    variantFormat = getPreferredVariantFormatAsString(
+                        document = document,
+                        journalposter = journalposter,
+                        preferArkivvariantIfAccess = preferArkivvariantIfAccess,
+                    )
+                ).block()
+            }
+        }
 
+        //Add sources after download to preserve order
         documentsWithPaths.forEach { (_, path) ->
             merger.addSource(path.toFile())
         }
 
-        //just under 256 MB before using file system
-        merger.mergeDocuments(getMixedMemorySettingsForPDFBox(250_000_000))
+        //Use mixed memory: keep small merges in memory, use disk for large ones
+        merger.mergeDocuments(getMixedMemorySettingsForPDFBox(50_000_000))
 
         //clean tmp files that were downloaded from SAF
         try {
