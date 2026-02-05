@@ -2051,6 +2051,7 @@ class BehandlingService(
                 fnr = behandling.sakenGjelder.partId.value,
                 sakId = behandling.fagsakId,
                 ytelse = behandling.ytelse,
+                fagsystem = behandling.fagsystem,
             )
         }
     }
@@ -2059,11 +2060,13 @@ class BehandlingService(
         fnr: String,
         sakId: String,
         ytelse: Ytelse,
+        fagsystem: Fagsystem,
     ) {
         tilgangService.verifyInnloggetSaksbehandlersTilgangTil(
             fnr = fnr,
             sakId = sakId,
             ytelse = ytelse,
+            fagsystem = fagsystem,
         )
     }
 
