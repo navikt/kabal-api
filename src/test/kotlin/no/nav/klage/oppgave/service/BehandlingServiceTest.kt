@@ -145,6 +145,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             any(),
             sakId = any(),
             ytelse = any(),
+            fagsystem = any(),
         ) } returns Unit
         every { tilgangService.getSaksbehandlerAccessToPerson(any()) } returns TilgangService.Access(true, "")
         every { saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(any()) } returns false

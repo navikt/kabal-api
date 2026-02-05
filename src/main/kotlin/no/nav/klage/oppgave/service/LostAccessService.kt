@@ -73,6 +73,7 @@ class LostAccessService(
                 navIdent = tildeltSaksbehandlerIdent,
                 sakId = behandling.fagsakId,
                 ytelse = behandling.ytelse,
+                fagsystem = behandling.fagsystem,
             )
 
             if (!access.access) {
@@ -107,6 +108,7 @@ class LostAccessService(
                     navIdent = tildeltSaksbehandlerIdent,
                     sakId = behandling.fagsakId,
                     ytelse = behandling.ytelse,
+                    fagsystem = behandling.fagsystem,
                 )
 
                 if (access.access) {
