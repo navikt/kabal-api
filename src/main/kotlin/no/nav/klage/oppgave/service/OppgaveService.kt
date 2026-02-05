@@ -100,6 +100,7 @@ class OppgaveService(
                 fnr = behandling.sakenGjelder.partId.value,
                 sakId = behandling.fagsakId,
                 ytelse = behandling.ytelse,
+                fagsystem = behandling.fagsystem,
             )
 
             if (access.access) {

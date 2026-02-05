@@ -410,8 +410,8 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
 
         behandlingRepository.saveAll(listOf(klagebehandling1, klagebehandling2, klagebehandling3))
 
-        every { tilgangService.getSaksbehandlerAccessToSak(fnr = FNR, navIdent = any(), sakId = any(), ytelse = any()) } returns TilgangService.Access(true, "Test")
-        every { tilgangService.getSaksbehandlerAccessToSak(FNR2, navIdent = any(), sakId = any(), ytelse = any()) } returns TilgangService.Access(
+        every { tilgangService.getSaksbehandlerAccessToSak(fnr = FNR, navIdent = any(), sakId = any(), ytelse = any(), fagsystem = any()) } returns TilgangService.Access(true, "Test")
+        every { tilgangService.getSaksbehandlerAccessToSak(FNR2, navIdent = any(), sakId = any(), ytelse = any(), fagsystem = any()) } returns TilgangService.Access(
             access = false,
             reason = "Ikke tilgang"
         )
@@ -420,8 +420,8 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
             fagsakId = SAKS_ID
         )
 
-        verify(exactly = 2) { tilgangService.getSaksbehandlerAccessToSak(fnr = FNR, navIdent = any(), sakId = any(), ytelse = any()) }
-        verify(exactly = 1) { tilgangService.getSaksbehandlerAccessToSak(fnr = FNR2, navIdent = any(), sakId = any(), ytelse = any()) }
+        verify(exactly = 2) { tilgangService.getSaksbehandlerAccessToSak(fnr = FNR, navIdent = any(), sakId = any(), ytelse = any(), fagsystem = any()) }
+        verify(exactly = 1) { tilgangService.getSaksbehandlerAccessToSak(fnr = FNR2, navIdent = any(), sakId = any(), ytelse = any(), fagsystem = any()) }
 
         assertThat(output.aapneBehandlinger).containsExactlyInAnyOrder(klagebehandling1.id)
         assertThat(output.avsluttedeBehandlinger).containsExactlyInAnyOrder(klagebehandling3.id)

@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -43,11 +44,13 @@ class TilgangService(
         fnr: String,
         sakId: String,
         ytelse: Ytelse,
+        fagsystem: Fagsystem,
     ) {
         val access = getSaksbehandlerAccessToSak(
             fnr = fnr,
             sakId = sakId,
             ytelse = ytelse,
+            fagsystem = fagsystem,
         )
         if (!access.access) {
             throw MissingTilgangException(access.reason)
@@ -82,6 +85,7 @@ class TilgangService(
             navIdent = navIdent,
             sakId = null,
             ytelse = null,
+            fagsystem = null,
         )
     }
 
@@ -90,12 +94,14 @@ class TilgangService(
         navIdent: String? = null,
         sakId: String,
         ytelse: Ytelse,
+        fagsystem: Fagsystem,
     ): Access {
         return klageLookupClient.getAccess(
             brukerId = fnr,
             navIdent = navIdent,
             sakId = sakId,
             ytelse = ytelse,
+            fagsystem = fagsystem,
         )
     }
 
