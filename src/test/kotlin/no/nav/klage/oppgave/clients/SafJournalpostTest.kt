@@ -50,7 +50,7 @@ internal class SafJournalpostTest {
             tokenUtilMock,
         )
 
-        return safClient.getJournalpostsAsSaksbehandler(setOf("whatever")).first()
+        return safClient.getJournalposts(setOf("whatever"), true).first()
     }
 
     @Language("json")

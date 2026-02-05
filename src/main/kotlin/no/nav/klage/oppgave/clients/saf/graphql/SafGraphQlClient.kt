@@ -32,15 +32,21 @@ class SafGraphQlClient(
         fnr: String,
         tema: List<Tema>,
         pageSize: Int,
-        previousPageRef: String? = null
+        previousPageRef: String? = null,
+        systemContext: Boolean = false,
     ): DokumentoversiktBruker {
         val start = System.currentTimeMillis()
+        val token = if (systemContext) {
+            tokenUtil.getAppAccessTokenWithSafScope()
+        } else {
+            tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
+        }
         return runWithTimingAndLogging {
             safWebClient.post()
                 .uri("graphql")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithSafScope()}"
+                    "Bearer $token"
                 )
                 .bodyValue(hentDokumentoversiktBrukerQuery(fnr, tema, pageSize, previousPageRef))
                 .retrieve()
@@ -67,18 +73,10 @@ class SafGraphQlClient(
     }
 
     @Retryable
-    fun getJournalpostsAsSaksbehandler(journalpostIdSet: Set<String>): List<Journalpost> {
+    fun getJournalposts(journalpostIdSet: Set<String>, systemContext: Boolean): List<Journalpost> {
         return getJournalposts(
             journalpostIdSet = journalpostIdSet,
-            token = tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
-        )
-    }
-
-    @Retryable
-    fun getJournalpostsAsSystembruker(journalpostIdSet: Set<String>): List<Journalpost> {
-        return getJournalposts(
-            journalpostIdSet = journalpostIdSet,
-            token = tokenUtil.getAppAccessTokenWithSafScope()
+            token = if (systemContext) tokenUtil.getAppAccessTokenWithSafScope() else tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
         )
     }
 

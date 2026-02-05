@@ -121,19 +121,6 @@ class AdminController(
         adminService.checkForUnavailableDueToHjemler(null)
     }
 
-    @PostMapping("/setsortkeytodua")
-    fun setSortKeyToDUA() {
-        logger.debug("setSortKeyToDUA is called")
-        krevAdminTilgang()
-
-        try {
-            adminService.setSortKeyToDUA()
-        } catch (e: Exception) {
-            logger.warn("Failed to setSortKeyToDUA", e)
-            throw e
-        }
-    }
-
     @GetMapping("/behandlinger/{id}/reindex", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun reindexBehandling(@PathVariable("id") behandlingId: UUID) {

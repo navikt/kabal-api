@@ -39,28 +39,27 @@ class SafFacade(
         previousPageRef: String? = null,
     ): List<Journalpost> {
         logger.debug("getJournalposter, number of journalpostIds: ${journalpostIdSet.size}. Fnr included: ${fnr?.isNotEmpty()}. SaksbehandlerContext: $saksbehandlerContext")
-        return if (saksbehandlerContext) {
-            if (journalpostIdSet.size > 20 && fnr != null) {
+        return if (journalpostIdSet.size > 20 && fnr != null) {
                 runWithTimingAndLogging({
                     val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
                         fnr = fnr,
                         tema = tema,
                         pageSize = pageSize,
-                        previousPageRef = previousPageRef
+                        previousPageRef = previousPageRef,
+                        systemContext = !saksbehandlerContext,
                     )
 
                     journalpostIdSet.map { journalpostId -> dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }!! }
                 }, "dokumentoversikt")
             } else {
                 runWithTimingAndLogging({
-                    safGraphQlClient.getJournalpostsAsSaksbehandler(journalpostIdSet = journalpostIdSet)
-                }, "getJournalpostsAsSaksbehandler")
+                    safGraphQlClient.getJournalposts(
+                        journalpostIdSet = journalpostIdSet,
+                        systemContext = !saksbehandlerContext,
+                    )
+                }, "getJournalposts")
             }
-        } else {
-            runWithTimingAndLogging({
-                safGraphQlClient.getJournalpostsAsSystembruker(journalpostIdSet = journalpostIdSet)
-            }, "getJournalpostsAsSystembruker")
-        }
+
     }
 
     fun getJournalpostAsSystembruker(

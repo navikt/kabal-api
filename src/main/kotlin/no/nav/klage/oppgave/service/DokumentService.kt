@@ -110,7 +110,7 @@ class DokumentService(
                 totaltAntall = dokumentoversiktBruker.sideInfo.totaltAntall,
                 sakList = dokumentReferanseList.mapNotNull { it.sak }.toSet().toList(),
                 avsenderMottakerList = dokumentReferanseList.mapNotNull { it.avsenderMottaker }.toSet().toList(),
-                temaIdList = dokumentReferanseList.mapNotNull { it.temaId }.toSet().toList(),
+                temaIdList = dokumentReferanseList.map { it.temaId }.toSet().toList(),
                 journalposttypeList = dokumentReferanseList.mapNotNull { it.journalposttype }.toSet().toList(),
                 fromDate = dokumentReferanseList.minOfOrNull { it.datoOpprettet }?.toLocalDate(),
                 toDate = dokumentReferanseList.maxOfOrNull { it.datoOpprettet }?.toLocalDate(),
@@ -305,7 +305,7 @@ class DokumentService(
                         dokumentInfoId = it.dokumentInfoId,
                         index = index,
                     )
-                }.toSet(),
+                }.toMutableSet(),
                 hash = hash,
                 created = LocalDateTime.now()
             )
@@ -351,6 +351,7 @@ class DokumentService(
         documentsToMerge: List<Pair<String, String>>,
         title: String = "merged document",
         preferArkivvariantIfAccess: Boolean,
+        journalposterSupplied: List<Journalpost>? = null,
     ): Pair<Path, String> {
         if (documentsToMerge.isEmpty()) {
             throw RuntimeException("No documents to merge")
@@ -373,11 +374,12 @@ class DokumentService(
 
         val userToken = tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
 
-        val journalposter = safFacade.getJournalposter(
-            journalpostIdSet = documentsToMerge.map { it.first }.toSet(),
-            fnr = null,
-            saksbehandlerContext = true,
-        )
+        val journalposter = journalposterSupplied
+            ?: safFacade.getJournalposter(
+                journalpostIdSet = documentsToMerge.map { it.first }.toSet(),
+                fnr = null,
+                saksbehandlerContext = true,
+            )
 
         Flux.fromIterable(documentsWithPaths).flatMapSequential { (document, path) ->
             safRestClient.downloadDocumentAsMono(

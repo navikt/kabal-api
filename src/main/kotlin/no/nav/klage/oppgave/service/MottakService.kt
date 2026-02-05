@@ -491,7 +491,7 @@ class MottakService(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateJournalpostList(listOf(ankeJournalpostId))
+//        validateJournalpostList(listOf(ankeJournalpostId))
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
         fullmektig?.let { validatePartId(it.toPartId()) }

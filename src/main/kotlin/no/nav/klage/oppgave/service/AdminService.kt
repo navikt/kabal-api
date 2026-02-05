@@ -49,7 +49,6 @@ import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSortKey
 import no.nav.klage.oppgave.util.getTeamLogger
 import no.nav.slackposter.SlackClient
 import org.springframework.beans.factory.annotation.Value
@@ -555,27 +554,6 @@ class AdminService(
         }
         val filteredAnkeInvalidHjemler = ankeinvalidHjemler.filter { it.second.isNotEmpty() }
         teamLogger.debug("Invalid registreringshjemler in ankebehandlinger v2: {}", filteredAnkeInvalidHjemler)
-    }
-
-    @Transactional
-    fun setSortKeyToDUA() {
-        val allDUAs = journalfoertDokumentUnderArbeidAsVedleggRepository.findAll()
-        val journalpostList = safFacade.getJournalposter(
-            journalpostIdSet = allDUAs.map { it.journalpostId }.toSet(),
-            fnr = null,
-            saksbehandlerContext = false,
-        )
-        var keys = ""
-        allDUAs.forEach { dua ->
-            val journalpostInDokarkiv = journalpostList.find { it.journalpostId == dua.journalpostId }!!
-            val sortKey = getSortKey(
-                journalpost = journalpostInDokarkiv,
-                dokumentInfoId = dua.dokumentInfoId
-            )
-            keys += sortKey + "\n"
-            dua.sortKey = sortKey
-        }
-        logger.debug("setSortKeyToDUA: ${allDUAs.size} DUAs were updated with sortKeys: $keys")
     }
 
     @Transactional

@@ -1194,7 +1194,7 @@ class DokumentUnderArbeidService(
         )
     }
 
-    private fun getVedlegg(hoveddokumentId: UUID): Set<DokumentUnderArbeidAsVedlegg> {
+    fun getVedlegg(hoveddokumentId: UUID): Set<DokumentUnderArbeidAsVedlegg> {
         return dokumentUnderArbeidCommonService.findVedleggByParentId(hoveddokumentId)
     }
 
@@ -1290,12 +1290,13 @@ class DokumentUnderArbeidService(
             )
         }
 
+        val vedlegg = getVedlegg(hovedDokument.id)
+
         validateDocumentBeforeFerdig(
             hovedDokument = hovedDokument,
+            vedlegg = vedlegg,
             systemContext = systemContext,
         )
-
-        val vedlegg = getVedlegg(hovedDokument.id)
 
         if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument) {
             try {
@@ -1323,6 +1324,7 @@ class DokumentUnderArbeidService(
             innholdsfortegnelseService.saveInnholdsfortegnelse(
                 dokumentUnderArbeid = hovedDokument,
                 fnr = behandling.sakenGjelder.partId.value,
+                vedlegg = vedlegg,
             )
         }
 
@@ -1375,13 +1377,15 @@ class DokumentUnderArbeidService(
                 as DokumentUnderArbeidAsHoveddokument
         return validateDokumentUnderArbeidAndVedlegg(
             dokumentUnderArbeid = dokumentUnderArbeid,
+            vedlegg = getVedlegg(hoveddokumentId = dokumentUnderArbeidId),
             systemContext = false
         )
     }
 
     private fun validateDokumentUnderArbeidAndVedlegg(
         dokumentUnderArbeid: DokumentUnderArbeidAsHoveddokument,
-        systemContext: Boolean
+        vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
+        systemContext: Boolean,
     ): List<DocumentValidationResponse> {
 
         val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(
@@ -1443,8 +1447,6 @@ class DokumentUnderArbeidService(
             }
         }
 
-        val vedlegg = getVedlegg(dokumentUnderArbeid.id)
-
         (vedlegg + dokumentUnderArbeid).forEach { document ->
             if (document is DokumentUnderArbeidAsSmartdokument) {
                 if (document.mellomlagretDate != null && document.mellomlagretDate!!.toLocalDate() != LocalDate.now()) {
@@ -1491,10 +1493,12 @@ class DokumentUnderArbeidService(
 
     private fun validateDocumentBeforeFerdig(
         hovedDokument: DokumentUnderArbeidAsHoveddokument,
+        vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
         systemContext: Boolean,
     ) {
         val errors = validateDokumentUnderArbeidAndVedlegg(
             dokumentUnderArbeid = hovedDokument,
+            vedlegg = vedlegg,
             systemContext = systemContext,
         )
         if (errors.any { it.errors.isNotEmpty() }) {
@@ -1535,10 +1539,19 @@ class DokumentUnderArbeidService(
 
         val filename = "vedleggsoversikt til \"${dokument.name}\", ${LocalDate.now().format(DATE_FORMAT)}"
 
+        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokument.id)
+
+        val journalpostList = safFacade.getJournalposter(
+            journalpostIdSet = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+                .map { it.journalpostId }.toSet(),
+            fnr = behandling.sakenGjelder.partId.value,
+            saksbehandlerContext = true,
+        )
         return ResponseEntity(
             innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
                 dokumentUnderArbeid = dokument,
-                fnr = behandling.sakenGjelder.partId.value,
+                vedlegg = vedlegg,
+                journalpostList = journalpostList,
             ),
             HttpHeaders().apply {
                 contentType = MediaType.APPLICATION_PDF
@@ -1929,43 +1942,43 @@ class DokumentUnderArbeidService(
             )
     }
 
-    fun opprettDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
-        logger.debug("opprettDokumentEnhet hoveddokument with id {}", hovedDokumentId)
-        val hovedDokument =
-            getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
-        logger.debug("got hoveddokument with id {}, dokmentEnhetId {}", hovedDokumentId, hovedDokument.dokumentEnhetId)
-        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
-        logger.debug("got vedlegg for hoveddokument id {}, size: {}", hovedDokumentId, vedlegg.size)
+    fun opprettDokumentEnhet(
+        hovedDokument: DokumentUnderArbeidAsHoveddokument,
+        vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
+    ): DokumentUnderArbeidAsHoveddokument {
+        logger.debug("opprettDokumentEnhet hoveddokument with id {}", hovedDokument.id)
+        logger.debug("got hoveddokument with id {}, dokmentEnhetId {}", hovedDokument.id, hovedDokument.dokumentEnhetId)
+        logger.debug("got vedlegg for hoveddokument id {}, size: {}", hovedDokument.id, vedlegg.size)
         //Denne er alltid sann
         if (hovedDokument.dokumentEnhetId == null) {
-            logger.debug("hoveddokument.dokumentEnhetId == null, id {}", hovedDokumentId)
+            logger.debug("hoveddokument.dokumentEnhetId == null, id {}", hovedDokument.id)
             //Vi vet at smartEditor-dokumentene har en oppdatert snapshot i mellomlageret fordi det ble fikset i finnOgMarkerFerdigHovedDokument
             val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
             val dokumentEnhetId = kabalDocumentGateway.createKomplettDokumentEnhet(
                 behandling = behandling,
                 hovedDokument = hovedDokument,
                 vedlegg = vedlegg,
-                innholdsfortegnelse = innholdsfortegnelseService.getInnholdsfortegnelse(hovedDokumentId)
+                innholdsfortegnelse = innholdsfortegnelseService.getInnholdsfortegnelse(hovedDokument.id)
             )
-            logger.debug("got dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokumentId)
+            logger.debug("got dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokument.id)
             hovedDokument.dokumentEnhetId = dokumentEnhetId
-            logger.debug("wrote dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokumentId)
+            logger.debug("wrote dokumentEnhetId {} for hoveddokumentid {}", dokumentEnhetId, hovedDokument.id)
         }
         return hovedDokument
     }
 
-    fun ferdigstillDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
-        logger.debug("ferdigstillDokumentEnhet hoveddokument with id {}", hovedDokumentId)
-        val hovedDokument =
-            getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
-        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
+    fun ferdigstillDokumentEnhet(
+        hovedDokument: DokumentUnderArbeidAsHoveddokument,
+        vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
+    ): DokumentUnderArbeidAsHoveddokument {
+        logger.debug("ferdigstillDokumentEnhet hoveddokument with id {}", hovedDokument.id)
         val behandling: Behandling =
             behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 
         logger.debug(
             "calling fullfoerDokumentEnhet ({}) for hoveddokument with id {}",
             hovedDokument.dokumentEnhetId,
-            hovedDokumentId
+            hovedDokument.id,
         )
         val dokumentEnhetFullfoerOutput =
             kabalDocumentGateway.fullfoerDokumentEnhet(dokumentEnhetId = hovedDokument.dokumentEnhetId!!)
@@ -2034,18 +2047,18 @@ class DokumentUnderArbeidService(
 
         logger.debug(
             "about to call hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now) for dokument with id {}",
-            hovedDokumentId
+            hovedDokument.id
         )
         hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
 
         logger.debug(
             "about to call ferdigstillHvisIkkeAlleredeFerdigstilt(now) for vedlegg of dokument with id {}",
-            hovedDokumentId
+            hovedDokument.id
         )
         vedlegg.forEach {
             it.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
         }
-        logger.debug("about to return hoveddokument for hoveddokumentId {}", hovedDokumentId)
+        logger.debug("about to return hoveddokument for hoveddokumentId {}", hovedDokument.id)
         return hovedDokument
     }
 
@@ -2063,10 +2076,10 @@ class DokumentUnderArbeidService(
             mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
         }
 
-        val vedleggList = getVedlegg(dokumentUnderArbeidId)
+        val vedleggSet = getVedlegg(dokumentUnderArbeidId)
 
         val vedleggAsResourceList: List<Resource> =
-            vedleggList.sortedByDescending { it.created }.mapNotNull { vedlegg ->
+            vedleggSet.sortedByDescending { it.created }.mapNotNull { vedlegg ->
                 when (vedlegg) {
                     is SmartdokumentUnderArbeidAsVedlegg -> {
                         if (vedlegg.isPDFGenerationNeeded()) {
@@ -2084,25 +2097,28 @@ class DokumentUnderArbeidService(
                 }
             }
 
-        val innholdsfortegnelsePath = if (vedleggList.isNotEmpty() && !dokumentUnderArbeid.isInngaaende()) {
+        val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId)
+
+        val journalfoerteVedlegg = vedleggSet.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+
+        val journalpostListFromSaf = safFacade.getJournalposter(
+            journalpostIdSet = journalfoerteVedlegg.map { it.journalpostId }.toSet(),
+            fnr = behandling.sakenGjelder.partId.value,
+            saksbehandlerContext = true,
+        )
+
+        val innholdsfortegnelsePath = if (vedleggSet.isNotEmpty() && !dokumentUnderArbeid.isInngaaende()) {
             val innholdsfortegnelsePDFBytes = innholdsfortegnelseService.getInnholdsfortegnelseAsPdf(
                 dokumentUnderArbeid = dokumentUnderArbeid,
-                fnr = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId).sakenGjelder.partId.value
+                journalpostList = journalpostListFromSaf,
+                vedlegg = vedleggSet,
             )
             Files.write(Files.createTempFile("", ""), innholdsfortegnelsePDFBytes)
         } else {
             null
         }
 
-        val journalfoerteVedlegg = vedleggList.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-
         if (journalfoerteVedlegg.isNotEmpty()) {
-            val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId)
-            val journalpostListFromSaf = safFacade.getJournalposter(
-                journalpostIdSet = journalfoerteVedlegg.map { it.journalpostId }.toSet(),
-                fnr = behandling.sakenGjelder.partId.value,
-                saksbehandlerContext = true,
-            )
             journalfoerteVedlegg.forEach { journalfoerteVedlegg ->
                 val journalpost = journalpostListFromSaf.find { it.journalpostId == journalfoerteVedlegg.journalpostId }
                 val dokument = journalpost?.dokumenter?.find { it.dokumentInfoId == journalfoerteVedlegg.dokumentInfoId }
@@ -2121,6 +2137,7 @@ class DokumentUnderArbeidService(
                         it.journalpostId to it.dokumentInfoId
                     },
                 preferArkivvariantIfAccess = false,
+                journalposterSupplied = journalpostListFromSaf,
             ).first
         } else {
             null
