@@ -1,6 +1,7 @@
 package no.nav.klage.dokument.repositories
 
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -9,6 +10,7 @@ import java.util.*
 @Transactional
 interface SmartdokumentUnderArbeidAsHoveddokumentRepository : JpaRepository<SmartdokumentUnderArbeidAsHoveddokument, UUID> {
 
+    @EntityGraph(attributePaths = ["dokarkivReferences"])
     fun findByMarkertFerdigNotNullAndFerdigstiltNull(): Set<SmartdokumentUnderArbeidAsHoveddokument>
 
     fun findByMarkertFerdigNotNullAndFerdigstiltNullAndBehandlingId(behandlingId: UUID): Set<SmartdokumentUnderArbeidAsHoveddokument>
