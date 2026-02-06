@@ -10,7 +10,7 @@ import java.util.*
 @Transactional
 interface SmartdokumentUnderArbeidAsHoveddokumentRepository : JpaRepository<SmartdokumentUnderArbeidAsHoveddokument, UUID> {
 
-    @EntityGraph(attributePaths = ["dokarkivReferences"])
+    @EntityGraph(attributePaths = ["dokarkivReferences", "brevmottakere"])
     fun findByMarkertFerdigNotNullAndFerdigstiltNull(): Set<SmartdokumentUnderArbeidAsHoveddokument>
 
     fun findByMarkertFerdigNotNullAndFerdigstiltNullAndBehandlingId(behandlingId: UUID): Set<SmartdokumentUnderArbeidAsHoveddokument>

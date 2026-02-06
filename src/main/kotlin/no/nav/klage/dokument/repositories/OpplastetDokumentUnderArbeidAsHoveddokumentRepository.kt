@@ -12,7 +12,7 @@ interface OpplastetDokumentUnderArbeidAsHoveddokumentRepository : JpaRepository<
 
     fun findByBehandlingIdAndDokarkivReferencesIsNotEmpty(behandlingId: UUID): Set<OpplastetDokumentUnderArbeidAsHoveddokument>
 
-    @EntityGraph(attributePaths = ["dokarkivReferences"])
+    @EntityGraph(attributePaths = ["dokarkivReferences", "brevmottakere"])
     fun findByMarkertFerdigNotNullAndFerdigstiltNull(): Set<OpplastetDokumentUnderArbeidAsHoveddokument>
 
     fun findByMarkertFerdigNotNullAndFerdigstiltNullAndBehandlingId(behandlingId: UUID): Set<OpplastetDokumentUnderArbeidAsHoveddokument>
