@@ -2129,7 +2129,7 @@ class DokumentUnderArbeidService(
             }
         }
 
-        val journalfoertePath = if (journalfoerteVedlegg.isNotEmpty()) {
+        val journalfoertePath = if (false) {
             dokumentService.mergeJournalfoerteDocuments(
                 documentsToMerge = journalfoerteVedlegg
                     .sortedBy { it.sortKey }
