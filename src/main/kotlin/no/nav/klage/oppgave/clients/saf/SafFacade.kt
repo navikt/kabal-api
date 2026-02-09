@@ -19,14 +19,10 @@ class SafFacade(
     fun getDokumentoversiktBrukerAsSaksbehandler(
         fnr: String,
         tema: List<Tema>,
-        pageSize: Int,
-        previousPageRef: String? = null
     ): DokumentoversiktBruker {
         return safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
             fnr = fnr,
             tema = tema,
-            pageSize = pageSize,
-            previousPageRef = previousPageRef
         )
     }
 
@@ -35,8 +31,6 @@ class SafFacade(
         fnr: String?,
         saksbehandlerContext: Boolean,
         tema: List<Tema> = emptyList(),
-        pageSize: Int = 50000,
-        previousPageRef: String? = null,
     ): List<Journalpost> {
         logger.debug("getJournalposter, number of journalpostIds: ${journalpostIdSet.size}. Fnr included: ${fnr?.isNotEmpty()}. SaksbehandlerContext: $saksbehandlerContext")
         return if (journalpostIdSet.size > 20 && fnr != null) {
@@ -44,13 +38,11 @@ class SafFacade(
                     val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
                         fnr = fnr,
                         tema = tema,
-                        pageSize = pageSize,
-                        previousPageRef = previousPageRef,
                         systemContext = !saksbehandlerContext,
                     )
 
                     journalpostIdSet.map { journalpostId -> dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }!! }
-                }, "dokumentoversikt")
+                }, "dokumentoversiktWithPaging")
             } else {
                 runWithTimingAndLogging({
                     safGraphQlClient.getJournalposts(

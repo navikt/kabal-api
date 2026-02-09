@@ -45,8 +45,6 @@ class BehandlingDokumentController(
         return behandlingService.fetchDokumentlisteForBehandling(
             behandlingId = behandlingId,
             temaer = temaer?.map { Tema.of(it) } ?: emptyList(),
-            pageSize = pageSize,
-            previousPageRef = previousPageRef
         )
     }
 

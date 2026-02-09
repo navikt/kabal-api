@@ -27,8 +27,66 @@ class SafGraphQlClient(
         private val teamLogger = getTeamLogger()
     }
 
+    /**
+     * Fetches all documents using paging and aggregates the results.
+     * This is to avoid crashing the SAF server with large requests.
+     */
     @Retryable
     fun getDokumentoversiktBrukerAsSaksbehandler(
+        fnr: String,
+        tema: List<Tema>,
+        systemContext: Boolean = false,
+    ): DokumentoversiktBruker {
+        val start = System.currentTimeMillis()
+        val pageSize = 400
+        val journalpostList = mutableListOf<Journalpost>()
+        var previousPageRef: String? = null
+        var totalAntall: Int
+        var pageCount = 0
+
+        do {
+            pageCount++
+            logger.debug("Fetching page $pageCount with pageSize $pageSize, previousPageRef: $previousPageRef")
+
+            val result = getDokumentoversiktBrukerAsSaksbehandlerInternal(
+                fnr = fnr,
+                tema = tema,
+                pageSize = pageSize,
+                previousPageRef = previousPageRef,
+                systemContext = systemContext,
+            )
+
+            journalpostList.addAll(result.journalposter)
+            totalAntall = result.sideInfo.totaltAntall
+            previousPageRef = result.sideInfo.sluttpeker
+
+            logger.debug(
+                "Page $pageCount fetched: {} journalposter, totaltAntall: {}, finnesNesteSide: {}",
+                result.journalposter.size,
+                totalAntall,
+                result.sideInfo.finnesNesteSide
+            )
+        } while (result.sideInfo.finnesNesteSide)
+
+        logger.debug(
+            "getAllDokumentoversiktBrukerAsSaksbehandlerWithPaging completed: {} journalposter in {} pages, ms: {}",
+            journalpostList.size,
+            pageCount,
+            System.currentTimeMillis() - start
+        )
+
+        return DokumentoversiktBruker(
+            journalposter = journalpostList,
+            sideInfo = SideInfo(
+                sluttpeker = null,
+                finnesNesteSide = false,
+                antall = journalpostList.size,
+                totaltAntall = totalAntall
+            )
+        )
+    }
+
+    private fun getDokumentoversiktBrukerAsSaksbehandlerInternal(
         fnr: String,
         tema: List<Tema>,
         pageSize: Int,
@@ -53,7 +111,7 @@ class SafGraphQlClient(
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
                         response = response,
-                        functionName = ::getDokumentoversiktBrukerAsSaksbehandler.name,
+                        functionName = ::getDokumentoversiktBrukerAsSaksbehandlerInternal.name,
                         classLogger = logger,
                     )
                 }

@@ -79,16 +79,12 @@ class DokumentService(
     fun fetchDokumentlisteForBehandling(
         behandling: Behandling,
         temaer: List<Tema>,
-        pageSize: Int,
-        previousPageRef: String?
     ): DokumenterResponse {
         if (behandling.sakenGjelder.erPerson()) {
             val dokumentoversiktBruker: DokumentoversiktBruker =
                 safFacade.getDokumentoversiktBrukerAsSaksbehandler(
                     behandling.sakenGjelder.partId.value,
                     mapTema(temaer),
-                    pageSize,
-                    previousPageRef
                 )
 
             val dokumentReferanseList = dokumentoversiktBruker.journalposter.map { journalpost ->
