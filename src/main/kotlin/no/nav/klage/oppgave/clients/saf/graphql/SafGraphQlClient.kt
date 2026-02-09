@@ -38,7 +38,7 @@ class SafGraphQlClient(
         systemContext: Boolean = false,
     ): DokumentoversiktBruker {
         val start = System.currentTimeMillis()
-        val pageSize = 400
+        val pageSize = 50
         val journalpostList = mutableListOf<Journalpost>()
         var previousPageRef: String? = null
         var totalAntall: Int
