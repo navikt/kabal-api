@@ -41,7 +41,7 @@ abstract class DokumentUnderArbeid(
     @Column(name = "creator_role", nullable = false)
     @Enumerated(EnumType.STRING)
     open var creatorRole: BehandlingRole,
-    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "dokument_under_arbeid_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 5)
