@@ -1194,7 +1194,7 @@ class DokumentUnderArbeidService(
         )
     }
 
-    fun getVedlegg(hoveddokumentId: UUID): Set<DokumentUnderArbeidAsVedlegg> {
+    private fun getVedlegg(hoveddokumentId: UUID): Set<DokumentUnderArbeidAsVedlegg> {
         return dokumentUnderArbeidCommonService.findVedleggByParentId(hoveddokumentId)
     }
 
@@ -1942,13 +1942,13 @@ class DokumentUnderArbeidService(
             )
     }
 
-    fun opprettDokumentEnhet(
-        hovedDokument: DokumentUnderArbeidAsHoveddokument,
-        vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
-    ): DokumentUnderArbeidAsHoveddokument {
-        logger.debug("opprettDokumentEnhet hoveddokument with id {}", hovedDokument.id)
-        logger.debug("got hoveddokument with id {}, dokmentEnhetId {}", hovedDokument.id, hovedDokument.dokumentEnhetId)
-        logger.debug("got vedlegg for hoveddokument id {}, size: {}", hovedDokument.id, vedlegg.size)
+    fun opprettDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
+        logger.debug("opprettDokumentEnhet hoveddokument with id {}", hovedDokumentId)
+        val hovedDokument =
+            getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+        logger.debug("got hoveddokument with id {}, dokmentEnhetId {}", hovedDokumentId, hovedDokument.dokumentEnhetId)
+        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
+        logger.debug("got vedlegg for hoveddokument id {}, size: {}", hovedDokumentId, vedlegg.size)
         //Denne er alltid sann
         if (hovedDokument.dokumentEnhetId == null) {
             logger.debug("hoveddokument.dokumentEnhetId == null, id {}", hovedDokument.id)
@@ -1967,11 +1967,11 @@ class DokumentUnderArbeidService(
         return hovedDokument
     }
 
-    fun ferdigstillDokumentEnhet(
-        hovedDokument: DokumentUnderArbeidAsHoveddokument,
-        vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
-    ): DokumentUnderArbeidAsHoveddokument {
-        logger.debug("ferdigstillDokumentEnhet hoveddokument with id {}", hovedDokument.id)
+    fun ferdigstillDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
+        logger.debug("ferdigstillDokumentEnhet hoveddokument with id {}", hovedDokumentId)
+        val hovedDokument =
+            getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
+        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         val behandling: Behandling =
             behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 

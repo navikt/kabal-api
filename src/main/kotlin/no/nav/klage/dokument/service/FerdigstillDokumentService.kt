@@ -70,18 +70,11 @@ class FerdigstillDokumentService(
     private fun ferdigstill(hoveddokument: DokumentUnderArbeidAsHoveddokument) {
         logger.debug("ferdigstill hoveddokument with id {}", hoveddokument.id)
         var updatedDokument = hoveddokument
-        val vedlegg = dokumentUnderArbeidService.getVedlegg(hoveddokument.id)
         try {
             if (updatedDokument.dokumentEnhetId == null) {
-                updatedDokument = dokumentUnderArbeidService.opprettDokumentEnhet(
-                    hovedDokument = updatedDokument,
-                    vedlegg = vedlegg,
-                )
+                updatedDokument = dokumentUnderArbeidService.opprettDokumentEnhet(updatedDokument.id)
             }
-            updatedDokument = dokumentUnderArbeidService.ferdigstillDokumentEnhet(
-                hovedDokument = updatedDokument,
-                vedlegg = vedlegg,
-            )
+            updatedDokument = dokumentUnderArbeidService.ferdigstillDokumentEnhet(updatedDokument.id)
 
             logger.debug(
                 "dokumentUnderArbeidService.ferdigstillDokumentEnhet(updatedDokument.id) for document with id {} done",
