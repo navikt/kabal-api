@@ -71,6 +71,9 @@ inboundApplications:
   - application: ung-sak
     namespace: k9saksbehandling
     cluster: dev-gcp
+  - application: tiltakspenger-saksbehandling-api
+    namespace: tpts
+    cluster: dev-gcp
 springProfile: dev
 tenant: trygdeetaten.no
 db_tier: db-custom-1-3840
