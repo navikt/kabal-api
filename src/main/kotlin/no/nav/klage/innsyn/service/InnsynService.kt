@@ -339,7 +339,7 @@ fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
         Ytelse.UFO_TVF -> Innsendingsytelse.UFORETRYGD
         Ytelse.OPP_OPP -> Innsendingsytelse.OPPFOLGING
         Ytelse.AAR_AAR -> null //no matching innsendingsytelse
-        Ytelse.TSR_TSR -> null //could be Innsendingsytelse.STOTTE_TIL_ARBEIDS_OG_UTDANNINGSREISER, but tema does not match with Klang.
+        Ytelse.HJE_AUR -> Innsendingsytelse.STOTTE_TIL_ARBEIDS_OG_UTDANNINGSREISER
         Ytelse.TSR_ASO -> Innsendingsytelse.TILLEGGSSTONADER
         Ytelse.FRI_FRI -> null //no matching innsendingsytelse/tema
         Ytelse.TSO_TSO -> Innsendingsytelse.TILLEGGSSTONADER
