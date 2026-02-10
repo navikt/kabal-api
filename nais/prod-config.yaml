@@ -64,6 +64,9 @@ inboundApplications:
   - application: ung-sak
     namespace: k9saksbehandling
     cluster: prod-gcp
+  - application: tiltakspenger-saksbehandling-api
+    namespace: tpts
+    cluster: prod-gcp
 springProfile: prod
 tenant: nav.no
 db_tier: db-custom-1-3840

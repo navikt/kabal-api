@@ -49,3 +49,6 @@ acl:
   - team: k9saksbehandling
     application: ung-sak
     access: read
+  - team: tpts
+    application: tiltakspenger-saksbehandling-api
+    access: read
