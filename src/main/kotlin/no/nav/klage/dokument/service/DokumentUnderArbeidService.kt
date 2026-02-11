@@ -2131,7 +2131,7 @@ class DokumentUnderArbeidService(
 
         //No need for preview if there are too many documents.
         //Takes a lot of resources, and it's a bad user experience anyway.
-        val journalfoertePath = if (journalpostListFromSaf.size < 100) {
+        val journalfoertePath = if (journalfoerteVedlegg.isNotEmpty() && journalpostListFromSaf.size < 100) {
             dokumentService.mergeJournalfoerteDocuments(
                 documentsToMerge = journalfoerteVedlegg
                     .sortedBy { it.sortKey }
