@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
 import org.springframework.http.MediaType
+import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
@@ -22,6 +23,7 @@ class KabalInnstillingerClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
+    @Retryable
     fun getTildelteYtelserForEnhet(enhet: String): TildelteYtelserResponse {
         logger.debug("Getting tildelte ytelser for enhet $enhet in kabal-innstillinger")
         return kabalInnstillingerWebClient.get()
@@ -42,6 +44,7 @@ class KabalInnstillingerClient(
             .block() ?: throw RuntimeException("Could not get tildelte ytelser for enhet $enhet")
     }
 
+    @Retryable
     fun getSaksbehandlersTildelteYtelser(navIdent: String): SaksbehandlerAccess {
         logger.debug("Getting tildelte ytelser for $navIdent in kabal-innstillinger")
         return kabalInnstillingerWebClient.get()
@@ -62,6 +65,7 @@ class KabalInnstillingerClient(
             .block() ?: throw RuntimeException("Could not get tildelte ytelser")
     }
 
+    @Retryable
     fun getSaksbehandlersTildelteYtelserAppAccess(navIdent: String): SaksbehandlerAccess {
         logger.debug("Getting tildelte ytelser for $navIdent in kabal-innstillinger through app access")
         return kabalInnstillingerWebClient.get()
@@ -82,6 +86,7 @@ class KabalInnstillingerClient(
             .block() ?: throw RuntimeException("Could not get tildelte ytelser")
     }
 
+    @Retryable
     fun getHjemmelIdsForYtelse(ytelse: Ytelse): Set<String> {
         logger.debug("Getting all registered hjemler in kabal-innstillinger for ytelse $ytelse")
         return kabalInnstillingerWebClient.get()
@@ -107,6 +112,7 @@ class KabalInnstillingerClient(
             .block() ?: throw RuntimeException("Could not get hjemler for ytelse")
     }
 
+    @Retryable
     fun searchMedunderskrivere(input: MedunderskrivereInput): Medunderskrivere {
         logger.debug("Searching medunderskrivere in kabal-innstillinger")
         return kabalInnstillingerWebClient.post()
@@ -129,6 +135,7 @@ class KabalInnstillingerClient(
             .block() ?: throw RuntimeException("Could not search medunderskrivere")
     }
 
+    @Retryable
     fun searchSaksbehandlere(input: SaksbehandlerSearchInput): Saksbehandlere {
         logger.debug("Searching saksbehandlere in kabal-innstillinger")
         return kabalInnstillingerWebClient.post()
@@ -151,6 +158,7 @@ class KabalInnstillingerClient(
             .block() ?: throw RuntimeException("Could not search saksbehandlere")
     }
 
+    @Retryable
     fun searchROL(input: ROLSearchInput): Saksbehandlere {
         logger.debug("Searching rol in kabal-innstillinger")
         return kabalInnstillingerWebClient.post()
