@@ -95,6 +95,7 @@ class DevOnlyAdminController(
         return mapOf(
             "getAccessTokenFrontendSent" to tokenUtil.getAccessTokenFrontendSent(),
             "getSaksbehandlerAccessTokenWithGraphScope" to tokenUtil.getSaksbehandlerAccessTokenWithGraphScope(),
+            "getAppAccessTokenWithSafScope" to tokenUtil.getAppAccessTokenWithSafScope(),
             "getSaksbehandlerAccessTokenWithSafScope" to tokenUtil.getSaksbehandlerAccessTokenWithSafScope(),
             "getSaksbehandlerAccessTokenWithPdlScope" to tokenUtil.getSaksbehandlerAccessTokenWithPdlScope(),
             "getAppAccessTokenWithGraphScope" to tokenUtil.getAppAccessTokenWithGraphScope(),
@@ -135,19 +136,6 @@ class DevOnlyAdminController(
                 )
             )
             logger.debug("Feilregistrering av behandling ble registrert i Infotrygd.")
-        }
-    }
-
-    @Unprotected
-    @GetMapping("/setsortkeytodua")
-    fun setSortKeyToDUA() {
-        logger.debug("setSortKeyToDUA is called in dev")
-
-        try {
-            adminService.setSortKeyToDUA()
-        } catch (e: Exception) {
-            logger.warn("Failed to setSortKeyToDUA", e)
-            throw e
         }
     }
 

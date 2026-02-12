@@ -1831,11 +1831,12 @@ class BehandlingService(
     fun fetchDokumentlisteForBehandling(
         behandlingId: UUID,
         temaer: List<Tema>,
-        pageSize: Int,
-        previousPageRef: String?
     ): DokumenterResponse {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
-        return dokumentService.fetchDokumentlisteForBehandling(behandling, temaer, pageSize, previousPageRef)
+        return dokumentService.fetchDokumentlisteForBehandling(
+            behandling = behandling,
+            temaer = temaer,
+        )
     }
 
 //    fun connectDokumentToBehandling(

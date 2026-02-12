@@ -5,6 +5,7 @@ import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRe
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.repositories.InnholdsfortegnelseRepository
 import no.nav.klage.oppgave.clients.saf.SafFacade
+import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.core.io.ByteArrayResource
@@ -38,12 +39,23 @@ class InnholdsfortegnelseService(
     fun saveInnholdsfortegnelse(
         dokumentUnderArbeid: DokumentUnderArbeid,
         fnr: String,
+        vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
     ) {
         logger.debug("Received saveInnholdsfortegnelse")
 
+        dokumentUnderArbeid as DokumentUnderArbeidAsHoveddokument
+
+        val journalpostList = safFacade.getJournalposter(
+            journalpostIdSet = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+                .map { it.journalpostId }.toSet(),
+            fnr = fnr,
+            saksbehandlerContext = true,
+        )
+
         val content = getInnholdsfortegnelseAsPdf(
             dokumentUnderArbeid = dokumentUnderArbeid,
-            fnr = fnr
+            vedlegg = vedlegg,
+            journalpostList = journalpostList,
         )
 
         val mellomlagerId =
@@ -62,24 +74,12 @@ class InnholdsfortegnelseService(
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun getInnholdsfortegnelseAsPdf(dokumentUnderArbeid: DokumentUnderArbeid, fnr: String): ByteArray {
+    fun getInnholdsfortegnelseAsPdf(
+        dokumentUnderArbeid: DokumentUnderArbeidAsHoveddokument,
+        vedlegg: Set<DokumentUnderArbeidAsVedlegg>,
+        journalpostList: List<Journalpost>,
+    ): ByteArray {
         logger.debug("Received getInnholdsfortegnelseAsPdf")
-
-        if (dokumentUnderArbeid is DokumentUnderArbeidAsVedlegg) {
-            throw IllegalArgumentException("must be hoveddokument")
-        }
-
-        dokumentUnderArbeid as DokumentUnderArbeidAsHoveddokument
-
-        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(dokumentUnderArbeid.id)
-
-        val journalpostList = safFacade.getJournalposter(
-            journalpostIdSet = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-                .map { it.journalpostId }.toSet(),
-            fnr = fnr,
-            saksbehandlerContext = true,
-        )
-
         val pdfDocument =
             kabalJsonToPdfService.getInnholdsfortegnelse(
                 InnholdsfortegnelseRequest(

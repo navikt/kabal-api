@@ -43,7 +43,6 @@ import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import reactor.core.publisher.Flux
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.io.File
 import java.io.IOException
@@ -80,16 +79,12 @@ class DokumentService(
     fun fetchDokumentlisteForBehandling(
         behandling: Behandling,
         temaer: List<Tema>,
-        pageSize: Int,
-        previousPageRef: String?
     ): DokumenterResponse {
         if (behandling.sakenGjelder.erPerson()) {
             val dokumentoversiktBruker: DokumentoversiktBruker =
                 safFacade.getDokumentoversiktBrukerAsSaksbehandler(
                     behandling.sakenGjelder.partId.value,
                     mapTema(temaer),
-                    pageSize,
-                    previousPageRef
                 )
 
             val dokumentReferanseList = dokumentoversiktBruker.journalposter.map { journalpost ->
@@ -110,7 +105,7 @@ class DokumentService(
                 totaltAntall = dokumentoversiktBruker.sideInfo.totaltAntall,
                 sakList = dokumentReferanseList.mapNotNull { it.sak }.toSet().toList(),
                 avsenderMottakerList = dokumentReferanseList.mapNotNull { it.avsenderMottaker }.toSet().toList(),
-                temaIdList = dokumentReferanseList.mapNotNull { it.temaId }.toSet().toList(),
+                temaIdList = dokumentReferanseList.map { it.temaId }.toSet().toList(),
                 journalposttypeList = dokumentReferanseList.mapNotNull { it.journalposttype }.toSet().toList(),
                 fromDate = dokumentReferanseList.minOfOrNull { it.datoOpprettet }?.toLocalDate(),
                 toDate = dokumentReferanseList.maxOfOrNull { it.datoOpprettet }?.toLocalDate(),
@@ -305,7 +300,7 @@ class DokumentService(
                         dokumentInfoId = it.dokumentInfoId,
                         index = index,
                     )
-                }.toSet(),
+                }.toMutableSet(),
                 hash = hash,
                 created = LocalDateTime.now()
             )
@@ -351,6 +346,7 @@ class DokumentService(
         documentsToMerge: List<Pair<String, String>>,
         title: String = "merged document",
         preferArkivvariantIfAccess: Boolean,
+        journalposterSupplied: List<Journalpost>? = null,
     ): Pair<Path, String> {
         if (documentsToMerge.isEmpty()) {
             throw RuntimeException("No documents to merge")
@@ -373,32 +369,38 @@ class DokumentService(
 
         val userToken = tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
 
-        val journalposter = safFacade.getJournalposter(
-            journalpostIdSet = documentsToMerge.map { it.first }.toSet(),
-            fnr = null,
-            saksbehandlerContext = true,
-        )
-
-        Flux.fromIterable(documentsWithPaths).flatMapSequential { (document, path) ->
-            safRestClient.downloadDocumentAsMono(
-                journalpostId = document.first,
-                dokumentInfoId = document.second,
-                pathToFile = path,
-                token = userToken,
-                variantFormat = getPreferredVariantFormatAsString(
-                    document = document,
-                    journalposter = journalposter,
-                    preferArkivvariantIfAccess = preferArkivvariantIfAccess,
-                )
+        val journalposter = journalposterSupplied
+            ?: safFacade.getJournalposter(
+                journalpostIdSet = documentsToMerge.map { it.first }.toSet(),
+                fnr = null,
+                saksbehandlerContext = true,
             )
-        }.collectList().block()
 
+        //Download in parallel with controlled concurrency for performance
+        val concurrency = 20
+        documentsWithPaths.chunked(concurrency).forEach { batch ->
+            batch.parallelStream().forEach { (document, path) ->
+                safRestClient.downloadDocumentAsMono(
+                    journalpostId = document.first,
+                    dokumentInfoId = document.second,
+                    pathToFile = path,
+                    token = userToken,
+                    variantFormat = getPreferredVariantFormatAsString(
+                        document = document,
+                        journalposter = journalposter,
+                        preferArkivvariantIfAccess = preferArkivvariantIfAccess,
+                    )
+                ).block()
+            }
+        }
+
+        //Add sources after download to preserve order
         documentsWithPaths.forEach { (_, path) ->
             merger.addSource(path.toFile())
         }
 
-        //just under 256 MB before using file system
-        merger.mergeDocuments(getMixedMemorySettingsForPDFBox(250_000_000))
+        //Use mixed memory: keep small merges in memory, use disk for large ones
+        merger.mergeDocuments(getMixedMemorySettingsForPDFBox(50_000_000))
 
         //clean tmp files that were downloaded from SAF
         try {

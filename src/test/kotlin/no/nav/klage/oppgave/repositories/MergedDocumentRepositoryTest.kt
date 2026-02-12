@@ -42,7 +42,7 @@ class MergedDocumentRepositoryTest : PostgresIntegrationTestBase() {
         documentToMergeList += MergedDocument(
             id = idToKeep,
             title = "title",
-            documentsToMerge = setOf(
+            documentsToMerge = mutableSetOf(
                 DocumentToMerge(
                     journalpostId = "2",
                     dokumentInfoId = "2",
@@ -55,7 +55,7 @@ class MergedDocumentRepositoryTest : PostgresIntegrationTestBase() {
 
         documentToMergeList += MergedDocument(
             title = "title 2",
-            documentsToMerge = setOf(
+            documentsToMerge = mutableSetOf(
                 DocumentToMerge(
                     journalpostId = "3",
                     dokumentInfoId = "3",

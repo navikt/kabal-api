@@ -18,7 +18,7 @@ class MergedDocument(
     @JoinColumn(name = "merged_document_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 20)
-    val documentsToMerge: Set<DocumentToMerge>,
+    val documentsToMerge: MutableSet<DocumentToMerge>,
     @Column(name = "hash", nullable = false)
     val hash: String,
     @Column(name = "created", nullable = false)

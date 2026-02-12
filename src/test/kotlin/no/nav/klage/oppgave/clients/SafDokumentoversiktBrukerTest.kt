@@ -49,7 +49,7 @@ internal class SafDokumentoversiktBrukerTest {
             tokenUtilMock,
         )
 
-        return safClient.getDokumentoversiktBrukerAsSaksbehandler("fnr", emptyList(), 1, null)
+        return safClient.getDokumentoversiktBrukerAsSaksbehandler("fnr", emptyList())
     }
 
     @Language("json")
@@ -131,7 +131,7 @@ internal class SafDokumentoversiktBrukerTest {
               ],
               "sideInfo": {
                 "sluttpeker": "NDkyMzMwMDI5",
-                "finnesNesteSide": true,
+                "finnesNesteSide": false,
                 "antall": 1,
                 "totaltAntall": 1
               }

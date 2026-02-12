@@ -1,6 +1,7 @@
 package no.nav.klage.dokument.repositories
 
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -11,6 +12,7 @@ interface OpplastetDokumentUnderArbeidAsHoveddokumentRepository : JpaRepository<
 
     fun findByBehandlingIdAndDokarkivReferencesIsNotEmpty(behandlingId: UUID): Set<OpplastetDokumentUnderArbeidAsHoveddokument>
 
+    @EntityGraph(attributePaths = ["dokarkivReferences", "brevmottakere"])
     fun findByMarkertFerdigNotNullAndFerdigstiltNull(): Set<OpplastetDokumentUnderArbeidAsHoveddokument>
 
     fun findByMarkertFerdigNotNullAndFerdigstiltNullAndBehandlingId(behandlingId: UUID): Set<OpplastetDokumentUnderArbeidAsHoveddokument>
