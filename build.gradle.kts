@@ -15,14 +15,14 @@ val tikaVersion = "3.2.3"
 val verapdfVersion = "1.28.2"
 val klageKodeverkVersion = "3.1.0"
 val commonsFileupload2JakartaVersion = "2.0.0-M4"
-val otelVersion = "1.58.0"
+val otelVersion = "1.59.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.0.0"
 val confluentVersion = "8.1.1"
 val reactorKafkaVersion = "1.3.25"
 
 plugins {
-    val kotlinVersion = "2.3.0"
+    val kotlinVersion = "2.3.10"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
