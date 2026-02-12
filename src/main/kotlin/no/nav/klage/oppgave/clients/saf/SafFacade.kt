@@ -41,16 +41,18 @@ class SafFacade(
                         systemContext = !saksbehandlerContext,
                     )
 
-                    journalpostIdSet.map { journalpostId -> dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }!! }
-                }, "dokumentoversiktWithPaging")
-            } else {
-                runWithTimingAndLogging({
-                    safGraphQlClient.getJournalposts(
-                        journalpostIdSet = journalpostIdSet,
-                        systemContext = !saksbehandlerContext,
-                    )
-                }, "getJournalposts")
-            }
+                journalpostIdSet.map { journalpostId ->
+                    dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId } ?: error("Journalpost $journalpostId not found in dokumentOversiktBruker")
+                }
+            }, "dokumentoversiktWithPaging")
+        } else {
+            runWithTimingAndLogging({
+                safGraphQlClient.getJournalposts(
+                    journalpostIdSet = journalpostIdSet,
+                    systemContext = !saksbehandlerContext,
+                )
+            }, "getJournalposts")
+        }
 
     }
 
