@@ -42,7 +42,7 @@ class SafFacade(
                     )
 
                 journalpostIdSet.map { journalpostId ->
-                    dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId } ?: error("Journalpost $journalpostId not found in dokumentOversiktBruker")
+                    dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId } ?: throw RuntimeException("Journalpost $journalpostId not found in dokumentOversiktBruker")
                 }
             }, "dokumentoversiktWithPaging")
         } else {
