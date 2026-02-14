@@ -13,13 +13,13 @@ import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsHoveddokumentRepository
 import no.nav.klage.dokument.repositories.SmartdokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.util.DuaAccessPolicy
+import no.nav.klage.kodeverk.AzureGroup
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.exceptions.BehandlingNotFoundException
 import no.nav.klage.oppgave.exceptions.MissingDUARuleException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
-import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
@@ -37,13 +37,12 @@ class SmartDocumentAccessService(
     private val smartDokumentUnderArbeidAsHoveddokumentRepository: SmartdokumentUnderArbeidAsHoveddokumentRepository,
     private val smartDokumentUnderArbeidAsVedleggRepository: SmartdokumentUnderArbeidAsVedleggRepository,
     private val behandlingRepository: BehandlingRepository,
-    private val saksbehandlerService: SaksbehandlerService,
     private val documentPolicyService: DocumentPolicyService,
-    private val azureGateway: AzureGateway,
     private val aivenKafkaTemplate: KafkaTemplate<String, String>,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     @Value("\${SMART_DOCUMENT_WRITE_ACCESS_TOPIC}")
     private val smartDocumentWriteAccessTopic: String,
+    private val klageLookupGateway: KlageLookupGateway
 ) {
 
     companion object {
@@ -324,11 +323,11 @@ class SmartDocumentAccessService(
 
     private fun getUsers(): Pair<List<Pair<String, DuaAccessPolicy.User>>, List<Pair<String, DuaAccessPolicy.User>>> {
         val saksbehandlerIdentList =
-            azureGateway.getGroupMembersNavIdents(saksbehandlerService.getSaksbehandlerRoleId())
-                .map { it to DuaAccessPolicy.User.SAKSBEHANDLER }
-        val rolIdentList = azureGateway.getGroupMembersNavIdents(saksbehandlerService.getRolRoleId())
-            .map { it to DuaAccessPolicy.User.ROL }
-
+            klageLookupGateway.getUsersInGroup(AzureGroup.KABAL_SAKSBEHANDLING)
+                .map { it.navIdent to DuaAccessPolicy.User.SAKSBEHANDLER }
+        val rolIdentList =
+            klageLookupGateway.getUsersInGroup(AzureGroup.KABAL_ROL)
+                .map { it.navIdent to DuaAccessPolicy.User.ROL }
         logger.debug(
             "Found {} saksbehandlere and {} ROL users in AD groups",
             saksbehandlerIdentList.size,

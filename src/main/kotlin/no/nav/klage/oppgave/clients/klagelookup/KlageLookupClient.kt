@@ -1,7 +1,9 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
+import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.ytelse.Ytelse
+
 import no.nav.klage.oppgave.service.TilgangService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
@@ -67,6 +69,110 @@ class KlageLookupClient(
         }
     }
 
+    @Retryable
+    fun getUserInfo(
+        navIdent: String,
+    ): ExtendedUserResponse {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+
+            klageLookupWebClient.get()
+                .uri("/users/$navIdent")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getUserInfo.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<ExtendedUserResponse>()
+                .block() ?: throw RuntimeException("Could not get user info for navIdent $navIdent")
+        }
+    }
+
+    @Retryable
+    fun getUserGroupMemberships(
+        navIdent: String,
+    ): GroupMembershipsResponse {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+
+            klageLookupWebClient.get()
+                .uri("/users/$navIdent/group-memberships")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getUserInfo.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<GroupMembershipsResponse>()
+                .block() ?: throw RuntimeException("Could not get group memberships for navIdent $navIdent")
+        }
+    }
+
+    @Retryable
+    fun getUsersInEnhet(
+        enhetsnummer: String,
+    ): List<UserResponse> {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+
+            klageLookupWebClient.get()
+                .uri("/enheter/$enhetsnummer/users-in-enhet")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getUsersInEnhet.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<List<UserResponse>>()
+                .block() ?: throw RuntimeException("Could not get users in enhet $enhetsnummer")
+        }
+    }
+
+    @Retryable
+    fun getUsersInGroup(
+        azureGroup: AzureGroup,
+    ): List<UserResponse> {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+
+            klageLookupWebClient.get()
+                .uri("/groups/${azureGroup.id}/users-in-group")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getUsersInEnhet.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<List<UserResponse>>()
+                .block() ?: throw RuntimeException("Could not get users in group $azureGroup")
+        }
+    }
+
     fun <T> runWithTimingAndLogging(block: () -> T): T {
         val start = System.currentTimeMillis()
         try {
@@ -74,6 +180,14 @@ class KlageLookupClient(
         } finally {
             val end = System.currentTimeMillis()
             logger.debug("Time it took to call klage-lookup: ${end - start} millis")
+        }
+    }
+
+    private fun getCorrectBearerToken(): String {
+        return if (tokenUtil.getIdentOrNull() != null) {
+            "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}"
+        } else {
+            "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope()}"
         }
     }
 }

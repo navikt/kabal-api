@@ -7,7 +7,7 @@ import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.clients.klagelookup.KlageLookupClient
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.*
@@ -26,13 +26,13 @@ class TilgangServiceTest {
 
     private val saksbehandlerService: SaksbehandlerService = mockk()
 
-    private val klageLookupClient: KlageLookupClient = mockk()
+    private val klageLookupGateway: KlageLookupGateway = mockk()
 
     private val tilgangService =
         TilgangService(
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             saksbehandlerService = saksbehandlerService,
-            klageLookupClient = klageLookupClient,
+            klageLookupGateway = klageLookupGateway,
         )
 
     @Test

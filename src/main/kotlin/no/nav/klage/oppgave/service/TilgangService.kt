@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.clients.klagelookup.KlageLookupClient
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
 class TilgangService(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val saksbehandlerService: SaksbehandlerService,
-    private val klageLookupClient: KlageLookupClient,
+    private val klageLookupGateway: KlageLookupGateway,
     ) {
 
     companion object {
@@ -80,7 +80,7 @@ class TilgangService(
         fnr: String,
         navIdent: String? = null,
     ): Access {
-        return klageLookupClient.getAccess(
+        return klageLookupGateway.getAccess(
             brukerId = fnr,
             navIdent = navIdent,
             sakId = null,
@@ -96,7 +96,7 @@ class TilgangService(
         ytelse: Ytelse,
         fagsystem: Fagsystem,
     ): Access {
-        return klageLookupClient.getAccess(
+        return klageLookupGateway.getAccess(
             brukerId = fnr,
             navIdent = navIdent,
             sakId = sakId,

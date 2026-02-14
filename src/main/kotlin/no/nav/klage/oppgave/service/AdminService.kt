@@ -28,15 +28,11 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.GOSYSO
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.GOSYSOPPGAVE_ENHETSMAPPE_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.GOSYSOPPGAVE_GJELDER_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.GOSYSOPPGAVE_OPPGAVETYPE_CACHE
-import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.GROUPMEMBERS_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.KRR_INFO_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.LANDKODER_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.PERSON_ADDRESS
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.POSTSTEDER_CACHE
-import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ROLLER_CACHE
-import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLERE_I_ENHET_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
-import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.TILGANGER_CACHE
 import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
@@ -343,7 +339,7 @@ class AdminService(
 
                     if (person.harBeskyttelsesbehovFortrolig()) {
                         behandling.tildeling?.saksbehandlerident?.let {
-                            if (!saksbehandlerService.hasFortroligRole(ident = it, useCache = true)) {
+                            if (!saksbehandlerService.hasFortroligRole(ident = it)) {
                                 fortroligBehandlinger.add(behandling.id.toString())
                             }
                         }
@@ -351,7 +347,7 @@ class AdminService(
 
                     if (egenAnsattService.erEgenAnsatt(person.foedselsnr)) {
                         behandling.tildeling?.saksbehandlerident?.let {
-                            if (!saksbehandlerService.hasEgenAnsattRole(ident = it, useCache = true)) {
+                            if (!saksbehandlerService.hasEgenAnsattRole(ident = it)) {
                                 egenAnsattBehandlinger.add(behandling.id.toString())
                             }
                         }
@@ -748,10 +744,6 @@ class AdminService(
         cacheNames = [
             ENHET_CACHE,
             ENHETER_CACHE,
-            TILGANGER_CACHE,
-            ROLLER_CACHE,
-            SAKSBEHANDLERE_I_ENHET_CACHE,
-            GROUPMEMBERS_CACHE,
             KRR_INFO_CACHE,
             SAKSBEHANDLER_NAME_CACHE,
             POSTSTEDER_CACHE,
