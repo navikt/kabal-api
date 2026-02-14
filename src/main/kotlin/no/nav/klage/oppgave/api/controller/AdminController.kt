@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.api.controller
 import no.nav.klage.oppgave.api.view.TaskListMerkantilView
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
-import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -20,7 +19,6 @@ import java.util.*
 class AdminController(
     private val adminService: AdminService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
-    private val azureGateway: AzureGateway,
     private val taskListMerkantilService: TaskListMerkantilService,
     private val behandlingRepository: BehandlingRepository,
 ) {
@@ -33,9 +31,6 @@ class AdminController(
     @PostMapping("/kafkaadmin/refill", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun refillKafka() {
-        azureGateway.getDataOmInnloggetSaksbehandler()
-        azureGateway.getRollerForInnloggetSaksbehandler()
-
         krevAdminTilgang()
 
         try {
