@@ -40,7 +40,7 @@ class KlageLookupGateway(
     fun getUsersInGroup(azureGroup: AzureGroup): List<UserResponse> {
         logger.debug("Getting users in group $azureGroup from KlageLookup")
         val data = klageLookupClient.getUsersInGroup(azureGroup = azureGroup)
-        return data
+        return data.users
     }
 
     fun getAccess(
@@ -75,7 +75,7 @@ class KlageLookupGateway(
         )
     }
 
-    fun GroupMembershipsResponse.toSaksbehandlerGroupMemberships(): SaksbehandlerGroupMemberships {
+    fun GroupsResponse.toSaksbehandlerGroupMemberships(): SaksbehandlerGroupMemberships {
         return SaksbehandlerGroupMemberships(
             groups = groupIds.map { AzureGroup.of(it) }
         )

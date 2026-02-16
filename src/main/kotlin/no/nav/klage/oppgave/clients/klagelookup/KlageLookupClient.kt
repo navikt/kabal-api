@@ -97,12 +97,12 @@ class KlageLookupClient(
     @Retryable
     fun getUserGroupMemberships(
         navIdent: String,
-    ): GroupMembershipsResponse {
+    ): GroupsResponse {
         return runWithTimingAndLogging {
             val token = getCorrectBearerToken()
 
             klageLookupWebClient.get()
-                .uri("/users/$navIdent/group-memberships")
+                .uri("/users/$navIdent/groups")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
@@ -115,7 +115,7 @@ class KlageLookupClient(
                         classLogger = logger,
                     )
                 }
-                .bodyToMono<GroupMembershipsResponse>()
+                .bodyToMono<GroupsResponse>()
                 .block() ?: throw RuntimeException("Could not get group memberships for navIdent $navIdent")
         }
     }
@@ -123,12 +123,12 @@ class KlageLookupClient(
     @Retryable
     fun getUsersInGroup(
         azureGroup: AzureGroup,
-    ): List<UserResponse> {
+    ): UsersResponse {
         return runWithTimingAndLogging {
             val token = getCorrectBearerToken()
 
             klageLookupWebClient.get()
-                .uri("/groups/${azureGroup.id}/users-in-group")
+                .uri("/groups/${azureGroup.id}/users")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
@@ -141,7 +141,7 @@ class KlageLookupClient(
                         classLogger = logger,
                     )
                 }
-                .bodyToMono<List<UserResponse>>()
+                .bodyToMono<UsersResponse>()
                 .block() ?: throw RuntimeException("Could not get users in group $azureGroup")
         }
     }

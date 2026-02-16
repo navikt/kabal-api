@@ -1,5 +1,9 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
+data class UsersResponse(
+    val users: List<UserResponse>,
+)
+
 data class UserResponse (
     val navIdent: String,
     val sammensattNavn: String,
@@ -21,6 +25,6 @@ data class Enhet (
     val enhetNavn: String,
 )
 
-data class GroupMembershipsResponse (
+data class GroupsResponse (
     val groupIds: List<String>,
 )
