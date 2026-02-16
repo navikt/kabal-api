@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
 import no.nav.klage.kodeverk.AzureGroup
-import no.nav.klage.kodeverk.typeToSattPaaVentReason
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroupMemberships
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
@@ -32,26 +31,14 @@ class KlageLookupGateway(
         return data.toSaksbehandlerPersonligInfo()
     }
 
-    fun getGroupMembershipsForCurrentUser(): SaksbehandlerGroupMemberships {
-        logger.debug("Getting group memberships current user from KlageLookup")
-        val data = klageLookupClient.getUserGroupMemberships(navIdent = tokenUtil.getIdent())
-        return data.toSaksbehandlerGroupMemberships()
-    }
-
     fun getGroupMembershipsForGivenNavIdent(navIdent: String): SaksbehandlerGroupMemberships {
         logger.debug("Getting group memberships for $navIdent from KlageLookup")
         val data = klageLookupClient.getUserGroupMemberships(navIdent = navIdent)
         return data.toSaksbehandlerGroupMemberships()
     }
 
-    fun getUsersInEnhet(enhetsnummer: String): List<UserResponse> {
-        logger.debug("Getting users in enhet $enhetsnummer from KlageLookup")
-        val data = klageLookupClient.getUsersInEnhet(enhetsnummer = enhetsnummer)
-        return data
-    }
-
     fun getUsersInGroup(azureGroup: AzureGroup): List<UserResponse> {
-        logger.debug("Getting users in group $typeToSattPaaVentReason from KlageLookup")
+        logger.debug("Getting users in group $azureGroup from KlageLookup")
         val data = klageLookupClient.getUsersInGroup(azureGroup = azureGroup)
         return data
     }

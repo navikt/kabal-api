@@ -19,8 +19,6 @@ class SaksbehandlerService(
     private val kabalInnstillingerService: KabalInnstillingerService,
     private val nomClient: NomClient,
     private val klageLookupGateway: KlageLookupGateway,
-    @Value("\${KABAL_ROL_ROLE_ID}") private val kabalROLRoleId: String,
-    @Value("\${KABAL_SAKSBEHANDLING_ROLE_ID}") private val kabalSaksbehandlerRoleId: String,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -95,8 +93,4 @@ class SaksbehandlerService(
             SaksbehandlerGroupMemberships(emptyList())
         }
     }
-
-    fun getSaksbehandlerRoleId(): String = kabalSaksbehandlerRoleId
-
-    fun getRolRoleId(): String = kabalROLRoleId
 }

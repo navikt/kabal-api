@@ -112,38 +112,12 @@ class KlageLookupClient(
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
                         response = response,
-                        functionName = ::getUserInfo.name,
+                        functionName = ::getUserGroupMemberships.name,
                         classLogger = logger,
                     )
                 }
                 .bodyToMono<GroupMembershipsResponse>()
                 .block() ?: throw RuntimeException("Could not get group memberships for navIdent $navIdent")
-        }
-    }
-
-    @Retryable
-    fun getUsersInEnhet(
-        enhetsnummer: String,
-    ): List<UserResponse> {
-        return runWithTimingAndLogging {
-            val token = getCorrectBearerToken()
-
-            klageLookupWebClient.get()
-                .uri("/enheter/$enhetsnummer/users-in-enhet")
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    token,
-                )
-                .retrieve()
-                .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(
-                        response = response,
-                        functionName = ::getUsersInEnhet.name,
-                        classLogger = logger,
-                    )
-                }
-                .bodyToMono<List<UserResponse>>()
-                .block() ?: throw RuntimeException("Could not get users in enhet $enhetsnummer")
         }
     }
 
@@ -164,7 +138,7 @@ class KlageLookupClient(
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
                         response = response,
-                        functionName = ::getUsersInEnhet.name,
+                        functionName = ::getUsersInGroup.name,
                         classLogger = logger,
                     )
                 }
@@ -184,7 +158,7 @@ class KlageLookupClient(
     }
 
     private fun getCorrectBearerToken(): String {
-        return if (tokenUtil.getIdentOrNull() != null) {
+        return if (tokenUtil.getIdentOrNull() == null) {
             "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}"
         } else {
             "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope()}"
