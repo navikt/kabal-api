@@ -89,7 +89,7 @@ class SaksbehandlerService(
         return try {
             klageLookupGateway.getGroupMembershipsForGivenNavIdent(navIdent)
         } catch (e: Exception) {
-            logger.warn("Failed to retrieve group memberships for navident $navIdent, using emptylist instead")
+            logger.warn("Failed to retrieve group memberships for navident $navIdent, using emptylist instead. Exception: $e")
             SaksbehandlerGroupMemberships(emptyList())
         }
     }
