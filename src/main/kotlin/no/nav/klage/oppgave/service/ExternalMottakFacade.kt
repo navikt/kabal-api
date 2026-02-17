@@ -120,7 +120,7 @@ class ExternalMottakFacade(
         val enhetForSaksbehandler = try {
             saksbehandlerService.getEnhetForSaksbehandler(
                 saksbehandlerIdent
-            ).enhetId
+            )!!.enhetId
         } catch (e: Exception) {
             logger.error(
                 "Couldn't get enhet for saksbehandlerident {}, returning. Exception: {}",

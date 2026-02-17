@@ -27,8 +27,8 @@ class SaksbehandlerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getEnhetForSaksbehandler(navIdent: String): SaksbehandlerEnhet {
-        return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent).enhet
+    fun getEnhetForSaksbehandler(navIdent: String): SaksbehandlerEnhet? {
+        return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent)?.enhet
     }
 
     @Cacheable(CacheWithJCacheConfiguration.SAKSBEHANDLER_NAME_CACHE)
@@ -38,7 +38,7 @@ class SaksbehandlerService(
         }
 
         return try {
-            klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent).sammensattNavn
+            klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent)?.sammensattNavn ?: "Ukjent navn"
         } catch (_: Exception) {
             "Ukjent navn"
         }

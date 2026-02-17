@@ -13,6 +13,7 @@ import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
 
 
 @Component
@@ -45,7 +46,11 @@ class KlageLookupClient(
             val accessRequest = AccessRequest(
                 brukerId = brukerId,
                 navIdent = navIdent,
-                sak = if (sakId != null && ytelse != null && fagsystem != null) AccessRequest.Sak(sakId = sakId, ytelse = ytelse, fagsystem = fagsystem) else null,
+                sak = if (sakId != null && ytelse != null && fagsystem != null) AccessRequest.Sak(
+                    sakId = sakId,
+                    ytelse = ytelse,
+                    fagsystem = fagsystem
+                ) else null,
             )
 
             klageLookupWebClient.post()
@@ -71,7 +76,7 @@ class KlageLookupClient(
     @Retryable
     fun getUserInfo(
         navIdent: String,
-    ): ExtendedUserResponse {
+    ): ExtendedUserResponse? {
         return runWithTimingAndLogging {
             val token = getCorrectBearerToken()
 
@@ -83,11 +88,19 @@ class KlageLookupClient(
                 )
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(
-                        response = response,
-                        functionName = ::getUserInfo.name,
-                        classLogger = logger,
-                    )
+                    when (response.statusCode().value()) {
+                        404 -> {
+                            Mono.empty()
+                        }
+
+                        else -> {
+                            logErrorResponse(
+                                response = response,
+                                functionName = ::getUserInfo.name,
+                                classLogger = logger,
+                            )
+                        }
+                    }
                 }
                 .bodyToMono<ExtendedUserResponse>()
                 .block() ?: throw RuntimeException("Could not get user info for navIdent $navIdent")

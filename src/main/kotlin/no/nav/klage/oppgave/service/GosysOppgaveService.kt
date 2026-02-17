@@ -91,7 +91,7 @@ class GosysOppgaveService(
                     versjon = currentGosysOppgave.versjon,
                     endretAvEnhetsnr = endretAvEnhetsnr,
                     tilordnetRessurs = tildeltSaksbehandlerIdent,
-                    tildeltEnhetsnr = tildeltSaksbehandlerInfo.enhet.enhetId,
+                    tildeltEnhetsnr = tildeltSaksbehandlerInfo!!.enhet.enhetId,
                     mappeId = null,
                 )
             }
@@ -490,6 +490,6 @@ class GosysOppgaveService(
     }
 
     private fun getEndretAvEnhetsnr(): String? = if (tokenUtil.getIdentOrNull() == null) null else {
-        klageLookupGateway.getUserInfoForCurrentUser().enhet.enhetId
+        klageLookupGateway.getUserInfoForCurrentUser()?.enhet?.enhetId
     }
 }

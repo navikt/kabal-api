@@ -19,16 +19,16 @@ class KlageLookupGateway(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getUserInfoForCurrentUser(): SaksbehandlerPersonligInfo {
+    fun getUserInfoForCurrentUser(): SaksbehandlerPersonligInfo? {
         logger.debug("Getting user info for current user from KlageLookup")
         val data = klageLookupClient.getUserInfo(navIdent = tokenUtil.getIdent())
-        return data.toSaksbehandlerPersonligInfo()
+        return data?.toSaksbehandlerPersonligInfo()
     }
 
-    fun getUserInfoForGivenNavIdent(navIdent: String): SaksbehandlerPersonligInfo {
+    fun getUserInfoForGivenNavIdent(navIdent: String): SaksbehandlerPersonligInfo? {
         logger.debug("Getting user info for $navIdent from KlageLookup")
         val data = klageLookupClient.getUserInfo(navIdent = navIdent)
-        return data.toSaksbehandlerPersonligInfo()
+        return data?.toSaksbehandlerPersonligInfo()
     }
 
     fun getGroupMembershipsForGivenNavIdent(navIdent: String): SaksbehandlerGroupMemberships {
