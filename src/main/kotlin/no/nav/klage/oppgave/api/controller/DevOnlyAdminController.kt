@@ -266,7 +266,7 @@ class DevOnlyAdminController(
     @Unprotected
     @GetMapping("/lookup/{navIdent}")
     fun getPersonFromLookup(
-        @PathVariable(required = false) navIdent: String
+        @PathVariable navIdent: String
     ): SaksbehandlerPersonligInfo? {
         logger.debug("getPersonFromLookup is called")
         return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent)
