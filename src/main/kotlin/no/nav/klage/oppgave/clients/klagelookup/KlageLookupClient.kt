@@ -12,8 +12,8 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Mono
 
 
 @Component
@@ -46,11 +46,7 @@ class KlageLookupClient(
             val accessRequest = AccessRequest(
                 brukerId = brukerId,
                 navIdent = navIdent,
-                sak = if (sakId != null && ytelse != null && fagsystem != null) AccessRequest.Sak(
-                    sakId = sakId,
-                    ytelse = ytelse,
-                    fagsystem = fagsystem
-                ) else null,
+                sak = if (sakId != null && ytelse != null && fagsystem != null) AccessRequest.Sak(sakId = sakId, ytelse = ytelse, fagsystem = fagsystem) else null,
             )
 
             klageLookupWebClient.post()
@@ -79,7 +75,6 @@ class KlageLookupClient(
     ): ExtendedUserResponse? {
         return runWithTimingAndLogging {
             val token = getCorrectBearerToken()
-
             klageLookupWebClient.get()
                 .uri("/users/$navIdent")
                 .header(
@@ -88,22 +83,15 @@ class KlageLookupClient(
                 )
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    when (response.statusCode().value()) {
-                        404 -> {
-                            Mono.empty()
-                        }
-
-                        else -> {
-                            logErrorResponse(
-                                response = response,
-                                functionName = ::getUserInfo.name,
-                                classLogger = logger,
-                            )
-                        }
-                    }
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getUserInfo.name,
+                        classLogger = logger,
+                    )
                 }
                 .bodyToMono<ExtendedUserResponse>()
-                .block() ?: throw RuntimeException("Could not get user info for navIdent $navIdent")
+                .onErrorReturn(WebClientResponseException.NotFound::class.java, null)
+                .block()
         }
     }
 
