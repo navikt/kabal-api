@@ -87,6 +87,7 @@ class KlageLookupClient(
                 )
                 .retrieve()
                 .onStatus({ it.value() == 404 }) {
+                    logger.debug("Inne i onstatus, $it")
                     Mono.empty() // Don't treat 404 as error
                 }
                 .onStatus(HttpStatusCode::isError) { response ->
