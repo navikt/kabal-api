@@ -85,20 +85,16 @@ class KlageLookupClient(
                     HttpHeaders.AUTHORIZATION,
                     token,
                 )
-                .retrieve()
-                .onStatus({ it.value() == 404 }) {
-                    logger.debug("Inne i onstatus, $it")
-                    Mono.empty() // Don't treat 404 as error
+                .exchangeToMono { response ->
+                    if (response.statusCode().value() == 404) {
+                        logger.debug("User $navIdent not found")
+                        Mono.empty()
+                    } else if (response.statusCode().isError) {
+                        response.createError()
+                    } else {
+                        response.bodyToMono<ExtendedUserResponse>()
+                    }
                 }
-                .onStatus(HttpStatusCode::isError) { response ->
-                    logger.debug("Vi kom ihvertfall hit")
-                    logErrorResponse(
-                        response = response,
-                        functionName = ::getUserInfo.name,
-                        classLogger = logger,
-                    )
-                }
-                .bodyToMono<ExtendedUserResponse>()
                 .block()
         }
     }

@@ -270,6 +270,5 @@ class DevOnlyAdminController(
     ): SaksbehandlerPersonligInfo? {
         logger.debug("getPersonFromLookup is called")
         return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent)
-
     }
 }
