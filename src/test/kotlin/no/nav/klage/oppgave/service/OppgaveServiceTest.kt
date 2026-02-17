@@ -16,7 +16,7 @@ import no.nav.klage.oppgave.api.view.Sortering
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.*
-import no.nav.klage.oppgave.domain.saksbehandler.Enhet
+import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.TokenUtil
 import org.assertj.core.api.Assertions.assertThat
@@ -70,7 +70,7 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
 
         )
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
-        every { saksbehandlerService.getEnhetForSaksbehandler(any()) } returns Enhet(enhetId = "1000", navn = "Enhet")
+        every { saksbehandlerService.getEnhetForSaksbehandler(any()) } returns SaksbehandlerEnhet(enhetId = "1000", navn = "Enhet")
     }
 
     @Test

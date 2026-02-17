@@ -20,13 +20,8 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
 
         const val ENHET_CACHE = "enhet"
         const val ENHETER_CACHE = "enheter"
-        const val TILGANGER_CACHE = "tilganger"
-        const val ROLLER_CACHE = "roller"
-        const val SAKSBEHANDLERE_I_ENHET_CACHE = "saksbehandlereienhet"
         const val POSTSTEDER_CACHE = "poststeder"
         const val LANDKODER_CACHE = "landkoder"
-        const val ANSATTE_I_ENHET_CACHE = "ansatteienhet"
-        const val GROUPMEMBERS_CACHE = "groupmembers"
         const val KRR_INFO_CACHE = "krrinfo"
         const val HJEMLER_FOR_YTELSE_CACHE = "hjemler-for-ytelse"
         const val SAKSBEHANDLER_NAME_CACHE = "saksbehandler-name"
@@ -42,10 +37,6 @@ class CacheWithJCacheConfiguration(private val environment: Environment) : JCach
             listOf(
                 ENHET_CACHE,
                 ENHETER_CACHE,
-                TILGANGER_CACHE,
-                ROLLER_CACHE,
-                SAKSBEHANDLERE_I_ENHET_CACHE,
-                GROUPMEMBERS_CACHE,
                 KRR_INFO_CACHE,
                 SAKSBEHANDLER_NAME_CACHE,
                 POSTSTEDER_CACHE,

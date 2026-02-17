@@ -5,8 +5,8 @@ import no.nav.klage.oppgave.api.view.EnhetView
 import no.nav.klage.oppgave.api.view.GosysOppgaveMappeView
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
 import no.nav.klage.oppgave.api.view.SaksbehandlerView
-import no.nav.klage.oppgave.clients.azure.DefaultAzureGateway
 import no.nav.klage.oppgave.clients.gosysoppgave.*
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -18,6 +18,7 @@ import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.exceptions.GosysOppgaveClientException
 import no.nav.klage.oppgave.exceptions.GosysOppgaveNotEditableException
 import no.nav.klage.oppgave.exceptions.IllegalOperation
+import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -29,11 +30,12 @@ import java.util.*
 @Service
 class GosysOppgaveService(
     private val gosysOppgaveClient: GosysOppgaveClient,
-    private val microsoftGraphService: DefaultAzureGateway,
     private val pdlFacade: PdlFacade,
     private val norg2Client: Norg2Client,
     private val saksbehandlerService: SaksbehandlerService,
     private val kafkaInternalEventService: KafkaInternalEventService,
+    private val klageLookupGateway: KlageLookupGateway,
+    private val tokenUtil: TokenUtil,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -73,7 +75,7 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext)
+        val endretAvEnhetsnr = getEndretAvEnhetsnr()
 
         val updateGosysOppgaveRequest =
             if (tildeltSaksbehandlerIdent.isNullOrBlank()) {
@@ -83,8 +85,7 @@ class GosysOppgaveService(
                     tilordnetRessurs = null,
                 )
             } else {
-                val tildeltSaksbehandlerInfo =
-                    microsoftGraphService.getPersonligDataOmSaksbehandlerMedIdent(tildeltSaksbehandlerIdent)
+                val tildeltSaksbehandlerInfo = klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = tildeltSaksbehandlerIdent)
 
                 TildelGosysOppgaveRequest(
                     versjon = currentGosysOppgave.versjon,
@@ -140,7 +141,7 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext)
+        val endretAvEnhetsnr = getEndretAvEnhetsnr()
 
         val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveRequest(
             versjon = currentGosysOppgave.versjon,
@@ -182,7 +183,7 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext)
+        val endretAvEnhetsnr = getEndretAvEnhetsnr()
 
         val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveRequest(
             versjon = currentGosysOppgave.versjon,
@@ -219,7 +220,7 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext)
+        val endretAvEnhetsnr = getEndretAvEnhetsnr()
 
         val updateGosysOppgaveRequest = UpdateGosysOppgaveOnCompletedBehandlingRequest(
             versjon = currentGosysOppgave.versjon,
@@ -262,7 +263,7 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext)
+        val endretAvEnhetsnr = getEndretAvEnhetsnr()
 
         val updateGosysOppgaveRequest = AddKommentarToGosysOppgaveRequest(
             versjon = currentGosysOppgave.versjon,
@@ -488,7 +489,7 @@ class GosysOppgaveService(
         } else true
     }
 
-    private fun getEndretAvEnhetsnr(systemContext: Boolean): String? = if (systemContext) null else {
-        microsoftGraphService.getDataOmInnloggetSaksbehandler().enhet.enhetId
+    private fun getEndretAvEnhetsnr(): String? = if (tokenUtil.getIdentOrNull() == null) null else {
+        klageLookupGateway.getUserInfoForCurrentUser().enhet.enhetId
     }
 }

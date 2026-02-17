@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
+import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.service.TilgangService
@@ -67,6 +68,84 @@ class KlageLookupClient(
         }
     }
 
+    @Retryable
+    fun getUserInfo(
+        navIdent: String,
+    ): ExtendedUserResponse {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+
+            klageLookupWebClient.get()
+                .uri("/users/$navIdent")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getUserInfo.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<ExtendedUserResponse>()
+                .block() ?: throw RuntimeException("Could not get user info for navIdent $navIdent")
+        }
+    }
+
+    @Retryable
+    fun getUserGroupMemberships(
+        navIdent: String,
+    ): GroupsResponse {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+
+            klageLookupWebClient.get()
+                .uri("/users/$navIdent/groups")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getUserGroupMemberships.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<GroupsResponse>()
+                .block() ?: throw RuntimeException("Could not get group memberships for navIdent $navIdent")
+        }
+    }
+
+    @Retryable
+    fun getUsersInGroup(
+        azureGroup: AzureGroup,
+    ): UsersResponse {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+
+            klageLookupWebClient.get()
+                .uri("/groups/${azureGroup.id}/users")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getUsersInGroup.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<UsersResponse>()
+                .block() ?: throw RuntimeException("Could not get users in group $azureGroup")
+        }
+    }
+
     fun <T> runWithTimingAndLogging(block: () -> T): T {
         val start = System.currentTimeMillis()
         try {
@@ -74,6 +153,14 @@ class KlageLookupClient(
         } finally {
             val end = System.currentTimeMillis()
             logger.debug("Time it took to call klage-lookup: ${end - start} millis")
+        }
+    }
+
+    private fun getCorrectBearerToken(): String {
+        return if (tokenUtil.getIdentOrNull() == null) {
+            "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}"
+        } else {
+            "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope()}"
         }
     }
 }
