@@ -12,8 +12,8 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
 
 
 @Component
@@ -46,7 +46,11 @@ class KlageLookupClient(
             val accessRequest = AccessRequest(
                 brukerId = brukerId,
                 navIdent = navIdent,
-                sak = if (sakId != null && ytelse != null && fagsystem != null) AccessRequest.Sak(sakId = sakId, ytelse = ytelse, fagsystem = fagsystem) else null,
+                sak = if (sakId != null && ytelse != null && fagsystem != null) AccessRequest.Sak(
+                    sakId = sakId,
+                    ytelse = ytelse,
+                    fagsystem = fagsystem
+                ) else null,
             )
 
             klageLookupWebClient.post()
@@ -69,7 +73,7 @@ class KlageLookupClient(
         }
     }
 
-//    @Retryable
+    //    @Retryable
     fun getUserInfo(
         navIdent: String,
     ): ExtendedUserResponse? {
@@ -82,6 +86,9 @@ class KlageLookupClient(
                     token,
                 )
                 .retrieve()
+                .onStatus({ it.value() == 404 }) {
+                    Mono.empty() // Don't treat 404 as error
+                }
                 .onStatus(HttpStatusCode::isError) { response ->
                     logger.debug("Vi kom ihvertfall hit")
                     logErrorResponse(
@@ -91,7 +98,6 @@ class KlageLookupClient(
                     )
                 }
                 .bodyToMono<ExtendedUserResponse>()
-                .onErrorReturn(WebClientResponseException.NotFound::class.java, null)
                 .block()
         }
     }
