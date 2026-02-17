@@ -159,7 +159,7 @@ class KabalInnstillingerClient(
     }
 
     @Retryable
-    fun searchROL(input: ROLSearchInput): Saksbehandlere {
+    fun searchROL(input: SakInput): Saksbehandlere {
         logger.debug("Searching rol in kabal-innstillinger")
         return kabalInnstillingerWebClient.post()
             .uri { it.path("/search/rol").build() }

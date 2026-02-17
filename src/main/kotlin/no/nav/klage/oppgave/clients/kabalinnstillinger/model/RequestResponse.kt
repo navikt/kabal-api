@@ -7,10 +7,16 @@ import java.time.LocalDateTime
 data class Medunderskrivere(val medunderskrivere: List<Saksbehandler>)
 
 data class MedunderskrivereInput(
-    val ytelseId: String,
-    val fnr: String?,
     val enhet: String,
     val navIdent: String,
+    val sak: SakInput,
+)
+
+data class SakInput(
+    val fnr: String,
+    val sakId: String,
+    val ytelseId: String,
+    val fagsystemId: String,
 )
 
 data class Saksbehandlere(val saksbehandlere: List<Saksbehandler>)
@@ -20,10 +26,8 @@ data class Saksbehandler(val navIdent: String, val navn: String)
 data class SaksbehandlerSearchInput(
     val ytelseId: String,
     val fnr: String,
-)
-
-data class ROLSearchInput(
-    val fnr: String,
+    val sakId: String,
+    val fagsystemId: String,
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
