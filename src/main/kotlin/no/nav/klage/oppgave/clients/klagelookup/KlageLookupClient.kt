@@ -69,7 +69,7 @@ class KlageLookupClient(
         }
     }
 
-    @Retryable
+//    @Retryable
     fun getUserInfo(
         navIdent: String,
     ): ExtendedUserResponse? {
@@ -83,6 +83,7 @@ class KlageLookupClient(
                 )
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
+                    logger.debug("Vi kom ihvertfall hit")
                     logErrorResponse(
                         response = response,
                         functionName = ::getUserInfo.name,
