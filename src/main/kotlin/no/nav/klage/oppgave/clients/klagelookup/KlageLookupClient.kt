@@ -73,7 +73,7 @@ class KlageLookupClient(
         }
     }
 
-    //    @Retryable
+    @Retryable
     fun getUserInfo(
         navIdent: String,
     ): ExtendedUserResponse? {
@@ -90,6 +90,11 @@ class KlageLookupClient(
                         logger.debug("User $navIdent not found")
                         Mono.empty()
                     } else if (response.statusCode().isError) {
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getUserInfo.name,
+                            classLogger = logger,
+                        )
                         response.createError()
                     } else {
                         response.bodyToMono<ExtendedUserResponse>()
@@ -102,52 +107,62 @@ class KlageLookupClient(
     @Retryable
     fun getUserGroupMemberships(
         navIdent: String,
-    ): GroupsResponse {
+    ): GroupsResponse? {
         return runWithTimingAndLogging {
             val token = getCorrectBearerToken()
-
             klageLookupWebClient.get()
                 .uri("/users/$navIdent/groups")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
                 )
-                .retrieve()
-                .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(
-                        response = response,
-                        functionName = ::getUserGroupMemberships.name,
-                        classLogger = logger,
-                    )
+                .exchangeToMono { response ->
+                    if (response.statusCode().value() == 404) {
+                        logger.debug("User $navIdent not found")
+                        Mono.empty()
+                    } else if (response.statusCode().isError) {
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getUserGroupMemberships.name,
+                            classLogger = logger,
+                        )
+                        response.createError()
+                    } else {
+                        response.bodyToMono<GroupsResponse>()
+                    }
                 }
-                .bodyToMono<GroupsResponse>()
-                .block() ?: throw RuntimeException("Could not get group memberships for navIdent $navIdent")
+                .block()
         }
     }
 
     @Retryable
     fun getUsersInGroup(
         azureGroup: AzureGroup,
-    ): UsersResponse {
+    ): UsersResponse? {
         return runWithTimingAndLogging {
             val token = getCorrectBearerToken()
-
             klageLookupWebClient.get()
                 .uri("/groups/${azureGroup.id}/users")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
                 )
-                .retrieve()
-                .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(
-                        response = response,
-                        functionName = ::getUsersInGroup.name,
-                        classLogger = logger,
-                    )
+                .exchangeToMono { response ->
+                    if (response.statusCode().value() == 404) {
+                        logger.debug("Group $azureGroup not found")
+                        Mono.empty()
+                    } else if (response.statusCode().isError) {
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getUsersInGroup.name,
+                            classLogger = logger,
+                        )
+                        response.createError()
+                    } else {
+                        response.bodyToMono<UsersResponse>()
+                    }
                 }
-                .bodyToMono<UsersResponse>()
-                .block() ?: throw RuntimeException("Could not get users in group $azureGroup")
+                .block()
         }
     }
 
