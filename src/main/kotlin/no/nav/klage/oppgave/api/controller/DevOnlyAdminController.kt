@@ -7,7 +7,9 @@ import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.pdl.PersonCacheService
+import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.util.TokenUtil
@@ -28,6 +30,7 @@ class DevOnlyAdminController(
     private val tokenUtil: TokenUtil,
     private val behandlingService: BehandlingService,
     private val klageFssProxyClient: KlageFssProxyClient,
+    private val klageLookupGateway: KlageLookupGateway,
     private val personCacheService: PersonCacheService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
@@ -258,5 +261,14 @@ class DevOnlyAdminController(
     ) {
         logger.debug("setPreviousBehandlingId is called")
         adminService.setPreviousBehandlingId(dryRun = dryRun)
+    }
+
+    @Unprotected
+    @GetMapping("/lookup/{navIdent}")
+    fun getPersonFromLookup(
+        @PathVariable navIdent: String
+    ): SaksbehandlerPersonligInfo {
+        logger.debug("getPersonFromLookup is called")
+        return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent)
     }
 }

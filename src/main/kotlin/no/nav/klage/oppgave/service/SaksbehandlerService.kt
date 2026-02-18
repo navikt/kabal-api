@@ -7,11 +7,10 @@ import no.nav.klage.oppgave.clients.nom.GetAnsattResponse
 import no.nav.klage.oppgave.clients.nom.NomClient
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
-import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroupMemberships
+import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroups
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
-
 import org.springframework.stereotype.Service
 
 @Service
@@ -59,38 +58,38 @@ class SaksbehandlerService(
     }
 
     fun isSaksbehandler(ident: String): Boolean =
-        getSaksbehandlerGroupMemberships(ident).groups.contains(AzureGroup.KABAL_SAKSBEHANDLING)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_SAKSBEHANDLING)
 
     fun isROL(ident: String): Boolean =
-        getSaksbehandlerGroupMemberships(ident).groups.contains(AzureGroup.KABAL_ROL)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_ROL)
 
     fun isKROL(ident: String): Boolean =
-        getSaksbehandlerGroupMemberships(ident).groups.contains(AzureGroup.KABAL_KROL)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_KROL)
 
     fun isKabalSvarbrevinnstillinger(ident: String): Boolean =
-        getSaksbehandlerGroupMemberships(ident).groups.contains(AzureGroup.KABAL_SVARBREVINNSTILLINGER)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_SVARBREVINNSTILLINGER)
 
     fun hasFortroligRole(ident: String): Boolean =
-        getSaksbehandlerGroupMemberships(ident).groups.contains(AzureGroup.FORTROLIG)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.FORTROLIG)
 
     fun hasEgenAnsattRole(ident: String): Boolean =
-        getSaksbehandlerGroupMemberships(ident).groups.contains(AzureGroup.EGEN_ANSATT)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.EGEN_ANSATT)
 
     fun hasKabalOppgavestyringAlleEnheterRole(ident: String): Boolean =
-        getSaksbehandlerGroupMemberships(ident).groups.contains(AzureGroup.KABAL_OPPGAVESTYRING_ALLE_ENHETER)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_OPPGAVESTYRING_ALLE_ENHETER)
 
     fun hasKabalAdminRole(ident: String): Boolean =
-        getSaksbehandlerGroupMemberships(ident).groups.contains(AzureGroup.KABAL_ADMIN)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_ADMIN)
 
     fun hasKabalInnsynEgenEnhetRole(ident: String): Boolean =
-        getSaksbehandlerGroupMemberships(ident).groups.contains(AzureGroup.KABAL_INNSYN_EGEN_ENHET)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_INNSYN_EGEN_ENHET)
 
-    private fun getSaksbehandlerGroupMemberships(navIdent: String): SaksbehandlerGroupMemberships {
+    private fun getSaksbehandlerGroups(navIdent: String): SaksbehandlerGroups {
         return try {
-            klageLookupGateway.getGroupMembershipsForGivenNavIdent(navIdent)
+            klageLookupGateway.getGroupsForGivenNavIdent(navIdent)
         } catch (e: Exception) {
             logger.warn("Failed to retrieve group memberships for navident $navIdent, using emptylist instead. Exception: $e")
-            SaksbehandlerGroupMemberships(emptyList())
+            SaksbehandlerGroups(groups = emptyList())
         }
     }
 }
