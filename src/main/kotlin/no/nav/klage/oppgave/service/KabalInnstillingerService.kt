@@ -25,6 +25,8 @@ class KabalInnstillingerService(
             SaksbehandlerSearchInput(
                 ytelseId = behandling.ytelse.id,
                 fnr = behandling.sakenGjelder.partId.value,
+                sakId = behandling.fagsakId,
+                fagsystemId = behandling.fagsystem.id,
             )
         )
     }
@@ -35,18 +37,25 @@ class KabalInnstillingerService(
         }
         return kabalInnstillingerClient.searchMedunderskrivere(
             MedunderskrivereInput(
-                ytelseId = behandling.ytelse.id,
-                fnr = behandling.sakenGjelder.partId.value,
                 enhet = behandling.tildeling!!.enhet!!,
-                navIdent = behandling.tildeling!!.saksbehandlerident!!
+                navIdent = behandling.tildeling!!.saksbehandlerident!!,
+                sak = SakInput(
+                    fnr = behandling.sakenGjelder.partId.value,
+                    sakId = behandling.fagsakId,
+                    fagsystemId = behandling.fagsystem.id,
+                    ytelseId = behandling.ytelse.id,
+                )
             )
         )
     }
 
     fun getPotentialROL(behandling: Behandling): Saksbehandlere {
         return kabalInnstillingerClient.searchROL(
-            ROLSearchInput(
+            SakInput(
                 fnr = behandling.sakenGjelder.partId.value,
+                sakId = behandling.fagsakId,
+                fagsystemId = behandling.fagsystem.id,
+                ytelseId = behandling.ytelse.id,
             )
         )
     }
