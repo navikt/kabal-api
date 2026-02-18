@@ -91,7 +91,7 @@ class KlageLookupClient(
                 )
                 .exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
-                        logger.warn("User $navIdent not found")
+                        logger.debug("User $navIdent not found")
                         Mono.error(UserNotFoundException("User $navIdent not found"))
                     } else if (response.statusCode().isError) {
                         logErrorResponse(
@@ -124,7 +124,7 @@ class KlageLookupClient(
                 )
                 .exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
-                        logger.warn("User $navIdent not found")
+                        logger.debug("User $navIdent not found")
                         Mono.error(UserNotFoundException("User $navIdent not found"))
                     } else if (response.statusCode().isError) {
                         logErrorResponse(
@@ -157,7 +157,7 @@ class KlageLookupClient(
                 )
                 .exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
-                        logger.warn("Group $azureGroup not found")
+                        logger.debug("Group $azureGroup not found")
                         Mono.error(GroupNotFoundException("Group $azureGroup not found"))
 
                     } else if (response.statusCode().isError) {
