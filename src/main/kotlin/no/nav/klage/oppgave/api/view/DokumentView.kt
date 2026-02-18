@@ -235,6 +235,7 @@ data class JournalfoertDokumentMetadata(
     val title: String,
     val harTilgangTilArkivvariant: Boolean,
     val hasAccess: Boolean,
+    val varianter: List<DokumentReferanse.Variant>,
 )
 
 data class DokumentUnderArbeidMetadata(
