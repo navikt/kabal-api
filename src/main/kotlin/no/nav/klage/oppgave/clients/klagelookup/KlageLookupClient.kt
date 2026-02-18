@@ -158,7 +158,7 @@ class KlageLookupClient(
                 .exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
                         logger.warn("Group $azureGroup not found")
-                        Mono.error(GroupNotFoundException("GroupUser $azureGroup not found"))
+                        Mono.error(GroupNotFoundException("Group $azureGroup not found"))
 
                     } else if (response.statusCode().isError) {
                         logErrorResponse(
