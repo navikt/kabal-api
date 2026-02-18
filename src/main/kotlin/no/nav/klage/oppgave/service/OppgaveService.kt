@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.*
 
 
@@ -87,10 +88,10 @@ class OppgaveService(
     }
 
     fun searchOppgaverByFagsakId(fagsakId: String): SearchSaksnummerResponse {
-        val paaVentBehandlinger = mutableListOf<UUID>()
-        val feilregistrerteBehandlinger = mutableListOf<UUID>()
-        val avsluttedeBehandlinger = mutableListOf<UUID>()
-        val aapneBehandlinger = mutableListOf<UUID>()
+        val paaVentBehandlinger = mutableListOf<Pair<UUID, LocalDate>>()
+        val feilregistrerteBehandlinger = mutableListOf<Pair<UUID, LocalDateTime>>()
+        val avsluttedeBehandlinger = mutableListOf<Pair<UUID, LocalDateTime>>()
+        val aapneBehandlinger = mutableListOf<Pair<UUID, LocalDateTime>>()
 
         //There could be multiple behandlinger for a fagsak b/c fagsakId is not unique.
         val behandlinger = behandlingRepository.findByFagsakId(fagsakId = fagsakId)
@@ -106,27 +107,26 @@ class OppgaveService(
             if (access.access) {
                 when {
                     behandling.feilregistrering != null -> {
-                        feilregistrerteBehandlinger.add(behandling.id)
+                        feilregistrerteBehandlinger.add(Pair(behandling.id, behandling.feilregistrering!!.registered))
                     }
                     behandling.sattPaaVent != null -> {
-                        paaVentBehandlinger.add(behandling.id)
+                        paaVentBehandlinger.add(Pair(behandling.id, behandling.sattPaaVent!!.to))
                     }
                     behandling.ferdigstilling != null -> {
-                        avsluttedeBehandlinger.add(behandling.id)
+                        avsluttedeBehandlinger.add(Pair(behandling.id, behandling.ferdigstilling!!.avsluttetAvSaksbehandler))
                     }
                     else -> {
-                        aapneBehandlinger.add(behandling.id)
+                        aapneBehandlinger.add(Pair(behandling.id, behandling.created))
                     }
                 }
             }
         }
 
-
         return SearchSaksnummerResponse(
-            aapneBehandlinger = aapneBehandlinger,
-            avsluttedeBehandlinger = avsluttedeBehandlinger,
-            feilregistrerteBehandlinger = feilregistrerteBehandlinger,
-            paaVentBehandlinger = paaVentBehandlinger,
+            aapneBehandlinger = aapneBehandlinger.sortedBy { it.second }.map { it.first },
+            avsluttedeBehandlinger = avsluttedeBehandlinger.sortedBy { it.second }.map { it.first },
+            feilregistrerteBehandlinger = feilregistrerteBehandlinger.sortedBy { it.second }.map { it.first },
+            paaVentBehandlinger = paaVentBehandlinger.sortedBy { it.second }.map { it.first },
         )
     }
 
