@@ -49,7 +49,7 @@ class BehandlingAssignmentController(
             tildeltSaksbehandlerIdent = saksbehandlerInput.navIdent,
             enhetId = saksbehandlerService.getEnhetForSaksbehandler(
                 saksbehandlerInput.navIdent
-            )!!.enhetId,
+            ).enhetId,
             fradelingReason = null,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )

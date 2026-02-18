@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.clients.nom.NomClient
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroupMemberships
+import no.nav.klage.oppgave.exceptions.UserNotFoundException
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
@@ -27,8 +28,9 @@ class SaksbehandlerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getEnhetForSaksbehandler(navIdent: String): SaksbehandlerEnhet? {
+    fun getEnhetForSaksbehandler(navIdent: String): SaksbehandlerEnhet {
         return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent)?.enhet
+            ?: throw UserNotFoundException("User not with ident $navIdent found")
     }
 
     @Cacheable(CacheWithJCacheConfiguration.SAKSBEHANDLER_NAME_CACHE)

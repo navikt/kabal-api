@@ -98,7 +98,7 @@ class KabinApiService(
                 tildeltSaksbehandlerIdent = saksbehandlerIdent,
                 enhetId = saksbehandlerService.getEnhetForSaksbehandler(
                     saksbehandlerIdent
-                )!!.enhetId,
+                ).enhetId,
                 fradelingReason = null,
                 utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             )

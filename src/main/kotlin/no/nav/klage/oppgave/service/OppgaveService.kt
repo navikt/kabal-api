@@ -179,7 +179,7 @@ class OppgaveService(
                 root.get(Behandling_.tildeling).get(Tildeling_.enhet),
                 saksbehandlerService.getEnhetForSaksbehandler(
                     innloggetSaksbehandlerService.getInnloggetIdent()
-                )!!.enhetId
+                ).enhetId
             )
         }
 

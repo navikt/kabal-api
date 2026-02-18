@@ -1264,7 +1264,7 @@ class DokumentUnderArbeidService(
         } else {
             saksbehandlerService.getEnhetForSaksbehandler(
                 utfoerendeIdent
-            )!!.enhetId
+            ).enhetId
         }
 
         if (hovedDokument.dokumentType in listOf(
