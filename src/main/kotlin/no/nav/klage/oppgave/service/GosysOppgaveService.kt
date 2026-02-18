@@ -75,7 +75,7 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr()
+        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext = systemContext)
 
         val updateGosysOppgaveRequest =
             if (tildeltSaksbehandlerIdent.isNullOrBlank()) {
@@ -142,7 +142,7 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr()
+        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext = systemContext)
 
         val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveRequest(
             versjon = currentGosysOppgave.versjon,
@@ -184,7 +184,7 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr()
+        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext = systemContext)
 
         val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveRequest(
             versjon = currentGosysOppgave.versjon,
@@ -221,7 +221,7 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr()
+        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext = systemContext)
 
         val updateGosysOppgaveRequest = UpdateGosysOppgaveOnCompletedBehandlingRequest(
             versjon = currentGosysOppgave.versjon,
@@ -264,7 +264,7 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr()
+        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext = systemContext)
 
         val updateGosysOppgaveRequest = AddKommentarToGosysOppgaveRequest(
             versjon = currentGosysOppgave.versjon,
@@ -490,7 +490,7 @@ class GosysOppgaveService(
         } else true
     }
 
-    private fun getEndretAvEnhetsnr(): String? = if (tokenUtil.getIdentOrNull() == null) null else {
+    private fun getEndretAvEnhetsnr(systemContext: Boolean): String? = if (systemContext) null else {
         klageLookupGateway.getUserInfoForCurrentUser().enhet.enhetId
     }
 }
