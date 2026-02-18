@@ -9,12 +9,12 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
-import no.nav.klage.oppgave.domain.saksbehandler.Enhet
+import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
-import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.util.TokenUtil
 import org.junit.jupiter.api.*
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,7 +43,7 @@ internal class DuplicateOversendelseTest : PostgresIntegrationTestBase() {
     lateinit var norg2Client: Norg2Client
 
     @MockkBean(relaxed = true)
-    lateinit var azureGateway: AzureGateway
+    lateinit var klageLookupGateway: KlageLookupGateway
 
     @MockkBean(relaxed = true)
     lateinit var meterReqistry: MeterRegistry
@@ -75,15 +75,14 @@ internal class DuplicateOversendelseTest : PostgresIntegrationTestBase() {
     fun `duplicate oversendelse throws exception`() {
         val saksbehandler = "Z123456"
         every {
-            azureGateway.getPersonligDataOmSaksbehandlerMedIdent(saksbehandler)
+            klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = saksbehandler, systemContext = any())
         } returns SaksbehandlerPersonligInfo(
             navIdent = saksbehandler,
-            azureId = "Whatever",
             fornavn = "Test",
             etternavn = "Saksbehandler",
             sammensattNavn = "Test Saksbehandler",
             epost = "test.saksbehandler@trygdeetaten.no",
-            enhet = Enhet("4295", "KA Nord")
+            enhet = SaksbehandlerEnhet("4295", "KA Nord")
         )
 
         every { personService.personExists(any()) } returns true

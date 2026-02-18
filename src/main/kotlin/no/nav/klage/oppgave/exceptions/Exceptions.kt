@@ -53,3 +53,7 @@ class GosysOppgaveClientException : RuntimeException {
     constructor(message: String?) : super(message)
     constructor(message: String?, cause: Throwable?) : super(message, cause)
 }
+
+class UserNotFoundException(msg: String) : RuntimeException(msg)
+
+class GroupNotFoundException(msg: String) : RuntimeException(msg)

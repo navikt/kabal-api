@@ -1,32 +1,23 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.nom.GetAnsattResponse
 import no.nav.klage.oppgave.clients.nom.NomClient
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
-import no.nav.klage.oppgave.domain.saksbehandler.Enhet
-import no.nav.klage.oppgave.gateway.AzureGateway
+import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
+import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroups
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.Cacheable
-
 import org.springframework.stereotype.Service
 
 @Service
 class SaksbehandlerService(
     private val kabalInnstillingerService: KabalInnstillingerService,
     private val nomClient: NomClient,
-    private val azureGateway: AzureGateway,
-    @Value("\${FORTROLIG_ROLE_ID}") private val fortroligRoleId: String,
-    @Value("\${STRENGT_FORTROLIG_ROLE_ID}") private val strengtFortroligRoleId: String,
-    @Value("\${EGEN_ANSATT_ROLE_ID}") private val egenAnsattRoleId: String,
-    @Value("\${KABAL_OPPGAVESTYRING_ALLE_ENHETER_ROLE_ID}") private val kabalOppgavestyringAlleEnheterRoleId: String,
-    @Value("\${KABAL_ADMIN_ROLE_ID}") private val kabalAdminRoleId: String,
-    @Value("\${KABAL_INNSYN_EGEN_ENHET_ROLE_ID}") private val kabalInnsynEgenEnhetRoleId: String,
-    @Value("\${KABAL_ROL_ROLE_ID}") private val kabalROLRoleId: String,
-    @Value("\${KABAL_KROL_ROLE_ID}") private val kabalKROLRoleId: String,
-    @Value("\${KABAL_SVARBREVINNSTILLINGER_ROLE_ID}") private val kabalSvarbrevinnstillingerRoleId: String,
-    @Value("\${KABAL_SAKSBEHANDLING_ROLE_ID}") private val kabalSaksbehandlerRoleId: String,
+    private val klageLookupGateway: KlageLookupGateway,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -35,8 +26,8 @@ class SaksbehandlerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getEnhetForSaksbehandler(navIdent: String): Enhet {
-        return azureGateway.getPersonligDataOmSaksbehandlerMedIdent(navIdent = navIdent).enhet
+    fun getEnhetForSaksbehandler(navIdent: String, systemContext: Boolean): SaksbehandlerEnhet {
+        return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent, systemContext = systemContext).enhet
     }
 
     @Cacheable(CacheWithJCacheConfiguration.SAKSBEHANDLER_NAME_CACHE)
@@ -46,7 +37,7 @@ class SaksbehandlerService(
         }
 
         return try {
-            azureGateway.getPersonligDataOmSaksbehandlerMedIdent(navIdent).sammensattNavn
+            klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent, systemContext = true).sammensattNavn
         } catch (_: Exception) {
             "Ukjent navn"
         }
@@ -66,63 +57,39 @@ class SaksbehandlerService(
         return ansatt
     }
 
-    fun isSaksbehandler(ident: String): Boolean = getRoleIds(ident).contains(kabalSaksbehandlerRoleId)
+    fun isSaksbehandler(ident: String): Boolean =
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_SAKSBEHANDLING)
 
-    fun isROL(ident: String): Boolean = getRoleIds(ident).contains(kabalROLRoleId)
+    fun isROL(ident: String): Boolean =
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_ROL)
 
-    fun isKROL(ident: String): Boolean = getRoleIds(ident).contains(kabalKROLRoleId)
+    fun isKROL(ident: String): Boolean =
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_KROL)
 
     fun isKabalSvarbrevinnstillinger(ident: String): Boolean =
-        getRoleIds(ident).contains(kabalSvarbrevinnstillingerRoleId)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_SVARBREVINNSTILLINGER)
 
-    fun hasFortroligRole(ident: String, useCache: Boolean = false): Boolean {
-        return if (useCache) {
-            getNavIdentsForRoleId(fortroligRoleId).contains(ident)
-        } else {
-            getRoleIds(ident).contains(fortroligRoleId)
-        }
-    }
+    fun hasFortroligRole(ident: String): Boolean =
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.FORTROLIG)
 
-    fun hasStrengtFortroligRole(ident: String, useCache: Boolean = false): Boolean {
-        return if (useCache) {
-            getNavIdentsForRoleId(strengtFortroligRoleId).contains(ident)
-        } else {
-            getRoleIds(ident).contains(strengtFortroligRoleId)
-        }
-    }
-
-    fun hasEgenAnsattRole(ident: String, useCache: Boolean = false): Boolean {
-        return if (useCache) {
-            getNavIdentsForRoleId(egenAnsattRoleId).contains(ident)
-        } else {
-            getRoleIds(ident).contains(egenAnsattRoleId)
-        }
-    }
+    fun hasEgenAnsattRole(ident: String): Boolean =
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.EGEN_ANSATT)
 
     fun hasKabalOppgavestyringAlleEnheterRole(ident: String): Boolean =
-        getRoleIds(ident).contains(kabalOppgavestyringAlleEnheterRoleId)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_OPPGAVESTYRING_ALLE_ENHETER)
 
     fun hasKabalAdminRole(ident: String): Boolean =
-        getRoleIds(ident).contains(kabalAdminRoleId)
-
-    private fun getRoleIds(ident: String): List<String> = try {
-        azureGateway.getRoleIds(ident)
-    } catch (e: Exception) {
-        logger.warn("Failed to retrieve roller for navident $ident, using emptylist instead")
-        emptyList()
-    }
-
-    private fun getNavIdentsForRoleId(roleId: String): List<String> = try {
-        azureGateway.getGroupMembersNavIdents(roleId)
-    } catch (e: Exception) {
-        logger.warn("Failed to retrieve navidents for role $roleId, using emptylist instead")
-        emptyList()
-    }
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_ADMIN)
 
     fun hasKabalInnsynEgenEnhetRole(ident: String): Boolean =
-        getRoleIds(ident).contains(kabalInnsynEgenEnhetRoleId)
+        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_INNSYN_EGEN_ENHET)
 
-    fun getSaksbehandlerRoleId(): String = kabalSaksbehandlerRoleId
-
-    fun getRolRoleId(): String = kabalROLRoleId
+    private fun getSaksbehandlerGroups(navIdent: String): SaksbehandlerGroups {
+        return try {
+            klageLookupGateway.getGroupsForGivenNavIdent(navIdent = navIdent, systemContext = true)
+        } catch (e: Exception) {
+            logger.warn("Failed to retrieve group memberships for navident $navIdent, using emptylist instead. Exception: $e")
+            SaksbehandlerGroups(groups = emptyList())
+        }
+    }
 }

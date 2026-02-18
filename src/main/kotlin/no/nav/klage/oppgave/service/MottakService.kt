@@ -12,6 +12,7 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.config.incrementMottattKlageAnke
 import no.nav.klage.oppgave.domain.behandling.*
@@ -28,7 +29,6 @@ import no.nav.klage.oppgave.exceptions.DuplicateOversendelseException
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.exceptions.OversendtKlageNotValidException
 import no.nav.klage.oppgave.exceptions.PreviousBehandlingNotFinalizedException
-import no.nav.klage.oppgave.gateway.AzureGateway
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -49,11 +49,11 @@ class MottakService(
     private val behandlingRepository: BehandlingRepository,
     private val dokumentService: DokumentService,
     private val norg2Client: Norg2Client,
-    private val azureGateway: AzureGateway,
     private val meterRegistry: MeterRegistry,
     private val createBehandlingFromMottak: CreateBehandlingFromMottak,
     private val personService: PersonService,
     private val eregClient: EregClient,
+    private val klageLookupGateway: KlageLookupGateway
 ) {
 
     private val lovligeTyperIMottakV2 = LovligeTyper.lovligeTyper(environment)
@@ -641,7 +641,11 @@ class MottakService(
     }
 
     private fun validateSaksbehandler(saksbehandlerident: String, enhetNr: String) {
-        if (azureGateway.getPersonligDataOmSaksbehandlerMedIdent(saksbehandlerident).enhet.enhetId != enhetNr) {
+        if (klageLookupGateway.getUserInfoForGivenNavIdent(
+                navIdent = saksbehandlerident,
+                systemContext = true
+            ).enhet.enhetId != enhetNr
+        ) {
             //throw OversendtKlageNotValidException("$saksbehandlerident er ikke saksbehandler i enhet $enhet")
             logger.warn("$saksbehandlerident er ikke saksbehandler i enhet $enhetNr")
         }

@@ -406,6 +406,8 @@ class DokumentMapper(
         return dokumentReferanse
     }
 
+    fun getVarianter(dokumentInfo: DokumentInfo): List<DokumentReferanse.Variant> = dokumentInfo.toVarianter()
+
     private fun DokumentInfo.toVarianter(): List<DokumentReferanse.Variant> {
         return this.dokumentvarianter.filter {
             it.variantformat in listOf(

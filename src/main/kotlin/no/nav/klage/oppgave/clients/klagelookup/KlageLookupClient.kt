@@ -1,7 +1,10 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
+import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import no.nav.klage.oppgave.exceptions.GroupNotFoundException
+import no.nav.klage.oppgave.exceptions.UserNotFoundException
 import no.nav.klage.oppgave.service.TilgangService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
@@ -12,6 +15,7 @@ import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
 
 
 @Component
@@ -44,7 +48,11 @@ class KlageLookupClient(
             val accessRequest = AccessRequest(
                 brukerId = brukerId,
                 navIdent = navIdent,
-                sak = if (sakId != null && ytelse != null && fagsystem != null) AccessRequest.Sak(sakId = sakId, ytelse = ytelse, fagsystem = fagsystem) else null,
+                sak = if (sakId != null && ytelse != null && fagsystem != null) AccessRequest.Sak(
+                    sakId = sakId,
+                    ytelse = ytelse,
+                    fagsystem = fagsystem
+                ) else null,
             )
 
             klageLookupWebClient.post()
@@ -67,6 +75,109 @@ class KlageLookupClient(
         }
     }
 
+    @Retryable(
+        excludes = [UserNotFoundException::class]
+    )
+    fun getUserInfo(
+        navIdent: String,
+        systemContext: Boolean,
+    ): ExtendedUserResponse {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken(systemContext)
+            klageLookupWebClient.get()
+                .uri("/users/$navIdent")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .exchangeToMono { response ->
+                    if (response.statusCode().value() == 404) {
+                        logger.debug("User $navIdent not found")
+                        Mono.error(UserNotFoundException("User $navIdent not found"))
+                    } else if (response.statusCode().isError) {
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getUserInfo.name,
+                            classLogger = logger,
+                        )
+                        response.createError()
+                    } else {
+                        response.bodyToMono<ExtendedUserResponse>()
+                    }
+                }
+                .block() ?: throw RuntimeException("Could not get user info for $navIdent")
+        }
+    }
+
+    @Retryable(
+        excludes = [UserNotFoundException::class]
+    )
+    fun getUserGroups(
+        navIdent: String,
+        systemContext: Boolean,
+    ): GroupsResponse {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken(systemContext = systemContext)
+            klageLookupWebClient.get()
+                .uri("/users/$navIdent/groups")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .exchangeToMono { response ->
+                    if (response.statusCode().value() == 404) {
+                        logger.debug("User $navIdent not found")
+                        Mono.error(UserNotFoundException("User $navIdent not found"))
+                    } else if (response.statusCode().isError) {
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getUserGroups.name,
+                            classLogger = logger,
+                        )
+                        response.createError()
+                    } else {
+                        response.bodyToMono<GroupsResponse>()
+                    }
+                }
+                .block() ?: throw RuntimeException("Could not get user groups for navIdent $navIdent")
+        }
+    }
+
+    @Retryable(
+        excludes = [GroupNotFoundException::class]
+    )
+    fun getUsersInGroup(
+        azureGroup: AzureGroup,
+        systemContext: Boolean,
+    ): UsersResponse {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken(systemContext = systemContext)
+            klageLookupWebClient.get()
+                .uri("/groups/${azureGroup.id}/users")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .exchangeToMono { response ->
+                    if (response.statusCode().value() == 404) {
+                        logger.debug("Group $azureGroup not found")
+                        Mono.error(GroupNotFoundException("Group $azureGroup not found"))
+
+                    } else if (response.statusCode().isError) {
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getUsersInGroup.name,
+                            classLogger = logger,
+                        )
+                        response.createError()
+                    } else {
+                        response.bodyToMono<UsersResponse>()
+                    }
+                }
+                .block() ?: throw RuntimeException("Could not get users information for azureGroup $azureGroup")
+        }
+    }
+
     fun <T> runWithTimingAndLogging(block: () -> T): T {
         val start = System.currentTimeMillis()
         try {
@@ -74,6 +185,14 @@ class KlageLookupClient(
         } finally {
             val end = System.currentTimeMillis()
             logger.debug("Time it took to call klage-lookup: ${end - start} millis")
+        }
+    }
+
+    private fun getCorrectBearerToken(systemContext: Boolean): String {
+        return if (systemContext) {
+            "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}"
+        } else {
+            "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope()}"
         }
     }
 }
