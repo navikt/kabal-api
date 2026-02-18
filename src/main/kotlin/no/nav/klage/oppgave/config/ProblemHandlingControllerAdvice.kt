@@ -201,6 +201,18 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     ): ProblemDetail =
         create(HttpStatus.FORBIDDEN, ex)
 
+    @ExceptionHandler
+    fun handleUserNotFoundException(
+        ex: UserNotFoundException,
+    ): ProblemDetail =
+        create(HttpStatus.NOT_FOUND, ex)
+
+    @ExceptionHandler
+    fun handleGroupNotFoundException(
+        ex: GroupNotFoundException,
+    ): ProblemDetail =
+        create(HttpStatus.NOT_FOUND, ex)
+
     private fun createSmartDocumentValidationProblem(ex: SmartDocumentValidationException): ProblemDetail {
         logError(
             httpStatus = HttpStatus.BAD_REQUEST,
