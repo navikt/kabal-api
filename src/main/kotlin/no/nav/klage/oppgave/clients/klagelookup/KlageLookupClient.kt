@@ -104,7 +104,7 @@ class KlageLookupClient(
                         response.bodyToMono<ExtendedUserResponse>()
                     }
                 }
-                .block()!!
+                .block() ?: throw RuntimeException("Could not get user info for $navIdent")
         }
     }
 
@@ -137,7 +137,7 @@ class KlageLookupClient(
                         response.bodyToMono<GroupsResponse>()
                     }
                 }
-                .block()!!
+                .block() ?: throw RuntimeException("Could not get user groups for navIdent $navIdent")
         }
     }
 
@@ -171,7 +171,7 @@ class KlageLookupClient(
                         response.bodyToMono<UsersResponse>()
                     }
                 }
-                .block()!!
+                .block() ?: throw RuntimeException("Could not get users information for azureGroup $azureGroup")
         }
     }
 

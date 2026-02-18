@@ -85,12 +85,8 @@ class GosysOppgaveService(
                     tilordnetRessurs = null,
                 )
             } else {
-                val tildeltSaksbehandlerInfo = try {
+                val tildeltSaksbehandlerInfo =
                     klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = tildeltSaksbehandlerIdent)
-                } catch (e: Exception) {
-                    logger.error("Error getting user info for $tildeltSaksbehandlerIdent", e)
-                    throw e
-                }
 
                 TildelGosysOppgaveRequest(
                     versjon = currentGosysOppgave.versjon,
@@ -495,6 +491,6 @@ class GosysOppgaveService(
     }
 
     private fun getEndretAvEnhetsnr(): String? = if (tokenUtil.getIdentOrNull() == null) null else {
-        klageLookupGateway.getUserInfoForCurrentUser()?.enhet?.enhetId
+        klageLookupGateway.getUserInfoForCurrentUser().enhet.enhetId
     }
 }
