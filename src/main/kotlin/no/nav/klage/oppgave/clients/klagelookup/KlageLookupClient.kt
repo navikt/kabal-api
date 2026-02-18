@@ -3,6 +3,8 @@ package no.nav.klage.oppgave.clients.klagelookup
 import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import no.nav.klage.oppgave.exceptions.GroupNotFoundException
+import no.nav.klage.oppgave.exceptions.UserNotFoundException
 import no.nav.klage.oppgave.service.TilgangService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
@@ -73,10 +75,12 @@ class KlageLookupClient(
         }
     }
 
-    @Retryable
+    @Retryable(
+        excludes = [UserNotFoundException::class]
+    )
     fun getUserInfo(
         navIdent: String,
-    ): ExtendedUserResponse? {
+    ): ExtendedUserResponse {
         return runWithTimingAndLogging {
             val token = getCorrectBearerToken()
             klageLookupWebClient.get()
@@ -87,8 +91,8 @@ class KlageLookupClient(
                 )
                 .exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
-                        logger.debug("User $navIdent not found")
-                        Mono.empty()
+                        logger.warn("User $navIdent not found")
+                        Mono.error(UserNotFoundException("User $navIdent not found"))
                     } else if (response.statusCode().isError) {
                         logErrorResponse(
                             response = response,
@@ -100,14 +104,16 @@ class KlageLookupClient(
                         response.bodyToMono<ExtendedUserResponse>()
                     }
                 }
-                .block()
+                .block()!!
         }
     }
 
-    @Retryable
-    fun getUserGroupMemberships(
+    @Retryable(
+        excludes = [UserNotFoundException::class]
+    )
+    fun getUserGroups(
         navIdent: String,
-    ): GroupsResponse? {
+    ): GroupsResponse {
         return runWithTimingAndLogging {
             val token = getCorrectBearerToken()
             klageLookupWebClient.get()
@@ -118,12 +124,12 @@ class KlageLookupClient(
                 )
                 .exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
-                        logger.debug("User $navIdent not found")
-                        Mono.empty()
+                        logger.warn("User $navIdent not found")
+                        Mono.error(UserNotFoundException("User $navIdent not found"))
                     } else if (response.statusCode().isError) {
                         logErrorResponse(
                             response = response,
-                            functionName = ::getUserGroupMemberships.name,
+                            functionName = ::getUserGroups.name,
                             classLogger = logger,
                         )
                         response.createError()
@@ -131,14 +137,16 @@ class KlageLookupClient(
                         response.bodyToMono<GroupsResponse>()
                     }
                 }
-                .block()
+                .block()!!
         }
     }
 
-    @Retryable
+    @Retryable(
+        excludes = [GroupNotFoundException::class]
+    )
     fun getUsersInGroup(
         azureGroup: AzureGroup,
-    ): UsersResponse? {
+    ): UsersResponse {
         return runWithTimingAndLogging {
             val token = getCorrectBearerToken()
             klageLookupWebClient.get()
@@ -149,8 +157,9 @@ class KlageLookupClient(
                 )
                 .exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
-                        logger.debug("Group $azureGroup not found")
-                        Mono.empty()
+                        logger.warn("Group $azureGroup not found")
+                        Mono.error(GroupNotFoundException("GroupUser $azureGroup not found"))
+
                     } else if (response.statusCode().isError) {
                         logErrorResponse(
                             response = response,
@@ -162,7 +171,7 @@ class KlageLookupClient(
                         response.bodyToMono<UsersResponse>()
                     }
                 }
-                .block()
+                .block()!!
         }
     }
 

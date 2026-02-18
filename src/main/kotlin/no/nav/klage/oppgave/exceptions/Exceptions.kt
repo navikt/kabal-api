@@ -55,3 +55,5 @@ class GosysOppgaveClientException : RuntimeException {
 }
 
 class UserNotFoundException(msg: String) : RuntimeException(msg)
+
+class GroupNotFoundException(msg: String) : RuntimeException(msg)

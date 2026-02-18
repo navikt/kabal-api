@@ -18,7 +18,6 @@ import no.nav.klage.oppgave.domain.kafka.InternalEventType
 import no.nav.klage.oppgave.exceptions.GosysOppgaveClientException
 import no.nav.klage.oppgave.exceptions.GosysOppgaveNotEditableException
 import no.nav.klage.oppgave.exceptions.IllegalOperation
-import no.nav.klage.oppgave.exceptions.UserNotFoundException
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -86,9 +85,12 @@ class GosysOppgaveService(
                     tilordnetRessurs = null,
                 )
             } else {
-                val tildeltSaksbehandlerInfo =
+                val tildeltSaksbehandlerInfo = try {
                     klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = tildeltSaksbehandlerIdent)
-                        ?: throw UserNotFoundException("User not with ident $tildeltSaksbehandlerIdent found")
+                } catch (e: Exception) {
+                    logger.error("Error getting user info for $tildeltSaksbehandlerIdent", e)
+                    throw e
+                }
 
                 TildelGosysOppgaveRequest(
                     versjon = currentGosysOppgave.versjon,
