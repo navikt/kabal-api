@@ -119,7 +119,8 @@ class ExternalMottakFacade(
         logger.debug("Preparing to set saksbehandler. Getting enhet for saksbehandler $saksbehandlerIdent")
         val enhetForSaksbehandler = try {
             saksbehandlerService.getEnhetForSaksbehandler(
-                saksbehandlerIdent
+                navIdent = saksbehandlerIdent,
+                systemContext = true,
             ).enhetId
         } catch (e: Exception) {
             logger.error(

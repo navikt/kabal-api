@@ -80,9 +80,10 @@ class KlageLookupClient(
     )
     fun getUserInfo(
         navIdent: String,
+        systemContext: Boolean,
     ): ExtendedUserResponse {
         return runWithTimingAndLogging {
-            val token = getCorrectBearerToken()
+            val token = getCorrectBearerToken(systemContext)
             klageLookupWebClient.get()
                 .uri("/users/$navIdent")
                 .header(
@@ -113,9 +114,10 @@ class KlageLookupClient(
     )
     fun getUserGroups(
         navIdent: String,
+        systemContext: Boolean,
     ): GroupsResponse {
         return runWithTimingAndLogging {
-            val token = getCorrectBearerToken()
+            val token = getCorrectBearerToken(systemContext = systemContext)
             klageLookupWebClient.get()
                 .uri("/users/$navIdent/groups")
                 .header(
@@ -146,9 +148,10 @@ class KlageLookupClient(
     )
     fun getUsersInGroup(
         azureGroup: AzureGroup,
+        systemContext: Boolean,
     ): UsersResponse {
         return runWithTimingAndLogging {
-            val token = getCorrectBearerToken()
+            val token = getCorrectBearerToken(systemContext = systemContext)
             klageLookupWebClient.get()
                 .uri("/groups/${azureGroup.id}/users")
                 .header(
@@ -185,8 +188,8 @@ class KlageLookupClient(
         }
     }
 
-    private fun getCorrectBearerToken(): String {
-        return if (tokenUtil.getIdentOrNull() == null) {
+    private fun getCorrectBearerToken(systemContext: Boolean): String {
+        return if (systemContext) {
             "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}"
         } else {
             "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope()}"

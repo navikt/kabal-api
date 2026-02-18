@@ -75,7 +75,7 @@ internal class DuplicateOversendelseTest : PostgresIntegrationTestBase() {
     fun `duplicate oversendelse throws exception`() {
         val saksbehandler = "Z123456"
         every {
-            klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = saksbehandler)
+            klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = saksbehandler, systemContext = any())
         } returns SaksbehandlerPersonligInfo(
             navIdent = saksbehandler,
             fornavn = "Test",
