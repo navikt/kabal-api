@@ -178,7 +178,8 @@ class OppgaveService(
             builder.equal(
                 root.get(Behandling_.tildeling).get(Tildeling_.enhet),
                 saksbehandlerService.getEnhetForSaksbehandler(
-                    innloggetSaksbehandlerService.getInnloggetIdent()
+                    navIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                    systemContext = true,
                 ).enhetId
             )
         }

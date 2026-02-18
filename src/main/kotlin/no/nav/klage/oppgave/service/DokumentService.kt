@@ -190,7 +190,8 @@ class DokumentService(
             title = dokumentInfo?.tittel
                 ?: throw RuntimeException("Document/title not found in Dokarkiv"),
             harTilgangTilArkivvariant = dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokumentInfo),
-            hasAccess = dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokumentInfo)
+            hasAccess = dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokumentInfo),
+            varianter = dokumentMapper.getVarianter(dokumentInfo = dokumentInfo),
         )
     }
 

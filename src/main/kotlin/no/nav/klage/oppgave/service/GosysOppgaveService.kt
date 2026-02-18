@@ -86,7 +86,10 @@ class GosysOppgaveService(
                 )
             } else {
                 val tildeltSaksbehandlerInfo =
-                    klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = tildeltSaksbehandlerIdent)
+                    klageLookupGateway.getUserInfoForGivenNavIdent(
+                        navIdent = tildeltSaksbehandlerIdent,
+                        systemContext = systemContext
+                    )
 
                 TildelGosysOppgaveRequest(
                     versjon = currentGosysOppgave.versjon,

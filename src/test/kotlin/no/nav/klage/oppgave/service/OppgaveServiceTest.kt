@@ -70,7 +70,12 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
 
         )
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
-        every { saksbehandlerService.getEnhetForSaksbehandler(any()) } returns SaksbehandlerEnhet(enhetId = "1000", navn = "Enhet")
+        every {
+            saksbehandlerService.getEnhetForSaksbehandler(
+                navIdent = any(),
+                systemContext = any()
+            )
+        } returns SaksbehandlerEnhet(enhetId = "1000", navn = "Enhet")
     }
 
     @Test

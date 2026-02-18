@@ -1263,7 +1263,8 @@ class DokumentUnderArbeidService(
             "9999"
         } else {
             saksbehandlerService.getEnhetForSaksbehandler(
-                utfoerendeIdent
+                navIdent = utfoerendeIdent,
+                systemContext = systemContext,
             ).enhetId
         }
 
