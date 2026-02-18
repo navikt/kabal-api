@@ -2,7 +2,7 @@ package no.nav.klage.oppgave.clients.klagelookup
 
 import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
-import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroupMemberships
+import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroups
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.service.TilgangService
 import no.nav.klage.oppgave.util.TokenUtil
@@ -31,10 +31,10 @@ class KlageLookupGateway(
         return data.toSaksbehandlerPersonligInfo()
     }
 
-    fun getGroupMembershipsForGivenNavIdent(navIdent: String): SaksbehandlerGroupMemberships {
+    fun getGroupsForGivenNavIdent(navIdent: String): SaksbehandlerGroups {
         logger.debug("Getting group memberships for $navIdent from KlageLookup")
-        val data = klageLookupClient.getUserGroupMemberships(navIdent = navIdent)
-        return data.toSaksbehandlerGroupMemberships()
+        val data = klageLookupClient.getUserGroups(navIdent = navIdent)
+        return data.toSaksbehandlerGroups()
     }
 
     fun getUsersInGroup(azureGroup: AzureGroup): List<UserResponse> {
@@ -75,9 +75,9 @@ class KlageLookupGateway(
         )
     }
 
-    fun GroupsResponse.toSaksbehandlerGroupMemberships(): SaksbehandlerGroupMemberships {
-        return SaksbehandlerGroupMemberships(
-            groups = groupIds.map { AzureGroup.of(it) }
+    fun GroupsResponse.toSaksbehandlerGroups(): SaksbehandlerGroups {
+        return SaksbehandlerGroups(
+            groups = this.groupIds.map { AzureGroup.of(it) }
         )
     }
 }
