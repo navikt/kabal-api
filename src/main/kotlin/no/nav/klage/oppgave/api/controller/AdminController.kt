@@ -130,6 +130,61 @@ class AdminController(
         }
     }
 
+    @GetMapping("/behandlinger/reindex/anker-i-tr", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun reindexBehandlingAnkerITr() {
+        logger.debug("reindexBehandling is called")
+        krevAdminTilgang()
+        try {
+            logger.info("Reindexing behandling in batch")
+            val idList = listOf(
+                UUID.fromString("f3f8d79e-08d1-487f-990a-7fb811d0dd4a"),
+                UUID.fromString("0bd02526-6078-4db9-b3e7-d60ed742c086"),
+                UUID.fromString("8e196397-7dcc-4994-99ea-bb1d8db670a5"),
+                UUID.fromString("48dff576-a093-45b6-886f-3f68d2192e9a"),
+                UUID.fromString("d9487aee-1ab5-4c88-9f2f-086ab18c3c70"),
+                UUID.fromString("e172b2c9-000d-4753-b236-9fbe154f5781"),
+                UUID.fromString("68f3f30b-a853-4cd9-b64d-b8638626d66b"),
+                UUID.fromString("cf58a652-bb09-47c5-9fe3-0d14311703a1"),
+                UUID.fromString("28a6c0f4-8407-4d49-bc64-a137865438bb"),
+                UUID.fromString("71bf490b-9a92-41a5-95eb-93fed396519b"),
+                UUID.fromString("84a6ddf3-87b0-4291-995b-cfc4e3a90626"),
+                UUID.fromString("9a4740a8-7d4f-4a01-bd4f-f36def971325"),
+                UUID.fromString("85936eb5-b46d-4a5f-b9f0-aa2f6eccabdb"),
+                UUID.fromString("ab22ae85-35dc-402a-8e30-c740506e7dca"),
+                UUID.fromString("4d7caa45-9baa-4764-a837-dc88da947024"),
+                UUID.fromString("9c940c35-c7d6-4fd2-8d55-c07d8f26847f"),
+                UUID.fromString("21a8758e-ee66-4922-aee6-78bdf2810b89"),
+                UUID.fromString("bb301a40-eed1-4742-bf7f-ce806df95c9a"),
+                UUID.fromString("0a5ca9be-3481-4e2b-a584-c482f9f6e8b2"),
+                UUID.fromString("0952abe8-f8bf-4be9-af27-71cc20f07803"),
+                UUID.fromString("2403cb29-5f8a-4277-bfc8-9234725697fc"),
+                UUID.fromString("afb33caa-3c4d-40d3-9df6-c0e722a9e43a"),
+                UUID.fromString("6b9f903e-6ef3-40da-86a0-26944ac9eaaf"),
+                UUID.fromString("6f8aaaa7-5a76-418b-a70e-005801f2681d"),
+                UUID.fromString("e8f83c4a-c6f9-4c59-b5a1-ad2c39947570"),
+                UUID.fromString("debace1a-b961-4a57-b9c0-60cc61bfb594"),
+                UUID.fromString("64f66813-2201-4e9f-9a4a-b0cc699e7e04"),
+                UUID.fromString("a9cf6846-c726-404c-9b7d-a5418217dda3"),
+                UUID.fromString("f406ebd7-03d8-4e0b-8faa-de35fc444f0d"),
+                UUID.fromString("1ad719cd-1f5d-45f4-b503-6c764f130224"),
+                UUID.fromString("29ec5723-76ed-410a-a873-328c26f12c64"),
+                UUID.fromString("f9ec3280-64ee-42d9-957c-ca3f59fea3ee"),
+                UUID.fromString("4dfae333-ac56-4976-ad9b-815b921b92e8"),
+                UUID.fromString("b1954102-b479-46b0-b3ce-5142e5c0c40e"),
+                UUID.fromString("4e764885-43d0-4524-b65a-d04ba40e6488"),
+                UUID.fromString("034a2945-b014-46a0-aa2b-9d5310766d4f"),
+                UUID.fromString("cc0e92f8-f618-4791-af26-aa14bb85281c"),
+                UUID.fromString("b404fcc0-454b-4aac-8012-b173670f2fec"),
+                UUID.fromString("8d4ea58e-0223-490e-b899-5bdbee6bf0cb"),
+            )
+            idList.forEach { adminService.reindexBehandlingInSearch(it) }
+        } catch (e: Exception) {
+            logger.warn("Failed to reindex behandling", e)
+            throw e
+        }
+    }
+
     @GetMapping("/migrateTilbakekreving", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun migrateTilbakekreving() {
@@ -276,7 +331,7 @@ class AdminController(
         adminService.resetPersonCacheFromOpenBehandlinger()
     }
 
-    @GetMapping(value =  ["/opprettet-event/{behandlingId}", "/opprettet-event"], produces = ["application/json"])
+    @GetMapping(value = ["/opprettet-event/{behandlingId}", "/opprettet-event"], produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun generateOpprettetEvent(
         @PathVariable(required = false, name = "behandlingId") behandlingId: UUID? = null
