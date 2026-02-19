@@ -136,7 +136,7 @@ class KabalInnstillingerClient(
     }
 
     @Retryable
-    fun searchSaksbehandlere(input: SaksbehandlerSearchInput): Saksbehandlere {
+    fun searchSaksbehandlere(input: SakInput): Saksbehandlere {
         logger.debug("Searching saksbehandlere in kabal-innstillinger")
         return kabalInnstillingerWebClient.post()
             .uri { it.path("/search/saksbehandlere").build() }

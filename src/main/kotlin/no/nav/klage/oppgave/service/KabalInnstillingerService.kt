@@ -3,7 +3,10 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.kabalinnstillinger.KabalInnstillingerClient
-import no.nav.klage.oppgave.clients.kabalinnstillinger.model.*
+import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
+import no.nav.klage.oppgave.clients.kabalinnstillinger.model.MedunderskrivereInput
+import no.nav.klage.oppgave.clients.kabalinnstillinger.model.SakInput
+import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.util.getLogger
@@ -19,10 +22,9 @@ class KabalInnstillingerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-
     fun getPotentialSaksbehandlere(behandling: Behandling): Saksbehandlere {
         return kabalInnstillingerClient.searchSaksbehandlere(
-            SaksbehandlerSearchInput(
+            SakInput(
                 ytelseId = behandling.ytelse.id,
                 fnr = behandling.sakenGjelder.partId.value,
                 sakId = behandling.fagsakId,
