@@ -1,5 +1,7 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+
 data class UsersResponse(
     val users: List<UserResponse>,
 )
@@ -11,12 +13,12 @@ data class UserResponse (
     val etternavn: String,
 )
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class ExtendedUserResponse (
     val navIdent: String,
     val sammensattNavn: String,
     val fornavn: String,
     val etternavn: String,
-    val epost: String,
     val enhet: Enhet,
 )
 

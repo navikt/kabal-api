@@ -67,7 +67,6 @@ class KlageLookupGateway(
             fornavn = this.fornavn,
             etternavn = this.etternavn,
             sammensattNavn = this.sammensattNavn,
-            epost = this.epost,
             enhet = SaksbehandlerEnhet(
                 enhetId = this.enhet.enhetNr,
                 navn = this.enhet.enhetNavn,

@@ -81,7 +81,6 @@ internal class DuplicateOversendelseTest : PostgresIntegrationTestBase() {
             fornavn = "Test",
             etternavn = "Saksbehandler",
             sammensattNavn = "Test Saksbehandler",
-            epost = "test.saksbehandler@trygdeetaten.no",
             enhet = SaksbehandlerEnhet("4295", "KA Nord")
         )
 
