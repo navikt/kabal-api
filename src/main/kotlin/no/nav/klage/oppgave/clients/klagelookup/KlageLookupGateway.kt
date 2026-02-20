@@ -51,7 +51,6 @@ class KlageLookupGateway(
         ytelse: no.nav.klage.kodeverk.ytelse.Ytelse? = null,
         fagsystem: no.nav.klage.kodeverk.Fagsystem? = null,
     ): TilgangService.Access {
-        logger.debug("Getting access for user $brukerId and navIdent $navIdent from KlageLookup")
         return klageLookupClient.getAccess(
             brukerId = brukerId,
             navIdent = navIdent,
