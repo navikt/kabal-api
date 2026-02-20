@@ -18,7 +18,7 @@ internal class EgenAnsattKafkaConsumerTest {
         val egenAnsattService = spyk<EgenAnsattService>()
 
         val fnr = "01017012345"
-        val recordMock = mockk<ConsumerRecord<String, String>>()
+        val recordMock = mockk<ConsumerRecord<String, String?>>()
         every { recordMock.value() } returns getJsonWithSkjermetTil()
         every { recordMock.key() } returns fnr
         every { recordMock.offset() } returns 1
@@ -38,7 +38,7 @@ internal class EgenAnsattKafkaConsumerTest {
         val egenAnsattService = spyk<EgenAnsattService>()
 
         val fnr = "01017012345"
-        val recordMock = mockk<ConsumerRecord<String, String>>()
+        val recordMock = mockk<ConsumerRecord<String, String?>>()
         every { recordMock.value() } returns getJsonWithoutSkjermetTil()
         every { recordMock.key() } returns fnr
         every { recordMock.offset() } returns 1
@@ -58,7 +58,7 @@ internal class EgenAnsattKafkaConsumerTest {
         val egenAnsattService = spyk<EgenAnsattService>()
 
         val fnr = "01017012345"
-        val recordMock = mockk<ConsumerRecord<String, String>>()
+        val recordMock = mockk<ConsumerRecord<String, String?>>()
         every { recordMock.value() } returns getJsonThatIsValidInThePast()
         every { recordMock.key() } returns fnr
         every { recordMock.offset() } returns 1
