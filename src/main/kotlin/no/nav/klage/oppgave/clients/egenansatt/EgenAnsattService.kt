@@ -22,4 +22,9 @@ class EgenAnsattService {
         logger.debug("Oppdaterer egenansatt. egenAnsattMap.size=${egenAnsattMap.size}")
         egenAnsattMap[foedselsnr] = egenAnsatt
     }
+
+    fun removeEgenAnsatt(foedselsnr: String) {
+        logger.debug("Fjerner egenansatt. egenAnsattMap.size=${egenAnsattMap.size}")
+        egenAnsattMap.remove(foedselsnr)
+    }
 }

@@ -37,8 +37,13 @@ class EgenAnsattKafkaConsumer(
     fun listen(egenAnsattRecord: ConsumerRecord<String, String>) {
         runCatching {
             val foedselsnr = egenAnsattRecord.key()
-            val egenAnsatt = egenAnsattRecord.value().toEgenAnsatt()
-            egenAnsattService.oppdaterEgenAnsatt(foedselsnr, egenAnsatt)
+            //Handle tombstone
+            if (egenAnsattRecord.value() == null) {
+                egenAnsattService.removeEgenAnsatt(foedselsnr)
+            } else {
+                val egenAnsatt = egenAnsattRecord.value().toEgenAnsatt()
+                egenAnsattService.oppdaterEgenAnsatt(foedselsnr, egenAnsatt)
+            }
         }.onFailure {
             teamLogger.error("Failed to process egenansatt record", it)
             throw RuntimeException("Could not process egenansatt record. See more details in team-logs.")
