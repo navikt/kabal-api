@@ -34,14 +34,14 @@ class EgenAnsattKafkaConsumer(
         containerFactory = "egenAnsattKafkaListenerContainerFactory",
         topics = ["\${EGENANSATT_KAFKA_TOPIC}"],
     )
-    fun listen(egenAnsattRecord: ConsumerRecord<String, String>) {
+    fun listen(egenAnsattRecord: ConsumerRecord<String, String?>) {
         runCatching {
             val foedselsnr = egenAnsattRecord.key()
             //Handle tombstone
             if (egenAnsattRecord.value() == null) {
                 egenAnsattService.removeEgenAnsatt(foedselsnr)
             } else {
-                val egenAnsatt = egenAnsattRecord.value().toEgenAnsatt()
+                val egenAnsatt = egenAnsattRecord.value()!!.toEgenAnsatt()
                 egenAnsattService.oppdaterEgenAnsatt(foedselsnr, egenAnsatt)
             }
         }.onFailure {
