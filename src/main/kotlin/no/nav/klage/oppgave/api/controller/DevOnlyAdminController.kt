@@ -111,7 +111,7 @@ class DevOnlyAdminController(
             "getAppAccessTokenWithKlageFSSProxyScope" to tokenUtil.getAppAccessTokenWithKlageFSSProxyScope(),
             "getOnbehalfOfTokenWithKlageLookupScope" to tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope(),
             "getAppAccessTokenWithKlageLookupScope" to tokenUtil.getAppAccessTokenWithKlageLookupScope(),
-            "getAppAccessTokenWithKabalApiLookupScope" to tokenUtil.getAppAccessTokenWithKabalApiLookupScope(),
+            "getAppAccessTokenWithKabalApiScope" to tokenUtil.getAppAccessTokenWithKabalApiScope(),
         )
     }
 
