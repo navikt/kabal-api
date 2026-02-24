@@ -272,7 +272,7 @@ class DevOnlyAdminController(
         @PathVariable navIdent: String
     ): SaksbehandlerPersonligInfo {
         logger.debug("getPersonFromLookup is called")
-        return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent, systemContext = false)
+        return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent)
     }
 
     @Unprotected

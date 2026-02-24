@@ -5,41 +5,33 @@ import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroups
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.service.TilgangService
-import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.stereotype.Service
 
 @Service
 class KlageLookupGateway(
     private val klageLookupClient: KlageLookupClient,
-    private val tokenUtil: TokenUtil,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getUserInfoForCurrentUser(): SaksbehandlerPersonligInfo {
-        logger.debug("Getting user info for current user from KlageLookup")
-        val data = klageLookupClient.getUserInfo(navIdent = tokenUtil.getIdent(), systemContext = false)
-        return data.toSaksbehandlerPersonligInfo()
-    }
-
-    fun getUserInfoForGivenNavIdent(navIdent: String, systemContext: Boolean): SaksbehandlerPersonligInfo {
+    fun getUserInfoForGivenNavIdent(navIdent: String): SaksbehandlerPersonligInfo {
         logger.debug("Getting user info for $navIdent from KlageLookup")
-        val data = klageLookupClient.getUserInfo(navIdent = navIdent, systemContext = systemContext)
+        val data = klageLookupClient.getUserInfo(navIdent = navIdent)
         return data.toSaksbehandlerPersonligInfo()
     }
 
-    fun getGroupsForGivenNavIdent(navIdent: String, systemContext: Boolean): SaksbehandlerGroups {
+    fun getGroupsForGivenNavIdent(navIdent: String): SaksbehandlerGroups {
         logger.debug("Getting group memberships for $navIdent from KlageLookup")
-        val data = klageLookupClient.getUserGroups(navIdent = navIdent, systemContext = systemContext)
+        val data = klageLookupClient.getUserGroups(navIdent = navIdent)
         return data.toSaksbehandlerGroups()
     }
 
-    fun getUsersInGroup(azureGroup: AzureGroup, systemContext: Boolean): List<UserResponse> {
+    fun getUsersInGroup(azureGroup: AzureGroup): List<UserResponse> {
         logger.debug("Getting users in group $azureGroup from KlageLookup")
-        val data = klageLookupClient.getUsersInGroup(azureGroup = azureGroup, systemContext = systemContext)
+        val data = klageLookupClient.getUsersInGroup(azureGroup = azureGroup)
         return data.users
     }
 

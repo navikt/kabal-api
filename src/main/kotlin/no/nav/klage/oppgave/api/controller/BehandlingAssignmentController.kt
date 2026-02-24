@@ -49,7 +49,6 @@ class BehandlingAssignmentController(
             tildeltSaksbehandlerIdent = saksbehandlerInput.navIdent,
             enhetId = saksbehandlerService.getEnhetForSaksbehandler(
                 saksbehandlerInput.navIdent,
-                systemContext = false
             ).enhetId,
             fradelingReason = null,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),

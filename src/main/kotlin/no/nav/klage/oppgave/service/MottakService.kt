@@ -643,10 +643,8 @@ class MottakService(
     private fun validateSaksbehandler(saksbehandlerident: String, enhetNr: String) {
         if (klageLookupGateway.getUserInfoForGivenNavIdent(
                 navIdent = saksbehandlerident,
-                systemContext = true
             ).enhet.enhetId != enhetNr
         ) {
-            //throw OversendtKlageNotValidException("$saksbehandlerident er ikke saksbehandler i enhet $enhet")
             logger.warn("$saksbehandlerident er ikke saksbehandler i enhet $enhetNr")
         }
     }

@@ -26,8 +26,8 @@ class SaksbehandlerService(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getEnhetForSaksbehandler(navIdent: String, systemContext: Boolean): SaksbehandlerEnhet {
-        return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent, systemContext = systemContext).enhet
+    fun getEnhetForSaksbehandler(navIdent: String): SaksbehandlerEnhet {
+        return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent).enhet
     }
 
     @Cacheable(CacheWithJCacheConfiguration.SAKSBEHANDLER_NAME_CACHE)
@@ -37,7 +37,7 @@ class SaksbehandlerService(
         }
 
         return try {
-            klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent, systemContext = true).sammensattNavn
+            klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent).sammensattNavn
         } catch (_: Exception) {
             "Ukjent navn"
         }
@@ -86,7 +86,7 @@ class SaksbehandlerService(
 
     private fun getSaksbehandlerGroups(navIdent: String): SaksbehandlerGroups {
         return try {
-            klageLookupGateway.getGroupsForGivenNavIdent(navIdent = navIdent, systemContext = true)
+            klageLookupGateway.getGroupsForGivenNavIdent(navIdent = navIdent)
         } catch (e: Exception) {
             logger.warn("Failed to retrieve group memberships for navident $navIdent, using emptylist instead. Exception: $e")
             SaksbehandlerGroups(groups = emptyList())
