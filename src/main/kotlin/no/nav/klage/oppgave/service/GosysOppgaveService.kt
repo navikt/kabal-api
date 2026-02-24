@@ -88,7 +88,6 @@ class GosysOppgaveService(
                 val tildeltSaksbehandlerInfo =
                     klageLookupGateway.getUserInfoForGivenNavIdent(
                         navIdent = tildeltSaksbehandlerIdent,
-                        systemContext = systemContext
                     )
 
                 TildelGosysOppgaveRequest(
@@ -494,6 +493,6 @@ class GosysOppgaveService(
     }
 
     private fun getEndretAvEnhetsnr(systemContext: Boolean): String? = if (systemContext) null else {
-        klageLookupGateway.getUserInfoForCurrentUser().enhet.enhetId
+        klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = tokenUtil.getIdent()).enhet.enhetId
     }
 }

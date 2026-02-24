@@ -73,7 +73,6 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
         every {
             saksbehandlerService.getEnhetForSaksbehandler(
                 navIdent = any(),
-                systemContext = any()
             )
         } returns SaksbehandlerEnhet(enhetId = "1000", navn = "Enhet")
     }

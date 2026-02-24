@@ -323,10 +323,10 @@ class SmartDocumentAccessService(
 
     private fun getUsers(): Pair<List<Pair<String, DuaAccessPolicy.User>>, List<Pair<String, DuaAccessPolicy.User>>> {
         val saksbehandlerIdentList =
-            klageLookupGateway.getUsersInGroup(AzureGroup.KABAL_SAKSBEHANDLING, systemContext = true)
+            klageLookupGateway.getUsersInGroup(AzureGroup.KABAL_SAKSBEHANDLING)
                 .map { it.navIdent to DuaAccessPolicy.User.SAKSBEHANDLER }
         val rolIdentList =
-            klageLookupGateway.getUsersInGroup(AzureGroup.KABAL_ROL, systemContext = true)
+            klageLookupGateway.getUsersInGroup(AzureGroup.KABAL_ROL)
                 .map { it.navIdent to DuaAccessPolicy.User.ROL }
         logger.debug(
             "Found {} saksbehandlere and {} ROL users in AD groups",

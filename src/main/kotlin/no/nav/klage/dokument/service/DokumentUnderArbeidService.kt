@@ -1264,7 +1264,6 @@ class DokumentUnderArbeidService(
         } else {
             saksbehandlerService.getEnhetForSaksbehandler(
                 navIdent = utfoerendeIdent,
-                systemContext = systemContext,
             ).enhetId
         }
 
