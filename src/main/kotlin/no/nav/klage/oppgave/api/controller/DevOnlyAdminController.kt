@@ -3,12 +3,14 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.pdl.PersonCacheService
+import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
@@ -18,6 +20,7 @@ import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.web.bind.annotation.*
 import java.net.InetAddress
 import java.util.*
@@ -32,6 +35,7 @@ class DevOnlyAdminController(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val klageLookupGateway: KlageLookupGateway,
     private val personCacheService: PersonCacheService,
+    private val schedulerHealthGate: SchedulerHealthGate,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -109,6 +113,7 @@ class DevOnlyAdminController(
             "getAppAccessTokenWithKlageFSSProxyScope" to tokenUtil.getAppAccessTokenWithKlageFSSProxyScope(),
             "getOnbehalfOfTokenWithKlageLookupScope" to tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope(),
             "getAppAccessTokenWithKlageLookupScope" to tokenUtil.getAppAccessTokenWithKlageLookupScope(),
+            "getAppAccessTokenWithKabalApiLookupScope" to tokenUtil.getAppAccessTokenWithKabalApiLookupScope(),
         )
     }
 
@@ -270,5 +275,21 @@ class DevOnlyAdminController(
     ): SaksbehandlerPersonligInfo {
         logger.debug("getPersonFromLookup is called")
         return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent, systemContext = false)
+    }
+
+    @Unprotected
+    @GetMapping("/token/unprotected")
+    fun checkTokenUnprotected(): String {
+        logger.debug("checkTokenUnprotected is called")
+        logger.debug("Token type: {}", tokenUtil.getCurrentTokenType())
+        return tokenUtil.getCurrentTokenType().toString()
+    }
+
+    @Scheduled(cron = "0 */2 * * * *")
+    @SchedulerLock(name = "devTest")
+    fun scheduleTest() {
+        if (!schedulerHealthGate.isReady()) return
+        logger.debug("scheduled check in devadmin running")
+        logger.debug("Token type:  {}", tokenUtil.getCurrentTokenType())
     }
 }
