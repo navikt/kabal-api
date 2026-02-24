@@ -258,7 +258,6 @@ class TokenUtil(
         UNAUTHENTICATED,
     }
 
-
     fun getCallingApplication(): String =
         tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)
             ?.jwtTokenClaims?.get("azp_name")?.toString()
