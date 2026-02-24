@@ -190,6 +190,7 @@ class KabalDocumentMapper(
                     kanal = getKanal(
                         avsenderMottakerInfo = it,
                         behandling = behandling,
+                        dokumentType = dokumentType,
                     ),
                     navn = it.navn,
                 )
@@ -200,20 +201,28 @@ class KabalDocumentMapper(
     private fun getKanal(
         avsenderMottakerInfo: Brevmottaker,
         behandling: Behandling,
-    ): Kanal {
-        return if (avsenderMottakerInfo.localPrint) {
-            Kanal.L
-        } else if (avsenderMottakerInfo.address != null || avsenderMottakerInfo.forceCentralPrint || avsenderMottakerInfo.identifikator == null) {
-            Kanal.S
-        } else {
-            val distribusjonKanalCode = dokDistKanalService.getDistribusjonKanalCode(
-                mottakerId = avsenderMottakerInfo.identifikator,
-                brukerId = behandling.sakenGjelder.partId.value,
-                tema = behandling.ytelse.toTema(),
-                saksbehandlerContext = false,
-            )
+        dokumentType: DokumentType,
+    ): Kanal? {
+        return when {
+            avsenderMottakerInfo.localPrint -> {
+                Kanal.L
+            }
+            dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN -> {
+                null
+            }
+            avsenderMottakerInfo.address != null || avsenderMottakerInfo.forceCentralPrint || avsenderMottakerInfo.identifikator == null -> {
+                Kanal.S
+            }
+            else -> {
+                val distribusjonKanalCode = dokDistKanalService.getDistribusjonKanalCode(
+                    mottakerId = avsenderMottakerInfo.identifikator,
+                    brukerId = behandling.sakenGjelder.partId.value,
+                    tema = behandling.ytelse.toTema(),
+                    saksbehandlerContext = false,
+                )
 
-            Kanal.valueOf(distribusjonKanalCode.utsendingkanalCode.name)
+                Kanal.valueOf(distribusjonKanalCode.utsendingkanalCode.name)
+            }
         }
     }
 
