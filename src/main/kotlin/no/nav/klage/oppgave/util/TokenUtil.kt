@@ -215,13 +215,48 @@ class TokenUtil(
         return response.access_token!!
     }
 
+    fun getAppAccessTokenWithKabalApiScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["kabal-api-maskintilmaskin"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.access_token!!
+    }
+
     fun getAccessTokenFrontendSent(): String =
-        tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)!!.encodedToken
+        tokenValidationContextHolder.getTokenValidationContext()
+            .getJwtToken(SecurityConfiguration.ISSUER_AAD)!!.encodedToken
 
     fun getIdent(): String =
         tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)
             ?.jwtTokenClaims?.get("NAVident")?.toString()
             ?: throw RuntimeException("Ident not found in token")
+
+    fun getCurrentTokenType(): TokenType {
+        val validationContext = runCatching { tokenValidationContextHolder.getTokenValidationContext() }.getOrNull()
+        val tokenType = if (validationContext == null) {
+            TokenType.UNAUTHENTICATED
+        } else {
+            val idtype =
+                runCatching { validationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD)?.jwtTokenClaims?.get("idtyp") }.getOrNull()
+            val navIdent =
+                runCatching {
+                    validationContext.getJwtToken(SecurityConfiguration.ISSUER_AAD)?.jwtTokenClaims?.get("NAVident")
+                }.getOrNull()
+            if (idtype != null && idtype == "app") {
+                TokenType.CC
+            } else if (navIdent != null) {
+                TokenType.OBO
+            } else {
+                TokenType.UNAUTHENTICATED
+            }
+        }
+        return tokenType
+    }
+
+    enum class TokenType {
+        CC,
+        OBO,
+        UNAUTHENTICATED,
+    }
 
     fun getCallingApplication(): String =
         tokenValidationContextHolder.getTokenValidationContext().getJwtToken(SecurityConfiguration.ISSUER_AAD)

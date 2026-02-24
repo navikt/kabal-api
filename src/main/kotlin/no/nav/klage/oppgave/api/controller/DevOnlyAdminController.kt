@@ -9,6 +9,7 @@ import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalIn
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.pdl.PersonCacheService
+import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
@@ -32,6 +33,7 @@ class DevOnlyAdminController(
     private val klageFssProxyClient: KlageFssProxyClient,
     private val klageLookupGateway: KlageLookupGateway,
     private val personCacheService: PersonCacheService,
+    private val schedulerHealthGate: SchedulerHealthGate,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -109,6 +111,7 @@ class DevOnlyAdminController(
             "getAppAccessTokenWithKlageFSSProxyScope" to tokenUtil.getAppAccessTokenWithKlageFSSProxyScope(),
             "getOnbehalfOfTokenWithKlageLookupScope" to tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope(),
             "getAppAccessTokenWithKlageLookupScope" to tokenUtil.getAppAccessTokenWithKlageLookupScope(),
+            "getAppAccessTokenWithKabalApiScope" to tokenUtil.getAppAccessTokenWithKabalApiScope(),
         )
     }
 
@@ -271,4 +274,20 @@ class DevOnlyAdminController(
         logger.debug("getPersonFromLookup is called")
         return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent, systemContext = false)
     }
+
+    @Unprotected
+    @GetMapping("/token/unprotected")
+    fun checkTokenUnprotected(): String {
+        logger.debug("checkTokenUnprotected is called")
+        logger.debug("Token type: {}", tokenUtil.getCurrentTokenType())
+        return tokenUtil.getCurrentTokenType().toString()
+    }
+
+//    @Scheduled(cron = "0 */2 * * * *")
+//    @SchedulerLock(name = "devTest")
+//    fun scheduleTest() {
+//        if (!schedulerHealthGate.isReady()) return
+//        logger.debug("scheduled check in devadmin running")
+//        logger.debug("Token type:  {}", tokenUtil.getCurrentTokenType())
+//    }
 }
