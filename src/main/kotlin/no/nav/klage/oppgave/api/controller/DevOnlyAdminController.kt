@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
@@ -20,7 +19,6 @@ import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
-import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.web.bind.annotation.*
 import java.net.InetAddress
 import java.util.*
@@ -285,11 +283,11 @@ class DevOnlyAdminController(
         return tokenUtil.getCurrentTokenType().toString()
     }
 
-    @Scheduled(cron = "0 */2 * * * *")
-    @SchedulerLock(name = "devTest")
-    fun scheduleTest() {
-        if (!schedulerHealthGate.isReady()) return
-        logger.debug("scheduled check in devadmin running")
-        logger.debug("Token type:  {}", tokenUtil.getCurrentTokenType())
-    }
+//    @Scheduled(cron = "0 */2 * * * *")
+//    @SchedulerLock(name = "devTest")
+//    fun scheduleTest() {
+//        if (!schedulerHealthGate.isReady()) return
+//        logger.debug("scheduled check in devadmin running")
+//        logger.debug("Token type:  {}", tokenUtil.getCurrentTokenType())
+//    }
 }
