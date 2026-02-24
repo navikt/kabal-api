@@ -6,6 +6,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsH
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsVedlegg
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
+import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
@@ -105,6 +106,8 @@ class FerdigstillDokumentService(
                         journalpostList = dokumentReferanseList.map {
                             //small hack for now, until we fetch data from SAF on consumer side of event.
                             it.copy(
+                                kanal = if (hoveddokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN) "DPO" else it.kanal,
+                                kanalnavn = if (hoveddokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN) "Digital Post Offentlig" else it.kanalnavn,
                                 harTilgangTilArkivvariant = true,
                                 hasAccess = true,
                                 vedlegg = it.vedlegg.map { vedlegg ->
