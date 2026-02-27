@@ -22,10 +22,7 @@ import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.document.DocumentToMerge
 import no.nav.klage.oppgave.domain.document.MergedDocument
-import no.nav.klage.oppgave.domain.kafka.Employee
-import no.nav.klage.oppgave.domain.kafka.InternalEventType
-import no.nav.klage.oppgave.domain.kafka.InternalIdentityEvent
-import no.nav.klage.oppgave.domain.kafka.JournalfoertDocumentModified
+import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.exceptions.JournalpostNotFoundException
 import no.nav.klage.oppgave.repositories.MergedDocumentRepository
 import no.nav.klage.oppgave.util.TokenUtil
@@ -530,6 +527,7 @@ class DokumentService(
                     journalpostId = journalpostId,
                     dokumentInfoId = dokumentInfoId,
                     tittel = title,
+                    traceparent = currentTraceparent(),
                 )
             ),
             identifikator = foedselsnummer,

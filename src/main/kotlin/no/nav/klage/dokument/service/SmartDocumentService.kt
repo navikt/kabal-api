@@ -154,7 +154,8 @@ class SmartDocumentService(
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
                         dokumentView
-                    )
+                    ),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -202,6 +203,7 @@ class SmartDocumentService(
                     ),
                     version = updatedDocument.version,
                     documentId = dokumentId.toString(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -298,6 +300,7 @@ class SmartDocumentService(
                     text = commentOutput.text,
                     documentId = documentId.toString(),
                     parentId = commentOutput.parentId?.toString(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = document.behandlingId,
@@ -349,6 +352,7 @@ class SmartDocumentService(
                     text = commentOutput.text,
                     documentId = documentId.toString(),
                     parentId = commentOutput.parentId?.toString(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = document.behandlingId,
@@ -411,6 +415,7 @@ class SmartDocumentService(
                     text = commentOutput.text,
                     parentId = commentOutput.parentId?.toString(),
                     documentId = documentId.toString(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = document.behandlingId,
@@ -474,6 +479,7 @@ class SmartDocumentService(
                     text = commentOutput.text,
                     documentId = documentId.toString(),
                     parentId = commentOutput.parentId?.toString(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = document.behandlingId,

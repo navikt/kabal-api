@@ -310,6 +310,7 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     avsluttetAvSaksbehandlerDate = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -867,6 +868,7 @@ class BehandlingService(
                     } else null,
                     hjemmelIdList = fradelingWithChangedHjemmelIdList?.split(",") ?: emptyList(),
                     fradelingReasonId = fradelingReason?.id,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -962,6 +964,7 @@ class BehandlingService(
                     timestamp = behandling.modified,
                     varsletFrist = varsletFrist,
                     timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -1038,6 +1041,7 @@ class BehandlingService(
                     saksbehandler = null,
                     hjemmelIdList = emptyList(),
                     fradelingReasonId = FradelingReason.UTGAATT.id,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -1087,6 +1091,7 @@ class BehandlingService(
                     timestamp = behandling.modified,
                     medunderskriver = null,
                     flowState = FlowState.NOT_SENT,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -1137,6 +1142,7 @@ class BehandlingService(
                     rol = null,
                     flowState = FlowState.NOT_SENT,
                     returnDate = null,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -1245,7 +1251,8 @@ class BehandlingService(
                             reason = it.reason,
                             reasonId = it.reasonId,
                         )
-                    }
+                    },
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -1316,6 +1323,7 @@ class BehandlingService(
                         ),
                         timestamp = behandling.modified,
                         mottattVedtaksinstans = behandling.mottattVedtaksinstans,
+                        traceparent = currentTraceparent(),
                     )
                 ),
                 behandlingId = behandlingId,
@@ -1461,6 +1469,7 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     hjemmelIdSet = behandling.hjemler.map { it.id }.toSet(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -1607,6 +1616,7 @@ class BehandlingService(
                             utsendingskanal = partView.utsendingskanal
                         )
                     },
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -1665,6 +1675,7 @@ class BehandlingService(
                         address = partView.address,
                         utsendingskanal = partView.utsendingskanal,
                     ),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -1699,6 +1710,7 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     tilbakekreving = behandling.tilbakekreving,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -1743,6 +1755,7 @@ class BehandlingService(
                     } else null,
                     timestamp = medunderskriverWrapped.modified,
                     flowState = medunderskriverWrapped.flowState,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -1807,6 +1820,7 @@ class BehandlingService(
                         )
                     } else null,
                     flowState = medunderskriverWrapped.flowState,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -1971,6 +1985,7 @@ class BehandlingService(
                                 navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
                             ),
                             timestamp = LocalDateTime.now(),
+                            traceparent = currentTraceparent(),
                         )
                     ),
                     behandlingId = behandling.id,
@@ -2011,7 +2026,8 @@ class BehandlingService(
                                     it.journalpostId,
                                     it.dokumentInfoId
                                 )
-                            }.toSet()
+                            }.toSet(),
+                            traceparent = currentTraceparent(),
 
                         )
                     ),
@@ -2143,7 +2159,8 @@ class BehandlingService(
                                 it.journalpostId,
                                 it.dokumentInfoId
                             )
-                        }.toSet()
+                        }.toSet(),
+                        traceparent = currentTraceparent(),
 
                     )
                 ),
@@ -2179,7 +2196,8 @@ class BehandlingService(
                                 saksdokument.journalpostId,
                                 saksdokument.dokumentInfoId
                             )
-                        )
+                        ),
+                        traceparent = currentTraceparent(),
                     )
                 ),
                 behandlingId = behandling.id,
@@ -2394,6 +2412,7 @@ class BehandlingService(
                     registered = behandling.feilregistrering!!.registered,
                     reason = behandling.feilregistrering!!.reason,
                     fagsystemId = behandling.feilregistrering!!.fagsystem.id,
+                    traceparent = currentTraceparent(),
                 ),
             ),
             behandlingId = behandling.id,
@@ -2454,6 +2473,7 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     utfallId = behandling.utfall?.id,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -2496,6 +2516,7 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     utfallIdList = behandling.extraUtfallSet.map { it.id },
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -2556,6 +2577,7 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     hjemmelIdSet = behandling.registreringshjemler.map { it.id }.toSet(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -2609,6 +2631,7 @@ class BehandlingService(
                     } else null,
                     flowState = rolView.flowState,
                     returnDate = behandling.rolReturnedDate,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -2682,6 +2705,7 @@ class BehandlingService(
                     } else null,
                     flowState = rolView.flowState,
                     returnDate = behandling.rolReturnedDate,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -2947,6 +2971,7 @@ class BehandlingService(
                     ),
                     timestamp = behandling.modified,
                     gosysOppgave = gosysOppgave,
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
