@@ -527,7 +527,7 @@ class DokumentService(
                     journalpostId = journalpostId,
                     dokumentInfoId = dokumentInfoId,
                     tittel = title,
-                    traceId = currentTraceId(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             identifikator = foedselsnummer,

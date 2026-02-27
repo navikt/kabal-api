@@ -155,7 +155,7 @@ class SmartDocumentService(
                     documents = listOf(
                         dokumentView
                     ),
-                    traceId = currentTraceId(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -203,7 +203,7 @@ class SmartDocumentService(
                     ),
                     version = updatedDocument.version,
                     documentId = dokumentId.toString(),
-                    traceId = currentTraceId(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -300,7 +300,7 @@ class SmartDocumentService(
                     text = commentOutput.text,
                     documentId = documentId.toString(),
                     parentId = commentOutput.parentId?.toString(),
-                    traceId = currentTraceId(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = document.behandlingId,
@@ -352,7 +352,7 @@ class SmartDocumentService(
                     text = commentOutput.text,
                     documentId = documentId.toString(),
                     parentId = commentOutput.parentId?.toString(),
-                    traceId = currentTraceId(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = document.behandlingId,
@@ -415,7 +415,7 @@ class SmartDocumentService(
                     text = commentOutput.text,
                     parentId = commentOutput.parentId?.toString(),
                     documentId = documentId.toString(),
-                    traceId = currentTraceId(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = document.behandlingId,
@@ -479,7 +479,7 @@ class SmartDocumentService(
                     text = commentOutput.text,
                     documentId = documentId.toString(),
                     parentId = commentOutput.parentId?.toString(),
-                    traceId = currentTraceId(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = document.behandlingId,

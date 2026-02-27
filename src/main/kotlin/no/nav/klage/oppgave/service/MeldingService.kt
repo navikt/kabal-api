@@ -176,7 +176,7 @@ class MeldingService(
                         id = melding.id.toString(),
                         text = melding.text,
                         notify = melding.notify,
-                        traceId = currentTraceId(),
+                        traceparent = currentTraceparent(),
                     )
                 )
             )

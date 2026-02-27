@@ -111,7 +111,7 @@ class GosysOppgaveService(
                     ),
                     timestamp = LocalDateTime.now(),
                     gosysOppgave = updatedGosysOppgave.toGosysOppgaveView(systemContext = true),
-                    traceId = currentTraceId(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandlingId,
@@ -337,7 +337,7 @@ class GosysOppgaveService(
                     ),
                     timestamp = LocalDateTime.now(),
                     gosysOppgave = updatedGosysOppgave.toGosysOppgaveView(systemContext = systemContext),
-                    traceId = currentTraceId(),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,

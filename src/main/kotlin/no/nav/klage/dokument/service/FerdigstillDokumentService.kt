@@ -115,7 +115,7 @@ class FerdigstillDokumentService(
                                 }.toMutableList()
                             )
                         },
-                        traceId = currentTraceId(),
+                        traceparent = currentTraceparent(),
                     )
                 ),
                 behandlingId = updatedDokument.behandlingId,
