@@ -10,10 +10,7 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
-import no.nav.klage.oppgave.domain.kafka.DocumentFinishedEvent
-import no.nav.klage.oppgave.domain.kafka.Employee
-import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
-import no.nav.klage.oppgave.domain.kafka.InternalEventType
+import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.KafkaInternalEventService
 import no.nav.klage.oppgave.service.SaksbehandlerService
@@ -118,6 +115,7 @@ class FerdigstillDokumentService(
                                 }.toMutableList()
                             )
                         },
+                        traceId = currentTraceId(),
                     )
                 ),
                 behandlingId = updatedDokument.behandlingId,

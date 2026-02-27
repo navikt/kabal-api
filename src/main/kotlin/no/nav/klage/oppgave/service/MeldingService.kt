@@ -7,10 +7,7 @@ import no.nav.klage.oppgave.api.mapper.MeldingMapper
 import no.nav.klage.oppgave.api.view.MeldingModified
 import no.nav.klage.oppgave.api.view.MeldingView
 import no.nav.klage.oppgave.domain.behandling.subentities.Melding
-import no.nav.klage.oppgave.domain.kafka.Employee
-import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
-import no.nav.klage.oppgave.domain.kafka.InternalEventType
-import no.nav.klage.oppgave.domain.kafka.MeldingEvent
+import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.domain.notifications.CreateMeldingNotificationEvent
 import no.nav.klage.oppgave.domain.notifications.CreateNotificationEvent
 import no.nav.klage.oppgave.exceptions.IllegalOperation
@@ -179,6 +176,7 @@ class MeldingService(
                         id = melding.id.toString(),
                         text = melding.text,
                         notify = melding.notify,
+                        traceId = currentTraceId(),
                     )
                 )
             )

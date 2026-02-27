@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.domain.kafka
 
+import io.opentelemetry.api.trace.Span
 import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
@@ -8,6 +9,14 @@ import no.nav.klage.oppgave.api.view.GosysOppgaveView
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
+
+fun currentTraceId(): String {
+    return try {
+        Span.current().spanContext.traceId
+    } catch (_: Exception) {
+        "unknown"
+    }
+}
 
 data class InternalBehandlingEvent(
     val behandlingId: String,
@@ -65,23 +74,25 @@ data class JournalfoertDokument(
     val dokumentInfoId: String,
 )
 
-
 abstract class BaseEvent(
     open val actor: Employee,
     open val timestamp: LocalDateTime,
+    open val traceId: String,
 )
 
 data class MinimalEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class MedunderskriverEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val medunderskriver: Employee?,
     val flowState: FlowState,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class RolEvent(
     override val actor: Employee,
@@ -89,19 +100,22 @@ data class RolEvent(
     val rol: Employee?,
     val flowState: FlowState,
     val returnDate: LocalDateTime?,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class KlagerEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val part: Part,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class FullmektigEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val part: Part?,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class Part(
     val id: UUID,
@@ -121,62 +135,72 @@ data class MeldingEvent(
     val id: String,
     val text: String,
     val notify: Boolean,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class UtfallEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val utfallId: String?,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class GosysoppgaveEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val gosysOppgave: GosysOppgaveView?,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class TilbakekrevingEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val tilbakekreving: Boolean,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class ExtraUtfallEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val utfallIdList: List<String>,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class InnsendingshjemlerEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val hjemmelIdSet: Set<String>,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class RegistreringshjemlerEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val hjemmelIdSet: Set<String>,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class MottattVedtaksinstansEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val mottattVedtaksinstans: LocalDate,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class VarsletFristEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val varsletFrist: LocalDate,
     val timesPreviouslyExtended: Int,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class DocumentsChangedEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val documents: List<DocumentChanged>,
-) : BaseEvent(actor = actor, timestamp = timestamp) {
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId) {
     data class DocumentChanged(
         val id: String,
         val parentId: String?,
@@ -190,7 +214,8 @@ data class SmartDocumentChangedEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val document: SmartDocumentChanged,
-) : BaseEvent(actor = actor, timestamp = timestamp) {
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId) {
     data class SmartDocumentChanged(
         val id: String,
         val language: DokumentView.Language,
@@ -202,25 +227,29 @@ data class DocumentFinishedEvent(
     override val timestamp: LocalDateTime,
     val id: String,
     val journalpostList: List<DokumentReferanse>,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class DocumentsRemovedEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val idList: List<String>,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class DocumentsAddedEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val documents: List<DokumentView>,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class IncludedDocumentsChangedEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
-    val journalfoertDokumentReferenceSet: Set<JournalfoertDokument>
-): BaseEvent(actor = actor, timestamp = timestamp)
+    val journalfoertDokumentReferenceSet: Set<JournalfoertDokument>,
+    override val traceId: String,
+): BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class DocumentPatched(
     override val actor: Employee,
@@ -228,7 +257,8 @@ data class DocumentPatched(
     val author: Employee,
     val version: Int,
     val documentId: String,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class CommentEvent(
     override val actor: Employee,
@@ -238,7 +268,8 @@ data class CommentEvent(
     val commentId: String,
     val parentId: String?,
     val documentId: String,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class JournalfoertDocumentModified(
     override val actor: Employee,
@@ -246,7 +277,8 @@ data class JournalfoertDocumentModified(
     val journalpostId: String,
     val dokumentInfoId: String,
     val tittel: String,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class FeilregistreringEvent(
     override val actor: Employee,
@@ -254,19 +286,22 @@ data class FeilregistreringEvent(
     val registered: LocalDateTime,
     val reason: String,
     val fagsystemId: String,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class BehandlingFerdigstiltEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val avsluttetAvSaksbehandlerDate: LocalDateTime,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
 
 data class SattPaaVentEvent(
     override val actor: Employee,
     override val timestamp: LocalDateTime,
     val sattPaaVent: SattPaaVent?,
-) : BaseEvent(actor = actor, timestamp = timestamp) {
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId) {
     data class SattPaaVent(
         val from: LocalDate,
         val to: LocalDate,
@@ -281,4 +316,5 @@ data class TildelingEvent(
     val saksbehandler: Employee?,
     val fradelingReasonId: String?,
     val hjemmelIdList: List<String>,
-) : BaseEvent(actor = actor, timestamp = timestamp)
+    override val traceId: String,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceId = traceId)
