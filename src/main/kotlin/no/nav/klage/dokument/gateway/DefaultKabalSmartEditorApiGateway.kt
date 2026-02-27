@@ -10,6 +10,7 @@ import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.util.*
 
 @Service
@@ -23,17 +24,17 @@ class DefaultKabalSmartEditorApiGateway(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Retryable
+    @Retryable(excludes = [WebClientResponseException.NotFound::class])
     fun getDocumentAsJson(smartEditorId: UUID): String {
         return getSmartDocumentResponse(smartEditorId = smartEditorId).json
     }
 
-    @Retryable
+    @Retryable(excludes = [WebClientResponseException.NotFound::class])
     fun getSmartDocumentResponse(smartEditorId: UUID): SmartDocumentResponse {
         return kabalSmartEditorApiClient.getDocument(smartEditorId)
     }
 
-    @Retryable
+    @Retryable(excludes = [WebClientResponseException.NotFound::class])
     fun getSmartDocumentResponseForVersion(smartEditorId: UUID, version: Int): SmartDocumentResponse {
         return kabalSmartEditorApiClient.getDocumentVersion(documentId = smartEditorId, version = version)
     }
