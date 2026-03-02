@@ -1968,8 +1968,6 @@ class DokumentUnderArbeidService(
         val hovedDokument =
             getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
-        val behandling: Behandling =
-            behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 
         logger.debug(
             "calling fullfoerDokumentEnhet ({}) for hoveddokument with id {}",
@@ -1978,6 +1976,9 @@ class DokumentUnderArbeidService(
         )
         val dokumentEnhetFullfoerOutput =
             kabalDocumentGateway.fullfoerDokumentEnhet(dokumentEnhetId = hovedDokument.dokumentEnhetId!!)
+
+        val behandling: Behandling =
+            behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 
         val journalpostIdSet = dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.flatMap {
             it.joarkReferenceList.map { joarkReference ->
