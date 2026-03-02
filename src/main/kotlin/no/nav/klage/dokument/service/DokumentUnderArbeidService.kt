@@ -203,7 +203,8 @@ class DokumentUnderArbeidService(
                     timestamp = LocalDateTime.now(),
                     documents = listOf(
                         dokumentView
-                    )
+                    ),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -367,7 +368,8 @@ class DokumentUnderArbeidService(
                             tittel = it.name,
                             isMarkertAvsluttet = it.erMarkertFerdig(),
                         )
-                    }
+                    },
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -450,6 +452,7 @@ class DokumentUnderArbeidService(
                         ),
                         timestamp = LocalDateTime.now(),
                         documents = addedJournalfoerteDokumenter,
+                        traceparent = currentTraceparent(),
                     )
                 ),
                 behandlingId = behandling.id,
@@ -642,6 +645,7 @@ class DokumentUnderArbeidService(
                             isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
                         )
                     ),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -694,6 +698,7 @@ class DokumentUnderArbeidService(
                             isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
                         )
                     ),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -742,6 +747,7 @@ class DokumentUnderArbeidService(
                             isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
                         )
                     ),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -815,6 +821,7 @@ class DokumentUnderArbeidService(
                             isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
                         )
                     ),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -945,6 +952,7 @@ class DokumentUnderArbeidService(
                             isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
                         )
                     ),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -1116,6 +1124,7 @@ class DokumentUnderArbeidService(
                             isMarkertAvsluttet = dokumentUnderArbeid.erMarkertFerdig(),
                         )
                     ),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -1163,6 +1172,7 @@ class DokumentUnderArbeidService(
                         id = dokumentUnderArbeid.id.toString(),
                         language = DokumentView.Language.valueOf(dokumentUnderArbeid.language.name),
                     ),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -1348,7 +1358,8 @@ class DokumentUnderArbeidService(
                         dokumentTypeId = hovedDokument.dokumentType.id,
                         tittel = hovedDokument.name,
                         isMarkertAvsluttet = hovedDokument.erMarkertFerdig(),
-                    )
+                    ),
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -1729,6 +1740,7 @@ class DokumentUnderArbeidService(
                     ),
                     timestamp = LocalDateTime.now(),
                     idList = documentsToRemove.map { it.id.toString() },
+                    traceparent = currentTraceparent(),
                 )
             ),
             behandlingId = behandling.id,
@@ -1968,8 +1980,6 @@ class DokumentUnderArbeidService(
         val hovedDokument =
             getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
         val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
-        val behandling: Behandling =
-            behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 
         logger.debug(
             "calling fullfoerDokumentEnhet ({}) for hoveddokument with id {}",
@@ -1978,6 +1988,9 @@ class DokumentUnderArbeidService(
         )
         val dokumentEnhetFullfoerOutput =
             kabalDocumentGateway.fullfoerDokumentEnhet(dokumentEnhetId = hovedDokument.dokumentEnhetId!!)
+
+        val behandling: Behandling =
+            behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 
         val journalpostIdSet = dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.flatMap {
             it.joarkReferenceList.map { joarkReference ->
@@ -2015,7 +2028,8 @@ class DokumentUnderArbeidService(
                                     it.journalpostId,
                                     it.dokumentInfoId
                                 )
-                            }.toSet()
+                            }.toSet(),
+                            traceparent = currentTraceparent(),
 
                         )
                     ),
@@ -2371,3 +2385,7 @@ class DokumentUnderArbeidService(
         )
     }
 }
+
+
+
+
