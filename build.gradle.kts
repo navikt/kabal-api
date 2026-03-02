@@ -32,6 +32,10 @@ plugins {
     kotlin("kapt") version kotlinVersion
 }
 
+// CVE GHSA-72hv-8253-57qq: jackson-core async parser DoS
+extra["jackson-2-bom.version"] = "2.21.1"
+extra["jackson-bom.version"] = "3.1.0"
+
 java.sourceCompatibility = JavaVersion.VERSION_21
 
 repositories {
@@ -49,8 +53,6 @@ configurations.all {
 }
 
 dependencies {
-    implementation(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.21.1"))
-    implementation(enforcedPlatform("tools.jackson:jackson-bom:3.1.0"))
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
