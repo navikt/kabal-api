@@ -49,3 +49,6 @@ acl:
   - team: tpts
     application: tiltakspenger-saksbehandling-api
     access: read
+  - team: obo
+    application: veilarbvedtaksstotte
+    access: read

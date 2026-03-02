@@ -74,6 +74,9 @@ inboundApplications:
   - application: tiltakspenger-saksbehandling-api
     namespace: tpts
     cluster: dev-gcp
+  - application: veilarbvedtaksstotte
+    namespace: obo
+    cluster: dev-gcp
 springProfile: dev
 tenant: trygdeetaten.no
 db_tier: db-custom-1-3840

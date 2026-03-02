@@ -67,6 +67,9 @@ inboundApplications:
   - application: tiltakspenger-saksbehandling-api
     namespace: tpts
     cluster: prod-gcp
+  - application: veilarbvedtaksstotte
+    namespace: obo
+    cluster: dev-gcp
 springProfile: prod
 tenant: nav.no
 db_tier: db-custom-1-3840
