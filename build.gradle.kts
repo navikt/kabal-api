@@ -40,7 +40,18 @@ repositories {
     maven("https://packages.confluent.io/maven/")
 }
 
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("org.lz4:lz4-java"))
+            .using(module("at.yawk.lz4:lz4-java:1.10.1"))
+            .because("CVE-2025-12183 and CVE-2025-66566: org.lz4:lz4-java is archived, new releases under at.yawk.lz4")
+    }
+}
+
 dependencies {
+    implementation(enforcedPlatform("com.fasterxml.jackson:jackson-bom:2.21.1"))
+    implementation(enforcedPlatform("tools.jackson:jackson-bom:3.1.0"))
+
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
