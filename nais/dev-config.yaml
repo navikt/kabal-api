@@ -100,9 +100,9 @@ adRoles:
   - name: KABAL_INNSYN_EGEN_ENHET_ROLE_ID
     value: 016fb83f-4e7c-47ec-ae8a-e3efa72a43e7
   - name: FORTROLIG_ROLE_ID
-    value: 2980c598-8af7-473f-b7d1-233f785d7001
+    value: 2e1dc582-f762-4510-a660-88bf68fb7128
   - name: STRENGT_FORTROLIG_ROLE_ID
-    value: de92036b-c350-471c-9249-753f36acd24d
+    value: a1b518e2-3947-478d-8929-e5d685c47cac
   - name: EGEN_ANSATT_ROLE_ID
     value: dbe4ad45-320b-4e9a-aaa1-73cca4ee124d
   - name: KABAL_ADMIN_ROLE_ID
