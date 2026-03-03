@@ -48,7 +48,7 @@ repositories {
 configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("org.lz4:lz4-java"))
-            .using(module("at.yawk.lz4:lz4-java:1.10.1"))
+            .using(module("at.yawk.lz4:lz4-java:1.10.4"))
             .because("CVE-2025-12183 and CVE-2025-66566: org.lz4:lz4-java is archived, new releases under at.yawk.lz4")
     }
 }
