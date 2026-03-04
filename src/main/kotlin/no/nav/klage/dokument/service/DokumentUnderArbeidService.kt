@@ -1681,7 +1681,7 @@ class DokumentUnderArbeidService(
             behandlingId = document.behandlingId,
         )
 
-        val parentDocumentId: UUID?
+        var parentDocumentId: UUID?
         val vedleggList: List<DokumentUnderArbeidAsVedlegg>
         if (document is DokumentUnderArbeidAsVedlegg) {
             parentDocumentId = document.parentId
