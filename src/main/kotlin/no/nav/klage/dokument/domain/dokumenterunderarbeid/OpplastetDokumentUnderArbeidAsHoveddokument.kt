@@ -2,6 +2,7 @@ package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
 import jakarta.persistence.*
 import no.nav.klage.dokument.api.view.InngaaendeKanal
+import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.envers.Audited
@@ -59,6 +60,12 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     dokarkivReferences = dokarkivReferences,
     journalfoerendeEnhetId = journalfoerendeEnhetId,
 ){
+    init {
+        if (name.length > MAX_NAME_LENGTH) {
+            throw DokumentValidationException("Dokumentnavnet kan ikke være lenger enn $MAX_NAME_LENGTH tegn")
+        }
+    }
+
     fun asVedlegg(parentId: UUID): OpplastetDokumentUnderArbeidAsVedlegg {
         return OpplastetDokumentUnderArbeidAsVedlegg(
             size = size,
