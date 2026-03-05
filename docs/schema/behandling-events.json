@@ -144,6 +144,7 @@
             "MEDHOLD",
             "DELVIS_MEDHOLD",
             "STADFESTELSE",
+            "UGUNST",
             "AVVIST",
             "HEVET",
             "HENVIST",
@@ -240,6 +241,7 @@
             "MEDHOLD",
             "DELVIS_MEDHOLD",
             "STADFESTELSE",
+            "UGUNST",
             "AVVIST",
             "HENLAGT"
           ]
@@ -268,7 +270,8 @@
         "utfall": {
           "type": "string",
           "enum": [
-            "MEDHOLD_ETTER_FVL_35"
+            "MEDHOLD_ETTER_FVL_35",
+            "UGUNST"
           ]
         },
         "journalpostReferanser": {
@@ -297,7 +300,8 @@
           "enum": [
             "MEDHOLD_ETTER_FVL_35",
             "GJENOPPTATT_DELVIS_ELLER_FULLT_MEDHOLD",
-            "GJENOPPTATT_OPPHEVET"
+            "GJENOPPTATT_OPPHEVET",
+            "UGUNST"
           ]
         },
         "journalpostReferanser": {
