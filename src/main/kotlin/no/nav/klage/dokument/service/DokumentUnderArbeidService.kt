@@ -14,7 +14,6 @@ import no.nav.klage.dokument.repositories.*
 import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Enhet
-import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
@@ -34,7 +33,10 @@ import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
-import no.nav.klage.oppgave.util.*
+import no.nav.klage.oppgave.util.TokenUtil
+import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSortKey
+import no.nav.klage.oppgave.util.isInngaaende
 import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload
 import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
@@ -1011,11 +1013,6 @@ class DokumentUnderArbeidService(
             if (identifikator == null) {
                 false to false
             } else {
-                val partIdType = getPartIdFromIdentifikator(identifikator).type
-                val isDeltAnsvar =
-                    partIdType == PartIdType.VIRKSOMHET && eregClient.hentNoekkelInformasjonOmOrganisasjon(identifikator)
-                        .isDeltAnsvar()
-
                 val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
                     mottakerId = identifikator,
                     brukerId = sakenGjelderFnr,
@@ -1023,9 +1020,7 @@ class DokumentUnderArbeidService(
                     saksbehandlerContext = !systemContext,
                 )
 
-                if (isDeltAnsvar) {
-                    false to true
-                } else if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && isAddressOverridden) {
+                if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && isAddressOverridden) {
                     false to true
                 } else {
                     false to false
