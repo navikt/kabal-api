@@ -18,7 +18,6 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.DokumentUnderArbeidMetadata
-import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
@@ -80,7 +79,6 @@ class DokumentUnderArbeidService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val dokumentService: DokumentService,
-    private val eregClient: EregClient,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val safFacade: SafFacade,
     private val dokumentMapper: DokumentMapper,
@@ -1634,8 +1632,9 @@ class DokumentUnderArbeidService(
                         journalpostId = dokumentUnderArbeid.journalpostId,
                     )
 
-                    val dokument = journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
-                        ?: throw RuntimeException("Document not found in Dokarkiv")
+                    val dokument =
+                        journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+                            ?: throw RuntimeException("Document not found in Dokarkiv")
                     if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
                         throw NoAccessToDocumentException("Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.")
                     }
@@ -2026,7 +2025,7 @@ class DokumentUnderArbeidService(
                             }.toSet(),
                             traceparent = currentTraceparent(),
 
-                        )
+                            )
                     ),
                     behandlingId = behandling.id,
                     type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
@@ -2126,8 +2125,9 @@ class DokumentUnderArbeidService(
         if (journalfoerteVedlegg.isNotEmpty()) {
             journalfoerteVedlegg.forEach { journalfoerteVedlegg ->
                 val journalpost = journalpostListFromSaf.find { it.journalpostId == journalfoerteVedlegg.journalpostId }
-                val dokument = journalpost?.dokumenter?.find { it.dokumentInfoId == journalfoerteVedlegg.dokumentInfoId }
-                    ?: throw RuntimeException("Document not found in Dokarkiv")
+                val dokument =
+                    journalpost?.dokumenter?.find { it.dokumentInfoId == journalfoerteVedlegg.dokumentInfoId }
+                        ?: throw RuntimeException("Document not found in Dokarkiv")
                 if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
                     throw NoAccessToDocumentException("Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.")
                 }
