@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.clients.dokdistkanal.DokDistKanalClient
-import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Service
 @Service
 class DokDistKanalService(
     private val dokDistKanalClient: DokDistKanalClient,
-    private val eregClient: EregClient,
 ) {
     @Cacheable(CacheWithJCacheConfiguration.DOK_DIST_KANAL)
     fun getUtsendingskanal(
