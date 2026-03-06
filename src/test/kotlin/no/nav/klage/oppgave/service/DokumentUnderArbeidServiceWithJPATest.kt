@@ -9,7 +9,6 @@ import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.dokument.service.*
 import no.nav.klage.kodeverk.DokumentType
-import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
@@ -75,9 +74,6 @@ class DokumentUnderArbeidServiceWithJPATest : PostgresIntegrationTestBase() {
     lateinit var dokumentService: DokumentService
 
     @MockkBean
-    lateinit var eregClient: EregClient
-
-    @MockkBean
     lateinit var innholdsfortegnelseService: InnholdsfortegnelseService
 
     @MockkBean
@@ -107,7 +103,6 @@ class DokumentUnderArbeidServiceWithJPATest : PostgresIntegrationTestBase() {
             applicationEventPublisher = applicationEventPublisher,
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             dokumentService = dokumentService,
-            eregClient = eregClient,
             innholdsfortegnelseService = innholdsfortegnelseService,
             safFacade = safFacade,
             dokumentMapper = dokumentMapper,

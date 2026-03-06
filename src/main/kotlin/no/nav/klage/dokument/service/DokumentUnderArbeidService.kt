@@ -14,12 +14,10 @@ import no.nav.klage.dokument.repositories.*
 import no.nav.klage.dokument.util.DuaAccessPolicy
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Enhet
-import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.DokumentUnderArbeidMetadata
-import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
@@ -34,7 +32,10 @@ import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
-import no.nav.klage.oppgave.util.*
+import no.nav.klage.oppgave.util.TokenUtil
+import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSortKey
+import no.nav.klage.oppgave.util.isInngaaende
 import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload
 import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
@@ -78,7 +79,6 @@ class DokumentUnderArbeidService(
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val dokumentService: DokumentService,
-    private val eregClient: EregClient,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val safFacade: SafFacade,
     private val dokumentMapper: DokumentMapper,
@@ -1011,11 +1011,6 @@ class DokumentUnderArbeidService(
             if (identifikator == null) {
                 false to false
             } else {
-                val partIdType = getPartIdFromIdentifikator(identifikator).type
-                val isDeltAnsvar =
-                    partIdType == PartIdType.VIRKSOMHET && eregClient.hentNoekkelInformasjonOmOrganisasjon(identifikator)
-                        .isDeltAnsvar()
-
                 val defaultUtsendingskanal = dokDistKanalService.getUtsendingskanal(
                     mottakerId = identifikator,
                     brukerId = sakenGjelderFnr,
@@ -1023,9 +1018,7 @@ class DokumentUnderArbeidService(
                     saksbehandlerContext = !systemContext,
                 )
 
-                if (isDeltAnsvar) {
-                    false to true
-                } else if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && isAddressOverridden) {
+                if (defaultUtsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT && isAddressOverridden) {
                     false to true
                 } else {
                     false to false
@@ -1639,8 +1632,9 @@ class DokumentUnderArbeidService(
                         journalpostId = dokumentUnderArbeid.journalpostId,
                     )
 
-                    val dokument = journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
-                        ?: throw RuntimeException("Document not found in Dokarkiv")
+                    val dokument =
+                        journalpost.dokumenter?.find { it.dokumentInfoId == dokumentUnderArbeid.dokumentInfoId }
+                            ?: throw RuntimeException("Document not found in Dokarkiv")
                     if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
                         throw NoAccessToDocumentException("Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.")
                     }
@@ -2031,7 +2025,7 @@ class DokumentUnderArbeidService(
                             }.toSet(),
                             traceparent = currentTraceparent(),
 
-                        )
+                            )
                     ),
                     behandlingId = behandling.id,
                     type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
@@ -2131,8 +2125,9 @@ class DokumentUnderArbeidService(
         if (journalfoerteVedlegg.isNotEmpty()) {
             journalfoerteVedlegg.forEach { journalfoerteVedlegg ->
                 val journalpost = journalpostListFromSaf.find { it.journalpostId == journalfoerteVedlegg.journalpostId }
-                val dokument = journalpost?.dokumenter?.find { it.dokumentInfoId == journalfoerteVedlegg.dokumentInfoId }
-                    ?: throw RuntimeException("Document not found in Dokarkiv")
+                val dokument =
+                    journalpost?.dokumenter?.find { it.dokumentInfoId == journalfoerteVedlegg.dokumentInfoId }
+                        ?: throw RuntimeException("Document not found in Dokarkiv")
                 if (!dokumentMapper.harTilgangTilArkivEllerSladdetVariant(dokument)) {
                     throw NoAccessToDocumentException("Kan ikke vise dokument med journalpostId ${journalpost.journalpostId}, dokumentInfoId ${dokument.dokumentInfoId}. Mangler tilgang til tema ${journalpost.tema} i dokumentarkivet.")
                 }
