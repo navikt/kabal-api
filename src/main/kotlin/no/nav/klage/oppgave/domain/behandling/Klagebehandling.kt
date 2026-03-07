@@ -13,6 +13,7 @@ import no.nav.klage.oppgave.domain.behandling.historikk.*
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
 import java.time.LocalDate
@@ -23,6 +24,7 @@ const val KLAGEENHET_PREFIX = "42"
 
 @Entity
 @DiscriminatorValue("klage")
+@DynamicUpdate
 @Audited
 class Klagebehandling(
     //Brukes ikke i anke

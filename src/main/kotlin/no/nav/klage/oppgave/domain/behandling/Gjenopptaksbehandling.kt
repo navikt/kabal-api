@@ -13,6 +13,7 @@ import no.nav.klage.oppgave.domain.behandling.historikk.*
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
 import java.time.LocalDate
@@ -22,6 +23,7 @@ import java.util.*
 //TODO: Denne er basert på Ankebehandling, tilpass etter behov.
 @Entity
 @DiscriminatorValue("gjenopptak")
+@DynamicUpdate
 @Audited
 abstract class Gjenopptaksbehandling(
     @Column(name = "klage_vedtaks_dato")

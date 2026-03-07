@@ -14,6 +14,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.behandling.historikk.*
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
 import no.nav.klage.oppgave.domain.kafka.ExternalUtfall
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -21,6 +22,7 @@ import java.util.*
 
 @Entity
 @DiscriminatorValue("anke_i_trygderetten")
+@DynamicUpdate
 @Audited
 class AnkeITrygderettenbehandling(
     @Column(name = "sendt_til_trygderetten", nullable = false)
