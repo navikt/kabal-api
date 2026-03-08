@@ -4,6 +4,7 @@ import jakarta.persistence.*
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
 import java.util.*
@@ -11,6 +12,7 @@ import java.util.*
 
 @Entity
 @DiscriminatorValue("smartdokument")
+@DynamicUpdate
 @Audited
 class SmartdokumentUnderArbeidAsHoveddokument(
     @Column(name = "size")

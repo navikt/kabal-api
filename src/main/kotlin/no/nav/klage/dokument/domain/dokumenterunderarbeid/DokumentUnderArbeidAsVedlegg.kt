@@ -3,11 +3,13 @@ package no.nav.klage.dokument.domain.dokumenterunderarbeid
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
+@DynamicUpdate
 @Audited
 abstract class DokumentUnderArbeidAsVedlegg(
     @Column(name = "parent_id", nullable = false)

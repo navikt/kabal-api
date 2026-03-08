@@ -5,6 +5,7 @@ import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
 import java.util.*
@@ -12,6 +13,7 @@ import java.util.*
 
 @Entity
 @DiscriminatorValue("opplastetdokument_vedlegg")
+@DynamicUpdate
 @Audited
 class OpplastetDokumentUnderArbeidAsVedlegg(
     @Column(name = "size")

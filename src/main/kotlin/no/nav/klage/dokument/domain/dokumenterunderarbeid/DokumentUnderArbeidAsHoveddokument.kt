@@ -7,6 +7,7 @@ import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import no.nav.klage.oppgave.util.isInngaaende
 import no.nav.klage.oppgave.util.isUtgaaende
 import org.hibernate.annotations.BatchSize
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import org.hibernate.envers.AuditJoinTable
@@ -15,6 +16,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Entity
+@DynamicUpdate
 @Audited
 abstract class DokumentUnderArbeidAsHoveddokument(
     @Column(name = "dokument_enhet_id")
