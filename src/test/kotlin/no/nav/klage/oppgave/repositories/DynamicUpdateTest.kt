@@ -102,6 +102,7 @@ class DynamicUpdateTest : PostgresIntegrationTestBase() {
             // Step 5: Load fresh from database and verify BOTH changes are present
             val emVerify = entityManagerFactory.createEntityManager()
             val result = emVerify.find(Klagebehandling::class.java, behandlingId)
+            emVerify.close()
 
             // If @DynamicUpdate works correctly on subclasses:
             //   - frist should be newFrist (from transaction 1)
@@ -167,6 +168,7 @@ class DynamicUpdateTest : PostgresIntegrationTestBase() {
             // Verify both changes survived
             val emVerify = entityManagerFactory.createEntityManager()
             val result = emVerify.find(Klagebehandling::class.java, behandlingId)
+            emVerify.close()
 
             assertThat(result.utfall)
                 .describedAs("utfall should be set by transaction 2")
