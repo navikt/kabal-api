@@ -13,6 +13,7 @@ import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.behandling.historikk.*
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -20,6 +21,7 @@ import java.util.*
 
 @Entity
 @DiscriminatorValue("omgjoeringskrav-based-on-kabal-behandling")
+@DynamicUpdate
 @Audited
 class OmgjoeringskravbehandlingBasedOnKabalBehandling(
     //Common properties between klage/anke

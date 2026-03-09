@@ -5,6 +5,7 @@ import no.nav.klage.dokument.api.view.InngaaendeKanal
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -13,6 +14,7 @@ import java.util.*
 
 @Entity
 @DiscriminatorValue("opplastetdokument")
+@DynamicUpdate
 @Audited
 class OpplastetDokumentUnderArbeidAsHoveddokument(
     @Column(name = "size")

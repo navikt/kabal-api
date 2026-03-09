@@ -13,6 +13,7 @@ import no.nav.klage.oppgave.domain.behandling.historikk.*
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
 import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokument
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import org.hibernate.envers.NotAudited
 import java.time.LocalDate
@@ -20,6 +21,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Entity
+@DynamicUpdate
 @Audited
 abstract class Omgjoeringskravbehandling(
     @Column(name = "klage_behandlende_enhet", nullable = false)

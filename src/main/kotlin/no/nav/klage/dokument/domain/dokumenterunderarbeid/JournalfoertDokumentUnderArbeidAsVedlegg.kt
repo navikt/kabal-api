@@ -4,12 +4,14 @@ import jakarta.persistence.Column
 import jakarta.persistence.DiscriminatorValue
 import jakarta.persistence.Entity
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
 import java.util.*
 
 @Entity
 @DiscriminatorValue("journalfoertdokument")
+@DynamicUpdate
 @Audited
 class JournalfoertDokumentUnderArbeidAsVedlegg(
     @Column(name = "opprettet", nullable = false)

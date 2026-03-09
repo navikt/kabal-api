@@ -3,6 +3,7 @@ package no.nav.klage.dokument.domain.dokumenterunderarbeid
 import jakarta.persistence.*
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
+import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
 import java.util.*
@@ -10,6 +11,7 @@ import java.util.*
 
 @Entity
 @DiscriminatorValue("smartdokument_vedlegg")
+@DynamicUpdate
 @Audited
 class SmartdokumentUnderArbeidAsVedlegg(
     @Column(name = "size")
