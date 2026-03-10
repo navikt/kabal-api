@@ -147,6 +147,8 @@ class BehandlingAvslutningService(
         } else if (!ankebehandling.gosysOppgaveRequired) {
             logger.debug("Anke med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(ankebehandling)
+        } else if (!ankebehandling.shouldBeSentToTrygderetten()) {
+            logger.debug("Anke med id ${ankebehandling.id} skal tilbake til vedtaksinstans med Gosys-oppgave.")
         } else {
             throw BehandlingAvsluttetException("Ugyldig tilstand på ankebehandling med id ${ankebehandling.id}. Undersøk.")
         }
