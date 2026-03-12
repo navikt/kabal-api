@@ -50,6 +50,14 @@ class PersonService(
         }
     }
 
+    fun getFoedselsnummerFromIdent(ident: String): String {
+        return pdlFacade.getFoedselsnummerFromIdent(ident = ident)
+    }
+
+    fun getAktorIdFromIdent(ident: String): String {
+        return pdlFacade.getAktorIdFromIdent(ident = ident)
+    }
+
     fun personExists(fnr: String): Boolean {
         try {
             getPersonInfo(fnr)
