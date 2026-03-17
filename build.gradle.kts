@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val mockkVersion = "1.14.9"
-val tokenValidationVersion = "6.0.3"
+val tokenValidationVersion = "6.0.4"
 val logstashVersion = "9.0"
 val springMockkVersion = "5.0.1"
 val springDocVersion = "3.0.2"
@@ -10,19 +10,19 @@ val testContainersVersion = "2.0.3"
 val shedlockVersion = "7.6.0"
 val archunitVersion = "1.4.1"
 val logbackSyslog4jVersion = "1.0.0"
-val pdfboxVersion = "3.0.6"
+val pdfboxVersion = "3.0.7"
 val tikaVersion = "3.2.3"
 val verapdfVersion = "1.28.2"
 val klageKodeverkVersion = "3.2.2"
 val commonsFileupload2JakartaVersion = "2.0.0-M5"
-val otelVersion = "1.59.0"
+val otelVersion = "1.60.1"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.0.0"
-val confluentVersion = "8.1.1"
+val confluentVersion = "8.2.0"
 val reactorKafkaVersion = "1.3.25"
 
 plugins {
-    val kotlinVersion = "2.3.10"
+    val kotlinVersion = "2.3.20"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
@@ -48,7 +48,7 @@ repositories {
 configurations.all {
     resolutionStrategy.dependencySubstitution {
         substitute(module("org.lz4:lz4-java"))
-            .using(module("at.yawk.lz4:lz4-java:1.10.1"))
+            .using(module("at.yawk.lz4:lz4-java:1.10.4"))
             .because("CVE-2025-12183 and CVE-2025-66566: org.lz4:lz4-java is archived, new releases under at.yawk.lz4")
     }
 }
