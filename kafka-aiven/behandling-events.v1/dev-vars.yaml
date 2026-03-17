@@ -55,3 +55,6 @@ acl:
   - team: obo
     application: veilarbvedtaksstotte
     access: read
+  - team: historisk
+    application: superhelt
+    access: read

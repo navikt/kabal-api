@@ -69,7 +69,10 @@ inboundApplications:
     cluster: prod-gcp
   - application: veilarbvedtaksstotte
     namespace: obo
-    cluster: dev-gcp
+    cluster: prod-gcp
+  - application: superhelt
+    namespace: historisk
+    cluster: prod-gcp
 springProfile: prod
 tenant: nav.no
 db_tier: db-custom-1-3840
