@@ -30,7 +30,7 @@ class MellomlagretDokumentValidatorService(
             logger.warn("Attachment has virus")
             throw AttachmentHasVirusException()
         }
-        logger.debug("Attachment does not have virus. Time taken: ${System.currentTimeMillis() - start} ms")
+        logger.debug("Attachment does not have virus. File size: ${file.length()} bytes (${String.format("%.2f", file.length() / (1024.0 * 1024.0))} MB). Time taken: ${System.currentTimeMillis() - start} ms")
 
         logger.debug("Validation successful.")
     }
