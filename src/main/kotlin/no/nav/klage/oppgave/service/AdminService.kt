@@ -282,7 +282,7 @@ class AdminService(
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = personService.getPersonInfo(behandling.sakenGjelder.partId.value)
+                    val person = personService.getPerson(behandling.sakenGjelder.partId.value)
                     if (person.harBeskyttelsesbehovStrengtFortrolig()) {
                         teamLogger.debug("Protected user in behandling with id {}", behandling.id)
                     }
@@ -332,7 +332,7 @@ class AdminService(
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = personService.getPersonInfo(behandling.sakenGjelder.partId.value)
+                    val person = personService.getPerson(behandling.sakenGjelder.partId.value)
                     if (person.harBeskyttelsesbehovStrengtFortrolig()) {
                         strengtFortroligBehandlinger.add(behandling.id.toString())
                     }

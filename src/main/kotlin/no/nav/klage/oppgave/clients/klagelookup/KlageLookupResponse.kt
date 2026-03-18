@@ -30,3 +30,7 @@ data class Enhet (
 data class GroupsResponse (
     val groupIds: List<String>,
 )
+
+data class IdentResponse(
+    val ident: String,
+)

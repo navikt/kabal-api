@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
 import no.nav.klage.kodeverk.AzureGroup
+import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroups
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
@@ -52,7 +53,19 @@ class KlageLookupGateway(
         )
     }
 
-    fun ExtendedUserResponse.toSaksbehandlerPersonligInfo(): SaksbehandlerPersonligInfo {
+    fun getPerson(fnr: String, sak: Sak?): Person {
+        return klageLookupClient.getPerson(fnr = fnr, sak = sak)
+    }
+
+    fun getFoedselsnummerFromIdent(ident: String): String {
+        return klageLookupClient.getFoedselsnummerFromIdent(ident = ident)
+    }
+
+    fun getAktoerIdFromIdent(ident: String): String {
+        return klageLookupClient.getAktoerIdFromIdent(ident = ident)
+    }
+
+    private fun ExtendedUserResponse.toSaksbehandlerPersonligInfo(): SaksbehandlerPersonligInfo {
         return SaksbehandlerPersonligInfo(
             navIdent = this.navIdent,
             fornavn = this.fornavn,
@@ -65,7 +78,7 @@ class KlageLookupGateway(
         )
     }
 
-    fun GroupsResponse.toSaksbehandlerGroups(): SaksbehandlerGroups {
+    private fun GroupsResponse.toSaksbehandlerGroups(): SaksbehandlerGroups {
         return SaksbehandlerGroups(
             groups = this.groupIds.map { AzureGroup.of(it) }
         )

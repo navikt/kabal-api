@@ -1,21 +1,15 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.kodeverk.PartIdType
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
-import no.nav.klage.oppgave.clients.pdl.PersonCacheService
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
+import no.nav.klage.oppgave.clients.klagelookup.Sak
 import no.nav.klage.oppgave.domain.person.Person
-import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.service.mapper.toPerson
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.stereotype.Service
-import java.net.InetAddress
 
 @Service
 class PersonService(
-    private val personCacheService: PersonCacheService,
-    private val pdlFacade: PdlFacade,
-    private val behandlingRepository: BehandlingRepository,
+    private val klageLookupGateway: KlageLookupGateway,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -23,79 +17,59 @@ class PersonService(
         private val teamLogger = getTeamLogger()
     }
 
-    fun getPersonInfo(fnr: String): Person {
-        if (personCacheService.isCached(fnr)) {
-            return personCacheService.getPerson(fnr)
-        }
-        val pdlPerson = pdlFacade.getPerson(fnr)
-        return pdlPerson.toPerson(fnr).also { personCacheService.updatePersonCache(it) }
+    /**
+     * Caller must perform appropriate access checks before calling this method
+     */
+    fun getPerson(fnr: String, sak: Sak?): Person {
+        return klageLookupGateway.getPerson(fnr = fnr, sak = sak)
     }
 
     fun fillPersonCache(fnrList: List<String>) {
-        val fnrsNotInPersonCache = personCacheService.findFnrsNotInCache(fnrList)
-        fnrsNotInPersonCache.chunked(1000).forEach { fnrListChunk ->
-            val pdlOutput = pdlFacade.getPersonBulk(fnrList = fnrListChunk)
-            pdlOutput.forEach { hentPersonBolkResult ->
-                val pdlPerson = hentPersonBolkResult.person
-                if (pdlPerson != null) {
-                    try {
-                        personCacheService.updatePersonCache(hentPersonBolkResult.person.toPerson(fnr = hentPersonBolkResult.ident))
-                    } catch (e: Exception) {
-                        teamLogger.error("Error while mapping person with fnr ${hentPersonBolkResult.ident} from PDL", e)
-                    }
-                } else {
-                    teamLogger.error("Missing pdlPerson for fnr ${hentPersonBolkResult.ident}. Code: ${hentPersonBolkResult.code}")
-                }
-            }
-        }
+        TODO()
     }
 
     fun getFoedselsnummerFromIdent(ident: String): String {
-        return pdlFacade.getFoedselsnummerFromIdent(ident = ident)
+        return klageLookupGateway.getFoedselsnummerFromIdent(ident = ident)
     }
 
-    fun getAktorIdFromIdent(ident: String): String {
-        return pdlFacade.getAktorIdFromIdent(ident = ident)
+    fun getAktoerIdFromIdent(ident: String): String {
+        return klageLookupGateway.getAktoerIdFromIdent(ident = ident)
     }
 
     fun personExists(fnr: String): Boolean {
         try {
-            getPersonInfo(fnr)
+            getPerson(fnr = fnr, null)
         } catch (e: Exception) {
             return false
         }
         return true
     }
 
-    fun refreshPersonInCache(fnr: String) {
-        personCacheService.removePersonFromCache(foedselsnr = fnr)
-        getPersonInfo(fnr)
-    }
-
     fun fillCacheWithAllMissingPersons() {
-        val start = System.currentTimeMillis()
-        logger.debug("Finding all persons in open behandlinger to fill cache in pod ${InetAddress.getLocalHost().hostName}")
-        val allOpenBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
-        logger.debug("Found all open behandlinger: ${allOpenBehandlinger.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
-
-        val allSakenGjelderFnr = allOpenBehandlinger.filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
-            .map { it.sakenGjelder.partId.value }
-            .distinct()
-
-        val allKlagerFnr = allOpenBehandlinger.filter { it.klager.partId.type == PartIdType.PERSON }
-            .map { it.klager.partId.value }
-            .distinct()
-
-        val allFullmektigFnr = allOpenBehandlinger.filter { it.prosessfullmektig?.partId?.type == PartIdType.PERSON }
-            .map { it.prosessfullmektig?.partId?.value }
-            .distinct()
-
-        val allPersonsInOpenBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
-
-        logger.debug("Found all distinct persons: ${allPersonsInOpenBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
-
-        fillPersonCache(allPersonsInOpenBehandlingerFnr)
-
-        logger.debug("Finished inserting all persons from open behandlinger in cache in ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+        TODO()
+//        val start = System.currentTimeMillis()
+//        logger.debug("Finding all persons in open behandlinger to fill cache in pod ${InetAddress.getLocalHost().hostName}")
+//        val allOpenBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
+//        logger.debug("Found all open behandlinger: ${allOpenBehandlinger.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+//
+//        val allSakenGjelderFnr = allOpenBehandlinger.filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
+//            .map { it.sakenGjelder.partId.value }
+//            .distinct()
+//
+//        val allKlagerFnr = allOpenBehandlinger.filter { it.klager.partId.type == PartIdType.PERSON }
+//            .map { it.klager.partId.value }
+//            .distinct()
+//
+//        val allFullmektigFnr = allOpenBehandlinger.filter { it.prosessfullmektig?.partId?.type == PartIdType.PERSON }
+//            .map { it.prosessfullmektig?.partId?.value }
+//            .distinct()
+//
+//        val allPersonsInOpenBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
+//
+//        logger.debug("Found all distinct persons: ${allPersonsInOpenBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
+//
+//        fillPersonCache(allPersonsInOpenBehandlingerFnr)
+//
+//        logger.debug("Finished inserting all persons from open behandlinger in cache in ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
     }
 }

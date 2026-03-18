@@ -378,7 +378,7 @@ class GosysOppgaveService(
     }
 
     fun getGosysOppgaveList(fnr: String, tema: Tema?): List<GosysOppgaveView> {
-        val aktoerId = personService.getAktorIdFromIdent(ident = fnr)
+        val aktoerId = personService.getAktoerIdFromIdent(ident = fnr)
 
         val temaList = if (tema != null) {
             if (tema == Tema.MED) {

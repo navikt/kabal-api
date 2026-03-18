@@ -31,12 +31,12 @@ class BehandlingEndretKafkaProducer(
     fun sendBehandlingEndret(behandling: Behandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
         val personInfo = if (behandling.sakenGjelder.erPerson()) {
-            personService.getPersonInfo(fnr = behandling.sakenGjelder.partId.value)
+            personService.getPerson(fnr = behandling.sakenGjelder.partId.value, sak = null)
         } else null
 
-        val erStrengtFortrolig = personInfo?.harBeskyttelsesbehovStrengtFortrolig() ?: false
-        val erFortrolig = personInfo?.harBeskyttelsesbehovFortrolig() ?: false
-        val erEgenAnsatt = personInfo?.let { egenAnsattService.erEgenAnsatt(foedselsnr = it.foedselsnr) } ?: false
+        val erStrengtFortrolig = personInfo?.strengtFortrolig == true || personInfo?.strengtFortroligUtland == true
+        val erFortrolig = personInfo?.fortrolig ?: false
+        val erEgenAnsatt = personInfo?.egenAnsatt ?: false
 
         val json = behandling.mapToSkjemaV2(
             erStrengtFortrolig = erStrengtFortrolig,

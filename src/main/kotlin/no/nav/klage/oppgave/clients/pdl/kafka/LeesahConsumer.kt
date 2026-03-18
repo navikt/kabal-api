@@ -47,7 +47,8 @@ class LeesahConsumer(
             logger.debug("Personhendelse for person in cache found in pod ${InetAddress.getLocalHost().hostName}. Checking if relevant.")
             if (personhendelse.isRelevantForOurCache) {
                 logger.debug("Personhendelse is relevant for our cache in pod ${InetAddress.getLocalHost().hostName}. Updating person in cache.")
-                personService.refreshPersonInCache(fnr = personhendelse.fnr)
+//                TODO
+//                personService.refreshPersonInCache(fnr = personhendelse.fnr)
                 if (personhendelse.isAdressebeskyttelse) {
                     logger.debug("Adressebeskyttelse change for person in cache, updating index in kabal-search.")
                     behandlingService.indexAllBehandlingerForSakenGjelderFnr(sakenGjelderFnr = fnrInPersonhendelse)

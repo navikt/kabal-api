@@ -32,7 +32,7 @@ class PartSearchService(
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.getSaksbehandlerAccessToPerson(identifikator).access) {
-                    val person = personService.getPersonInfo(identifikator)
+                    val person = personService.getPerson(identifikator)
                     val krrInfo = if (systemUserContext) {
                         krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
                     } else {
@@ -83,7 +83,7 @@ class PartSearchService(
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.getSaksbehandlerAccessToPerson(identifikator).access) {
-                    val person = personService.getPersonInfo(identifikator)
+                    val person = personService.getPerson(identifikator)
                     val krrInfo = if (systemUserContext) {
                         krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
                     } else {
@@ -138,7 +138,7 @@ class PartSearchService(
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.getSaksbehandlerAccessToPerson(identifikator).access) {
-                    val person = personService.getPersonInfo(identifikator)
+                    val person = personService.getPerson(identifikator)
                     val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
                     BehandlingDetaljerView.SearchPersonView(
                         identifikator = person.foedselsnr,

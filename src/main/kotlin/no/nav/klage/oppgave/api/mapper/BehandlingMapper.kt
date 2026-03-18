@@ -2,9 +2,9 @@ package no.nav.klage.oppgave.api.mapper
 
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.oppgave.api.view.*
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.ereg.NoekkelInfoOmOrganisasjon
+import no.nav.klage.oppgave.clients.klagelookup.Sak
 import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Enhet
@@ -12,7 +12,6 @@ import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
-import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.getLogger
@@ -24,7 +23,6 @@ import java.util.*
 @Service
 @Transactional
 class BehandlingMapper(
-    private val egenAnsattService: EgenAnsattService,
     private val norg2Client: Norg2Client,
     private val eregClient: EregClient,
     private val saksbehandlerService: SaksbehandlerService,
@@ -41,17 +39,51 @@ class BehandlingMapper(
     }
 
     fun mapBehandlingToBehandlingDetaljerView(behandling: Behandling): BehandlingDetaljerView {
+        val person = getSakenGjelderAsPerson(behandling)
         return when (behandling) {
-            is Klagebehandling -> mapKlagebehandlingToBehandlingDetaljerView(behandling)
-            is Ankebehandling -> mapAnkebehandlingToBehandlingDetaljerView(behandling)
-            is AnkeITrygderettenbehandling, is GjenopptakITrygderettenbehandling -> mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(behandling)
-            is BehandlingEtterTrygderettenOpphevet -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandling)
-            is Omgjoeringskravbehandling -> mapOmgjoeringskravbehandlingToBehandlingDetaljerView(behandling)
-            is Gjenopptaksbehandling -> mapGjenopptaksbehandlingToBehandlingDetaljerView(behandling)
+            is Klagebehandling -> mapKlagebehandlingToBehandlingDetaljerView(
+                klagebehandling = behandling,
+                person = person,
+            )
+            is Ankebehandling -> mapAnkebehandlingToBehandlingDetaljerView(
+                ankebehandling = behandling,
+                person = person,
+            )
+            is AnkeITrygderettenbehandling, is GjenopptakITrygderettenbehandling -> mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(
+                behandling = behandling,
+                person = person
+            )
+            is BehandlingEtterTrygderettenOpphevet -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(
+                behandlingEtterTrygderettenOpphevet = behandling,
+                person = person,
+            )
+            is Omgjoeringskravbehandling -> mapOmgjoeringskravbehandlingToBehandlingDetaljerView(
+                omgjoeringskravbehandling = behandling,
+                person = person,
+            )
+            is Gjenopptaksbehandling -> mapGjenopptaksbehandlingToBehandlingDetaljerView(
+                gjenopptaksbehandling = behandling,
+                person = person,
+            )
         }
     }
 
-    fun mapKlagebehandlingToBehandlingDetaljerView(klagebehandling: Klagebehandling): BehandlingDetaljerView {
+    private fun getSakenGjelderAsPerson(behandling: Behandling): Person {
+        val person = personService.getPerson(
+            fnr = behandling.sakenGjelder.partId.value,
+            sak = Sak(
+                sakId = behandling.fagsakId,
+                ytelse = behandling.ytelse,
+                fagsystem = behandling.fagsystem,
+            )
+        )
+        return person
+    }
+
+    fun mapKlagebehandlingToBehandlingDetaljerView(
+        klagebehandling: Klagebehandling,
+        person: Person
+    ): BehandlingDetaljerView {
         val enhetNavn = klagebehandling.avsenderEnhetFoersteinstans.let { norg2Client.fetchEnhet(it) }.navn
 
         return BehandlingDetaljerView(
@@ -59,7 +91,7 @@ class BehandlingMapper(
             fraNAVEnhet = klagebehandling.avsenderEnhetFoersteinstans,
             fraNAVEnhetNavn = enhetNavn,
             mottattVedtaksinstans = klagebehandling.mottattVedtaksinstans,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(klagebehandling),
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = klagebehandling, person = person),
             klager = getPartViewWithUtsendingskanal(
                 technicalPartId = klagebehandling.klager.id,
                 partId = klagebehandling.klager.partId,
@@ -96,12 +128,12 @@ class BehandlingMapper(
                     dokumentInfoId = it.dokumentInfoId
                 )
             }.toSet(),
-            egenAnsatt = klagebehandling.sakenGjelder.erEgenAnsatt(),
-            fortrolig = klagebehandling.sakenGjelder.harBeskyttelsesbehovFortrolig(),
-            strengtFortrolig = klagebehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
-            vergemaalEllerFremtidsfullmakt = klagebehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
-            dead = klagebehandling.sakenGjelder.getDead(),
-            sikkerhetstiltak = klagebehandling.sakenGjelder.sikkerhetstiltak(),
+            egenAnsatt = person.egenAnsatt,
+            fortrolig = person.fortrolig,
+            strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
+            vergemaalEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt,
+            dead = person.doed,
+            sikkerhetstiltak = person.sikkerhetstiltak(),
             kvalitetsvurderingReference = if (klagebehandling.feilregistrering == null && klagebehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = klagebehandling.kakaKvalitetsvurderingId!!,
@@ -127,14 +159,14 @@ class BehandlingMapper(
         )
     }
 
-    fun mapOmgjoeringskravbehandlingToBehandlingDetaljerView(omgjoeringskravbehandling: Omgjoeringskravbehandling): BehandlingDetaljerView {
+    fun mapOmgjoeringskravbehandlingToBehandlingDetaljerView(omgjoeringskravbehandling: Omgjoeringskravbehandling, person: Person): BehandlingDetaljerView {
         val enhetNavn = omgjoeringskravbehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
         return BehandlingDetaljerView(
             id = omgjoeringskravbehandling.id,
             fraNAVEnhet = omgjoeringskravbehandling.klageBehandlendeEnhet,
             fraNAVEnhetNavn = enhetNavn,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(omgjoeringskravbehandling),
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = omgjoeringskravbehandling, person = person),
             klager = getPartViewWithUtsendingskanal(
                 technicalPartId = omgjoeringskravbehandling.klager.id,
                 partId = omgjoeringskravbehandling.klager.partId,
@@ -170,12 +202,12 @@ class BehandlingMapper(
                     dokumentInfoId = it.dokumentInfoId
                 )
             }.toSet(),
-            egenAnsatt = omgjoeringskravbehandling.sakenGjelder.erEgenAnsatt(),
-            fortrolig = omgjoeringskravbehandling.sakenGjelder.harBeskyttelsesbehovFortrolig(),
-            strengtFortrolig = omgjoeringskravbehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
-            vergemaalEllerFremtidsfullmakt = omgjoeringskravbehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
-            dead = omgjoeringskravbehandling.sakenGjelder.getDead(),
-            sikkerhetstiltak = omgjoeringskravbehandling.sakenGjelder.sikkerhetstiltak(),
+            egenAnsatt = person.egenAnsatt,
+            fortrolig = person.fortrolig,
+            strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
+            vergemaalEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt,
+            dead = person.doed,
+            sikkerhetstiltak = person.sikkerhetstiltak(),
             kvalitetsvurderingReference = if (omgjoeringskravbehandling.feilregistrering == null && omgjoeringskravbehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = omgjoeringskravbehandling.kakaKvalitetsvurderingId!!,
@@ -246,7 +278,7 @@ class BehandlingMapper(
         )
     }
 
-    fun mapAnkebehandlingToBehandlingDetaljerView(ankebehandling: Ankebehandling): BehandlingDetaljerView {
+    fun mapAnkebehandlingToBehandlingDetaljerView(ankebehandling: Ankebehandling, person: Person): BehandlingDetaljerView {
         val forrigeEnhetNavn = ankebehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
         return BehandlingDetaljerView(
@@ -254,7 +286,7 @@ class BehandlingMapper(
             fraNAVEnhet = ankebehandling.klageBehandlendeEnhet,
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(ankebehandling),
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = ankebehandling, person = person),
             klager = getPartViewWithUtsendingskanal(
                 technicalPartId = ankebehandling.klager.id,
                 partId = ankebehandling.klager.partId,
@@ -291,12 +323,12 @@ class BehandlingMapper(
                     dokumentInfoId = it.dokumentInfoId
                 )
             }.toSet(),
-            egenAnsatt = ankebehandling.sakenGjelder.erEgenAnsatt(),
-            fortrolig = ankebehandling.sakenGjelder.harBeskyttelsesbehovFortrolig(),
-            strengtFortrolig = ankebehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
-            vergemaalEllerFremtidsfullmakt = ankebehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
-            dead = ankebehandling.sakenGjelder.getDead(),
-            sikkerhetstiltak = ankebehandling.sakenGjelder.sikkerhetstiltak(),
+            egenAnsatt = person.egenAnsatt,
+            fortrolig = person.fortrolig,
+            strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
+            vergemaalEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt,
+            dead = person.doed,
+            sikkerhetstiltak = person.sikkerhetstiltak(),
             kvalitetsvurderingReference = if (ankebehandling.feilregistrering == null && ankebehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = ankebehandling.kakaKvalitetsvurderingId!!,
@@ -322,7 +354,7 @@ class BehandlingMapper(
         )
     }
 
-    fun mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(behandling: BehandlingITrygderetten): BehandlingDetaljerView {
+    fun mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(behandling: BehandlingITrygderetten, person: Person): BehandlingDetaljerView {
         behandling as Behandling
 
         return BehandlingDetaljerView(
@@ -330,7 +362,7 @@ class BehandlingMapper(
             fraNAVEnhet = null,
             fraNAVEnhetNavn = null,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling),
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = behandling, person = person),
             klager = getPartViewWithUtsendingskanal(
                 technicalPartId = behandling.klager.id,
                 partId = behandling.klager.partId,
@@ -367,12 +399,12 @@ class BehandlingMapper(
                     dokumentInfoId = it.dokumentInfoId
                 )
             }.toSet(),
-            egenAnsatt = behandling.sakenGjelder.erEgenAnsatt(),
-            fortrolig = behandling.sakenGjelder.harBeskyttelsesbehovFortrolig(),
-            strengtFortrolig = behandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
-            vergemaalEllerFremtidsfullmakt = behandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
-            dead = behandling.sakenGjelder.getDead(),
-            sikkerhetstiltak = behandling.sakenGjelder.sikkerhetstiltak(),
+            egenAnsatt = person.egenAnsatt,
+            fortrolig = person.fortrolig,
+            strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
+            vergemaalEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt,
+            dead = person.doed,
+            sikkerhetstiltak = person.sikkerhetstiltak(),
             kvalitetsvurderingReference = null,
             sattPaaVent = behandling.sattPaaVent,
             sendtTilTrygderetten = behandling.sendtTilTrygderetten,
@@ -395,7 +427,7 @@ class BehandlingMapper(
         )
     }
 
-    fun mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet): BehandlingDetaljerView {
+    fun mapBehandlingEtterTROpphevetToBehandlingDetaljerView(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet, person: Person): BehandlingDetaljerView {
         val forrigeEnhetNavn =
             behandlingEtterTrygderettenOpphevet.ankeBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
@@ -404,7 +436,7 @@ class BehandlingMapper(
             fraNAVEnhet = behandlingEtterTrygderettenOpphevet.ankeBehandlendeEnhet,
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandlingEtterTrygderettenOpphevet),
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = behandlingEtterTrygderettenOpphevet, person = person),
             klager = getPartViewWithUtsendingskanal(
                 technicalPartId = behandlingEtterTrygderettenOpphevet.klager.id,
                 partId = behandlingEtterTrygderettenOpphevet.klager.partId,
@@ -441,12 +473,12 @@ class BehandlingMapper(
                     dokumentInfoId = it.dokumentInfoId
                 )
             }.toSet(),
-            egenAnsatt = behandlingEtterTrygderettenOpphevet.sakenGjelder.erEgenAnsatt(),
-            fortrolig = behandlingEtterTrygderettenOpphevet.sakenGjelder.harBeskyttelsesbehovFortrolig(),
-            strengtFortrolig = behandlingEtterTrygderettenOpphevet.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
-            vergemaalEllerFremtidsfullmakt = behandlingEtterTrygderettenOpphevet.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
-            dead = behandlingEtterTrygderettenOpphevet.sakenGjelder.getDead(),
-            sikkerhetstiltak = behandlingEtterTrygderettenOpphevet.sakenGjelder.sikkerhetstiltak(),
+            egenAnsatt = person.egenAnsatt,
+            fortrolig = person.fortrolig,
+            strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
+            vergemaalEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt,
+            dead = person.doed,
+            sikkerhetstiltak = person.sikkerhetstiltak(),
             kvalitetsvurderingReference = if (behandlingEtterTrygderettenOpphevet.feilregistrering == null && behandlingEtterTrygderettenOpphevet.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = behandlingEtterTrygderettenOpphevet.kakaKvalitetsvurderingId!!,
@@ -473,7 +505,7 @@ class BehandlingMapper(
         )
     }
 
-    fun mapGjenopptaksbehandlingToBehandlingDetaljerView(gjenopptaksbehandling: Gjenopptaksbehandling): BehandlingDetaljerView {
+    fun mapGjenopptaksbehandlingToBehandlingDetaljerView(gjenopptaksbehandling: Gjenopptaksbehandling, person: Person): BehandlingDetaljerView {
         val forrigeEnhetNavn = gjenopptaksbehandling.klageBehandlendeEnhet.let { norg2Client.fetchEnhet(it) }.navn
 
         return BehandlingDetaljerView(
@@ -481,7 +513,7 @@ class BehandlingMapper(
             fraNAVEnhet = gjenopptaksbehandling.klageBehandlendeEnhet,
             fraNAVEnhetNavn = forrigeEnhetNavn,
             mottattVedtaksinstans = null,
-            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(gjenopptaksbehandling),
+            sakenGjelder = getSakenGjelderViewWithUtsendingskanal(behandling = gjenopptaksbehandling, person = person),
             klager = getPartViewWithUtsendingskanal(
                 technicalPartId = gjenopptaksbehandling.klager.id,
                 partId = gjenopptaksbehandling.klager.partId,
@@ -518,12 +550,12 @@ class BehandlingMapper(
                     dokumentInfoId = it.dokumentInfoId
                 )
             }.toSet(),
-            egenAnsatt = gjenopptaksbehandling.sakenGjelder.erEgenAnsatt(),
-            fortrolig = gjenopptaksbehandling.sakenGjelder.harBeskyttelsesbehovFortrolig(),
-            strengtFortrolig = gjenopptaksbehandling.sakenGjelder.harBeskyttelsesbehovStrengtFortrolig(),
-            vergemaalEllerFremtidsfullmakt = gjenopptaksbehandling.sakenGjelder.harVergemaalEllerFremtidsfullmakt(),
-            dead = gjenopptaksbehandling.sakenGjelder.getDead(),
-            sikkerhetstiltak = gjenopptaksbehandling.sakenGjelder.sikkerhetstiltak(),
+            egenAnsatt = person.egenAnsatt,
+            fortrolig = person.fortrolig,
+            strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
+            vergemaalEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt,
+            dead = person.doed,
+            sikkerhetstiltak = person.sikkerhetstiltak(),
             kvalitetsvurderingReference = if (gjenopptaksbehandling.feilregistrering == null && gjenopptaksbehandling.kakaKvalitetsvurderingId != null) {
                 BehandlingDetaljerView.KvalitetsvurderingReference(
                     id = gjenopptaksbehandling.kakaKvalitetsvurderingId!!,
@@ -549,14 +581,14 @@ class BehandlingMapper(
         )
     }
 
-    fun getSakenGjelderView(sakenGjelder: SakenGjelder): BehandlingDetaljerView.SakenGjelderView {
-        if (sakenGjelder.erPerson()) {
-            val person = personService.getPersonInfo(sakenGjelder.partId.value)
-            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(sakenGjelder.partId.value)
+    fun getSakenGjelderView(behandling: Behandling): BehandlingDetaljerView.SakenGjelderView {
+        if (behandling.sakenGjelder.erPerson()) {
+            val person = getSakenGjelderAsPerson(behandling)
+            val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(behandling.sakenGjelder.partId.value)
             return BehandlingDetaljerView.SakenGjelderView(
-                id = sakenGjelder.id,
+                id = behandling.sakenGjelder.id,
                 identifikator = person.foedselsnr,
-                name = person.settSammenNavn(),
+                name = person.sammensattNavn,
                 sex = person.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }
                     ?: BehandlingDetaljerView.Sex.UKJENT,
                 type = BehandlingDetaljerView.IdType.FNR,
@@ -570,10 +602,13 @@ class BehandlingMapper(
         }
     }
 
-    fun getSakenGjelderViewWithUtsendingskanal(behandling: Behandling): BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal {
+    fun getSakenGjelderViewWithUtsendingskanal(behandling: Behandling, person: Person? = null): BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal {
         val sakenGjelder = behandling.sakenGjelder
         if (sakenGjelder.erPerson()) {
-            val person = personService.getPersonInfo(sakenGjelder.partId.value)
+            val person = person ?: personService.getPerson(
+                fnr = sakenGjelder.partId.value,
+                sak = null,
+            )
             val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(sakenGjelder.partId.value)
             val utsendingskanal = dokDistKanalService.getUtsendingskanal(
                 mottakerId = sakenGjelder.partId.value,
@@ -584,7 +619,7 @@ class BehandlingMapper(
             return BehandlingDetaljerView.SakenGjelderViewWithUtsendingskanal(
                 id = sakenGjelder.id,
                 identifikator = person.foedselsnr,
-                name = person.settSammenNavn(),
+                name = person.sammensattNavn,
                 sex = person.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }
                     ?: BehandlingDetaljerView.Sex.UKJENT,
                 type = BehandlingDetaljerView.IdType.FNR,
@@ -607,14 +642,18 @@ class BehandlingMapper(
         )
     }
 
-    private fun getAvsenderPartView(identifier: String, isPerson: Boolean, technicalPartId: UUID): BehandlingDetaljerView.PartView {
+    private fun getAvsenderPartView(
+        identifier: String,
+        isPerson: Boolean,
+        technicalPartId: UUID
+    ): BehandlingDetaljerView.PartView {
         return if (isPerson) {
-            val person = personService.getPersonInfo(identifier)
+            val person = personService.getPerson(fnr = identifier, sak = null)
             val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
             BehandlingDetaljerView.PartView(
                 id = technicalPartId,
                 identifikator = person.foedselsnr,
-                name = person.settSammenNavn(),
+                name = person.sammensattNavn,
                 type = BehandlingDetaljerView.IdType.FNR,
                 available = person.doed == null,
                 language = krrInfo?.spraak,
@@ -655,12 +694,12 @@ class BehandlingMapper(
             val identifier = partId.value
 
             if (isPerson) {
-                val person = personService.getPersonInfo(identifier)
+                val person = personService.getPerson(fnr = identifier, sak = null)
                 val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
                 BehandlingDetaljerView.PartViewWithUtsendingskanal(
                     id = technicalPartId,
                     identifikator = person.foedselsnr,
-                    name = person.settSammenNavn(),
+                    name = person.sammensattNavn,
                     type = BehandlingDetaljerView.IdType.FNR,
                     available = person.doed == null,
                     language = krrInfo?.spraak,
@@ -721,60 +760,15 @@ class BehandlingMapper(
         )
     }
 
-    private fun SakenGjelder.harBeskyttelsesbehovFortrolig(): Boolean {
-        return if (erVirksomhet()) {
-            false
-        } else {
-            personService.getPersonInfo(partId.value).harBeskyttelsesbehovFortrolig()
-        }
-    }
-
-    private fun SakenGjelder.harBeskyttelsesbehovStrengtFortrolig(): Boolean {
-        return if (erVirksomhet()) {
-            false
-        } else {
-            personService.getPersonInfo(partId.value).harBeskyttelsesbehovStrengtFortrolig()
-        }
-    }
-
-    private fun SakenGjelder.erEgenAnsatt(): Boolean {
-        return if (erVirksomhet()) {
-            false
-        } else {
-            egenAnsattService.erEgenAnsatt(partId.value)
-        }
-    }
-
-    private fun SakenGjelder.harVergemaalEllerFremtidsfullmakt(): Boolean {
-        return if (erVirksomhet()) {
-            false
-        } else {
-            personService.getPersonInfo(partId.value).vergemaalEllerFremtidsfullmakt
-        }
-    }
-
-    private fun SakenGjelder.getDead(): LocalDate? {
-        return if (erVirksomhet()) {
-            null
-        } else {
-            personService.getPersonInfo(partId.value).doed
-        }
-    }
-
-    private fun SakenGjelder.sikkerhetstiltak(): BehandlingDetaljerView.Sikkerhetstiltak? {
-        return if (erVirksomhet()) {
-            null
-        } else {
-            val sikkerhetstiltak = personService.getPersonInfo(partId.value).sikkerhetstiltak
-            if (sikkerhetstiltak != null && sikkerhetstiltak.gyldigFraOgMed <= LocalDate.now() && sikkerhetstiltak.gyldigTilOgMed >= LocalDate.now()) {
-                BehandlingDetaljerView.Sikkerhetstiltak(
-                    tiltakstype = BehandlingDetaljerView.Sikkerhetstiltak.Tiltakstype.valueOf(sikkerhetstiltak.tiltakstype.name),
-                    beskrivelse = sikkerhetstiltak.beskrivelse,
-                    gyldigFraOgMed = sikkerhetstiltak.gyldigFraOgMed,
-                    gyldigTilOgMed = sikkerhetstiltak.gyldigTilOgMed,
-                )
-            } else null
-        }
+    private fun Person.sikkerhetstiltak(): BehandlingDetaljerView.Sikkerhetstiltak? {
+        return if (sikkerhetstiltak != null && sikkerhetstiltak.gyldigFraOgMed <= LocalDate.now() && sikkerhetstiltak.gyldigTilOgMed >= LocalDate.now()) {
+            BehandlingDetaljerView.Sikkerhetstiltak(
+                tiltakstype = BehandlingDetaljerView.Sikkerhetstiltak.Tiltakstype.valueOf(sikkerhetstiltak.tiltakstype.name),
+                beskrivelse = sikkerhetstiltak.beskrivelse,
+                gyldigFraOgMed = sikkerhetstiltak.gyldigFraOgMed,
+                gyldigTilOgMed = sikkerhetstiltak.gyldigTilOgMed,
+            )
+        } else null
     }
 
     fun Behandling.mapToVedtakView(): VedtakView {
@@ -850,31 +844,31 @@ class BehandlingMapper(
         }
     }
 
-    fun getStatusList(pdlPerson: Person, krrInfo: DigitalKontaktinformasjon?): List<BehandlingDetaljerView.PartStatus> {
+    fun getStatusList(person: Person, krrInfo: DigitalKontaktinformasjon?): List<BehandlingDetaljerView.PartStatus> {
         val statusList = mutableListOf<BehandlingDetaljerView.PartStatus>()
 
-        if (pdlPerson.doed != null) {
+        if (person.doed != null) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.DEAD,
-                date = pdlPerson.doed,
+                date = person.doed,
             )
         }
-        if (pdlPerson.vergemaalEllerFremtidsfullmakt) {
+        if (person.vergemaalEllerFremtidsfullmakt) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.VERGEMAAL,
             )
         }
-        if (pdlPerson.harBeskyttelsesbehovFortrolig()) {
+        if (person.fortrolig) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.FORTROLIG,
             )
         }
-        if (pdlPerson.harBeskyttelsesbehovStrengtFortrolig()) {
+        if (person.strengtFortrolig || person.strengtFortroligUtland) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.STRENGT_FORTROLIG,
             )
         }
-        if (egenAnsattService.erEgenAnsatt(pdlPerson.foedselsnr)) {
+        if (person.egenAnsatt) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.EGEN_ANSATT,
             )

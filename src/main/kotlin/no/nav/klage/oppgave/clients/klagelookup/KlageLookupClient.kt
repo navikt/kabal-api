@@ -3,6 +3,7 @@ package no.nav.klage.oppgave.clients.klagelookup
 import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.exceptions.GroupNotFoundException
 import no.nav.klage.oppgave.exceptions.UserNotFoundException
 import no.nav.klage.oppgave.service.TilgangService
@@ -48,10 +49,10 @@ class KlageLookupClient(
             val accessRequest = AccessRequest(
                 brukerId = brukerId,
                 navIdent = navIdent,
-                sak = if (sakId != null && ytelse != null && fagsystem != null) AccessRequest.Sak(
+                sak = if (sakId != null && ytelse != null && fagsystem != null) Sak(
                     sakId = sakId,
                     ytelse = ytelse,
-                    fagsystem = fagsystem
+                    fagsystem = fagsystem,
                 ) else null,
             )
 
@@ -175,7 +176,85 @@ class KlageLookupClient(
         }
     }
 
-    fun <T> runWithTimingAndLogging(block: () -> T): T {
+    @Retryable
+    fun getPerson(fnr: String, sak: Sak?): Person {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+
+            klageLookupWebClient.post()
+                .uri("/person")
+                .bodyValue(
+                    GetPersonRequest(
+                        fnr = fnr,
+                        sak = sak,
+                    )
+                )
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getPerson.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<Person>()
+                .block() ?: throw RuntimeException("Could not get person for fnr")
+        }
+    }
+
+    @Retryable
+    fun getFoedselsnummerFromIdent(ident: String): String {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+
+            klageLookupWebClient.get()
+                .uri("/idents/$ident/fnr")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getFoedselsnummerFromIdent.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<IdentResponse>()
+                .block()?.ident ?: throw RuntimeException("Could not get foedselsnummer from ident $ident")
+        }
+    }
+
+    @Retryable
+    fun getAktoerIdFromIdent(ident: String): String {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+
+            klageLookupWebClient.get()
+                .uri("/idents/$ident/aktorid")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getAktoerIdFromIdent.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<IdentResponse>()
+                .block()?.ident ?: throw RuntimeException("Could not get aktoerId from ident $ident")
+        }
+    }
+
+    private fun <T> runWithTimingAndLogging(block: () -> T): T {
         val start = System.currentTimeMillis()
         try {
             return block.invoke()
@@ -191,4 +270,5 @@ class KlageLookupClient(
             TokenUtil.TokenType.CC, TokenUtil.TokenType.UNAUTHENTICATED -> "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}"
         }
     }
+
 }

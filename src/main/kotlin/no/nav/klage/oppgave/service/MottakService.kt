@@ -685,7 +685,7 @@ class MottakService(
                     throw OversendtKlageNotValidException("Personen fins ikke i PDL")
                 }
 
-                if (personService.getPersonInfo(partId.value).harBeskyttelsesbehovStrengtFortrolig()) {
+                if (personService.getPerson(partId.value).harBeskyttelsesbehovStrengtFortrolig()) {
                     throw OversendtKlageNotValidException("Personen skal ikke håndteres i Kabal. Kontakt Team Klage om du har spørsmål.")
                 }
             }
