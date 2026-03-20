@@ -2818,7 +2818,7 @@ class BehandlingService(
     }
 
     fun getSakenGjelderView(behandlingId: UUID): BehandlingDetaljerView.SakenGjelderView {
-        return behandlingMapper.getSakenGjelderView(getBehandlingAndCheckReadAccessToSak(behandlingId).sakenGjelder)
+        return behandlingMapper.getSakenGjelderView(getBehandlingAndCheckReadAccessToSak(behandlingId))
     }
 
     fun getFradelingReason(behandlingId: UUID): WithPrevious<no.nav.klage.oppgave.api.view.TildelingEvent>? {

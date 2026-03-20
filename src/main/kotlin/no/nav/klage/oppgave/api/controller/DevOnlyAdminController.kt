@@ -8,8 +8,6 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
-import no.nav.klage.oppgave.clients.pdl.PersonCacheService
-import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
@@ -20,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import java.net.InetAddress
 import java.util.*
 
 @Profile("dev")
@@ -32,8 +29,6 @@ class DevOnlyAdminController(
     private val behandlingService: BehandlingService,
     private val klageFssProxyClient: KlageFssProxyClient,
     private val klageLookupGateway: KlageLookupGateway,
-    private val personCacheService: PersonCacheService,
-    private val schedulerHealthGate: SchedulerHealthGate,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -102,12 +97,10 @@ class DevOnlyAdminController(
             "getSaksbehandlerAccessTokenWithGraphScope" to tokenUtil.getSaksbehandlerAccessTokenWithGraphScope(),
             "getAppAccessTokenWithSafScope" to tokenUtil.getAppAccessTokenWithSafScope(),
             "getSaksbehandlerAccessTokenWithSafScope" to tokenUtil.getSaksbehandlerAccessTokenWithSafScope(),
-            "getSaksbehandlerAccessTokenWithPdlScope" to tokenUtil.getSaksbehandlerAccessTokenWithPdlScope(),
             "getAppAccessTokenWithGraphScope" to tokenUtil.getAppAccessTokenWithGraphScope(),
             "getSaksbehandlerAccessTokenWithDokarkivScope" to tokenUtil.getSaksbehandlerAccessTokenWithDokarkivScope(),
             "getSaksbehandlerAccessTokenWithKodeverkScope" to tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope(),
             "getOnBehalfOfTokenWithKrrProxyScope" to tokenUtil.getOnBehalfOfTokenWithKrrProxyScope(),
-            "getAppAccessTokenWithPdlScope" to tokenUtil.getAppAccessTokenWithPdlScope(),
             "getAppAccessTokenWithKlageFSSProxyScope" to tokenUtil.getAppAccessTokenWithKlageFSSProxyScope(),
             "getOnbehalfOfTokenWithKlageLookupScope" to tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope(),
             "getAppAccessTokenWithKlageLookupScope" to tokenUtil.getAppAccessTokenWithKlageLookupScope(),
@@ -215,14 +208,6 @@ class DevOnlyAdminController(
     }
 
     @Unprotected
-    @GetMapping("/empty-person-cache")
-    fun emptyPersonCache() {
-        logger.debug("emptyPersonCache is called")
-        adminService.emptyPersonCache()
-    }
-
-
-    @Unprotected
     @GetMapping("/evictallcaches", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun evictAllCAches() {
@@ -232,26 +217,6 @@ class DevOnlyAdminController(
             adminService.evictAllCaches()
         } catch (e: Exception) {
             logger.warn("Failed to evict all caches", e)
-            throw e
-        }
-    }
-
-    @Unprotected
-    @GetMapping(value = ["/cache/{fnr}", "/cache"], produces = ["application/json"])
-    @ResponseStatus(HttpStatus.OK)
-    fun getPersonFromCache(
-        @PathVariable(required = false, name = "fnr") fnr: String?
-    ): Pair<String?, Any> {
-        logger.debug("${::getPersonFromCache.name} is called")
-        try {
-            logger.info("Getting person from cache.")
-            return if (fnr.isNullOrBlank()) {
-                InetAddress.getLocalHost().hostName to personCacheService.getCache()
-            } else {
-                InetAddress.getLocalHost().hostName to personCacheService.getPerson(foedselsnr = fnr)
-            }
-        } catch (e: Exception) {
-            logger.warn("Failed to get from cache", e)
             throw e
         }
     }

@@ -269,7 +269,7 @@ class KabalDocumentMapper(
 
     private fun getNavn(partId: PartId): String =
         if (partId.type == PartIdType.PERSON) {
-            personService.getPersonInfo(partId.value).settSammenNavn()
+            personService.getPerson(fnr = partId.value, sak = null).sammensattNavn
         } else {
             eregClient.hentNoekkelInformasjonOmOrganisasjon(partId.value).navn.sammensattnavn
         }

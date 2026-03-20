@@ -6,7 +6,6 @@ import no.nav.klage.dokument.clients.klagefileapi.FileApiClient
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
-import no.nav.klage.dokument.repositories.JournalfoertDokumentUnderArbeidAsVedleggRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
@@ -18,9 +17,6 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
-import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
-import no.nav.klage.oppgave.clients.pdl.PersonCacheService
-import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.DOK_DIST_KANAL
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHETER_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHET_CACHE
@@ -57,7 +53,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import java.net.InetAddress
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -72,12 +67,10 @@ class AdminService(
     private val ankeITrygderettenbehandlingRepository: AnkeITrygderettenbehandlingRepository,
     private val omgjoeringskravbehandlingRepository: OmgjoeringskravbehandlingRepository,
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
-    private val journalfoertDokumentUnderArbeidAsVedleggRepository: JournalfoertDokumentUnderArbeidAsVedleggRepository,
     private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
     private val kafkaEventRepository: KafkaEventRepository,
     private val fileApiClient: FileApiClient,
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
-    private val safFacade: SafFacade,
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingService: BehandlingService,
     private val klageFssProxyClient: KlageFssProxyClient,
@@ -89,15 +82,12 @@ class AdminService(
     private val slackClient: SlackClient,
     private val kabalInnstillingerService: KabalInnstillingerService,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    private val personCacheService: PersonCacheService,
     private val entityManager: EntityManager,
-    private val kafkaInternalEventService: KafkaInternalEventService,
-    private val klageNotificationsApiClient: KlageNotificationsApiClient,
     private val schedulerHealthGate: SchedulerHealthGate,
     private val merkantilRepository: TaskListMerkantilRepository,
 ) {
 
-    @Value("\${KLAGE_BACKEND_GROUP_ID}")
+    @Value($$"${KLAGE_BACKEND_GROUP_ID}")
     lateinit var klageBackendGroupId: String
 
     companion object {
@@ -282,8 +272,8 @@ class AdminService(
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = personService.getPersonInfo(behandling.sakenGjelder.partId.value)
-                    if (person.harBeskyttelsesbehovStrengtFortrolig()) {
+                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value, sak = null)
+                    if (person.strengtFortrolig || person.strengtFortroligUtland) {
                         teamLogger.debug("Protected user in behandling with id {}", behandling.id)
                     }
                 } catch (e: Exception) {
@@ -325,19 +315,19 @@ class AdminService(
             .distinct()
 
         val pdlStart = System.currentTimeMillis()
-        personService.fillPersonCache(fnrList = sakenGjelderFnrList)
+
         val now = System.currentTimeMillis()
         logger.debug("Time it took to fill person cache: ${now - pdlStart} millis")
 
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = personService.getPersonInfo(behandling.sakenGjelder.partId.value)
-                    if (person.harBeskyttelsesbehovStrengtFortrolig()) {
+                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value, sak = null)
+                    if (person.strengtFortrolig || person.strengtFortroligUtland) {
                         strengtFortroligBehandlinger.add(behandling.id.toString())
                     }
 
-                    if (person.harBeskyttelsesbehovFortrolig()) {
+                    if (person.fortrolig) {
                         behandling.tildeling?.saksbehandlerident?.let {
                             if (!saksbehandlerService.hasFortroligRole(ident = it)) {
                                 fortroligBehandlinger.add(behandling.id.toString())
@@ -418,70 +408,6 @@ class AdminService(
         teamLogger.debug("Time it took to process unavailableDueToHjemler: ${end - start} millis")
 
         return errorLog
-    }
-
-    fun emptyPersonCache() {
-        personCacheService.emptyCache()
-    }
-
-    fun resetPersonCacheFromOpenBehandlinger() {
-        val start = System.currentTimeMillis()
-        emptyPersonCache()
-        logger.debug("Emptied person cache from admin endpoint in pod ${InetAddress.getLocalHost().hostName}, took ${System.currentTimeMillis() - start} ms")
-
-        val allOpenBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
-        logger.debug("Found all open behandlinger: ${allOpenBehandlinger.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
-
-        val allSakenGjelderFnr = allOpenBehandlinger.filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
-            .map { it.sakenGjelder.partId.value }
-            .distinct()
-
-        val allKlagerFnr = allOpenBehandlinger.filter { it.klager.partId.type == PartIdType.PERSON }
-            .map { it.klager.partId.value }
-            .distinct()
-
-        val allFullmektigFnr = allOpenBehandlinger.filter { it.prosessfullmektig?.partId?.type == PartIdType.PERSON }
-            .map { it.prosessfullmektig?.partId?.value }
-            .distinct()
-
-        val allPersonsInOpenBehandlingerFnr =
-            (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
-
-        logger.debug("Found all distinct persons: ${allPersonsInOpenBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
-
-        personService.fillPersonCache(allPersonsInOpenBehandlingerFnr)
-
-        logger.debug("Finished inserting all persons from open behandlinger in cache in ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
-    }
-
-    fun resetPersonCacheFromAllBehandlinger() {
-        val start = System.currentTimeMillis()
-        emptyPersonCache()
-        logger.debug("Emptied person cache from admin endpoint in pod ${InetAddress.getLocalHost().hostName}, took ${System.currentTimeMillis() - start} ms")
-
-        val allBehandlinger = behandlingRepository.findAll()
-        logger.debug("Found all behandlinger: ${allBehandlinger.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
-
-        val allSakenGjelderFnr = allBehandlinger.filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
-            .map { it.sakenGjelder.partId.value }
-            .distinct()
-
-        val allKlagerFnr = allBehandlinger.filter { it.klager.partId.type == PartIdType.PERSON }
-            .map { it.klager.partId.value }
-            .distinct()
-
-        val allFullmektigFnr = allBehandlinger.filter { it.prosessfullmektig?.partId?.type == PartIdType.PERSON }
-            .map { it.prosessfullmektig?.partId?.value }
-            .distinct()
-
-        val allPersonsInAllBehandlingerFnr =
-            (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
-
-        logger.debug("Found all distinct persons: ${allPersonsInAllBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
-
-        personService.fillPersonCache(allPersonsInAllBehandlingerFnr)
-
-        logger.debug("Finished inserting all persons in cache in ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
     }
 
     @Transactional
