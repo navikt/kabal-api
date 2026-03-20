@@ -24,10 +24,6 @@ class PersonService(
         return klageLookupGateway.getPerson(fnr = fnr, sak = sak)
     }
 
-    fun fillPersonCache(fnrList: List<String>) {
-        TODO()
-    }
-
     fun getFoedselsnummerFromIdent(ident: String): String {
         return klageLookupGateway.getFoedselsnummerFromIdent(ident = ident)
     }
@@ -43,33 +39,5 @@ class PersonService(
             return false
         }
         return true
-    }
-
-    fun fillCacheWithAllMissingPersons() {
-        TODO()
-//        val start = System.currentTimeMillis()
-//        logger.debug("Finding all persons in open behandlinger to fill cache in pod ${InetAddress.getLocalHost().hostName}")
-//        val allOpenBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
-//        logger.debug("Found all open behandlinger: ${allOpenBehandlinger.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
-//
-//        val allSakenGjelderFnr = allOpenBehandlinger.filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
-//            .map { it.sakenGjelder.partId.value }
-//            .distinct()
-//
-//        val allKlagerFnr = allOpenBehandlinger.filter { it.klager.partId.type == PartIdType.PERSON }
-//            .map { it.klager.partId.value }
-//            .distinct()
-//
-//        val allFullmektigFnr = allOpenBehandlinger.filter { it.prosessfullmektig?.partId?.type == PartIdType.PERSON }
-//            .map { it.prosessfullmektig?.partId?.value }
-//            .distinct()
-//
-//        val allPersonsInOpenBehandlingerFnr = (allSakenGjelderFnr + allKlagerFnr + allFullmektigFnr).filterNotNull().distinct()
-//
-//        logger.debug("Found all distinct persons: ${allPersonsInOpenBehandlingerFnr.size}, took ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
-//
-//        fillPersonCache(allPersonsInOpenBehandlingerFnr)
-//
-//        logger.debug("Finished inserting all persons from open behandlinger in cache in ${System.currentTimeMillis() - start} ms in pod ${InetAddress.getLocalHost().hostName}")
     }
 }
