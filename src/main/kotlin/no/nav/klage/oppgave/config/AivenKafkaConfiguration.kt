@@ -66,6 +66,7 @@ class AivenKafkaConfiguration(
             ProducerConfig.ACKS_CONFIG to "1",
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
             ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
+            ProducerConfig.MAX_REQUEST_SIZE_CONFIG to 2097152,
         ) + commonKafkaConfig()
 
         return KafkaTemplate(DefaultKafkaProducerFactory(config))
