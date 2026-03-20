@@ -282,8 +282,8 @@ class AdminService(
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = personService.getPerson(behandling.sakenGjelder.partId.value)
-                    if (person.harBeskyttelsesbehovStrengtFortrolig()) {
+                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value, sak = null)
+                    if (person.strengtFortrolig || person.strengtFortroligUtland) {
                         teamLogger.debug("Protected user in behandling with id {}", behandling.id)
                     }
                 } catch (e: Exception) {
@@ -332,12 +332,12 @@ class AdminService(
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = personService.getPerson(behandling.sakenGjelder.partId.value)
-                    if (person.harBeskyttelsesbehovStrengtFortrolig()) {
+                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value, sak = null)
+                    if (person.strengtFortrolig || person.strengtFortroligUtland) {
                         strengtFortroligBehandlinger.add(behandling.id.toString())
                     }
 
-                    if (person.harBeskyttelsesbehovFortrolig()) {
+                    if (person.fortrolig) {
                         behandling.tildeling?.saksbehandlerident?.let {
                             if (!saksbehandlerService.hasFortroligRole(ident = it)) {
                                 fortroligBehandlinger.add(behandling.id.toString())

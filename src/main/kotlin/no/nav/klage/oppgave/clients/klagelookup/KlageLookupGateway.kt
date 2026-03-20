@@ -54,7 +54,7 @@ class KlageLookupGateway(
     }
 
     fun getPerson(fnr: String, sak: Sak?): Person {
-        return klageLookupClient.getPerson(fnr = fnr, sak = sak)
+        return klageLookupClient.getPerson(fnr = fnr, sak = sak).toPerson()
     }
 
     fun getFoedselsnummerFromIdent(ident: String): String {
@@ -81,6 +81,50 @@ class KlageLookupGateway(
     private fun GroupsResponse.toSaksbehandlerGroups(): SaksbehandlerGroups {
         return SaksbehandlerGroups(
             groups = this.groupIds.map { AzureGroup.of(it) }
+        )
+    }
+
+    private fun PersonResponse.toPerson(): Person {
+        return Person(
+            foedselsnr = foedselsnr,
+            fornavn = fornavn,
+            mellomnavn = mellomnavn,
+            etternavn = etternavn,
+            sammensattNavn = sammensattNavn,
+            kjoenn = kjoenn,
+            doed = doed,
+            strengtFortrolig = strengtFortrolig,
+            strengtFortroligUtland = strengtFortroligUtland,
+            fortrolig = fortrolig,
+            egenAnsatt = egenAnsatt,
+            vergemaalEllerFremtidsfullmakt = vergemaalEllerFremtidsfullmakt,
+            sikkerhetstiltak = sikkerhetstiltak?.toSikkerhetstiltak(),
+            relevantFamily = relevantFamily.map { it.toFamilyMember() },
+        )
+    }
+
+    private fun PersonResponse.SikkerhetstiltakResponse.toSikkerhetstiltak(): Person.Sikkerhetstiltak {
+        return Person.Sikkerhetstiltak(
+            tiltakstype = Person.Sikkerhetstiltak.Tiltakstype.valueOf(tiltakstype),
+            beskrivelse = beskrivelse,
+            gyldigFraOgMed = gyldigFraOgMed,
+            gyldigTilOgMed = gyldigTilOgMed,
+        )
+    }
+
+    private fun PersonResponse.FamilyMemberResponse.toFamilyMember(): Person.FamilyMember {
+        return Person.FamilyMember(
+            foedselsnr = foedselsnr,
+            fornavn = fornavn,
+            mellomnavn = mellomnavn,
+            etternavn = etternavn,
+            sammensattNavn = sammensattNavn,
+            kjoenn = kjoenn,
+            doed = doed,
+            strengtFortrolig = strengtFortrolig,
+            strengtFortroligUtland = strengtFortroligUtland,
+            fortrolig = fortrolig,
+            egenAnsatt = egenAnsatt,
         )
     }
 }

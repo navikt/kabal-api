@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.clients.klagelookup
 import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.exceptions.GroupNotFoundException
 import no.nav.klage.oppgave.exceptions.UserNotFoundException
 import no.nav.klage.oppgave.service.TilgangService
@@ -177,10 +176,8 @@ class KlageLookupClient(
     }
 
     @Retryable
-    fun getPerson(fnr: String, sak: Sak?): Person {
+    fun getPerson(fnr: String, sak: Sak?): PersonResponse {
         return runWithTimingAndLogging {
-            val token = getCorrectBearerToken()
-
             klageLookupWebClient.post()
                 .uri("/person")
                 .bodyValue(
@@ -191,7 +188,7 @@ class KlageLookupClient(
                 )
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    token,
+                    tokenUtil.getAppAccessTokenWithKlageLookupScope(),
                 )
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
@@ -201,22 +198,21 @@ class KlageLookupClient(
                         classLogger = logger,
                     )
                 }
-                .bodyToMono<Person>()
-                .block() ?: throw RuntimeException("Could not get person for fnr")
+                .bodyToMono<PersonResponse>()
+                .block() ?: throw RuntimeException("Could not get person. Response was null.")
         }
     }
 
     @Retryable
     fun getFoedselsnummerFromIdent(ident: String): String {
         return runWithTimingAndLogging {
-            val token = getCorrectBearerToken()
-
-            klageLookupWebClient.get()
-                .uri("/idents/$ident/fnr")
+            klageLookupWebClient.post()
+                .uri("/foedselsnummer")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    token,
+                    tokenUtil.getAppAccessTokenWithKlageLookupScope(),
                 )
+                .bodyValue(IdentRequest(ident = ident))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
@@ -225,22 +221,21 @@ class KlageLookupClient(
                         classLogger = logger,
                     )
                 }
-                .bodyToMono<IdentResponse>()
-                .block()?.ident ?: throw RuntimeException("Could not get foedselsnummer from ident $ident")
+                .bodyToMono<FnrResponse>()
+                .block()?.fnr ?: throw RuntimeException("Could not get fødselsnummer from ident. Response was null.")
         }
     }
 
     @Retryable
     fun getAktoerIdFromIdent(ident: String): String {
         return runWithTimingAndLogging {
-            val token = getCorrectBearerToken()
-
-            klageLookupWebClient.get()
-                .uri("/idents/$ident/aktorid")
+            klageLookupWebClient.post()
+                .uri("/aktoerid")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    token,
+                    tokenUtil.getAppAccessTokenWithKlageLookupScope(),
                 )
+                .bodyValue(IdentRequest(ident = ident))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
@@ -249,8 +244,8 @@ class KlageLookupClient(
                         classLogger = logger,
                     )
                 }
-                .bodyToMono<IdentResponse>()
-                .block()?.ident ?: throw RuntimeException("Could not get aktoerId from ident $ident")
+                .bodyToMono<AktoerIdResponse>()
+                .block()?.aktoerId ?: throw RuntimeException("Could not get aktoerId from ident. Response was null.")
         }
     }
 

@@ -19,3 +19,7 @@ data class Sak(
     val ytelse: Ytelse,
     val fagsystem: Fagsystem,
 )
+
+data class IdentRequest(
+    val ident: String,
+)
