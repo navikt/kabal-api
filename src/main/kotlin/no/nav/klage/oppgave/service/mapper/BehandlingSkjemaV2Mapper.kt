@@ -133,7 +133,7 @@ data class BehandlingSkjemaV2(
     val innsendtDato: LocalDate? = null,
     val sakMottattKaDato: LocalDateTime,
     val sendtTilTrygderetten: LocalDateTime?,
-    val ageStartDate: LocalDate?,
+    val ageStartDate: LocalDate,
     val avsluttetAvSaksbehandlerTidspunkt: LocalDateTime?,
     val returnertFraROLTidspunkt: LocalDateTime?,
     val fristDato: LocalDate?,
