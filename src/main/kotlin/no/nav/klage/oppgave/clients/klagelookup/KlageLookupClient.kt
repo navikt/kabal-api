@@ -188,7 +188,7 @@ class KlageLookupClient(
                 )
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    tokenUtil.getAppAccessTokenWithKlageLookupScope(),
+                    "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
                 )
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
@@ -210,7 +210,7 @@ class KlageLookupClient(
                 .uri("/foedselsnummer")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    tokenUtil.getAppAccessTokenWithKlageLookupScope(),
+                    "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
                 )
                 .bodyValue(IdentRequest(ident = ident))
                 .retrieve()
@@ -233,7 +233,7 @@ class KlageLookupClient(
                 .uri("/aktoerid")
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    tokenUtil.getAppAccessTokenWithKlageLookupScope(),
+                    "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
                 )
                 .bodyValue(IdentRequest(ident = ident))
                 .retrieve()
