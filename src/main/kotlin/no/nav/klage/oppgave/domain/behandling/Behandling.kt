@@ -368,11 +368,15 @@ sealed class Behandling(
         }
     }
 
-    fun toAgeInDays(): Int {
-        val startDate = when (this) {
+    fun getAgeStartDate(): LocalDateTime {
+        return when (this) {
             is BehandlingITrygderetten -> this.sendtTilTrygderetten
             else -> mottattKlageinstans
         }
+    }
+
+    fun toAgeInDays(): Int {
+        val startDate = getAgeStartDate()
         return ChronoUnit.DAYS.between(startDate.toLocalDate(), LocalDate.now()).toInt()
     }
 
