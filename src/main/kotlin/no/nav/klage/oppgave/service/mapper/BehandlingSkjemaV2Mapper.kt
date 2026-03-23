@@ -4,6 +4,7 @@ import no.nav.klage.kodeverk.Kode
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.embedded.MedunderskriverTildeling
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
@@ -92,6 +93,8 @@ fun Behandling.mapToSkjemaV2(
         sakFagsystem = fagsystem.mapToSkjemaV2(),
         sakFagsakId = fagsakId,
         sakMottattKaDato = mottattKlageinstans,
+        sendtTilTrygderetten = if (this is BehandlingITrygderetten) sendtTilTrygderetten else null,
+        ageStartDate = getAgeStartDate().toLocalDate(),
         avsluttetAvSaksbehandlerTidspunkt = ferdigstilling?.avsluttetAvSaksbehandler,
         fristDato = frist,
         varsletFristDato = if (this is BehandlingWithVarsletBehandlingstid) varsletBehandlingstid?.varsletFrist else null,
@@ -129,6 +132,8 @@ data class BehandlingSkjemaV2(
     val sakFagsakId: String,
     val innsendtDato: LocalDate? = null,
     val sakMottattKaDato: LocalDateTime,
+    val sendtTilTrygderetten: LocalDateTime?,
+    val ageStartDate: LocalDate?,
     val avsluttetAvSaksbehandlerTidspunkt: LocalDateTime?,
     val returnertFraROLTidspunkt: LocalDateTime?,
     val fristDato: LocalDate?,
