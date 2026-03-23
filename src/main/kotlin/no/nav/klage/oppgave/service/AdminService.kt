@@ -309,15 +309,6 @@ class AdminService(
         val strengtFortroligBehandlinger = mutableSetOf<String>()
         val fortroligBehandlinger = mutableSetOf<String>()
         val egenAnsattBehandlinger = mutableSetOf<String>()
-        val sakenGjelderFnrList = unfinishedBehandlinger
-            .filter { it.sakenGjelder.partId.type == PartIdType.PERSON }
-            .map { it.sakenGjelder.partId.value }
-            .distinct()
-
-        val pdlStart = System.currentTimeMillis()
-
-        val now = System.currentTimeMillis()
-        logger.debug("Time it took to fill person cache: ${now - pdlStart} millis")
 
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
