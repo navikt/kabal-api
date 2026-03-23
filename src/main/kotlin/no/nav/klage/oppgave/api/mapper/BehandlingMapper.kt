@@ -51,7 +51,7 @@ class BehandlingMapper(
             )
             is AnkeITrygderettenbehandling, is GjenopptakITrygderettenbehandling -> mapBehandlingITrygderettenbehandlingToBehandlingDetaljerView(
                 behandling = behandling,
-                person = person
+                person = person,
             )
             is BehandlingEtterTrygderettenOpphevet -> mapBehandlingEtterTROpphevetToBehandlingDetaljerView(
                 behandlingEtterTrygderettenOpphevet = behandling,
