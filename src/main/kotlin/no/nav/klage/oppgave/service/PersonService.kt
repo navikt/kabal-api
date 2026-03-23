@@ -34,7 +34,7 @@ class PersonService(
 
     fun personExists(fnr: String): Boolean {
         try {
-            getPerson(fnr = fnr, null)
+            getPerson(fnr = fnr, sak = null)
         } catch (e: Exception) {
             return false
         }
