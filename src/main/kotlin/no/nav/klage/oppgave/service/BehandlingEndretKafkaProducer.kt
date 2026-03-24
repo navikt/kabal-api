@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
 import no.nav.klage.oppgave.service.mapper.mapToSkjemaV2
@@ -16,7 +15,6 @@ import java.util.*
 class BehandlingEndretKafkaProducer(
     private val aivenKafkaTemplate: KafkaTemplate<String, String>,
     private val personService: PersonService,
-    private val egenAnsattService: EgenAnsattService,
 ) {
     @Value("\${BEHANDLING_ENDRET_TOPIC_V2}")
     lateinit var topicV2: String

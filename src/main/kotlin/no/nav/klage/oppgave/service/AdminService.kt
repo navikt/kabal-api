@@ -12,7 +12,6 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
@@ -78,7 +77,6 @@ class AdminService(
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val personService: PersonService,
     private val minsideMicrofrontendService: MinsideMicrofrontendService,
-    private val egenAnsattService: EgenAnsattService,
     private val slackClient: SlackClient,
     private val kabalInnstillingerService: KabalInnstillingerService,
     private val applicationEventPublisher: ApplicationEventPublisher,
@@ -326,7 +324,7 @@ class AdminService(
                         }
                     }
 
-                    if (egenAnsattService.erEgenAnsatt(person.foedselsnr)) {
+                    if (person.egenAnsatt) {
                         behandling.tildeling?.saksbehandlerident?.let {
                             if (!saksbehandlerService.hasEgenAnsattRole(ident = it)) {
                                 egenAnsattBehandlinger.add(behandling.id.toString())

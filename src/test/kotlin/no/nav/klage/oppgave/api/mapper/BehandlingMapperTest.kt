@@ -7,7 +7,6 @@ import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
@@ -33,9 +32,6 @@ import java.util.*
 class BehandlingMapperTest {
     @MockkBean
     lateinit var personService: PersonService
-
-    @MockkBean
-    lateinit var egenAnsattService: EgenAnsattService
 
     @MockkBean
     lateinit var norg2Client: Norg2Client
