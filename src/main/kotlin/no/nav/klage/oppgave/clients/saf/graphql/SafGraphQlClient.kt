@@ -139,6 +139,20 @@ class SafGraphQlClient(
     }
 
     @Retryable
+    fun getJournalpostsSkipMissing(journalpostIdSet: Set<String>, systemContext: Boolean): List<Journalpost> {
+        return getJournalpostsSkipMissing(
+            journalpostIdSet = journalpostIdSet,
+            token = if (systemContext) tokenUtil.getAppAccessTokenWithSafScope() else tokenUtil.getSaksbehandlerAccessTokenWithSafScope(),
+            journalpostStatusList = listOf(
+                Journalstatus.FERDIGSTILT,
+                Journalstatus.JOURNALFOERT,
+                Journalstatus.EKSPEDERT,
+                Journalstatus.MOTTATT
+            )
+        )
+    }
+
+    @Retryable
     fun getJournalpostAsSaksbehandler(
         journalpostId: String,
     ): Journalpost {
@@ -178,6 +192,31 @@ class SafGraphQlClient(
                 logErrorsFromSaf(it)
                 failOnErrors(it)
                 it.data!!.journalpost
+            }
+    }
+
+    private fun getJournalpostsSkipMissing(
+        journalpostIdSet: Set<String>,
+        token: String,
+        journalpostStatusList: List<Journalstatus>
+    ): List<Journalpost> {
+        return Flux.fromIterable(journalpostIdSet)
+            .parallel()
+            .runOn(Schedulers.boundedElastic())
+            .flatMap { journalpostId ->
+                getJournalpostWithTokenAsMono(
+                    journalpostId = journalpostId,
+                    token = token
+                )
+            }
+            .ordered { _: JournalpostResponse, _: JournalpostResponse -> 1 }.toIterable()
+            .mapNotNull {
+                if (it == null) throw RuntimeException("No response from SAF")
+                logErrorsFromSaf(it)
+                if (it.data?.journalpost?.journalstatus !in journalpostStatusList) {
+                    return@mapNotNull null
+                }
+                it.data?.journalpost
             }
     }
 
@@ -228,7 +267,8 @@ class SafGraphQlClient(
                 )
             }
             .bodyToMono<JournalpostResponse>()
-            .block()?.data?.journalpost ?: throw RuntimeException("Got null from SAF for journalpost with id $journalpostId")
+            .block()?.data?.journalpost
+            ?: throw RuntimeException("Got null from SAF for journalpost with id $journalpostId")
     }
 
     private fun failOnErrors(response: JournalpostResponse) {

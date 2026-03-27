@@ -53,7 +53,35 @@ class SafFacade(
                 )
             }, "getJournalposts")
         }
+    }
 
+    fun getWashedJournalpostList(
+        journalpostIdSet: Set<String>,
+        fnr: String?,
+        saksbehandlerContext: Boolean,
+        tema: List<Tema> = emptyList(),
+    ): List<Journalpost> {
+        logger.debug("getJournalposter, number of journalpostIds: ${journalpostIdSet.size}. Fnr included: ${fnr?.isNotEmpty()}. SaksbehandlerContext: $saksbehandlerContext")
+        return if (journalpostIdSet.size > 20 && fnr != null) {
+            runWithTimingAndLogging({
+                val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
+                    fnr = fnr,
+                    tema = tema,
+                    systemContext = !saksbehandlerContext,
+                )
+
+                journalpostIdSet.mapNotNull { journalpostId ->
+                    dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }
+                }
+            }, "dokumentoversiktWithPaging washed")
+        } else {
+            runWithTimingAndLogging({
+                safGraphQlClient.getJournalpostsSkipMissing(
+                    journalpostIdSet = journalpostIdSet,
+                    systemContext = !saksbehandlerContext,
+                )
+            }, "getJournalposts washed")
+        }
     }
 
     fun getJournalpostAsSystembruker(

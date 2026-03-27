@@ -1922,7 +1922,7 @@ class BehandlingService(
             systemUserContext = systemUserContext,
         )
 
-        val journalpostListForUser = safFacade.getJournalposter(
+        val journalpostListForUser = safFacade.getWashedJournalpostList(
             journalpostIdSet = journalfoertDokumentReferenceSet.map { it.journalpostId }.toSet(),
             fnr = behandling.sakenGjelder.partId.value,
             saksbehandlerContext = !systemUserContext,
