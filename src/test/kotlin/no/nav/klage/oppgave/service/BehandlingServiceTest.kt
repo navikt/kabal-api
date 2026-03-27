@@ -16,7 +16,6 @@ import no.nav.klage.oppgave.api.view.GosysOppgaveUpdateInput
 import no.nav.klage.oppgave.api.view.MedunderskriverFlowStateResponse
 import no.nav.klage.oppgave.api.view.MedunderskriverWrapped
 import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
@@ -68,9 +67,6 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 
     @MockkBean
     lateinit var personService: PersonService
-
-    @MockkBean
-    lateinit var egenAnsattService: EgenAnsattService
 
     @MockkBean
     lateinit var dokumentUnderArbeidRepository: DokumentUnderArbeidRepository

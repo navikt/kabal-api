@@ -32,7 +32,7 @@ class PartSearchService(
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.getSaksbehandlerAccessToPerson(identifikator).access) {
-                    val person = personService.getPersonInfo(identifikator)
+                    val person = personService.getPerson(fnr = identifikator, sak = null)
                     val krrInfo = if (systemUserContext) {
                         krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
                     } else {
@@ -40,7 +40,7 @@ class PartSearchService(
                     }
                     BehandlingDetaljerView.SearchPartView(
                         identifikator = person.foedselsnr,
-                        name = person.settSammenNavn(),
+                        name = person.sammensattNavn,
                         type = BehandlingDetaljerView.IdType.FNR,
                         available = person.doed == null,
                         language = krrInfo?.spraak,
@@ -83,7 +83,7 @@ class PartSearchService(
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.getSaksbehandlerAccessToPerson(identifikator).access) {
-                    val person = personService.getPersonInfo(identifikator)
+                    val person = personService.getPerson(fnr = identifikator, sak = null)
                     val krrInfo = if (systemUserContext) {
                         krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
                     } else {
@@ -91,7 +91,7 @@ class PartSearchService(
                     }
                     BehandlingDetaljerView.SearchPartViewWithUtsendingskanal(
                         identifikator = person.foedselsnr,
-                        name = person.settSammenNavn(),
+                        name = person.sammensattNavn,
                         type = BehandlingDetaljerView.IdType.FNR,
                         available = person.doed == null,
                         language = krrInfo?.spraak,
@@ -138,11 +138,11 @@ class PartSearchService(
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.getSaksbehandlerAccessToPerson(identifikator).access) {
-                    val person = personService.getPersonInfo(identifikator)
+                    val person = personService.getPerson(fnr = identifikator, sak = null)
                     val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
                     BehandlingDetaljerView.SearchPersonView(
                         identifikator = person.foedselsnr,
-                        name = person.settSammenNavn(),
+                        name = person.sammensattNavn,
                         type = BehandlingDetaljerView.IdType.FNR,
                         available = person.doed == null,
                         sex = person.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }

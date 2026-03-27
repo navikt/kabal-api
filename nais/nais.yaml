@@ -115,7 +115,6 @@ spec:
   envFrom:
     - secret: srvklage-saksbeh
     - secret: sts-apikey
-    - secret: pdl-apikey
     - secret: oppgave-apikey
     - secret: slack-url
     - secret: slack-channel-id

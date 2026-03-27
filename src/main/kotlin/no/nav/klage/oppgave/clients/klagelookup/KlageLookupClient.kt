@@ -48,10 +48,10 @@ class KlageLookupClient(
             val accessRequest = AccessRequest(
                 brukerId = brukerId,
                 navIdent = navIdent,
-                sak = if (sakId != null && ytelse != null && fagsystem != null) AccessRequest.Sak(
+                sak = if (sakId != null && ytelse != null && fagsystem != null) Sak(
                     sakId = sakId,
                     ytelse = ytelse,
-                    fagsystem = fagsystem
+                    fagsystem = fagsystem,
                 ) else null,
             )
 
@@ -175,7 +175,81 @@ class KlageLookupClient(
         }
     }
 
-    fun <T> runWithTimingAndLogging(block: () -> T): T {
+    @Retryable
+    fun getPerson(fnr: String, sak: Sak?): PersonResponse {
+        return runWithTimingAndLogging {
+            klageLookupWebClient.post()
+                .uri("/person")
+                .bodyValue(
+                    GetPersonRequest(
+                        fnr = fnr,
+                        sak = sak,
+                    )
+                )
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getPerson.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<PersonResponse>()
+                .block() ?: throw RuntimeException("Could not get person. Response was null.")
+        }
+    }
+
+    @Retryable
+    fun getFoedselsnummerFromIdent(ident: String): String {
+        return runWithTimingAndLogging {
+            klageLookupWebClient.post()
+                .uri("/foedselsnummer")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
+                )
+                .bodyValue(IdentRequest(ident = ident))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getFoedselsnummerFromIdent.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<FnrResponse>()
+                .block()?.fnr ?: throw RuntimeException("Could not get fødselsnummer from ident. Response was null.")
+        }
+    }
+
+    @Retryable
+    fun getAktoerIdFromIdent(ident: String): String {
+        return runWithTimingAndLogging {
+            klageLookupWebClient.post()
+                .uri("/aktoerid")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
+                )
+                .bodyValue(IdentRequest(ident = ident))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getAktoerIdFromIdent.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<AktoerIdResponse>()
+                .block()?.aktoerId ?: throw RuntimeException("Could not get aktoerId from ident. Response was null.")
+        }
+    }
+
+    private fun <T> runWithTimingAndLogging(block: () -> T): T {
         val start = System.currentTimeMillis()
         try {
             return block.invoke()
@@ -191,4 +265,5 @@ class KlageLookupClient(
             TokenUtil.TokenType.CC, TokenUtil.TokenType.UNAUTHENTICATED -> "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}"
         }
     }
+
 }
