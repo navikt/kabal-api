@@ -31,35 +31,7 @@ class SafFacade(
         fnr: String?,
         saksbehandlerContext: Boolean,
         tema: List<Tema> = emptyList(),
-    ): List<Journalpost> {
-        logger.debug("getJournalposter, number of journalpostIds: ${journalpostIdSet.size}. Fnr included: ${fnr?.isNotEmpty()}. SaksbehandlerContext: $saksbehandlerContext")
-        return if (journalpostIdSet.size > 20 && fnr != null) {
-                runWithTimingAndLogging({
-                    val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
-                        fnr = fnr,
-                        tema = tema,
-                        systemContext = !saksbehandlerContext,
-                    )
-
-                journalpostIdSet.map { journalpostId ->
-                    dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId } ?: throw RuntimeException("Journalpost $journalpostId not found in dokumentOversiktBruker")
-                }
-            }, "dokumentoversiktWithPaging")
-        } else {
-            runWithTimingAndLogging({
-                safGraphQlClient.getJournalposts(
-                    journalpostIdSet = journalpostIdSet,
-                    systemContext = !saksbehandlerContext,
-                )
-            }, "getJournalposts")
-        }
-    }
-
-    fun getWashedJournalpostList(
-        journalpostIdSet: Set<String>,
-        fnr: String?,
-        saksbehandlerContext: Boolean,
-        tema: List<Tema> = emptyList(),
+        skipMissing: Boolean = false,
     ): List<Journalpost> {
         logger.debug("getJournalposter, number of journalpostIds: ${journalpostIdSet.size}. Fnr included: ${fnr?.isNotEmpty()}. SaksbehandlerContext: $saksbehandlerContext")
         return if (journalpostIdSet.size > 20 && fnr != null) {
@@ -72,15 +44,17 @@ class SafFacade(
 
                 journalpostIdSet.mapNotNull { journalpostId ->
                     dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }
+                        ?: if (skipMissing) null else throw RuntimeException("Journalpost $journalpostId not found in dokumentOversiktBruker")
                 }
-            }, "dokumentoversiktWithPaging washed")
+            }, "dokumentoversiktWithPaging")
         } else {
             runWithTimingAndLogging({
-                safGraphQlClient.getJournalpostsSkipMissing(
+                safGraphQlClient.getJournalposts(
                     journalpostIdSet = journalpostIdSet,
                     systemContext = !saksbehandlerContext,
+                    skipMissing = skipMissing,
                 )
-            }, "getJournalposts washed")
+            }, "getJournalposts")
         }
     }
 

@@ -131,18 +131,15 @@ class SafGraphQlClient(
     }
 
     @Retryable
-    fun getJournalposts(journalpostIdSet: Set<String>, systemContext: Boolean): List<Journalpost> {
+    fun getJournalposts(
+        journalpostIdSet: Set<String>,
+        systemContext: Boolean,
+        skipMissing: Boolean
+    ): List<Journalpost> {
         return getJournalposts(
             journalpostIdSet = journalpostIdSet,
-            token = if (systemContext) tokenUtil.getAppAccessTokenWithSafScope() else tokenUtil.getSaksbehandlerAccessTokenWithSafScope()
-        )
-    }
-
-    @Retryable
-    fun getJournalpostsSkipMissing(journalpostIdSet: Set<String>, systemContext: Boolean): List<Journalpost> {
-        return getJournalpostsSkipMissing(
-            journalpostIdSet = journalpostIdSet,
             token = if (systemContext) tokenUtil.getAppAccessTokenWithSafScope() else tokenUtil.getSaksbehandlerAccessTokenWithSafScope(),
+            skipMissing = skipMissing,
             journalpostStatusList = listOf(
                 Journalstatus.FERDIGSTILT,
                 Journalstatus.JOURNALFOERT,
@@ -175,6 +172,8 @@ class SafGraphQlClient(
     private fun getJournalposts(
         journalpostIdSet: Set<String>,
         token: String,
+        journalpostStatusList: List<Journalstatus>,
+        skipMissing: Boolean,
     ): List<Journalpost> {
 
         return Flux.fromIterable(journalpostIdSet)
@@ -188,35 +187,16 @@ class SafGraphQlClient(
             }
             .ordered { _: JournalpostResponse, _: JournalpostResponse -> 1 }.toIterable()
             .mapNotNull {
-                if (it == null) throw RuntimeException("No response from SAF")
-                logErrorsFromSaf(it)
-                failOnErrors(it)
-                it.data!!.journalpost
-            }
-    }
-
-    private fun getJournalpostsSkipMissing(
-        journalpostIdSet: Set<String>,
-        token: String,
-        journalpostStatusList: List<Journalstatus>
-    ): List<Journalpost> {
-        return Flux.fromIterable(journalpostIdSet)
-            .parallel()
-            .runOn(Schedulers.boundedElastic())
-            .flatMap { journalpostId ->
-                getJournalpostWithTokenAsMono(
-                    journalpostId = journalpostId,
-                    token = token
-                )
-            }
-            .ordered { _: JournalpostResponse, _: JournalpostResponse -> 1 }.toIterable()
-            .mapNotNull {
-                if (it == null) throw RuntimeException("No response from SAF")
-                logErrorsFromSaf(it)
                 if (it.data?.journalpost?.journalstatus !in journalpostStatusList) {
                     return@mapNotNull null
                 }
-                it.data?.journalpost
+                logErrorsFromSaf(it)
+                if (skipMissing) {
+                    it.data?.journalpost
+                } else {
+                    failOnErrors(it)
+                    it.data!!.journalpost
+                }
             }
     }
 
