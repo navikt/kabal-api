@@ -1926,6 +1926,7 @@ class BehandlingService(
             journalpostIdSet = journalfoertDokumentReferenceSet.map { it.journalpostId }.toSet(),
             fnr = behandling.sakenGjelder.partId.value,
             saksbehandlerContext = !systemUserContext,
+            skipMissing = true
         )
 
         if (journalpostListForUser.any { it.journalstatus == Journalstatus.MOTTATT }) {
