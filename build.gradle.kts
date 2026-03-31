@@ -13,7 +13,7 @@ val logbackSyslog4jVersion = "1.0.0"
 val pdfboxVersion = "3.0.7"
 val tikaVersion = "3.3.0"
 val verapdfVersion = "1.28.2"
-val klageKodeverkVersion = "3.2.6"
+val klageKodeverkVersion = "3.2.7"
 val commonsFileupload2JakartaVersion = "2.0.0-M5"
 val otelVersion = "1.60.1"
 val mikrofrontendSelectorVersion = "3.0.0"
@@ -22,7 +22,7 @@ val confluentVersion = "8.2.0"
 val reactorKafkaVersion = "1.3.25"
 
 plugins {
-    val kotlinVersion = "2.3.10"
+    val kotlinVersion = "2.3.20"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
