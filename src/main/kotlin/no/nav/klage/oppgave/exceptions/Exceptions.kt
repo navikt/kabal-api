@@ -36,13 +36,6 @@ class IllegalOperation(msg: String) : RuntimeException(msg)
 
 class FeilregistreringException(msg: String) : RuntimeException(msg)
 
-/**
- * When PDL-api works, but responds with an error for some reason
- */
-class PDLErrorException(msg: String) : RuntimeException(msg)
-
-class PDLPersonNotFoundException(msg: String) : RuntimeException(msg)
-
 class EREGOrganizationNotFoundException(msg: String) : RuntimeException(msg)
 
 class KodeverkNotFoundException(msg: String) : RuntimeException(msg)

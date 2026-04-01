@@ -1,6 +1,5 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.oppgave.clients.egenansatt.EgenAnsattService
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
 import no.nav.klage.oppgave.service.mapper.mapToSkjemaV2
@@ -16,7 +15,6 @@ import java.util.*
 class BehandlingEndretKafkaProducer(
     private val aivenKafkaTemplate: KafkaTemplate<String, String>,
     private val personService: PersonService,
-    private val egenAnsattService: EgenAnsattService,
 ) {
     @Value("\${BEHANDLING_ENDRET_TOPIC_V2}")
     lateinit var topicV2: String
@@ -31,12 +29,12 @@ class BehandlingEndretKafkaProducer(
     fun sendBehandlingEndret(behandling: Behandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
         val personInfo = if (behandling.sakenGjelder.erPerson()) {
-            personService.getPersonInfo(fnr = behandling.sakenGjelder.partId.value)
+            personService.getPerson(fnr = behandling.sakenGjelder.partId.value, sak = null)
         } else null
 
-        val erStrengtFortrolig = personInfo?.harBeskyttelsesbehovStrengtFortrolig() ?: false
-        val erFortrolig = personInfo?.harBeskyttelsesbehovFortrolig() ?: false
-        val erEgenAnsatt = personInfo?.let { egenAnsattService.erEgenAnsatt(foedselsnr = it.foedselsnr) } ?: false
+        val erStrengtFortrolig = personInfo?.strengtFortrolig == true || personInfo?.strengtFortroligUtland == true
+        val erFortrolig = personInfo?.fortrolig ?: false
+        val erEgenAnsatt = personInfo?.egenAnsatt ?: false
 
         val json = behandling.mapToSkjemaV2(
             erStrengtFortrolig = erStrengtFortrolig,

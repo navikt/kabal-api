@@ -8,7 +8,6 @@ import no.nav.klage.oppgave.api.view.SaksbehandlerView
 import no.nav.klage.oppgave.clients.gosysoppgave.*
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.kafka.*
@@ -27,7 +26,7 @@ import java.util.*
 @Service
 class GosysOppgaveService(
     private val gosysOppgaveClient: GosysOppgaveClient,
-    private val pdlFacade: PdlFacade,
+    private val personService: PersonService,
     private val norg2Client: Norg2Client,
     private val saksbehandlerService: SaksbehandlerService,
     private val kafkaInternalEventService: KafkaInternalEventService,
@@ -379,7 +378,7 @@ class GosysOppgaveService(
     }
 
     fun getGosysOppgaveList(fnr: String, tema: Tema?): List<GosysOppgaveView> {
-        val aktoerId = pdlFacade.getAktorIdFromIdent(ident = fnr)
+        val aktoerId = personService.getAktoerIdFromIdent(ident = fnr)
 
         val temaList = if (tema != null) {
             if (tema == Tema.MED) {

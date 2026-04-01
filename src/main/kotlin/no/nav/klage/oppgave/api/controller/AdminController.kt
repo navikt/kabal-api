@@ -317,20 +317,6 @@ class AdminController(
         adminService.setPreviousBehandlingId(dryRun = dryRun)
     }
 
-    @GetMapping("/reload-cache-all-behandlinger")
-    @ResponseStatus(HttpStatus.OK)
-    fun reloadCacheAllBehandlinger() {
-        logger.debug("reloadCacheAllBehandlinger is called")
-        adminService.resetPersonCacheFromAllBehandlinger()
-    }
-
-    @GetMapping("/reload-cache-open-behandlinger")
-    @ResponseStatus(HttpStatus.OK)
-    fun reloadCacheOpenBehandlinger() {
-        logger.debug("reloadCacheOpenBehandlinger is called")
-        adminService.resetPersonCacheFromOpenBehandlinger()
-    }
-
     @GetMapping(value = ["/opprettet-event/{behandlingId}", "/opprettet-event"], produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun generateOpprettetEvent(

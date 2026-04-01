@@ -80,12 +80,6 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.BAD_REQUEST, ex)
 
     @ExceptionHandler
-    fun handlePDLPersonNotFoundException(
-        ex: PDLPersonNotFoundException,
-    ): ProblemDetail =
-        create(HttpStatus.NOT_FOUND, ex)
-
-    @ExceptionHandler
     fun handleEREGOrganizationNotFoundException(
         ex: EREGOrganizationNotFoundException,
     ): ProblemDetail =
