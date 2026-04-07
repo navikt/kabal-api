@@ -779,12 +779,37 @@ class BehandlingMapper(
                 name = familyMember.sammensattNavn,
                 sex = familyMember.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }
                     ?: BehandlingDetaljerView.Sex.UKJENT,
-                dead = familyMember.doed,
-                egenAnsatt = familyMember.egenAnsatt,
-                fortrolig = familyMember.fortrolig,
-                strengtFortrolig = familyMember.strengtFortrolig || familyMember.strengtFortroligUtland,
+                statusList = buildFamilyMemberStatusList(familyMember),
             )
         }
+    }
+
+    private fun buildFamilyMemberStatusList(familyMember: Person.FamilyMember): List<BehandlingDetaljerView.PartStatus> {
+        val statusList = mutableListOf<BehandlingDetaljerView.PartStatus>()
+
+        if (familyMember.doed != null) {
+            statusList += BehandlingDetaljerView.PartStatus(
+                status = BehandlingDetaljerView.PartStatus.Status.DEAD,
+                date = familyMember.doed,
+            )
+        }
+        if (familyMember.fortrolig) {
+            statusList += BehandlingDetaljerView.PartStatus(
+                status = BehandlingDetaljerView.PartStatus.Status.FORTROLIG,
+            )
+        }
+        if (familyMember.strengtFortrolig || familyMember.strengtFortroligUtland) {
+            statusList += BehandlingDetaljerView.PartStatus(
+                status = BehandlingDetaljerView.PartStatus.Status.STRENGT_FORTROLIG,
+            )
+        }
+        if (familyMember.egenAnsatt) {
+            statusList += BehandlingDetaljerView.PartStatus(
+                status = BehandlingDetaljerView.PartStatus.Status.EGEN_ANSATT,
+            )
+        }
+
+        return statusList
     }
 
     fun Behandling.mapToVedtakView(): VedtakView {

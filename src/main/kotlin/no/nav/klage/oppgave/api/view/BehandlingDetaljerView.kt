@@ -58,10 +58,7 @@ data class BehandlingDetaljerView(
         val identifikator: String,
         val name: String,
         val sex: Sex,
-        val dead: LocalDate?,
-        val egenAnsatt: Boolean,
-        val fortrolig: Boolean,
-        val strengtFortrolig: Boolean,
+        val statusList: List<PartStatus>,
     )
 
     data class Sikkerhetstiltak(
