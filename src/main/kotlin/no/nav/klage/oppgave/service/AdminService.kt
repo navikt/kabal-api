@@ -102,7 +102,7 @@ class AdminService(
         do {
             val behandlingPage = behandlingRepository.findAll(pageable)
 
-            behandlingPage.content.map { behandling ->
+            behandlingPage.content.forEach { behandling ->
                 try {
                     behandlingEndretKafkaProducer.sendBehandlingEndret(behandling)
                 } catch (e: Exception) {
