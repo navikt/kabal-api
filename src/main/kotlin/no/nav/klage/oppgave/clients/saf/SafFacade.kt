@@ -31,18 +31,20 @@ class SafFacade(
         fnr: String?,
         saksbehandlerContext: Boolean,
         tema: List<Tema> = emptyList(),
+        skipMissing: Boolean = false,
     ): List<Journalpost> {
         logger.debug("getJournalposter, number of journalpostIds: ${journalpostIdSet.size}. Fnr included: ${fnr?.isNotEmpty()}. SaksbehandlerContext: $saksbehandlerContext")
         return if (journalpostIdSet.size > 20 && fnr != null) {
-                runWithTimingAndLogging({
-                    val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
-                        fnr = fnr,
-                        tema = tema,
-                        systemContext = !saksbehandlerContext,
-                    )
+            runWithTimingAndLogging({
+                val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
+                    fnr = fnr,
+                    tema = tema,
+                    systemContext = !saksbehandlerContext,
+                )
 
-                journalpostIdSet.map { journalpostId ->
-                    dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId } ?: throw RuntimeException("Journalpost $journalpostId not found in dokumentOversiktBruker")
+                journalpostIdSet.mapNotNull { journalpostId ->
+                    dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }
+                        ?: if (skipMissing) null else throw RuntimeException("Journalpost $journalpostId not found in dokumentOversiktBruker")
                 }
             }, "dokumentoversiktWithPaging")
         } else {
@@ -50,10 +52,10 @@ class SafFacade(
                 safGraphQlClient.getJournalposts(
                     journalpostIdSet = journalpostIdSet,
                     systemContext = !saksbehandlerContext,
+                    skipMissing = skipMissing,
                 )
             }, "getJournalposts")
         }
-
     }
 
     fun getJournalpostAsSystembruker(

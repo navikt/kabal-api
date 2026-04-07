@@ -397,7 +397,8 @@ class BehandlingService(
                 Type.KLAGE,
             ) && behandling.utfall !in noKvalitetsvurderingNeeded
         ) {
-            val kvalitetsvurderingValidationErrors = kakaApiGateway.getValidationErrors(behandling as BehandlingWithKvalitetsvurdering)
+            val kvalitetsvurderingValidationErrors =
+                kakaApiGateway.getValidationErrors(behandling as BehandlingWithKvalitetsvurdering)
 
             if (kvalitetsvurderingValidationErrors.isNotEmpty()) {
                 sectionList.add(
@@ -790,7 +791,8 @@ class BehandlingService(
                 throw IllegalOperation("Kan ikke fradele behandling sendt til medunderskriver.")
             }
 
-            val unreadNotificationsForBehandling = klageNotificationsApiClient.getUnreadCount(behandlingId = behandlingId)
+            val unreadNotificationsForBehandling =
+                klageNotificationsApiClient.getUnreadCount(behandlingId = behandlingId)
             if (behandling.tildeling?.saksbehandlerident == utfoerendeSaksbehandlerIdent && unreadNotificationsForBehandling > 0) {
                 throw IllegalOperation("Du må markere alle varsler knyttet til behandlingen som lest før du kan fradele behandlingen. Uleste varsler: $unreadNotificationsForBehandling.")
             }
@@ -1060,7 +1062,8 @@ class BehandlingService(
             ignoreCheckSkrivetilgang = true,
             systemUserContext = systemUserContext
         )
-        val utfoerendeIdent = if (systemUserContext) systembrukerIdent else innloggetSaksbehandlerService.getInnloggetIdent()
+        val utfoerendeIdent =
+            if (systemUserContext) systembrukerIdent else innloggetSaksbehandlerService.getInnloggetIdent()
         val utfoerendeNavn = if (systemUserContext) systembrukerIdent else getUtfoerendeNavn(utfoerendeIdent)
 
         if (behandling.medunderskriverFlowState != FlowState.RETURNED) {
@@ -1340,7 +1343,8 @@ class BehandlingService(
         utfoerendeSaksbehandlerIdent: String
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(
-            behandlingId
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()
         )
 
         if (behandling is BehandlingITrygderetten) {
@@ -1357,7 +1361,8 @@ class BehandlingService(
         utfoerendeSaksbehandlerIdent: String
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(
-            behandlingId
+            behandlingId = behandlingId,
+            ignoreCheckSkrivetilgang = innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()
         )
 
         if (behandling is BehandlingITrygderetten) {
@@ -1926,6 +1931,7 @@ class BehandlingService(
             journalpostIdSet = journalfoertDokumentReferenceSet.map { it.journalpostId }.toSet(),
             fnr = behandling.sakenGjelder.partId.value,
             saksbehandlerContext = !systemUserContext,
+            skipMissing = true
         )
 
         if (journalpostListForUser.any { it.journalstatus == Journalstatus.MOTTATT }) {
@@ -2029,7 +2035,7 @@ class BehandlingService(
                             }.toSet(),
                             traceparent = currentTraceparent(),
 
-                        )
+                            )
                     ),
                     behandlingId = behandling.id,
                     type = InternalEventType.INCLUDED_DOCUMENTS_REMOVED,
@@ -2162,7 +2168,7 @@ class BehandlingService(
                         }.toSet(),
                         traceparent = currentTraceparent(),
 
-                    )
+                        )
                 ),
                 behandlingId = behandling.id,
                 type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
@@ -2326,7 +2332,11 @@ class BehandlingService(
         navIdent: String,
         kildereferanse: String
     ): Behandling {
-        logger.debug("Fagsystem {} is attempting to feilregistrere behandling with kildereferanse: {}", fagsystem, kildereferanse)
+        logger.debug(
+            "Fagsystem {} is attempting to feilregistrere behandling with kildereferanse: {}",
+            fagsystem,
+            kildereferanse
+        )
         teamLogger.debug(
             "Fagsystem {} is attempting to feilregistrere {}, due to {}, with kildereferanse: {} by saksbehandler: {}",
             fagsystem,
@@ -3039,7 +3049,10 @@ class BehandlingService(
             it.modified = LocalDateTime.now()
 
             try {
-                kakaApiGateway.deleteKvalitetsvurdering(kvalitetsvurderingId = oldKvalitetsvurderingId!!, kvalitetsvurderingVersion = 2)
+                kakaApiGateway.deleteKvalitetsvurdering(
+                    kvalitetsvurderingId = oldKvalitetsvurderingId!!,
+                    kvalitetsvurderingVersion = 2
+                )
             } catch (notFound: WebClientResponseException.NotFound) {
                 logger.warn("Got a 404 deleting kvalitetsvurdering with id $oldKvalitetsvurderingId. Continuing.")
             }

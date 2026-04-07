@@ -1,6 +1,7 @@
 pool: nav-dev
 config:
   cleanupPolicy: delete
+  maxMessageBytes: 2097176
   minimumInSyncReplicas: 1
   partitions: 1
   replication: 3
