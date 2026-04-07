@@ -3011,19 +3011,6 @@ class BehandlingService(
         )
     }
 
-    fun indexAllBehandlingerForSakenGjelderFnr(sakenGjelderFnr: String) {
-        val behandlinger = behandlingRepository.findBySakenGjelderPartIdValue(
-            partIdValue = sakenGjelderFnr
-        )
-        behandlinger.forEach { behandling ->
-            try {
-                behandlingEndretKafkaProducer.sendBehandlingEndret(behandling)
-            } catch (e: Exception) {
-                logger.error("Failed to index behandling ${behandling.id}", e)
-            }
-        }
-    }
-
     //TODO: Delete after run
     @Scheduled(cron = "\${MIGRATE_CRON}", zone = "Europe/Oslo")
     @SchedulerLock(name = "migrateKvalitetsvurderingerFromV2ToV3")
