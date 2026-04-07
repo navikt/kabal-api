@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.oppgave.clients.klagelookup.Sak
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
 import no.nav.klage.oppgave.service.mapper.mapToSkjemaV2
@@ -29,7 +30,13 @@ class BehandlingEndretKafkaProducer(
     fun sendBehandlingEndret(behandling: Behandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
         val personInfo = if (behandling.sakenGjelder.erPerson()) {
-            personService.getPerson(fnr = behandling.sakenGjelder.partId.value, sak = null)
+            personService.getPerson(
+                fnr = behandling.sakenGjelder.partId.value, sak = Sak(
+                    sakId = behandling.fagsakId,
+                    ytelse = behandling.ytelse,
+                    fagsystem = behandling.fagsystem,
+                )
+            )
         } else null
 
         val erStrengtFortrolig = personInfo?.strengtFortrolig == true || personInfo?.strengtFortroligUtland == true
@@ -51,7 +58,10 @@ class BehandlingEndretKafkaProducer(
             logger.debug("${behandling.type.navn} endret sent to Kafka.")
         }.onFailure {
             logger.error("Could not send ${behandling.type.navn} endret to Kafka. Need to resend behandling ${behandling.id}. Check team-logs for more details.")
-            teamLogger.error("Could not send behandling ${behandling.id} endret to Kafka. Need to resend behandling ${behandling.id}", it)
+            teamLogger.error(
+                "Could not send behandling ${behandling.id} endret to Kafka. Need to resend behandling ${behandling.id}",
+                it
+            )
         }
     }
 
