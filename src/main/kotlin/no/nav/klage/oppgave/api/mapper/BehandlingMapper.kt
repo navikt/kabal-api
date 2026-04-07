@@ -627,7 +627,8 @@ class BehandlingMapper(
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
                 address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
-                utsendingskanal = utsendingskanal
+                utsendingskanal = utsendingskanal,
+                familyMembers = person.toFamilyMemberViews(),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -769,6 +770,21 @@ class BehandlingMapper(
                 gyldigTilOgMed = sikkerhetstiltak.gyldigTilOgMed,
             )
         } else null
+    }
+
+    private fun Person.toFamilyMemberViews(): List<BehandlingDetaljerView.FamilyMemberView> {
+        return relevantFamily.map { familyMember ->
+            BehandlingDetaljerView.FamilyMemberView(
+                identifikator = familyMember.foedselsnr,
+                name = familyMember.sammensattNavn,
+                sex = familyMember.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }
+                    ?: BehandlingDetaljerView.Sex.UKJENT,
+                dead = familyMember.doed,
+                egenAnsatt = familyMember.egenAnsatt,
+                fortrolig = familyMember.fortrolig,
+                strengtFortrolig = familyMember.strengtFortrolig || familyMember.strengtFortroligUtland,
+            )
+        }
     }
 
     fun Behandling.mapToVedtakView(): VedtakView {
