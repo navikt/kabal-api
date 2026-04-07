@@ -1,6 +1,10 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.micrometer.core.instrument.MeterRegistry
+import io.opentelemetry.api.GlobalOpenTelemetry
+import io.opentelemetry.api.trace.SpanKind
+import io.opentelemetry.context.Context
+import io.opentelemetry.context.propagation.TextMapGetter
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.config.SecurityConfiguration
@@ -13,10 +17,7 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.MediaType
 import org.springframework.http.codec.ServerSentEvent
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import reactor.core.publisher.Flux
 import tools.jackson.databind.JsonNode
 import tools.jackson.module.kotlin.jacksonObjectMapper
@@ -58,7 +59,15 @@ class EventController(
     @GetMapping("/events", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
     fun events(
         @PathVariable("behandlingId") behandlingId: UUID,
+        @RequestParam("traceparent", required = false) traceparent: String?,
     ): Flux<ServerSentEvent<JsonNode>> {
+        val otelContext = extractOtelContext(traceparent)
+        val span = GlobalOpenTelemetry.getTracer("kabal-api")
+            .spanBuilder("SSE /behandlinger/$behandlingId/events")
+            .setParent(otelContext)
+            .setSpanKind(SpanKind.SERVER)
+            .startSpan()
+
         val behandlingView = behandlingService.getBehandlingDetaljerView(behandlingId = behandlingId)
 
         //https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#mvc-ann-async-disconnects
@@ -78,6 +87,22 @@ class EventController(
             .mergeWith(emitFirstHeartbeat)
             .mergeWith(heartbeatStream)
             .mergeWith(identityEventPublisher)
+            .doFinally { span.end() }
+            .contextWrite { ctx -> ctx.put("otel-context", span.storeInContext(otelContext)) }
+    }
+
+    private fun extractOtelContext(traceparent: String?): Context {
+        if (traceparent == null) return Context.current()
+
+        val carrier = mapOf("traceparent" to traceparent)
+        return GlobalOpenTelemetry.getPropagators().textMapPropagator.extract(
+            Context.current(),
+            carrier,
+            object : TextMapGetter<Map<String, String>> {
+                override fun keys(carrier: Map<String, String>): Iterable<String> = carrier.keys
+                override fun get(carrier: Map<String, String>?, key: String): String? = carrier?.get(key)
+            }
+        )
     }
 
     private fun getBehandlingEventPublisher(
