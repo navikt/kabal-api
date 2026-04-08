@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.oppgave.clients.klagelookup.Sak
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
 import no.nav.klage.oppgave.service.mapper.mapToSkjemaV2
@@ -16,6 +16,7 @@ import java.util.*
 class BehandlingEndretKafkaProducer(
     private val aivenKafkaTemplate: KafkaTemplate<String, String>,
     private val personService: PersonService,
+    private val klageLookupClient: KlageLookupClient,
 ) {
     @Value("\${BEHANDLING_ENDRET_TOPIC_V2}")
     lateinit var topicV2: String
@@ -42,11 +43,14 @@ class BehandlingEndretKafkaProducer(
         val erStrengtFortrolig = personInfo?.strengtFortrolig == true || personInfo?.strengtFortroligUtland == true
         val erFortrolig = personInfo?.fortrolig ?: false
         val erEgenAnsatt = personInfo?.egenAnsatt ?: false
+        val medunderskriverEnhet =
+            behandling.medunderskriver?.saksbehandlerident?.let { klageLookupClient.getUserInfo(navIdent = it).enhet.enhetNr }
 
         val json = behandling.mapToSkjemaV2(
             erStrengtFortrolig = erStrengtFortrolig,
             erFortrolig = erFortrolig,
-            erEgenAnsatt = erEgenAnsatt
+            erEgenAnsatt = erEgenAnsatt,
+            medunderskriverEnhet = medunderskriverEnhet,
         ).toJson()
 
         runCatching {
