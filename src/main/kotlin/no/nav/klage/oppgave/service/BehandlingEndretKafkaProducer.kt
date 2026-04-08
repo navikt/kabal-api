@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupClient
+import no.nav.klage.oppgave.clients.klagelookup.Sak
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
 import no.nav.klage.oppgave.service.mapper.mapToSkjemaV2
