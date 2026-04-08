@@ -41,10 +41,15 @@ private fun Tildeling.mapToSkjemaV2(): BehandlingSkjemaV2.TildeltSaksbehandler {
     )
 }
 
-private fun MedunderskriverTildeling.mapToSkjemaV2(): BehandlingSkjemaV2.TildeltMedunderskriver {
-    return BehandlingSkjemaV2.TildeltMedunderskriver(
+private fun MedunderskriverTildeling.mapToSkjemaV2(medunderskriverEnhet: String?): BehandlingSkjemaV2.TildeltSaksbehandler {
+    return BehandlingSkjemaV2.TildeltSaksbehandler(
         tidspunkt = this.tidspunkt,
-        saksbehandler = this.saksbehandlerident?.let { BehandlingSkjemaV2.Saksbehandler(it) }
+        saksbehandler = this.saksbehandlerident?.let { BehandlingSkjemaV2.Saksbehandler(it) },
+        enhet = medunderskriverEnhet?.let {
+            BehandlingSkjemaV2.Enhet(
+                nr = it,
+            )
+        }
     )
 }
 
@@ -83,7 +88,8 @@ private fun Set<Saksdokument>.mapToSkjemaV2(): List<BehandlingSkjemaV2.Dokument>
 fun Behandling.mapToSkjemaV2(
     erStrengtFortrolig: Boolean,
     erFortrolig: Boolean,
-    erEgenAnsatt: Boolean
+    erEgenAnsatt: Boolean,
+    medunderskriverEnhet: String?
 ): BehandlingSkjemaV2 {
     return BehandlingSkjemaV2(
         id = id.toString(),
@@ -99,7 +105,7 @@ fun Behandling.mapToSkjemaV2(
         fristDato = frist,
         varsletFristDato = if (this is BehandlingWithVarsletBehandlingstid) varsletBehandlingstid?.varsletFrist else null,
         gjeldendeTildeling = tildeling?.mapToSkjemaV2(),
-        medunderskriver = medunderskriver?.mapToSkjemaV2(),
+        medunderskriver = medunderskriver?.mapToSkjemaV2(medunderskriverEnhet = medunderskriverEnhet),
         medunderskriverFlowStateId = medunderskriverFlowState.id,
         hjemler = hjemler.map { it.mapToSkjemaV2() },
         saksdokumenter = saksdokumenter.mapToSkjemaV2(),
@@ -139,7 +145,7 @@ data class BehandlingSkjemaV2(
     val fristDato: LocalDate?,
     val varsletFristDato: LocalDate?,
     val gjeldendeTildeling: TildeltSaksbehandler?,
-    val medunderskriver: TildeltMedunderskriver?,
+    val medunderskriver: TildeltSaksbehandler?,
     val medunderskriverFlowStateId: String,
     val hjemler: List<Kode>,
 
