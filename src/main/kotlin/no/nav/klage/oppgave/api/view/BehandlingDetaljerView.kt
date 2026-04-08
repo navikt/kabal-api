@@ -54,7 +54,7 @@ data class BehandlingDetaljerView(
     val timesPreviouslyExtended: Int,
 ) {
 
-    data class FamilyMemberView(
+    data class ProtectedFamilyMemberView(
         val identifikator: String,
         val name: String,
         val sex: Sex,
@@ -223,7 +223,7 @@ data class BehandlingDetaljerView(
         val sex: Sex,
         val address: Address?,
         val utsendingskanal: Utsendingskanal,
-        val familyMembers: List<FamilyMemberView>,
+        val protectedFamilyMembers: List<ProtectedFamilyMemberView>,
     ): PartBase, IdPart, TechnicalPartId
 
     enum class Utsendingskanal(val navn: String) {

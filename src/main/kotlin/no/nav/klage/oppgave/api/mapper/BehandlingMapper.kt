@@ -628,7 +628,7 @@ class BehandlingMapper(
                 statusList = getStatusList(person, krrInfo),
                 address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
                 utsendingskanal = utsendingskanal,
-                familyMembers = person.toFamilyMemberViews(),
+                protectedFamilyMembers = person.toProtectedFamilyMemberViews(),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -772,9 +772,9 @@ class BehandlingMapper(
         } else null
     }
 
-    private fun Person.toFamilyMemberViews(): List<BehandlingDetaljerView.FamilyMemberView> {
-        return relevantFamily.map { familyMember ->
-            BehandlingDetaljerView.FamilyMemberView(
+    private fun Person.toProtectedFamilyMemberViews(): List<BehandlingDetaljerView.ProtectedFamilyMemberView> {
+        return protectedFamilyMembers.map { familyMember ->
+            BehandlingDetaljerView.ProtectedFamilyMemberView(
                 identifikator = familyMember.foedselsnr,
                 name = familyMember.sammensattNavn,
                 sex = familyMember.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }
@@ -784,26 +784,20 @@ class BehandlingMapper(
         }
     }
 
-    private fun buildFamilyMemberStatusList(familyMember: Person.FamilyMember): List<BehandlingDetaljerView.PartStatus> {
+    private fun buildFamilyMemberStatusList(protectedFamilyMember: Person.ProtectedFamilyMember): List<BehandlingDetaljerView.PartStatus> {
         val statusList = mutableListOf<BehandlingDetaljerView.PartStatus>()
 
-        if (familyMember.doed != null) {
-            statusList += BehandlingDetaljerView.PartStatus(
-                status = BehandlingDetaljerView.PartStatus.Status.DEAD,
-                date = familyMember.doed,
-            )
-        }
-        if (familyMember.fortrolig) {
+        if (protectedFamilyMember.fortrolig) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.FORTROLIG,
             )
         }
-        if (familyMember.strengtFortrolig || familyMember.strengtFortroligUtland) {
+        if (protectedFamilyMember.strengtFortrolig || protectedFamilyMember.strengtFortroligUtland) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.STRENGT_FORTROLIG,
             )
         }
-        if (familyMember.egenAnsatt) {
+        if (protectedFamilyMember.egenAnsatt) {
             statusList += BehandlingDetaljerView.PartStatus(
                 status = BehandlingDetaljerView.PartStatus.Status.EGEN_ANSATT,
             )

@@ -99,7 +99,7 @@ class KlageLookupGateway(
             egenAnsatt = egenAnsatt,
             vergemaalEllerFremtidsfullmakt = vergemaalEllerFremtidsfullmakt,
             sikkerhetstiltak = sikkerhetstiltak?.toSikkerhetstiltak(),
-            relevantFamily = relevantFamily.map { it.toFamilyMember() },
+            protectedFamilyMembers = protectedFamilyMembers.map { it.toFamilyMember() },
         )
     }
 
@@ -112,8 +112,8 @@ class KlageLookupGateway(
         )
     }
 
-    private fun PersonResponse.FamilyMemberResponse.toFamilyMember(): Person.FamilyMember {
-        return Person.FamilyMember(
+    private fun PersonResponse.ProtectedFamilyMemberResponse.toFamilyMember(): Person.ProtectedFamilyMember {
+        return Person.ProtectedFamilyMember(
             foedselsnr = foedselsnr,
             fornavn = fornavn,
             mellomnavn = mellomnavn,

@@ -55,10 +55,10 @@ data class PersonResponse(
     val egenAnsatt: Boolean,
     val vergemaalEllerFremtidsfullmakt: Boolean,
     val sikkerhetstiltak: SikkerhetstiltakResponse?,
-    val relevantFamily: List<FamilyMemberResponse>,
+    val protectedFamilyMembers: List<ProtectedFamilyMemberResponse>,
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
-    data class FamilyMemberResponse(
+    data class ProtectedFamilyMemberResponse(
         val foedselsnr: String,
         val fornavn: String,
         val mellomnavn: String?,

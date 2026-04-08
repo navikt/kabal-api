@@ -16,9 +16,9 @@ data class Person(
     val egenAnsatt: Boolean,
     val vergemaalEllerFremtidsfullmakt: Boolean,
     val sikkerhetstiltak: Sikkerhetstiltak?,
-    val relevantFamily: List<FamilyMember>,
+    val protectedFamilyMembers: List<ProtectedFamilyMember>,
 ) {
-    data class FamilyMember(
+    data class ProtectedFamilyMember(
         val foedselsnr: String,
         val fornavn: String,
         val mellomnavn: String?,
