@@ -11,7 +11,6 @@ import no.nav.klage.oppgave.api.view.LogiskVedleggResponse
 import no.nav.klage.oppgave.clients.dokarkiv.DokarkivClient
 import no.nav.klage.oppgave.clients.dokarkiv.UpdateDocumentTitleDokumentInput
 import no.nav.klage.oppgave.clients.dokarkiv.UpdateDocumentTitlesJournalpostInput
-import no.nav.klage.oppgave.clients.pdl.PdlFacade
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.DokumentInfo
 import no.nav.klage.oppgave.clients.saf.graphql.DokumentoversiktBruker
@@ -62,7 +61,7 @@ class DokumentService(
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val saksbehandlerService: SaksbehandlerService,
-    private val pdlFacade: PdlFacade,
+    private val personService: PersonService,
     private val dokarkivClient: DokarkivClient,
     private val tokenUtil: TokenUtil
 ) {
@@ -512,7 +511,7 @@ class DokumentService(
             journalpostId = journalpostId,
         )
 
-        val foedselsnummer = pdlFacade.getFoedselsnummerFromIdent(journalpost.bruker.id)
+        val foedselsnummer = personService.getFoedselsnummerFromIdent(journalpost.bruker.id)
 
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
 

@@ -53,6 +53,14 @@ data class BehandlingDetaljerView(
     val tilbakekreving: Boolean,
     val timesPreviouslyExtended: Int,
 ) {
+
+    data class ProtectedFamilyMemberView(
+        val identifikator: String,
+        val name: String,
+        val sex: Sex,
+        val statusList: List<PartStatus>,
+    )
+
     data class Sikkerhetstiltak(
         val tiltakstype: Tiltakstype,
         val beskrivelse: String,
@@ -215,6 +223,7 @@ data class BehandlingDetaljerView(
         val sex: Sex,
         val address: Address?,
         val utsendingskanal: Utsendingskanal,
+        val protectedFamilyMembers: List<ProtectedFamilyMemberView>,
     ): PartBase, IdPart, TechnicalPartId
 
     enum class Utsendingskanal(val navn: String) {

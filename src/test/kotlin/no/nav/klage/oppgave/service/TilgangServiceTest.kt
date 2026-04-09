@@ -11,7 +11,6 @@ import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.*
-import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import org.assertj.core.api.Assertions.assertThat
@@ -144,16 +143,4 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     gosysOppgaveRequired = false,
     initiatingSystem = Behandling.InitiatingSystem.KABAL,
     previousBehandlingId = null,
-)
-
-fun getPerson(): Person = Person(
-    foedselsnr = "",
-    fornavn = "",
-    mellomnavn = "",
-    etternavn = "",
-    beskyttelsesbehov = null,
-    kjoenn = "",
-    vergemaalEllerFremtidsfullmakt = false,
-    doed = null,
-    sikkerhetstiltak = null,
 )

@@ -2828,7 +2828,7 @@ class BehandlingService(
     }
 
     fun getSakenGjelderView(behandlingId: UUID): BehandlingDetaljerView.SakenGjelderView {
-        return behandlingMapper.getSakenGjelderView(getBehandlingAndCheckReadAccessToSak(behandlingId).sakenGjelder)
+        return behandlingMapper.getSakenGjelderView(getBehandlingAndCheckReadAccessToSak(behandlingId))
     }
 
     fun getFradelingReason(behandlingId: UUID): WithPrevious<no.nav.klage.oppgave.api.view.TildelingEvent>? {
@@ -3009,19 +3009,6 @@ class BehandlingService(
         return gosysOppgave.copy(
             alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(gosysOppgave.id)
         )
-    }
-
-    fun indexAllBehandlingerForSakenGjelderFnr(sakenGjelderFnr: String) {
-        val behandlinger = behandlingRepository.findBySakenGjelderPartIdValue(
-            partIdValue = sakenGjelderFnr
-        )
-        behandlinger.forEach { behandling ->
-            try {
-                behandlingEndretKafkaProducer.sendBehandlingEndret(behandling)
-            } catch (e: Exception) {
-                logger.error("Failed to index behandling ${behandling.id}", e)
-            }
-        }
     }
 
     //TODO: Delete after run

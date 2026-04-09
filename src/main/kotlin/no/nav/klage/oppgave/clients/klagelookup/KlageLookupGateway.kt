@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
 import no.nav.klage.kodeverk.AzureGroup
+import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroups
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
@@ -52,7 +53,19 @@ class KlageLookupGateway(
         )
     }
 
-    fun ExtendedUserResponse.toSaksbehandlerPersonligInfo(): SaksbehandlerPersonligInfo {
+    fun getPerson(fnr: String, sak: Sak?): Person {
+        return klageLookupClient.getPerson(fnr = fnr, sak = sak).toPerson()
+    }
+
+    fun getFoedselsnummerFromIdent(ident: String): String {
+        return klageLookupClient.getFoedselsnummerFromIdent(ident = ident)
+    }
+
+    fun getAktoerIdFromIdent(ident: String): String {
+        return klageLookupClient.getAktoerIdFromIdent(ident = ident)
+    }
+
+    private fun ExtendedUserResponse.toSaksbehandlerPersonligInfo(): SaksbehandlerPersonligInfo {
         return SaksbehandlerPersonligInfo(
             navIdent = this.navIdent,
             fornavn = this.fornavn,
@@ -65,9 +78,53 @@ class KlageLookupGateway(
         )
     }
 
-    fun GroupsResponse.toSaksbehandlerGroups(): SaksbehandlerGroups {
+    private fun GroupsResponse.toSaksbehandlerGroups(): SaksbehandlerGroups {
         return SaksbehandlerGroups(
             groups = this.groupIds.map { AzureGroup.of(it) }
+        )
+    }
+
+    private fun PersonResponse.toPerson(): Person {
+        return Person(
+            foedselsnr = foedselsnr,
+            fornavn = fornavn,
+            mellomnavn = mellomnavn,
+            etternavn = etternavn,
+            sammensattNavn = sammensattNavn,
+            kjoenn = kjoenn,
+            doed = doed,
+            strengtFortrolig = strengtFortrolig,
+            strengtFortroligUtland = strengtFortroligUtland,
+            fortrolig = fortrolig,
+            egenAnsatt = egenAnsatt,
+            vergemaalEllerFremtidsfullmakt = vergemaalEllerFremtidsfullmakt,
+            sikkerhetstiltak = sikkerhetstiltak?.toSikkerhetstiltak(),
+            protectedFamilyMembers = protectedFamilyMembers.map { it.toFamilyMember() },
+        )
+    }
+
+    private fun PersonResponse.SikkerhetstiltakResponse.toSikkerhetstiltak(): Person.Sikkerhetstiltak {
+        return Person.Sikkerhetstiltak(
+            tiltakstype = Person.Sikkerhetstiltak.Tiltakstype.valueOf(tiltakstype),
+            beskrivelse = beskrivelse,
+            gyldigFraOgMed = gyldigFraOgMed,
+            gyldigTilOgMed = gyldigTilOgMed,
+        )
+    }
+
+    private fun PersonResponse.ProtectedFamilyMemberResponse.toFamilyMember(): Person.ProtectedFamilyMember {
+        return Person.ProtectedFamilyMember(
+            foedselsnr = foedselsnr,
+            fornavn = fornavn,
+            mellomnavn = mellomnavn,
+            etternavn = etternavn,
+            sammensattNavn = sammensattNavn,
+            kjoenn = kjoenn,
+            doed = doed,
+            strengtFortrolig = strengtFortrolig,
+            strengtFortroligUtland = strengtFortroligUtland,
+            fortrolig = fortrolig,
+            egenAnsatt = egenAnsatt,
         )
     }
 }
