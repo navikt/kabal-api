@@ -412,42 +412,8 @@ class AdminService(
     fun cleanupExpiredAssignees() {
         if (!schedulerHealthGate.isReady()) return
         logger.info("Running scheduled expired assignee check.")
-        val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
-        unfinishedBehandlinger.forEach {
-            val assignedMedunderskriver = it.medunderskriver?.saksbehandlerident
-            if (assignedMedunderskriver != null) {
-                if (checkIfAssigneeIsExpired(navIdent = assignedMedunderskriver)) {
-                    logger.info("Behandling ${it.id} has expired medunderskriver: $assignedMedunderskriver, setting to null.")
-                    behandlingService.setMedunderskriverAndMedunderskriverFlowToNull(
-                        behandlingId = it.id,
-                        systemUserContext = true
-                    )
-                }
-            }
-
-            val assignedRol = it.rolIdent
-            if (assignedRol != null) {
-                if (checkIfAssigneeIsExpired(navIdent = assignedRol)) {
-                    logger.info("Behandling ${it.id} has expired rol: $assignedRol, setting to null.")
-                    behandlingService.setRolToNullInSystemContext(it.id)
-                }
-            }
-
-            val assignedSaksbehandler = it.tildeling?.saksbehandlerident
-            if (assignedSaksbehandler != null) {
-                if (checkIfAssigneeIsExpired(navIdent = assignedSaksbehandler)) {
-                    logger.info("Behandling ${it.id} has expired tildeling: $assignedSaksbehandler, setting to null.")
-                    behandlingService.setExpiredTildeltSaksbehandlerToNullInSystemContext(it.id)
-                }
-            }
-        }
-
+        handleInvalidUsers()
         logger.info("Scheduled expired assignee check completed.")
-    }
-
-    private fun checkIfAssigneeIsExpired(navIdent: String): Boolean {
-        val nomInfo = saksbehandlerService.getAnsattInfoFromNom(navIdent = navIdent)
-        return nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true
     }
 
     fun handleInvalidUsers() {
@@ -490,12 +456,30 @@ class AdminService(
 
         logger.debug("Found removables: $behandlingerWhereRolShouldBeRemoved, $behandlingerWhereMuShouldBeRemoved, $behandlingerWhereTildelingShouldBeRemoved")
 
-//        behandlingerWhereRolShouldBeRemoved
-//            .asSequence()
-//            .forEach {
-//                logger.info("Behandling ${it.id} has expired rol: ${it.rolIdent}, setting to null.")
-//                behandlingService.setRolToNullInSystemContext(it.id)
-//            }
+        behandlingerWhereRolShouldBeRemoved
+            .asSequence()
+            .forEach {
+                logger.info("Behandling ${it.id} has expired rol: ${it.rolIdent}, setting to null.")
+                behandlingService.setRolToNullInSystemContext(it.id)
+            }
+
+        behandlingerWhereMuShouldBeRemoved
+            .asSequence()
+            .forEach {
+                logger.info("Behandling ${it.id} has expired mu: ${it.rolIdent}, setting to null.")
+                behandlingService.setMedunderskriverAndMedunderskriverFlowToNull(
+                    behandlingId = it.id,
+                    systemUserContext = true
+                )
+            }
+
+        behandlingerWhereTildelingShouldBeRemoved
+            .asSequence()
+            .forEach {
+                //TODO: Gå gjennom og kvalitetssjekk fradelingslogikken. Varsler, ev. andre ting.
+                logger.info("Behandling ${it.id} has expired mu: ${it.rolIdent}, setting to null.")
+                behandlingService.setExpiredTildeltSaksbehandlerToNullInSystemContext(it.id)
+            }
     }
 
     private fun getUsersToRemove(candidates: Set<String>): Set<String> {
