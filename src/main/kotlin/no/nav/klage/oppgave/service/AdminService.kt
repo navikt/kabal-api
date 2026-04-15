@@ -513,6 +513,7 @@ class AdminService(
             }.map { it.id }
             .toSet()
 
+        logger.debug("Found users no longer in Nav: $usersNoLongerInNav")
         val furtherCandidates = candidates - usersNoLongerInNav
 
         val enhetByNavn = Enhet.entries.associateBy { it.navn }
@@ -531,6 +532,8 @@ class AdminService(
                     .map { it.navIdent }
                     .toSet()
             }
+
+        logger.debug("Found users no longer in enhet: $usersNoLongerInCorrectEnhet")
 
         val usersToRemove = usersNoLongerInNav + usersNoLongerInCorrectEnhet
         return usersToRemove
