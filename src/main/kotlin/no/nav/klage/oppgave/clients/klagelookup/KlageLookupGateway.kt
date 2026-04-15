@@ -24,6 +24,12 @@ class KlageLookupGateway(
         return data.toSaksbehandlerPersonligInfo()
     }
 
+    fun getUserInfoForNavIdentList(navIdentList: List<String>): List<SaksbehandlerPersonligInfo> {
+        logger.debug("Getting user info for $navIdentList from KlageLookup")
+        val data = klageLookupClient.getUserInfoBatched(navIdentList = navIdentList)
+        return data.hits.map { it.toSaksbehandlerPersonligInfo() }
+    }
+
     fun getGroupsForGivenNavIdent(navIdent: String): SaksbehandlerGroups {
         logger.debug("Getting group memberships for $navIdent from KlageLookup")
         val data = klageLookupClient.getUserGroups(navIdent = navIdent)

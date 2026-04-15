@@ -2,17 +2,34 @@ package no.nav.klage.oppgave.clients.nom
 
 import java.time.LocalDate
 
-data class GetAnsattResponse(val data: DataWrapper?, val errors: List<NomError>? = null) {
+data class GetAnsattResponse(val data: GetAnsattDataWrapper?, val errors: List<NomError>? = null) {
     override fun toString(): String {
         return "GetAnsattResponse(data=$data, errors=$errors)"
     }
 }
 
-data class DataWrapper(val ressurs: Ansatt?) {
+data class GetAnsatteResponse(val data: GetAnsatteDataWrapper?, val errors: List<NomError>? = null) {
+    override fun toString(): String {
+        return "GetAnsatteResponse(data=$data, errors=$errors)"
+    }
+}
+
+data class GetAnsattDataWrapper(val ressurs: Ansatt?) {
     override fun toString(): String {
         return "DataWrapper(ressurs=$ressurs)"
     }
 }
+
+data class GetAnsatteDataWrapper(val ressurser: List<Ressurs>) {
+    override fun toString(): String {
+        return "DataWrapper(ressurser=$ressurser)"
+    }
+}
+
+data class Ressurs(
+    val id: String,
+    val ressurs: Ansatt?,
+)
 
 data class Ansatt(
     val navident: String,

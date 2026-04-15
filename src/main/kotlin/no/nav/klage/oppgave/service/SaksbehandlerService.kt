@@ -4,6 +4,7 @@ import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.nom.GetAnsattResponse
+import no.nav.klage.oppgave.clients.nom.GetAnsatteResponse
 import no.nav.klage.oppgave.clients.nom.NomClient
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
@@ -54,6 +55,11 @@ class SaksbehandlerService(
 
     fun getAnsattInfoFromNom(navIdent: String): GetAnsattResponse {
         val ansatt = nomClient.getAnsatt(navIdent)
+        return ansatt
+    }
+
+    fun getAnsattInfoFromNomBatched(navIdentList: List<String>): GetAnsatteResponse {
+        val ansatt = nomClient.getAnsatteBatched(navIdentList)
         return ansatt
     }
 

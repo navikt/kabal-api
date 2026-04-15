@@ -59,4 +59,31 @@ class NomClient(
             }
         }
     }
+
+    @Retryable
+    fun getAnsatteBatched(navIdentList: List<String>): GetAnsatteResponse {
+        return runWithTiming {
+            val query = getAnsatteQuery(navIdentList)
+            logger.debug("query: {}", query)
+            val token = tokenUtil.getAppAccessTokenWithNomScope()
+            try {
+                nomWebClient.post()
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                    .bodyValue(query)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError) { response ->
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getAnsatteBatched.name,
+                            classLogger = logger,
+                        )
+                    }
+                    .bodyToMono<GetAnsatteResponse>()
+                    .block() ?: throw RuntimeException("Ansatte not found")
+            } catch (e: Exception) {
+                logger.error("Could not get ansatte info for navIdents $navIdentList", e)
+                throw e
+            }
+        }
+    }
 }

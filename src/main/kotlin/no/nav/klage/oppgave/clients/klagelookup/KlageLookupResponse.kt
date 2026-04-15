@@ -15,6 +15,12 @@ data class UserResponse (
 )
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+data class ExtendedUsersResponse(
+    val hits: List<ExtendedUserResponse>,
+    val misses: List<String>
+)
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 data class ExtendedUserResponse (
     val navIdent: String,
     val sammensattNavn: String,

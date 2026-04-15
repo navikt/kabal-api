@@ -7,15 +7,19 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsH
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
+import no.nav.klage.kodeverk.Enhet
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
+import no.nav.klage.kodeverk.klageenheter
+import no.nav.klage.kodeverk.styringsenheter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.DOK_DIST_KANAL
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHETER_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHET_CACHE
@@ -83,6 +87,7 @@ class AdminService(
     private val entityManager: EntityManager,
     private val schedulerHealthGate: SchedulerHealthGate,
     private val merkantilRepository: TaskListMerkantilRepository,
+    private val klageLookupGateway: KlageLookupGateway,
 ) {
 
     @Value($$"${KLAGE_BACKEND_GROUP_ID}")
@@ -286,7 +291,8 @@ class AdminService(
     @SchedulerLock(name = "findInaccessibleBehandlinger", lockAtLeastFor = "PT1M")
     fun logInaccessibleBehandlinger() {
         if (!schedulerHealthGate.isReady()) return
-        val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler()
+        val unfinishedBehandlinger =
+            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler()
         teamLogger.debug(
             "Checking for inaccessible behandlinger. Number of unfinished behandlinger: {}",
             unfinishedBehandlinger.size
@@ -351,7 +357,8 @@ class AdminService(
 
     fun checkForUnavailableDueToHjemler(unfinishedBehandlingerInput: List<Behandling>?): String {
         val unfinishedBehandlinger =
-            unfinishedBehandlingerInput ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler()
+            unfinishedBehandlingerInput
+                ?: behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler()
         val start = System.currentTimeMillis()
         val unavailableBehandlinger = mutableSetOf<Behandling>()
         val missingHjemmelInRegistryBehandling = mutableSetOf<Pair<UUID, Set<Hjemmel>>>()
@@ -411,7 +418,10 @@ class AdminService(
             if (assignedMedunderskriver != null) {
                 if (checkIfAssigneeIsExpired(navIdent = assignedMedunderskriver)) {
                     logger.info("Behandling ${it.id} has expired medunderskriver: $assignedMedunderskriver, setting to null.")
-                    behandlingService.setMedunderskriverAndMedunderskriverFlowToNull(behandlingId = it.id, systemUserContext = true)
+                    behandlingService.setMedunderskriverAndMedunderskriverFlowToNull(
+                        behandlingId = it.id,
+                        systemUserContext = true
+                    )
                 }
             }
 
@@ -438,6 +448,92 @@ class AdminService(
     private fun checkIfAssigneeIsExpired(navIdent: String): Boolean {
         val nomInfo = saksbehandlerService.getAnsattInfoFromNom(navIdent = navIdent)
         return nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true
+    }
+
+    fun handleInvalidUsers() {
+        val unfinishedBehandlingerWithRol =
+            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullAndRolIdentIsNotNull()
+
+        val unfinishedBehandlingerWithMu =
+            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullAndMedunderskriverIsNotNull()
+
+        val unfinishedBehandlingerWithTildeling =
+            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullAndTildelingIsNotNull()
+
+        val rolCandidates = unfinishedBehandlingerWithRol
+            .asSequence()
+            .mapNotNull { it.rolIdent }
+            .toSet()
+
+        val muCandidates = unfinishedBehandlingerWithMu
+            .asSequence()
+            .mapNotNull { it.medunderskriver!!.saksbehandlerident }
+            .toSet()
+
+        val tildelingCandidates = unfinishedBehandlingerWithTildeling
+            .asSequence()
+            .mapNotNull { it.tildeling!!.saksbehandlerident }
+            .toSet()
+
+        val identsToRemove = getUsersToRemove(rolCandidates + muCandidates + tildelingCandidates)
+
+        logger.debug("Found expired idents: $identsToRemove, proceeding to remove from behandlinger.")
+
+        val behandlingerWhereRolShouldBeRemoved =
+            unfinishedBehandlingerWithRol.filter { it.rolIdent in identsToRemove }
+
+        val behandlingerWhereMuShouldBeRemoved =
+            unfinishedBehandlingerWithMu.filter { it.medunderskriver!!.saksbehandlerident in identsToRemove }
+
+        val behandlingerWhereTildelingShouldBeRemoved =
+            unfinishedBehandlingerWithTildeling.filter { it.tildeling!!.saksbehandlerident in identsToRemove }
+
+        logger.debug("Found removables: $behandlingerWhereRolShouldBeRemoved, $behandlingerWhereMuShouldBeRemoved, $behandlingerWhereTildelingShouldBeRemoved")
+
+//        behandlingerWhereRolShouldBeRemoved
+//            .asSequence()
+//            .forEach {
+//                logger.info("Behandling ${it.id} has expired rol: ${it.rolIdent}, setting to null.")
+//                behandlingService.setRolToNullInSystemContext(it.id)
+//            }
+    }
+
+    private fun getUsersToRemove(candidates: Set<String>): Set<String> {
+        val nomInfoForCandidates =
+            saksbehandlerService.getAnsattInfoFromNomBatched(navIdentList = candidates.toList())
+
+        val usersNoLongerInNav = nomInfoForCandidates.data
+            ?.ressurser
+            .orEmpty()
+            .asSequence()
+            .filter {
+                it.ressurs?.sluttdato?.isBefore(
+                    LocalDate.now().minusWeeks(1)
+                ) == true
+            }.map { it.id }
+            .toSet()
+
+        val furtherCandidates = candidates - usersNoLongerInNav
+
+        val enhetByNavn = Enhet.entries.associateBy { it.navn }
+        val allowedEnheter = (styringsenheter + klageenheter).toSet()
+
+        val usersNoLongerInCorrectEnhet =
+            if (furtherCandidates.isEmpty()) {
+                emptySet()
+            } else {
+                klageLookupGateway.getUserInfoForNavIdentList(navIdentList = furtherCandidates.toList())
+                    .asSequence()
+                    .filter { info ->
+                        val enhet = enhetByNavn[info.enhet.enhetId]
+                        enhet !in allowedEnheter
+                    }
+                    .map { it.navIdent }
+                    .toSet()
+            }
+
+        val usersToRemove = usersNoLongerInNav + usersNoLongerInCorrectEnhet
+        return usersToRemove
     }
 
     @Transactional

@@ -1,0 +1,9 @@
+query getAnsatte($navidenter: [String!]!){
+    ressurser(where: {navidenter: $navidenter}){
+        id
+        ressurs {
+            navident
+            sluttdato
+        }
+    }
+}
