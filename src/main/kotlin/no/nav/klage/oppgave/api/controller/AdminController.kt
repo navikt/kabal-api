@@ -335,6 +335,36 @@ class AdminController(
 
     data class Comment(val comment: String)
 
+    @PostMapping("/backfill-persongalleri", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun backfillPersongalleri() {
+        logger.debug("backfillPersongalleri is called")
+        krevAdminTilgang()
+        try {
+            logger.info("Backfilling persongalleri for FS36 klagebehandlinger")
+            adminService.backfillPersongalleri()
+            logger.info("Finished backfilling persongalleri")
+        } catch (e: Exception) {
+            logger.warn("Failed to backfill persongalleri", e)
+            throw e
+        }
+    }
+
+    @GetMapping("/backfill-person-protection", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun backfillPersonProtection() {
+        logger.debug("backfillPersonProtection is called")
+        krevAdminTilgang()
+        try {
+            logger.info("Backfilling person protection for all unique sakenGjelder")
+            adminService.backfillPersonProtection()
+            logger.info("Finished backfilling person protection")
+        } catch (e: Exception) {
+            logger.warn("Failed to backfill person protection", e)
+            throw e
+        }
+    }
+
     private fun krevAdminTilgang() {
         if (!innloggetSaksbehandlerService.isKabalAdmin()) {
             throw MissingTilgangException("Not an admin")

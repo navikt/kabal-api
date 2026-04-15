@@ -1,7 +1,6 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
-import no.nav.klage.oppgave.clients.klagelookup.Sak
 import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
@@ -20,8 +19,8 @@ class PersonService(
     /**
      * Caller must perform appropriate access checks before calling this method
      */
-    fun getPerson(fnr: String, sak: Sak?): Person {
-        return klageLookupGateway.getPerson(fnr = fnr, sak = sak)
+    fun getPerson(fnr: String): Person {
+        return klageLookupGateway.getPerson(fnr = fnr)
     }
 
     fun getFoedselsnummerFromIdent(ident: String): String {
@@ -34,7 +33,7 @@ class PersonService(
 
     fun personExists(fnr: String): Boolean {
         try {
-            getPerson(fnr = fnr, sak = null)
+            getPerson(fnr = fnr)
         } catch (e: Exception) {
             return false
         }

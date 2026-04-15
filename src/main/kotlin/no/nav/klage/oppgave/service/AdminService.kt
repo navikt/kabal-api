@@ -7,6 +7,7 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsH
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
@@ -16,6 +17,7 @@ import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.DOK_DIST_KANAL
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHETER_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.ENHET_CACHE
@@ -29,6 +31,7 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.PERSON
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.POSTSTEDER_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
 import no.nav.klage.oppgave.config.SchedulerHealthGate
+import no.nav.klage.oppgave.domain.PersonProtection
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
@@ -83,6 +86,10 @@ class AdminService(
     private val entityManager: EntityManager,
     private val schedulerHealthGate: SchedulerHealthGate,
     private val merkantilRepository: TaskListMerkantilRepository,
+    private val klagebehandlingService: KlagebehandlingService,
+    private val sakPersongalleriRepository: SakPersongalleriRepository,
+    private val klageLookupGateway: KlageLookupGateway,
+    private val personProtectionRepository: PersonProtectionRepository,
 ) {
 
     @Value($$"${KLAGE_BACKEND_GROUP_ID}")
@@ -270,7 +277,7 @@ class AdminService(
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value, sak = null)
+                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value)
                     if (person.strengtFortrolig || person.strengtFortroligUtland) {
                         teamLogger.debug("Protected user in behandling with id {}", behandling.id)
                     }
@@ -311,7 +318,7 @@ class AdminService(
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value, sak = null)
+                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value)
                     if (person.strengtFortrolig || person.strengtFortroligUtland) {
                         strengtFortroligBehandlinger.add(behandling.id.toString())
                     }
@@ -828,5 +835,88 @@ class AdminService(
         }
 
         logger.debug("setPreviousBehandlingId is done. Updated $updatedCount behandlinger, skipped $skippedCount behandlinger that already had previousBehandlingId set, and $nullCount behandlinger had no previousBehandlingId to set.")
+    }
+
+    @Transactional
+    fun backfillPersongalleri() {
+        val fs36Klagebehandlinger = klagebehandlingRepository.findByFagsystemAndFeilregistreringIsNull(Fagsystem.FS36)
+
+        logger.debug("Found {} FS36 klagebehandlinger for persongalleri backfill", fs36Klagebehandlinger.size)
+
+        var backfilledCount = 0
+        var skippedCount = 0
+
+        fs36Klagebehandlinger.forEach { klagebehandling ->
+            val existing = sakPersongalleriRepository.findByFagsystemAndFagsakId(
+                fagsystem = klagebehandling.fagsystem,
+                fagsakId = klagebehandling.fagsakId,
+            )
+
+            if (existing.isEmpty()) {
+                try {
+                    klagebehandlingService.populatePersongalleriAndProtection(klagebehandling)
+                    backfilledCount++
+                    logger.debug("Backfilled persongalleri for klagebehandling {}", klagebehandling.id)
+                } catch (e: Exception) {
+                    logger.warn("Failed to backfill persongalleri for klagebehandling {}", klagebehandling.id, e)
+                }
+            } else {
+                skippedCount++
+            }
+        }
+
+        logger.debug("Backfill persongalleri done. Backfilled: {}, skipped (already exists): {}", backfilledCount, skippedCount)
+    }
+
+    @Transactional
+    fun backfillPersonProtection() {
+        val fnrList = behandlingRepository.findDistinctSakenGjelderPersonValues()
+
+        val existingFnr = personProtectionRepository.findAll()
+            .map { it.foedselsnummer }
+            .toSet()
+
+        val missingFnr = fnrList.filter { it !in existingFnr }
+
+        logger.debug(
+            "Backfill person protection: {} unique sakenGjelder persons, {} already have protection, {} to backfill",
+            fnrList.size,
+            existingFnr.size,
+            missingFnr.size,
+        )
+
+        var createdCount = 0
+        var failedCount = 0
+
+        missingFnr.chunked(1000).forEach { batch ->
+            try {
+                val personList = klageLookupGateway.getPersonBulk(fnrList = batch)
+
+                personList.forEach { person ->
+                    personProtectionRepository.save(
+                        PersonProtection(
+                            foedselsnummer = person.foedselsnr,
+                            fortrolig = person.fortrolig,
+                            strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
+                            skjermet = person.egenAnsatt,
+                        )
+                    )
+                    createdCount++
+                }
+
+                val returnedFnrs = personList.map { it.foedselsnr }.toSet()
+                val missedInBatch = batch.count { it !in returnedFnrs }
+                if (missedInBatch > 0) {
+                    failedCount += missedInBatch
+                }
+
+                logger.debug("Backfilled person protection batch: created {}, total so far: {}", personList.size, createdCount)
+            } catch (e: Exception) {
+                logger.warn("Failed to backfill person protection for batch of {} persons", batch.size, e)
+                failedCount += batch.size
+            }
+        }
+
+        logger.debug("Backfill person protection done. Created: {}, failed/missed: {}", createdCount, failedCount)
     }
 }

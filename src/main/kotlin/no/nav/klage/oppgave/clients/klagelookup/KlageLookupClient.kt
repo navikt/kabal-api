@@ -176,14 +176,13 @@ class KlageLookupClient(
     }
 
     @Retryable
-    fun getPerson(fnr: String, sak: Sak?): PersonResponse {
+    fun getPerson(fnr: String): PersonResponse {
         return runWithTimingAndLogging {
             klageLookupWebClient.post()
                 .uri("/person")
                 .bodyValue(
                     GetPersonRequest(
                         fnr = fnr,
-                        sak = sak,
                     )
                 )
                 .header(
@@ -200,6 +199,56 @@ class KlageLookupClient(
                 }
                 .bodyToMono<PersonResponse>()
                 .block() ?: throw RuntimeException("Could not get person. Response was null.")
+        }
+    }
+
+    @Retryable
+    fun getPersonBulk(fnrList: List<String>): PersonBulkResponse {
+        return runWithTimingAndLogging {
+            klageLookupWebClient.post()
+                .uri("/person-bulk")
+                .bodyValue(
+                    GetPersonBulkRequest(
+                        fnrList = fnrList,
+                    )
+                )
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getPersonBulk.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<PersonBulkResponse>()
+                .block() ?: throw RuntimeException("Could not get person-bulk. Response was null.")
+        }
+    }
+
+    @Retryable
+    fun getPersongalleri(sak: Sak): PersongalleriResponse {
+        return runWithTimingAndLogging {
+            klageLookupWebClient.post()
+                .uri("/persongalleri")
+                .bodyValue(sak)
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getPersongalleri.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<PersongalleriResponse>()
+                .block() ?: throw RuntimeException("Could not get persongalleri. Response was null.")
         }
     }
 

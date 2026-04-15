@@ -55,9 +55,6 @@ data class BehandlingDetaljerView(
 ) {
 
     data class ProtectedFamilyMemberView(
-        val identifikator: String,
-        val name: String,
-        val sex: Sex,
         val statusList: List<PartStatus>,
     )
 

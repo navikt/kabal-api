@@ -137,7 +137,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
         )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
-        every { tilgangService.verifyInnloggetSaksbehandlersTilgangTil(
+        every { tilgangService.verifyInnloggetSaksbehandlersTilgangTilSak(
             any(),
             sakId = any(),
             ytelse = any(),

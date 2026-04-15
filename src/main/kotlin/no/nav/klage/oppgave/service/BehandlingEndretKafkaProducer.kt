@@ -1,8 +1,9 @@
 package no.nav.klage.oppgave.service
 
-import no.nav.klage.oppgave.clients.klagelookup.KlageLookupClient
-import no.nav.klage.oppgave.clients.klagelookup.Sak
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.repositories.PersonProtectionRepository
+import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
 import no.nav.klage.oppgave.service.mapper.mapToSkjemaV2
 import no.nav.klage.oppgave.util.getLogger
@@ -16,10 +17,11 @@ import java.util.*
 @Service
 class BehandlingEndretKafkaProducer(
     private val aivenKafkaTemplate: KafkaTemplate<String, String>,
-    private val personService: PersonService,
-    private val klageLookupClient: KlageLookupClient,
+    private val klageLookupGateway: KlageLookupGateway,
+    private val sakPersongalleriRepository: SakPersongalleriRepository,
+    private val personProtectionRepository: PersonProtectionRepository,
 ) {
-    @Value("\${BEHANDLING_ENDRET_TOPIC_V2}")
+    @Value($$"${BEHANDLING_ENDRET_TOPIC_V2}")
     lateinit var topicV2: String
 
     companion object {
@@ -31,21 +33,33 @@ class BehandlingEndretKafkaProducer(
 
     fun sendBehandlingEndret(behandling: Behandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
-        val personInfo = if (behandling.sakenGjelder.erPerson()) {
-            personService.getPerson(
-                fnr = behandling.sakenGjelder.partId.value, sak = Sak(
-                    sakId = behandling.fagsakId,
-                    ytelse = behandling.ytelse,
-                    fagsystem = behandling.fagsystem,
-                )
-            )
-        } else null
 
-        val erStrengtFortrolig = personInfo?.strengtFortrolig == true || personInfo?.strengtFortroligUtland == true
-        val erFortrolig = personInfo?.fortrolig ?: false
-        val erEgenAnsatt = personInfo?.egenAnsatt ?: false
+        val persongalleriFnr = sakPersongalleriRepository.findByFagsystemAndFagsakId(
+            fagsystem = behandling.fagsystem,
+            fagsakId = behandling.fagsakId,
+        ).map { it.foedselsnummer }
+
+        val allFnr = if (behandling.sakenGjelder.erPerson()) {
+            (persongalleriFnr + behandling.sakenGjelder.partId.value).distinct()
+        } else {
+            persongalleriFnr
+        }
+
+        val protections = allFnr.mapNotNull { fnr ->
+            personProtectionRepository.findByFoedselsnummer(fnr).also {
+                if (it == null) {
+                    logger.warn("PersonProtection not found for a person in behandling {}. See more in team-logs", behandling.id)
+                    teamLogger.warn("PersonProtection not found for a person in behandling {}. Fnr {}", behandling.id, fnr)
+                }
+            }
+        }
+
+        val erStrengtFortrolig = protections.any { it.strengtFortrolig }
+        val erFortrolig = protections.any { it.fortrolig }
+        val erEgenAnsatt = protections.any { it.skjermet }
+
         val medunderskriverEnhet =
-            behandling.medunderskriver?.saksbehandlerident?.let { klageLookupClient.getUserInfo(navIdent = it).enhet.enhetNr }
+            behandling.medunderskriver?.saksbehandlerident?.let { klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = it).enhet.enhetId }
 
         val json = behandling.mapToSkjemaV2(
             erStrengtFortrolig = erStrengtFortrolig,
@@ -55,7 +69,7 @@ class BehandlingEndretKafkaProducer(
         ).toJson()
 
         runCatching {
-            val result = aivenKafkaTemplate.send(
+            aivenKafkaTemplate.send(
                 topicV2,
                 behandling.id.toString(),
                 json

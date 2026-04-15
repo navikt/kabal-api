@@ -40,7 +40,7 @@ class TilgangService(
     private fun saksbehandlerHarSkrivetilgang(behandling: Behandling, ident: String): Boolean =
         ident == behandling.tildeling?.saksbehandlerident
 
-    fun verifyInnloggetSaksbehandlersTilgangTil(
+    fun verifyInnloggetSaksbehandlersTilgangTilSak(
         fnr: String,
         sakId: String,
         ytelse: Ytelse,
@@ -83,9 +83,6 @@ class TilgangService(
         return klageLookupGateway.getAccess(
             brukerId = fnr,
             navIdent = navIdent,
-            sakId = null,
-            ytelse = null,
-            fagsystem = null,
         )
     }
 
