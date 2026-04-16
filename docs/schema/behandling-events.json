@@ -212,7 +212,9 @@
             "ANKE",
             "ANKE_I_TRYGDERETTEN",
             "BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET",
-            "OMGJOERINGSKRAV"
+            "OMGJOERINGSKRAV",
+            "BEGJAERING_OM_GJENOPPTAK",
+            "BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN"
           ],
           "description": "Type behandling."
         }
