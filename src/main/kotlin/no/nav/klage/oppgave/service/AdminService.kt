@@ -7,13 +7,10 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsH
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
-import no.nav.klage.kodeverk.Enhet
-import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.*
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
-import no.nav.klage.kodeverk.klageenheter
-import no.nav.klage.kodeverk.styringsenheter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
@@ -419,9 +416,11 @@ class AdminService(
     fun handleInvalidUsers() {
         val unfinishedBehandlingerWithRol =
             behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullAndRolIdentIsNotNull()
+                .filter { it.rolFlowState != FlowState.RETURNED }
 
         val unfinishedBehandlingerWithMu =
             behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullAndMedunderskriverIsNotNull()
+                .filter { it.medunderskriverFlowState != FlowState.RETURNED }
 
         val unfinishedBehandlingerWithTildeling =
             behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullAndTildelingIsNotNull()
@@ -466,7 +465,7 @@ class AdminService(
         behandlingerWhereMuShouldBeRemoved
             .asSequence()
             .forEach {
-                logger.info("Behandling ${it.id} has expired mu: ${it.rolIdent}, setting to null.")
+                logger.info("Behandling ${it.id} has expired mu: ${it.medunderskriver!!.saksbehandlerident}, setting to null.")
                 behandlingService.setMedunderskriverAndMedunderskriverFlowToNull(
                     behandlingId = it.id,
                     systemUserContext = true
@@ -477,12 +476,14 @@ class AdminService(
             .asSequence()
             .forEach {
                 //TODO: Gå gjennom og kvalitetssjekk fradelingslogikken. Varsler, ev. andre ting.
-                logger.info("Behandling ${it.id} has expired mu: ${it.rolIdent}, setting to null.")
+                logger.info("Behandling ${it.id} has expired tildelt saksbehandler: ${it.tildeling!!.saksbehandlerident}, setting to null.")
                 behandlingService.setExpiredTildeltSaksbehandlerToNullInSystemContext(it.id)
             }
     }
 
     private fun getUsersToRemove(candidates: Set<String>): Set<String> {
+        if (candidates.isEmpty()) return emptySet()
+
         val nomInfoForCandidates =
             saksbehandlerService.getAnsattInfoFromNomBatched(navIdentList = candidates.toList())
 
@@ -494,7 +495,7 @@ class AdminService(
                 it.ressurs?.sluttdato?.isBefore(
                     LocalDate.now().minusWeeks(1)
                 ) == true
-            }.map { it.id }
+            }.mapNotNull { it.ressurs?.navident }
             .toSet()
 
         logger.debug("Found users no longer in Nav: $usersNoLongerInNav")
