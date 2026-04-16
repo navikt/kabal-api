@@ -27,6 +27,9 @@ class KlageLookupGateway(
     fun getUserInfoForNavIdentList(navIdentList: List<String>): List<SaksbehandlerPersonligInfo> {
         logger.debug("Getting user info for $navIdentList from KlageLookup")
         val data = klageLookupClient.getUserInfoBatched(navIdentList = navIdentList)
+        if (data.misses.isNotEmpty()) {
+            logger.warn("Did not find user info for ${data.misses} from KlageLookup")
+        }
         return data.hits.map { it.toSaksbehandlerPersonligInfo() }
     }
 
