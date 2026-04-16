@@ -247,15 +247,6 @@ class DevOnlyAdminController(
         logger.debug("Token type: {}", tokenUtil.getCurrentTokenType())
         return tokenUtil.getCurrentTokenType().toString()
     }
-
-    @Unprotected
-    @GetMapping("/loginvalididents", produces = ["application/json"])
-    @ResponseStatus(HttpStatus.OK)
-    fun logInvalidIdents() {
-        logger.info("Logging invalid users")
-        adminService.handleInvalidUsers()
-    }
-
 //    @Scheduled(cron = "0 */2 * * * *")
 //    @SchedulerLock(name = "devTest")
 //    fun scheduleTest() {
