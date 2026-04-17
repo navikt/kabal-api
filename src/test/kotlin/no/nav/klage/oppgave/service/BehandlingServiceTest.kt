@@ -56,7 +56,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
     @Autowired
     lateinit var behandlingRepository: BehandlingRepository
 
-    @MockkBean
+    @MockkBean(relaxed = true)
     lateinit var tilgangService: TilgangService
 
     @MockkBean
@@ -131,17 +131,13 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             tokenUtil = mockk(),
             gosysOppgaveService = mockk(),
             kodeverkService = mockk(),
-            behandlingEndretKafkaProducer = mockk(),
             klageNotificationsApiClient = mockk(relaxed = true),
             schedulerHealthGate = mockk(relaxed = true),
         )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
         every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
-        every { tilgangService.verifyInnloggetSaksbehandlersTilgangTilSak(
+        every { tilgangService.verifyLoggedInUsersAccessToPerson(
             any(),
-            sakId = any(),
-            ytelse = any(),
-            fagsystem = any(),
         ) } returns Unit
         every { tilgangService.getSaksbehandlerAccessToPerson(any()) } returns TilgangService.Access(true, "")
         every { saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(any()) } returns false

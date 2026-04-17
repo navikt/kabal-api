@@ -1,8 +1,6 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
 import no.nav.klage.kodeverk.AzureGroup
-import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.exceptions.GroupNotFoundException
 import no.nav.klage.oppgave.exceptions.UserNotFoundException
 import no.nav.klage.oppgave.service.TilgangService
@@ -34,9 +32,6 @@ class KlageLookupClient(
         /** fnr, dnr or aktorId */
         brukerId: String,
         navIdent: String?,
-        sakId: String?,
-        ytelse: Ytelse?,
-        fagsystem: Fagsystem?,
     ): TilgangService.Access {
         return runWithTimingAndLogging {
             val token = if (navIdent != null) {
@@ -48,11 +43,7 @@ class KlageLookupClient(
             val accessRequest = AccessRequest(
                 brukerId = brukerId,
                 navIdent = navIdent,
-                sak = if (sakId != null && ytelse != null && fagsystem != null) Sak(
-                    sakId = sakId,
-                    ytelse = ytelse,
-                    fagsystem = fagsystem,
-                ) else null,
+                sak = null,
             )
 
             klageLookupWebClient.post()

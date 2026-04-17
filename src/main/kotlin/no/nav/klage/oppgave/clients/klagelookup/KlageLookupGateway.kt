@@ -42,16 +42,10 @@ class KlageLookupGateway(
         /** fnr, dnr or aktorId */
         brukerId: String,
         navIdent: String? = null,
-        sakId: String? = null,
-        ytelse: no.nav.klage.kodeverk.ytelse.Ytelse? = null,
-        fagsystem: no.nav.klage.kodeverk.Fagsystem? = null,
     ): TilgangService.Access {
         return klageLookupClient.getAccess(
             brukerId = brukerId,
             navIdent = navIdent,
-            sakId = sakId,
-            ytelse = ytelse,
-            fagsystem = fagsystem,
         )
     }
 

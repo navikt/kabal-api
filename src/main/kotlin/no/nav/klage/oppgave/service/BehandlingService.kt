@@ -110,7 +110,6 @@ class BehandlingService(
     private val tokenUtil: TokenUtil,
     private val gosysOppgaveService: GosysOppgaveService,
     private val kodeverkService: KodeverkService,
-    private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
     private val schedulerHealthGate: SchedulerHealthGate,
 ) {
@@ -2046,14 +2045,7 @@ class BehandlingService(
             .also { if (!systemUserContext && !ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
 
     fun checkReadAccessToSak(behandling: Behandling) {
-        if (behandling.sakenGjelder.erPerson()) {
-            tilgangService.verifyInnloggetSaksbehandlersTilgangTilSak(
-                fnr = behandling.sakenGjelder.partId.value,
-                sakId = behandling.fagsakId,
-                ytelse = behandling.ytelse,
-                fagsystem = behandling.fagsystem,
-            )
-        }
+        tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(behandling)
     }
 
     private fun checkSkrivetilgang(behandling: Behandling) {
