@@ -232,10 +232,11 @@ class AdminService(
     fun logExpiredUsers() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNull()
         val saksbehandlerSet = unfinishedBehandlinger.mapNotNull { it.tildeling?.saksbehandlerident }.toSet()
+        val saksbehandlerSluttdatoInfo =
+            klageLookupGateway.getSluttdatoForNavIdentList(navIdentList = saksbehandlerSet.toList())
         var saksbehandlerLogOutput = ""
-        saksbehandlerSet.forEach {
-            val nomInfo = saksbehandlerService.getAnsattInfoFromNom(it)
-            if (nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true) {
+        saksbehandlerSluttdatoInfo.forEach {
+            if (it.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true) {
                 saksbehandlerLogOutput += "Sluttdato is in the past: $it \n"
             }
         }
@@ -243,10 +244,11 @@ class AdminService(
         logger.debug("Expired, assigned saksbehandler: \n $saksbehandlerLogOutput")
 
         val medunderskriverSet = unfinishedBehandlinger.mapNotNull { it.medunderskriver?.saksbehandlerident }.toSet()
+        val medunderskriverSluttdatoInfo =
+            klageLookupGateway.getSluttdatoForNavIdentList(navIdentList = medunderskriverSet.toList())
         var medunderskriverLogOutput = ""
-        medunderskriverSet.forEach {
-            val nomInfo = saksbehandlerService.getAnsattInfoFromNom(it)
-            if (nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true) {
+        medunderskriverSluttdatoInfo.forEach {
+            if (it.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true) {
                 medunderskriverLogOutput += "Sluttdato is in the past: $it \n"
             }
         }
@@ -254,10 +256,10 @@ class AdminService(
         logger.debug("Expired, assigned medunderskriver: \n $medunderskriverLogOutput")
 
         val rolSet = unfinishedBehandlinger.mapNotNull { it.rolIdent }.toSet()
+        val rolSluttdatoInfo = klageLookupGateway.getSluttdatoForNavIdentList(navIdentList = rolSet.toList())
         var rolLogOutput = ""
-        rolSet.forEach {
-            val nomInfo = saksbehandlerService.getAnsattInfoFromNom(it)
-            if (nomInfo.data?.ressurs?.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true) {
+        rolSluttdatoInfo.forEach {
+            if (it.sluttdato?.isBefore(LocalDate.now().minusWeeks(1)) == true) {
                 rolLogOutput += "Sluttdato is in the past: $it \n"
             }
         }
@@ -484,18 +486,14 @@ class AdminService(
     private fun getUsersToRemove(candidates: Set<String>): Set<String> {
         if (candidates.isEmpty()) return emptySet()
 
-        val nomInfoForCandidates =
-            saksbehandlerService.getAnsattInfoFromNomBatched(navIdentList = candidates.toList())
+        val sluttdatoList = klageLookupGateway.getSluttdatoForNavIdentList(navIdentList = candidates.toList())
 
-        val usersNoLongerInNav = nomInfoForCandidates.data
-            ?.ressurser
-            .orEmpty()
-            .asSequence()
-            .filter {
-                it.ressurs?.sluttdato?.isBefore(
-                    LocalDate.now().minusWeeks(1)
-                ) == true
-            }.mapNotNull { it.ressurs?.navident }
+        val usersNoLongerInNav = sluttdatoList.filter {
+            it.sluttdato?.isBefore(
+                LocalDate.now().minusWeeks(1)
+            ) == true
+        }
+            .map { it.navIdent }
             .toSet()
 
         logger.debug("Found users no longer in Nav: $usersNoLongerInNav")

@@ -109,6 +109,39 @@ class KlageLookupClient(
         }
     }
 
+    @Retryable(
+        excludes = [UserNotFoundException::class]
+    )
+    fun getUserSluttdato(
+        navIdent: String,
+    ): SluttdatoResponse {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+            klageLookupWebClient.get()
+                .uri("/users/$navIdent/sluttdato")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .exchangeToMono { response ->
+                    if (response.statusCode().value() == 404) {
+                        logger.debug("User $navIdent not found")
+                        Mono.error(UserNotFoundException("User $navIdent not found"))
+                    } else if (response.statusCode().isError) {
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getUserSluttdato.name,
+                            classLogger = logger,
+                        )
+                        response.createError()
+                    } else {
+                        response.bodyToMono<SluttdatoResponse>()
+                    }
+                }
+                .block() ?: throw RuntimeException("Could not get sluttdato for $navIdent")
+        }
+    }
+
     @Retryable
     fun getUserInfoBatched(
         navIdentList: List<String>,
@@ -139,7 +172,41 @@ class KlageLookupClient(
                         response.bodyToMono<ExtendedUsersResponse>()
                     }
                 }
-                .block() ?: throw RuntimeException("Could not get user info for input ${navIdentList.toString()}")
+                .block() ?: throw RuntimeException("Could not get user info for input $navIdentList")
+        }
+    }
+
+    @Retryable
+    fun getSluttdatoBatched(
+        navIdentList: List<String>,
+    ): BatchedSluttdatoResponse {
+        return runWithTimingAndLogging {
+            val token = getCorrectBearerToken()
+            klageLookupWebClient.post()
+                .uri("/users/sluttdato")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(
+                    BatchedUserRequest(
+                        navIdentList = navIdentList
+                    )
+                )
+                .exchangeToMono { response ->
+                    if (response.statusCode().isError) {
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getSluttdatoBatched.name,
+                            classLogger = logger,
+                        )
+                        response.createError()
+                    } else {
+                        response.bodyToMono<BatchedSluttdatoResponse>()
+                    }
+                }
+                .block() ?: throw RuntimeException("Could not get sluttdato for input $navIdentList")
         }
     }
 

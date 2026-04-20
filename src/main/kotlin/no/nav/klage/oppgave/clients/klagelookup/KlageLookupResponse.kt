@@ -86,3 +86,13 @@ data class PersonResponse(
         val gyldigTilOgMed: LocalDate,
     )
 }
+
+data class BatchedSluttdatoResponse(
+    val hits: List<SluttdatoResponse>,
+    val misses: List<String>,
+)
+
+data class SluttdatoResponse(
+    val navIdent: String,
+    val sluttdato: LocalDate?,
+)
