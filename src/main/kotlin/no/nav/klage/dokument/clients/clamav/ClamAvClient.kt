@@ -27,6 +27,7 @@ class ClamAvClient(
 
         val fileSizeMb = file.length() / (1024.0 * 1024.0)
         val webClient = if (fileSizeMb > LARGE_FILE_THRESHOLD_MB) {
+            logger.debug("File size is ${"%.2f".format(fileSizeMb)} MB, using clamAvLargeFileWebClient")
             clamAvLargeFileWebClient
         } else {
             clamAvWebClient
