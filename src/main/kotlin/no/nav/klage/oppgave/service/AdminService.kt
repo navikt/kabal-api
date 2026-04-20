@@ -477,7 +477,6 @@ class AdminService(
         behandlingerWhereTildelingShouldBeRemoved
             .asSequence()
             .forEach {
-                //TODO: Gå gjennom og kvalitetssjekk fradelingslogikken. Varsler, ev. andre ting.
                 logger.info("Behandling ${it.id} has expired tildelt saksbehandler: ${it.tildeling!!.saksbehandlerident}, setting to null.")
                 behandlingService.setExpiredTildeltSaksbehandlerToNullInSystemContext(it.id)
             }
