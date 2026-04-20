@@ -35,6 +35,12 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
 
     fun findByFerdigstillingIsNullAndFeilregistreringIsNull(): List<Behandling>
 
+    fun findByFerdigstillingIsNullAndFeilregistreringIsNullAndRolIdentIsNotNull(): List<Behandling>
+
+    fun findByFerdigstillingIsNullAndFeilregistreringIsNullAndMedunderskriverIsNotNull(): List<Behandling>
+
+    fun findByFerdigstillingIsNullAndFeilregistreringIsNullAndTildelingIsNotNull(): List<Behandling>
+
     @Query(
         """
             select b

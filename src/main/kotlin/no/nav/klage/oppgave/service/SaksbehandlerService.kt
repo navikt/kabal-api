@@ -3,8 +3,6 @@ package no.nav.klage.oppgave.service
 import no.nav.klage.kodeverk.AzureGroup
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
-import no.nav.klage.oppgave.clients.nom.GetAnsattResponse
-import no.nav.klage.oppgave.clients.nom.NomClient
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerGroups
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Service
 @Service
 class SaksbehandlerService(
     private val kabalInnstillingerService: KabalInnstillingerService,
-    private val nomClient: NomClient,
     private val klageLookupGateway: KlageLookupGateway,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
@@ -50,11 +47,6 @@ class SaksbehandlerService(
     fun saksbehandlerHasAccessToYtelse(navIdent: String, ytelse: Ytelse): Boolean {
         return hasKabalOppgavestyringAlleEnheterRole(navIdent)
                 || getTildelteYtelserForSaksbehandler(navIdent).contains(ytelse)
-    }
-
-    fun getAnsattInfoFromNom(navIdent: String): GetAnsattResponse {
-        val ansatt = nomClient.getAnsatt(navIdent)
-        return ansatt
     }
 
     fun isSaksbehandler(ident: String): Boolean =
