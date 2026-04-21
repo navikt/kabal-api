@@ -1,6 +1,0 @@
-query getAnsatt($navident: String!){
-    ressurs(where: {navident: $navident}) {
-        navident
-        sluttdato
-    }
-}

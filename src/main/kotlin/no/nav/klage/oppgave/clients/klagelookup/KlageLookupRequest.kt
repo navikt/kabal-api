@@ -26,3 +26,7 @@ data class Sak(
 data class IdentRequest(
     val ident: String,
 )
+
+data class BatchedUserRequest(
+    val navIdentList: List<String>
+)

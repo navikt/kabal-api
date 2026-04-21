@@ -207,6 +207,18 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     ): ProblemDetail =
         create(HttpStatus.NOT_FOUND, ex)
 
+    @ExceptionHandler
+    fun handleAttachmentIsEmptyException(
+        ex: AttachmentIsEmptyException,
+    ): ProblemDetail =
+        create(HttpStatus.BAD_REQUEST, ex)
+
+    @ExceptionHandler
+    fun handleAttachmentHasVirusException(
+        ex: AttachmentHasVirusException,
+    ): ProblemDetail =
+        create(HttpStatus.BAD_REQUEST, ex)
+
     private fun createSmartDocumentValidationProblem(ex: SmartDocumentValidationException): ProblemDetail {
         logError(
             httpStatus = HttpStatus.BAD_REQUEST,

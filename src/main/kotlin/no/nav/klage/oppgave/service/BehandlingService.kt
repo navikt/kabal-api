@@ -1020,6 +1020,26 @@ class BehandlingService(
             )
         }
 
+        //Fjern påbegynt kvalitetsvurdering.
+        if (behandling is BehandlingWithKvalitetsvurdering) {
+            kakaApiGateway.deleteKvalitetsvurdering(
+                kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
+                kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
+            )
+
+            val kakaOutput = kakaApiGateway.createKvalitetsvurdering(
+                kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
+            )
+
+            behandling.kakaKvalitetsvurderingId = kakaOutput.kvalitetsvurderingId
+        }
+
+        behandling.utfall = null
+        behandling.registreringshjemler.clear()
+        behandling.tilbakekreving = false
+
+        klageNotificationsApiClient.deleteNotificationsForBehandling(behandlingId = behandlingId)
+
         val event =
             behandling.setTildeling(
                 nyVerdiSaksbehandlerident = null,

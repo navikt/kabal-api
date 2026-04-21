@@ -9,7 +9,6 @@ externalHosts:
   - host: norg2.prod-fss-pub.nais.io
   - host: ereg-services.prod-fss-pub.nais.io
   - host: arbeid-og-inntekt.prod-fss-pub.nais.io
-  - host: nom-api.intern.nav.no
   - host: digdir-krr-proxy.intern.nav.no
   - host: kodeverk-api.nav.no
   - host: regoppslag.prod-fss-pub.nais.io

@@ -295,14 +295,6 @@ no.nav.security.jwt:
           client-id: ${AZURE_APP_CLIENT_ID}
           client-jwk: ${AZURE_APP_JWK}
           client-auth-method: private_key_jwt
-      nom-maskintilmaskin:
-        token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
-        grant-type: client_credentials
-        scope: api://${NOM_SCOPE}/.default
-        authentication:
-          client-id: ${AZURE_APP_CLIENT_ID}
-          client-jwk: ${AZURE_APP_JWK}
-          client-auth-method: private_key_jwt
       gosys-oppgave-onbehalfof:
         token-endpoint-url: https://login.microsoftonline.com/${TENANT_ID}/oauth2/v2.0/token
         grant-type: urn:ietf:params:oauth:grant-type:jwt-bearer
@@ -395,3 +387,5 @@ KLAGE_BACKEND_GROUP_ID: S0384EXKSUS
 INNSYNSBEGJAERING_TEMPLATE_ID: svar-på-innsynsbegjæring
 
 ORGANISASJONSNUMMER_TRYGDERETTEN: 974761084
+
+CLAM_AV_URL: http://clamav.nais-system/api/v2/scan

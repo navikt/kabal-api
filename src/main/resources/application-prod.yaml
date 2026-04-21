@@ -28,9 +28,6 @@ AIVEN_ES_PORT: 26482
 AIVEN_ES_SCHEME: https
 AIVEN_ES_USE_SSL: true
 
-NOM_BASE_URL: https://nom-api.intern.nav.no/graphql
-NOM_SCOPE: prod-gcp.nom.nom-api
-
 SAF_BASE_URL: https://saf.prod-fss-pub.nais.io/
 SAF_SCOPE: prod-fss.teamdokumenthandtering.saf
 
@@ -39,8 +36,6 @@ SAFSELVBETJENING_AUDIENCE: prod-fss:teamdokumenthandtering:safselvbetjening
 
 DOKARKIV_SCOPE: prod-fss.teamdokumenthandtering.dokarkiv/
 DOKARKIV_BASE_URL: https://dokarkiv.prod-fss-pub.nais.io/rest/journalpostapi/v1
-
-CLAM_AV_URL: http://clamav.nais-system/scan
 
 KAKA_VERSION_2_DATE: 2023-01-01
 KAKA_VERSION_3_DATE: 2026-01-01

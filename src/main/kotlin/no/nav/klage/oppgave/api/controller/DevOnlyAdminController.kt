@@ -247,7 +247,6 @@ class DevOnlyAdminController(
         logger.debug("Token type: {}", tokenUtil.getCurrentTokenType())
         return tokenUtil.getCurrentTokenType().toString()
     }
-
 //    @Scheduled(cron = "0 */2 * * * *")
 //    @SchedulerLock(name = "devTest")
 //    fun scheduleTest() {
