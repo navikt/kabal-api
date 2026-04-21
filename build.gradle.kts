@@ -18,7 +18,6 @@ val commonsFileupload2JakartaVersion = "2.0.0-M5"
 val otelVersion = "1.60.1"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.0.0"
-val confluentVersion = "8.2.0"
 val reactorKafkaVersion = "1.3.25"
 
 plugins {
@@ -37,7 +36,6 @@ java.sourceCompatibility = JavaVersion.VERSION_21
 repositories {
     mavenCentral()
     maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-    maven("https://packages.confluent.io/maven/")
 }
 
 dependencies {
@@ -94,10 +92,6 @@ dependencies {
     implementation("no.nav.security:token-client-spring:$tokenValidationVersion")
 
     implementation("no.nav.slackposter:simple-slack-poster:$simpleSlackPosterVersion")
-
-    implementation("io.confluent:kafka-connect-avro-converter:${confluentVersion}") {
-        exclude(group = "io.swagger.core.v3", module = "swagger-annotations")
-    }
 
     implementation("org.verapdf:validation-model:$verapdfVersion") {
         exclude(group = "com.sun.xml.bind")
