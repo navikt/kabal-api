@@ -34,22 +34,18 @@ class BehandlingEndretKafkaProducer(
     fun sendBehandlingEndret(behandling: Behandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
 
-        val persongalleriFnr = sakPersongalleriRepository.findByFagsystemAndFagsakId(
+        val persongalleriFnrList = sakPersongalleriRepository.findByFagsystemAndFagsakId(
             fagsystem = behandling.fagsystem,
             fagsakId = behandling.fagsakId,
         ).map { it.foedselsnummer }
 
-        val allFnr = if (behandling.sakenGjelder.erPerson()) {
-            (persongalleriFnr + behandling.sakenGjelder.partId.value).distinct()
-        } else {
-            persongalleriFnr
-        }
+        val allFnr = (persongalleriFnrList + behandling.sakenGjelder.partId.value).distinct()
 
         val protections = allFnr.mapNotNull { fnr ->
             personProtectionRepository.findByFoedselsnummer(fnr).also {
                 if (it == null) {
-                    logger.warn("PersonProtection not found for a person in behandling {}. See more in team-logs", behandling.id)
-                    teamLogger.warn("PersonProtection not found for a person in behandling {}. Fnr {}", behandling.id, fnr)
+                    logger.error("PersonProtection not found for a person in behandling {}. Giving wrong information to kabal-search. See more in team-logs", behandling.id)
+                    teamLogger.error("PersonProtection not found for a person in behandling {}. Giving wrong information to kabal-search. Fnr {}", behandling.id, fnr)
                 }
             }
         }
