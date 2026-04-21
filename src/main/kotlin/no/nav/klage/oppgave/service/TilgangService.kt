@@ -83,22 +83,17 @@ class TilgangService(
     }
 
     fun getPersongalleriToCheckForBehandling(behandling: Behandling): List<String> {
+        val persongalleriToCheck = mutableSetOf(behandling.sakenGjelder.partId.value)
+
         if (behandling.fagsystem == Fagsystem.FS36) {
-            val persongalleriEntries = sakPersongalleriRepository.findByFagsystemAndFagsakId(
+            val persongalleri = sakPersongalleriRepository.findByFagsystemAndFagsakId(
                 fagsystem = behandling.fagsystem,
                 fagsakId = behandling.fagsakId,
             )
-            if (persongalleriEntries.isNotEmpty()) {
-                return persongalleriEntries
-                    .map { it.foedselsnummer }
-                    .filter { it != behandling.sakenGjelder.partId.value }
-            }
+            persongalleriToCheck += persongalleri.map { it.foedselsnummer }
         }
-        return if (behandling.sakenGjelder.erPerson()) {
-            listOf(behandling.sakenGjelder.partId.value)
-        } else {
-            emptyList()
-        }
+
+        return persongalleriToCheck.toList()
     }
 
     fun verifyLoggedInUsersAccessToPersongalleriInBehandling(behandling: Behandling) {
