@@ -1,9 +1,9 @@
 CREATE TABLE klage.sak_persongalleri
 (
-    id              UUID PRIMARY KEY,
-    sak_fagsystem   TEXT NOT NULL,
-    sak_fagsak_id   TEXT NOT NULL,
-    foedselsnummer  TEXT NOT NULL,
+    id             UUID PRIMARY KEY,
+    sak_fagsystem  TEXT NOT NULL,
+    sak_fagsak_id  TEXT NOT NULL,
+    foedselsnummer TEXT NOT NULL,
     CONSTRAINT uc_sak_persongalleri UNIQUE (sak_fagsystem, sak_fagsak_id, foedselsnummer)
 );
 
@@ -17,5 +17,3 @@ CREATE TABLE klage.person_protection
     strengt_fortrolig BOOLEAN NOT NULL,
     skjermet          BOOLEAN NOT NULL
 );
-
-CREATE UNIQUE INDEX idx_person_protection_foedselsnummer ON klage.person_protection (foedselsnummer);
