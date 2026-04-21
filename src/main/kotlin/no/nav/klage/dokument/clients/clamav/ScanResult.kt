@@ -1,12 +1,10 @@
 package no.nav.klage.dokument.clients.clamav
 
-import com.fasterxml.jackson.annotation.JsonAlias
-
 data class ScanResult(
-    @JsonAlias("Filename")
     val filename: String,
-    @JsonAlias("Result")
-    val result: ClamAvResult
+    val result: ClamAvResult,
+    val virus: String = "",
+    val error: String = "",
 )
 
 enum class ClamAvResult {

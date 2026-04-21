@@ -56,6 +56,20 @@ class WebClientConfig {
     }
 
     @Bean
+    fun clamAvLargeFileHttpClient(connectionProvider: ConnectionProvider): HttpClient {
+        val timeoutInSeconds = 75L
+        return HttpClient.create(connectionProvider)
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
+            // Enable TCP keep-alive to detect dead connections at OS level
+            .option(ChannelOption.SO_KEEPALIVE, true)
+            .responseTimeout(Duration.ofSeconds(timeoutInSeconds))
+            .doOnConnected { conn ->
+                conn.addHandlerLast(ReadTimeoutHandler(timeoutInSeconds, TimeUnit.SECONDS))
+                conn.addHandlerLast(WriteTimeoutHandler(timeoutInSeconds, TimeUnit.SECONDS))
+            }
+    }
+
+    @Bean
     fun webClientBuilder(reactorNettyHttpClient: HttpClient): WebClient.Builder {
         val connector = ReactorClientHttpConnector(reactorNettyHttpClient)
         return WebClient.builder()
@@ -70,6 +84,18 @@ class WebClientConfig {
     @Bean
     fun kabalDocumentWebClientBuilder(kabalDocumentHttpClient: HttpClient): WebClient.Builder {
         val connector = ReactorClientHttpConnector(kabalDocumentHttpClient)
+        return WebClient.builder()
+            .codecs { configurer ->
+                configurer
+                    .defaultCodecs()
+                    .maxInMemorySize(512 * 1024 * 1024)
+            }
+            .clientConnector(connector)
+    }
+
+    @Bean
+    fun clamAvLargeFileWebClientBuilder(clamAvLargeFileHttpClient: HttpClient): WebClient.Builder {
+        val connector = ReactorClientHttpConnector(clamAvLargeFileHttpClient)
         return WebClient.builder()
             .codecs { configurer ->
                 configurer
