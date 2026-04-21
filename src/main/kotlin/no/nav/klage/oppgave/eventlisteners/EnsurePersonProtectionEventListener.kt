@@ -49,4 +49,3 @@ class EnsurePersonProtectionEventListener(
         personProtectionService.createPersonProtection(foedselsnummer = foedselsnummer)
     }
 }
-
