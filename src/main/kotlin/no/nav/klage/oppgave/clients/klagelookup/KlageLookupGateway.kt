@@ -158,7 +158,6 @@ class KlageLookupGateway(
             egenAnsatt = egenAnsatt,
             vergemaalEllerFremtidsfullmakt = vergemaalEllerFremtidsfullmakt,
             sikkerhetstiltak = sikkerhetstiltak?.toSikkerhetstiltak(),
-            protectedFamilyMembers = protectedFamilyMembers.map { it.toFamilyMember() },
         )
     }
 
@@ -168,22 +167,6 @@ class KlageLookupGateway(
             beskrivelse = beskrivelse,
             gyldigFraOgMed = gyldigFraOgMed,
             gyldigTilOgMed = gyldigTilOgMed,
-        )
-    }
-
-    private fun PersonResponse.ProtectedFamilyMemberResponse.toFamilyMember(): Person.ProtectedFamilyMember {
-        return Person.ProtectedFamilyMember(
-            foedselsnr = foedselsnr,
-            fornavn = fornavn,
-            mellomnavn = mellomnavn,
-            etternavn = etternavn,
-            sammensattNavn = sammensattNavn,
-            kjoenn = kjoenn,
-            doed = doed,
-            strengtFortrolig = strengtFortrolig,
-            strengtFortroligUtland = strengtFortroligUtland,
-            fortrolig = fortrolig,
-            egenAnsatt = egenAnsatt,
         )
     }
 }
