@@ -335,7 +335,7 @@ class AdminController(
 
     data class Comment(val comment: String)
 
-    @PostMapping("/backfill-persongalleri", produces = ["application/json"])
+    @GetMapping("/backfill-persongalleri", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun backfillPersongalleri() {
         logger.debug("backfillPersongalleri is called")
