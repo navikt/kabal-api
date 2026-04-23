@@ -182,5 +182,5 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             FROM Behandling b
         """
     )
-    fun findDistinctSakenGjelderPersonValues(): List<String>
+    fun findDistinctSakenGjelderPersonValues(): Set<String>
 }

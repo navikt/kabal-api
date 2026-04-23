@@ -111,13 +111,13 @@ class KlagebehandlingService(
         klagebehandling.opprettetSendt = true
 
         if (mottak.fagsystem == Fagsystem.FS36) {
-            populatePersongalleriAndProtection(klagebehandling)
+            populatePersongalleri(klagebehandling)
         }
 
         return klagebehandling
     }
 
-    fun populatePersongalleriAndProtection(klagebehandling: Klagebehandling) {
+    fun populatePersongalleri(klagebehandling: Klagebehandling) {
         val existingEntries = sakPersongalleriRepository.findByFagsystemAndFagsakId(
             fagsystem = klagebehandling.fagsystem,
             fagsakId = klagebehandling.fagsakId,
@@ -144,10 +144,8 @@ class KlagebehandlingService(
                     foedselsnummer = foedselsnummer,
                 )
             )
-
-            personProtectionService.createPersonProtection(foedselsnummer)
         }
 
-        logger.debug("Populated persongalleri and person protection for klagebehandling {}", klagebehandling.id)
+        logger.debug("Populated persongalleri for klagebehandling {}", klagebehandling.id)
     }
 }

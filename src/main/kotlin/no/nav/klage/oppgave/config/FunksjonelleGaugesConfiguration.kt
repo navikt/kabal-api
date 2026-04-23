@@ -32,7 +32,7 @@ class RegistryCloser(private val registry: MeterRegistry) {
 
     @PreDestroy
     fun onDestroy() {
-        logger.info("We have received a SIGTERM (?)")
+        logger.debug("We have received a SIGTERM (?)")
         if (!registry.isClosed) registry.close()
     }
 }

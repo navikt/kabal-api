@@ -168,7 +168,7 @@ class GosysOppgaveClient(
             throw GosysOppgaveClientException("Caught runtimeexception", rtex)
         } finally {
             val end: Long = System.currentTimeMillis()
-            logger.info("Method {} took {} millis", methodName, (end - start))
+            logger.debug("Method {} took {} millis", methodName, (end - start))
         }
     }
 

@@ -414,9 +414,9 @@ class AdminService(
     @SchedulerLock(name = "cleanupExpiredAssignees")
     fun cleanupExpiredAssignees() {
         if (!schedulerHealthGate.isReady()) return
-        logger.info("Running scheduled expired assignee check.")
+        logger.debug("Running scheduled expired assignee check.")
         handleInvalidUsers()
-        logger.info("Scheduled expired assignee check completed.")
+        logger.debug("Scheduled expired assignee check completed.")
     }
 
     fun handleInvalidUsers() {
@@ -464,14 +464,14 @@ class AdminService(
         behandlingerWhereRolShouldBeRemoved
             .asSequence()
             .forEach {
-                logger.info("Behandling ${it.id} has expired rol: ${it.rolIdent}, setting to null.")
+                logger.debug("Behandling ${it.id} has expired rol: ${it.rolIdent}, setting to null.")
                 behandlingService.setRolToNullInSystemContext(it.id)
             }
 
         behandlingerWhereMuShouldBeRemoved
             .asSequence()
             .forEach {
-                logger.info("Behandling ${it.id} has expired mu: ${it.medunderskriver!!.saksbehandlerident}, setting to null.")
+                logger.debug("Behandling ${it.id} has expired mu: ${it.medunderskriver!!.saksbehandlerident}, setting to null.")
                 behandlingService.setMedunderskriverAndMedunderskriverFlowToNull(
                     behandlingId = it.id,
                     systemUserContext = true
@@ -481,7 +481,7 @@ class AdminService(
         behandlingerWhereTildelingShouldBeRemoved
             .asSequence()
             .forEach {
-                logger.info("Behandling ${it.id} has expired tildelt saksbehandler: ${it.tildeling!!.saksbehandlerident}, setting to null.")
+                logger.debug("Behandling ${it.id} has expired tildelt saksbehandler: ${it.tildeling!!.saksbehandlerident}, setting to null.")
                 behandlingService.setExpiredTildeltSaksbehandlerToNullInSystemContext(it.id)
             }
     }
@@ -932,7 +932,7 @@ class AdminService(
 
             if (existing.isEmpty()) {
                 try {
-                    klagebehandlingService.populatePersongalleriAndProtection(klagebehandling)
+                    klagebehandlingService.populatePersongalleri(klagebehandling)
                     backfilledCount++
                     logger.debug("Backfilled persongalleri for klagebehandling {}", klagebehandling.id)
                 } catch (e: Exception) {
@@ -948,7 +948,9 @@ class AdminService(
 
     @Transactional
     fun backfillPersonProtection() {
-        val fnrList = behandlingRepository.findDistinctSakenGjelderPersonValues()
+        val fnrFromBehandlinger = behandlingRepository.findDistinctSakenGjelderPersonValues() //51100 in prod
+        val fnrFromPersongalleri = sakPersongalleriRepository.findDistinctFoedselsnummer() //6140 after backfillPersongalleri is done
+        val fnrList: Set<String> = fnrFromBehandlinger + fnrFromPersongalleri
 
         val existingFnr = personProtectionRepository.findAll()
             .map { it.foedselsnummer }
@@ -966,7 +968,7 @@ class AdminService(
         var createdCount = 0
         var failedCount = 0
 
-        missingFnr.chunked(1000).forEach { batch ->
+        missingFnr.chunked(200).forEach { batch ->
             try {
                 val personList = klageLookupGateway.getPersonBulk(fnrList = batch)
 
