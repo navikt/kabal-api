@@ -36,7 +36,7 @@ class PersonProtectionController(
             throw MissingTilgangException("Endpoint requires a client-credentials token")
         }
         val caller = tokenUtil.getCallingApplication()
-        if (caller.contains("gcp:klage:klage-lookup")) {
+        if (!caller.contains("gcp:klage:klage-lookup")) {
             logger.warn("Rejected person-protection/changed call from unauthorized client '{}'", caller)
             throw MissingTilgangException("Client '$caller' is not authorized to call this endpoint")
         }
