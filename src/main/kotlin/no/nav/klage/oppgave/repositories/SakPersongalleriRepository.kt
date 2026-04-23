@@ -12,6 +12,8 @@ interface SakPersongalleriRepository : JpaRepository<SakPersongalleri, UUID> {
 
     fun findByFagsystemAndFagsakId(fagsystem: Fagsystem, fagsakId: String): List<SakPersongalleri>
 
+    fun findByFoedselsnummer(foedselsnummer: String): List<SakPersongalleri>
+
     @Query("SELECT DISTINCT sp.foedselsnummer FROM SakPersongalleri sp")
     fun findDistinctFoedselsnummer(): Set<String>
 }
