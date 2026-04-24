@@ -735,7 +735,7 @@ class BehandlingAvslutningServiceTest {
                 fssProxyClient.setToFinishedWithAppAccess(
                     any(), SakFinishedInput(
                         status = SakFinishedInput.Status.RETURNERT_TK,
-                        nivaa = SakFinishedInput.Nivaa.KA,
+                        nivaa = SakFinishedInput.Nivaa.TR,
                         typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
                         utfall = SakFinishedInput.Utfall.AVSLAG,
                         mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
