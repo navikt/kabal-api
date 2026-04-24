@@ -17,6 +17,8 @@ import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.MedunderskriverTildeling
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.repositories.PersonProtectionRepository
+import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
 import no.nav.klage.oppgave.service.*
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -59,6 +61,12 @@ class BehandlingMapperTest {
 
     @MockkBean
     lateinit var gosysOppgaveService: GosysOppgaveService
+
+    @MockkBean
+    lateinit var sakPersongalleriRepository: SakPersongalleriRepository
+
+    @MockkBean
+    lateinit var personProtectionRepository: PersonProtectionRepository
 
     @Autowired
     lateinit var behandlingMapper: BehandlingMapper

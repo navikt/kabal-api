@@ -16,6 +16,6 @@ class DuaAccessPolicyInitializer : ApplicationRunner {
 
     override fun run(args: ApplicationArguments) {
         DuaAccessPolicy.initializeAccessMapFromCsv("/dua/access_map.csv")
-        logger.info("Dua access map initialized from resource '/dua/access_map.csv'")
+        logger.debug("Dua access map initialized from resource '/dua/access_map.csv'")
     }
 }

@@ -23,6 +23,11 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         kildeReferanse: String,
     ): List<Behandling>
 
+    fun findByFagsystemAndFagsakIdAndFeilregistreringIsNull(
+        fagsystem: Fagsystem,
+        fagsakId: String,
+    ): List<Behandling>
+
     fun findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
         gosysOppgaveId: Long,
     ): List<Behandling>
@@ -170,4 +175,12 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
     fun findByIdForKaptein(id: UUID): Behandling
 
     fun findByPreviousBehandlingIdAndFeilregistreringIsNull(previousBehandlingId: UUID): List<Behandling>
+
+    @Query(
+        """
+            SELECT DISTINCT b.sakenGjelder.partId.value
+            FROM Behandling b
+        """
+    )
+    fun findDistinctSakenGjelderPersonValues(): Set<String>
 }

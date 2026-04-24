@@ -34,9 +34,9 @@ class AdminController(
         krevAdminTilgang()
 
         try {
-            logger.info("Syncing db with Kafka")
+            logger.debug("Syncing db with Kafka")
             adminService.syncKafkaWithDb()
-            logger.info("Finished syncing db with Kafka")
+            logger.debug("Finished syncing db with Kafka")
         } catch (e: Exception) {
             logger.warn("Failed to resync db with Kafka")
             throw e
@@ -122,7 +122,7 @@ class AdminController(
         logger.debug("reindexBehandling is called")
         krevAdminTilgang()
         try {
-            logger.info("Reindexing behandling")
+            logger.debug("Reindexing behandling")
             adminService.reindexBehandlingInSearch(behandlingId)
         } catch (e: Exception) {
             logger.warn("Failed to reindex behandling", e)
@@ -136,7 +136,7 @@ class AdminController(
         logger.debug("reindexBehandling is called")
         krevAdminTilgang()
         try {
-            logger.info("Reindexing behandling in batch")
+            logger.debug("Reindexing behandling in batch")
             val idList = listOf(
                 UUID.fromString("f3f8d79e-08d1-487f-990a-7fb811d0dd4a"),
                 UUID.fromString("0bd02526-6078-4db9-b3e7-d60ed742c086"),
@@ -191,7 +191,7 @@ class AdminController(
         logger.debug("migrateTilbakekreving is called")
         krevAdminTilgang()
         try {
-            logger.info("Migrating tilbakekreving")
+            logger.debug("Migrating tilbakekreving")
             adminService.migrateTilbakekreving()
         } catch (e: Exception) {
             logger.warn("Failed to migrate tilbakekreving", e)
@@ -268,7 +268,7 @@ class AdminController(
         logger.debug("${::evictAllCAches.name} is called")
         krevAdminTilgang()
         try {
-            logger.info("Evicting all caches")
+            logger.debug("Evicting all caches")
             adminService.evictAllCaches()
         } catch (e: Exception) {
             logger.warn("Failed to evict all caches", e)
@@ -325,7 +325,7 @@ class AdminController(
         logger.debug("generateOpprettetEvent is called, optional behandlingId: {}", behandlingId)
         krevAdminTilgang()
         try {
-            logger.info("Generating opprettet events.")
+            logger.debug("Generating opprettet events.")
             adminService.generateOpprettetEvents(behandlingId = behandlingId)
         } catch (e: Exception) {
             logger.warn("Failed to generate opprettet events", e)
@@ -334,6 +334,36 @@ class AdminController(
     }
 
     data class Comment(val comment: String)
+
+    @GetMapping("/backfill-persongalleri", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun backfillPersongalleri() {
+        logger.debug("backfillPersongalleri is called")
+        krevAdminTilgang()
+        try {
+            logger.debug("Backfilling persongalleri for FS36 klagebehandlinger")
+            adminService.backfillPersongalleri()
+            logger.debug("Finished backfilling persongalleri")
+        } catch (e: Exception) {
+            logger.warn("Failed to backfill persongalleri", e)
+            throw e
+        }
+    }
+
+    @GetMapping("/backfill-person-protection", produces = ["application/json"])
+    @ResponseStatus(HttpStatus.OK)
+    fun backfillPersonProtection() {
+        logger.debug("backfillPersonProtection is called")
+        krevAdminTilgang()
+        try {
+            logger.debug("Backfilling person protection for all unique sakenGjelder")
+            adminService.backfillPersonProtection()
+            logger.debug("Finished backfilling person protection")
+        } catch (e: Exception) {
+            logger.warn("Failed to backfill person protection", e)
+            throw e
+        }
+    }
 
     private fun krevAdminTilgang() {
         if (!innloggetSaksbehandlerService.isKabalAdmin()) {

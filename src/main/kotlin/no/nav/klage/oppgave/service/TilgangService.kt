@@ -6,6 +6,7 @@ import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
+import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.stereotype.Service
@@ -15,6 +16,7 @@ class TilgangService(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val saksbehandlerService: SaksbehandlerService,
     private val klageLookupGateway: KlageLookupGateway,
+    private val sakPersongalleriRepository: SakPersongalleriRepository,
     ) {
 
     companion object {
@@ -40,17 +42,11 @@ class TilgangService(
     private fun saksbehandlerHarSkrivetilgang(behandling: Behandling, ident: String): Boolean =
         ident == behandling.tildeling?.saksbehandlerident
 
-    fun verifyInnloggetSaksbehandlersTilgangTil(
+    fun verifyLoggedInUsersAccessToPerson(
         fnr: String,
-        sakId: String,
-        ytelse: Ytelse,
-        fagsystem: Fagsystem,
     ) {
-        val access = getSaksbehandlerAccessToSak(
+        val access = getSaksbehandlerAccessToPerson(
             fnr = fnr,
-            sakId = sakId,
-            ytelse = ytelse,
-            fagsystem = fagsystem,
         )
         if (!access.access) {
             throw MissingTilgangException(access.reason)
@@ -83,26 +79,40 @@ class TilgangService(
         return klageLookupGateway.getAccess(
             brukerId = fnr,
             navIdent = navIdent,
-            sakId = null,
-            ytelse = null,
-            fagsystem = null,
         )
     }
 
-    fun getSaksbehandlerAccessToSak(
-        fnr: String,
+    fun getPersongalleriToCheckForBehandling(behandling: Behandling): List<String> {
+        val persongalleriToCheck = mutableSetOf(behandling.sakenGjelder.partId.value)
+
+        if (behandling.fagsystem == Fagsystem.FS36) {
+            val persongalleri = sakPersongalleriRepository.findByFagsystemAndFagsakId(
+                fagsystem = behandling.fagsystem,
+                fagsakId = behandling.fagsakId,
+            )
+            persongalleriToCheck += persongalleri.map { it.foedselsnummer }
+        }
+
+        return persongalleriToCheck.toList()
+    }
+
+    fun verifyLoggedInUsersAccessToPersongalleriInBehandling(behandling: Behandling) {
+        getPersongalleriToCheckForBehandling(behandling).forEach { fnr ->
+            verifyLoggedInUsersAccessToPerson(fnr = fnr)
+        }
+    }
+
+    fun getSaksbehandlerAccessToBehandling(
+        behandling: Behandling,
         navIdent: String? = null,
-        sakId: String,
-        ytelse: Ytelse,
-        fagsystem: Fagsystem,
     ): Access {
-        return klageLookupGateway.getAccess(
-            brukerId = fnr,
-            navIdent = navIdent,
-            sakId = sakId,
-            ytelse = ytelse,
-            fagsystem = fagsystem,
-        )
+        getPersongalleriToCheckForBehandling(behandling).forEach { fnr ->
+            val access = getSaksbehandlerAccessToPerson(fnr = fnr, navIdent = navIdent)
+            if (!access.access) {
+                return access
+            }
+        }
+        return Access(access = true, reason = "")
     }
 
     data class Access(

@@ -42,7 +42,7 @@ class DevOnlyAdminController(
     @ResponseStatus(HttpStatus.OK)
     fun resetElasticIndex() {
         try {
-            logger.info("Syncing db with Kafka")
+            logger.debug("Syncing db with Kafka")
             adminService.syncKafkaWithDb()
         } catch (e: Exception) {
             logger.warn("Failed to resync db with Kafka")
@@ -55,7 +55,7 @@ class DevOnlyAdminController(
     @ResponseStatus(HttpStatus.OK)
     fun deleteBehandling(@PathVariable("id") behandlingId: UUID) {
         try {
-            logger.info("Delete behandling in dev")
+            logger.debug("Delete behandling in dev")
             adminService.deleteBehandlingInDev(behandlingId)
         } catch (e: Exception) {
             logger.warn("Failed to delete behandling in dev", e)
@@ -68,7 +68,7 @@ class DevOnlyAdminController(
     @ResponseStatus(HttpStatus.OK)
     fun reindexBehandling(@PathVariable("id") behandlingId: UUID) {
         try {
-            logger.info("Reindexing behandling in dev")
+            logger.debug("Reindexing behandling in dev")
             adminService.reindexBehandlingInSearch(behandlingId)
         } catch (e: Exception) {
             logger.warn("Failed to reindex behandling i dev", e)
@@ -213,7 +213,7 @@ class DevOnlyAdminController(
     fun evictAllCAches() {
         logger.debug("${::evictAllCAches.name} is called")
         try {
-            logger.info("Evicting all caches")
+            logger.debug("Evicting all caches")
             adminService.evictAllCaches()
         } catch (e: Exception) {
             logger.warn("Failed to evict all caches", e)

@@ -30,6 +30,7 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.PERSON
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.POSTSTEDER_CACHE
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
 import no.nav.klage.oppgave.config.SchedulerHealthGate
+import no.nav.klage.oppgave.domain.PersonProtection
 import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
@@ -84,7 +85,10 @@ class AdminService(
     private val entityManager: EntityManager,
     private val schedulerHealthGate: SchedulerHealthGate,
     private val merkantilRepository: TaskListMerkantilRepository,
+    private val klagebehandlingService: KlagebehandlingService,
+    private val sakPersongalleriRepository: SakPersongalleriRepository,
     private val klageLookupGateway: KlageLookupGateway,
+    private val personProtectionRepository: PersonProtectionRepository,
 ) {
 
     @Value($$"${KLAGE_BACKEND_GROUP_ID}")
@@ -274,7 +278,7 @@ class AdminService(
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value, sak = null)
+                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value)
                     if (person.strengtFortrolig || person.strengtFortroligUtland) {
                         teamLogger.debug("Protected user in behandling with id {}", behandling.id)
                     }
@@ -316,7 +320,7 @@ class AdminService(
         unfinishedBehandlinger.forEach { behandling ->
             if (behandling.sakenGjelder.partId.type == PartIdType.PERSON) {
                 try {
-                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value, sak = null)
+                    val person = personService.getPerson(fnr = behandling.sakenGjelder.partId.value)
                     if (person.strengtFortrolig || person.strengtFortroligUtland) {
                         strengtFortroligBehandlinger.add(behandling.id.toString())
                     }
@@ -410,9 +414,9 @@ class AdminService(
     @SchedulerLock(name = "cleanupExpiredAssignees")
     fun cleanupExpiredAssignees() {
         if (!schedulerHealthGate.isReady()) return
-        logger.info("Running scheduled expired assignee check.")
+        logger.debug("Running scheduled expired assignee check.")
         handleInvalidUsers()
-        logger.info("Scheduled expired assignee check completed.")
+        logger.debug("Scheduled expired assignee check completed.")
     }
 
     fun handleInvalidUsers() {
@@ -460,14 +464,14 @@ class AdminService(
         behandlingerWhereRolShouldBeRemoved
             .asSequence()
             .forEach {
-                logger.info("Behandling ${it.id} has expired rol: ${it.rolIdent}, setting to null.")
+                logger.debug("Behandling ${it.id} has expired rol: ${it.rolIdent}, setting to null.")
                 behandlingService.setRolToNullInSystemContext(it.id)
             }
 
         behandlingerWhereMuShouldBeRemoved
             .asSequence()
             .forEach {
-                logger.info("Behandling ${it.id} has expired mu: ${it.medunderskriver!!.saksbehandlerident}, setting to null.")
+                logger.debug("Behandling ${it.id} has expired mu: ${it.medunderskriver!!.saksbehandlerident}, setting to null.")
                 behandlingService.setMedunderskriverAndMedunderskriverFlowToNull(
                     behandlingId = it.id,
                     systemUserContext = true
@@ -477,7 +481,7 @@ class AdminService(
         behandlingerWhereTildelingShouldBeRemoved
             .asSequence()
             .forEach {
-                logger.info("Behandling ${it.id} has expired tildelt saksbehandler: ${it.tildeling!!.saksbehandlerident}, setting to null.")
+                logger.debug("Behandling ${it.id} has expired tildelt saksbehandler: ${it.tildeling!!.saksbehandlerident}, setting to null.")
                 behandlingService.setExpiredTildeltSaksbehandlerToNullInSystemContext(it.id)
             }
     }
@@ -909,5 +913,90 @@ class AdminService(
         }
 
         logger.debug("setPreviousBehandlingId is done. Updated $updatedCount behandlinger, skipped $skippedCount behandlinger that already had previousBehandlingId set, and $nullCount behandlinger had no previousBehandlingId to set.")
+    }
+
+    @Transactional
+    fun backfillPersongalleri() {
+        val fs36Klagebehandlinger = klagebehandlingRepository.findByFagsystemAndFeilregistreringIsNull(Fagsystem.FS36)
+
+        logger.debug("Found {} FS36 klagebehandlinger for persongalleri backfill", fs36Klagebehandlinger.size)
+
+        var backfilledCount = 0
+        var skippedCount = 0
+
+        fs36Klagebehandlinger.forEach { klagebehandling ->
+            val existing = sakPersongalleriRepository.findByFagsystemAndFagsakId(
+                fagsystem = klagebehandling.fagsystem,
+                fagsakId = klagebehandling.fagsakId,
+            )
+
+            if (existing.isEmpty()) {
+                try {
+                    klagebehandlingService.populatePersongalleri(klagebehandling)
+                    backfilledCount++
+                    logger.debug("Backfilled persongalleri for klagebehandling {}", klagebehandling.id)
+                } catch (e: Exception) {
+                    logger.warn("Failed to backfill persongalleri for klagebehandling {}", klagebehandling.id, e)
+                }
+            } else {
+                skippedCount++
+            }
+        }
+
+        logger.debug("Backfill persongalleri done. Backfilled: {}, skipped (already exists): {}", backfilledCount, skippedCount)
+    }
+
+    @Transactional
+    fun backfillPersonProtection() {
+        val fnrFromBehandlinger = behandlingRepository.findDistinctSakenGjelderPersonValues() //51100 in prod
+        val fnrFromPersongalleri = sakPersongalleriRepository.findDistinctFoedselsnummer() //6140 after backfillPersongalleri is done
+        val fnrList: Set<String> = fnrFromBehandlinger + fnrFromPersongalleri
+
+        val existingFnr = personProtectionRepository.findAll()
+            .map { it.foedselsnummer }
+            .toSet()
+
+        val missingFnr = fnrList.filter { it !in existingFnr }
+
+        logger.debug(
+            "Backfill person protection: {} unique sakenGjelder persons, {} already have protection, {} to backfill",
+            fnrList.size,
+            existingFnr.size,
+            missingFnr.size,
+        )
+
+        var createdCount = 0
+        var failedCount = 0
+
+        missingFnr.chunked(200).forEach { batch ->
+            try {
+                val personList = klageLookupGateway.getPersonBulk(fnrList = batch)
+
+                personList.forEach { person ->
+                    personProtectionRepository.save(
+                        PersonProtection(
+                            foedselsnummer = person.foedselsnr,
+                            fortrolig = person.fortrolig,
+                            strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
+                            skjermet = person.egenAnsatt,
+                        )
+                    )
+                    createdCount++
+                }
+
+                val returnedFnrs = personList.map { it.foedselsnr }.toSet()
+                val missedInBatch = batch.count { it !in returnedFnrs }
+                if (missedInBatch > 0) {
+                    failedCount += missedInBatch
+                }
+
+                logger.debug("Backfilled person protection batch: created {}, total so far: {}", personList.size, createdCount)
+            } catch (e: Exception) {
+                logger.warn("Failed to backfill person protection for batch of {} persons", batch.size, e)
+                failedCount += batch.size
+            }
+        }
+
+        logger.debug("Backfill person protection done. Created: {}, failed/missed: {}", createdCount, failedCount)
     }
 }

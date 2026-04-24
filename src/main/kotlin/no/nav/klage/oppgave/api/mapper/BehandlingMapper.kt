@@ -4,7 +4,6 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.ereg.NoekkelInfoOmOrganisasjon
-import no.nav.klage.oppgave.clients.klagelookup.Sak
 import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Enhet
@@ -13,8 +12,11 @@ import no.nav.klage.oppgave.domain.behandling.*
 import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.person.Person
+import no.nav.klage.oppgave.repositories.PersonProtectionRepository
+import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -31,11 +33,14 @@ class BehandlingMapper(
     private val regoppslagService: RegoppslagService,
     private val dokDistKanalService: DokDistKanalService,
     private val personService: PersonService,
+    private val sakPersongalleriRepository: SakPersongalleriRepository,
+    private val personProtectionRepository: PersonProtectionRepository,
 ) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val teamLogger = getTeamLogger()
     }
 
     fun mapBehandlingToBehandlingDetaljerView(behandling: Behandling): BehandlingDetaljerView {
@@ -71,11 +76,6 @@ class BehandlingMapper(
     private fun getSakenGjelderAsPerson(behandling: Behandling): Person {
         val person = personService.getPerson(
             fnr = behandling.sakenGjelder.partId.value,
-            sak = Sak(
-                sakId = behandling.fagsakId,
-                ytelse = behandling.ytelse,
-                fagsystem = behandling.fagsystem,
-            )
         )
         return person
     }
@@ -607,7 +607,6 @@ class BehandlingMapper(
         if (sakenGjelder.erPerson()) {
             val person = person ?: personService.getPerson(
                 fnr = sakenGjelder.partId.value,
-                sak = null,
             )
             val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(sakenGjelder.partId.value)
             val utsendingskanal = dokDistKanalService.getUtsendingskanal(
@@ -628,7 +627,7 @@ class BehandlingMapper(
                 statusList = getStatusList(person, krrInfo),
                 address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
                 utsendingskanal = utsendingskanal,
-                protectedFamilyMembers = person.toProtectedFamilyMemberViews(),
+                protectedFamilyMembers = getProtectedFamilyMemberViews(behandling),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -649,7 +648,7 @@ class BehandlingMapper(
         technicalPartId: UUID
     ): BehandlingDetaljerView.PartView {
         return if (isPerson) {
-            val person = personService.getPerson(fnr = identifier, sak = null)
+            val person = personService.getPerson(fnr = identifier)
             val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
             BehandlingDetaljerView.PartView(
                 id = technicalPartId,
@@ -695,7 +694,7 @@ class BehandlingMapper(
             val identifier = partId.value
 
             if (isPerson) {
-                val person = personService.getPerson(fnr = identifier, sak = null)
+                val person = personService.getPerson(fnr = identifier)
                 val krrInfo = krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifier)
                 BehandlingDetaljerView.PartViewWithUtsendingskanal(
                     id = technicalPartId,
@@ -772,38 +771,45 @@ class BehandlingMapper(
         } else null
     }
 
-    private fun Person.toProtectedFamilyMemberViews(): List<BehandlingDetaljerView.ProtectedFamilyMemberView> {
-        return protectedFamilyMembers.map { familyMember ->
+    private fun getProtectedFamilyMemberViews(behandling: Behandling): List<BehandlingDetaljerView.ProtectedFamilyMemberView> {
+        val sakenGjelderFnr = behandling.sakenGjelder.partId.value
+
+        val persongalleriEntries = sakPersongalleriRepository.findByFagsystemAndFagsakId(
+            fagsystem = behandling.fagsystem,
+            fagsakId = behandling.fagsakId,
+        ).filter { it.foedselsnummer != sakenGjelderFnr }
+
+        return persongalleriEntries.mapNotNull { entry ->
+            val protection = personProtectionRepository.findByFoedselsnummer(entry.foedselsnummer)
+
+            if (protection == null) {
+                logger.error("PersonProtection not found for a person in persongalleri for behandling with fagsystem {} and fagsakId {}. See team-logs for details.", behandling.fagsystem, behandling.fagsakId)
+                teamLogger.error("PersonProtection not found for fnr {} in persongalleri for behandling with fagsystem {} and fagsakId {}", entry.foedselsnummer, behandling.fagsystem, behandling.fagsakId)
+                return@mapNotNull null
+            }
+
+            val statusList = mutableListOf<BehandlingDetaljerView.PartStatus>()
+
+            if (protection.fortrolig) {
+                statusList += BehandlingDetaljerView.PartStatus(
+                    status = BehandlingDetaljerView.PartStatus.Status.FORTROLIG,
+                )
+            }
+            if (protection.strengtFortrolig) {
+                statusList += BehandlingDetaljerView.PartStatus(
+                    status = BehandlingDetaljerView.PartStatus.Status.STRENGT_FORTROLIG,
+                )
+            }
+            if (protection.skjermet) {
+                statusList += BehandlingDetaljerView.PartStatus(
+                    status = BehandlingDetaljerView.PartStatus.Status.EGEN_ANSATT,
+                )
+            }
+
             BehandlingDetaljerView.ProtectedFamilyMemberView(
-                identifikator = familyMember.foedselsnr,
-                name = familyMember.sammensattNavn,
-                sex = familyMember.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }
-                    ?: BehandlingDetaljerView.Sex.UKJENT,
-                statusList = buildFamilyMemberStatusList(familyMember),
+                statusList = statusList,
             )
         }
-    }
-
-    private fun buildFamilyMemberStatusList(protectedFamilyMember: Person.ProtectedFamilyMember): List<BehandlingDetaljerView.PartStatus> {
-        val statusList = mutableListOf<BehandlingDetaljerView.PartStatus>()
-
-        if (protectedFamilyMember.fortrolig) {
-            statusList += BehandlingDetaljerView.PartStatus(
-                status = BehandlingDetaljerView.PartStatus.Status.FORTROLIG,
-            )
-        }
-        if (protectedFamilyMember.strengtFortrolig || protectedFamilyMember.strengtFortroligUtland) {
-            statusList += BehandlingDetaljerView.PartStatus(
-                status = BehandlingDetaljerView.PartStatus.Status.STRENGT_FORTROLIG,
-            )
-        }
-        if (protectedFamilyMember.egenAnsatt) {
-            statusList += BehandlingDetaljerView.PartStatus(
-                status = BehandlingDetaljerView.PartStatus.Status.EGEN_ANSATT,
-            )
-        }
-
-        return statusList
     }
 
     fun Behandling.mapToVedtakView(): VedtakView {

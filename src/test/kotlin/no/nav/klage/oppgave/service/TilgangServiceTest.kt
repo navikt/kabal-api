@@ -13,6 +13,7 @@ import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
+import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -27,11 +28,14 @@ class TilgangServiceTest {
 
     private val klageLookupGateway: KlageLookupGateway = mockk()
 
+    private val sakPersongalleriRepository: SakPersongalleriRepository = mockk()
+
     private val tilgangService =
         TilgangService(
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             saksbehandlerService = saksbehandlerService,
             klageLookupGateway = klageLookupGateway,
+            sakPersongalleriRepository = sakPersongalleriRepository,
         )
 
     @Test

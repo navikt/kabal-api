@@ -1,12 +1,17 @@
 package no.nav.klage.oppgave.service
 
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
+import no.nav.klage.oppgave.clients.klagelookup.Sak
+import no.nav.klage.oppgave.domain.SakPersongalleri
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.mottak.Mottak
 import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
+import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
 import no.nav.klage.oppgave.util.KakaVersionUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -23,6 +28,9 @@ class KlagebehandlingService(
     private val kakaApiGateway: KakaApiGateway,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kakaVersionUtil: KakaVersionUtil,
+    private val klageLookupGateway: KlageLookupGateway,
+    private val sakPersongalleriRepository: SakPersongalleriRepository,
+    private val personProtectionService: PersonProtectionService,
 ) {
 
     companion object {
@@ -102,6 +110,42 @@ class KlagebehandlingService(
 
         klagebehandling.opprettetSendt = true
 
+        if (mottak.fagsystem == Fagsystem.FS36) {
+            populatePersongalleri(klagebehandling)
+        }
+
         return klagebehandling
+    }
+
+    fun populatePersongalleri(klagebehandling: Klagebehandling) {
+        val existingEntries = sakPersongalleriRepository.findByFagsystemAndFagsakId(
+            fagsystem = klagebehandling.fagsystem,
+            fagsakId = klagebehandling.fagsakId,
+        )
+
+        if (existingEntries.isNotEmpty()) {
+            logger.debug("Persongalleri already exists for fagsystem {} and fagsakId {}, skipping", klagebehandling.fagsystem, klagebehandling.fagsakId)
+            return
+        }
+
+        val sak = Sak(
+            sakId = klagebehandling.fagsakId,
+            ytelse = klagebehandling.ytelse,
+            fagsystem = klagebehandling.fagsystem,
+        )
+
+        val foedselsnummerList = klageLookupGateway.getPersongalleri(sak)
+
+        foedselsnummerList.forEach { foedselsnummer ->
+            sakPersongalleriRepository.save(
+                SakPersongalleri(
+                    fagsystem = klagebehandling.fagsystem,
+                    fagsakId = klagebehandling.fagsakId,
+                    foedselsnummer = foedselsnummer,
+                )
+            )
+        }
+
+        logger.debug("Populated persongalleri for klagebehandling {}", klagebehandling.id)
     }
 }

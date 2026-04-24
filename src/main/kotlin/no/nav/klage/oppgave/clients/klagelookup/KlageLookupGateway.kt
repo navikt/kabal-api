@@ -8,6 +8,7 @@ import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerSluttdato
 import no.nav.klage.oppgave.service.TilgangService
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.stereotype.Service
 
 @Service
@@ -17,6 +18,7 @@ class KlageLookupGateway(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val teamLogger = getTeamLogger()
     }
 
     fun getUserInfoForGivenNavIdent(navIdent: String): SaksbehandlerPersonligInfo {
@@ -62,21 +64,28 @@ class KlageLookupGateway(
         /** fnr, dnr or aktorId */
         brukerId: String,
         navIdent: String? = null,
-        sakId: String? = null,
-        ytelse: no.nav.klage.kodeverk.ytelse.Ytelse? = null,
-        fagsystem: no.nav.klage.kodeverk.Fagsystem? = null,
     ): TilgangService.Access {
         return klageLookupClient.getAccess(
             brukerId = brukerId,
             navIdent = navIdent,
-            sakId = sakId,
-            ytelse = ytelse,
-            fagsystem = fagsystem,
         )
     }
 
-    fun getPerson(fnr: String, sak: Sak?): Person {
-        return klageLookupClient.getPerson(fnr = fnr, sak = sak).toPerson()
+    fun getPersongalleri(sak: Sak): List<String> {
+        return klageLookupClient.getPersongalleri(sak = sak).foedselsnummerList
+    }
+
+    fun getPerson(fnr: String): Person {
+        return klageLookupClient.getPerson(fnr = fnr).toPerson()
+    }
+
+    fun getPersonBulk(fnrList: List<String>): List<Person> {
+        val response = klageLookupClient.getPersonBulk(fnrList = fnrList)
+        if (response.misses.isNotEmpty()) {
+            logger.warn("PDL did not return data for ${response.misses.size} of ${fnrList.size} requested fnr. See team-logs for details.")
+            teamLogger.warn("PDL did not return data for the following fnr: ${response.misses.joinToString(", ")}")
+        }
+        return response.hits.map { it.toPerson() }
     }
 
     fun getFoedselsnummerFromIdent(ident: String): String {
@@ -149,7 +158,6 @@ class KlageLookupGateway(
             egenAnsatt = egenAnsatt,
             vergemaalEllerFremtidsfullmakt = vergemaalEllerFremtidsfullmakt,
             sikkerhetstiltak = sikkerhetstiltak?.toSikkerhetstiltak(),
-            protectedFamilyMembers = protectedFamilyMembers.map { it.toFamilyMember() },
         )
     }
 
@@ -159,22 +167,6 @@ class KlageLookupGateway(
             beskrivelse = beskrivelse,
             gyldigFraOgMed = gyldigFraOgMed,
             gyldigTilOgMed = gyldigTilOgMed,
-        )
-    }
-
-    private fun PersonResponse.ProtectedFamilyMemberResponse.toFamilyMember(): Person.ProtectedFamilyMember {
-        return Person.ProtectedFamilyMember(
-            foedselsnr = foedselsnr,
-            fornavn = fornavn,
-            mellomnavn = mellomnavn,
-            etternavn = etternavn,
-            sammensattNavn = sammensattNavn,
-            kjoenn = kjoenn,
-            doed = doed,
-            strengtFortrolig = strengtFortrolig,
-            strengtFortroligUtland = strengtFortroligUtland,
-            fortrolig = fortrolig,
-            egenAnsatt = egenAnsatt,
         )
     }
 }
