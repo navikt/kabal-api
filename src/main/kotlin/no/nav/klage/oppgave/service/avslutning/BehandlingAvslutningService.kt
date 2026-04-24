@@ -101,7 +101,7 @@ class BehandlingAvslutningService(
     private fun handleKlagebehandling(klagebehandling: Klagebehandling) {
         if (klagebehandling.fagsystem == Fagsystem.IT01) {
             logger.debug("Klage med id ${klagebehandling.id} kommer fra Infotrygd, oppdaterer der.")
-            updateInfotrygd(klagebehandling)
+            setToFinishedInInfotrygd(klagebehandling)
         } else if (!klagebehandling.gosysOppgaveRequired) {
             logger.debug("Klage med id ${klagebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(klagebehandling)
@@ -143,7 +143,7 @@ class BehandlingAvslutningService(
             //No need for notifying modernized fagsystem when sending to Trygderetten.
         } else if (ankebehandling.fagsystem == Fagsystem.IT01) {
             logger.debug("Anke med id ${ankebehandling.id} kommer fra Infotrygd, oppdaterer der.")
-            updateInfotrygd(ankebehandling)
+            setToFinishedInInfotrygd(ankebehandling)
         } else if (!ankebehandling.gosysOppgaveRequired) {
             logger.debug("Anke med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(ankebehandling)
@@ -202,7 +202,7 @@ class BehandlingAvslutningService(
             }
         } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.IT01) {
             logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd, oppdaterer der.")
-            updateInfotrygd(ankeITrygderettenbehandling)
+            setToFinishedInInfotrygd(ankeITrygderettenbehandling)
         } else if (!ankeITrygderettenbehandling.gosysOppgaveRequired) {
             logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(ankeITrygderettenbehandling)
@@ -227,7 +227,7 @@ class BehandlingAvslutningService(
     private fun handleBehandlingEtterTrygderettenOpprettet(behandlingEtterTrygderettenOpphevet: BehandlingEtterTrygderettenOpphevet) {
         if (behandlingEtterTrygderettenOpphevet.fagsystem == Fagsystem.IT01) {
             logger.debug("BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Infotrygd, oppdaterer der.")
-            updateInfotrygd(behandlingEtterTrygderettenOpphevet)
+            setToFinishedInInfotrygd(behandlingEtterTrygderettenOpphevet)
         } else if (!behandlingEtterTrygderettenOpphevet.gosysOppgaveRequired) {
             logger.debug("BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(behandlingEtterTrygderettenOpphevet)
@@ -422,7 +422,7 @@ class BehandlingAvslutningService(
         )
     }
 
-    private fun updateInfotrygd(behandling: Behandling) {
+    private fun setToFinishedInInfotrygd(behandling: Behandling) {
         logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
 
         val sakInKlanke = fssProxyClient.getSakWithAppAccess(
@@ -430,9 +430,7 @@ class BehandlingAvslutningService(
             input = GetSakAppAccessInput(saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!)
         )
 
-        if (sakInKlanke.typeResultat == SakFinishedInput.TypeResultat.RESULTAT.name &&
-            sakInKlanke.nivaa == SakFinishedInput.Nivaa.KA.name
-        ) {
+        if (sakInKlanke.typeResultat == SakFinishedInput.TypeResultat.RESULTAT.name) {
             logger.warn("Behandlingen er allerede satt til ferdig i Infotrygd, så trenger ikke å oppdatere.")
         } else {
             val utfall = if (sakInKlanke.sakstype != null && sakInKlanke.sakstype == "KLAGE_TILBAKEBETALING") {
@@ -445,7 +443,7 @@ class BehandlingAvslutningService(
                 sakId = behandling.kildeReferanse,
                 SakFinishedInput(
                     status = SakFinishedInput.Status.RETURNERT_TK,
-                    nivaa = SakFinishedInput.Nivaa.KA,
+                    nivaa = if (behandling is AnkeITrygderettenbehandling) SakFinishedInput.Nivaa.TR else SakFinishedInput.Nivaa.KA,
                     typeResultat = SakFinishedInput.TypeResultat.RESULTAT,
                     utfall = SakFinishedInput.Utfall.valueOf(utfall),
                     mottaker = SakFinishedInput.Mottaker.TRYGDEKONTOR,
