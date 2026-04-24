@@ -29,19 +29,20 @@ class PersonProtectionService(
     }
 
     fun handlePersonProtectionChanged(foedselsnummer: String) {
-        logger.debug("Handling person protection change")
+        logger.debug("Handling possible person protection change")
 
-        updatePersonProtection(foedselsnummer = foedselsnummer)
-
-        reindexAffectedBehandlinger(foedselsnummer = foedselsnummer)
+        val updated = updatePersonProtection(foedselsnummer = foedselsnummer)
+        if (updated) {
+            reindexAffectedBehandlinger(foedselsnummer = foedselsnummer)
+        }
     }
 
-    private fun updatePersonProtection(foedselsnummer: String) {
+    private fun updatePersonProtection(foedselsnummer: String): Boolean {
         val existingProtection = personProtectionRepository.findByFoedselsnummer(foedselsnummer)
 
         if (existingProtection == null) {
             // Not relevant if we don't know the person
-            return
+            return false
         } else {
             logger.debug("Updating existing person protection")
         }
@@ -52,6 +53,7 @@ class PersonProtectionService(
         existingProtection.strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland
         existingProtection.skjermet = person.egenAnsatt
         logger.debug("Updated person protection")
+        return true
     }
 
     fun createPersonProtection(foedselsnummer: String) {
