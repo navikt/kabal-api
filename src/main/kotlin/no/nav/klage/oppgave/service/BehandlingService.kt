@@ -110,7 +110,6 @@ class BehandlingService(
     private val tokenUtil: TokenUtil,
     private val gosysOppgaveService: GosysOppgaveService,
     private val kodeverkService: KodeverkService,
-    private val behandlingEndretKafkaProducer: BehandlingEndretKafkaProducer,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
     private val schedulerHealthGate: SchedulerHealthGate,
 ) {
@@ -1878,29 +1877,6 @@ class BehandlingService(
         )
     }
 
-//    fun connectDokumentToBehandling(
-//        behandlingId: UUID,
-//        journalpostId: String,
-//        dokumentInfoId: String,
-//        saksbehandlerIdent: String,
-//        systemUserContext: Boolean = false,
-//        ignoreCheckSkrivetilgang: Boolean,
-//    ): LocalDateTime {
-//        val behandling = getBehandlingForUpdate(
-//            behandlingId = behandlingId,
-//            ignoreCheckSkrivetilgang = ignoreCheckSkrivetilgang,
-//            systemUserContext = systemUserContext,
-//        )
-//
-//        addDokumentList(
-//            behandling,
-//            journalpostId,
-//            dokumentInfoId,
-//            saksbehandlerIdent
-//        )
-//        return behandling.modified
-//    }
-
     fun connectDocumentsFromPreviousBehandlingToBehandling(
         behandlingId: UUID,
         saksbehandlerIdent: String,
@@ -2089,28 +2065,7 @@ class BehandlingService(
             .also { if (!systemUserContext && !ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
 
     fun checkReadAccessToSak(behandling: Behandling) {
-        if (behandling.sakenGjelder.erPerson()) {
-            checkReadAccessToSak(
-                fnr = behandling.sakenGjelder.partId.value,
-                sakId = behandling.fagsakId,
-                ytelse = behandling.ytelse,
-                fagsystem = behandling.fagsystem,
-            )
-        }
-    }
-
-    private fun checkReadAccessToSak(
-        fnr: String,
-        sakId: String,
-        ytelse: Ytelse,
-        fagsystem: Fagsystem,
-    ) {
-        tilgangService.verifyInnloggetSaksbehandlersTilgangTil(
-            fnr = fnr,
-            sakId = sakId,
-            ytelse = ytelse,
-            fagsystem = fagsystem,
-        )
+        tilgangService.verifyLoggedInUsersAccessToPersongalleriInBehandling(behandling)
     }
 
     private fun checkSkrivetilgang(behandling: Behandling) {

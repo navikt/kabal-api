@@ -23,6 +23,7 @@ inboundApplications:
   - application: mine-klager
   - application: kaptein
   - application: kaptein-api
+  - application: klage-lookup
   - application: k9-klage
     namespace: k9saksbehandling
     cluster: prod-fss

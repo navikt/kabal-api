@@ -1,5 +1,6 @@
 package no.nav.klage.oppgave.repositories
 
+import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import org.springframework.data.jpa.repository.JpaRepository
@@ -13,4 +14,6 @@ interface KlagebehandlingRepository : JpaRepository<Klagebehandling, UUID> {
     fun findByKildeReferanseAndYtelseAndFeilregistreringIsNull(kildeReferanse: String, ytelse: Ytelse): Klagebehandling?
 
     fun findByKakaKvalitetsvurderingVersionIs(version: Int): List<Klagebehandling>
+
+    fun findByFagsystemAndFeilregistreringIsNull(fagsystem: Fagsystem): List<Klagebehandling>
 }

@@ -97,11 +97,8 @@ class OppgaveService(
         val behandlinger = behandlingRepository.findByFagsakId(fagsakId = fagsakId)
 
         behandlinger.forEach { behandling ->
-            val access = tilgangService.getSaksbehandlerAccessToSak(
-                fnr = behandling.sakenGjelder.partId.value,
-                sakId = behandling.fagsakId,
-                ytelse = behandling.ytelse,
-                fagsystem = behandling.fagsystem,
+            val access = tilgangService.getSaksbehandlerAccessToBehandling(
+                behandling = behandling,
             )
 
             if (access.access) {

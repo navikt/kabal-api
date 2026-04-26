@@ -1,8 +1,6 @@
 package no.nav.klage.oppgave.clients.klagelookup
 
 import no.nav.klage.kodeverk.AzureGroup
-import no.nav.klage.kodeverk.Fagsystem
-import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.exceptions.GroupNotFoundException
 import no.nav.klage.oppgave.exceptions.UserNotFoundException
 import no.nav.klage.oppgave.service.TilgangService
@@ -35,9 +33,6 @@ class KlageLookupClient(
         /** fnr, dnr or aktorId */
         brukerId: String,
         navIdent: String?,
-        sakId: String?,
-        ytelse: Ytelse?,
-        fagsystem: Fagsystem?,
     ): TilgangService.Access {
         return runWithTimingAndLogging {
             val token = if (navIdent != null) {
@@ -49,11 +44,7 @@ class KlageLookupClient(
             val accessRequest = AccessRequest(
                 brukerId = brukerId,
                 navIdent = navIdent,
-                sak = if (sakId != null && ytelse != null && fagsystem != null) Sak(
-                    sakId = sakId,
-                    ytelse = ytelse,
-                    fagsystem = fagsystem,
-                ) else null,
+                sak = null,
             )
 
             klageLookupWebClient.post()
@@ -278,14 +269,13 @@ class KlageLookupClient(
     }
 
     @Retryable
-    fun getPerson(fnr: String, sak: Sak?): PersonResponse {
+    fun getPerson(fnr: String): PersonResponse {
         return runWithTimingAndLogging {
             klageLookupWebClient.post()
                 .uri("/person")
                 .bodyValue(
                     GetPersonRequest(
                         fnr = fnr,
-                        sak = sak,
                     )
                 )
                 .header(
@@ -302,6 +292,56 @@ class KlageLookupClient(
                 }
                 .bodyToMono<PersonResponse>()
                 .block() ?: throw RuntimeException("Could not get person. Response was null.")
+        }
+    }
+
+    @Retryable
+    fun getPersonBulk(fnrList: List<String>): PersonBulkResponse {
+        return runWithTimingAndLogging {
+            klageLookupWebClient.post()
+                .uri("/person-bulk")
+                .bodyValue(
+                    GetPersonBulkRequest(
+                        fnrList = fnrList,
+                    )
+                )
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getPersonBulk.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<PersonBulkResponse>()
+                .block() ?: throw RuntimeException("Could not get person-bulk. Response was null.")
+        }
+    }
+
+    @Retryable
+    fun getPersongalleri(sak: Sak): PersongalleriResponse {
+        return runWithTimingAndLogging {
+            klageLookupWebClient.post()
+                .uri("/persongalleri")
+                .bodyValue(sak)
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
+                )
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getPersongalleri.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<PersongalleriResponse>()
+                .block() ?: throw RuntimeException("Could not get persongalleri. Response was null.")
         }
     }
 

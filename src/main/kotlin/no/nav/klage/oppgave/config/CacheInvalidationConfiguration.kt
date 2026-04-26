@@ -19,7 +19,7 @@ class CacheInvalidationConfiguration(val cacheManager: CacheManager) :
     @EventListener
     override fun onApplicationEvent(event: ContextRefreshedEvent) {
         cacheManager.cacheNames.forEach { cacheName ->
-            logger.info("Invalidating cache $cacheName")
+            logger.debug("Invalidating cache $cacheName")
             cacheManager.getCache(cacheName)?.clear()
         }
     }

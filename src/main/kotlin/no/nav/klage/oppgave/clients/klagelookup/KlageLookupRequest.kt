@@ -9,9 +9,12 @@ data class AccessRequest(
     val sak: Sak?,
 )
 
+data class GetPersonBulkRequest(
+    val fnrList: List<String>,
+)
+
 data class GetPersonRequest(
     val fnr: String,
-    val sak: Sak?,
 )
 
 data class Sak(
