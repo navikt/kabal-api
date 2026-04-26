@@ -48,7 +48,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -104,23 +103,50 @@ class AdminService(
         private val jacksonObjectMapper = jacksonObjectMapper()
     }
 
-    @Transactional
+    /**
+     * Intentionally NOT @Transactional at method level: this can run for a long time and a
+     * single transaction would hold one DB connection for the entire duration, eventually
+     * tripping Hikari maxLifetime / network idle timeouts ("This connection has been closed.").
+     *
+     * We also avoid holding a DB transaction across Kafka I/O. Each Kafka send blocks on
+     * .get() for a network round-trip; if many of those are wrapped in a single tx the DB
+     * connection sits "idle in transaction" and PostgreSQL's idle_in_transaction_session_timeout
+     * will close it, producing "Session/EntityManager is closed" on the next repo call.
+     *
+     * Strategy:
+     *   1. Fetch a page of IDs (ordered by created desc) in its own short tx.
+     *   2. For each ID, open a short tx that loads the behandling and sends it to Kafka.
+     *   3. Repeat until no more pages.
+     */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun syncKafkaWithDb() {
-        var pageable: Pageable =
-            PageRequest.of(0, 50, Sort.by("created").descending())
+        var pageNumber = 0
+        val pageSize = 50
+        var hasNext: Boolean
         do {
-            val behandlingPage = behandlingRepository.findAll(pageable)
+            val pageRequest = PageRequest.of(pageNumber, pageSize, Sort.by("created").descending())
 
-            behandlingPage.content.forEach { behandling ->
+            val pageResult = transactionTemplate.execute {
+                val page = behandlingRepository.findAll(pageRequest)
+                page.content.map { it.id } to page.hasNext()
+            } ?: (emptyList<UUID>() to false)
+
+            val ids = pageResult.first
+            hasNext = pageResult.second
+
+            ids.forEach { id ->
                 try {
-                    behandlingEndretKafkaProducer.sendBehandlingEndret(behandling)
+                    transactionTemplate.execute {
+                        val behandling = behandlingRepository.findByIdEager(id)
+                        behandlingEndretKafkaProducer.sendBehandlingEndret(behandling)
+                    }
                 } catch (e: Exception) {
-                    logger.warn("Exception during send to Kafka", e)
+                    logger.warn("Exception while syncing behandling $id to Kafka", e)
                 }
             }
 
-            pageable = behandlingPage.nextPageable()
-        } while (pageable.isPaged)
+            pageNumber++
+        } while (hasNext)
     }
 
     @Transactional
