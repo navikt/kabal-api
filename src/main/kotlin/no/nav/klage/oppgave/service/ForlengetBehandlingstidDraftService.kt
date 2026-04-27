@@ -494,11 +494,11 @@ class ForlengetBehandlingstidDraftService(
             mottakere = behandling.forlengetBehandlingstidDraft!!.receivers.map {
                 if (it.identifikator != null) {
                     MottakerPartId(
-                        value = getPartIdFromIdentifikator(it.identifikator)
+                        value = getPartIdFromIdentifikator(it.identifikator!!)
                     )
                 } else if (it.navn != null) {
                     MottakerNavn(
-                        value = it.navn
+                        value = it.navn!!
                     )
                 } else throw IllegalArgumentException("Missing values in receiver: $it")
             },

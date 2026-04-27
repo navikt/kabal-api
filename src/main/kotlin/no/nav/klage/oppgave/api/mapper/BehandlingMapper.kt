@@ -70,6 +70,7 @@ class BehandlingMapper(
                 gjenopptaksbehandling = behandling,
                 person = person,
             )
+            else -> error("Unknown Behandling subtype: ${behandling::class.java.name}")
         }
     }
 

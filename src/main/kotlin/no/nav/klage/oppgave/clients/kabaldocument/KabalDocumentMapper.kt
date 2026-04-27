@@ -215,7 +215,7 @@ class KabalDocumentMapper(
             }
             else -> {
                 val distribusjonKanalCode = dokDistKanalService.getDistribusjonKanalCode(
-                    mottakerId = avsenderMottakerInfo.identifikator,
+                    mottakerId = avsenderMottakerInfo.identifikator!!,
                     brukerId = behandling.sakenGjelder.partId.value,
                     tema = behandling.ytelse.toTema(),
                     saksbehandlerContext = false,
