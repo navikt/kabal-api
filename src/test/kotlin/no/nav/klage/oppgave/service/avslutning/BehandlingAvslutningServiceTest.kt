@@ -1367,6 +1367,8 @@ class BehandlingAvslutningServiceTest {
             )
             every { tildeling } returns mockk { every { saksbehandlerident } returns "ident" }
             every { kildeReferanse } returns "kildereferanse"
+            every { nyGjenopptaksbehandlingKA } returns null
+            every { nyBehandlingEtterTROpphevet } returns null
             every { shouldCreateNewGjenopptaksbehandling() } answers { callOriginal() }
             every { shouldCreateNewBehandlingEtterTROpphevet() } answers { callOriginal() }
             every { shouldBeCompletedInKA() } answers { callOriginal() }
