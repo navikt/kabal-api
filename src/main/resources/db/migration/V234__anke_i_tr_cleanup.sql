@@ -3,7 +3,9 @@
 UPDATE klage.behandling
 SET utfall_id                                  = '3',
     dato_behandling_avsluttet_av_saksbehandler = '2024-05-06 13:47:48.499497',
-    dato_behandling_avsluttet                  = '2024-05-05 13:47:48.499497'
+    dato_behandling_avsluttet = '2024-05-05 13:47:48.499497',
+    ferdigstilling_navn       = 'H103996',
+    ferdigstilling_navn       = 'Teknisk ferdigstilling'
 WHERE id = '1881dda6-f78d-480d-a6f9-b0753f42c63c';
 
 -- Sak 5. Medhold i KA, aldri sendt til TR.
