@@ -38,6 +38,7 @@ import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
+import no.nav.klage.oppgave.eventlisteners.EnsurePersongalleriAndProtectionEventListener
 import no.nav.klage.oppgave.repositories.*
 import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.util.TokenUtil
@@ -91,6 +92,7 @@ class AdminService(
     private val klageLookupGateway: KlageLookupGateway,
     private val personProtectionRepository: PersonProtectionRepository,
     private val transactionTemplate: TransactionTemplate,
+    private val ensurePersongalleriAndProtectionEventListener: EnsurePersongalleriAndProtectionEventListener,
 ) {
 
     @Value($$"${KLAGE_BACKEND_GROUP_ID}")
@@ -971,7 +973,7 @@ class AdminService(
 
                         if (existing.isEmpty()) {
                             try {
-                                klagebehandlingService.populatePersongalleri(klagebehandling)
+                                ensurePersongalleriAndProtectionEventListener.populatePersongalleri(klagebehandling)
                                 bf++
                                 logger.debug("Backfilled persongalleri for klagebehandling {}", klagebehandling.id)
                             } catch (e: Exception) {
