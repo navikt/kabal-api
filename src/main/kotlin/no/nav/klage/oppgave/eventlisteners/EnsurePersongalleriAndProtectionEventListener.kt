@@ -64,7 +64,7 @@ class EnsurePersongalleriAndProtectionEventListener(
         }
     }
 
-    fun populatePersongalleri(behandling: Behandling): List<String> {
+    private fun populatePersongalleri(behandling: Behandling): List<String> {
         val existingEntries = sakPersongalleriRepository.findByFagsystemAndFagsakId(
             fagsystem = behandling.fagsystem,
             fagsakId = behandling.fagsakId,

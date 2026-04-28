@@ -948,68 +948,10 @@ class AdminService(
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    fun backfillPersongalleri() {
-        val fs36KlagebehandlingIds = transactionTemplate.execute {
-            klagebehandlingRepository.findByFagsystemAndFeilregistreringIsNull(Fagsystem.FS36).map { it.id }
-        } ?: emptyList()
-
-        logger.debug("Found {} FS36 klagebehandlinger for persongalleri backfill", fs36KlagebehandlingIds.size)
-
-        var backfilledCount = 0
-        var skippedCount = 0
-        val batchSize = 100
-        val totalBatches = (fs36KlagebehandlingIds.size + batchSize - 1) / batchSize
-
-        fs36KlagebehandlingIds.chunked(batchSize).forEachIndexed { batchIndex, chunk ->
-            try {
-                val result = transactionTemplate.execute {
-                    var bf = 0
-                    var sk = 0
-                    chunk.forEach { id ->
-                        val klagebehandling = klagebehandlingRepository.findById(id).orElse(null) ?: return@forEach
-                        val existing = sakPersongalleriRepository.findByFagsystemAndFagsakId(
-                            fagsystem = klagebehandling.fagsystem,
-                            fagsakId = klagebehandling.fagsakId,
-                        )
-
-                        if (existing.isEmpty()) {
-                            try {
-                                ensurePersongalleriAndProtectionEventListener.populatePersongalleri(klagebehandling)
-                                bf++
-                                logger.debug("Backfilled persongalleri for klagebehandling {}", klagebehandling.id)
-                            } catch (e: Exception) {
-                                logger.warn("Failed to backfill persongalleri for klagebehandling {}", klagebehandling.id, e)
-                            }
-                        } else {
-                            sk++
-                        }
-                    }
-                    bf to sk
-                } ?: (0 to 0)
-                backfilledCount += result.first
-                skippedCount += result.second
-                logger.debug(
-                    "Committed batch {}/{}: backfilled {}, skipped {}. Totals so far: backfilled {}, skipped {}",
-                    batchIndex + 1,
-                    totalBatches,
-                    result.first,
-                    result.second,
-                    backfilledCount,
-                    skippedCount,
-                )
-            } catch (e: Exception) {
-                logger.warn("Failed to commit batch {}/{} for persongalleri backfill", batchIndex + 1, totalBatches, e)
-            }
-        }
-
-        logger.debug("Backfill persongalleri done. Backfilled: {}, skipped (already exists): {}", backfilledCount, skippedCount)
-    }
-
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun backfillPersonProtection() {
         val fnrList: Set<String> = transactionTemplate.execute {
-            val fnrFromBehandlinger = behandlingRepository.findDistinctSakenGjelderPersonValues() //51100 in prod
-            val fnrFromPersongalleri = sakPersongalleriRepository.findDistinctFoedselsnummer() //6140 after backfillPersongalleri is done
+            val fnrFromBehandlinger = behandlingRepository.findDistinctSakenGjelderPersonValues()
+            val fnrFromPersongalleri = sakPersongalleriRepository.findDistinctFoedselsnummer()
             fnrFromBehandlinger + fnrFromPersongalleri
         } ?: emptySet()
 
