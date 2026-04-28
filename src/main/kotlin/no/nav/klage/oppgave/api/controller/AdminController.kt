@@ -335,21 +335,6 @@ class AdminController(
 
     data class Comment(val comment: String)
 
-    @GetMapping("/backfill-persongalleri", produces = ["application/json"])
-    @ResponseStatus(HttpStatus.OK)
-    fun backfillPersongalleri() {
-        logger.debug("backfillPersongalleri is called")
-        krevAdminTilgang()
-        try {
-            logger.debug("Backfilling persongalleri for FS36 klagebehandlinger")
-            adminService.backfillPersongalleri()
-            logger.debug("Finished backfilling persongalleri")
-        } catch (e: Exception) {
-            logger.warn("Failed to backfill persongalleri", e)
-            throw e
-        }
-    }
-
     @GetMapping("/backfill-person-protection", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
     fun backfillPersonProtection() {
