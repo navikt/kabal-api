@@ -359,7 +359,7 @@ class AutomaticSvarbrevService(
             val prosessfullmektig = behandling.prosessfullmektig!!
             if (prosessfullmektig.partId != null) {
                 Svarbrev.Receiver(
-                    identifikator = prosessfullmektig.partId.value,
+                    identifikator = prosessfullmektig.partId!!.value,
                     handling = Svarbrev.Receiver.HandlingEnum.AUTO,
                     overriddenAddress = null,
                     navn = null
@@ -370,10 +370,10 @@ class AutomaticSvarbrevService(
                     handling = Svarbrev.Receiver.HandlingEnum.AUTO,
                     overriddenAddress = Svarbrev.Receiver.AddressInput(
                         adresselinje1 = prosessfullmektig.address!!.adresselinje1,
-                        adresselinje2 = prosessfullmektig.address.adresselinje2,
-                        adresselinje3 = prosessfullmektig.address.adresselinje3,
-                        landkode = prosessfullmektig.address.landkode,
-                        postnummer = prosessfullmektig.address.postnummer,
+                        adresselinje2 = prosessfullmektig.address!!.adresselinje2,
+                        adresselinje3 = prosessfullmektig.address!!.adresselinje3,
+                        landkode = prosessfullmektig.address!!.landkode,
+                        postnummer = prosessfullmektig.address!!.postnummer,
                     ),
                     navn = prosessfullmektig.navn
                 )

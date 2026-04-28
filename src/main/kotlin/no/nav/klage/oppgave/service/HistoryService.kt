@@ -45,7 +45,7 @@ class HistoryService(
                     saksbehandler = previous.saksbehandlerident.navIdentToSaksbehandlerView(),
                     fradelingReasonId = previous.fradelingReason?.id,
                     hjemmelIdList = if (previous.hjemmelIdList != null) {
-                        previous.hjemmelIdList.split(",")
+                        previous.hjemmelIdList!!.split(",")
                     } else null,
                 ),
             )
@@ -58,7 +58,7 @@ class HistoryService(
                     saksbehandler = current.saksbehandlerident.navIdentToSaksbehandlerView(),
                     fradelingReasonId = current.fradelingReason?.id,
                     hjemmelIdList = if (current.hjemmelIdList != null) {
-                        current.hjemmelIdList.split(",")
+                        current.hjemmelIdList!!.split(",")
                     } else null,
                 ),
                 previous = previousEvent,
@@ -189,7 +189,7 @@ class HistoryService(
                         } else if (previous.name != null) {
                             Part(
                                 identifikator = null,
-                                name = previous.name,
+                                name = previous.name!!,
                                 type = null
                             )
                         } else null
@@ -212,7 +212,7 @@ class HistoryService(
                         } else if (current.name != null) {
                             Part(
                                 identifikator = null,
-                                name = current.name,
+                                name = current.name!!,
                                 type = null
                             )
                         } else null
@@ -372,7 +372,7 @@ class HistoryService(
                                 identifikator = it.partId?.value,
                                 name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
                                 type = if (it.partId != null) {
-                                    if (it.partId.type == PartIdType.PERSON) {
+                                    if (it.partId!!.type == PartIdType.PERSON) {
                                         BehandlingDetaljerView.IdType.FNR
                                     } else BehandlingDetaljerView.IdType.ORGNR
                                 } else null
@@ -396,7 +396,7 @@ class HistoryService(
                                 identifikator = it.partId?.value,
                                 name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
                                 type = if (it.partId != null) {
-                                    if (it.partId.type == PartIdType.PERSON) {
+                                    if (it.partId!!.type == PartIdType.PERSON) {
                                         BehandlingDetaljerView.IdType.FNR
                                     } else BehandlingDetaljerView.IdType.ORGNR
                                 } else null
@@ -446,7 +446,7 @@ class HistoryService(
                                 identifikator = it.partId?.value,
                                 name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
                                 type = if (it.partId != null) {
-                                    if (it.partId.type == PartIdType.PERSON) {
+                                    if (it.partId!!.type == PartIdType.PERSON) {
                                         BehandlingDetaljerView.IdType.FNR
                                     } else BehandlingDetaljerView.IdType.ORGNR
                                 } else null
@@ -470,7 +470,7 @@ class HistoryService(
                                 identifikator = it.partId?.value,
                                 name = it.navn ?: partSearchService.searchPart(it.partId!!.value).name,
                                 type = if (it.partId != null) {
-                                    if (it.partId.type == PartIdType.PERSON) {
+                                    if (it.partId!!.type == PartIdType.PERSON) {
                                         BehandlingDetaljerView.IdType.FNR
                                     } else BehandlingDetaljerView.IdType.ORGNR
                                 } else null

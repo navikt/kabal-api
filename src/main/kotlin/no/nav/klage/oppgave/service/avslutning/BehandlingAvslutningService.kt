@@ -407,6 +407,7 @@ class BehandlingAvslutningService(
                 is Omgjoeringskravbehandling -> OMGJOERINGSKRAVBEHANDLING_AVSLUTTET
                 is Gjenopptaksbehandling -> GJENOPPTAKSBEHANDLING_AVSLUTTET
                 is GjenopptakITrygderettenbehandling -> GJENOPPTAKSBEHANDLING_AVSLUTTET
+                else -> error("Unknown Behandling subtype: ${behandling::class.java.name}")
             },
             detaljer = getBehandlingDetaljer(behandling, hoveddokumenter)
         )
@@ -562,6 +563,7 @@ class BehandlingAvslutningService(
                     )
                 )
             }
+            else -> error("Unknown Behandling subtype: ${behandling::class.java.name}")
         }
     }
 }

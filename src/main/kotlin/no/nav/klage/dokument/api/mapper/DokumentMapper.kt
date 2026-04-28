@@ -185,7 +185,7 @@ class DokumentMapper(
                 val avsenderIdentifikator = unproxiedDUA.brevmottakere.firstOrNull()
                 if (avsenderIdentifikator?.identifikator != null) {
                     avsender = behandlingMapper.getAvsenderPartView(
-                        partId = getPartIdFromIdentifikator(identifikator = avsenderIdentifikator.identifikator),
+                        partId = getPartIdFromIdentifikator(identifikator = avsenderIdentifikator.identifikator!!),
                         technicalPartId = avsenderIdentifikator.id,
                     )
                 }
