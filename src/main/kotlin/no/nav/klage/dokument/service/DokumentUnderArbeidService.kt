@@ -1053,11 +1053,11 @@ class DokumentUnderArbeidService(
         } else if (getAddressFromFullmektig) {
             Adresse(
                 adresselinje1 = fullmektig!!.address!!.adresselinje1,
-                adresselinje2 = fullmektig.address.adresselinje2,
-                adresselinje3 = fullmektig.address.adresselinje3,
-                postnummer = fullmektig.address.postnummer,
-                poststed = fullmektig.address.poststed,
-                landkode = fullmektig.address.landkode,
+                adresselinje2 = fullmektig.address!!.adresselinje2,
+                adresselinje3 = fullmektig.address!!.adresselinje3,
+                postnummer = fullmektig.address!!.postnummer,
+                poststed = fullmektig.address!!.poststed,
+                landkode = fullmektig.address!!.landkode,
             )
         } else null
     }
@@ -1397,7 +1397,7 @@ class DokumentUnderArbeidService(
         dokumentUnderArbeid.brevmottakere.forEach { mottaker ->
             if (mottaker.identifikator != null) {
                 val part = partSearchService.searchPartWithUtsendingskanal(
-                    identifikator = mottaker.identifikator,
+                    identifikator = mottaker.identifikator!!,
                     systemUserContext = true,
                     sakenGjelderId = behandling.sakenGjelder.partId.value,
                     tema = behandling.ytelse.toTema(),

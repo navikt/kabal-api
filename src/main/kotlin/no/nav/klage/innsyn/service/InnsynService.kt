@@ -45,6 +45,7 @@ class InnsynService(
             is Omgjoeringskravbehandling -> Type.OMGJOERINGSKRAV
             is Gjenopptaksbehandling -> Type.BEGJAERING_OM_GJENOPPTAK
             is GjenopptakITrygderettenbehandling -> Type.BEGJAERING_OM_GJENOPPTAK
+            else -> error("Unknown Behandling subtype: ${this::class.java.name}")
         }
     }
 
@@ -77,6 +78,7 @@ class InnsynService(
                     is Omgjoeringskravbehandling -> it.getEvents()
                     is Gjenopptaksbehandling -> it.getEvents()
                     is GjenopptakITrygderettenbehandling -> it.getEvents()
+                    else -> error("Unknown Behandling subtype: ${it::class.java.name}")
                 }
             }.flatten()
                 .sortedBy { it.date }, //Will this always be correct when we for example truncate time?

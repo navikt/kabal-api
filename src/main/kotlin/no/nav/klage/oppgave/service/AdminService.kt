@@ -916,6 +916,7 @@ class AdminService(
 
                     is GjenopptakITrygderettenbehandling -> TODO()
                     is Gjenopptaksbehandling -> TODO()
+                    else -> error("Unknown Behandling subtype: ${behandling::class.java.name}")
                 }
 
                 if (previousBehandlingId != null) {

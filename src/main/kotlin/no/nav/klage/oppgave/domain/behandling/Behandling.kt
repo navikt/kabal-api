@@ -56,7 +56,7 @@ import java.util.*
     ),
 )
 @Audited
-sealed class Behandling(
+abstract class Behandling(
     @Id
     open val id: UUID = UUID.randomUUID(),
     /** If this behandling is created due to a "continuation" of a previous behandling, this is the id of that behandling. */
@@ -365,6 +365,7 @@ sealed class Behandling(
             is GjenopptakITrygderettenbehandling -> shouldBeCompletedInKA()
             is Gjenopptaksbehandling -> shouldBeCompletedInKA()
             is Omgjoeringskravbehandling -> shouldBeCompletedInKA()
+            else -> error("Unknown Behandling subtype: ${this::class.java.name}")
         }
     }
 

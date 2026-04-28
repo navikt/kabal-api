@@ -98,6 +98,7 @@ class KapteinService(
             is BehandlingEtterTrygderettenOpphevet -> mapBehandlingEtterTROpphevetToAnonymousBehandlingView(this)
             is Omgjoeringskravbehandling -> mapOmgjoeringskravbehandlingToAnonymousBehandlingView(this)
             is Gjenopptaksbehandling -> mapGjenopptaksbehandlingToAnonymousBehandlingView(this)
+            else -> error("Unknown Behandling subtype: ${this::class.java.name}")
         }
     }
 
