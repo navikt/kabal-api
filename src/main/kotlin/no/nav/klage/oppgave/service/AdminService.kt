@@ -457,7 +457,7 @@ class AdminService(
 
         val unfinishedBehandlingerWithMu =
             behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullAndMedunderskriverIsNotNull()
-                .filter { it.medunderskriverFlowState != FlowState.RETURNED }
+                .filter { it.medunderskriverFlowState !in listOf(FlowState.RETURNED, FlowState.RETURNED_APPROVED, FlowState.RETURNED_NOT_APPROVED) }
 
         val unfinishedBehandlingerWithTildeling =
             behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullAndTildelingIsNotNull()

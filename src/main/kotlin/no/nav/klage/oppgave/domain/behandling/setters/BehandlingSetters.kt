@@ -177,7 +177,7 @@ object BehandlingSetters {
             tidspunkt = tidspunkt,
         )
 
-        if (medunderskriverFlowState == FlowState.RETURNED || nyMedunderskriverNavIdent == null) {
+        if (medunderskriverFlowState in listOf(FlowState.RETURNED, FlowState.RETURNED_APPROVED, FlowState.RETURNED_NOT_APPROVED) || nyMedunderskriverNavIdent == null) {
             medunderskriverFlowState = FlowState.NOT_SENT
         }
 
