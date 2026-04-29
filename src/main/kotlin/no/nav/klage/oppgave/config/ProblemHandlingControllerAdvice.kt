@@ -37,6 +37,12 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
     }
 
     @ExceptionHandler
+    fun handleIllegalArgumentException(
+        ex: IllegalArgumentException,
+    ): ProblemDetail =
+        create(HttpStatus.BAD_REQUEST, ex)
+
+    @ExceptionHandler
     fun handleSizeLimitExceededException(
         ex: AttachmentTooLargeException,
     ): ProblemDetail =

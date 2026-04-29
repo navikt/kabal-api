@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.oppgave.api.view.FlowStateInput
 import no.nav.klage.oppgave.api.view.FlowStateView
 import no.nav.klage.oppgave.api.view.RolView
@@ -84,6 +85,10 @@ class BehandlingROLController(
             behandlingId,
             logger,
         )
+
+        if (input.flowState in listOf(FlowState.RETURNED_APPROVED, FlowState.RETURNED_NOT_APPROVED)) {
+            throw IllegalArgumentException("ROL skal ikke bruke denne flyten: ${input.flowState}. Kontakt Team Klage.")
+        }
 
         return behandlingService.setROLFlowState(
             behandlingId = behandlingId,

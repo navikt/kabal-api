@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.oppgave.api.view.FlowStateView
 import no.nav.klage.oppgave.api.view.MedunderskriverWrapped
 import no.nav.klage.oppgave.api.view.SaksbehandlerInput
@@ -64,6 +65,12 @@ class BehandlingMedunderskriverController(
             behandlingId,
             logger
         )
+
+        if (medunderskriverFlowStateView.flowState == FlowState.RETURNED) {
+            logger.error("Client using old FlowState")
+            throw IllegalArgumentException("Klient er ikke oppdatert. Oppdater Kabal og prøv på nytt.")
+        }
+
         return behandlingService.setMedunderskriverFlowState(
             behandlingId = behandlingId,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
