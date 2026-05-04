@@ -1085,7 +1085,7 @@ class BehandlingService(
             if (systemUserContext) systembrukerIdent else innloggetSaksbehandlerService.getInnloggetIdent()
         val utfoerendeNavn = if (systemUserContext) systembrukerIdent else getUtfoerendeNavn(utfoerendeIdent)
 
-        if (behandling.medunderskriverFlowState != FlowState.RETURNED) {
+        if (behandling.medunderskriverFlowState !in listOf(FlowState.RETURNED, FlowState.RETURNED_APPROVED, FlowState.RETURNED_NOT_APPROVED)) {
             val medunderskriverFlowEvent =
                 behandling.setMedunderskriverFlowState(
                     nyMedunderskriverFlowState = FlowState.NOT_SENT,

@@ -282,24 +282,6 @@ abstract class Behandling(
         FAGSYSTEM, KABIN, KABAL
     }
 
-    /**
-     * Brukes til ES og statistikk per nå
-     */
-    fun getStatus(): Status {
-        return when {
-            feilregistrering != null -> Status.FEILREGISTRERT
-            ferdigstilling?.avsluttet != null -> Status.FULLFOERT
-            ferdigstilling?.avsluttetAvSaksbehandler != null -> Status.AVSLUTTET_AV_SAKSBEHANDLER
-            sattPaaVent != null -> Status.SATT_PAA_VENT
-            medunderskriverFlowState == FlowState.SENT -> Status.SENDT_TIL_MEDUNDERSKRIVER
-            medunderskriverFlowState == FlowState.RETURNED -> Status.RETURNERT_TIL_SAKSBEHANDLER
-            medunderskriver?.saksbehandlerident != null -> Status.MEDUNDERSKRIVER_VALGT
-            tildeling?.saksbehandlerident != null -> Status.TILDELT
-            tildeling?.saksbehandlerident == null -> Status.IKKE_TILDELT
-            else -> Status.UKJENT
-        }
-    }
-
     enum class Status {
         IKKE_TILDELT, TILDELT, MEDUNDERSKRIVER_VALGT, SENDT_TIL_MEDUNDERSKRIVER, RETURNERT_TIL_SAKSBEHANDLER, AVSLUTTET_AV_SAKSBEHANDLER, SATT_PAA_VENT, FULLFOERT, UKJENT, FEILREGISTRERT
     }
@@ -440,7 +422,6 @@ enum class BehandlingRole {
     NONE,
     ;
 }
-
 
 val utfallToNewAnkebehandling = setOf(
     Utfall.HENVIST
