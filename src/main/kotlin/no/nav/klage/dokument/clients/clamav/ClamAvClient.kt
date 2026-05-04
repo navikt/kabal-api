@@ -19,7 +19,7 @@ class ClamAvClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
-        private const val LARGE_FILE_THRESHOLD_MB = 40
+        private const val LARGE_FILE_THRESHOLD_MB = 25
     }
 
     fun hasVirus(file: File): Boolean {
