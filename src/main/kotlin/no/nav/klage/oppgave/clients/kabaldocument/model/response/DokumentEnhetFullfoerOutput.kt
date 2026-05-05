@@ -5,6 +5,7 @@ import java.util.*
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class DokumentEnhetFullfoerOutput(
+    //Tidligere journalførte dokumenter og vedleggsoversikt er ikke del av denne lista, kun nye smartdokumenter og opplastede dokumenter
     val sourceReferenceWithJoarkReferencesList: List<SourceReferenceWithJoarkReferences>,
 )
 
