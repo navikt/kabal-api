@@ -2000,14 +2000,16 @@ class DokumentUnderArbeidService(
         val journalpostById = journalpostSet.associateBy { it.journalpostId }
         val processedJournalpostIds = mutableSetOf<String>()
         val saksbehandlerIdent = hovedDokument.markertFerdigBy!!
-
+        logger.debug("dokumentEnhetFullfoerOutput: $dokumentEnhetFullfoerOutput")
         // In one traversal: update DUA dokarkiv references and, once per journalpost, update sak docs + events.
         dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.forEach { sourceReferenceWithJoarkReferences ->
             var skipIncludedDocumentOps = false
 
             sourceReferenceWithJoarkReferences.sourceReference?.let { sourceReference ->
                 dokumentUnderArbeidRepository.findById(sourceReference).ifPresent { currentDokumentUnderArbeid ->
+                    logger.debug("Found document by sourceReference.")
                     if (currentDokumentUnderArbeid is JournalfoertDokumentUnderArbeidAsVedlegg) {
+                        logger.debug("Document was JournalfoertdokumentUnderArbeidAsVedlegg")
                         skipIncludedDocumentOps = true
                     }
 
@@ -2029,7 +2031,7 @@ class DokumentUnderArbeidService(
                     .forEach { journalpostId ->
                         if (processedJournalpostIds.add(journalpostId)) {
                             val saksdokumenter = journalpostById[journalpostId].mapToSaksdokumenter()
-
+                            logger.debug("saksdokumenter found in jp: $saksdokumenter")
                             saksdokumenter.forEach { saksdokument ->
                                 behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
                                     ?.also { applicationEventPublisher.publishEvent(it) }
