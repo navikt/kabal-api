@@ -2009,7 +2009,8 @@ class DokumentUnderArbeidService(
 
             if (behandling.ferdigstilling == null) {
                 val newDocuments = saksdokumenter.filter { saksdokument ->
-                    journalfoerteVedlegg.any { it.dokumentInfoId == saksdokument.dokumentInfoId && it.journalpostId == saksdokument.journalpostId }
+                    logger.debug("saksdokument: $saksdokument")
+                    journalfoerteVedlegg.none { it.dokumentInfoId == saksdokument.dokumentInfoId }
                 }
 
                 newDocuments.forEach { saksdokument ->
