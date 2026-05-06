@@ -2008,8 +2008,8 @@ class DokumentUnderArbeidService(
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 
             if (behandling.ferdigstilling == null) {
+                //Filtering out documents in journalpost that were added as journalfoert vedlegg to the original dua.
                 val newDocuments = saksdokumenter.filter { saksdokument ->
-                    logger.debug("Filtering out documents in journalpost that were added as journalfoert vedlegg to the original dua.")
                     journalfoerteVedlegg.none { it.dokumentInfoId == saksdokument.dokumentInfoId }
                 }
 
