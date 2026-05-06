@@ -46,7 +46,7 @@ class MellomlagerService(
     fun getUploadedDocumentAsSignedURL(
         mellomlagerId: String,
         filename: String,
-        contentDisposition: String = "inline",
+        contentDisposition: String,
     ): String {
         return fileApiClient.getDocumentAsSignedURL(
             id = mellomlagerId,
