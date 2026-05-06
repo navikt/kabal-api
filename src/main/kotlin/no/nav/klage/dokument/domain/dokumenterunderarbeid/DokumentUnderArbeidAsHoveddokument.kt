@@ -33,7 +33,6 @@ abstract class DokumentUnderArbeidAsHoveddokument(
     @Convert(converter = DokumentTypeConverter::class)
     open var dokumentType: DokumentType,
 
-
     //Common properties
     id: UUID = UUID.randomUUID(),
     name: String,

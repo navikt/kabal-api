@@ -11,10 +11,10 @@ import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.DokumentUnderArbeidMetadata
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
+import no.nav.klage.oppgave.util.buildFilename
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getResourceThatWillBeDeleted
 import no.nav.klage.oppgave.util.logMethodDetails
-import no.nav.klage.oppgave.util.mediaTypeToFileExtension
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
@@ -154,33 +154,34 @@ class DokumentUnderArbeidController(
     }
 
     @ResponseBody
-    @GetMapping("/{dokumentId}/pdf")
+    @GetMapping("/{dokumentId}/pdf", "/{dokumentId}/pdf/{download}")
     fun getPdf(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
+        @PathVariable(value = "download", required = false) download: String?,
         @RequestParam(value = "format", required = false, defaultValue = "ARKIV") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
     ): Any {
         logger.debug("Kall mottatt på getPdf for {}", dokumentId)
+
+        val contentDisposition = if (download != null) "attachment" else "inline"
+
         val (title, resourceOrUrl, mediaType) = dokumentUnderArbeidService.getFysiskDokumentAsResourceOrUrl(
             behandlingId = behandlingId,
             dokumentId = dokumentId,
             variantFormat = variantFormat,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            contentDisposition = contentDisposition,
         )
 
         return if (resourceOrUrl is Resource) {
-            val fileExtension = mediaTypeToFileExtension(mediaType ?: MediaType.APPLICATION_PDF)
-            val filename = title.removeSuffix(fileExtension) + fileExtension
+            val filename = buildFilename(title = title, mediaType = mediaType ?: MediaType.APPLICATION_PDF)
 
             ResponseEntity.ok()
                 .headers(HttpHeaders().apply {
                     contentType = mediaType
                     add(
                         HttpHeaders.CONTENT_DISPOSITION,
-                        if (mediaType == MediaType.APPLICATION_PDF)
-                            "inline; filename=\"$filename\""
-                        else
-                            "attachment; filename=\"$filename\""
+                        "$contentDisposition; filename=\"$filename\""
                     )
                 })
                 .contentLength(resourceOrUrl.contentLength())
