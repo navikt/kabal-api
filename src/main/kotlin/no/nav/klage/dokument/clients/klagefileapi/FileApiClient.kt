@@ -59,7 +59,7 @@ class FileApiClient(
     fun getDocumentAsSignedURL(
         id: String,
         filename: String,
-        contentDisposition: String = "inline",
+        contentDisposition: String,
         systemUser: Boolean = false,
     ): String {
         logger.debug("Fetching document (signed URL) with id {}", id)

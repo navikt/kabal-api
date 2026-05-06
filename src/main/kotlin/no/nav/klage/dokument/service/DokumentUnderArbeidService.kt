@@ -1566,7 +1566,7 @@ class DokumentUnderArbeidService(
         dokumentId: UUID,
         innloggetIdent: String,
         variantFormat: DokumentReferanse.Variant.Format,
-        contentDisposition: String = "inline",
+        contentDisposition: String,
     ): Triple<String, Any, MediaType?> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 

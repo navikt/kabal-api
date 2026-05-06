@@ -162,7 +162,9 @@ class DokumentUnderArbeidController(
         @RequestParam(value = "format", required = false, defaultValue = "ARKIV") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
     ): Any {
         logger.debug("Kall mottatt på getPdf for {}", dokumentId)
+
         val contentDisposition = if (download != null) "attachment" else "inline"
+
         val (title, resourceOrUrl, mediaType) = dokumentUnderArbeidService.getFysiskDokumentAsResourceOrUrl(
             behandlingId = behandlingId,
             dokumentId = dokumentId,
