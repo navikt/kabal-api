@@ -43,8 +43,16 @@ class MellomlagerService(
         return fileApiClient.getDocument(mellomlagerId)
     }
 
-    fun getUploadedDocumentAsSignedURL(mellomlagerId: String): String {
-        return fileApiClient.getDocumentAsSignedURL(mellomlagerId)
+    fun getUploadedDocumentAsSignedURL(
+        mellomlagerId: String,
+        filename: String,
+        contentDisposition: String = "inline",
+    ): String {
+        return fileApiClient.getDocumentAsSignedURL(
+            id = mellomlagerId,
+            filename = filename,
+            contentDisposition = contentDisposition,
+        )
     }
 
     fun deleteDocument(mellomlagerId: String, systemContext: Boolean = false): Unit =

@@ -32,10 +32,7 @@ import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
-import no.nav.klage.oppgave.util.TokenUtil
-import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getSortKey
-import no.nav.klage.oppgave.util.isInngaaende
+import no.nav.klage.oppgave.util.*
 import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload
 import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
@@ -1568,7 +1565,8 @@ class DokumentUnderArbeidService(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
         innloggetIdent: String,
-        variantFormat: DokumentReferanse.Variant.Format
+        variantFormat: DokumentReferanse.Variant.Format,
+        contentDisposition: String = "inline",
     ): Triple<String, Any, MediaType?> {
         val dokumentUnderArbeid = getDokumentUnderArbeid(dokumentId)
 
@@ -1596,7 +1594,11 @@ class DokumentUnderArbeidService(
                 is OpplastetDokumentUnderArbeidAsHoveddokument -> {
                     Triple(
                         dokumentUnderArbeid.name,
-                        mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!),
+                        mellomlagerService.getUploadedDocumentAsSignedURL(
+                            mellomlagerId = dokumentUnderArbeid.mellomlagerId!!,
+                            filename = buildFilename(title = dokumentUnderArbeid.name),
+                            contentDisposition = contentDisposition,
+                        ),
                         null
                     )
                 }
@@ -1604,7 +1606,11 @@ class DokumentUnderArbeidService(
                 is OpplastetDokumentUnderArbeidAsVedlegg -> {
                     Triple(
                         dokumentUnderArbeid.name,
-                        mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!),
+                        mellomlagerService.getUploadedDocumentAsSignedURL(
+                            mellomlagerId = dokumentUnderArbeid.mellomlagerId!!,
+                            filename = buildFilename(title = dokumentUnderArbeid.name),
+                            contentDisposition = contentDisposition,
+                        ),
                         null
                     )
                 }
@@ -1622,7 +1628,11 @@ class DokumentUnderArbeidService(
                         )
                     } else Triple(
                         dokumentUnderArbeid.name,
-                        mellomlagerService.getUploadedDocumentAsSignedURL(dokumentUnderArbeid.mellomlagerId!!),
+                        mellomlagerService.getUploadedDocumentAsSignedURL(
+                            mellomlagerId = dokumentUnderArbeid.mellomlagerId!!,
+                            filename = buildFilename(title = dokumentUnderArbeid.name),
+                            contentDisposition = contentDisposition,
+                        ),
                         null
                     )
                 }

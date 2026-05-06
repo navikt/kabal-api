@@ -56,7 +56,12 @@ class FileApiClient(
         return FileSystemResource(tempFile)
     }
 
-    fun getDocumentAsSignedURL(id: String, systemUser: Boolean = false): String {
+    fun getDocumentAsSignedURL(
+        id: String,
+        filename: String,
+        contentDisposition: String = "inline",
+        systemUser: Boolean = false,
+    ): String {
         logger.debug("Fetching document (signed URL) with id {}", id)
 
         val token = if (systemUser) {
@@ -65,14 +70,21 @@ class FileApiClient(
             tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
         }
 
-        return fileWebClient.get()
+        return fileWebClient.post()
             .uri { it.path("/document/{id}/signedurl").build(id) }
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+            .bodyValue(
+                SignedUrlRequest(
+                    headers = mapOf(
+                        "content-disposition" to "$contentDisposition; filename=\"$filename\""
+                    )
+                )
+            )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
-                    functionName = ::getDocument.name,
+                    functionName = ::getDocumentAsSignedURL.name,
                     classLogger = logger,
                 )
             }
