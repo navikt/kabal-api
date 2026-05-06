@@ -1973,7 +1973,6 @@ class DokumentUnderArbeidService(
         logger.debug("ferdigstillDokumentEnhet hoveddokument with id {}", hovedDokumentId)
         val hovedDokument =
             getDokumentUnderArbeid(hovedDokumentId) as DokumentUnderArbeidAsHoveddokument
-        val vedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
 
         logger.debug(
             "calling fullfoerDokumentEnhet ({}) for hoveddokument with id {}",
@@ -1986,12 +1985,13 @@ class DokumentUnderArbeidService(
         val behandling: Behandling =
             behandlingService.getBehandlingForReadWithoutCheckForAccess(hovedDokument.behandlingId)
 
-        //Vil antageligvis bare ha et medlem, ut fra responsen fra kabal-document
         val journalpostIdSet = dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.flatMap {
             it.joarkReferenceList.map { joarkReference ->
                 joarkReference.journalpostId
             }
         }.toSet()
+        //Antageligvis vil dette være en enkelt jpid, legger til logging for verifisering
+        logger.debug("Found ${journalpostIdSet.size} jpids after document completion")
 
         val journalpostSetFromSaf = safFacade.getJournalposter(
             journalpostIdSet = journalpostIdSet,
@@ -2002,43 +2002,45 @@ class DokumentUnderArbeidService(
         val journalfoerteVedlegg =
             journalfoertDokumentUnderArbeidRepository.findByParentId(dokumentId = hovedDokument.id)
 
-        journalpostIdSet.forEach { documentInfo ->
-            val journalpost = journalpostSetFromSaf.find { it.journalpostId == documentInfo }
+        journalpostIdSet.forEach { journalpostId ->
+            val journalpost = journalpostSetFromSaf.find { it.journalpostId == journalpostId }
             val saksbehandlerIdent = hovedDokument.markertFerdigBy!!
             val saksdokumenter = journalpost.mapToSaksdokumenter()
 
             if (behandling.ferdigstilling == null) {
                 val newDocuments = saksdokumenter.filter { saksdokument ->
-                    logger.debug("saksdokument: $saksdokument")
+                    logger.debug("Filtering out documents in journalpost that were added as journalfoert vedlegg to the original dua.")
                     journalfoerteVedlegg.none { it.dokumentInfoId == saksdokument.dokumentInfoId }
                 }
 
-                newDocuments.forEach { saksdokument ->
-                    behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
-                        ?.also { applicationEventPublisher.publishEvent(it) }
-                }
+                if (newDocuments.isNotEmpty()) {
+                    newDocuments.forEach { saksdokument ->
+                        behandling.addSaksdokument(saksdokument, saksbehandlerIdent)
+                            ?.also { applicationEventPublisher.publishEvent(it) }
+                    }
 
-                publishInternalEvent(
-                    data = jacksonObjectMapper.writeValueAsString(
-                        IncludedDocumentsChangedEvent(
-                            actor = Employee(
-                                navIdent = saksbehandlerIdent,
-                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
-                            ),
-                            timestamp = LocalDateTime.now(),
-                            journalfoertDokumentReferenceSet = newDocuments.map {
-                                JournalfoertDokument(
-                                    it.journalpostId,
-                                    it.dokumentInfoId
+                    publishInternalEvent(
+                        data = jacksonObjectMapper.writeValueAsString(
+                            IncludedDocumentsChangedEvent(
+                                actor = Employee(
+                                    navIdent = saksbehandlerIdent,
+                                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                                ),
+                                timestamp = LocalDateTime.now(),
+                                journalfoertDokumentReferenceSet = newDocuments.map {
+                                    JournalfoertDokument(
+                                        it.journalpostId,
+                                        it.dokumentInfoId
+                                    )
+                                }.toSet(),
+                                traceparent = currentTraceparent(),
+
                                 )
-                            }.toSet(),
-                            traceparent = currentTraceparent(),
-
-                            )
-                    ),
-                    behandlingId = behandling.id,
-                    type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
-                )
+                        ),
+                        behandlingId = behandling.id,
+                        type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
+                    )
+                }
             }
         }
 
@@ -2065,11 +2067,12 @@ class DokumentUnderArbeidService(
         )
         hovedDokument.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
 
+        val allVedlegg = dokumentUnderArbeidCommonService.findVedleggByParentId(hovedDokument.id)
         logger.debug(
             "about to call ferdigstillHvisIkkeAlleredeFerdigstilt(now) for vedlegg of dokument with id {}",
             hovedDokument.id
         )
-        vedlegg.forEach {
+        allVedlegg.forEach {
             it.ferdigstillHvisIkkeAlleredeFerdigstilt(now)
         }
         logger.debug("about to return hoveddokument for hoveddokumentId {}", hovedDokument.id)
