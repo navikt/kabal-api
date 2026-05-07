@@ -98,10 +98,10 @@ abstract class Behandling(
     open val kildeReferanse: String,
     @Column(name = "dato_mottatt_klageinstans", nullable = false)
     open var mottattKlageinstans: LocalDateTime,
-    @Column(name = "modified", nullable = false)
-    open var modified: LocalDateTime = LocalDateTime.now(),
     @Column(name = "created", nullable = false)
     open val created: LocalDateTime = LocalDateTime.now(),
+    @Column(name = "modified", nullable = false)
+    open var modified: LocalDateTime = created,
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "behandling_id", referencedColumnName = "id", nullable = false)
     @Fetch(FetchMode.SELECT)

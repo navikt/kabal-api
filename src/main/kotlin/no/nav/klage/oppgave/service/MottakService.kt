@@ -768,7 +768,7 @@ class MottakService(
             sakMottattKaDato = input.mottattNav.atStartOfDay(),
             frist = input.frist,
             created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
+            modified = created,
             ytelse = ytelse,
             kommentar = null,
             forrigeBehandlingId = id,

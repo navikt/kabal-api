@@ -85,8 +85,6 @@ class ExternalMottakFacade(
             automaticSvarbrevEventRepository.save(
                 AutomaticSvarbrevEvent(
                     status = AutomaticSvarbrevEvent.AutomaticSvarbrevStatus.NOT_HANDLED,
-                    created = LocalDateTime.now(),
-                    modified = LocalDateTime.now(),
                     behandlingId = behandlingId,
                     dokumentUnderArbeidId = null,
                     receiversAreSet = false,
