@@ -330,8 +330,6 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                             smartEditorTemplateId = "null",
                             behandlingId = UUID.randomUUID(),
                             dokumentType = DokumentType.VEDTAK,
-                            created = LocalDateTime.now(),
-                            modified = LocalDateTime.now(),
                             markertFerdig = null,
                             ferdigstilt = null,
                             dokumentEnhetId = null,
@@ -443,7 +441,6 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
                 Hjemmel.FTRL_8_7
             ) else mutableSetOf(),
             created = now,
-            modified = now,
             mottattKlageinstans = now,
             fagsystem = Fagsystem.K9,
             fagsakId = "123",

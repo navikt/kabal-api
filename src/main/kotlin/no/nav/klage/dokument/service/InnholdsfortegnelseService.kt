@@ -67,8 +67,6 @@ class InnholdsfortegnelseService(
             Innholdsfortegnelse(
                 mellomlagerId = mellomlagerId,
                 hoveddokumentId = dokumentUnderArbeid.id,
-                created = LocalDateTime.now(),
-                modified = LocalDateTime.now(),
             )
         )
     }

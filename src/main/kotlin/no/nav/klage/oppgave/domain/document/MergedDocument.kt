@@ -22,7 +22,7 @@ class MergedDocument(
     @Column(name = "hash", nullable = false)
     val hash: String,
     @Column(name = "created", nullable = false)
-    val created: LocalDateTime,
+    val created: LocalDateTime = LocalDateTime.now(),
 ) {
 
     override fun equals(other: Any?): Boolean {

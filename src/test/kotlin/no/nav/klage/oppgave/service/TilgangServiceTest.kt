@@ -130,8 +130,6 @@ fun getKlagebehandling(): Klagebehandling = Klagebehandling(
     hjemler = mutableSetOf(
         Hjemmel.FTRL_8_7
     ),
-    created = LocalDateTime.now(),
-    modified = LocalDateTime.now(),
     mottattKlageinstans = LocalDateTime.now(),
     fagsystem = Fagsystem.K9,
     fagsakId = "123",

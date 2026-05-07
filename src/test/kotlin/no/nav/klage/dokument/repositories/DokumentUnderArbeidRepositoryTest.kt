@@ -53,8 +53,6 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
             dokumentType = DokumentType.BREV,
             creatorIdent = "null",
             creatorRole = KABAL_SAKSBEHANDLING,
-            created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
             datoMottatt = null,
             journalfoerendeEnhetId = null,
             inngaaendeKanal = null,
@@ -82,8 +80,6 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
             dokumentType = DokumentType.BREV,
             creatorIdent = "null",
             creatorRole = KABAL_SAKSBEHANDLING,
-            created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
             datoMottatt = null,
             journalfoerendeEnhetId = null,
             inngaaendeKanal = null,
@@ -104,8 +100,6 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
                 parentId = hovedDokument.id,
                 creatorIdent = "null",
                 creatorRole = KABAL_SAKSBEHANDLING,
-                created = LocalDateTime.now(),
-                modified = LocalDateTime.now(),
             )
         )
 
@@ -128,8 +122,6 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
             dokumentType = DokumentType.BREV,
             creatorIdent = "null",
             creatorRole = KABAL_SAKSBEHANDLING,
-            created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
             datoMottatt = null,
             avsenderMottakerInfoSet = mutableSetOf(
                 Brevmottaker(
@@ -159,8 +151,6 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
                 parentId = hovedDokument.id,
                 creatorIdent = "null",
                 creatorRole = KABAL_SAKSBEHANDLING,
-                created = LocalDateTime.now(),
-                modified = LocalDateTime.now(),
             )
         )
 
@@ -184,8 +174,6 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
             dokumentType = DokumentType.BREV,
             creatorIdent = "null",
             creatorRole = KABAL_SAKSBEHANDLING,
-            created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
             datoMottatt = null,
             journalfoerendeEnhetId = null,
             inngaaendeKanal = null,
@@ -219,8 +207,6 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
             dokumentType = DokumentType.BREV,
             creatorIdent = "null",
             creatorRole = KABAL_SAKSBEHANDLING,
-            created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
             datoMottatt = null,
             journalfoerendeEnhetId = null,
             inngaaendeKanal = null,
@@ -250,8 +236,6 @@ class DokumentUnderArbeidRepositoryTest : PostgresIntegrationTestBase() {
                 dokumentType = DokumentType.BREV,
                 creatorIdent = "null",
                 creatorRole = KABAL_SAKSBEHANDLING,
-                created = LocalDateTime.now(),
-                modified = LocalDateTime.now(),
                 datoMottatt = null,
                 journalfoerendeEnhetId = null,
                 inngaaendeKanal = null,
