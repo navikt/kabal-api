@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.exceptions.UserNotFoundException
 import no.nav.klage.oppgave.repositories.PersonProtectionRepository
 import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
 import no.nav.klage.oppgave.service.mapper.BehandlingSkjemaV2
@@ -55,7 +56,14 @@ class BehandlingEndretKafkaProducer(
         val erEgenAnsatt = protections.any { it.skjermet }
 
         val medunderskriverEnhet =
-            behandling.medunderskriver?.saksbehandlerident?.let { klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = it).enhet.enhetId }
+            behandling.medunderskriver?.saksbehandlerident?.let { navIdent ->
+                try {
+                    klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent).enhet.enhetId
+                } catch (_: UserNotFoundException) {
+                    logger.warn("User not found when looking up medunderskriverEnhet for behandling {}. Setting null.", behandling.id)
+                    null
+                }
+            }
 
         val json = behandling.mapToSkjemaV2(
             erStrengtFortrolig = erStrengtFortrolig,
