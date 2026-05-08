@@ -107,7 +107,7 @@ class MeldingService(
             if (melding.notify) {
                 logger.warn("Melding ($meldingId) already has notify=true, skipping setting it again.")
                 return MeldingModified(
-                    modified = melding.modified ?: throw RuntimeException("modified on melding not set")
+                    modified = melding.modified ?: melding.created
                 )
             }
 
@@ -120,7 +120,7 @@ class MeldingService(
                 melding = melding,
                 utfoerendeIdent = innloggetIdent,
                 utfoerendeName = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
-                timestamp = melding.modified!!,
+                timestamp = melding.modified ?: melding.created,
                 type = InternalEventType.MESSAGE,
             )
 
