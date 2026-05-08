@@ -16,13 +16,6 @@ import java.util.*
 @DynamicUpdate
 @Audited
 class OpplastetDokumentUnderArbeidAsVedlegg(
-    @Column(name = "size")
-    var size: Long?,
-    @Column(name = "mellomlager_id")
-    override var mellomlagerId: String?,
-    @Column(name = "mellomlagret_date")
-    override var mellomlagretDate: LocalDateTime?,
-
     //Common properties
     id: UUID = UUID.randomUUID(),
     name: String,
@@ -35,6 +28,13 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
     parentId: UUID,
     creatorIdent: String,
     creatorRole: BehandlingRole,
+
+    @Column(name = "size")
+    var size: Long?,
+    @Column(name = "mellomlager_id")
+    override var mellomlagerId: String?,
+    @Column(name = "mellomlagret_date")
+    override var mellomlagretDate: LocalDateTime? = created,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsVedlegg(
     id = id,
     name = name,

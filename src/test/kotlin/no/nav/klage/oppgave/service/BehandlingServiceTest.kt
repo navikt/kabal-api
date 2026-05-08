@@ -41,7 +41,6 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.test.context.ActiveProfiles
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import java.util.Collections.emptySortedSet
@@ -436,7 +435,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             prosessfullmektig = null,
             ytelse = Ytelse.OMS_OMP,
             type = Type.KLAGE,
-            frist = LocalDate.now(),
+            frist = now.toLocalDate(),
             hjemler = if (hjemler) mutableSetOf(
                 Hjemmel.FTRL_8_7
             ) else mutableSetOf(),
@@ -445,7 +444,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             fagsystem = Fagsystem.K9,
             fagsakId = "123",
             kildeReferanse = "abc",
-            mottattVedtaksinstans = LocalDate.now(),
+            mottattVedtaksinstans = now.toLocalDate(),
             avsenderEnhetFoersteinstans = "enhet",
             kakaKvalitetsvurderingId = UUID.randomUUID(),
             kakaKvalitetsvurderingVersion = 2,

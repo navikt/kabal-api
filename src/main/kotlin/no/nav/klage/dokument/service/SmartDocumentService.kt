@@ -91,8 +91,6 @@ class SmartDocumentService(
                 data = input.data,
             )
 
-        val now = LocalDateTime.now()
-
         val document = if (parentId == null) {
             smartDokumentUnderArbeidAsHoveddokumentRepository.save(
                 SmartdokumentUnderArbeidAsHoveddokument(
@@ -106,8 +104,6 @@ class SmartDocumentService(
                     smartEditorTemplateId = smartEditorTemplateId,
                     creatorIdent = innloggetIdent,
                     creatorRole = behandlingRole,
-                    created = now,
-                    modified = now,
                     journalfoerendeEnhetId = null,
                     language = language,
                     mellomlagretVersion = null,
@@ -127,8 +123,6 @@ class SmartDocumentService(
                     creatorRole = behandlingRole,
                     parentId = parentId,
                     language = language,
-                    created = now,
-                    modified = now,
                     mellomlagretVersion = null,
                 )
             )

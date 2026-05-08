@@ -17,18 +17,6 @@ import java.util.*
 @DynamicUpdate
 @Audited
 class OpplastetDokumentUnderArbeidAsHoveddokument(
-    @Column(name = "size")
-    var size: Long?,
-    @Column(name = "mellomlager_id")
-    override var mellomlagerId: String?,
-    @Column(name = "mellomlagret_date")
-    override var mellomlagretDate: LocalDateTime?,
-    @Column(name = "dato_mottatt")
-    var datoMottatt: LocalDate?,
-    @Enumerated(EnumType.STRING)
-    @Column(name = "inngaaende_kanal")
-    var inngaaendeKanal: InngaaendeKanal?,
-
     //Common properties
     id: UUID = UUID.randomUUID(),
     name: String,
@@ -45,6 +33,18 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     avsenderMottakerInfoSet: MutableSet<Brevmottaker> = mutableSetOf(),
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
     journalfoerendeEnhetId: String?,
+
+    @Column(name = "size")
+    var size: Long?,
+    @Column(name = "mellomlager_id")
+    override var mellomlagerId: String?,
+    @Column(name = "mellomlagret_date")
+    override var mellomlagretDate: LocalDateTime? = created,
+    @Column(name = "dato_mottatt")
+    var datoMottatt: LocalDate?,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "inngaaende_kanal")
+    var inngaaendeKanal: InngaaendeKanal?,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsHoveddokument(
     id = id,
     name = name,
