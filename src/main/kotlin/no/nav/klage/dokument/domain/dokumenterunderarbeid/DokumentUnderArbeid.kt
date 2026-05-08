@@ -28,7 +28,7 @@ abstract class DokumentUnderArbeid(
     @Column(name = "created", nullable = false)
     open var created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "modified", nullable = false)
-    open var modified: LocalDateTime = LocalDateTime.now(),
+    open var modified: LocalDateTime = created,
     @Column(name = "markert_ferdig")
     open var markertFerdig: LocalDateTime? = null,
     @Column(name = "markert_ferdig_by")

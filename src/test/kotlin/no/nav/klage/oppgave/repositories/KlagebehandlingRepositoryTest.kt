@@ -162,8 +162,6 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
             mottattKlageinstans = LocalDateTime.now(),
             kakaKvalitetsvurderingId = UUID.randomUUID(),
             kakaKvalitetsvurderingVersion = 2,
-            created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
             frist = LocalDate.now().plusWeeks(12),
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
@@ -204,8 +202,6 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
         hjemler = mutableSetOf(
             Hjemmel.FTRL_8_7
         ),
-        created = LocalDateTime.now(),
-        modified = LocalDateTime.now(),
         mottattKlageinstans = LocalDateTime.now(),
         fagsystem = Fagsystem.K9,
         fagsakId = "123",

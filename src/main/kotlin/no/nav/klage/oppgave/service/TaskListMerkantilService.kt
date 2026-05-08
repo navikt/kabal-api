@@ -23,7 +23,6 @@ class TaskListMerkantilService(
             TaskListMerkantil(
                 behandlingId = behandlingId,
                 reason = reason,
-                created = LocalDateTime.now(),
                 dateHandled = null,
                 handledBy = null,
                 handledByName = null,

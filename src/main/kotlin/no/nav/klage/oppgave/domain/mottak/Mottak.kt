@@ -30,7 +30,7 @@ data class Mottak(
     val sakMottattKaDato: LocalDateTime,
     val frist: LocalDate?,
     val created: LocalDateTime = LocalDateTime.now(),
-    val modified: LocalDateTime = LocalDateTime.now(),
+    val modified: LocalDateTime = created,
     val ytelse: Ytelse,
     val kommentar: String?,
     val forrigeBehandlingId: UUID?,

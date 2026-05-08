@@ -299,7 +299,6 @@ class DokumentService(
                     )
                 }.toMutableSet(),
                 hash = hash,
-                created = LocalDateTime.now()
             )
         )
     }

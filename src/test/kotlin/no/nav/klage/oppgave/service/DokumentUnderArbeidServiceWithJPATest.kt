@@ -132,8 +132,6 @@ class DokumentUnderArbeidServiceWithJPATest : PostgresIntegrationTestBase() {
             dokumentType = DokumentType.BREV,
             creatorIdent = "null",
             creatorRole = KABAL_SAKSBEHANDLING,
-            created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
             datoMottatt = null,
             journalfoerendeEnhetId = null,
             inngaaendeKanal = null,

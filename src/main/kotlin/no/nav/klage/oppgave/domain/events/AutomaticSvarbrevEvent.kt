@@ -14,9 +14,9 @@ class AutomaticSvarbrevEvent (
     @Enumerated(EnumType.STRING)
     var status: AutomaticSvarbrevStatus,
     @Column(name = "created", nullable = false)
-    val created: LocalDateTime,
+    val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "modified", nullable = false)
-    var modified: LocalDateTime,
+    var modified: LocalDateTime = created,
     @Column(name = "behandling_id", nullable = false)
     val behandlingId: UUID,
     @Column(name = "dokument_under_arbeid_id")

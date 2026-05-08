@@ -28,9 +28,9 @@ class SvarbrevSettings(
     @Column(name = "should_send", nullable = false)
     var shouldSend: Boolean,
     @Column(name = "created", nullable = false)
-    val created: LocalDateTime,
+    val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "modified", nullable = false)
-    var modified: LocalDateTime,
+    var modified: LocalDateTime = created,
     @Column(name = "created_by", nullable = false)
     var createdBy: String,
     @Column(name = "type_id", nullable = false)

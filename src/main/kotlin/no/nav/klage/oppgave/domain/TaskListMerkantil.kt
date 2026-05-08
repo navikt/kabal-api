@@ -17,7 +17,7 @@ class TaskListMerkantil(
     @Column(name = "reason", nullable = false)
     val reason: String,
     @Column(name = "created", nullable = false)
-    val created: LocalDateTime,
+    val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "date_handled")
     var dateHandled: LocalDateTime?,
     @Column(name = "handled_by")

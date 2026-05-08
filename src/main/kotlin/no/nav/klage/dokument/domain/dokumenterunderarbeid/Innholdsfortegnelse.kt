@@ -21,7 +21,7 @@ open class Innholdsfortegnelse(
     @Column(name = "created", nullable = false)
     open var created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "modified", nullable = false)
-    open var modified: LocalDateTime = LocalDateTime.now(),
+    open var modified: LocalDateTime = created,
 ) : Comparable<Innholdsfortegnelse> {
 
     override fun compareTo(other: Innholdsfortegnelse): Int =

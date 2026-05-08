@@ -146,21 +146,16 @@ class DokumentUnderArbeidService(
         val fileSize = file.length()
         val mellomlagerId = mellomlagerService.uploadFile(file = file, systemContext = systemContext)
 
-        val now = LocalDateTime.now()
-
         val document = if (parentId == null) {
             opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
                 OpplastetDokumentUnderArbeidAsHoveddokument(
                     mellomlagerId = mellomlagerId,
-                    mellomlagretDate = now,
                     size = fileSize,
                     name = title,
                     dokumentType = dokumentType,
                     behandlingId = behandlingId,
                     creatorIdent = utfoerendeIdent,
                     creatorRole = behandlingRole,
-                    created = now,
-                    modified = now,
                     datoMottatt = null,
                     journalfoerendeEnhetId = null,
                     inngaaendeKanal = null,
@@ -170,15 +165,12 @@ class DokumentUnderArbeidService(
             opplastetDokumentUnderArbeidAsVedleggRepository.save(
                 OpplastetDokumentUnderArbeidAsVedlegg(
                     mellomlagerId = mellomlagerId,
-                    mellomlagretDate = now,
                     size = file.length(),
                     name = title,
                     behandlingId = behandlingId,
                     creatorIdent = utfoerendeIdent,
                     creatorRole = behandlingRole,
                     parentId = parentId,
-                    created = now,
-                    modified = now,
                 )
             )
         }
@@ -520,8 +512,6 @@ class DokumentUnderArbeidService(
 
         val (toAdd, duplicates) = journalfoerteDokumenter.partition { it !in alreadAddedDocumentsMapped }
 
-        val now = LocalDateTime.now()
-
         val resultingDocuments = toAdd.map { journalfoertDokumentReference ->
             val journalpostInDokarkiv =
                 journalpostListForUser.find { it.journalpostId == journalfoertDokumentReference.journalpostId }!!
@@ -538,8 +528,6 @@ class DokumentUnderArbeidService(
                 creatorIdent = innloggetIdent,
                 creatorRole = behandlingRole,
                 opprettet = journalpostInDokarkiv.datoOpprettet,
-                created = now,
-                modified = now,
                 markertFerdig = null,
                 markertFerdigBy = null,
                 ferdigstilt = null,

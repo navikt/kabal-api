@@ -68,7 +68,7 @@ class Ankebehandling(
     frist: LocalDate,
     tildeling: Tildeling? = null,
     created: LocalDateTime = LocalDateTime.now(),
-    modified: LocalDateTime = LocalDateTime.now(),
+    modified: LocalDateTime = created,
     saksdokumenter: MutableSet<Saksdokument> = mutableSetOf(),
     hjemler: Set<Hjemmel> = emptySet(),
     sattPaaVent: SattPaaVent? = null,

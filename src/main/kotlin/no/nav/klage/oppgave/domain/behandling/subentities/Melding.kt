@@ -19,7 +19,7 @@ class Melding(
     @Column(name = "saksbehandlerident", nullable = false)
     val saksbehandlerident: String,
     @Column(name = "created", nullable = false)
-    val created: LocalDateTime,
+    val created: LocalDateTime = LocalDateTime.now(),
     @Column(name = "modified")
     var modified: LocalDateTime? = null,
     @Column(name = "notify", nullable = false)

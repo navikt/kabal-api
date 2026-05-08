@@ -38,8 +38,6 @@ class KabinResponseSvarbrevSettingsRepositoryTest : PostgresIntegrationTestBase(
             behandlingstidUnitType = TimeUnitType.WEEKS,
             customText = "custom text",
             shouldSend = true,
-            created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
             createdBy = "Z999999",
         )
 
@@ -60,8 +58,6 @@ class KabinResponseSvarbrevSettingsRepositoryTest : PostgresIntegrationTestBase(
             behandlingstidUnitType = TimeUnitType.WEEKS,
             customText = "custom text",
             shouldSend = true,
-            created = LocalDateTime.now(),
-            modified = LocalDateTime.now(),
             createdBy = "Z999999",
         )
 

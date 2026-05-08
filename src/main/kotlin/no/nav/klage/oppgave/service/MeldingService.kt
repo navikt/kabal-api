@@ -58,7 +58,6 @@ class MeldingService(
                 text = text,
                 behandlingId = behandlingId,
                 saksbehandlerident = innloggetIdent,
-                created = LocalDateTime.now(),
                 notify = notify,
             )
         )
