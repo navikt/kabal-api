@@ -5,11 +5,14 @@ import no.nav.klage.dokument.api.view.DokumentView
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
+import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
@@ -17,6 +20,8 @@ import no.nav.klage.oppgave.domain.behandling.embedded.MottakerNavn
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerPartId
 import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.subentities.getMottakDokumentType
+import no.nav.klage.oppgave.util.TokenUtil
+import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -34,11 +39,32 @@ class KabinApiService(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
     private val gosysOppgaveService: GosysOppgaveService,
+    private val klageFssProxyClient: KlageFssProxyClient,
+    private val tokenUtil: TokenUtil,
 ) {
+    companion object {
+        @Suppress("JAVA_CLASS_ON_COMPANION")
+        private val logger = getLogger(javaClass.enclosingClass)
+    }
 
     fun getAnkemuligheter(partIdValue: String): List<Mulighet> {
         return behandlingService.getAnkemuligheterByPartIdValue(partIdValue = partIdValue)
             .map { it.toMulighet(mulighetType = Type.ANKE) }
+    }
+
+    fun getAnkemuligheterFromInfotrygdSak(infotrygdSakId: String): List<Mulighet> {
+        val infotrygdSak = klageFssProxyClient.getSakWithAppAccess(
+            sakId = infotrygdSakId, input = GetSakAppAccessInput(
+                saksbehandlerIdent = tokenUtil.getIdent()
+            )
+        )
+        var ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema =
+            behandlingService.getAnkeMuligheterBasedOnInfotrygdByPartIdValueAndTema(
+                partIdValue = infotrygdSak.fnr,
+                tema = Tema.of(infotrygdSak.tema)
+            )
+        logger.debug("Found ${ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema.size} infotrygd muligheter for infotrygdSakId $infotrygdSakId")
+        return ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema.map { it.toMulighet(mulighetType = Type.ANKE) }
     }
 
     fun getOmgjoeringskravmuligheter(partIdValue: String): List<Mulighet> {

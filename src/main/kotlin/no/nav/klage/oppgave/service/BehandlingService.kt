@@ -1085,7 +1085,12 @@ class BehandlingService(
             if (systemUserContext) systembrukerIdent else innloggetSaksbehandlerService.getInnloggetIdent()
         val utfoerendeNavn = if (systemUserContext) systembrukerIdent else getUtfoerendeNavn(utfoerendeIdent)
 
-        if (behandling.medunderskriverFlowState !in listOf(FlowState.RETURNED, FlowState.RETURNED_APPROVED, FlowState.RETURNED_NOT_APPROVED)) {
+        if (behandling.medunderskriverFlowState !in listOf(
+                FlowState.RETURNED,
+                FlowState.RETURNED_APPROVED,
+                FlowState.RETURNED_NOT_APPROVED
+            )
+        ) {
             val medunderskriverFlowEvent =
                 behandling.setMedunderskriverFlowState(
                     nyMedunderskriverFlowState = FlowState.NOT_SENT,
@@ -2866,7 +2871,27 @@ class BehandlingService(
                     behandling = it
                 )
                 true
-            } catch (e: MissingTilgangException) {
+            } catch (_: MissingTilgangException) {
+                false
+            }
+        }
+    }
+
+    fun getAnkeMuligheterBasedOnInfotrygdByPartIdValueAndTema(
+        partIdValue: String,
+        tema: Tema,
+    ): List<Behandling> {
+        val ytelseList = Ytelse.entries.filter { it.toTema().id == tema.id }
+        return behandlingRepository.getAnkeMuligheterBasedOnInfotrygd(
+            partIdValue = partIdValue,
+            ytelseList = ytelseList,
+        ).filter {
+            try {
+                checkReadAccessToSak(
+                    behandling = it
+                )
+                true
+            } catch (_: MissingTilgangException) {
                 false
             }
         }

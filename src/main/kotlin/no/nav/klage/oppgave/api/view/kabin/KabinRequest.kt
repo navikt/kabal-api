@@ -12,6 +12,10 @@ data class GetCompletedBehandlingerInput(
     val idnummer: String
 )
 
+data class GetAnkemuligheterFromInfotrygdSakInput(
+    val infotrygdSakId: String
+)
+
 data class SearchUsedJournalpostIdInput(
     val fnr: String,
 )
@@ -58,6 +62,7 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput,
     val gosysOppgaveId: Long,
+    val previousKabalBehandlingId: UUID?,
 )
 data class OversendtPartId(
     val type: OversendtPartIdType,
