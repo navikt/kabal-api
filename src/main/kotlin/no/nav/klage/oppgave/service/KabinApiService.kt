@@ -58,10 +58,10 @@ class KabinApiService(
                 saksbehandlerIdent = tokenUtil.getIdent()
             )
         )
-        var ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema =
+        val ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema =
             behandlingService.getAnkeMuligheterBasedOnInfotrygdByPartIdValueAndTema(
                 partIdValue = infotrygdSak.fnr,
-                tema = Tema.of(infotrygdSak.tema)
+                tema = Tema.valueOf(infotrygdSak.tema)
             )
         logger.debug("Found ${ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema.size} infotrygd muligheter for infotrygdSakId $infotrygdSakId")
         return ankeMuligheterBasedOnInfotrygdByPartIdValueAndTema.map { it.toMulighet(mulighetType = Type.ANKE) }
