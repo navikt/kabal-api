@@ -90,6 +90,19 @@ class KabinApiController(
         return kabinApiService.getAnkemuligheter(partIdValue = input.idnummer)
     }
 
+    @PostMapping("/kabal-muligheter-from-infotrygd-sak")
+    fun getAnkemuligheterFromInfotrygdSak(
+        @RequestBody input: GetAnkemuligheterFromInfotrygdSakInput
+    ): List<Mulighet> {
+        logMethodDetails(
+            methodName = ::getAnkemuligheterFromInfotrygdSak.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger
+        )
+
+        return kabinApiService.getAnkemuligheterFromInfotrygdSak(infotrygdSakId = input.infotrygdSakId)
+    }
+
     @PostMapping("/omgjoeringskravmuligheter")
     fun getOmgjoeringskravmuligheter(
         @RequestBody input: GetCompletedBehandlingerInput

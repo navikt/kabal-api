@@ -4,6 +4,7 @@ import jakarta.persistence.QueryHint
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.Utfall
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import org.hibernate.jpa.HibernateHints.HINT_FETCH_SIZE
 import org.springframework.data.jpa.repository.*
@@ -140,6 +141,28 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
         excludedTypes: List<Type> = listOf(
             Type.ANKE_I_TRYGDERETTEN,
         )
+    ): List<Behandling>
+
+
+    @EntityGraph(attributePaths = ["hjemler"])
+    @Query(
+        """
+            SELECT b
+            FROM Behandling b
+            WHERE b.ferdigstilling.avsluttet IS NOT null            
+            AND b.fagsystem = :infotrygdFagsystem
+            AND b.sakenGjelder.partId.value = :partIdValue            
+            AND b.type IN :includedTypes
+            AND b.ytelse IN :ytelseList
+        """
+    )
+    fun getAnkeMuligheterBasedOnInfotrygd(
+        partIdValue: String,
+        infotrygdFagsystem: Fagsystem = Fagsystem.IT01,
+        includedTypes: List<Type> = listOf(
+            Type.KLAGE
+        ),
+        ytelseList: List<Ytelse>
     ): List<Behandling>
 
     fun findByTilbakekrevingIsFalse(): List<Behandling>

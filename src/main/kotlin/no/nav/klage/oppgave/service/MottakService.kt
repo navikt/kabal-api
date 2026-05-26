@@ -487,6 +487,7 @@ class MottakService(
     }
 
     fun CreateAnkeBasedOnCompleteKabinInput.validate() {
+        validatePreviousKabalBehandlingId(previousKabalBehandlingId)
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
@@ -502,6 +503,13 @@ class MottakService(
             sakenGjelderIdentifikator = sakenGjelder.value,
             prosessfullmektigIdentifikator = fullmektig?.value,
         )
+    }
+
+    private fun validatePreviousKabalBehandlingId(previousKabalBehandlingId: UUID?) {
+        if (previousKabalBehandlingId == null) return
+        if (!behandlingRepository.existsById(previousKabalBehandlingId)) {
+            throw OversendtKlageNotValidException("Previous kabal behandling must exist.")
+        }
     }
 
     fun CreateBehandlingBasedOnJournalpostInput.validate() {
@@ -917,7 +925,7 @@ class MottakService(
             sakMottattKaDato = mottattNav.atStartOfDay(),
             frist = frist,
             ytelse = Ytelse.of(ytelseId),
-            forrigeBehandlingId = null,
+            forrigeBehandlingId = previousKabalBehandlingId,
             sentFrom = Mottak.Sender.KABIN,
             kommentar = null,
             prosessfullmektig = prosessfullmektig,
