@@ -106,12 +106,20 @@ class OppgaveService(
                     behandling.feilregistrering != null -> {
                         feilregistrerteBehandlinger.add(Pair(behandling.id, behandling.feilregistrering!!.registered))
                     }
+
                     behandling.sattPaaVent != null -> {
                         paaVentBehandlinger.add(Pair(behandling.id, behandling.sattPaaVent!!.to))
                     }
+
                     behandling.ferdigstilling != null -> {
-                        avsluttedeBehandlinger.add(Pair(behandling.id, behandling.ferdigstilling!!.avsluttetAvSaksbehandler))
+                        avsluttedeBehandlinger.add(
+                            Pair(
+                                behandling.id,
+                                behandling.ferdigstilling!!.avsluttetAvSaksbehandler
+                            )
+                        )
                     }
+
                     else -> {
                         aapneBehandlinger.add(Pair(behandling.id, behandling.created))
                     }
@@ -192,19 +200,28 @@ class OppgaveService(
         queryParams: FerdigstilteOppgaverQueryParams,
         mainSpecification: Specification<Behandling>
     ): Specification<Behandling> {
-        var specification = mainSpecification
-        if (queryParams.registreringshjemler.isNotEmpty()) {
-            queryParams.registreringshjemler.forEach { registreringshjemmelId ->
-                specification =
-                    specification.and { root: Root<Behandling>, _, builder: CriteriaBuilder ->
-                        builder.isMember(
-                            Registreringshjemmel.of(registreringshjemmelId),
-                            root.get(Behandling_.registreringshjemler)
-                        )
-                    }
+        if (queryParams.registreringshjemler.isEmpty()) return mainSpecification
+
+        var hjemmelSpecification: Specification<Behandling>? = null
+        queryParams.registreringshjemler.forEach { registreringshjemmelId ->
+            val hjemmel = Registreringshjemmel.of(registreringshjemmelId)
+            hjemmelSpecification = if (hjemmelSpecification == null) {
+                Specification { root: Root<Behandling>, _, builder: CriteriaBuilder ->
+                    builder.isMember(
+                        hjemmel,
+                        root.get(Behandling_.registreringshjemler)
+                    )
+                }
+            } else {
+                hjemmelSpecification!!.or { root: Root<Behandling>, _, builder: CriteriaBuilder ->
+                    builder.isMember(
+                        hjemmel,
+                        root.get(Behandling_.registreringshjemler)
+                    )
+                }
             }
         }
-        return specification
+        return mainSpecification.and(hjemmelSpecification!!)
     }
 
     private fun addTypeSpecifications(
