@@ -79,6 +79,9 @@ inboundApplications:
   - application: superhelt
     namespace: historisk
     cluster: dev-gcp
+  - application: historisk-helt-backend
+    namespace: historisk
+    cluster: dev-gcp
 springProfile: dev
 tenant: trygdeetaten.no
 db_tier: db-custom-1-3840

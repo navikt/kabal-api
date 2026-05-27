@@ -56,3 +56,6 @@ acl:
   - team: historisk
     application: superhelt
     access: read
+  - team: historisk
+    application: historisk-helt-backend
+    access: read

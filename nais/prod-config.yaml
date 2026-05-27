@@ -72,6 +72,9 @@ inboundApplications:
   - application: superhelt
     namespace: historisk
     cluster: prod-gcp
+  - application: historisk-helt-backend
+    namespace: historisk
+    cluster: prod-gcp
 springProfile: prod
 tenant: nav.no
 db_tier: db-custom-1-3840
