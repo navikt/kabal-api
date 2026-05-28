@@ -85,7 +85,7 @@ class MockDataController(
                 ),
                 fagsak = OversendtSak(
                     fagsakId = UUID.randomUUID().toString(),
-                    fagsystem = Fagsystem.AO01
+                    fagsystem = Fagsystem.K9
                 ),
                 kildeReferanse = UUID.randomUUID().toString(),
                 innsynUrl = "https://nav.no",
@@ -98,7 +98,7 @@ class MockDataController(
                 tilknyttedeJournalposter = listOf(),
                 brukersHenvendelseMottattNavDato = dato,
                 innsendtTilNav = dato.minusDays(3),
-                kilde = Fagsystem.AO01,
+                kilde = Fagsystem.K9,
                 hindreAutomatiskSvarbrev = null,
                 kommentar = """
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
@@ -142,10 +142,10 @@ class MockDataController(
                         try {
                             Fagsystem.valueOf(it)
                         } catch (e: Exception) {
-                            Fagsystem.AO01
+                            Fagsystem.K9
                         }
                     }
-                        ?: Fagsystem.AO01
+                        ?: Fagsystem.K9
                 ),
                 kildeReferanse = UUID.randomUUID().toString(),
                 innsynUrl = "https://nav.no",
@@ -163,7 +163,7 @@ class MockDataController(
                 ),
                 brukersHenvendelseMottattNavDato = dato,
                 innsendtTilNav = dato.minusDays(3),
-                kilde = Fagsystem.AO01,
+                kilde = Fagsystem.K9,
                 hindreAutomatiskSvarbrev = null,
             )
         )
@@ -267,7 +267,7 @@ class MockDataController(
 
         val oversendtSak = mockInput?.fagsak ?: OversendtSak(
             fagsakId = "1234",
-            fagsystem = Fagsystem.AO01
+            fagsystem = Fagsystem.K9
         )
 
         logger.debug("Will create mottak/behandling for klage/anke of type {} for ytelse {}", type, ytelse)
