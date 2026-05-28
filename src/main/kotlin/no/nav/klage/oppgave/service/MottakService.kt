@@ -513,7 +513,6 @@ class MottakService(
     }
 
     fun CreateBehandlingBasedOnJournalpostInput.validate() {
-        validateTypeInBehandlingBasedOnJournalpostInput(Type.of(typeId!!))
         validateYtelseAndHjemler(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
@@ -549,12 +548,6 @@ class MottakService(
         fullmektig?.toPartId()?.let { validatePartId(it) }
 
         validateDateNotInFuture(mottattNav, ::mottattNav.name)
-    }
-
-    private fun validateTypeInBehandlingBasedOnJournalpostInput(type: Type) {
-        if (type !in listOf(Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
-            throw OversendtKlageNotValidException("Kan kun opprette omgjøringskrav og begjæring om gjenopptak basert på journalpost.")
-        }
     }
 
     fun behandlingIsDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type): BehandlingIsDuplicateResponse {
