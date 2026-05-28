@@ -102,6 +102,8 @@ class BehandlingAvslutningService(
         if (klagebehandling.fagsystem == Fagsystem.IT01) {
             logger.debug("Klage med id ${klagebehandling.id} kommer fra Infotrygd, oppdaterer der.")
             setToFinishedInInfotrygd(klagebehandling)
+        } else if (klagebehandling.fagsystem == Fagsystem.AO01) {
+            logger.debug("Klage med id ${klagebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
         } else if (!klagebehandling.gosysOppgaveRequired) {
             logger.debug("Klage med id ${klagebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(klagebehandling)
@@ -144,6 +146,8 @@ class BehandlingAvslutningService(
         } else if (ankebehandling.fagsystem == Fagsystem.IT01) {
             logger.debug("Anke med id ${ankebehandling.id} kommer fra Infotrygd, oppdaterer der.")
             setToFinishedInInfotrygd(ankebehandling)
+        } else if (ankebehandling.fagsystem == Fagsystem.AO01) {
+            logger.debug("Anke med id ${ankebehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
         } else if (!ankebehandling.gosysOppgaveRequired) {
             logger.debug("Anke med id ${ankebehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(ankebehandling)
@@ -203,6 +207,8 @@ class BehandlingAvslutningService(
         } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.IT01) {
             logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} kommer fra Infotrygd, oppdaterer der.")
             setToFinishedInInfotrygd(ankeITrygderettenbehandling)
+        } else if (ankeITrygderettenbehandling.fagsystem == Fagsystem.AO01) {
+            logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
         } else if (!ankeITrygderettenbehandling.gosysOppgaveRequired) {
             logger.debug("AnkeITrygderettenbehandling med id ${ankeITrygderettenbehandling.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(ankeITrygderettenbehandling)
@@ -228,6 +234,8 @@ class BehandlingAvslutningService(
         if (behandlingEtterTrygderettenOpphevet.fagsystem == Fagsystem.IT01) {
             logger.debug("BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Infotrygd, oppdaterer der.")
             setToFinishedInInfotrygd(behandlingEtterTrygderettenOpphevet)
+        } else if (behandlingEtterTrygderettenOpphevet.fagsystem == Fagsystem.AO01) {
+            logger.debug("BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra Arena. Har blitt oppdatert av bruker, fortsetter.")
         } else if (!behandlingEtterTrygderettenOpphevet.gosysOppgaveRequired) {
             logger.debug("BehandlingEtterTrygderettenOpphevet med id ${behandlingEtterTrygderettenOpphevet.id} kommer fra modernisert fagsystem, lager Kafka-melding.")
             createKafkaEventForModernizedFagsystem(behandlingEtterTrygderettenOpphevet)
