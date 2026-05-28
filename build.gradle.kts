@@ -56,6 +56,16 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
 
+    //Fix vulnerabilities, while waiting for fix in Spring Boot.
+    implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.22")
+    implementation("io.netty:netty-codec-http:4.2.14.Final")
+    implementation("io.netty:netty-codec-http2:4.2.14.Final")
+    implementation("io.netty:netty-codec-http3:4.2.14.Final")
+    implementation("io.netty:netty-codec-dns:4.2.14.Final")
+    implementation("io.netty:netty-codec-compression:4.2.14.Final")
+    implementation("io.netty:netty-transport-native-epoll:4.2.14.Final")
+    implementation("io.netty:netty-resolver-dns:4.2.14.Final")
+
     implementation("org.apache.commons:commons-fileupload2-jakarta-servlet6:$commonsFileupload2JakartaVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-cache")
