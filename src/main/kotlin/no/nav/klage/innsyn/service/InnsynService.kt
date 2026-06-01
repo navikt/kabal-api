@@ -331,8 +331,8 @@ fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
         Ytelse.PEN_GJE -> Innsendingsytelse.GJENLEVENDE
         Ytelse.PEN_EYO -> Innsendingsytelse.OMSTILLINGSSTONAD
         Ytelse.SUP_PEN -> Innsendingsytelse.SUPPLERENDE_STONAD
-        Ytelse.SUP_UFF -> Innsendingsytelse.SUPPLERENDE_STONAD_UFORE_FLYKTNINGER//
-        Ytelse.TIL_TIP -> null //? In Klang, tema is IND. Tema TIL is not used.
+        Ytelse.SUP_UFF -> Innsendingsytelse.SUPPLERENDE_STONAD_UFORE_FLYKTNINGER
+        Ytelse.TIL_TIP -> Innsendingsytelse.TILTAKSPENGER
         Ytelse.TIL_TIL -> null //? In Klang, tema is IND. Tema TIL is not used.
         Ytelse.UFO_UFO -> Innsendingsytelse.UFORETRYGD
         Ytelse.YRK_YRK -> Innsendingsytelse.YRKESSKADE
