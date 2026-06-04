@@ -125,7 +125,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
             SELECT b
             FROM Behandling b
             WHERE b.ferdigstilling.avsluttet IS NOT null            
-            AND b.fagsystem != :infotrygdFagsystem
+            AND b.fagsystem NOT IN :excludedFagsystems
             AND b.sakenGjelder.partId.value = :partIdValue
             AND b.utfall NOT IN :utfallWithoutAnkemulighet
             AND b.type NOT IN :excludedTypes
@@ -133,7 +133,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
     )
     fun getAnkemuligheter(
         partIdValue: String,
-        infotrygdFagsystem: Fagsystem = Fagsystem.IT01,
+        excludedFagsystems: List<Fagsystem> = listOf(Fagsystem.IT01, Fagsystem.AO01),
         utfallWithoutAnkemulighet: List<Utfall> = listOf(
             Utfall.INNSTILLING_AVVIST,
             Utfall.INNSTILLING_STADFESTELSE,

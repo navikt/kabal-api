@@ -2881,7 +2881,7 @@ class BehandlingService(
         partIdValue: String,
         tema: Tema,
     ): List<Behandling> {
-        val ytelseList = Ytelse.entries.filter { it.toTema().id == tema.id }
+        val ytelseList = tema.toYtelserCurrentlyInUse()
         return behandlingRepository.getAnkeMuligheterBasedOnInfotrygd(
             partIdValue = partIdValue,
             ytelseList = ytelseList,
