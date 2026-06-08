@@ -9,7 +9,6 @@ import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalIn
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupClient
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
-import no.nav.klage.oppgave.clients.klagelookup.PostadresseResponse
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
@@ -251,15 +250,15 @@ class DevOnlyAdminController(
         return tokenUtil.getCurrentTokenType().toString()
     }
 
-    @Unprotected
-    @GetMapping("/regoppslag/{ident}")
-    fun getAddressInfo(
-        @PathVariable ident: String
-    ): PostadresseResponse {
-        logger.debug("getAddressInfo is called")
-        return klageLookupClient.getPostadresse(ident)
-
-    }
+//    @Unprotected
+//    @GetMapping("/regoppslag/{ident}")
+//    fun getAddressInfo(
+//        @PathVariable ident: String
+//    ): PostadresseResponse {
+//        logger.debug("getAddressInfo is called")
+//        return klageLookupClient.getPostadresse(ident)
+//
+//    }
 //    @Scheduled(cron = "0 */2 * * * *")
 //    @SchedulerLock(name = "devTest")
 //    fun scheduleTest() {

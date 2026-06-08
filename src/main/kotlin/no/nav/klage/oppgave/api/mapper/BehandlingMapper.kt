@@ -596,7 +596,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
+                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -626,7 +626,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
+                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
                 utsendingskanal = utsendingskanal,
                 protectedFamilyMembers = getProtectedFamilyMemberViews(behandling),
             )
@@ -659,7 +659,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
+                address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
             )
         } else {
             val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
@@ -705,7 +705,7 @@ class BehandlingMapper(
                     available = person.doed == null,
                     language = krrInfo?.spraak,
                     statusList = getStatusList(person, krrInfo),
-                    address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
+                    address = regoppslagService.getAddressForPerson(fnr = person.foedselsnr),
                     utsendingskanal = utsendingskanal
                 )
             } else {

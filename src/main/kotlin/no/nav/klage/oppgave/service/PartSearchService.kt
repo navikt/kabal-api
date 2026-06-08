@@ -45,11 +45,7 @@ class PartSearchService(
                         available = person.doed == null,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = if (systemUserContext) {
-                            regoppslagService.getAddressForPersonAppAccess(fnr = identifikator)
-                        } else {
-                            regoppslagService.getAddressForPersonOnBehalfOf(fnr = identifikator)
-                        }
+                        address = regoppslagService.getAddressForPerson(fnr = identifikator)
                     )
                 } else {
                     val access = tilgangService.getSaksbehandlerAccessToPerson(identifikator)
@@ -96,7 +92,9 @@ class PartSearchService(
                         available = person.doed == null,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = if (systemUserContext) regoppslagService.getAddressForPersonAppAccess(fnr = identifikator) else regoppslagService.getAddressForPersonOnBehalfOf(fnr = identifikator),
+                        address = regoppslagService.getAddressForPerson(
+                            fnr = identifikator
+                        ),
                         utsendingskanal = dokDistKanalService.getUtsendingskanal(
                             mottakerId = identifikator,
                             brukerId = sakenGjelderId,
@@ -149,7 +147,7 @@ class PartSearchService(
                             ?: BehandlingDetaljerView.Sex.UKJENT,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = identifikator),
+                        address = regoppslagService.getAddressForPerson(fnr = identifikator),
                     )
                 } else {
                     val access = tilgangService.getSaksbehandlerAccessToPerson(identifikator)
