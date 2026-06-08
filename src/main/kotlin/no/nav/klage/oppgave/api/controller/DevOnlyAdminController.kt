@@ -250,14 +250,6 @@ class DevOnlyAdminController(
         return tokenUtil.getCurrentTokenType().toString()
     }
 
-//    @Unprotected
-//    @GetMapping("/regoppslag/{ident}")
-//    fun getAddressInfo(
-//        @PathVariable ident: String
-//    ): PostadresseResponse {
-//        logger.debug("getAddressInfo is called")
-//        return klageLookupClient.getPostadresse(ident)
-//
 //    }
 //    @Scheduled(cron = "0 */2 * * * *")
 //    @SchedulerLock(name = "devTest")

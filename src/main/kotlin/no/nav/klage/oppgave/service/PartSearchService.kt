@@ -5,6 +5,8 @@ import no.nav.klage.kodeverk.Tema
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.clients.ereg.EregClient
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
+import no.nav.klage.oppgave.clients.klagelookup.PostadresseResponse
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.util.getLogger
@@ -19,7 +21,7 @@ class PartSearchService(
     private val tilgangService: TilgangService,
     private val behandlingMapper: BehandlingMapper,
     private val krrProxyClient: KrrProxyClient,
-    private val regoppslagService: RegoppslagService,
+    private val klageLookupGateway: KlageLookupGateway,
     private val dokDistKanalService: DokDistKanalService,
 ) {
 
@@ -45,7 +47,7 @@ class PartSearchService(
                         available = person.doed == null,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = regoppslagService.getAddressForPerson(fnr = identifikator)
+                        address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
                     )
                 } else {
                     val access = tilgangService.getSaksbehandlerAccessToPerson(identifikator)
@@ -92,9 +94,7 @@ class PartSearchService(
                         available = person.doed == null,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = regoppslagService.getAddressForPerson(
-                            fnr = identifikator
-                        ),
+                        address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
                         utsendingskanal = dokDistKanalService.getUtsendingskanal(
                             mottakerId = identifikator,
                             brukerId = sakenGjelderId,
@@ -147,7 +147,7 @@ class PartSearchService(
                             ?: BehandlingDetaljerView.Sex.UKJENT,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = regoppslagService.getAddressForPerson(fnr = identifikator),
+                        address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
                     )
                 } else {
                     val access = tilgangService.getSaksbehandlerAccessToPerson(identifikator)
@@ -162,4 +162,15 @@ class PartSearchService(
                 ).type
             )
         }
+
+    fun PostadresseResponse.getViewAddress(): BehandlingDetaljerView.Address {
+        return BehandlingDetaljerView.Address(
+            adresselinje1 = adresse?.adresselinje1 ?: "Mangler",
+            adresselinje2 = adresse?.adresselinje2,
+            adresselinje3 = adresse?.adresselinje3,
+            landkode = adresse?.landkode ?: "Mangler",
+            postnummer = adresse?.postnummer,
+            poststed = adresse?.poststed ?: "Mangler",
+        )
+    }
 }

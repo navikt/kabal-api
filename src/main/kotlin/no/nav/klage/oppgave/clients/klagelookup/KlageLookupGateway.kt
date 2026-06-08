@@ -169,4 +169,9 @@ class KlageLookupGateway(
             gyldigTilOgMed = gyldigTilOgMed,
         )
     }
+
+    fun getAddressForPerson(fnr: String): PostadresseResponse {
+        val response = klageLookupClient.getPostadresse(ident = fnr)
+        return response
+    }
 }

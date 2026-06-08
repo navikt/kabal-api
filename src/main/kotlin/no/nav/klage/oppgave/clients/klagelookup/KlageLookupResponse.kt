@@ -94,7 +94,9 @@ data class PersongalleriResponse(
 data class PostadresseResponse(
     val navn: String?,
     val adresse: Postadresse?,
-)
+) {
+
+}
 
 data class Postadresse(
     val adresseKilde: String?,

@@ -3,9 +3,6 @@ TENANT_ID: 62366534-1ec3-4962-8869-9b5535279d0b
 NORG2_API_V1_URL: https://norg2.prod-fss-pub.nais.io/norg2/api/v1
 PROXY_APP_CLIENT_ID: 981be1fb-1379-465f-bddc-7563197aed84
 
-REGOPPSLAG_URL: https://regoppslag.prod-fss-pub.nais.io
-REGOPPSLAG_SCOPE: prod-fss.teamdokumenthandtering.regoppslag
-
 EREG_URL: https://ereg-services.prod-fss-pub.nais.io/api/v2
 
 DOK_DIST_KANAL_URL: https://dokdistkanal.prod-fss-pub.nais.io
