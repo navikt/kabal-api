@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-val mockkVersion = "1.14.9"
+val mockkVersion = "1.14.11"
 val tokenValidationVersion = "6.0.8"
 val logstashVersion = "9.0"
 val springMockkVersion = "5.0.1"
@@ -15,13 +15,13 @@ val tikaVersion = "3.3.1"
 val verapdfVersion = "1.30.1"
 val klageKodeverkVersion = "3.2.18"
 val commonsFileupload2JakartaVersion = "2.0.0-M5"
-val otelVersion = "1.62.0"
+val otelVersion = "1.63.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.0.0"
 val reactorKafkaVersion = "1.3.25"
 
 plugins {
-    val kotlinVersion = "2.3.21"
+    val kotlinVersion = "2.4.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
@@ -58,13 +58,13 @@ dependencies {
 
     //Fix vulnerabilities, while waiting for fix in Spring Boot.
     implementation("org.apache.tomcat.embed:tomcat-embed-core:11.0.22")
-    implementation("io.netty:netty-codec-http:4.2.14.Final")
-    implementation("io.netty:netty-codec-http2:4.2.14.Final")
-    implementation("io.netty:netty-codec-http3:4.2.14.Final")
-    implementation("io.netty:netty-codec-dns:4.2.14.Final")
-    implementation("io.netty:netty-codec-compression:4.2.14.Final")
-    implementation("io.netty:netty-transport-native-epoll:4.2.14.Final")
-    implementation("io.netty:netty-resolver-dns:4.2.14.Final")
+    implementation("io.netty:netty-codec-http:4.2.15.Final")
+    implementation("io.netty:netty-codec-http2:4.2.15.Final")
+    implementation("io.netty:netty-codec-http3:4.2.15.Final")
+    implementation("io.netty:netty-codec-dns:4.2.15.Final")
+    implementation("io.netty:netty-codec-compression:4.2.15.Final")
+    implementation("io.netty:netty-transport-native-epoll:4.2.15.Final")
+    implementation("io.netty:netty-resolver-dns:4.2.15.Final")
 
     implementation("org.apache.commons:commons-fileupload2-jakarta-servlet6:$commonsFileupload2JakartaVersion")
 
