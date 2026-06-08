@@ -1,15 +1,18 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupClient
+import no.nav.klage.oppgave.clients.klagelookup.PostadresseResponse
 import no.nav.klage.oppgave.clients.regoppslag.RegoppslagClient
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.util.TokenUtil
-import org.springframework.stereotype.Service
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.stereotype.Service
 
 @Service
 class RegoppslagService(
     private val regoppslagClient: RegoppslagClient,
+    private val klageLookupClient: KlageLookupClient,
     private val tokenUtil: TokenUtil,
 ) {
 
@@ -38,6 +41,18 @@ class RegoppslagService(
 
         return getAddress(response)
     }
+
+    private fun getAddress(response: PostadresseResponse): BehandlingDetaljerView.Address? {
+        return BehandlingDetaljerView.Address(
+            adresselinje1 = response.adresse?.adresselinje1 ?: "Mangler",
+            adresselinje2 = response.adresse?.adresselinje2,
+            adresselinje3 = response.adresse?.adresselinje3,
+            landkode = response.adresse?.landkode ?: "Mangler",
+            postnummer = response.adresse?.postnummer,
+            poststed = response.adresse?.poststed ?: "Mangler",
+        )
+    }
+
 
     private fun getAddress(response: RegoppslagClient.HentMottakerOgAdresseResponse?) =
         if (response != null) {

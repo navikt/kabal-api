@@ -7,7 +7,9 @@ import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupClient
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
+import no.nav.klage.oppgave.clients.klagelookup.PostadresseResponse
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
@@ -29,6 +31,7 @@ class DevOnlyAdminController(
     private val behandlingService: BehandlingService,
     private val klageFssProxyClient: KlageFssProxyClient,
     private val klageLookupGateway: KlageLookupGateway,
+    private val klageLookupClient: KlageLookupClient,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -246,6 +249,16 @@ class DevOnlyAdminController(
         logger.debug("checkTokenUnprotected is called")
         logger.debug("Token type: {}", tokenUtil.getCurrentTokenType())
         return tokenUtil.getCurrentTokenType().toString()
+    }
+
+    @Unprotected
+    @GetMapping("/regoppslag/{ident}")
+    fun getAddressInfo(
+        @PathVariable ident: String
+    ): PostadresseResponse {
+        logger.debug("getAddressInfo is called")
+        return klageLookupClient.getPostadresse(ident)
+
     }
 //    @Scheduled(cron = "0 */2 * * * *")
 //    @SchedulerLock(name = "devTest")
