@@ -163,7 +163,7 @@ class PartSearchService(
             )
         }
 
-    fun PostadresseResponse.getViewAddress(): BehandlingDetaljerView.Address {
+    private fun PostadresseResponse.getViewAddress(): BehandlingDetaljerView.Address {
         return BehandlingDetaljerView.Address(
             adresselinje1 = adresse?.adresselinje1 ?: "Mangler",
             adresselinje2 = adresse?.adresselinje2,
