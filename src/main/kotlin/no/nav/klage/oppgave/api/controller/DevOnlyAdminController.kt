@@ -29,7 +29,6 @@ class DevOnlyAdminController(
     private val behandlingService: BehandlingService,
     private val klageFssProxyClient: KlageFssProxyClient,
     private val klageLookupGateway: KlageLookupGateway,
-    private val klageLookupClient: KlageLookupClient,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
