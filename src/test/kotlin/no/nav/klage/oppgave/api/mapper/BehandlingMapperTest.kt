@@ -9,6 +9,7 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Norg2Client
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -54,7 +55,7 @@ class BehandlingMapperTest {
     lateinit var kodeverkService: KodeverkService
 
     @MockkBean
-    lateinit var regoppslagService: RegoppslagService
+    lateinit var klageLookupGateway: KlageLookupGateway
 
     @MockkBean
     lateinit var dokDistKanalService: DokDistKanalService

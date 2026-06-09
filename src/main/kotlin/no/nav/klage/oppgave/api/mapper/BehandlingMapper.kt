@@ -4,6 +4,8 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.oppgave.api.view.*
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.ereg.NoekkelInfoOmOrganisasjon
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
+import no.nav.klage.oppgave.clients.klagelookup.PostadresseResponse
 import no.nav.klage.oppgave.clients.krrproxy.DigitalKontaktinformasjon
 import no.nav.klage.oppgave.clients.krrproxy.KrrProxyClient
 import no.nav.klage.oppgave.clients.norg2.Enhet
@@ -14,7 +16,10 @@ import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.person.Person
 import no.nav.klage.oppgave.repositories.PersonProtectionRepository
 import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
-import no.nav.klage.oppgave.service.*
+import no.nav.klage.oppgave.service.DokDistKanalService
+import no.nav.klage.oppgave.service.KodeverkService
+import no.nav.klage.oppgave.service.PersonService
+import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.stereotype.Service
@@ -30,7 +35,7 @@ class BehandlingMapper(
     private val saksbehandlerService: SaksbehandlerService,
     private val krrProxyClient: KrrProxyClient,
     private val kodeverkService: KodeverkService,
-    private val regoppslagService: RegoppslagService,
+    private val klageLookupGateway: KlageLookupGateway,
     private val dokDistKanalService: DokDistKanalService,
     private val personService: PersonService,
     private val sakPersongalleriRepository: SakPersongalleriRepository,
@@ -596,7 +601,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
+                address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -626,7 +631,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
+                address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
                 utsendingskanal = utsendingskanal,
                 protectedFamilyMembers = getProtectedFamilyMemberViews(behandling),
             )
@@ -659,7 +664,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
+                address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
             )
         } else {
             val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
@@ -705,7 +710,7 @@ class BehandlingMapper(
                     available = person.doed == null,
                     language = krrInfo?.spraak,
                     statusList = getStatusList(person, krrInfo),
-                    address = regoppslagService.getAddressForPersonOnBehalfOf(fnr = person.foedselsnr),
+                    address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
                     utsendingskanal = utsendingskanal
                 )
             } else {
@@ -993,3 +998,14 @@ fun toEnhetView(enhet: Enhet): EnhetView = EnhetView(
     enhetsnr = enhet.enhetsnr,
     navn = enhet.navn,
 )
+
+fun PostadresseResponse.getViewAddress(): BehandlingDetaljerView.Address {
+    return BehandlingDetaljerView.Address(
+        adresselinje1 = adresse?.adresselinje1 ?: "Mangler",
+        adresselinje2 = adresse?.adresselinje2,
+        adresselinje3 = adresse?.adresselinje3,
+        landkode = adresse?.landkode ?: "Mangler",
+        postnummer = adresse?.postnummer,
+        poststed = adresse?.poststed ?: "Mangler",
+    )
+}

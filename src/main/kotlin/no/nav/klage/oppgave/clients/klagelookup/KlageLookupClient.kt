@@ -391,6 +391,30 @@ class KlageLookupClient(
         }
     }
 
+    @Retryable
+    fun getPostadresse(ident: String): PostadresseResponse {
+        val token = getCorrectBearerToken()
+        return runWithTimingAndLogging {
+            klageLookupWebClient.post()
+                .uri("/postadresse")
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    token,
+                )
+                .bodyValue(IdentRequest(ident = ident))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getPostadresse.name,
+                        classLogger = logger,
+                    )
+                }
+                .bodyToMono<PostadresseResponse>()
+                .block() ?: throw RuntimeException("Could not get postadresse for ident.")
+        }
+    }
+
     private fun <T> runWithTimingAndLogging(block: () -> T): T {
         val start = System.currentTimeMillis()
         try {
