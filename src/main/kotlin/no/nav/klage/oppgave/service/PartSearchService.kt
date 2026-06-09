@@ -47,7 +47,7 @@ class PartSearchService(
                         available = person.doed == null,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
+                        address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr)?.getViewAddress(),
                     )
                 } else {
                     val access = tilgangService.getSaksbehandlerAccessToPerson(identifikator)
@@ -94,7 +94,7 @@ class PartSearchService(
                         available = person.doed == null,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
+                        address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr)?.getViewAddress(),
                         utsendingskanal = dokDistKanalService.getUtsendingskanal(
                             mottakerId = identifikator,
                             brukerId = sakenGjelderId,
@@ -147,7 +147,7 @@ class PartSearchService(
                             ?: BehandlingDetaljerView.Sex.UKJENT,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
-                        address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
+                        address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr)?.getViewAddress(),
                     )
                 } else {
                     val access = tilgangService.getSaksbehandlerAccessToPerson(identifikator)

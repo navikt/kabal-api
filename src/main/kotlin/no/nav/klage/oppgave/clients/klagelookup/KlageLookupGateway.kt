@@ -170,7 +170,7 @@ class KlageLookupGateway(
         )
     }
 
-    fun getAddressForPerson(fnr: String): PostadresseResponse {
+    fun getAddressForPerson(fnr: String): PostadresseResponse? {
         val response = klageLookupClient.getPostadresse(ident = fnr)
         return response
     }
