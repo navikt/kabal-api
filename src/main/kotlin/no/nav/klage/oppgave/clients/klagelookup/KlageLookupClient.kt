@@ -6,6 +6,7 @@ import no.nav.klage.oppgave.exceptions.UserNotFoundException
 import no.nav.klage.oppgave.service.TilgangService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getSecureLogger
 import no.nav.klage.oppgave.util.logErrorResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatusCode
@@ -26,6 +27,7 @@ class KlageLookupClient(
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val teamLogger = getSecureLogger()
     }
 
     @Retryable
@@ -404,15 +406,17 @@ class KlageLookupClient(
                 .bodyValue(IdentRequest(ident = ident))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(
-                        response = response,
-                        functionName = ::getPostadresse.name,
-                        classLogger = logger,
-                    )
+                    response.bodyToMono(String::class.java).flatMap {
+                        val errorString = "Got ${response.statusCode()} when requesting ${::getPostadresse.name}"
+                        //Debug is enough because this is not always an error
+                        logger.debug("$errorString. See team-logs for more details.")
+                        teamLogger.warn("$errorString - response body: '$it'")
+                        Mono.error(RuntimeException(errorString))
+                    }
                 }
                 .bodyToMono<PostadresseResponse>()
                 .onErrorResume { Mono.empty() }
-                .block() ?: throw RuntimeException("Could not get postadresse for ident.")
+                .block()
         }
     }
 
