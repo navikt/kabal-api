@@ -601,7 +601,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
+                address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr)?.getViewAddress(),
             )
         } else {
             throw RuntimeException("We don't support where sakenGjelder is virksomhet")
@@ -631,7 +631,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
+                address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr)?.getViewAddress(),
                 utsendingskanal = utsendingskanal,
                 protectedFamilyMembers = getProtectedFamilyMemberViews(behandling),
             )
@@ -664,7 +664,7 @@ class BehandlingMapper(
                 available = person.doed == null,
                 language = krrInfo?.spraak,
                 statusList = getStatusList(person, krrInfo),
-                address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
+                address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr)?.getViewAddress(),
             )
         } else {
             val organisasjon = eregClient.hentNoekkelInformasjonOmOrganisasjon(identifier)
@@ -710,7 +710,7 @@ class BehandlingMapper(
                     available = person.doed == null,
                     language = krrInfo?.spraak,
                     statusList = getStatusList(person, krrInfo),
-                    address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr).getViewAddress(),
+                    address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr)?.getViewAddress(),
                     utsendingskanal = utsendingskanal
                 )
             } else {

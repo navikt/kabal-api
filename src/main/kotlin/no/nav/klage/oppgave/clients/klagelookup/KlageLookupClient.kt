@@ -392,7 +392,7 @@ class KlageLookupClient(
     }
 
     @Retryable
-    fun getPostadresse(ident: String): PostadresseResponse {
+    fun getPostadresse(ident: String): PostadresseResponse? {
         val token = getCorrectBearerToken()
         return runWithTimingAndLogging {
             klageLookupWebClient.post()
@@ -411,6 +411,7 @@ class KlageLookupClient(
                     )
                 }
                 .bodyToMono<PostadresseResponse>()
+                .onErrorResume { Mono.empty() }
                 .block() ?: throw RuntimeException("Could not get postadresse for ident.")
         }
     }
