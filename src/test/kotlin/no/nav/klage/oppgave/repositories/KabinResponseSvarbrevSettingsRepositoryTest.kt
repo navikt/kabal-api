@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.test.context.ActiveProfiles
-import java.time.LocalDateTime
 
 @ActiveProfiles("local")
 @DataJpaTest
@@ -32,7 +31,7 @@ class KabinResponseSvarbrevSettingsRepositoryTest : PostgresIntegrationTestBase(
     @Test
     fun `add svarbrevSettings works`() {
         val svarbrevSettings = SvarbrevSettings(
-            ytelse = Ytelse.TIL_TIP,
+            ytelse = Ytelse.PEN_GYS,
             type = Type.KLAGE,
             behandlingstidUnits = 12,
             behandlingstidUnitType = TimeUnitType.WEEKS,
@@ -52,7 +51,7 @@ class KabinResponseSvarbrevSettingsRepositoryTest : PostgresIntegrationTestBase(
     @Test
     fun `add svarbrevSettings with history works`() {
         val svarbrevSettings = SvarbrevSettings(
-            ytelse = Ytelse.TIL_TIP,
+            ytelse = Ytelse.PEN_GYS,
             type = Type.KLAGE,
             behandlingstidUnits = 12,
             behandlingstidUnitType = TimeUnitType.WEEKS,
