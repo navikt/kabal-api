@@ -7,8 +7,6 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.api.view.*
-import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
-import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.service.BehandlingService
@@ -345,7 +343,7 @@ class BehandlingController(
     @GetMapping("/{behandlingId}/potentialsaksbehandlere")
     fun getPotentialSaksbehandlere(
         @PathVariable("behandlingId") behandlingId: UUID,
-    ): Saksbehandlere {
+    ): SaksbehandlereWithEnhetView {
         logMethodDetails(
             ::getPotentialSaksbehandlere.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
@@ -358,7 +356,7 @@ class BehandlingController(
     @GetMapping("/{behandlingId}/potentialmedunderskrivere")
     fun getPotentialMedunderskrivere(
         @PathVariable("behandlingId") behandlingId: UUID,
-    ): Medunderskrivere {
+    ): MedunderskrivereWithEnhetView {
         logMethodDetails(
             ::getPotentialMedunderskrivere.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),

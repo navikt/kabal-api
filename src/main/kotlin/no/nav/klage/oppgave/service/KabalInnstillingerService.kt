@@ -2,11 +2,14 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
+import no.nav.klage.oppgave.api.view.MedunderskrivereWithEnhetView
+import no.nav.klage.oppgave.api.view.SaksbehandlerWithEnhetView
+import no.nav.klage.oppgave.api.view.SaksbehandlereWithEnhetView
 import no.nav.klage.oppgave.clients.kabalinnstillinger.KabalInnstillingerClient
-import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.MedunderskrivereInput
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.SakInput
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.util.getLogger
@@ -16,14 +19,15 @@ import org.springframework.stereotype.Service
 @Service
 class KabalInnstillingerService(
     private val kabalInnstillingerClient: KabalInnstillingerClient,
+    private val klageLookupGateway: KlageLookupGateway,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getPotentialSaksbehandlere(behandling: Behandling): Saksbehandlere {
-        return kabalInnstillingerClient.searchSaksbehandlere(
+    fun getPotentialSaksbehandlere(behandling: Behandling): SaksbehandlereWithEnhetView {
+        val foundSaksbehandlere = kabalInnstillingerClient.searchSaksbehandlere(
             SakInput(
                 ytelseId = behandling.ytelse.id,
                 fnr = behandling.sakenGjelder.partId.value,
@@ -31,13 +35,23 @@ class KabalInnstillingerService(
                 fagsystemId = behandling.fagsystem.id,
             )
         )
+
+        return SaksbehandlereWithEnhetView(
+            saksbehandlere = foundSaksbehandlere.saksbehandlere.map {
+                SaksbehandlerWithEnhetView(
+                    navIdent = it.navIdent,
+                    navn = it.navn,
+                    ansattEnhetId = klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = it.navIdent).enhet.enhetId,
+                )
+            }
+        )
     }
 
-    fun getPotentialMedunderskrivere(behandling: Behandling): Medunderskrivere {
+    fun getPotentialMedunderskrivere(behandling: Behandling): MedunderskrivereWithEnhetView {
         if (behandling.tildeling == null) {
-            return Medunderskrivere(medunderskrivere = emptyList())
+            return MedunderskrivereWithEnhetView(medunderskrivere = emptyList())
         }
-        return kabalInnstillingerClient.searchMedunderskrivere(
+        val foundMedunderskrivere = kabalInnstillingerClient.searchMedunderskrivere(
             MedunderskrivereInput(
                 enhet = behandling.tildeling!!.enhet!!,
                 navIdent = behandling.tildeling!!.saksbehandlerident!!,
@@ -48,6 +62,16 @@ class KabalInnstillingerService(
                     ytelseId = behandling.ytelse.id,
                 )
             )
+        )
+
+        return MedunderskrivereWithEnhetView(
+            medunderskrivere = foundMedunderskrivere.medunderskrivere.map {
+                SaksbehandlerWithEnhetView(
+                    navIdent = it.navIdent,
+                    navn = it.navn,
+                    ansattEnhetId = klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = it.navIdent).enhet.enhetId,
+                )
+            }
         )
     }
 
