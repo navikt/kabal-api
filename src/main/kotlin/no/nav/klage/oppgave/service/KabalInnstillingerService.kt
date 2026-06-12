@@ -9,6 +9,7 @@ import no.nav.klage.oppgave.clients.kabalinnstillinger.KabalInnstillingerClient
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.MedunderskrivereInput
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.SakInput
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
+import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.util.getLogger
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Service
 @Service
 class KabalInnstillingerService(
     private val kabalInnstillingerClient: KabalInnstillingerClient,
-    private val saksbehandlerService: SaksbehandlerService,
+    private val klageLookupGateway: KlageLookupGateway,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -40,7 +41,7 @@ class KabalInnstillingerService(
                 SaksbehandlerWithEnhetView(
                     navIdent = it.navIdent,
                     navn = it.navn,
-                    ansattEnhetId = saksbehandlerService.getEnhetForSaksbehandler(navIdent = it.navIdent).enhetId
+                    ansattEnhetId = klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = it.navIdent).enhet.enhetId,
                 )
             }
         )
@@ -68,7 +69,7 @@ class KabalInnstillingerService(
                 SaksbehandlerWithEnhetView(
                     navIdent = it.navIdent,
                     navn = it.navn,
-                    ansattEnhetId = saksbehandlerService.getEnhetForSaksbehandler(navIdent = it.navIdent).enhetId
+                    ansattEnhetId = klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = it.navIdent).enhet.enhetId,
                 )
             }
         )
