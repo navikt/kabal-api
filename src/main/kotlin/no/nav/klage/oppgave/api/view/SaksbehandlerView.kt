@@ -7,6 +7,20 @@ data class SaksbehandlerView(
     val navn: String
 )
 
+data class SaksbehandlereWithEnhetView(
+    val saksbehandlere: List<SaksbehandlerWithEnhetView>,
+)
+
+data class MedunderskrivereWithEnhetView(
+    val medunderskrivere: List<SaksbehandlerWithEnhetView>,
+)
+
+data class SaksbehandlerWithEnhetView(
+    val navIdent: String,
+    val navn: String,
+    val ansattEnhetId: String,
+)
+
 data class SaksbehandlerInput(
     val navIdent: String?,
 )

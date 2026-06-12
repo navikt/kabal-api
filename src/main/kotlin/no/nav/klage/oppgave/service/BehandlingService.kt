@@ -17,8 +17,6 @@ import no.nav.klage.oppgave.api.view.kabin.CompletedBehandling
 import no.nav.klage.oppgave.api.view.kabin.toKabinPartView
 import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
 import no.nav.klage.oppgave.clients.ereg.EregClient
-import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
-import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
@@ -2239,12 +2237,12 @@ class BehandlingService(
         behandlingRepository.findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull()
             .sortedByDescending { it.ferdigstilling?.avsluttetAvSaksbehandler }
 
-    fun getPotentialSaksbehandlereForBehandling(behandlingId: UUID): Saksbehandlere {
+    fun getPotentialSaksbehandlereForBehandling(behandlingId: UUID): SaksbehandlereWithEnhetView {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return kabalInnstillingerService.getPotentialSaksbehandlere(behandling)
     }
 
-    fun getPotentialMedunderskrivereForBehandling(behandlingId: UUID): Medunderskrivere {
+    fun getPotentialMedunderskrivereForBehandling(behandlingId: UUID): MedunderskrivereWithEnhetView {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return kabalInnstillingerService.getPotentialMedunderskrivere(behandling)
     }
