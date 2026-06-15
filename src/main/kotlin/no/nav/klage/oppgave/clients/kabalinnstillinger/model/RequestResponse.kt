@@ -21,7 +21,11 @@ data class SakInput(
 
 data class Saksbehandlere(val saksbehandlere: List<Saksbehandler>)
 
-data class Saksbehandler(val navIdent: String, val navn: String)
+data class Saksbehandler(
+    val navIdent: String,
+    val navn: String,
+    val ansattEnhetId: String,
+)
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class SaksbehandlerAccess(
