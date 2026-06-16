@@ -11,6 +11,7 @@ import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
+import no.nav.klage.oppgave.service.GosysOppgaveService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.Unprotected
@@ -29,6 +30,7 @@ class DevOnlyAdminController(
     private val behandlingService: BehandlingService,
     private val klageFssProxyClient: KlageFssProxyClient,
     private val klageLookupGateway: KlageLookupGateway,
+    private val gosysOppgaveService: GosysOppgaveService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
 
@@ -246,6 +248,22 @@ class DevOnlyAdminController(
         logger.debug("checkTokenUnprotected is called")
         logger.debug("Token type: {}", tokenUtil.getCurrentTokenType())
         return tokenUtil.getCurrentTokenType().toString()
+    }
+
+    @GetMapping("/oppgave/{behandlingId}/{system}")
+    fun testOppgavePatch(
+        @PathVariable(required = true, name = "behandlingId") behandlingId: UUID,
+        @PathVariable(required = true, name = "system") systemContext: Boolean,
+    ) {
+        logger.debug("testOppgavePatch is called")
+        gosysOppgaveService.addKommentarV2(
+            behandling = behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
+                behandlingId = behandlingId,
+            ),
+            kommentar = "Tester å legge til en kommentar",
+            systemContext = systemContext,
+            throwExceptionIfFerdigstilt = false
+        )
     }
 
 //    }

@@ -55,3 +55,21 @@ data class AvsluttGosysOppgaveRequest(
     val status: Status,
     val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
+
+data class UpdateOppgaveRequestV2(
+    val meta: PatchMeta,
+) {
+    data class PatchMeta(
+        val versjon: Int? = null,
+        val kommentar: String? = null,
+        val representerer: Representerer? = null,
+    ) {
+        data class Representerer(
+            val enhet: EnhetDto
+        ) {
+            data class EnhetDto(
+                val nr: String,
+            )
+        }
+    }
+}
