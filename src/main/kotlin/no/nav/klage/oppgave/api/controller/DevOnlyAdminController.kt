@@ -250,9 +250,10 @@ class DevOnlyAdminController(
         return tokenUtil.getCurrentTokenType().toString()
     }
 
+    @Unprotected
     @GetMapping("/oppgave/{behandlingId}/{system}")
     fun testOppgavePatch(
-        @PathVariable(required = true, name = "behandlingId") behandlingId: UUID,
+        @PathVariable(required = true) behandlingId: UUID,
         @PathVariable(required = true, name = "system") systemContext: Boolean,
     ) {
         logger.debug("testOppgavePatch is called")
