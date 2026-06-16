@@ -386,29 +386,34 @@ class GosysOppgaveService(
         updateGosysOppgaveRequest: UpdateOppgaveRequestV2,
         systemContext: Boolean,
     ) {
-        val updatedGosysOppgave = gosysOppgaveClient.updateGosysOppgaveV2(
+        gosysOppgaveClient.updateGosysOppgaveV2(
             gosysOppgaveId = behandling.gosysOppgaveId!!,
             updateOppgaveInput = updateGosysOppgaveRequest,
             systemContext = systemContext,
         )
 
+        val updatedGosysOppgave = gosysOppgaveClient.getGosysOppgave(
+            gosysOppgaveId = behandling.gosysOppgaveId!!,
+            systemContext = systemContext,
+        )
+
         val saksbehandlerident = behandling.tildeling?.saksbehandlerident ?: systembrukerIdent
 
-        publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                GosysoppgaveEvent(
-                    actor = Employee(
-                        navIdent = saksbehandlerident,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerident),
-                    ),
-                    timestamp = LocalDateTime.now(),
-                    gosysOppgave = updatedGosysOppgave.toGosysOppgaveView(systemContext = systemContext),
-                    traceparent = currentTraceparent(),
-                )
-            ),
-            behandlingId = behandling.id,
-            type = InternalEventType.GOSYSOPPGAVE,
-        )
+//        publishInternalEvent(
+//            data = jacksonObjectMapper.writeValueAsString(
+//                GosysoppgaveEvent(
+//                    actor = Employee(
+//                        navIdent = saksbehandlerident,
+//                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerident),
+//                    ),
+//                    timestamp = LocalDateTime.now(),
+//                    gosysOppgave = updatedGosysOppgave.toGosysOppgaveView(systemContext = systemContext),
+//                    traceparent = currentTraceparent(),
+//                )
+//            ),
+//            behandlingId = behandling.id,
+//            type = InternalEventType.GOSYSOPPGAVE,
+//        )
     }
 
     fun getMapperForEnhet(

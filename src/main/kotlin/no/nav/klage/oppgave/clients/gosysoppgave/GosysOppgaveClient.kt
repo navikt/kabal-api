@@ -74,7 +74,7 @@ class GosysOppgaveClient(
         gosysOppgaveId: Long,
         updateOppgaveInput: UpdateOppgaveRequestV2,
         systemContext: Boolean
-    ): GosysOppgaveRecord {
+    ) {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
             gosysOppgaveWebClient.patch()
                 .uri { uriBuilder ->
@@ -88,7 +88,7 @@ class GosysOppgaveClient(
                 .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
-                .bodyToMono<GosysOppgaveRecord>()
+                .bodyToMono<Void>()
                 .block() ?: throw RuntimeException("Oppgave could not be updated")
         }
     }
