@@ -120,7 +120,7 @@ data class GosysOppgaveRecordV2(
     val opprettet: Historikk?,
     val endret: Historikk?,
     val lukket: Historikk?,
-    val kommentar: List<KommentarV2>?,
+    val kommentarer: List<KommentarV2>?,
 )
 
 data class KategoriseringDto(
