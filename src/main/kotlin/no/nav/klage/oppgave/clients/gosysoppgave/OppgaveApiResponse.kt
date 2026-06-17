@@ -107,21 +107,28 @@ data class OppgavetypeResponse(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class GosysOppgaveRecordV2(
     val id: Long,
-    val kategorisering: KategoriseringDto?,
-    val fordeling: Fordeling?,
-    val prioritet: Prioritet?,
+    val kategorisering: KategoriseringDto,
+    val fordeling: Fordeling,
+    val prioritet: Prioritet,
     val beskrivelse: String?,
-    val nokkelord: Set<String>?,
+    val nokkelord: Set<String>,
     val aktivDato: LocalDate?,
     val fristDato: LocalDate?,
-    val versjon: Int?,
+    val versjon: Int,
     val bruker: BrukerDto?,
-    val status: StatusV2?,
-    val opprettet: Historikk?,
+    val status: StatusV2,
+    val opprettet: Historikk,
     val endret: Historikk?,
     val lukket: Historikk?,
-    val kommentarer: List<KommentarV2>?,
-)
+    val kommentarer: List<KommentarV2>,
+) {
+    fun isEditable(): Boolean {
+        return status !in listOf(
+            StatusV2.FERDIGSTILT,
+            StatusV2.FEILREGISTRERT
+        )
+    }
+}
 
 data class KategoriseringDto(
     val tema: Kategorikodeverk,

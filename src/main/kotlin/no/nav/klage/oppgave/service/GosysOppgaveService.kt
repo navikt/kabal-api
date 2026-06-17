@@ -42,13 +42,13 @@ class GosysOppgaveService(
     }
 
     fun getGosysOppgave(gosysOppgaveId: Long, fnrToValidate: String? = null): GosysOppgaveView {
-        val gosysOppgaveRecord = gosysOppgaveClient.getGosysOppgave(gosysOppgaveId, systemContext = false)
+        val gosysOppgaveRecord = gosysOppgaveClient.getGosysOppgaveV2(gosysOppgaveId, systemContext = false)
         if (fnrToValidate != null) {
-            if (gosysOppgaveRecord.bruker.ident != fnrToValidate) {
+            if (gosysOppgaveRecord.bruker?.ident != fnrToValidate) {
                 throw IllegalOperation("Gosys-oppgave hører ikke til angitt person")
             }
         }
-        return gosysOppgaveRecord.toGosysOppgaveView(systemContext = false)
+        return gosysOppgaveRecord.toGosysOppgaveView()
     }
 
     fun assignGosysOppgave(
@@ -61,7 +61,7 @@ class GosysOppgaveService(
         val systemContext = utfoerendeSaksbehandlerIdent == systembrukerIdent
 
         val currentGosysOppgave =
-            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
+            gosysOppgaveClient.getGosysOppgaveV2(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
 
         if (!shouldAttemptGosysOppgaveUpdate(
                 currentGosysOppgave = currentGosysOppgave,
@@ -126,7 +126,7 @@ class GosysOppgaveService(
         val gosysOppgaveId = behandling.gosysOppgaveId!!
 
         val currentGosysOppgave =
-            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
+            gosysOppgaveClient.getGosysOppgaveV2(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
 
         if (!shouldAttemptGosysOppgaveUpdate(
                 currentGosysOppgave = currentGosysOppgave,
@@ -173,7 +173,7 @@ class GosysOppgaveService(
         val gosysOppgaveId = behandling.gosysOppgaveId!!
 
         val currentGosysOppgave =
-            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
+            gosysOppgaveClient.getGosysOppgaveV2(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
 
         if (!shouldAttemptGosysOppgaveUpdate(
                 currentGosysOppgave = currentGosysOppgave,
@@ -210,7 +210,7 @@ class GosysOppgaveService(
         val gosysOppgaveId = behandling.gosysOppgaveId!!
 
         val currentGosysOppgave =
-            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
+            gosysOppgaveClient.getGosysOppgaveV2(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
 
         if (!shouldAttemptGosysOppgaveUpdate(
                 currentGosysOppgave = currentGosysOppgave,
@@ -250,7 +250,7 @@ class GosysOppgaveService(
         throwExceptionIfFerdigstilt: Boolean,
     ) {
         logger.debug("Adding kommentar to Gosys-oppgave ${behandling.gosysOppgaveId}")
-        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(
+        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgaveV2(
             gosysOppgaveId = behandling.gosysOppgaveId!!,
             systemContext = systemContext
         )
@@ -288,7 +288,7 @@ class GosysOppgaveService(
         throwExceptionIfFerdigstilt: Boolean,
     ): GosysOppgaveRecordV2? {
         logger.debug("Adding kommentar to Gosys-oppgave ${behandling.gosysOppgaveId}")
-        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(
+        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgaveV2(
             gosysOppgaveId = behandling.gosysOppgaveId!!,
             systemContext = systemContext
         )
@@ -324,7 +324,7 @@ class GosysOppgaveService(
     ) {
         logger.debug("Avslutter Gosys-oppgave ${behandling.gosysOppgaveId}")
         val currentGosysOppgave =
-            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = true)
+            gosysOppgaveClient.getGosysOppgaveV2(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = true)
 
         if (!shouldAttemptGosysOppgaveUpdate(
                 currentGosysOppgave = currentGosysOppgave,
@@ -502,6 +502,35 @@ class GosysOppgaveService(
         )
     }
 
+    fun GosysOppgaveRecordV2.toGosysOppgaveView(): GosysOppgaveView {
+        val tema = Tema.fromNavn(kategorisering.tema.kode)
+        return GosysOppgaveView(
+            id = id,
+            tildeltEnhetsnr = fordeling.enhet.nr,
+            endretAvEnhetsnr = endret?.av?.enhet?.nr,
+            endretAv = endret?.av?.medarbeider?.navident.navIdentToSaksbehandlerView(),
+            endretTidspunkt = endret?.tidspunkt,
+            opprettetAv = opprettet.av?.medarbeider?.navident.navIdentToSaksbehandlerView(),
+            opprettetTidspunkt = opprettet.tidspunkt,
+            beskrivelse = beskrivelse,
+            temaId = tema.id,
+            gjelder = kategorisering.behandlingstype?.term,
+            oppgavetype = kategorisering.oppgavetype.term,
+            fristFerdigstillelse = fristDato,
+            ferdigstiltTidspunkt = lukket?.tidspunkt,
+            status = GosysOppgaveView.Status.valueOf(status.name),
+            mappe = fordeling.mappe?.let { GosysOppgaveMappeView(id = it.id, navn = it.navn) },
+            editable = isEditable(),
+            opprettetAvEnhet = opprettet.av?.enhet?.let {
+                EnhetView(
+                    enhetsnr = it.nr,
+                    navn = norg2Client.fetchEnhet(enhetNr = it.nr).navn
+                )
+            },
+            alreadyUsedBy = null,
+        )
+    }
+
 
     private fun String?.navIdentToSaksbehandlerView(): SaksbehandlerView? {
         return if (this != null) {
@@ -546,6 +575,21 @@ class GosysOppgaveService(
 
     private fun shouldAttemptGosysOppgaveUpdate(
         currentGosysOppgave: GosysOppgaveRecordV1,
+        throwExceptionIfFerdigstilt: Boolean
+    ): Boolean {
+        val gosysOppgaveId = currentGosysOppgave.id
+        return if (!currentGosysOppgave.isEditable()) {
+            if (throwExceptionIfFerdigstilt) {
+                throw GosysOppgaveNotEditableException("Gosys-oppgave $gosysOppgaveId kan ikke oppdateres fordi status er ${currentGosysOppgave.status}")
+            } else {
+                logger.warn("Gosys-oppgave $gosysOppgaveId kan ikke oppdateres, returnerer")
+                false
+            }
+        } else true
+    }
+
+    private fun shouldAttemptGosysOppgaveUpdate(
+        currentGosysOppgave: GosysOppgaveRecordV2,
         throwExceptionIfFerdigstilt: Boolean
     ): Boolean {
         val gosysOppgaveId = currentGosysOppgave.id

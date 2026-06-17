@@ -47,6 +47,30 @@ class GosysOppgaveClient(
         }
     }
 
+    fun getGosysOppgaveV2(
+        gosysOppgaveId: Long,
+        systemContext: Boolean
+    ): GosysOppgaveRecordV2 {
+        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
+            gosysOppgaveWebClient.get()
+                .uri { uriBuilder ->
+                    uriBuilder
+                        .pathSegment("v2", "oppgaver", "{id}")
+                        .queryParam("include", "kommentarer")
+                        .build(gosysOppgaveId)
+                }
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
+                )
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                .header("Nav-Consumer-Id", applicationName)
+                .retrieve()
+                .bodyToMono<GosysOppgaveRecordV2>()
+                .block() ?: throw RuntimeException("Oppgave could not be updated")
+        }
+    }
+
     fun updateGosysOppgave(
         gosysOppgaveId: Long,
         updateOppgaveInput: UpdateOppgaveRequest,
