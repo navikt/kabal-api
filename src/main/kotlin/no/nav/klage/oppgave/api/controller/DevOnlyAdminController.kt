@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
+import no.nav.klage.oppgave.clients.gosysoppgave.GosysOppgaveRecordV2
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
@@ -255,9 +256,9 @@ class DevOnlyAdminController(
     fun testOppgavePatch(
         @PathVariable(required = true) behandlingId: UUID,
         @PathVariable(required = true, name = "system") systemContext: Boolean,
-    ) {
+    ): GosysOppgaveRecordV2? {
         logger.debug("testOppgavePatch is called")
-        gosysOppgaveService.addKommentarV2(
+        return gosysOppgaveService.addKommentarV2(
             behandling = behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
                 behandlingId = behandlingId,
             ),

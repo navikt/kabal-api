@@ -286,7 +286,7 @@ class GosysOppgaveService(
         kommentar: String,
         systemContext: Boolean,
         throwExceptionIfFerdigstilt: Boolean,
-    ) {
+    ): GosysOppgaveRecordV2? {
         logger.debug("Adding kommentar to Gosys-oppgave ${behandling.gosysOppgaveId}")
         val currentGosysOppgave = gosysOppgaveClient.getGosysOppgave(
             gosysOppgaveId = behandling.gosysOppgaveId!!,
@@ -298,7 +298,7 @@ class GosysOppgaveService(
                 throwExceptionIfFerdigstilt = throwExceptionIfFerdigstilt
             )
         ) {
-            return
+            return null
         }
 
         val representerer = getRepresenterer(systemContext = systemContext)
@@ -311,7 +311,7 @@ class GosysOppgaveService(
             )
         )
 
-        updateOppgaveAndPublishEventV2(
+        return updateOppgaveAndPublishEventV2(
             behandling = behandling,
             updateGosysOppgaveRequest = updateGosysOppgaveRequest,
             systemContext = systemContext,
@@ -385,17 +385,14 @@ class GosysOppgaveService(
         behandling: Behandling,
         updateGosysOppgaveRequest: UpdateOppgaveRequestV2,
         systemContext: Boolean,
-    ) {
-        gosysOppgaveClient.updateGosysOppgaveV2(
+    ): GosysOppgaveRecordV2 {
+        val updatedGosysOppgave = gosysOppgaveClient.updateGosysOppgaveV2(
             gosysOppgaveId = behandling.gosysOppgaveId!!,
             updateOppgaveInput = updateGosysOppgaveRequest,
             systemContext = systemContext,
         )
 
-        val updatedGosysOppgave = gosysOppgaveClient.getGosysOppgave(
-            gosysOppgaveId = behandling.gosysOppgaveId!!,
-            systemContext = systemContext,
-        )
+        return updatedGosysOppgave
 
         val saksbehandlerident = behandling.tildeling?.saksbehandlerident ?: systembrukerIdent
 
@@ -469,7 +466,7 @@ class GosysOppgaveService(
         return gosysOppgaveList.map { it.toGosysOppgaveView(systemContext = false) }
     }
 
-    fun GosysOppgaveRecord.toGosysOppgaveView(systemContext: Boolean): GosysOppgaveView {
+    fun GosysOppgaveRecordV1.toGosysOppgaveView(systemContext: Boolean): GosysOppgaveView {
         val tema = Tema.fromNavn(tema)
         return GosysOppgaveView(
             id = id,
@@ -548,7 +545,7 @@ class GosysOppgaveService(
     }
 
     private fun shouldAttemptGosysOppgaveUpdate(
-        currentGosysOppgave: GosysOppgaveRecord,
+        currentGosysOppgave: GosysOppgaveRecordV1,
         throwExceptionIfFerdigstilt: Boolean
     ): Boolean {
         val gosysOppgaveId = currentGosysOppgave.id

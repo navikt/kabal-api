@@ -29,7 +29,7 @@ class GosysOppgaveClient(
         private val teamLogger = getTeamLogger()
     }
 
-    fun getGosysOppgave(gosysOppgaveId: Long, systemContext: Boolean): GosysOppgaveRecord {
+    fun getGosysOppgave(gosysOppgaveId: Long, systemContext: Boolean): GosysOppgaveRecordV1 {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgave.name) {
             gosysOppgaveWebClient.get()
                 .uri { uriBuilder ->
@@ -42,7 +42,7 @@ class GosysOppgaveClient(
                 .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
-                .bodyToMono<GosysOppgaveRecord>()
+                .bodyToMono<GosysOppgaveRecordV1>()
                 .block() ?: throw RuntimeException("Oppgave could not be fetched")
         }
     }
@@ -51,7 +51,7 @@ class GosysOppgaveClient(
         gosysOppgaveId: Long,
         updateOppgaveInput: UpdateOppgaveRequest,
         systemContext: Boolean
-    ): GosysOppgaveRecord {
+    ): GosysOppgaveRecordV1 {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
             gosysOppgaveWebClient.patch()
                 .uri { uriBuilder ->
@@ -65,7 +65,7 @@ class GosysOppgaveClient(
                 .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
-                .bodyToMono<GosysOppgaveRecord>()
+                .bodyToMono<GosysOppgaveRecordV1>()
                 .block() ?: throw RuntimeException("Oppgave could not be updated")
         }
     }
@@ -74,7 +74,7 @@ class GosysOppgaveClient(
         gosysOppgaveId: Long,
         updateOppgaveInput: UpdateOppgaveRequestV2,
         systemContext: Boolean
-    ) {
+    ): GosysOppgaveRecordV2 {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
             gosysOppgaveWebClient.patch()
                 .uri { uriBuilder ->
@@ -88,8 +88,8 @@ class GosysOppgaveClient(
                 .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
-                .bodyToMono<Void>()
-                .block()
+                .bodyToMono<GosysOppgaveRecordV2>()
+                .block() ?: throw RuntimeException("Oppgave could not be updated")
         }
     }
 
@@ -146,7 +146,7 @@ class GosysOppgaveClient(
     fun fetchGosysOppgaveForAktoerIdAndTema(
         aktoerId: String,
         temaList: List<Tema>?
-    ): List<GosysOppgaveRecord> {
+    ): List<GosysOppgaveRecordV1> {
         val oppgaveResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::fetchGosysOppgaveForAktoerIdAndTema.name) {
                 gosysOppgaveWebClient.get()
@@ -165,7 +165,7 @@ class GosysOppgaveClient(
                     .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
-                    .bodyToMono<OppgaveListResponse>()
+                    .bodyToMono<OppgaveListResponseV1>()
                     .block() ?: throw RuntimeException("Oppgaver could not be fetched")
             }
 
