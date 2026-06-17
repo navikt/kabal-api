@@ -78,7 +78,10 @@ class GosysOppgaveClient(
         return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
             gosysOppgaveWebClient.patch()
                 .uri { uriBuilder ->
-                    uriBuilder.pathSegment("v2", "oppgaver", "{id}").build(gosysOppgaveId)
+                    uriBuilder
+                        .pathSegment("api", "v2", "oppgaver", "{id}")
+                        .queryParam("include", "kommentarer")
+                        .build(gosysOppgaveId)
                 }
                 .bodyValue(updateOppgaveInput)
                 .header(
