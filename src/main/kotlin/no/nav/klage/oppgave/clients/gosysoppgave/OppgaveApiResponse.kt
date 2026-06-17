@@ -107,27 +107,27 @@ data class OppgavetypeResponse(
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class GosysOppgaveRecordV2(
     val id: Long,
-    val kategorisering: KategoriseringDto,
-    val fordeling: Fordeling,
-    val prioritet: Prioritet,
-    val beskrivelse: String,
-    val nokkelord: Set<String>,
-    val aktivDato: LocalDate,
-    val fristDato: LocalDate,
-    val versjon: Int,
-    val bruker: BrukerDto,
-    val status: StatusV2,
-    val opprettet: Historikk,
-    val endret: Historikk,
-    val lukket: Historikk,
-    val kommentar: List<KommentarV2>,
+    val kategorisering: KategoriseringDto?,
+    val fordeling: Fordeling?,
+    val prioritet: Prioritet?,
+    val beskrivelse: String?,
+    val nokkelord: Set<String>?,
+    val aktivDato: LocalDate?,
+    val fristDato: LocalDate?,
+    val versjon: Int?,
+    val bruker: BrukerDto?,
+    val status: StatusV2?,
+    val opprettet: Historikk?,
+    val endret: Historikk?,
+    val lukket: Historikk?,
+    val kommentar: List<KommentarV2>?,
 )
 
 data class KategoriseringDto(
     val tema: Kategorikodeverk,
     val oppgavetype: Kategorikodeverk,
-    val behandlingstema: Kategorikodeverk,
-    val behandlingstype: Kategorikodeverk,
+    val behandlingstema: Kategorikodeverk?,
+    val behandlingstype: Kategorikodeverk?,
 )
 
 data class Kategorikodeverk(
@@ -137,8 +137,8 @@ data class Kategorikodeverk(
 
 data class Fordeling(
     val enhet: Enhet,
-    val mappe: MappeDto,
-    val medarbeider: Medarbeider,
+    val mappe: MappeDto?,
+    val medarbeider: Medarbeider?,
 )
 
 data class Enhet(
@@ -165,16 +165,16 @@ enum class StatusV2 {
 
 data class Historikk(
     val tidspunkt: LocalDateTime,
-    val av: UtfortAv
+    val av: UtfortAv?,
 )
 
 data class UtfortAv(
-    val enhet: Enhet,
-    val medarbeider: Medarbeider,
-    val system: String,
+    val enhet: Enhet?,
+    val medarbeider: Medarbeider?,
+    val system: String?,
 )
 
 data class KommentarV2(
-    val tekst: String,
-    val opprettet: Historikk,
+    val tekst: String?,
+    val opprettet: Historikk?,
 )
