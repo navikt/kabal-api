@@ -79,7 +79,7 @@ class GosysOppgaveClient(
             gosysOppgaveWebClient.patch()
                 .uri { uriBuilder ->
                     uriBuilder
-                        .pathSegment("api", "v2", "oppgaver", "{id}")
+                        .pathSegment("v2", "oppgaver", "{id}")
                         .queryParam("include", "kommentarer")
                         .build(gosysOppgaveId)
                 }
