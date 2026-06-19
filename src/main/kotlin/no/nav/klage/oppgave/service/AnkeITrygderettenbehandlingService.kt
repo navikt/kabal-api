@@ -59,6 +59,8 @@ class AnkeITrygderettenbehandlingService(
                     input.innsendingsHjemler
                 },
                 sendtTilTrygderetten = input.sendtTilTrygderetten,
+                paaanketVedtaksdato = input.paaanketVedtaksdato,
+                forsterketRett = input.forsterketRett,
                 kjennelseMottatt = null,
                 previousSaksbehandlerident = input.previousSaksbehandlerident,
                 gosysOppgaveId = input.gosysOppgaveId,

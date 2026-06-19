@@ -378,6 +378,8 @@ abstract class Behandling(
             saksdokumenter = saksdokumenter,
             innsendingsHjemler = hjemler,
             sendtTilTrygderetten = ferdigstilling!!.avsluttetAvSaksbehandler,
+            paaanketVedtaksdato = (this as BehandlingWithTrygderettenMetadata).paaanketVedtaksdato,
+            forsterketRett = this.forsterketRett,
             registreringsHjemmelSet = registreringshjemler,
             ankebehandlingUtfall = ExternalUtfall.valueOf(utfall!!.name),
             previousSaksbehandlerident = tildeling!!.saksbehandlerident,
@@ -404,6 +406,8 @@ abstract class Behandling(
             saksdokumenter = saksdokumenter,
             innsendingsHjemler = hjemler,
             sendtTilTrygderetten = ferdigstilling!!.avsluttetAvSaksbehandler,
+            paaanketVedtaksdato = (this as BehandlingWithTrygderettenMetadata).paaanketVedtaksdato,
+            forsterketRett = this.forsterketRett,
             registreringsHjemmelSet = registreringshjemler,
             gjenopptakbehandlingUtfall = ExternalUtfall.valueOf(utfall!!.name),
             previousSaksbehandlerident = tildeling!!.saksbehandlerident,
@@ -425,6 +429,12 @@ enum class BehandlingRole {
 
 val utfallToNewAnkebehandling = setOf(
     Utfall.HENVIST
+)
+
+val utfallITrygderettenOpphevetEllerHenvist = setOf(
+    Utfall.OPPHEVET,
+    Utfall.GJENOPPTATT_OPPHEVET,
+    Utfall.HENVIST,
 )
 
 val utfallToTrygderetten = setOf(
@@ -471,4 +481,9 @@ interface BehandlingITrygderetten {
 interface BehandlingWithKvalitetsvurdering {
     var kakaKvalitetsvurderingId: UUID?
     var kakaKvalitetsvurderingVersion: Int
+}
+
+interface BehandlingWithTrygderettenMetadata {
+    var paaanketVedtaksdato: LocalDate?
+    var forsterketRett: Boolean?
 }

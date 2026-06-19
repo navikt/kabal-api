@@ -27,6 +27,10 @@ import java.util.*
 class AnkeITrygderettenbehandling(
     @Column(name = "sendt_til_trygderetten", nullable = false)
     override var sendtTilTrygderetten: LocalDateTime,
+    @Column(name = "paaanket_vedtaks_dato")
+    override var paaanketVedtaksdato: LocalDate? = null,
+    @Column(name = "forsterket_rett")
+    override var forsterketRett: Boolean? = null,
     @Column(name = "kjennelse_mottatt")
     override var kjennelseMottatt: LocalDateTime? = null,
     /** Tatt over av KA mens den er i TR */
@@ -79,7 +83,7 @@ class AnkeITrygderettenbehandling(
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : BehandlingITrygderetten, Behandling(
+) : BehandlingITrygderetten, BehandlingWithTrygderettenMetadata, Behandling(
     id = id,
     previousBehandlingId = previousBehandlingId,
     klager = klager,
@@ -169,6 +173,8 @@ data class AnkeITrygderettenbehandlingInput(
     val saksdokumenter: MutableSet<Saksdokument>,
     val innsendingsHjemler: Set<Hjemmel>?,
     val sendtTilTrygderetten: LocalDateTime,
+    val paaanketVedtaksdato: LocalDate? = null,
+    val forsterketRett: Boolean? = null,
     val registreringsHjemmelSet: Set<Registreringshjemmel>? = null,
     val ankebehandlingUtfall: ExternalUtfall,
     val previousSaksbehandlerident: String?,

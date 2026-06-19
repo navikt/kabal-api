@@ -136,6 +136,8 @@ class AnkebehandlingService(
                 kakaKvalitetsvurderingVersion = 2,
                 hjemler = ankeITrygderettenbehandling.hjemler,
                 klageBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
+                paaanketVedtaksdato = ankeITrygderettenbehandling.paaanketVedtaksdato,
+                forsterketRett = ankeITrygderettenbehandling.forsterketRett,
                 previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
                 gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
                 tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,
