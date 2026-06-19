@@ -258,7 +258,7 @@ class DevOnlyAdminController(
         @PathVariable(required = true, name = "system") systemContext: Boolean,
     ): GosysOppgaveRecordV2? {
         logger.debug("testOppgavePatch is called")
-        return gosysOppgaveService.addKommentarV2(
+        return gosysOppgaveService.addKommentar(
             behandling = behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
                 behandlingId = behandlingId,
             ),

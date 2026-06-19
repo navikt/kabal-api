@@ -73,6 +73,10 @@ class GosysOppgaveService(
 
         val representerer = getRepresenterer(systemContext = systemContext)
 
+        val fradelingRequest = FordelingFradelingRequest(
+            medarbeider = null,
+        )
+
         val updateGosysOppgaveRequest =
             if (representerer == null) {
                 if (tildeltSaksbehandlerIdent.isNullOrBlank()) {
@@ -80,9 +84,7 @@ class GosysOppgaveService(
                         meta = PatchMeta(
                             versjon = currentGosysOppgave.versjon,
                         ),
-                        fordeling = FordelingFradelingRequest(
-                            medarbeider = null,
-                        ),
+                        fordeling = fradelingRequest,
                     )
                 } else {
                     val tildeltSaksbehandlerInfo =
@@ -112,9 +114,7 @@ class GosysOppgaveService(
                             versjon = currentGosysOppgave.versjon,
                             representerer = representerer,
                         ),
-                        fordeling = FordelingFradelingRequest(
-                            medarbeider = null,
-                        ),
+                        fordeling = fradelingRequest,
                     )
                 } else {
                     val tildeltSaksbehandlerInfo =
@@ -186,19 +186,29 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext = systemContext)
+        val representerer = getRepresenterer(systemContext = systemContext)
+        val kommentar = "Frist satt på bakgrunn av intern frist i Kabal."
 
-        val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveRequest(
-            versjon = currentGosysOppgave.versjon,
-            endretAvEnhetsnr = endretAvEnhetsnr,
-            fristFerdigstillelse = behandling.frist!!,
-            kommentar = Kommentar(
-                tekst = "Frist satt på bakgrunn av intern frist i Kabal.",
-                automatiskGenerert = true
+        val updateGosysOppgaveRequest = if (representerer == null) {
+            UpdateFristInGosysOppgaveRequestV2WithoutRepresenterer(
+                meta = PatchMetaWithKommentar(
+                    versjon = currentGosysOppgave.versjon,
+                    kommentar = kommentar,
+                ),
+                fristDato = behandling.frist!!
             )
-        )
+        } else {
+            UpdateFristInGosysOppgaveRequestV2WithRepresenterer(
+                meta = PatchMetaWithKommentarAndRepresenterer(
+                    versjon = currentGosysOppgave.versjon,
+                    kommentar = kommentar,
+                    representerer = representerer
+                ),
+                fristDato = behandling.frist!!
+            )
+        }
 
-        updateOppgaveAndPublishEvent(
+        updateOppgaveAndPublishEventV2(
             behandling = behandling,
             updateGosysOppgaveRequest = updateGosysOppgaveRequest,
             systemContext = systemContext
@@ -228,19 +238,36 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext = systemContext)
+        val representerer = getRepresenterer(systemContext = systemContext)
+        val kommentar = "Frist satt på bakgrunn av varslet behandlingstid."
 
-        val updateGosysOppgaveRequest = UpdateFristInGosysOppgaveRequest(
-            versjon = currentGosysOppgave.versjon,
-            endretAvEnhetsnr = endretAvEnhetsnr,
-            fristFerdigstillelse = behandling.varsletBehandlingstid!!.varsletFrist!!,
-            kommentar = Kommentar(
-                tekst = "Frist satt på bakgrunn av varslet behandlingstid.",
-                automatiskGenerert = true
+        val updateGosysOppgaveRequest = if (representerer == null) {
+            UpdateFristInGosysOppgaveRequestV2WithoutRepresenterer(
+                meta = PatchMetaWithKommentar(
+                    versjon = currentGosysOppgave.versjon,
+                    kommentar = kommentar,
+                ),
+                fristDato = behandling.varsletBehandlingstid!!.varsletFrist!!
             )
-        )
+        } else {
+            UpdateFristInGosysOppgaveRequestV2WithRepresenterer(
+                meta = PatchMetaWithKommentarAndRepresenterer(
+                    versjon = currentGosysOppgave.versjon,
+                    kommentar = kommentar,
+                    representerer = representerer
+                ),
+                fristDato = behandling.varsletBehandlingstid!!.varsletFrist!!
+            )
+            AddKommentarToGosysOppgaveRequestV2WithRepresenterer(
+                meta = PatchMetaWithKommentarAndRepresenterer(
+                    versjon = currentGosysOppgave.versjon,
+                    kommentar = kommentar,
+                    representerer = representerer
+                )
+            )
+        }
 
-        updateOppgaveAndPublishEvent(
+        updateOppgaveAndPublishEventV2(
             behandling = behandling,
             updateGosysOppgaveRequest = updateGosysOppgaveRequest,
             systemContext = systemContext
@@ -265,22 +292,48 @@ class GosysOppgaveService(
             return
         }
 
-        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext = systemContext)
+        val representerer = getRepresenterer(systemContext = systemContext)
 
-        val updateGosysOppgaveRequest = UpdateGosysOppgaveOnCompletedBehandlingRequest(
-            versjon = currentGosysOppgave.versjon,
-            endretAvEnhetsnr = endretAvEnhetsnr,
-            fristFerdigstillelse = LocalDate.now(),
-            mappeId = behandling.gosysOppgaveUpdate!!.oppgaveUpdateMappeId,
-            tilordnetRessurs = null,
-            tildeltEnhetsnr = behandling.gosysOppgaveUpdate!!.oppgaveUpdateTildeltEnhetsnummer,
-            kommentar = Kommentar(
-                tekst = behandling.gosysOppgaveUpdate!!.oppgaveUpdateKommentar,
-                automatiskGenerert = false
-            )
+        val kommentar = behandling.gosysOppgaveUpdate!!.oppgaveUpdateKommentar
+
+        val fordeling = FordelingTildelingRequest(
+            enhet = EnhetDto(
+                nr = behandling.gosysOppgaveUpdate!!.oppgaveUpdateTildeltEnhetsnummer,
+            ),
+            mappe = behandling.gosysOppgaveUpdate!!.oppgaveUpdateMappeId?.let {
+                MappeRequestDto(
+                    id = it,
+                )
+            },
+            medarbeider = null
         )
 
-        updateOppgaveAndPublishEvent(
+        val fristDato = LocalDate.now()
+
+        val updateGosysOppgaveRequest = if (representerer == null) {
+            UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithoutRepresenterer(
+                meta = PatchMetaWithKommentar(
+                    versjon = currentGosysOppgave.versjon,
+                    kommentar = kommentar,
+                ),
+                fristDato = fristDato,
+                fordeling = fordeling,
+                nokkelord = setOf(behandling.utfall!!.navn)
+            )
+        } else {
+            UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithRepresenterer(
+                meta = PatchMetaWithKommentarAndRepresenterer(
+                    versjon = currentGosysOppgave.versjon,
+                    kommentar = kommentar,
+                    representerer = representerer,
+                ),
+                fristDato = fristDato,
+                fordeling = fordeling,
+                nokkelord = setOf(behandling.utfall!!.navn)
+            )
+        }
+
+        updateOppgaveAndPublishEventV2(
             behandling = behandling,
             updateGosysOppgaveRequest = updateGosysOppgaveRequest,
             systemContext = systemContext
@@ -289,44 +342,6 @@ class GosysOppgaveService(
 
 
     fun addKommentar(
-        behandling: Behandling,
-        kommentar: String,
-        systemContext: Boolean,
-        throwExceptionIfFerdigstilt: Boolean,
-    ) {
-        logger.debug("Adding kommentar to Gosys-oppgave ${behandling.gosysOppgaveId}")
-        val currentGosysOppgave = gosysOppgaveClient.getGosysOppgaveV2(
-            gosysOppgaveId = behandling.gosysOppgaveId!!,
-            systemContext = systemContext
-        )
-
-        if (!shouldAttemptGosysOppgaveUpdate(
-                currentGosysOppgave = currentGosysOppgave,
-                throwExceptionIfFerdigstilt = throwExceptionIfFerdigstilt
-            )
-        ) {
-            return
-        }
-
-        val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext = systemContext)
-
-        val updateGosysOppgaveRequest = AddKommentarToGosysOppgaveRequest(
-            versjon = currentGosysOppgave.versjon,
-            endretAvEnhetsnr = endretAvEnhetsnr,
-            kommentar = Kommentar(
-                tekst = kommentar,
-                automatiskGenerert = false
-            )
-        )
-
-        updateOppgaveAndPublishEvent(
-            behandling = behandling,
-            updateGosysOppgaveRequest = updateGosysOppgaveRequest,
-            systemContext = systemContext,
-        )
-    }
-
-    fun addKommentarV2(
         behandling: Behandling,
         kommentar: String,
         systemContext: Boolean,
@@ -375,6 +390,7 @@ class GosysOppgaveService(
     fun avsluttGosysOppgave(
         behandling: Behandling,
         throwExceptionIfFerdigstilt: Boolean,
+        systemContext: Boolean = true
     ) {
         logger.debug("Avslutter Gosys-oppgave ${behandling.gosysOppgaveId}")
         val currentGosysOppgave =
@@ -388,17 +404,30 @@ class GosysOppgaveService(
             return
         }
 
-        val avsluttGosysOppgaveRequest = AvsluttGosysOppgaveRequest(
-            versjon = currentGosysOppgave.versjon,
-            endretAvEnhetsnr = null,
-            status = Status.FERDIGSTILT,
-            kommentar = Kommentar(
-                tekst = "Klageinstansen har ferdigstilt behandlingen i Kabal med utfall: ${behandling.utfall!!.navn}.",
-                automatiskGenerert = true
-            )
-        )
+        val representerer = getRepresenterer(systemContext = systemContext)
 
-        updateOppgaveAndPublishEvent(
+        val kommentar = "Klageinstansen har ferdigstilt behandlingen i Kabal med utfall: ${behandling.utfall!!.navn}."
+
+        val avsluttGosysOppgaveRequest = if (representerer == null) {
+            AvsluttGosysOppgaveRequestV2WithoutRepresenterer(
+                meta = PatchMetaWithKommentar(
+                    versjon = currentGosysOppgave.versjon,
+                    kommentar = kommentar,
+                ),
+                status = StatusV2.FERDIGSTILT,
+            )
+        } else {
+            AvsluttGosysOppgaveRequestV2WithRepresenterer(
+                meta = PatchMetaWithKommentarAndRepresenterer(
+                    versjon = currentGosysOppgave.versjon,
+                    kommentar = kommentar,
+                    representerer = representerer,
+                ),
+                status = StatusV2.FERDIGSTILT,
+            )
+        }
+
+        updateOppgaveAndPublishEventV2(
             behandling = behandling,
             updateGosysOppgaveRequest = avsluttGosysOppgaveRequest,
             systemContext = true

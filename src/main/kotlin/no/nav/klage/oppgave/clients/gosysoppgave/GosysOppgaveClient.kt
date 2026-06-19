@@ -51,7 +51,7 @@ class GosysOppgaveClient(
         gosysOppgaveId: Long,
         systemContext: Boolean
     ): GosysOppgaveRecordV2 {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
+        return logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgaveV2.name) {
             gosysOppgaveWebClient.get()
                 .uri { uriBuilder ->
                     uriBuilder
@@ -99,7 +99,7 @@ class GosysOppgaveClient(
         updateOppgaveInput: UpdateOppgaveRequestV2,
         systemContext: Boolean
     ): GosysOppgaveRecordV2 {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
+        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgaveV2.name) {
             gosysOppgaveWebClient.patch()
                 .uri { uriBuilder ->
                     uriBuilder

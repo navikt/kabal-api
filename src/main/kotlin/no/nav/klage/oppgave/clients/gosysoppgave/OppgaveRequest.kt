@@ -90,6 +90,40 @@ data class AddKommentarToGosysOppgaveRequestV2WithRepresenterer(
     val meta: PatchMetaWithKommentarAndRepresenterer,
 ) : UpdateOppgaveRequestV2()
 
+data class UpdateFristInGosysOppgaveRequestV2WithoutRepresenterer(
+    val meta: PatchMetaWithKommentar,
+    val fristDato: LocalDate,
+) : UpdateOppgaveRequestV2()
+
+data class UpdateFristInGosysOppgaveRequestV2WithRepresenterer(
+    val meta: PatchMetaWithKommentarAndRepresenterer,
+    val fristDato: LocalDate,
+) : UpdateOppgaveRequestV2()
+
+data class AvsluttGosysOppgaveRequestV2WithoutRepresenterer(
+    val meta: PatchMetaWithKommentar,
+    val status: StatusV2,
+) : UpdateOppgaveRequestV2()
+
+data class AvsluttGosysOppgaveRequestV2WithRepresenterer(
+    val meta: PatchMetaWithKommentarAndRepresenterer,
+    val status: StatusV2,
+) : UpdateOppgaveRequestV2()
+
+data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithoutRepresenterer(
+    val meta: PatchMetaWithKommentar,
+    val fristDato: LocalDate,
+    val fordeling: FordelingTildelingRequest,
+    val nokkelord: Set<String>,
+) : UpdateOppgaveRequestV2()
+
+data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithRepresenterer(
+    val meta: PatchMetaWithKommentarAndRepresenterer,
+    val fristDato: LocalDate,
+    val fordeling: FordelingTildelingRequest,
+    val nokkelord: Set<String>,
+) : UpdateOppgaveRequestV2()
+
 //Ikke testet enda
 
 
@@ -133,12 +167,16 @@ data class EnhetDto(
 
 data class FordelingTildelingRequest(
     val enhet: EnhetDto,
-    val mappe: MappeDto?,
+    val mappe: MappeRequestDto?,
     val medarbeider: Medarbeider?,
 )
 
 data class FordelingFradelingRequest(
     val medarbeider: Medarbeider?,
+)
+
+data class MappeRequestDto(
+    val id: Long,
 )
 
 //Jeg begynner med å lage så ekspansive som mulige klasser. Det vil bli en for og en uten
