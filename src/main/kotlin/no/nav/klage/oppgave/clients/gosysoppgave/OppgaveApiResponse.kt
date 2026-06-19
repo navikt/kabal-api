@@ -154,8 +154,8 @@ data class Enhet(
 
 data class MappeDto(
     val id: Long,
-    val navn: String,
-    val tema: String,
+    val navn: String?,
+    val tema: String?,
 )
 
 data class Medarbeider(

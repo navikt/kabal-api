@@ -56,20 +56,90 @@ data class AvsluttGosysOppgaveRequest(
     val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
-data class UpdateOppgaveRequestV2(
+
+//
+
+
+abstract class UpdateOppgaveRequestV2
+
+data class TildelGosysOppgaveRequestV2WithoutRepresenterer(
     val meta: PatchMeta,
-) {
-    data class PatchMeta(
-        val versjon: Int? = null,
-        val kommentar: String? = null,
-        val representerer: Representerer? = null,
-    ) {
-        data class Representerer(
-            val enhet: EnhetDto
-        ) {
-            data class EnhetDto(
-                val nr: String,
-            )
-        }
-    }
-}
+    val fordeling: FordelingTildelingRequest,
+) : UpdateOppgaveRequestV2()
+
+data class TildelGosysOppgaveRequestV2WithRepresenterer(
+    val meta: PatchMetaWithRepresenterer,
+    val fordeling: FordelingTildelingRequest,
+) : UpdateOppgaveRequestV2()
+
+data class FradelGosysOppgaveRequestV2WithoutRepresenterer(
+    val meta: PatchMeta,
+    val fordeling: FordelingFradelingRequest,
+) : UpdateOppgaveRequestV2()
+
+data class FradelGosysOppgaveRequestV2WithRepresenterer(
+    val meta: PatchMetaWithRepresenterer,
+    val fordeling: FordelingFradelingRequest,
+) : UpdateOppgaveRequestV2()
+
+data class AddKommentarToGosysOppgaveRequestV2WithoutRepresenterer(
+    val meta: PatchMetaWithKommentar,
+) : UpdateOppgaveRequestV2()
+
+data class AddKommentarToGosysOppgaveRequestV2WithRepresenterer(
+    val meta: PatchMetaWithKommentarAndRepresenterer,
+) : UpdateOppgaveRequestV2()
+
+//Ikke testet enda
+
+
+data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithoutRepresenter(
+    val meta: PatchMetaWithoutRepresenterer,
+    val fordeling: FordelingFradelingRequest,
+) : UpdateOppgaveRequestV2()
+
+data class PatchMeta(
+    val versjon: Int,
+)
+
+data class PatchMetaWithKommentar(
+    val versjon: Int,
+    val kommentar: String,
+)
+
+data class PatchMetaWithKommentarAndRepresenterer(
+    val versjon: Int,
+    val kommentar: String,
+    val representerer: Representerer,
+)
+
+data class PatchMetaWithoutRepresenterer(
+    val versjon: Int,
+    val kommentar: String,
+)
+
+data class PatchMetaWithRepresenterer(
+    val versjon: Int,
+    val representerer: Representerer,
+)
+
+data class Representerer(
+    val enhet: EnhetDto
+)
+
+data class EnhetDto(
+    val nr: String,
+)
+
+data class FordelingTildelingRequest(
+    val enhet: EnhetDto,
+    val mappe: MappeDto?,
+    val medarbeider: Medarbeider?,
+)
+
+data class FordelingFradelingRequest(
+    val medarbeider: Medarbeider?,
+)
+
+//Jeg begynner med å lage så ekspansive som mulige klasser. Det vil bli en for og en uten
+//representerer. Alle kallene kan testes mot apiet.
