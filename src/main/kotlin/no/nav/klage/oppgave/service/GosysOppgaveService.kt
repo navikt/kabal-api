@@ -81,6 +81,7 @@ class GosysOppgaveService(
         val updateGosysOppgaveRequest =
             if (representerer == null) {
                 if (tildeltSaksbehandlerIdent.isNullOrBlank()) {
+                    logger.debug("FradelGosysOppgaveRequestV2WithoutRepresenterer")
                     FradelGosysOppgaveRequestV2WithoutRepresenterer(
                         meta = PatchMeta(
                             versjon = currentGosysOppgave.versjon,
@@ -92,7 +93,7 @@ class GosysOppgaveService(
                         klageLookupGateway.getUserInfoForGivenNavIdent(
                             navIdent = tildeltSaksbehandlerIdent,
                         )
-
+                    logger.debug("TildelGosysOppgaveRequestV2WithoutRepresenterer")
                     TildelGosysOppgaveRequestV2WithoutRepresenterer(
                         meta = PatchMeta(
                             versjon = currentGosysOppgave.versjon,
@@ -110,6 +111,7 @@ class GosysOppgaveService(
                 }
             } else {
                 if (tildeltSaksbehandlerIdent.isNullOrBlank()) {
+                    logger.debug("FradelGosysOppgaveRequestV2WithRepresenterer")
                     FradelGosysOppgaveRequestV2WithRepresenterer(
                         meta = PatchMetaWithRepresenterer(
                             versjon = currentGosysOppgave.versjon,
@@ -122,7 +124,7 @@ class GosysOppgaveService(
                         klageLookupGateway.getUserInfoForGivenNavIdent(
                             navIdent = tildeltSaksbehandlerIdent,
                         )
-
+                    logger.debug("TildelGosysOppgaveRequestV2WithRepresenterer")
                     TildelGosysOppgaveRequestV2WithRepresenterer(
                         meta = PatchMetaWithRepresenterer(
                             versjon = currentGosysOppgave.versjon,
@@ -191,6 +193,7 @@ class GosysOppgaveService(
         val kommentar = "Frist satt på bakgrunn av intern frist i Kabal."
 
         val updateGosysOppgaveRequest = if (representerer == null) {
+            logger.debug("UpdateFristInGosysOppgaveRequestV2WithoutRepresenterer")
             UpdateFristInGosysOppgaveRequestV2WithoutRepresenterer(
                 meta = PatchMetaWithKommentar(
                     versjon = currentGosysOppgave.versjon,
@@ -199,6 +202,7 @@ class GosysOppgaveService(
                 fristDato = behandling.frist!!
             )
         } else {
+            logger.debug("UpdateFristInGosysOppgaveRequestV2WithRepresenterer")
             UpdateFristInGosysOppgaveRequestV2WithRepresenterer(
                 meta = PatchMetaWithKommentarAndRepresenterer(
                     versjon = currentGosysOppgave.versjon,
@@ -243,6 +247,7 @@ class GosysOppgaveService(
         val kommentar = "Frist satt på bakgrunn av varslet behandlingstid."
 
         val updateGosysOppgaveRequest = if (representerer == null) {
+            logger.debug("UpdateFristInGosysOppgaveRequestV2WithoutRepresenterer")
             UpdateFristInGosysOppgaveRequestV2WithoutRepresenterer(
                 meta = PatchMetaWithKommentar(
                     versjon = currentGosysOppgave.versjon,
@@ -251,6 +256,7 @@ class GosysOppgaveService(
                 fristDato = behandling.varsletBehandlingstid!!.varsletFrist!!
             )
         } else {
+            logger.debug("UpdateFristInGosysOppgaveRequestV2WithRepresenterer")
             UpdateFristInGosysOppgaveRequestV2WithRepresenterer(
                 meta = PatchMetaWithKommentarAndRepresenterer(
                     versjon = currentGosysOppgave.versjon,
@@ -258,13 +264,6 @@ class GosysOppgaveService(
                     representerer = representerer
                 ),
                 fristDato = behandling.varsletBehandlingstid!!.varsletFrist!!
-            )
-            AddKommentarToGosysOppgaveRequestV2WithRepresenterer(
-                meta = PatchMetaWithKommentarAndRepresenterer(
-                    versjon = currentGosysOppgave.versjon,
-                    kommentar = kommentar,
-                    representerer = representerer
-                )
             )
         }
 
@@ -315,6 +314,7 @@ class GosysOppgaveService(
 
         val updateGosysOppgaveRequest = if (representerer == null) {
             if (nokkelord == null) {
+                logger.debug("UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithoutRepresenterer")
                 UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithoutRepresenterer(
                     meta = PatchMetaWithKommentar(
                         versjon = currentGosysOppgave.versjon,
@@ -324,6 +324,7 @@ class GosysOppgaveService(
                     fordeling = fordeling,
                 )
             } else {
+                logger.debug("UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithNokkelordAndWithoutRepresenterer")
                 UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithNokkelordAndWithoutRepresenterer(
                     meta = PatchMetaWithKommentar(
                         versjon = currentGosysOppgave.versjon,
@@ -336,6 +337,7 @@ class GosysOppgaveService(
             }
         } else {
             if (nokkelord == null) {
+                logger.debug("UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithRepresenterer")
                 UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithRepresenterer(
                     meta = PatchMetaWithKommentarAndRepresenterer(
                         versjon = currentGosysOppgave.versjon,
@@ -346,6 +348,7 @@ class GosysOppgaveService(
                     fordeling = fordeling,
                 )
             } else {
+                logger.debug("UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithNokkelordAndWithRepresenterer")
                 UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithNokkelordAndWithRepresenterer(
                     meta = PatchMetaWithKommentarAndRepresenterer(
                         versjon = currentGosysOppgave.versjon,
