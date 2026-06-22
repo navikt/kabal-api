@@ -1,6 +1,7 @@
 package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.oppgave.api.view.EnhetView
 import no.nav.klage.oppgave.api.view.GosysOppgaveMappeView
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
@@ -310,6 +311,8 @@ class GosysOppgaveService(
 
         val fristDato = LocalDate.now()
 
+        val nokkelOrd = getNokkelord(behandling)
+
         val updateGosysOppgaveRequest = if (representerer == null) {
             UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithoutRepresenterer(
                 meta = PatchMetaWithKommentar(
@@ -318,7 +321,7 @@ class GosysOppgaveService(
                 ),
                 fristDato = fristDato,
                 fordeling = fordeling,
-                nokkelord = setOf(behandling.utfall!!.navn)
+                nokkelord = nokkelOrd,
             )
         } else {
             UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithRepresenterer(
@@ -329,7 +332,7 @@ class GosysOppgaveService(
                 ),
                 fristDato = fristDato,
                 fordeling = fordeling,
-                nokkelord = setOf(behandling.utfall!!.navn)
+                nokkelord = nokkelOrd
             )
         }
 
@@ -338,6 +341,32 @@ class GosysOppgaveService(
             updateGosysOppgaveRequest = updateGosysOppgaveRequest,
             systemContext = systemContext
         )
+    }
+
+    private fun getNokkelord(behandling: Behandling): Set<String> {
+        if (behandling.shouldBeSentToTrygderetten()) {
+            return emptySet()
+        } else {
+            return setOf(
+                when (behandling.utfall) {
+                    Utfall.MEDHOLD_ETTER_FVL_35 -> "Medhold"
+                    Utfall.BESLUTNING_IKKE_OMGJOERE -> "Ikke omgjort"
+                    Utfall.STADFESTET_ANNEN_BEGRUNNELSE -> "Stadfestet"
+                    Utfall.UGUNST -> "Ugunst"
+                    Utfall.GJENOPPTATT_DELVIS_ELLER_FULLT_MEDHOLD -> "Medhold"
+                    Utfall.GJENOPPTATT_OPPHEVET -> "Opphevet"
+                    Utfall.GJENOPPTATT_STADFESTET -> "Stadfestet"
+
+                    Utfall.INNSTILLING_STADFESTELSE, Utfall.INNSTILLING_AVVIST, Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES, Utfall.INNSTILLING_GJENOPPTAS_IKKE -> throw Exception(
+                        "Wrong utfall in this case. Investigate behandling ${behandling.id}"
+                    )
+
+                    null -> throw Exception("Missing utfall in this case. Investigate behandling ${behandling.id}")
+
+                    else -> behandling.utfall!!.navn
+                }
+            )
+        }
     }
 
 

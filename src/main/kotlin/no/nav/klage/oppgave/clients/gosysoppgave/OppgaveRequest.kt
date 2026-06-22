@@ -126,12 +126,6 @@ data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithRepresenterer(
 
 //Ikke testet enda
 
-
-data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithoutRepresenter(
-    val meta: PatchMetaWithoutRepresenterer,
-    val fordeling: FordelingFradelingRequest,
-) : UpdateOppgaveRequestV2()
-
 data class PatchMeta(
     val versjon: Int,
 )
