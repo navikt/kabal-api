@@ -311,29 +311,52 @@ class GosysOppgaveService(
 
         val fristDato = LocalDate.now()
 
-        val nokkelOrd = getNokkelord(behandling)
+        val nokkelord = getNokkelord(behandling)
 
         val updateGosysOppgaveRequest = if (representerer == null) {
-            UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithoutRepresenterer(
-                meta = PatchMetaWithKommentar(
-                    versjon = currentGosysOppgave.versjon,
-                    kommentar = kommentar,
-                ),
-                fristDato = fristDato,
-                fordeling = fordeling,
-                nokkelord = nokkelOrd,
-            )
+            if (nokkelord == null) {
+                UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithoutRepresenterer(
+                    meta = PatchMetaWithKommentar(
+                        versjon = currentGosysOppgave.versjon,
+                        kommentar = kommentar,
+                    ),
+                    fristDato = fristDato,
+                    fordeling = fordeling,
+                )
+            } else {
+                UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithNokkelordAndWithoutRepresenterer(
+                    meta = PatchMetaWithKommentar(
+                        versjon = currentGosysOppgave.versjon,
+                        kommentar = kommentar,
+                    ),
+                    fristDato = fristDato,
+                    fordeling = fordeling,
+                    nokkelord = nokkelord
+                )
+            }
         } else {
-            UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithRepresenterer(
-                meta = PatchMetaWithKommentarAndRepresenterer(
-                    versjon = currentGosysOppgave.versjon,
-                    kommentar = kommentar,
-                    representerer = representerer,
-                ),
-                fristDato = fristDato,
-                fordeling = fordeling,
-                nokkelord = nokkelOrd
-            )
+            if (nokkelord == null) {
+                UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithRepresenterer(
+                    meta = PatchMetaWithKommentarAndRepresenterer(
+                        versjon = currentGosysOppgave.versjon,
+                        kommentar = kommentar,
+                        representerer = representerer,
+                    ),
+                    fristDato = fristDato,
+                    fordeling = fordeling,
+                )
+            } else {
+                UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithNokkelordAndWithRepresenterer(
+                    meta = PatchMetaWithKommentarAndRepresenterer(
+                        versjon = currentGosysOppgave.versjon,
+                        kommentar = kommentar,
+                        representerer = representerer,
+                    ),
+                    fristDato = fristDato,
+                    fordeling = fordeling,
+                    nokkelord = nokkelord
+                )
+            }
         }
 
         updateOppgaveAndPublishEventV2(
@@ -343,9 +366,9 @@ class GosysOppgaveService(
         )
     }
 
-    private fun getNokkelord(behandling: Behandling): Set<String> {
+    private fun getNokkelord(behandling: Behandling): Set<String>? {
         if (behandling.shouldBeSentToTrygderetten()) {
-            return emptySet()
+            return null
         } else {
             return setOf(
                 when (behandling.utfall) {

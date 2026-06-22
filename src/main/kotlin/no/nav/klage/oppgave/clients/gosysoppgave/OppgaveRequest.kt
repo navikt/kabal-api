@@ -114,10 +114,22 @@ data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithoutRepresenterer(
     val meta: PatchMetaWithKommentar,
     val fristDato: LocalDate,
     val fordeling: FordelingTildelingRequest,
+) : UpdateOppgaveRequestV2()
+
+data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithNokkelordAndWithoutRepresenterer(
+    val meta: PatchMetaWithKommentar,
+    val fristDato: LocalDate,
+    val fordeling: FordelingTildelingRequest,
     val nokkelord: Set<String>,
 ) : UpdateOppgaveRequestV2()
 
 data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithRepresenterer(
+    val meta: PatchMetaWithKommentarAndRepresenterer,
+    val fristDato: LocalDate,
+    val fordeling: FordelingTildelingRequest,
+) : UpdateOppgaveRequestV2()
+
+data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithNokkelordAndWithRepresenterer(
     val meta: PatchMetaWithKommentarAndRepresenterer,
     val fristDato: LocalDate,
     val fordeling: FordelingTildelingRequest,
