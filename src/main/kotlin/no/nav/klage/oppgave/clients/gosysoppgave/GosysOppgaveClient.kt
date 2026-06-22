@@ -29,24 +29,6 @@ class GosysOppgaveClient(
         private val teamLogger = getTeamLogger()
     }
 
-    fun getGosysOppgave(gosysOppgaveId: Long, systemContext: Boolean): GosysOppgaveRecordV1 {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgave.name) {
-            gosysOppgaveWebClient.get()
-                .uri { uriBuilder ->
-                    uriBuilder.pathSegment("v1", "oppgaver", "{id}").build(gosysOppgaveId)
-                }
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
-                )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
-                .header("Nav-Consumer-Id", applicationName)
-                .retrieve()
-                .bodyToMono<GosysOppgaveRecordV1>()
-                .block() ?: throw RuntimeException("Oppgave could not be fetched")
-        }
-    }
-
     fun getGosysOppgaveV2(
         gosysOppgaveId: Long,
         systemContext: Boolean
@@ -75,31 +57,8 @@ class GosysOppgaveClient(
         gosysOppgaveId: Long,
         updateOppgaveInput: UpdateOppgaveRequest,
         systemContext: Boolean
-    ): GosysOppgaveRecordV1 {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
-            gosysOppgaveWebClient.patch()
-                .uri { uriBuilder ->
-                    uriBuilder.pathSegment("v1", "oppgaver", "{id}").build(gosysOppgaveId)
-                }
-                .bodyValue(updateOppgaveInput)
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
-                )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
-                .header("Nav-Consumer-Id", applicationName)
-                .retrieve()
-                .bodyToMono<GosysOppgaveRecordV1>()
-                .block() ?: throw RuntimeException("Oppgave could not be updated")
-        }
-    }
-
-    fun updateGosysOppgaveV2(
-        gosysOppgaveId: Long,
-        updateOppgaveInput: UpdateOppgaveRequestV2,
-        systemContext: Boolean
     ): GosysOppgaveRecordV2 {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgaveV2.name) {
+        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
             gosysOppgaveWebClient.patch()
                 .uri { uriBuilder ->
                     uriBuilder

@@ -2,141 +2,81 @@ package no.nav.klage.oppgave.clients.gosysoppgave
 
 import java.time.LocalDate
 
-abstract class UpdateOppgaveRequest(
-    open val versjon: Int,
-    open val endretAvEnhetsnr: String?,
-)
+abstract class UpdateOppgaveRequest
 
-data class TildelGosysOppgaveRequest(
-    override val versjon: Int,
-    override val endretAvEnhetsnr: String?,
-    val tilordnetRessurs: String,
-    val tildeltEnhetsnr: String,
-    val mappeId: Long?,
-) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
-
-data class FradelGosysOppgaveRequest(
-    override val versjon: Int,
-    override val endretAvEnhetsnr: String?,
-    val tilordnetRessurs: String?,
-) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
-
-data class UpdateGosysOppgaveOnCompletedBehandlingRequest(
-    override val versjon: Int,
-    override val endretAvEnhetsnr: String?,
-    val fristFerdigstillelse: LocalDate,
-    val mappeId: Long?,
-    val tilordnetRessurs: String?,
-    val tildeltEnhetsnr: String,
-    val kommentar: Kommentar,
-) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
-
-data class UpdateFristInGosysOppgaveRequest(
-    override val versjon: Int,
-    override val endretAvEnhetsnr: String?,
-    val fristFerdigstillelse: LocalDate,
-    val kommentar: Kommentar,
-) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
-
-data class Kommentar(
-    val tekst: String,
-    val automatiskGenerert: Boolean,
-)
-
-data class AddKommentarToGosysOppgaveRequest(
-    override val versjon: Int,
-    override val endretAvEnhetsnr: String?,
-    val kommentar: Kommentar,
-) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
-
-data class AvsluttGosysOppgaveRequest(
-    override val versjon: Int,
-    override val endretAvEnhetsnr: String?,
-    val status: Status,
-    val kommentar: Kommentar,
-) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
-
-
-//
-
-
-abstract class UpdateOppgaveRequestV2
-
-data class TildelGosysOppgaveRequestV2WithoutRepresenterer(
+data class TildelGosysOppgaveRequestWithoutRepresenterer(
     val meta: PatchMeta,
     val fordeling: FordelingTildelingRequest,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class TildelGosysOppgaveRequestV2WithRepresenterer(
+data class TildelGosysOppgaveRequestWithRepresenterer(
     val meta: PatchMetaWithRepresenterer,
     val fordeling: FordelingTildelingRequest,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class FradelGosysOppgaveRequestV2WithoutRepresenterer(
+data class FradelGosysOppgaveRequestWithoutRepresenterer(
     val meta: PatchMeta,
     val fordeling: FordelingFradelingRequest,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class FradelGosysOppgaveRequestV2WithRepresenterer(
+data class FradelGosysOppgaveRequestWithRepresenterer(
     val meta: PatchMetaWithRepresenterer,
     val fordeling: FordelingFradelingRequest,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class AddKommentarToGosysOppgaveRequestV2WithoutRepresenterer(
+data class AddKommentarToGosysOppgaveRequestWithoutRepresenterer(
     val meta: PatchMetaWithKommentar,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class AddKommentarToGosysOppgaveRequestV2WithRepresenterer(
+data class AddKommentarToGosysOppgaveRequestWithRepresenterer(
     val meta: PatchMetaWithKommentarAndRepresenterer,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class UpdateFristInGosysOppgaveRequestV2WithoutRepresenterer(
+data class UpdateFristInGosysOppgaveRequestWithoutRepresenterer(
     val meta: PatchMetaWithKommentar,
     val fristDato: LocalDate,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class UpdateFristInGosysOppgaveRequestV2WithRepresenterer(
+data class UpdateFristInGosysOppgaveRequestWithRepresenterer(
     val meta: PatchMetaWithKommentarAndRepresenterer,
     val fristDato: LocalDate,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class AvsluttGosysOppgaveRequestV2WithoutRepresenterer(
+data class AvsluttGosysOppgaveRequestWithoutRepresenterer(
     val meta: PatchMetaWithKommentar,
     val status: StatusV2,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class AvsluttGosysOppgaveRequestV2WithRepresenterer(
+data class AvsluttGosysOppgaveRequestWithRepresenterer(
     val meta: PatchMetaWithKommentarAndRepresenterer,
     val status: StatusV2,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithoutRepresenterer(
+data class UpdateGosysOppgaveOnCompletedBehandlingRequestWithoutRepresenterer(
     val meta: PatchMetaWithKommentar,
     val fristDato: LocalDate,
     val fordeling: FordelingTildelingRequest,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithNokkelordAndWithoutRepresenterer(
+data class UpdateGosysOppgaveOnCompletedBehandlingRequestWithNokkelordAndWithoutRepresenterer(
     val meta: PatchMetaWithKommentar,
     val fristDato: LocalDate,
     val fordeling: FordelingTildelingRequest,
     val nokkelord: Set<String>,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithRepresenterer(
+data class UpdateGosysOppgaveOnCompletedBehandlingRequestWithRepresenterer(
     val meta: PatchMetaWithKommentarAndRepresenterer,
     val fristDato: LocalDate,
     val fordeling: FordelingTildelingRequest,
-) : UpdateOppgaveRequestV2()
+) : UpdateOppgaveRequest()
 
-data class UpdateGosysOppgaveOnCompletedBehandlingRequestV2WithNokkelordAndWithRepresenterer(
+data class UpdateGosysOppgaveOnCompletedBehandlingRequestWithNokkelordAndWithRepresenterer(
     val meta: PatchMetaWithKommentarAndRepresenterer,
     val fristDato: LocalDate,
     val fordeling: FordelingTildelingRequest,
     val nokkelord: Set<String>,
-) : UpdateOppgaveRequestV2()
-
-//Ikke testet enda
+) : UpdateOppgaveRequest()
 
 data class PatchMeta(
     val versjon: Int,
@@ -151,11 +91,6 @@ data class PatchMetaWithKommentarAndRepresenterer(
     val versjon: Int,
     val kommentar: String,
     val representerer: Representerer,
-)
-
-data class PatchMetaWithoutRepresenterer(
-    val versjon: Int,
-    val kommentar: String,
 )
 
 data class PatchMetaWithRepresenterer(
@@ -178,12 +113,9 @@ data class FordelingTildelingRequest(
 )
 
 data class FordelingFradelingRequest(
-    val medarbeider: Medarbeider?,
+    val medarbeider: Medarbeider? = null,
 )
 
 data class MappeRequestDto(
     val id: Long,
 )
-
-//Jeg begynner med å lage så ekspansive som mulige klasser. Det vil bli en for og en uten
-//representerer. Alle kallene kan testes mot apiet.
