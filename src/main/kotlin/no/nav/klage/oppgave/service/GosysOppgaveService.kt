@@ -235,14 +235,13 @@ class GosysOppgaveService(
                 automatiskGenerert = false
             )
         )
+        updateNokkelordInGosysOppgave(behandling = behandling)
 
         updateOppgaveAndPublishEvent(
             behandling = behandling,
             updateGosysOppgaveRequest = updateGosysOppgaveRequest,
             systemContext = systemContext
         )
-
-        updateNokkelordInGosysOppgave(behandling = behandling)
     }
 
     fun updateNokkelordInGosysOppgave(
