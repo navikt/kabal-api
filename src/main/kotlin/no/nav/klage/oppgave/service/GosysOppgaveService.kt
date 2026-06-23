@@ -372,7 +372,7 @@ class GosysOppgaveService(
                     Utfall.GJENOPPTATT_STADFESTET -> "Stadfestet"
 
                     Utfall.INNSTILLING_STADFESTELSE, Utfall.INNSTILLING_AVVIST, Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES, Utfall.INNSTILLING_GJENOPPTAS_IKKE -> throw IllegalStateException(
-                        "Wrong utfall in this case. Investigate behandling ${behandling.id}"
+                        "Wrong utfall ${behandling.utfall} in this case. Investigate behandling ${behandling.id}"
                     )
 
                     null -> throw IllegalStateException("Missing utfall in this case. Investigate behandling ${behandling.id}")
