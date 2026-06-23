@@ -29,11 +29,17 @@ class GosysOppgaveClient(
         private val teamLogger = getTeamLogger()
     }
 
-    fun getGosysOppgave(gosysOppgaveId: Long, systemContext: Boolean): GosysOppgaveRecord {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgave.name) {
+    fun getGosysOppgaveV2(
+        gosysOppgaveId: Long,
+        systemContext: Boolean
+    ): GosysOppgaveRecordV2 {
+        return logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgaveV2.name) {
             gosysOppgaveWebClient.get()
                 .uri { uriBuilder ->
-                    uriBuilder.pathSegment("oppgaver", "{id}").build(gosysOppgaveId)
+                    uriBuilder
+                        .pathSegment("v2", "oppgaver", "{id}")
+                        .queryParam("include", "kommentarer")
+                        .build(gosysOppgaveId)
                 }
                 .header(
                     HttpHeaders.AUTHORIZATION,
@@ -42,7 +48,7 @@ class GosysOppgaveClient(
                 .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
-                .bodyToMono<GosysOppgaveRecord>()
+                .bodyToMono<GosysOppgaveRecordV2>()
                 .block() ?: throw RuntimeException("Oppgave could not be fetched")
         }
     }
@@ -51,11 +57,14 @@ class GosysOppgaveClient(
         gosysOppgaveId: Long,
         updateOppgaveInput: UpdateOppgaveRequest,
         systemContext: Boolean
-    ): GosysOppgaveRecord {
+    ): GosysOppgaveRecordV2 {
         return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
             gosysOppgaveWebClient.patch()
                 .uri { uriBuilder ->
-                    uriBuilder.pathSegment("oppgaver", "{id}").build(gosysOppgaveId)
+                    uriBuilder
+                        .pathSegment("v2", "oppgaver", "{id}")
+                        .queryParam("include", "kommentarer")
+                        .build(gosysOppgaveId)
                 }
                 .bodyValue(updateOppgaveInput)
                 .header(
@@ -65,7 +74,7 @@ class GosysOppgaveClient(
                 .header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
-                .bodyToMono<GosysOppgaveRecord>()
+                .bodyToMono<GosysOppgaveRecordV2>()
                 .block() ?: throw RuntimeException("Oppgave could not be updated")
         }
     }
@@ -78,7 +87,7 @@ class GosysOppgaveClient(
             gosysOppgaveWebClient.get()
                 .uri { uriBuilder ->
                     uriBuilder
-                        .path("/mapper")
+                        .pathSegment("v1", "mapper")
                         .queryParam("enhetsnr", enhetsnr)
                         .queryParam("offset", 0)
                         .queryParam("limit", 250)
@@ -105,7 +114,7 @@ class GosysOppgaveClient(
             gosysOppgaveWebClient.get()
                 .uri { uriBuilder ->
                     uriBuilder
-                        .path("/mapper/{id}")
+                        .pathSegment("v1", "mapper", "{id}")
                         .build(id)
                 }
                 .header(
@@ -123,12 +132,12 @@ class GosysOppgaveClient(
     fun fetchGosysOppgaveForAktoerIdAndTema(
         aktoerId: String,
         temaList: List<Tema>?
-    ): List<GosysOppgaveRecord> {
+    ): List<GosysOppgaveRecordV1> {
         val oppgaveResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::fetchGosysOppgaveForAktoerIdAndTema.name) {
                 gosysOppgaveWebClient.get()
                     .uri { uriBuilder ->
-                        uriBuilder.pathSegment("oppgaver")
+                        uriBuilder.pathSegment("v1", "oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
                         temaList?.let { uriBuilder.queryParam("tema", temaList?.map { it.navn }) }
                         uriBuilder.queryParam("limit", 1000)
@@ -142,7 +151,7 @@ class GosysOppgaveClient(
                     .header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
-                    .bodyToMono<OppgaveListResponse>()
+                    .bodyToMono<OppgaveListResponseV1>()
                     .block() ?: throw RuntimeException("Oppgaver could not be fetched")
             }
 
@@ -178,7 +187,7 @@ class GosysOppgaveClient(
             logTimingAndWebClientResponseException(GosysOppgaveClient::getGjelderKodeverkForTema.name) {
                 gosysOppgaveWebClient.get()
                     .uri { uriBuilder ->
-                        uriBuilder.pathSegment("kodeverk", "gjelder", "{tema}")
+                        uriBuilder.pathSegment("v1", "kodeverk", "gjelder", "{tema}")
                         uriBuilder.build(tema.navn)
                     }
                     .header(
@@ -201,7 +210,7 @@ class GosysOppgaveClient(
             logTimingAndWebClientResponseException(GosysOppgaveClient::getOppgavetypeKodeverkForTema.name) {
                 gosysOppgaveWebClient.get()
                     .uri { uriBuilder ->
-                        uriBuilder.pathSegment("kodeverk", "oppgavetype", "{tema}")
+                        uriBuilder.pathSegment("v1", "kodeverk", "oppgavetype", "{tema}")
                         uriBuilder.build(tema.navn)
                     }
                     .header(
