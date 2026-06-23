@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
-import no.nav.klage.oppgave.clients.gosysoppgave.GosysOppgaveRecordV2
 import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
@@ -249,23 +248,6 @@ class DevOnlyAdminController(
         logger.debug("checkTokenUnprotected is called")
         logger.debug("Token type: {}", tokenUtil.getCurrentTokenType())
         return tokenUtil.getCurrentTokenType().toString()
-    }
-
-    @Unprotected
-    @GetMapping("/oppgave/{behandlingId}/{system}")
-    fun testOppgavePatch(
-        @PathVariable(required = true) behandlingId: UUID,
-        @PathVariable(required = true, name = "system") systemContext: Boolean,
-    ): GosysOppgaveRecordV2? {
-        logger.debug("testOppgavePatch is called")
-        return gosysOppgaveService.addKommentar(
-            behandling = behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
-                behandlingId = behandlingId,
-            ),
-            kommentar = "Tester å legge til en kommentar",
-            systemContext = systemContext,
-            throwExceptionIfFerdigstilt = false
-        )
     }
 
 //    }

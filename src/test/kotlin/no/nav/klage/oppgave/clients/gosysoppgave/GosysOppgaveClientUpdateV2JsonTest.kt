@@ -123,7 +123,7 @@ class GosysOppgaveClientUpdateV2JsonTest {
         fun updateOppgaveInputVariants(): Stream<Arguments> {
             val enhet = EnhetDto(nr = "4299")
             val representerer = Representerer(enhet = EnhetDto(nr = "1111"))
-            val medarbeider = Medarbeider(navident = "Z123456")
+            val medarbeider = MedarbeiderRequestDto(navident = "Z123456")
             val mappe = MappeRequestDto(id = 77)
             val tildeling = FordelingTildelingRequest(enhet = enhet, mappe = mappe, medarbeider = medarbeider)
             val fradeling = FordelingFradelingRequest(medarbeider = null)
@@ -265,7 +265,7 @@ class GosysOppgaveClientUpdateV2JsonTest {
                     "Avslutt uten representerer",
                     AvsluttGosysOppgaveRequestWithoutRepresenterer(
                         meta = PatchMetaWithKommentar(versjon = 9, kommentar = kommentar),
-                        status = StatusV2.FERDIGSTILT,
+                        status = GosysOppgaveRecordV2.StatusV2.FERDIGSTILT,
                     ),
                     """
                     {
@@ -282,7 +282,7 @@ class GosysOppgaveClientUpdateV2JsonTest {
                             kommentar = kommentar,
                             representerer = representerer
                         ),
-                        status = StatusV2.FEILREGISTRERT,
+                        status = GosysOppgaveRecordV2.StatusV2.FEILREGISTRERT,
                     ),
                     """
                     {

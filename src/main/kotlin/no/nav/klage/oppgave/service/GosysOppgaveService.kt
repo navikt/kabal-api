@@ -101,7 +101,7 @@ class GosysOppgaveService(
                                 nr = tildeltSaksbehandlerInfo.enhet.enhetId,
                             ),
                             mappe = null,
-                            medarbeider = Medarbeider(
+                            medarbeider = MedarbeiderRequestDto(
                                 navident = tildeltSaksbehandlerIdent,
                             ),
                         ),
@@ -131,7 +131,7 @@ class GosysOppgaveService(
                                 nr = tildeltSaksbehandlerInfo.enhet.enhetId,
                             ),
                             mappe = null,
-                            medarbeider = Medarbeider(
+                            medarbeider = MedarbeiderRequestDto(
                                 navident = tildeltSaksbehandlerIdent,
                             )
                         ),
@@ -460,7 +460,7 @@ class GosysOppgaveService(
                     versjon = currentGosysOppgave.versjon,
                     kommentar = kommentar,
                 ),
-                status = StatusV2.FERDIGSTILT,
+                status = GosysOppgaveRecordV2.StatusV2.FERDIGSTILT,
             )
         } else {
             AvsluttGosysOppgaveRequestWithRepresenterer(
@@ -469,7 +469,7 @@ class GosysOppgaveService(
                     kommentar = kommentar,
                     representerer = representerer,
                 ),
-                status = StatusV2.FERDIGSTILT,
+                status = GosysOppgaveRecordV2.StatusV2.FERDIGSTILT,
             )
         }
 
@@ -617,7 +617,7 @@ class GosysOppgaveService(
             oppgavetype = kategorisering.oppgavetype.term,
             fristFerdigstillelse = fristDato,
             ferdigstiltTidspunkt = lukket?.tidspunkt,
-            status = if (status == StatusV2.AAPEN) GosysOppgaveView.Status.AAPNET else GosysOppgaveView.Status.valueOf(
+            status = if (status == GosysOppgaveRecordV2.StatusV2.AAPEN) GosysOppgaveView.Status.AAPNET else GosysOppgaveView.Status.valueOf(
                 status.name
             ),
             mappe = fordeling.mappe?.let { GosysOppgaveMappeView(id = it.id, navn = it.navn) },
@@ -687,10 +687,6 @@ class GosysOppgaveService(
                 false
             }
         } else true
-    }
-
-    private fun getEndretAvEnhetsnr(systemContext: Boolean): String? = if (systemContext) null else {
-        klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = tokenUtil.getIdent()).enhet.enhetId
     }
 
     private fun getRepresenterer(systemContext: Boolean): Representerer? =

@@ -44,12 +44,12 @@ data class UpdateFristInGosysOppgaveRequestWithRepresenterer(
 
 data class AvsluttGosysOppgaveRequestWithoutRepresenterer(
     val meta: PatchMetaWithKommentar,
-    val status: StatusV2,
+    val status: GosysOppgaveRecordV2.StatusV2,
 ) : UpdateOppgaveRequest()
 
 data class AvsluttGosysOppgaveRequestWithRepresenterer(
     val meta: PatchMetaWithKommentarAndRepresenterer,
-    val status: StatusV2,
+    val status: GosysOppgaveRecordV2.StatusV2,
 ) : UpdateOppgaveRequest()
 
 data class UpdateGosysOppgaveOnCompletedBehandlingRequestWithoutRepresenterer(
@@ -109,13 +109,17 @@ data class EnhetDto(
 data class FordelingTildelingRequest(
     val enhet: EnhetDto,
     val mappe: MappeRequestDto?,
-    val medarbeider: Medarbeider?,
+    val medarbeider: MedarbeiderRequestDto?,
 )
 
 data class FordelingFradelingRequest(
-    val medarbeider: Medarbeider? = null,
+    val medarbeider: MedarbeiderRequestDto? = null,
 )
 
 data class MappeRequestDto(
     val id: Long,
+)
+
+data class MedarbeiderRequestDto(
+    val navident: String,
 )

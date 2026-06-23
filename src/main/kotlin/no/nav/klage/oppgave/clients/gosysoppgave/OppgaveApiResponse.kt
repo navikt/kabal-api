@@ -128,60 +128,60 @@ data class GosysOppgaveRecordV2(
             StatusV2.FEILREGISTRERT
         )
     }
+
+    data class KategoriseringDto(
+        val tema: Kategorikodeverk,
+        val oppgavetype: Kategorikodeverk,
+        val behandlingstema: Kategorikodeverk?,
+        val behandlingstype: Kategorikodeverk?,
+    ) {
+        data class Kategorikodeverk(
+            val kode: String,
+            val term: String,
+        )
+    }
+
+    data class Fordeling(
+        val enhet: Enhet,
+        val mappe: MappeDto?,
+        val medarbeider: Medarbeider?,
+    ) {
+        data class MappeDto(
+            val id: Long,
+            val navn: String?,
+            val tema: String?,
+        )
+    }
+
+    data class Historikk(
+        val tidspunkt: LocalDateTime,
+        val av: UtfortAv?,
+    ) {
+        data class UtfortAv(
+            val enhet: Enhet?,
+            val medarbeider: Medarbeider?,
+            val system: String?,
+        )
+    }
+
+    data class Enhet(
+        val nr: String,
+    )
+
+    data class Medarbeider(
+        val navident: String,
+    )
+
+    enum class Prioritet {
+        LAV, NORMAL, HOY, KRITISK
+    }
+
+    enum class StatusV2 {
+        AAPEN, FERDIGSTILT, FEILREGISTRERT
+    }
+
+    data class KommentarV2(
+        val tekst: String?,
+        val opprettet: Historikk?,
+    )
 }
-
-data class KategoriseringDto(
-    val tema: Kategorikodeverk,
-    val oppgavetype: Kategorikodeverk,
-    val behandlingstema: Kategorikodeverk?,
-    val behandlingstype: Kategorikodeverk?,
-)
-
-data class Kategorikodeverk(
-    val kode: String,
-    val term: String,
-)
-
-data class Fordeling(
-    val enhet: Enhet,
-    val mappe: MappeDto?,
-    val medarbeider: Medarbeider?,
-)
-
-data class Enhet(
-    val nr: String,
-)
-
-data class MappeDto(
-    val id: Long,
-    val navn: String?,
-    val tema: String?,
-)
-
-data class Medarbeider(
-    val navident: String,
-)
-
-enum class Prioritet {
-    LAV, NORMAL, HOY, KRITISK
-}
-
-enum class StatusV2 {
-    AAPEN, FERDIGSTILT, FEILREGISTRERT
-}
-
-data class Historikk(
-    val tidspunkt: LocalDateTime,
-    val av: UtfortAv?,
-)
-
-data class UtfortAv(
-    val enhet: Enhet?,
-    val medarbeider: Medarbeider?,
-    val system: String?,
-)
-
-data class KommentarV2(
-    val tekst: String?,
-    val opprettet: Historikk?,
-)
