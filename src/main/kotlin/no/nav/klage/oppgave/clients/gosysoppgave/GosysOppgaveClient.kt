@@ -49,7 +49,7 @@ class GosysOppgaveClient(
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecordV2>()
-                .block() ?: throw RuntimeException("Oppgave could not be updated")
+                .block() ?: throw RuntimeException("Oppgave could not be fetched")
         }
     }
 

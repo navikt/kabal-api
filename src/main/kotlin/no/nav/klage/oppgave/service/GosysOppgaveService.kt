@@ -371,11 +371,11 @@ class GosysOppgaveService(
                     Utfall.GJENOPPTATT_OPPHEVET -> "Opphevet"
                     Utfall.GJENOPPTATT_STADFESTET -> "Stadfestet"
 
-                    Utfall.INNSTILLING_STADFESTELSE, Utfall.INNSTILLING_AVVIST, Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES, Utfall.INNSTILLING_GJENOPPTAS_IKKE -> throw Exception(
+                    Utfall.INNSTILLING_STADFESTELSE, Utfall.INNSTILLING_AVVIST, Utfall.INNSTILLING_GJENOPPTAS_KAS_VEDTAK_STADFESTES, Utfall.INNSTILLING_GJENOPPTAS_IKKE -> throw IllegalStateException(
                         "Wrong utfall in this case. Investigate behandling ${behandling.id}"
                     )
 
-                    null -> throw Exception("Missing utfall in this case. Investigate behandling ${behandling.id}")
+                    null -> throw IllegalStateException("Missing utfall in this case. Investigate behandling ${behandling.id}")
 
                     else -> behandling.utfall!!.navn
                 }
@@ -437,7 +437,10 @@ class GosysOppgaveService(
     ) {
         logger.debug("Avslutter Gosys-oppgave ${behandling.gosysOppgaveId}")
         val currentGosysOppgave =
-            gosysOppgaveClient.getGosysOppgaveV2(gosysOppgaveId = behandling.gosysOppgaveId!!, systemContext = true)
+            gosysOppgaveClient.getGosysOppgaveV2(
+                gosysOppgaveId = behandling.gosysOppgaveId!!,
+                systemContext = systemContext
+            )
 
         if (!shouldAttemptGosysOppgaveUpdate(
                 currentGosysOppgave = currentGosysOppgave,
