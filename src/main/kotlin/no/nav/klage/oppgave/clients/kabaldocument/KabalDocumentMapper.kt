@@ -164,8 +164,7 @@ class KabalDocumentMapper(
         }
 
         TrygderettenMetadataInput(
-            kravfremsettelsesdato = if (behandling is Gjenopptaksbehandling) {
-                //Is this correct?
+            kravfremsettelsesdato = if (behandling is Gjenopptaksbehandling || behandling is GjenopptakITrygderettenbehandling) {
                 behandling.mottattKlageinstans.toLocalDate()
             } else null,
             paaanketVedtaksdato = paaanketVedtaksdato,
