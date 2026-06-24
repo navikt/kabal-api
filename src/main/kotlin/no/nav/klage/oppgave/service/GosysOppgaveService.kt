@@ -210,7 +210,7 @@ class GosysOppgaveService(
     ) {
         val gosysOppgaveId = behandling.gosysOppgaveId!!
 
-        val currentGosysOppgave =
+        var currentGosysOppgave =
             gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
 
         if (!shouldAttemptGosysOppgaveUpdate(
@@ -220,6 +220,11 @@ class GosysOppgaveService(
         ) {
             return
         }
+
+        updateNokkelordInGosysOppgave(behandling = behandling, currentGosysOppgave = currentGosysOppgave)
+
+        currentGosysOppgave =
+            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
 
         val endretAvEnhetsnr = getEndretAvEnhetsnr(systemContext = systemContext)
 
@@ -235,7 +240,6 @@ class GosysOppgaveService(
                 automatiskGenerert = false
             )
         )
-        updateNokkelordInGosysOppgave(behandling = behandling)
 
         updateOppgaveAndPublishEvent(
             behandling = behandling,
@@ -246,13 +250,11 @@ class GosysOppgaveService(
 
     fun updateNokkelordInGosysOppgave(
         behandling: Behandling,
+        currentGosysOppgave: GosysOppgaveRecord
     ) {
         val gosysOppgaveId = behandling.gosysOppgaveId!!
 
         val systemContext = true
-
-        val currentGosysOppgave =
-            gosysOppgaveClient.getGosysOppgave(gosysOppgaveId = gosysOppgaveId, systemContext = systemContext)
 
         val nokkelord = getNokkelord(behandling)
 
