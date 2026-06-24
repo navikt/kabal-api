@@ -343,18 +343,18 @@ class BehandlingController(
     }
 
     @PutMapping("/{behandlingId}/paaanketvedtaksdato")
-    fun setPaaAnketVedtaksdato(
+    fun setPaaanketVedtaksdato(
         @PathVariable("behandlingId") behandlingId: UUID,
         @RequestBody input: BehandlingDateInput,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setPaaAnketVedtaksdato.name,
+            ::setPaaanketVedtaksdato.name,
             innloggetSaksbehandlerService.getInnloggetIdent(),
             behandlingId,
             logger
         )
 
-        val modified = behandlingService.setPaaAnketVedtaksdato(
+        val modified = behandlingService.setPaaanketVedtaksdato(
             behandlingId = behandlingId,
             paaanketVedtaksdato = input.date,
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()

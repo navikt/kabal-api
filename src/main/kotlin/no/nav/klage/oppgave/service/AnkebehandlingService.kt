@@ -5,6 +5,7 @@ import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.Ankebehandling
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.mottak.Mottak
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.Period
+import java.util.*
 
 @Service
 @Transactional
@@ -40,6 +42,8 @@ class AnkebehandlingService(
     ): Ankebehandling {
         val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
 
+        val paaanketVedtaksdato = resolvePaaanketVedtaksdatoFromPreviousKlagebehandling(mottak.forrigeBehandlingId)
+
         val ankebehandling = ankebehandlingRepository.save(
             Ankebehandling(
                 klager = mottak.klager.copy(),
@@ -59,6 +63,7 @@ class AnkebehandlingService(
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                 hjemler = mottak.hjemler,
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
+                paaanketVedtaksdato = paaanketVedtaksdato,
                 previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                 gosysOppgaveId = mottak.gosysOppgaveId,
                 tilbakekreving = false,
@@ -114,6 +119,15 @@ class AnkebehandlingService(
         ankebehandling.opprettetSendt = true
 
         return ankebehandling
+    }
+
+    private fun resolvePaaanketVedtaksdatoFromPreviousKlagebehandling(previousBehandlingId: UUID?): LocalDate? {
+        return previousBehandlingId?.let {
+            val previousBehandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(it)
+            if (previousBehandling is Klagebehandling) {
+                previousBehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate()
+            } else null
+        }
     }
 
     fun createAnkebehandlingFromAnkeITrygderettenbehandling(ankeITrygderettenbehandling: AnkeITrygderettenbehandling): Ankebehandling {

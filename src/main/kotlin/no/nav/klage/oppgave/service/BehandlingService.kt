@@ -1751,7 +1751,7 @@ class BehandlingService(
         return behandling.modified
     }
 
-    fun setPaaAnketVedtaksdato(
+    fun setPaaanketVedtaksdato(
         behandlingId: UUID,
         paaanketVedtaksdato: LocalDate,
         utfoerendeSaksbehandlerIdent: String

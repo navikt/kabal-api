@@ -39,6 +39,7 @@ data class BehandlingDetaljerView(
     val sattPaaVent: SattPaaVent? = null,
     val sendtTilTrygderetten: LocalDateTime? = null,
     val kjennelseMottatt: LocalDateTime? = null,
+    val paaanketVedtaksdato: LocalDate? = null,
     val feilregistrering: FeilregistreringView? = null,
     val fagsystemId: String,
     val rol: CombinedMedunderskriverAndROLView?,
