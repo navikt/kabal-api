@@ -133,7 +133,7 @@ interface BehandlingRepository : JpaRepository<Behandling, UUID>, JpaSpecificati
     )
     fun getAnkemuligheter(
         partIdValue: String,
-        excludedFagsystems: List<Fagsystem> = listOf(Fagsystem.IT01, Fagsystem.AO01),
+        excludedFagsystems: List<Fagsystem> = listOf(Fagsystem.IT01),
         utfallWithoutAnkemulighet: List<Utfall> = listOf(
             Utfall.INNSTILLING_AVVIST,
             Utfall.INNSTILLING_STADFESTELSE,
