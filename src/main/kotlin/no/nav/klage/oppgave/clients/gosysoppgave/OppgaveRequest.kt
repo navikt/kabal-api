@@ -55,3 +55,16 @@ data class AvsluttGosysOppgaveRequest(
     val status: Status,
     val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
+
+//V2
+
+abstract class UpdateOppgaveRequestV2
+
+data class UpdateGosysOppgaveV2WithNokkelord(
+    val meta: PatchMeta,
+    val nokkelord: Set<String>,
+) : UpdateOppgaveRequestV2()
+
+data class PatchMeta(
+    val versjon: Int,
+)
