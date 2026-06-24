@@ -33,7 +33,7 @@ class GosysOppgaveClient(
         return logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgave.name) {
             gosysOppgaveWebClient.get()
                 .uri { uriBuilder ->
-                    uriBuilder.pathSegment("oppgaver", "{id}").build(gosysOppgaveId)
+                    uriBuilder.pathSegment("v1", "oppgaver", "{id}").build(gosysOppgaveId)
                 }
                 .header(
                     HttpHeaders.AUTHORIZATION,
@@ -55,7 +55,7 @@ class GosysOppgaveClient(
         return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
             gosysOppgaveWebClient.patch()
                 .uri { uriBuilder ->
-                    uriBuilder.pathSegment("oppgaver", "{id}").build(gosysOppgaveId)
+                    uriBuilder.pathSegment("v1", "oppgaver", "{id}").build(gosysOppgaveId)
                 }
                 .bodyValue(updateOppgaveInput)
                 .header(
@@ -70,6 +70,32 @@ class GosysOppgaveClient(
         }
     }
 
+    fun updateGosysOppgaveV2(
+        gosysOppgaveId: Long,
+        updateOppgaveInput: UpdateOppgaveRequestV2,
+        systemContext: Boolean
+    ) {
+        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
+            gosysOppgaveWebClient.patch()
+                .uri { uriBuilder ->
+                    uriBuilder
+                        .pathSegment("v2", "oppgaver", "{id}")
+                        .queryParam("include", "kommentarer")
+                        .build(gosysOppgaveId)
+                }
+                .bodyValue(updateOppgaveInput)
+                .header(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
+                )
+                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                .header("Nav-Consumer-Id", applicationName)
+                .retrieve()
+                .bodyToMono<Void>()
+                .block()
+        }
+    }
+
     @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_ENHETSMAPPER_CACHE)
     fun getMapperForEnhet(
         enhetsnr: String
@@ -78,7 +104,7 @@ class GosysOppgaveClient(
             gosysOppgaveWebClient.get()
                 .uri { uriBuilder ->
                     uriBuilder
-                        .path("/mapper")
+                        .pathSegment("v1", "mapper")
                         .queryParam("enhetsnr", enhetsnr)
                         .queryParam("offset", 0)
                         .queryParam("limit", 250)
@@ -105,7 +131,7 @@ class GosysOppgaveClient(
             gosysOppgaveWebClient.get()
                 .uri { uriBuilder ->
                     uriBuilder
-                        .path("/mapper/{id}")
+                        .pathSegment("v1", "mapper", "{id}")
                         .build(id)
                 }
                 .header(
@@ -128,7 +154,7 @@ class GosysOppgaveClient(
             logTimingAndWebClientResponseException(GosysOppgaveClient::fetchGosysOppgaveForAktoerIdAndTema.name) {
                 gosysOppgaveWebClient.get()
                     .uri { uriBuilder ->
-                        uriBuilder.pathSegment("oppgaver")
+                        uriBuilder.pathSegment("v1", "oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
                         temaList?.let { uriBuilder.queryParam("tema", temaList?.map { it.navn }) }
                         uriBuilder.queryParam("limit", 1000)
@@ -178,7 +204,7 @@ class GosysOppgaveClient(
             logTimingAndWebClientResponseException(GosysOppgaveClient::getGjelderKodeverkForTema.name) {
                 gosysOppgaveWebClient.get()
                     .uri { uriBuilder ->
-                        uriBuilder.pathSegment("kodeverk", "gjelder", "{tema}")
+                        uriBuilder.pathSegment("v1", "kodeverk", "gjelder", "{tema}")
                         uriBuilder.build(tema.navn)
                     }
                     .header(
@@ -201,7 +227,7 @@ class GosysOppgaveClient(
             logTimingAndWebClientResponseException(GosysOppgaveClient::getOppgavetypeKodeverkForTema.name) {
                 gosysOppgaveWebClient.get()
                     .uri { uriBuilder ->
-                        uriBuilder.pathSegment("kodeverk", "oppgavetype", "{tema}")
+                        uriBuilder.pathSegment("v1", "kodeverk", "oppgavetype", "{tema}")
                         uriBuilder.build(tema.navn)
                     }
                     .header(
