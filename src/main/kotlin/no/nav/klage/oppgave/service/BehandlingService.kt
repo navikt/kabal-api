@@ -51,7 +51,7 @@ import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setKlage
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setMedunderskriverFlowState
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setMedunderskriverNavIdent
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setMottattKlageinstans
-import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setPaaAnketVedtaksdato
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setPaaanketVedtaksdato
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setROLFlowState
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setROLIdent
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setROLReturnedDate
@@ -1762,7 +1762,7 @@ class BehandlingService(
 
         if (behandling is BehandlingWithTrygderettenMetadata) {
             val event =
-                behandling.setPaaAnketVedtaksdato(
+                behandling.setPaaanketVedtaksdato(
                     nyVerdi = paaanketVedtaksdato,
                     saksbehandlerident = utfoerendeSaksbehandlerIdent,
                 )

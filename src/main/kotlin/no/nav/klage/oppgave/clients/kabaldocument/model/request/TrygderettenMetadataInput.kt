@@ -16,8 +16,8 @@ data class TrygderettenMetadataInput(
     val representant: Representant?,
 ) {
 
-    class Representant(
-        val partId: PartId,
+    data class Representant(
+        val partId: PartId?,
         val navn: String?,
         val adresse: AvsenderMottakerInput.Address?,
     )

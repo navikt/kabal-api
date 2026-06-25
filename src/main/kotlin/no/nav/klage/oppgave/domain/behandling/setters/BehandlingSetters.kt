@@ -882,7 +882,7 @@ object BehandlingSetters {
         return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
     }
 
-    fun BehandlingWithTrygderettenMetadata.setPaaAnketVedtaksdato(
+    fun BehandlingWithTrygderettenMetadata.setPaaanketVedtaksdato(
         nyVerdi: LocalDate,
         saksbehandlerident: String
     ): BehandlingChangedEvent {

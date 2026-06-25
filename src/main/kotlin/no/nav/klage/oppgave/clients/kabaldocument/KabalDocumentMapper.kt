@@ -177,7 +177,7 @@ class KabalDocumentMapper(
             lovhenvisning = behandling.hjemler.map { it.toSearchableString() }.toSet(),
             representant = behandling.prosessfullmektig?.let { prosessfullmektig ->
                 TrygderettenMetadataInput.Representant(
-                    partId = prosessfullmektig.partId!!,
+                    partId = prosessfullmektig.partId,
                     navn = prosessfullmektig.navn,
                     adresse = prosessfullmektig.address?.let { address ->
                         AvsenderMottakerInput.Address(
