@@ -85,6 +85,20 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
     }
 
     @Test
+    fun `paaanketVedtaksdato and forsterketRett are persisted and read back`() {
+        val ankebehandling = getAnkebehandling()
+
+        behandlingRepository.save(ankebehandling)
+
+        testEntityManager.flush()
+        testEntityManager.clear()
+
+        val stored = behandlingRepository.findById(ankebehandling.id).get() as Ankebehandling
+        assertThat(stored.paaanketVedtaksdato).isEqualTo(PAAANKET_VEDTAKSDATO)
+        assertThat(stored.forsterketRett).isTrue()
+    }
+
+    @Test
     fun `store Klagebehandling with feilregistrering works`() {
         val klagebehandling = getKlagebehandling()
 
@@ -140,6 +154,9 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
     }
 
     companion object {
+
+        private val PAAANKET_VEDTAKSDATO: LocalDate = LocalDate.of(2020, 1, 1)
+
         @JvmStatic
         fun behandlingProvider(): Stream<Behandling> = Stream.of(
             getKlagebehandling(),
@@ -205,6 +222,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             klageBehandlendeEnhet = "4219",
             kakaKvalitetsvurderingVersion = 2,
             kakaKvalitetsvurderingId = UUID.randomUUID(),
+            paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
+            forsterketRett = true,
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
             varsletBehandlingstid = null,
@@ -296,6 +315,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             fagsakId = "123",
             kildeReferanse = "abc",
             sendtTilTrygderetten = LocalDateTime.now(),
+            paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
+            forsterketRett = true,
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
             gosysOppgaveRequired = false,
@@ -322,6 +343,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             fagsakId = "123",
             kildeReferanse = "abc",
             sendtTilTrygderetten = LocalDateTime.now(),
+            paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
+            forsterketRett = true,
             previousSaksbehandlerident = "C78901",
             gosysOppgaveId = null,
             gosysOppgaveRequired = false,
@@ -381,6 +404,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             klageBehandlendeEnhet = "4219",
             kakaKvalitetsvurderingId = UUID.randomUUID(),
             kakaKvalitetsvurderingVersion = 2,
+            paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
+            forsterketRett = true,
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
             previousSaksbehandlerident = "C78901",
@@ -411,6 +436,8 @@ class BehandlingRepositoryTest : PostgresIntegrationTestBase() {
             klageBehandlendeEnhet = "4219",
             kakaKvalitetsvurderingId = UUID.randomUUID(),
             kakaKvalitetsvurderingVersion = 2,
+            paaanketVedtaksdato = PAAANKET_VEDTAKSDATO,
+            forsterketRett = true,
             varsletBehandlingstid = null,
             forlengetBehandlingstidDraft = null,
             previousSaksbehandlerident = "C78901",

@@ -7,6 +7,7 @@ import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.embedded.*
 import no.nav.klage.oppgave.domain.behandling.historikk.*
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
@@ -177,7 +178,12 @@ object BehandlingSetters {
             tidspunkt = tidspunkt,
         )
 
-        if (medunderskriverFlowState in listOf(FlowState.RETURNED, FlowState.RETURNED_APPROVED, FlowState.RETURNED_NOT_APPROVED) || nyMedunderskriverNavIdent == null) {
+        if (medunderskriverFlowState in listOf(
+                FlowState.RETURNED,
+                FlowState.RETURNED_APPROVED,
+                FlowState.RETURNED_NOT_APPROVED
+            ) || nyMedunderskriverNavIdent == null
+        ) {
             medunderskriverFlowState = FlowState.NOT_SENT
         }
 
@@ -874,6 +880,46 @@ object BehandlingSetters {
             behandlingId = id,
         )
         return BehandlingChangedEvent(behandling = this, changeList = listOfNotNull(change))
+    }
+
+    fun BehandlingWithTrygderettenMetadata.setPaaanketVedtaksdato(
+        nyVerdi: LocalDate,
+        saksbehandlerident: String
+    ): BehandlingChangedEvent {
+        val behandling = this as Behandling
+        val gammelVerdi = paaanketVedtaksdato
+        val tidspunkt = LocalDateTime.now()
+        paaanketVedtaksdato = nyVerdi
+        behandling.modified = tidspunkt
+        val change =
+            createChange(
+                behandlingId = behandling.id,
+                saksbehandlerident = saksbehandlerident,
+                felt = BehandlingChangedEvent.Felt.PAAANKET_VEDTAKSDATO,
+                fraVerdi = gammelVerdi.toString(),
+                tilVerdi = nyVerdi.toString(),
+            )
+        return BehandlingChangedEvent(behandling = behandling, changeList = listOfNotNull(change))
+    }
+
+    fun BehandlingWithTrygderettenMetadata.setForsterketRett(
+        nyVerdi: Boolean,
+        saksbehandlerident: String
+    ): BehandlingChangedEvent {
+        val behandling = this as Behandling
+        val gammelVerdi = forsterketRett
+        val tidspunkt = LocalDateTime.now()
+        forsterketRett = nyVerdi
+        behandling.modified = tidspunkt
+        val change =
+            createChange(
+                behandlingId = behandling.id,
+                saksbehandlerident = saksbehandlerident,
+                felt = BehandlingChangedEvent.Felt.FORSTERKET_RETT,
+                fraVerdi = gammelVerdi.toString(),
+                tilVerdi = nyVerdi.toString(),
+            )
+        return BehandlingChangedEvent(behandling = behandling, changeList = listOfNotNull(change))
     }
 
     fun Behandling.setFeilregistrering(

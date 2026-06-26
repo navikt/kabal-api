@@ -65,6 +65,8 @@ class GjenopptaksbehandlingBasedOnJournalpost(
     tilbakekreving: Boolean = false,
     ignoreGosysOppgave: Boolean = false,
     klageBehandlendeEnhet: String,
+    paaanketVedtaksdato: LocalDate? = null,
+    forsterketRett: Boolean? = null,
     kakaKvalitetsvurderingId: UUID,
     kakaKvalitetsvurderingVersion: Int,
     varsletBehandlingstid: VarsletBehandlingstid?,
@@ -118,6 +120,8 @@ class GjenopptaksbehandlingBasedOnJournalpost(
     varsletBehandlingstid = varsletBehandlingstid,
     forlengetBehandlingstidDraft = forlengetBehandlingstidDraft,
     klageVedtaksDato = null,
+    paaanketVedtaksdato = paaanketVedtaksdato,
+    forsterketRett = forsterketRett,
     gosysOppgaveRequired = gosysOppgaveRequired,
     initiatingSystem = initiatingSystem,
 ) {
