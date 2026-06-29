@@ -2126,6 +2126,21 @@ class BehandlingService(
         behandlingRepository.findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
 
+    fun resolvePaaanketVedtaksdatoFromPreviousBehandling(previousBehandlingId: UUID?): LocalDate? {
+        var currentBehandlingId = previousBehandlingId
+        while (currentBehandlingId != null) {
+            val previousBehandling = getBehandlingForReadWithoutCheckForAccess(currentBehandlingId)
+            if (previousBehandling is BehandlingWithTrygderettenMetadata && previousBehandling.paaanketVedtaksdato != null) {
+                return previousBehandling.paaanketVedtaksdato
+            }
+            if (previousBehandling is Klagebehandling || previousBehandling is Omgjoeringskravbehandling) {
+                return previousBehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate()
+            }
+            currentBehandlingId = previousBehandling.previousBehandlingId
+        }
+        return null
+    }
+
     /**
      * Get behandling with eager loading of relations for read without checking access.
      */

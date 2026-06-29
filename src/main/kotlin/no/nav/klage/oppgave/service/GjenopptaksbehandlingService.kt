@@ -61,6 +61,7 @@ class GjenopptaksbehandlingService(
                     gosysOppgaveRequired = mottak.gosysOppgaveRequired,
                     initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
                     previousBehandlingId = mottak.forrigeBehandlingId,
+                    paaanketVedtaksdato = null,
                 )
             )
         } else {
@@ -91,6 +92,7 @@ class GjenopptaksbehandlingService(
                     gosysOppgaveRequired = mottak.gosysOppgaveRequired,
                     initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
                     previousBehandlingId = mottak.forrigeBehandlingId,
+                    paaanketVedtaksdato = behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(mottak.forrigeBehandlingId),
                 )
             )
         }
