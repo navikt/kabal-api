@@ -345,6 +345,7 @@ class BehandlingMapper(
             feilregistrering = ankebehandling.feilregistrering.toView(),
             fagsystemId = ankebehandling.fagsystem.id,
             paaanketVedtaksdato = ankebehandling.paaanketVedtaksdato,
+            forsterketRett = ankebehandling.forsterketRett,
             relevantDocumentIdList = ankebehandling.saksdokumenter.map {
                 it.dokumentInfoId
             }.toSet(),
@@ -417,6 +418,7 @@ class BehandlingMapper(
             sendtTilTrygderetten = behandling.sendtTilTrygderetten,
             kjennelseMottatt = behandling.kjennelseMottatt,
             paaanketVedtaksdato = (behandling as BehandlingWithTrygderettenMetadata).paaanketVedtaksdato,
+            forsterketRett = behandling.forsterketRett,
             feilregistrering = behandling.feilregistrering.toView(),
             fagsystemId = behandling.fagsystem.id,
             relevantDocumentIdList = behandling.saksdokumenter.map {
@@ -574,6 +576,7 @@ class BehandlingMapper(
             feilregistrering = gjenopptaksbehandling.feilregistrering.toView(),
             fagsystemId = gjenopptaksbehandling.fagsystem.id,
             paaanketVedtaksdato = gjenopptaksbehandling.paaanketVedtaksdato,
+            forsterketRett = gjenopptaksbehandling.forsterketRett,
             relevantDocumentIdList = gjenopptaksbehandling.saksdokumenter.map {
                 it.dokumentInfoId
             }.toSet(),
