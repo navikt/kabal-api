@@ -5,6 +5,7 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
+import no.nav.klage.oppgave.clients.klageunleashproxy.KlageUnleashProxyClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
@@ -28,6 +29,7 @@ class KabalDocumentMapper(
     private val eregClient: EregClient,
     private val dokDistKanalService: DokDistKanalService,
     private val behandlingService: BehandlingService,
+    private val klageUnleashProxyClient: KlageUnleashProxyClient,
 ) {
 
     companion object {
@@ -42,6 +44,8 @@ class KabalDocumentMapper(
         private const val BREVKODE_ANNET = "NAV 00-03.00"
         private val DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale.of("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
+
+        private const val NAV_TR_V2_TOGGLE = "nav-tr-v2"
     }
 
     fun mapBehandlingToDokumentEnhetWithDokumentreferanser(
@@ -152,7 +156,8 @@ class KabalDocumentMapper(
     private fun mapToTrygderettenMetadata(
         hovedDokument: DokumentUnderArbeidAsHoveddokument,
         behandling: Behandling
-    ): TrygderettenMetadataInput? = if (hovedDokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN) {
+    ): TrygderettenMetadataInput? = if (hovedDokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN &&
+        klageUnleashProxyClient.isEnabled(feature = NAV_TR_V2_TOGGLE, navIdent = hovedDokument.markertFerdigBy!!)) {
         val trygderettenMetadata = behandling as? BehandlingWithTrygderettenMetadata
             ?: error("Behandling ${behandling.id} of type ${behandling.type} does not support trygderetten metadata.")
 
