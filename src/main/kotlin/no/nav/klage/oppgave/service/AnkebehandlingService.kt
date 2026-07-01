@@ -26,7 +26,7 @@ class AnkebehandlingService(
     private val dokumentService: DokumentService,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kakaVersionUtil: KakaVersionUtil,
 ) {
 
@@ -59,6 +59,7 @@ class AnkebehandlingService(
                 kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                 hjemler = mottak.hjemler,
                 klageBehandlendeEnhet = mottak.forrigeBehandlendeEnhet,
+                paaanketVedtaksdato = behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(mottak.forrigeBehandlingId),
                 previousSaksbehandlerident = mottak.forrigeSaksbehandlerident,
                 gosysOppgaveId = mottak.gosysOppgaveId,
                 tilbakekreving = false,
@@ -136,6 +137,8 @@ class AnkebehandlingService(
                 kakaKvalitetsvurderingVersion = 2,
                 hjemler = ankeITrygderettenbehandling.hjemler,
                 klageBehandlendeEnhet = ankeITrygderettenbehandling.tildeling?.enhet!!,
+                paaanketVedtaksdato = ankeITrygderettenbehandling.paaanketVedtaksdato,
+                forsterketRett = ankeITrygderettenbehandling.forsterketRett,
                 previousSaksbehandlerident = ankeITrygderettenbehandling.tildeling?.saksbehandlerident,
                 gosysOppgaveId = ankeITrygderettenbehandling.gosysOppgaveId,
                 tilbakekreving = ankeITrygderettenbehandling.tilbakekreving,

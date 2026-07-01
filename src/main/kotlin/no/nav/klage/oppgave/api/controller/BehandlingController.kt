@@ -342,6 +342,48 @@ class BehandlingController(
         return BehandlingEditedView(modified = modified)
     }
 
+    @PutMapping("/{behandlingId}/paaanketvedtaksdato")
+    fun setPaaanketVedtaksdato(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @RequestBody input: BehandlingDateInput,
+    ): BehandlingEditedView {
+        logBehandlingMethodDetails(
+            ::setPaaanketVedtaksdato.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        val modified = behandlingService.setPaaanketVedtaksdato(
+            behandlingId = behandlingId,
+            paaanketVedtaksdato = input.date,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+
+        return BehandlingEditedView(modified = modified)
+    }
+
+    @PutMapping("/{behandlingId}/forsterketrett")
+    fun setForsterketRett(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @RequestBody input: ForsterketRettInput,
+    ): BehandlingEditedView {
+        logBehandlingMethodDetails(
+            ::setForsterketRett.name,
+            innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId,
+            logger
+        )
+
+        val modified = behandlingService.setForsterketRett(
+            behandlingId = behandlingId,
+            forsterketRett = input.forsterketRett,
+            utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+        )
+
+        return BehandlingEditedView(modified = modified)
+    }
+
     @GetMapping("/{behandlingId}/potentialsaksbehandlere")
     fun getPotentialSaksbehandlere(
         @PathVariable("behandlingId") behandlingId: UUID,

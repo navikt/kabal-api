@@ -61,6 +61,7 @@ class GjenopptaksbehandlingService(
                     gosysOppgaveRequired = mottak.gosysOppgaveRequired,
                     initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
                     previousBehandlingId = mottak.forrigeBehandlingId,
+                    paaanketVedtaksdato = null,
                 )
             )
         } else {
@@ -91,6 +92,7 @@ class GjenopptaksbehandlingService(
                     gosysOppgaveRequired = mottak.gosysOppgaveRequired,
                     initiatingSystem = Behandling.InitiatingSystem.valueOf(mottak.sentFrom.name),
                     previousBehandlingId = mottak.forrigeBehandlingId,
+                    paaanketVedtaksdato = behandlingService.resolvePaaanketVedtaksdatoFromPreviousBehandling(mottak.forrigeBehandlingId),
                 )
             )
         }
@@ -168,6 +170,8 @@ class GjenopptaksbehandlingService(
                     kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = gjenopptakITrygderettenbehandling.hjemler,
                     klageBehandlendeEnhet = gjenopptakITrygderettenbehandling.tildeling?.enhet!!,
+                    paaanketVedtaksdato = gjenopptakITrygderettenbehandling.paaanketVedtaksdato,
+                    forsterketRett = gjenopptakITrygderettenbehandling.forsterketRett,
                     previousSaksbehandlerident = gjenopptakITrygderettenbehandling.tildeling?.saksbehandlerident,
                     gosysOppgaveId = gjenopptakITrygderettenbehandling.gosysOppgaveId,
                     tilbakekreving = gjenopptakITrygderettenbehandling.tilbakekreving,
@@ -198,6 +202,8 @@ class GjenopptaksbehandlingService(
                     kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = gjenopptakITrygderettenbehandling.hjemler,
                     klageBehandlendeEnhet = gjenopptakITrygderettenbehandling.tildeling?.enhet!!,
+                    paaanketVedtaksdato = gjenopptakITrygderettenbehandling.paaanketVedtaksdato,
+                    forsterketRett = gjenopptakITrygderettenbehandling.forsterketRett,
                     previousSaksbehandlerident = gjenopptakITrygderettenbehandling.tildeling?.saksbehandlerident,
                     gosysOppgaveId = gjenopptakITrygderettenbehandling.gosysOppgaveId,
                     tilbakekreving = gjenopptakITrygderettenbehandling.tilbakekreving,

@@ -5,8 +5,13 @@ import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabaldocument.model.request.*
+import no.nav.klage.oppgave.clients.klageunleashproxy.KlageUnleashProxyClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.DokDistKanalService
 import no.nav.klage.oppgave.service.PersonService
 import no.nav.klage.oppgave.util.DokumentUnderArbeidTitleComparator
@@ -23,6 +28,8 @@ class KabalDocumentMapper(
     private val personService: PersonService,
     private val eregClient: EregClient,
     private val dokDistKanalService: DokDistKanalService,
+    private val behandlingService: BehandlingService,
+    private val klageUnleashProxyClient: KlageUnleashProxyClient,
 ) {
 
     companion object {
@@ -37,6 +44,8 @@ class KabalDocumentMapper(
         private const val BREVKODE_ANNET = "NAV 00-03.00"
         private val DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale.of("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
+
+        private const val NAV_TR_V2_TOGGLE = "nav-tr-v2"
     }
 
     fun mapBehandlingToDokumentEnhetWithDokumentreferanser(
@@ -140,8 +149,56 @@ class KabalDocumentMapper(
             ),
             dokumentTypeId = hovedDokument.dokumentType.id,
             journalfoerendeSaksbehandlerIdent = hovedDokument.markertFerdigBy!!,
+            trygderettenMetadata = mapToTrygderettenMetadata(hovedDokument = hovedDokument, behandling = behandling),
         )
     }
+
+    private fun mapToTrygderettenMetadata(
+        hovedDokument: DokumentUnderArbeidAsHoveddokument,
+        behandling: Behandling
+    ): TrygderettenMetadataInput? = if (hovedDokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN &&
+        klageUnleashProxyClient.isEnabled(feature = NAV_TR_V2_TOGGLE, navIdent = hovedDokument.markertFerdigBy!!)) {
+        val trygderettenMetadata = behandling as? BehandlingWithTrygderettenMetadata
+            ?: error("Behandling ${behandling.id} of type ${behandling.type} does not support trygderetten metadata.")
+
+        val paaanketVedtaksdato = requireNotNull(trygderettenMetadata.paaanketVedtaksdato) {
+            "paaanketVedtaksdato must be set on behandling ${behandling.id} before sending ekspedisjonsbrev til Trygderetten."
+        }
+        val forsterketRett = requireNotNull(trygderettenMetadata.forsterketRett) {
+            "forsterketRett must be set on behandling ${behandling.id} before sending ekspedisjonsbrev til Trygderetten."
+        }
+
+        TrygderettenMetadataInput(
+            kravfremsettelsesdato = if (behandling is Gjenopptaksbehandling || behandling is GjenopptakITrygderettenbehandling) {
+                behandling.mottattKlageinstans.toLocalDate()
+            } else null,
+            paaanketVedtaksdato = paaanketVedtaksdato,
+            tidligereITROgOpphevetHenvist = behandlingService.isConnectedToPreviousITrygderettenbehandlingThatWasOpphevetOrHenvist(
+                behandling = behandling
+            ),
+            gjenopptak = behandling is Gjenopptaksbehandling || behandling is GjenopptakITrygderettenbehandling,
+            forsterketRett = forsterketRett,
+            ettersendelse = hovedDokument is SmartdokumentUnderArbeidAsHoveddokument && hovedDokument.smartEditorTemplateId == "ettersending-til-trygderetten",
+            lovhenvisning = behandling.hjemler.map { it.toSearchableString() }.toSet(),
+            representant = behandling.prosessfullmektig?.let { prosessfullmektig ->
+                TrygderettenMetadataInput.Representant(
+                    partId = prosessfullmektig.partId,
+                    navn = prosessfullmektig.navn,
+                    adresse = prosessfullmektig.address?.let { address ->
+                        AvsenderMottakerInput.Address(
+                            adressetype = if (address.landkode == "NO") AvsenderMottakerInput.Adressetype.NORSK_POSTADRESSE else AvsenderMottakerInput.Adressetype.UTENLANDSK_POSTADRESSE,
+                            adresselinje1 = address.adresselinje1,
+                            adresselinje2 = address.adresselinje2,
+                            adresselinje3 = address.adresselinje3,
+                            postnummer = address.postnummer,
+                            poststed = address.poststed,
+                            land = address.landkode,
+                        )
+                    }
+                )
+            }
+        )
+    } else null
 
     private fun getBrevkode(hovedDokument: DokumentUnderArbeidAsHoveddokument): String {
         return when (hovedDokument.dokumentType) {

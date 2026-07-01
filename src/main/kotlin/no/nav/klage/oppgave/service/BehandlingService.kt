@@ -40,6 +40,7 @@ import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.removeSa
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setAvsluttetAvSaksbehandler
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setExtraUtfallSet
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setFeilregistrering
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setForsterketRett
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setFrist
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setFullmektig
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setGosysOppgaveId
@@ -50,6 +51,7 @@ import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setKlage
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setMedunderskriverFlowState
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setMedunderskriverNavIdent
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setMottattKlageinstans
+import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setPaaanketVedtaksdato
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setROLFlowState
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setROLIdent
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.setROLReturnedDate
@@ -1749,6 +1751,48 @@ class BehandlingService(
         return behandling.modified
     }
 
+    fun setPaaanketVedtaksdato(
+        behandlingId: UUID,
+        paaanketVedtaksdato: LocalDate,
+        utfoerendeSaksbehandlerIdent: String
+    ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId
+        )
+
+        if (behandling is BehandlingWithTrygderettenMetadata) {
+            val event =
+                behandling.setPaaanketVedtaksdato(
+                    nyVerdi = paaanketVedtaksdato,
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                )
+            applicationEventPublisher.publishEvent(event)
+
+            return behandling.modified
+        } else throw IllegalOperation("Dette feltet kan bare settes i forbindelse med anke- og gjenopptaksbehandlinger")
+    }
+
+    fun setForsterketRett(
+        behandlingId: UUID,
+        forsterketRett: Boolean,
+        utfoerendeSaksbehandlerIdent: String
+    ): LocalDateTime {
+        val behandling = getBehandlingForUpdate(
+            behandlingId
+        )
+
+        if (behandling is BehandlingWithTrygderettenMetadata) {
+            val event =
+                behandling.setForsterketRett(
+                    nyVerdi = forsterketRett,
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                )
+            applicationEventPublisher.publishEvent(event)
+
+            return behandling.modified
+        } else throw IllegalOperation("Dette feltet kan bare settes i forbindelse med anke- og gjenopptaksbehandlinger")
+    }
+
     fun setMedunderskriverFlowState(
         behandlingId: UUID,
         utfoerendeSaksbehandlerIdent: String,
@@ -2081,6 +2125,21 @@ class BehandlingService(
     fun getBehandlingForReadWithoutCheckForAccess(behandlingId: UUID): Behandling =
         behandlingRepository.findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
+
+    fun resolvePaaanketVedtaksdatoFromPreviousBehandling(previousBehandlingId: UUID?): LocalDate? {
+        var currentBehandlingId = previousBehandlingId
+        while (currentBehandlingId != null) {
+            val previousBehandling = getBehandlingForReadWithoutCheckForAccess(currentBehandlingId)
+            if (previousBehandling is BehandlingWithTrygderettenMetadata && previousBehandling.paaanketVedtaksdato != null) {
+                return previousBehandling.paaanketVedtaksdato
+            }
+            if (previousBehandling is Klagebehandling || previousBehandling is Omgjoeringskravbehandling) {
+                return previousBehandling.ferdigstilling?.avsluttetAvSaksbehandler?.toLocalDate()
+            }
+            currentBehandlingId = previousBehandling.previousBehandlingId
+        }
+        return null
+    }
 
     /**
      * Get behandling with eager loading of relations for read without checking access.
@@ -3055,5 +3114,29 @@ class BehandlingService(
 
     fun getBehandlingerWithPreviousBehandlingId(previousBehandlingId: UUID): List<Behandling> {
         return behandlingRepository.findByPreviousBehandlingIdAndFeilregistreringIsNull(previousBehandlingId = previousBehandlingId)
+    }
+
+    /**
+     * Returns true if the given behandling is connected (through the previousBehandlingId chain) to a
+     * previous *ITrygderettenbehandling that was opphevet or henvist by Trygderetten.
+     */
+    @Transactional(readOnly = true)
+    fun isConnectedToPreviousITrygderettenbehandlingThatWasOpphevetOrHenvist(behandling: Behandling): Boolean {
+        val visited = mutableSetOf<UUID>()
+        var currentPreviousBehandlingId = behandling.previousBehandlingId
+
+        while (currentPreviousBehandlingId != null && visited.add(currentPreviousBehandlingId)) {
+            val previousBehandling = behandlingRepository.findById(currentPreviousBehandlingId).orElse(null) ?: break
+
+            if (previousBehandling is BehandlingITrygderetten &&
+                previousBehandling.utfall in utfallITrygderettenOpphevetEllerHenvist
+            ) {
+                return true
+            }
+
+            currentPreviousBehandlingId = previousBehandling.previousBehandlingId
+        }
+
+        return false
     }
 }

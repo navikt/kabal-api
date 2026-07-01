@@ -27,6 +27,10 @@ import java.util.*
 class Ankebehandling(
     @Column(name = "klage_vedtaks_dato")
     val klageVedtaksDato: LocalDate? = null,
+    @Column(name = "paaanket_vedtaks_dato")
+    override var paaanketVedtaksdato: LocalDate? = null,
+    @Column(name = "forsterket_rett")
+    override var forsterketRett: Boolean? = null,
     @Column(name = "klage_behandlende_enhet", nullable = false)
     val klageBehandlendeEnhet: String,
     @Column(name = "kaka_kvalitetsvurdering_id")
@@ -95,7 +99,7 @@ class Ankebehandling(
     ignoreGosysOppgave: Boolean = false,
     gosysOppgaveRequired: Boolean,
     initiatingSystem: InitiatingSystem,
-) : BehandlingWithVarsletBehandlingstid, BehandlingWithMottakDokument, BehandlingWithKvalitetsvurdering, Behandling(
+) : BehandlingWithVarsletBehandlingstid, BehandlingWithMottakDokument, BehandlingWithKvalitetsvurdering, BehandlingWithTrygderettenMetadata, Behandling(
     id = id,
     previousBehandlingId = previousBehandlingId,
     klager = klager,
