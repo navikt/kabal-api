@@ -7,6 +7,10 @@ data class SmartDocumentAccessBehandlingEvent(
     val behandling: Behandling,
 )
 
-data class SmartDocumentAccessDocumentEvent(
+data class SmartDocumentDeletedEvent(
+    val duaId: UUID,
+)
+
+data class SmartDocumentMarkedAsFinishedEvent(
     val duaId: UUID,
 )

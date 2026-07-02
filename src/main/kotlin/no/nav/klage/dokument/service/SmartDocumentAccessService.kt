@@ -3,7 +3,8 @@ package no.nav.klage.dokument.service
 import no.nav.klage.dokument.api.view.SmartDocumentWriteAccess
 import no.nav.klage.dokument.api.view.SmartDocumentsWriteAccessList
 import no.nav.klage.dokument.domain.SmartDocumentAccessBehandlingEvent
-import no.nav.klage.dokument.domain.SmartDocumentAccessDocumentEvent
+import no.nav.klage.dokument.domain.SmartDocumentDeletedEvent
+import no.nav.klage.dokument.domain.SmartDocumentMarkedAsFinishedEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
@@ -359,17 +360,33 @@ class SmartDocumentAccessService(
     }
 
     /**
-     * Notify frontend (via Kafka) that the smart document is finished or deleted.
+     * Notify frontend that a smart document is marked finished. No one should have access to the document.
      */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    fun notifyFrontendAboutDocumentDone(smartDocumentAccessDocumentEvent: SmartDocumentAccessDocumentEvent) {
+    fun notifyFrontendAboutDocumentMarkedAsFinished(smartDocumentMarkedAsFinishedEvent: SmartDocumentMarkedAsFinishedEvent) {
         logger.debug(
-            "Notifying frontend about document finished or deleted: {}",
-            smartDocumentAccessDocumentEvent.duaId
+            "Notifying frontend about document marked as finished: {}",
+            smartDocumentMarkedAsFinishedEvent.duaId
         )
         publishToKafkaTopic(
-            key = smartDocumentAccessDocumentEvent.duaId.toString(),
+            key = smartDocumentMarkedAsFinishedEvent.duaId.toString(),
+            json = jacksonObjectMapper.writeValueAsString(emptyList<String>()),
+        )
+    }
+
+    /**
+     * Notify frontend (via Kafka tombstone) that a smart document is deleted.
+     */
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun notifyFrontendAboutDocumentDeleted(smartDocumentDeletedEvent: SmartDocumentDeletedEvent) {
+        logger.debug(
+            "Notifying frontend about document deleted: {}",
+            smartDocumentDeletedEvent.duaId
+        )
+        publishToKafkaTopic(
+            key = smartDocumentDeletedEvent.duaId.toString(),
             json = null,
         )
     }
