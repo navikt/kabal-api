@@ -45,7 +45,7 @@ data class OversendtAnkeITrygderettenFraArena(
         description = "Hjemler knyttet til anken.",
         required = true,
     )
-    val innsendingsHjemler: Set<Hjemmel>?,
+    val innsendingsHjemler: Set<Hjemmel>,
     @Schema(
         description = "Gosys-oppgave id.",
         required = true,
