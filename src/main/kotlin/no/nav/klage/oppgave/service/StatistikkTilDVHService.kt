@@ -57,7 +57,8 @@ class StatistikkTilDVHService(
     private fun StatistikkTilDVH.toJson(): String = jacksonObjectMapper.writeValueAsString(this)
 
     fun shouldSendStats(behandlingChangedEvent: BehandlingChangedEvent): Boolean {
-        return if (behandlingChangedEvent.behandling.gosysOppgaveRequired) {
+        //Added AO01 check, until we fix gosys completion system.
+        return if (behandlingChangedEvent.behandling.gosysOppgaveRequired || behandlingChangedEvent.behandling.fagsystem == Fagsystem.AO01) {
             false
         } else behandlingChangedEvent.changeList.any {
             it.felt === BehandlingChangedEvent.Felt.TILDELT_SAKSBEHANDLERIDENT
