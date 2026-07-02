@@ -176,7 +176,7 @@ data class AnkeITrygderettenbehandlingInput(
     val paaanketVedtaksdato: LocalDate? = null,
     val forsterketRett: Boolean? = null,
     val registreringsHjemmelSet: Set<Registreringshjemmel>? = null,
-    val ankebehandlingUtfall: ExternalUtfall,
+    val ankebehandlingUtfall: ExternalUtfall? = null,
     val previousSaksbehandlerident: String?,
     val gosysOppgaveId: Long?,
     val tilbakekreving: Boolean,

@@ -102,4 +102,19 @@ class ExternalApiController(
         teamLogger.debug("Ankeitrygderetten data sent to Kabal: {}", oversendtAnkeITrygderetten)
         ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFromExternalApi(oversendtAnkeITrygderetten)
     }
+
+    @Operation(
+        summary = "Send inn anker i trygderetten til Kabal, spesifikt for tilfeller i Arena.",
+        description = "Endepunkt for å registrere anker som allerede har blitt oversendt til Trygderetten, spesifikt for tilfeller i Arena."
+    )
+    @PostMapping("/ankeritrygderetten-fra-arena")
+    fun sendInnAnkeITrygderettenFraArena(
+        @Valid @RequestBody oversendtAnkeITrygderettenFraArena: OversendtAnkeITrygderettenFraArena
+    ) {
+        logger.debug("Received ankeitrygderetten-fra-arena data")
+        teamLogger.debug("Ankeitrygderetten-fra-arena data sent to Kabal: {}", oversendtAnkeITrygderettenFraArena)
+        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFromArenaExternalApi(
+            oversendtAnkeITrygderettenFraArena
+        )
+    }
 }

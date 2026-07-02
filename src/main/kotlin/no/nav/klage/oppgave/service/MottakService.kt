@@ -156,6 +156,35 @@ class MottakService(
         }
     }
 
+    fun validateAnkeITrygderettenFraArena(input: OversendtAnkeITrygderettenFraArena) {
+        validateYtelseAndHjemler(input.ytelse, input.innsendingsHjemler)
+        validatePartId(
+            PartId(
+                type = PartIdType.PERSON,
+                value = input.sakenGjelder,
+            )
+        )
+        validateOptionalDateTimeNotInFuture(
+            input.sakMottattKlageinstans,
+            OversendtAnkeITrygderettenFraArena::sakMottattKlageinstans.name
+        )
+        validateOptionalDateTimeNotInFuture(
+            input.sendtTilTrygderetten,
+            OversendtAnkeITrygderettenFraArena::sendtTilTrygderetten.name
+        )
+        validateKildeReferanse(input.fagsakId)
+
+        if (input.gosysOppgaveId <= 0) {
+            throw OversendtKlageNotValidException("gosysOppgaveId må være et positivt tall.")
+        }
+
+        validateDuplicate(
+            fagsystem = Fagsystem.AO01,
+            kildeReferanse = input.fagsakId,
+            type = Type.ANKE_I_TRYGDERETTEN,
+        )
+    }
+
     private fun updateMetrics(
         kilde: String,
         ytelse: String,
