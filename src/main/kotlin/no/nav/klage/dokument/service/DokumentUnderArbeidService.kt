@@ -5,7 +5,8 @@ import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.PDFDocument
-import no.nav.klage.dokument.domain.SmartDocumentAccessDocumentEvent
+import no.nav.klage.dokument.domain.SmartDocumentDeletedEvent
+import no.nav.klage.dokument.domain.SmartDocumentMarkedAsFinishedEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid.Companion.MAX_NAME_LENGTH
 import no.nav.klage.dokument.exceptions.*
@@ -1345,12 +1346,12 @@ class DokumentUnderArbeidService(
         )
 
         if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument) {
-            applicationEventPublisher.publishEvent(SmartDocumentAccessDocumentEvent(dokumentId))
+            applicationEventPublisher.publishEvent(SmartDocumentMarkedAsFinishedEvent(duaId = hovedDokument.id))
         }
 
         vedlegg.forEach {
             if (it is SmartdokumentUnderArbeidAsVedlegg) {
-                applicationEventPublisher.publishEvent(SmartDocumentAccessDocumentEvent(it.id))
+                applicationEventPublisher.publishEvent(SmartDocumentMarkedAsFinishedEvent(duaId = it.id))
             }
         }
 
@@ -1741,7 +1742,7 @@ class DokumentUnderArbeidService(
 
         documentsToRemove.forEach { dua ->
             if (dua is DokumentUnderArbeidAsSmartdokument) {
-                applicationEventPublisher.publishEvent(SmartDocumentAccessDocumentEvent(dua.id))
+                applicationEventPublisher.publishEvent(SmartDocumentDeletedEvent(dua.id))
             }
         }
     }

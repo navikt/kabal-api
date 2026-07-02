@@ -2,6 +2,7 @@ package no.nav.klage.dokument.service
 
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock
 import no.nav.klage.dokument.api.mapper.DokumentMapper
+import no.nav.klage.dokument.domain.SmartDocumentDeletedEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsVedlegg
@@ -17,6 +18,7 @@ import no.nav.klage.oppgave.service.SaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.getTeamLogger
 import org.hibernate.Hibernate
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Async
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
@@ -36,6 +38,7 @@ class FerdigstillDokumentService(
     private val behandlingService: BehandlingService,
     private val smartEditorApiGateway: DefaultKabalSmartEditorApiGateway,
     private val schedulerHealthGate: SchedulerHealthGate,
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -160,10 +163,12 @@ class FerdigstillDokumentService(
             .filterIsInstance<SmartdokumentUnderArbeidAsVedlegg>()
 
         vedleggAsSmartdokument.forEach { vedlegg ->
+            applicationEventPublisher.publishEvent(SmartDocumentDeletedEvent(vedlegg.id))
             attemptToDeleteSmartdokument(vedlegg.smartEditorId)
         }
 
         if (hoveddokument is SmartdokumentUnderArbeidAsHoveddokument) {
+            applicationEventPublisher.publishEvent(SmartDocumentDeletedEvent(hoveddokument.id))
             attemptToDeleteSmartdokument(hoveddokument.smartEditorId)
         }
     }
