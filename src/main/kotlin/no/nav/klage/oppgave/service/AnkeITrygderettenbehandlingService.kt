@@ -199,7 +199,7 @@ class AnkeITrygderettenbehandlingService(
         }
     }
 
-    fun createAnkeITrygderettenbehandlingFromArenaExternalApi(input: OversendtAnkeITrygderettenFraArena) {
+    fun createAnkeITrygderettenbehandlingFromArenaExternalApi(input: OversendtAnkeITrygderettenFraArena): UUID {
         mottakService.validateAnkeITrygderettenFraArena(input)
         val newAnkeITrygderettenbehandling = createAnkeITrygderettenbehandling(
             input.toAnkeITrygderettenbehandlingInput()
@@ -210,6 +210,8 @@ class AnkeITrygderettenbehandlingService(
             systemContext = false,
             throwExceptionIfFerdigstilt = true,
         )
+
+        return newAnkeITrygderettenbehandling.id
     }
 
     private fun StatistikkTilDVH.toJson(): String = jacksonObjectMapper.writeValueAsString(this)

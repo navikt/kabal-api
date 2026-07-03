@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 
 @RestController
 @Tag(
@@ -110,10 +111,10 @@ class ExternalApiController(
     @PostMapping("/ankeritrygderetten-fra-arena")
     fun sendInnAnkeITrygderettenFraArena(
         @Valid @RequestBody oversendtAnkeITrygderettenFraArena: OversendtAnkeITrygderettenFraArena
-    ) {
+    ): UUID {
         logger.debug("Received ankeitrygderetten-fra-arena data")
         teamLogger.debug("Ankeitrygderetten-fra-arena data sent to Kabal: {}", oversendtAnkeITrygderettenFraArena)
-        ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFromArenaExternalApi(
+        return ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFromArenaExternalApi(
             oversendtAnkeITrygderettenFraArena
         )
     }
