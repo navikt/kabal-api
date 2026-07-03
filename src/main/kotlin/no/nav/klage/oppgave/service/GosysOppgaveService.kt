@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Utfall
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.EnhetView
 import no.nav.klage.oppgave.api.view.GosysOppgaveMappeView
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
@@ -453,6 +454,15 @@ class GosysOppgaveService(
         )
 
         return gosysOppgaveList.map { it.toGosysOppgaveView(systemContext = false) }
+    }
+
+    fun getGosysOppgaveListForController(fnr: String, ytelse: Ytelse?): List<GosysOppgaveView> {
+        return if (klageLookupGateway.getAccess(brukerId = fnr).access) {
+            getGosysOppgaveList(
+                fnr = fnr,
+                tema = ytelse?.toTema(),
+            )
+        } else emptyList()
     }
 
     fun GosysOppgaveRecord.toGosysOppgaveView(systemContext: Boolean): GosysOppgaveView {

@@ -157,7 +157,10 @@ class MottakService(
     }
 
     fun validateAnkeITrygderettenFraArena(input: OversendtAnkeITrygderettenFraArena) {
-        validateYtelseAndHjemler(input.ytelse, input.innsendingsHjemler)
+        validateYtelseAndHjemler(
+            ytelse = Ytelse.of(input.ytelseId),
+            hjemler = input.hjemmelIdList.map { Hjemmel.of(it) }.toSet()
+        )
         validatePartId(
             PartId(
                 type = PartIdType.PERSON,
@@ -165,11 +168,11 @@ class MottakService(
             )
         )
         validateOptionalDateTimeNotInFuture(
-            input.sakMottattKlageinstans,
+            input.sakMottattKlageinstans.atStartOfDay(),
             OversendtAnkeITrygderettenFraArena::sakMottattKlageinstans.name
         )
         validateOptionalDateTimeNotInFuture(
-            input.sendtTilTrygderetten,
+            input.sendtTilTrygderetten.atStartOfDay(),
             OversendtAnkeITrygderettenFraArena::sendtTilTrygderetten.name
         )
         validateKildeReferanse(input.fagsakId)

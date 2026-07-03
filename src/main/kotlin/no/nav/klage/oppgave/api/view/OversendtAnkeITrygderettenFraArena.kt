@@ -11,7 +11,7 @@ import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.embedded.Klager
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
-import java.time.LocalDateTime
+import java.time.LocalDate
 import java.util.*
 
 @Schema
@@ -25,7 +25,7 @@ data class OversendtAnkeITrygderettenFraArena(
         description = "Ytelse",
         required = true,
     )
-    val ytelse: Ytelse,
+    val ytelseId: String,
     @Schema(
         description = "FagsakId fra Arena.",
         required = true,
@@ -35,17 +35,17 @@ data class OversendtAnkeITrygderettenFraArena(
         description = "Tidspunkt for når sak ble mottatt i klageinstans.",
         required = true,
     )
-    val sakMottattKlageinstans: LocalDateTime,
+    val sakMottattKlageinstans: LocalDate,
     @Schema(
         description = "Tidspunkt for når saken ble sendt til Trygderetten.",
         required = true,
     )
-    val sendtTilTrygderetten: LocalDateTime,
+    val sendtTilTrygderetten: LocalDate,
     @Schema(
         description = "Hjemler knyttet til anken.",
         required = true,
     )
-    val innsendingsHjemler: Set<Hjemmel>,
+    val hjemmelIdList: List<String>,
     @Schema(
         description = "Gosys-oppgave id.",
         required = true,
@@ -61,16 +61,16 @@ fun OversendtAnkeITrygderettenFraArena.toAnkeITrygderettenbehandlingInput(): Ank
         klager = Klager(id = partUuid, partId = partId),
         sakenGjelder = SakenGjelder(id = partUuid, partId = partId),
         prosessfullmektig = null,
-        ytelse = ytelse,
+        ytelse = Ytelse.of(ytelseId),
         type = Type.ANKE_I_TRYGDERETTEN,
         kildeReferanse = fagsakId,
         dvhReferanse = null,
         fagsystem = Fagsystem.AO01,
         fagsakId = fagsakId,
-        sakMottattKlageinstans = sakMottattKlageinstans,
+        sakMottattKlageinstans = sakMottattKlageinstans.atStartOfDay(),
         saksdokumenter = mutableSetOf(),
-        innsendingsHjemler = innsendingsHjemler,
-        sendtTilTrygderetten = sendtTilTrygderetten,
+        innsendingsHjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),
+        sendtTilTrygderetten = sendtTilTrygderetten.atStartOfDay(),
         paaanketVedtaksdato = null,
         forsterketRett = false,
         registreringsHjemmelSet = null,

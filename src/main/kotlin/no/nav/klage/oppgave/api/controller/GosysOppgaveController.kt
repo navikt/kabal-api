@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.api.controller
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.GosysOppgaveSearchInput
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
@@ -45,9 +46,9 @@ class GosysOppgaveController(
             logger,
         )
 
-        return gosysOppgaveService.getGosysOppgaveList(
+        return gosysOppgaveService.getGosysOppgaveListForController(
             fnr = input.fnr,
-            tema = input.ytelse.toTema(),
+            ytelse = input.ytelseId?.let { Ytelse.of(it) },
         ).map {
             it.copy(
                 alreadyUsedBy = behandlingService.findOpenBehandlingUsingGosysOppgave(it.id)
