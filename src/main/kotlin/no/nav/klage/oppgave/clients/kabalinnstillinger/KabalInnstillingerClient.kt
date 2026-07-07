@@ -99,7 +99,8 @@ class KabalInnstillingerClient(
             }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKabalInnstillingerScope()}"
+                "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}"
+//                "Bearer ${tokenUtil.getAppAccessTokenWithKabalInnstillingerScope()}"
             )
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->

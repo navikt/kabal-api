@@ -405,7 +405,7 @@ class AdminService(
                         val hjemlerForYtelseInInnstillinger = ytelseToHjemlerMap.getOrPut(behandling.ytelse) {
                             //Exclude innstillinger for people in KA Styringsenhet.
                             kabalInnstillingerService.getRegisteredHjemlerForYtelse(
-                                behandling.ytelse,
+                                ytelse = behandling.ytelse,
                                 includeSE = false
                             )
                         }
