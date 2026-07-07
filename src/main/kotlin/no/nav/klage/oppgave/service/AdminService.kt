@@ -403,7 +403,11 @@ class AdminService(
                 is Klagebehandling, is Ankebehandling, is Omgjoeringskravbehandling -> {
                     if (behandling.tildeling == null) {
                         val hjemlerForYtelseInInnstillinger = ytelseToHjemlerMap.getOrPut(behandling.ytelse) {
-                            kabalInnstillingerService.getRegisteredHjemlerForYtelse(behandling.ytelse)
+                            //Exclude innstillinger for people in KA Styringsenhet.
+                            kabalInnstillingerService.getRegisteredHjemlerForYtelse(
+                                behandling.ytelse,
+                                includeSE = false
+                            )
                         }
                         if (behandling.hjemler.all {
                                 it !in hjemlerForYtelseInInnstillinger
