@@ -7,8 +7,10 @@ import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.MedunderskrivereInput
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.SakInput
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
+import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.util.getLogger
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 @Service
@@ -73,7 +75,7 @@ class KabalInnstillingerService(
         }.toSet()
     }
 
-    //    @Cacheable(CacheWithJCacheConfiguration.HJEMLER_FOR_YTELSE_CACHE)
+    @Cacheable(CacheWithJCacheConfiguration.HJEMLER_FOR_YTELSE_CACHE)
     fun getRegisteredHjemlerForYtelse(ytelse: Ytelse, includeSE: Boolean): Set<Hjemmel> {
         val hjemler = kabalInnstillingerClient.getHjemmelIdsForYtelse(ytelse = ytelse, includeSE = includeSE)
         return hjemler.map { Hjemmel.of(it) }.toSet()
