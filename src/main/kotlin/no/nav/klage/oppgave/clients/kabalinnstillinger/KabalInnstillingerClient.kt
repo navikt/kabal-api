@@ -87,13 +87,14 @@ class KabalInnstillingerClient(
     }
 
     @Retryable
-    fun getHjemmelIdsForYtelse(ytelse: Ytelse): Set<String> {
+    fun getHjemmelIdsForYtelse(ytelse: Ytelse, includeSE: Boolean): Set<String> {
         logger.debug("Getting all registered hjemler in kabal-innstillinger for ytelse $ytelse")
         return kabalInnstillingerWebClient.get()
             .uri { uriBuilder ->
                 uriBuilder
                     .path("/hjemler")
                     .queryParam("ytelseId", ytelse.id)
+                    .queryParam("includeSE", includeSE)
                     .build()
             }
             .header(
