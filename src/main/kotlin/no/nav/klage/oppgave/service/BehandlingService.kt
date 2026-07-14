@@ -20,7 +20,6 @@ import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
 import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
 import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
@@ -100,7 +99,7 @@ class BehandlingService(
     private val kabalInnstillingerService: KabalInnstillingerService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val arbeidOgInntektClient: ArbeidOgInntektClient,
-    private val fssProxyClient: KlageFssProxyClient,
+    private val klankeService: KlankeService,
     private val eregClient: EregClient,
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingMapper: BehandlingMapper,
@@ -769,7 +768,7 @@ class BehandlingService(
             //if fagsystem is Infotrygd also do this.
             if (behandling.shouldUpdateInfotrygd()) {
                 logger.debug("Tildeling av behandling skal registreres i Infotrygd.")
-                fssProxyClient.setToAssigned(
+                klankeService.setToAssigned(
                     sakId = behandling.kildeReferanse,
                     input = SakAssignedInput(
                         saksbehandlerIdent = tildeltSaksbehandlerIdent,
@@ -801,7 +800,7 @@ class BehandlingService(
             //if fagsystem is Infotrygd also do this.
             if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
                 logger.debug("Fradeling av behandling skal registreres i Infotrygd.")
-                fssProxyClient.setToHandledInKabal(
+                klankeService.setToHandledInKabal(
                     sakId = behandling.kildeReferanse,
                     input = HandledInKabalInput(
                         fristAsString = behandling.frist!!.format(DateTimeFormatter.BASIC_ISO_DATE),
@@ -1003,7 +1002,7 @@ class BehandlingService(
         //if fagsystem is Infotrygd also do this.
         if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
             logger.debug("Fradeling av behandling skal registreres i Infotrygd.")
-            fssProxyClient.setToHandledInKabal(
+            klankeService.setToHandledInKabal(
                 sakId = behandling.kildeReferanse,
                 input = HandledInKabalInput(
                     fristAsString = behandling.frist!!.format(DateTimeFormatter.BASIC_ISO_DATE),

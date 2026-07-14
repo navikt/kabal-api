@@ -5,6 +5,7 @@ externalHosts:
   - host: login.microsoftonline.com
   - host: hooks.slack.com
   - host: klage-fss-proxy.dev-fss-pub.nais.io
+  - host: klanke.dev-fss-pub.nais.io
   - host: kafka-schema-registry.nais-q.adeo.no
   - host: saf-q2.dev-fss-pub.nais.io
   - host: norg2.intern.dev.nav.no #Ingen forskjeller miljø

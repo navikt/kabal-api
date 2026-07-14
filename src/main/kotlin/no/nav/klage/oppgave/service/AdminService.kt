@@ -12,7 +12,6 @@ import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
@@ -76,7 +75,7 @@ class AdminService(
     private val innholdsfortegnelseService: InnholdsfortegnelseService,
     private val saksbehandlerService: SaksbehandlerService,
     private val behandlingService: BehandlingService,
-    private val klageFssProxyClient: KlageFssProxyClient,
+    private val klankeService: KlankeService,
     private val tokenUtil: TokenUtil,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val personService: PersonService,
@@ -202,7 +201,7 @@ class AdminService(
 
         if (behandling.shouldUpdateInfotrygd()) {
             logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
-            klageFssProxyClient.setToFeilregistrertInKabal(
+            klankeService.setToFeilregistrertInKabal(
                 sakId = behandling.kildeReferanse,
                 input = FeilregistrertInKabalInput(
                     saksbehandlerIdent = systembrukerIdent,
@@ -711,7 +710,7 @@ class AdminService(
 
     @Transactional
     fun getInfotrygdsak(sakId: String): SakFromKlanke {
-        return klageFssProxyClient.getSakWithAppAccess(
+        return klankeService.getSakWithAppAccess(
             sakId = sakId,
             input = GetSakAppAccessInput(
                 saksbehandlerIdent = tokenUtil.getIdent(),

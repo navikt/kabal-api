@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.eventlisteners
 
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiClient
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -14,6 +13,7 @@ import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.repositories.MeldingRepository
 import no.nav.klage.oppgave.repositories.MergedDocumentRepository
 import no.nav.klage.oppgave.service.BehandlingService
+import no.nav.klage.oppgave.service.KlankeService
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.event.EventListener
@@ -33,7 +33,7 @@ class CleanupAfterBehandlingEventListener(
     private val kakaApiGateway: KakaApiGateway,
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val behandlingRepository: BehandlingRepository,
-    private val fssProxyClient: KlageFssProxyClient,
+    private val klankeService: KlankeService,
     private val behandlingService: BehandlingService,
     private val mergedDocumentRepository: MergedDocumentRepository,
     private val klageNotificationsApiClient: KlageNotificationsApiClient,
@@ -86,7 +86,7 @@ class CleanupAfterBehandlingEventListener(
 
             if (behandling.shouldUpdateInfotrygd()) {
                 logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
-                fssProxyClient.setToFeilregistrertInKabal(
+                klankeService.setToFeilregistrertInKabal(
                     sakId = behandling.kildeReferanse,
                     input = FeilregistrertInKabalInput(
                         saksbehandlerIdent = behandlingChangedEvent.changeList.first().saksbehandlerident!!,

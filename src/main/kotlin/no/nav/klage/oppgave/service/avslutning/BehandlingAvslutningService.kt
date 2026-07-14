@@ -3,7 +3,6 @@ package no.nav.klage.oppgave.service.avslutning
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
 import no.nav.klage.kodeverk.*
-import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.domain.behandling.*
@@ -33,7 +32,7 @@ class BehandlingAvslutningService(
     private val behandlingEtterTrygderettenOpphevetService: BehandlingEtterTrygderettenOpphevetService,
     private val gjenopptakITrygderettenbehandlingService: GjenopptakITrygderettenbehandlingService,
     private val ankebehandlingService: AnkebehandlingService,
-    private val fssProxyClient: KlageFssProxyClient,
+    private val klankeService: KlankeService,
     private val gosysOppgaveService: GosysOppgaveService,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val gjenopptaksbehandlingService: GjenopptaksbehandlingService,
@@ -129,7 +128,7 @@ class BehandlingAvslutningService(
             createAnkeITrygderettenbehandling(ankebehandling)
             if (ankebehandling.fagsystem == Fagsystem.IT01) {
                 logger.debug("Vi informerer Infotrygd om innstilling til Trygderetten fra anke med id ${ankebehandling.id}")
-                fssProxyClient.setToFinishedWithAppAccess(
+                klankeService.setToFinishedWithAppAccess(
                     sakId = ankebehandling.kildeReferanse,
                     SakFinishedInput(
                         status = SakFinishedInput.Status.VIDERESENDT_TR,
@@ -434,7 +433,7 @@ class BehandlingAvslutningService(
     private fun setToFinishedInInfotrygd(behandling: Behandling) {
         logger.debug("Behandlingen som er avsluttet skal sendes tilbake til Infotrygd.")
 
-        val sakInKlanke = fssProxyClient.getSakWithAppAccess(
+        val sakInKlanke = klankeService.getSakWithAppAccess(
             sakId = behandling.kildeReferanse,
             input = GetSakAppAccessInput(saksbehandlerIdent = behandling.tildeling!!.saksbehandlerident!!)
         )
@@ -448,7 +447,7 @@ class BehandlingAvslutningService(
                 klageutfallToInfotrygdutfall[behandling.utfall!!]!!
             }
 
-            fssProxyClient.setToFinishedWithAppAccess(
+            klankeService.setToFinishedWithAppAccess(
                 sakId = behandling.kildeReferanse,
                 SakFinishedInput(
                     status = SakFinishedInput.Status.RETURNERT_TK,

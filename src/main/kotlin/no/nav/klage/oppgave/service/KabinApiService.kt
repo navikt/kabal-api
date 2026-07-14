@@ -11,7 +11,6 @@ import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
-import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
@@ -39,7 +38,7 @@ class KabinApiService(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val dokumentMapper: DokumentMapper,
     private val gosysOppgaveService: GosysOppgaveService,
-    private val klageFssProxyClient: KlageFssProxyClient,
+    private val klankeService: KlankeService,
     private val tokenUtil: TokenUtil,
 ) {
     companion object {
@@ -53,7 +52,7 @@ class KabinApiService(
     }
 
     fun getAnkemuligheterFromInfotrygdSak(infotrygdSakId: String): List<Mulighet> {
-        val infotrygdSak = klageFssProxyClient.getSakWithAppAccess(
+        val infotrygdSak = klankeService.getSakWithAppAccess(
             sakId = infotrygdSakId, input = GetSakAppAccessInput(
                 saksbehandlerIdent = tokenUtil.getIdent()
             )

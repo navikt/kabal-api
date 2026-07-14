@@ -4,13 +4,13 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import jakarta.validation.Valid
 import no.nav.klage.oppgave.api.view.ExternalFeilregistreringInput
-import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerPersonligInfo
 import no.nav.klage.oppgave.service.AdminService
 import no.nav.klage.oppgave.service.BehandlingService
+import no.nav.klage.oppgave.service.KlankeService
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.security.token.support.core.api.Unprotected
@@ -27,7 +27,7 @@ class DevOnlyAdminController(
     private val adminService: AdminService,
     private val tokenUtil: TokenUtil,
     private val behandlingService: BehandlingService,
-    private val klageFssProxyClient: KlageFssProxyClient,
+    private val klankeService: KlankeService,
     private val klageLookupGateway: KlageLookupGateway,
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
@@ -128,7 +128,7 @@ class DevOnlyAdminController(
 
         if (behandling.shouldUpdateInfotrygd()) {
             logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
-            klageFssProxyClient.setToFeilregistrertInKabal(
+            klankeService.setToFeilregistrertInKabal(
                 sakId = behandling.kildeReferanse,
                 input = FeilregistrertInKabalInput(
                     saksbehandlerIdent = systembrukerIdent,

@@ -18,7 +18,6 @@ import no.nav.klage.oppgave.api.view.MedunderskriverWrapped
 import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
 import no.nav.klage.oppgave.clients.ereg.EregClient
 import no.nav.klage.oppgave.clients.kaka.KakaApiGateway
-import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole.KABAL_SAKSBEHANDLING
@@ -86,7 +85,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
     lateinit var arbeidOgInntektClient: ArbeidOgInntektClient
 
     @MockkBean
-    lateinit var fssProxyClient: KlageFssProxyClient
+    lateinit var klankeService: KlankeService
 
     @MockkBean
     lateinit var eregClient: EregClient
@@ -118,7 +117,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             kabalInnstillingerService = kabalInnstillingerService,
             innloggetSaksbehandlerService = innloggetSaksbehandlerService,
             arbeidOgInntektClient = arbeidOgInntektClient,
-            fssProxyClient = fssProxyClient,
+            klankeService = klankeService,
             eregClient = eregClient,
             saksbehandlerService = saksbehandlerService,
             behandlingMapper = behandlingMapper,

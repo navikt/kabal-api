@@ -7,7 +7,6 @@ import io.mockk.verify
 import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Utfall
-import no.nav.klage.oppgave.clients.klagefssproxy.KlageFssProxyClient
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.domain.behandling.*
@@ -27,7 +26,7 @@ class BehandlingAvslutningServiceTest {
     private val behandlingEtterTrygderettenOpphevetService =
         mockk<BehandlingEtterTrygderettenOpphevetService>(relaxed = true)
     private val ankebehandlingService = mockk<AnkebehandlingService>(relaxed = true)
-    private val fssProxyClient = mockk<KlageFssProxyClient>(relaxed = true)
+    private val klankeService = mockk<KlankeService>(relaxed = true)
     private val gosysOppgaveService = mockk<GosysOppgaveService>(relaxed = true)
     private val kafkaEventRepository = mockk<KafkaEventRepository>(relaxed = true)
     private val applicationEventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
@@ -45,7 +44,7 @@ class BehandlingAvslutningServiceTest {
         ankeITrygderettenbehandlingService = ankeITrygderettenbehandlingService,
         behandlingEtterTrygderettenOpphevetService = behandlingEtterTrygderettenOpphevetService,
         ankebehandlingService = ankebehandlingService,
-        fssProxyClient = fssProxyClient,
+        klankeService = klankeService,
         gosysOppgaveService = gosysOppgaveService,
         systembrukerIdent = systembrukerIdent,
         gjenopptaksbehandlingService = gjenopptaksbehandlingService,
@@ -64,7 +63,7 @@ class BehandlingAvslutningServiceTest {
             )
         } returns emptySet()
         every { kafkaEventRepository.save(any()) } returns mockk()
-        every { fssProxyClient.getSakWithAppAccess(any(), any()) } returns mockk<SakFromKlanke>(relaxed = true) {
+        every { klankeService.getSakWithAppAccess(any(), any()) } returns mockk<SakFromKlanke>(relaxed = true) {
             every { typeResultat } returns "typeResultat"
         }
     }
@@ -129,8 +128,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 1) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -170,7 +169,7 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 1) {
-                fssProxyClient.setToFinishedWithAppAccess(
+                klankeService.setToFinishedWithAppAccess(
                     any(), SakFinishedInput(
                         status = SakFinishedInput.Status.RETURNERT_TK,
                         nivaa = SakFinishedInput.Nivaa.KA,
@@ -181,7 +180,7 @@ class BehandlingAvslutningServiceTest {
                     )
                 )
             }
-            verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 1) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -243,7 +242,7 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 1) {
-                fssProxyClient.setToFinishedWithAppAccess(
+                klankeService.setToFinishedWithAppAccess(
                     any(), SakFinishedInput(
                         status = SakFinishedInput.Status.VIDERESENDT_TR,
                         nivaa = SakFinishedInput.Nivaa.KA,
@@ -254,7 +253,7 @@ class BehandlingAvslutningServiceTest {
                     )
                 )
             }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -287,8 +286,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -320,8 +319,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 1) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -361,7 +360,7 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 1) {
-                fssProxyClient.setToFinishedWithAppAccess(
+                klankeService.setToFinishedWithAppAccess(
                     any(), SakFinishedInput(
                         status = SakFinishedInput.Status.RETURNERT_TK,
                         nivaa = SakFinishedInput.Nivaa.KA,
@@ -372,7 +371,7 @@ class BehandlingAvslutningServiceTest {
                     )
                 )
             }
-            verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 1) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -429,8 +428,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -472,8 +471,8 @@ class BehandlingAvslutningServiceTest {
             }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -505,8 +504,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -547,8 +546,8 @@ class BehandlingAvslutningServiceTest {
             }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -581,8 +580,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -624,8 +623,8 @@ class BehandlingAvslutningServiceTest {
             }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -658,8 +657,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 1) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -691,8 +690,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 1) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -732,7 +731,7 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 1) {
-                fssProxyClient.setToFinishedWithAppAccess(
+                klankeService.setToFinishedWithAppAccess(
                     any(), SakFinishedInput(
                         status = SakFinishedInput.Status.RETURNERT_TK,
                         nivaa = SakFinishedInput.Nivaa.TR,
@@ -743,7 +742,7 @@ class BehandlingAvslutningServiceTest {
                     )
                 )
             }
-            verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 1) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -804,8 +803,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -837,8 +836,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 1) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -876,8 +875,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -914,8 +913,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -963,8 +962,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1017,8 +1016,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 1) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1058,7 +1057,7 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
             verify(exactly = 1) {
-                fssProxyClient.setToFinishedWithAppAccess(
+                klankeService.setToFinishedWithAppAccess(
                     any(), SakFinishedInput(
                         status = SakFinishedInput.Status.RETURNERT_TK,
                         nivaa = SakFinishedInput.Nivaa.KA,
@@ -1069,7 +1068,7 @@ class BehandlingAvslutningServiceTest {
                     )
                 )
             }
-            verify(exactly = 1) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 1) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1141,8 +1140,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1191,8 +1190,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 1) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1233,8 +1232,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1268,8 +1267,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1309,8 +1308,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1344,8 +1343,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1404,8 +1403,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1445,8 +1444,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1481,8 +1480,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1523,8 +1522,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 1) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1560,8 +1559,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 1) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1602,8 +1601,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1638,8 +1637,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 1) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1679,8 +1678,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 1) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1712,8 +1711,8 @@ class BehandlingAvslutningServiceTest {
             verify(exactly = 0) { gosysOppgaveService.addKommentar(any(), any(), any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
@@ -1754,8 +1753,8 @@ class BehandlingAvslutningServiceTest {
             }
             verify(exactly = 0) { gosysOppgaveService.avsluttGosysOppgave(any(), any()) }
             verify(exactly = 0) { gosysOppgaveService.updateGosysOppgaveOnCompletedBehandling(any(), any(), any()) }
-            verify(exactly = 0) { fssProxyClient.setToFinishedWithAppAccess(any(), any()) }
-            verify(exactly = 0) { fssProxyClient.getSakWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.setToFinishedWithAppAccess(any(), any()) }
+            verify(exactly = 0) { klankeService.getSakWithAppAccess(any(), any()) }
             verify(exactly = 0) {
                 dokumentUnderArbeidCommonService.findHoveddokumenterByBehandlingIdAndHasJournalposter(
                     any()
