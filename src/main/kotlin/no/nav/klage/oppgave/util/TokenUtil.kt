@@ -161,6 +161,18 @@ class TokenUtil(
         return response.access_token!!
     }
 
+    fun getOnBehalfOfTokenWithKlankeScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["klanke-onbehalfof"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.access_token!!
+    }
+
+    fun getAppAccessTokenWithKlankeScope(): String {
+        val clientProperties = clientConfigurationProperties.registration["klanke-maskintilmaskin"]!!
+        val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
+        return response.access_token!!
+    }
+
     fun getSaksbehandlerAccessTokenWithGosysOppgaveScope(): String {
         val clientProperties = clientConfigurationProperties.registration["gosys-oppgave-onbehalfof"]!!
         val response = oAuth2AccessTokenService.getAccessToken(clientProperties)
