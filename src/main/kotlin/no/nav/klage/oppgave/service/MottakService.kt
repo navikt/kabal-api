@@ -647,7 +647,7 @@ class MottakService(
     }
 
     private fun validateKildeReferanse(kildeReferanse: String) {
-        if (kildeReferanse.isEmpty())
+        if (kildeReferanse.isNullOrEmpty())
             throw OversendtKlageNotValidException("Kildereferanse kan ikke være en tom streng.")
     }
 

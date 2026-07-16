@@ -16,6 +16,7 @@ import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.exceptions.GosysOppgaveClientException
 import no.nav.klage.oppgave.exceptions.GosysOppgaveNotEditableException
 import no.nav.klage.oppgave.exceptions.IllegalOperation
+import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -462,7 +463,7 @@ class GosysOppgaveService(
                 fnr = fnr,
                 tema = ytelse?.toTema(),
             )
-        } else emptyList()
+        } else throw MissingTilgangException("Du har ikke tilgang til angitt bruker.")
     }
 
     fun GosysOppgaveRecord.toGosysOppgaveView(systemContext: Boolean): GosysOppgaveView {
