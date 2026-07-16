@@ -13,6 +13,7 @@ import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -35,6 +36,7 @@ class AnkeITrygderettenbehandlingService(
     private val mottakService: MottakService,
     private val dokumentService: DokumentService,
     private val gosysOppgaveService: GosysOppgaveService,
+    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -200,6 +202,10 @@ class AnkeITrygderettenbehandlingService(
     }
 
     fun createAnkeITrygderettenbehandlingFromArenaExternalApi(input: OversendtAnkeITrygderettenFraArena): UUID {
+        if (!innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+            throw MissingTilgangException("Bare bruker med rollen `Oppgavestyring alle enheter` kan utføre denne operasjonen.")
+        }
+
         mottakService.validateAnkeITrygderettenFraArena(input)
         val newAnkeITrygderettenbehandling = createAnkeITrygderettenbehandling(
             input.toAnkeITrygderettenbehandlingInput()
