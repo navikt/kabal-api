@@ -4,13 +4,16 @@ import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenFraArena
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingInput
+import no.nav.klage.oppgave.api.view.toAnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -32,6 +35,8 @@ class AnkeITrygderettenbehandlingService(
     @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val mottakService: MottakService,
     private val dokumentService: DokumentService,
+    private val gosysOppgaveService: GosysOppgaveService,
+    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -78,18 +83,20 @@ class AnkeITrygderettenbehandlingService(
             behandlingId = ankeITrygderettenbehandling.id
         )
 
-        behandlingService.connectDocumentsToBehandling(
-            behandlingId = ankeITrygderettenbehandling.id,
-            journalfoertDokumentReferenceSet = input.saksdokumenter.map {
-                JournalfoertDokumentReference(
-                    journalpostId = it.journalpostId,
-                    dokumentInfoId = it.dokumentInfoId
-                )
-            }.toSet(),
-            saksbehandlerIdent = systembrukerIdent,
-            systemUserContext = true,
-            ignoreCheckSkrivetilgang = true,
-        )
+        if (input.saksdokumenter.isNotEmpty()) {
+            behandlingService.connectDocumentsToBehandling(
+                behandlingId = ankeITrygderettenbehandling.id,
+                journalfoertDokumentReferenceSet = input.saksdokumenter.map {
+                    JournalfoertDokumentReference(
+                        journalpostId = it.journalpostId,
+                        dokumentInfoId = it.dokumentInfoId
+                    )
+                }.toSet(),
+                saksbehandlerIdent = systembrukerIdent,
+                systemUserContext = true,
+                ignoreCheckSkrivetilgang = true,
+            )
+        }
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
@@ -192,6 +199,25 @@ class AnkeITrygderettenbehandlingService(
                 )
             )
         }
+    }
+
+    fun createAnkeITrygderettenbehandlingFromArenaExternalApi(input: OversendtAnkeITrygderettenFraArena): UUID {
+        if (!innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+            throw MissingTilgangException("Bare bruker med rollen `Oppgavestyring alle enheter` kan utføre denne operasjonen.")
+        }
+
+        mottakService.validateAnkeITrygderettenFraArena(input)
+        val newAnkeITrygderettenbehandling = createAnkeITrygderettenbehandling(
+            input.toAnkeITrygderettenbehandlingInput()
+        )
+        gosysOppgaveService.addKommentar(
+            behandling = newAnkeITrygderettenbehandling,
+            kommentar = "Anke i Trygderetten overført til Kabal",
+            systemContext = false,
+            throwExceptionIfFerdigstilt = true,
+        )
+
+        return newAnkeITrygderettenbehandling.id
     }
 
     private fun StatistikkTilDVH.toJson(): String = jacksonObjectMapper.writeValueAsString(this)

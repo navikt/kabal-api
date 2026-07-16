@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
 
 @RestController
 @Tag(
@@ -101,5 +102,20 @@ class ExternalApiController(
         logger.debug("Received ankeitrygderetten data")
         teamLogger.debug("Ankeitrygderetten data sent to Kabal: {}", oversendtAnkeITrygderetten)
         ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFromExternalApi(oversendtAnkeITrygderetten)
+    }
+
+    @Operation(
+        summary = "Send inn anker i trygderetten til Kabal, spesifikt for tilfeller i Arena.",
+        description = "Endepunkt for å registrere anker som allerede har blitt oversendt til Trygderetten, spesifikt for tilfeller i Arena."
+    )
+    @PostMapping("/ankeritrygderetten-fra-arena")
+    fun sendInnAnkeITrygderettenFraArena(
+        @Valid @RequestBody oversendtAnkeITrygderettenFraArena: OversendtAnkeITrygderettenFraArena
+    ): UUID {
+        logger.debug("Received ankeitrygderetten-fra-arena data")
+        teamLogger.debug("Ankeitrygderetten-fra-arena data sent to Kabal: {}", oversendtAnkeITrygderettenFraArena)
+        return ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandlingFromArenaExternalApi(
+            oversendtAnkeITrygderettenFraArena
+        )
     }
 }

@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.kodeverk.Tema
 import no.nav.klage.kodeverk.Utfall
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.EnhetView
 import no.nav.klage.oppgave.api.view.GosysOppgaveMappeView
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
@@ -15,6 +16,7 @@ import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.exceptions.GosysOppgaveClientException
 import no.nav.klage.oppgave.exceptions.GosysOppgaveNotEditableException
 import no.nav.klage.oppgave.exceptions.IllegalOperation
+import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
@@ -453,6 +455,15 @@ class GosysOppgaveService(
         )
 
         return gosysOppgaveList.map { it.toGosysOppgaveView(systemContext = false) }
+    }
+
+    fun getGosysOppgaveListForController(fnr: String, ytelse: Ytelse?): List<GosysOppgaveView> {
+        return if (klageLookupGateway.getAccess(brukerId = fnr).access) {
+            getGosysOppgaveList(
+                fnr = fnr,
+                tema = ytelse?.toTema(),
+            )
+        } else throw MissingTilgangException("Du har ikke tilgang til angitt bruker.")
     }
 
     fun GosysOppgaveRecord.toGosysOppgaveView(systemContext: Boolean): GosysOppgaveView {
