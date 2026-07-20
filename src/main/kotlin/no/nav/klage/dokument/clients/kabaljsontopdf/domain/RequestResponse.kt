@@ -7,7 +7,6 @@ data class DocumentValidationResponse(
 ) {
     data class DocumentValidationError(
         val type: String,
-        val paths: List<List<Int>> = emptyList()
     )
 }
 
