@@ -1197,11 +1197,11 @@ class DokumentUnderArbeidService(
             dokumentId = dokument.id,
             errors = response.errors.map {
                 when (it.type) {
-                    "EMPTY_PLACEHOLDERS" -> {
+                    DocumentValidationResponse.SmartDocumentErrorType.EMPTY_PLACEHOLDER.name -> {
                         DocumentValidationResponse.SmartDocumentErrorType.EMPTY_PLACEHOLDER
                     }
 
-                    "EMPTY_REGELVERK" -> {
+                    DocumentValidationResponse.SmartDocumentErrorType.EMPTY_REGELVERK.name -> {
                         DocumentValidationResponse.SmartDocumentErrorType.EMPTY_REGELVERK
                     }
 
