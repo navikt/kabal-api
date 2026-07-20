@@ -25,6 +25,7 @@ import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.getHistogram
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.addSaksdokument
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
@@ -1197,15 +1198,11 @@ class DokumentUnderArbeidService(
             errors = response.errors.map {
                 when (it.type) {
                     "EMPTY_PLACEHOLDERS" -> {
-                        DocumentValidationResponse.DocumentValidationError(
-                            type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.EMPTY_PLACEHOLDER,
-                        )
+                        DocumentValidationResponse.SmartDocumentErrorType.EMPTY_PLACEHOLDER
                     }
 
                     "EMPTY_REGELVERK" -> {
-                        DocumentValidationResponse.DocumentValidationError(
-                            type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.EMPTY_REGELVERK,
-                        )
+                        DocumentValidationResponse.SmartDocumentErrorType.EMPTY_REGELVERK
                     }
 
                     else -> error("Unknown error type: ${it.type}")
@@ -1395,9 +1392,7 @@ class DokumentUnderArbeidService(
                         errors += DocumentValidationResponse(
                             dokumentId = dokumentUnderArbeid.id,
                             errors = listOf(
-                                DocumentValidationResponse.DocumentValidationError(
-                                    type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.INVALID_RECIPIENT,
-                                )
+                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECIPIENT,
                             )
                         )
                     }
@@ -1408,9 +1403,7 @@ class DokumentUnderArbeidService(
                         errors += DocumentValidationResponse(
                             dokumentId = dokumentUnderArbeid.id,
                             errors = listOf(
-                                DocumentValidationResponse.DocumentValidationError(
-                                    type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.INVALID_RECIPIENT,
-                                )
+                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECIPIENT,
                             )
                         )
                     }
@@ -1419,9 +1412,7 @@ class DokumentUnderArbeidService(
                         errors += DocumentValidationResponse(
                             dokumentId = dokumentUnderArbeid.id,
                             errors = listOf(
-                                DocumentValidationResponse.DocumentValidationError(
-                                    type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.INVALID_RECIPIENT,
-                                )
+                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECIPIENT,
                             )
                         )
                     }
@@ -1439,24 +1430,40 @@ class DokumentUnderArbeidService(
                     errors += DocumentValidationResponse(
                         dokumentId = document.id,
                         errors = listOf(
-                            DocumentValidationResponse.DocumentValidationError(
-                                type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.WRONG_DATE,
-                            )
+                            DocumentValidationResponse.SmartDocumentErrorType.WRONG_DATE
                         )
                     )
                 } else if (document.isPDFGenerationNeeded()) {
                     errors += DocumentValidationResponse(
                         dokumentId = document.id,
                         errors = listOf(
-                            DocumentValidationResponse.DocumentValidationError(
-                                type = DocumentValidationResponse.DocumentValidationError.SmartDocumentErrorType.DOCUMENT_MODIFIED,
-                            )
+                            DocumentValidationResponse.SmartDocumentErrorType.DOCUMENT_MODIFIED
                         )
                     )
                 }
 
                 errors += validatePlaceholdersInSingleSmartDocument(document)
             }
+        }
+
+        if (dokumentUnderArbeid.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN) {
+            val trygderettenMetadata = behandling as? BehandlingWithTrygderettenMetadata
+                ?: error("Behandling ${behandling.id} of type ${behandling.type} does not support ekspedisjonsbrev to TR.")
+
+            val trygderettenMetadataErrors = mutableListOf<DocumentValidationResponse.SmartDocumentErrorType>()
+
+            if (trygderettenMetadata.paaanketVedtaksdato == null) {
+                trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.KLAGEVEDTAK_DATO_NOT_CONFIRMED
+            }
+
+            if (trygderettenMetadata.forsterketRett == null) {
+                trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.FORSTERKET_RETT_NOT_ANSWERED
+            }
+
+            errors += DocumentValidationResponse(
+                dokumentId = dokumentUnderArbeid.id,
+                errors = trygderettenMetadataErrors,
+            )
         }
 
         return errors.groupBy { it.dokumentId }.map { (key, value) ->
