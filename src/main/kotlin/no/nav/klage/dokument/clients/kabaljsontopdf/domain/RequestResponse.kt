@@ -5,9 +5,10 @@ import java.time.LocalDate
 data class DocumentValidationResponse(
     val errors: List<DocumentValidationError> = emptyList()
 ) {
-    data class DocumentValidationError(
-        val type: String,
-    )
+    enum class DocumentValidationError {
+        EMPTY_PLACEHOLDER,
+        EMPTY_REGELVERK,
+    }
 }
 
 data class InnholdsfortegnelseRequest(

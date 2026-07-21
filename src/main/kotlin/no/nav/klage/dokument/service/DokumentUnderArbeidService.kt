@@ -1196,16 +1196,14 @@ class DokumentUnderArbeidService(
         return DocumentValidationResponse(
             dokumentId = dokument.id,
             errors = response.errors.map {
-                when (it.type) {
-                    DocumentValidationResponse.SmartDocumentErrorType.EMPTY_PLACEHOLDER.name -> {
+                when (it) {
+                    no.nav.klage.dokument.clients.kabaljsontopdf.domain.DocumentValidationResponse.DocumentValidationError.EMPTY_PLACEHOLDER -> {
                         DocumentValidationResponse.SmartDocumentErrorType.EMPTY_PLACEHOLDER
                     }
 
-                    DocumentValidationResponse.SmartDocumentErrorType.EMPTY_REGELVERK.name -> {
+                    no.nav.klage.dokument.clients.kabaljsontopdf.domain.DocumentValidationResponse.DocumentValidationError.EMPTY_REGELVERK -> {
                         DocumentValidationResponse.SmartDocumentErrorType.EMPTY_REGELVERK
                     }
-
-                    else -> error("Unknown error type: ${it.type}")
                 }
             }
         )
