@@ -1882,6 +1882,15 @@ class DokumentUnderArbeidService(
         return dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId)
     }
 
+    fun ekspedisjonsbrevTilTrygderettenIsSent(behandlingId: UUID): Boolean {
+        behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
+        return dokumentUnderArbeidRepository.findByBehandlingId(behandlingId).any {
+            it is DokumentUnderArbeidAsHoveddokument &&
+                    it.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN &&
+                    it.erMarkertFerdig()
+        }
+    }
+
     fun getDokumenterUnderArbeidViewList(behandlingId: UUID): List<DokumentView> {
         //Sjekker tilgang på behandlingsnivå:
         val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
