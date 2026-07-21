@@ -4,17 +4,15 @@ import java.util.*
 
 data class DocumentValidationResponse(
     val dokumentId: UUID,
-    val errors: List<DocumentValidationError> = emptyList()
+    val errors: List<SmartDocumentErrorType> = emptyList()
 ) {
-    data class DocumentValidationError(
-        val type: SmartDocumentErrorType,
-    ) {
-        enum class SmartDocumentErrorType {
-            EMPTY_PLACEHOLDER,
-            WRONG_DATE,
-            DOCUMENT_MODIFIED,
-            EMPTY_REGELVERK,
-            INVALID_RECIPIENT,
-        }
+    enum class SmartDocumentErrorType {
+        EMPTY_PLACEHOLDER,
+        WRONG_DATE,
+        DOCUMENT_MODIFIED,
+        EMPTY_REGELVERK,
+        INVALID_RECEIVER,
+        KLAGEVEDTAK_DATO_NOT_SET,
+        FORSTERKET_RETT_NOT_SET,
     }
 }
