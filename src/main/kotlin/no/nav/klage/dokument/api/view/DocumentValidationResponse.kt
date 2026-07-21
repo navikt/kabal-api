@@ -12,7 +12,7 @@ data class DocumentValidationResponse(
         DOCUMENT_MODIFIED,
         EMPTY_REGELVERK,
         INVALID_RECIPIENT,
-        KLAGEVEDTAK_DATO_NOT_CONFIRMED,
-        FORSTERKET_RETT_NOT_ANSWERED,
+        KLAGEVEDTAK_DATO_NOT_SET,
+        FORSTERKET_RETT_NOT_SET,
     }
 }

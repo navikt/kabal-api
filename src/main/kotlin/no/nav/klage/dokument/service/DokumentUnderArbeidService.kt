@@ -1451,11 +1451,11 @@ class DokumentUnderArbeidService(
             val trygderettenMetadataErrors = mutableListOf<DocumentValidationResponse.SmartDocumentErrorType>()
 
             if (trygderettenMetadata.paaanketVedtaksdato == null) {
-                trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.KLAGEVEDTAK_DATO_NOT_CONFIRMED
+                trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.KLAGEVEDTAK_DATO_NOT_SET
             }
 
             if (trygderettenMetadata.forsterketRett == null) {
-                trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.FORSTERKET_RETT_NOT_ANSWERED
+                trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.FORSTERKET_RETT_NOT_SET
             }
 
             errors += DocumentValidationResponse(
@@ -1880,6 +1880,15 @@ class DokumentUnderArbeidService(
         }
 
         return dokumentUnderArbeidRepository.findByBehandlingIdAndFerdigstiltIsNull(behandlingId)
+    }
+
+    fun ekspedisjonsbrevTilTrygderettenIsSent(behandlingId: UUID): Boolean {
+        behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
+        return dokumentUnderArbeidRepository.findByBehandlingId(behandlingId).any {
+            it is DokumentUnderArbeidAsHoveddokument &&
+                    it.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN &&
+                    it.erMarkertFerdig()
+        }
     }
 
     fun getDokumenterUnderArbeidViewList(behandlingId: UUID): List<DokumentView> {

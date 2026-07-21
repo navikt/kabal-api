@@ -356,4 +356,11 @@ class DokumentUnderArbeidController(
             .contentLength(fileResource.file.length())
             .body(getResourceThatWillBeDeleted(fileResource))
     }
+
+    @GetMapping("/ekspedisjonsbrev-til-trygderetten-is-sent")
+    fun ekspedisjonsbrevTilTrygderettenIsSent(
+        @PathVariable("behandlingId") behandlingId: UUID,
+    ): Boolean {
+        return dokumentUnderArbeidService.ekspedisjonsbrevTilTrygderettenIsSent(behandlingId = behandlingId)
+    }
 }
