@@ -102,7 +102,7 @@ class FileApiClient(
         }
 
         try {
-            val deletedInGCS = fileWebClient
+            fileWebClient
                 .delete()
                 .uri { it.path("/document/{id}").build(id) }
                 .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
@@ -117,11 +117,6 @@ class FileApiClient(
                 .bodyToMono<Boolean>()
                 .block()
 
-            if (deletedInGCS == true) {
-                logger.debug("Document successfully deleted in file store.")
-            } else {
-                logger.warn("Could not successfully delete document in file store.")
-            }
         } catch (e: Exception) {
             logger.error("Could not delete document ($id) from kabal-file-api", e)
         }
