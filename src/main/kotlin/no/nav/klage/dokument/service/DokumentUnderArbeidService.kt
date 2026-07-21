@@ -1451,11 +1451,11 @@ class DokumentUnderArbeidService(
             val trygderettenMetadataErrors = mutableListOf<DocumentValidationResponse.SmartDocumentErrorType>()
 
             if (trygderettenMetadata.paaanketVedtaksdato == null) {
-                trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.KLAGEVEDTAK_DATO_NOT_CONFIRMED
+                trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.KLAGEVEDTAK_DATO_NOT_SET
             }
 
             if (trygderettenMetadata.forsterketRett == null) {
-                trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.FORSTERKET_RETT_NOT_ANSWERED
+                trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.FORSTERKET_RETT_NOT_SET
             }
 
             errors += DocumentValidationResponse(
