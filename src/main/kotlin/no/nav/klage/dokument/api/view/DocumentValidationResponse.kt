@@ -11,7 +11,7 @@ data class DocumentValidationResponse(
         WRONG_DATE,
         DOCUMENT_MODIFIED,
         EMPTY_REGELVERK,
-        INVALID_RECIPIENT,
+        INVALID_RECEIVER,
         KLAGEVEDTAK_DATO_NOT_SET,
         FORSTERKET_RETT_NOT_SET,
     }

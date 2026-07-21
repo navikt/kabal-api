@@ -1390,7 +1390,7 @@ class DokumentUnderArbeidService(
                         errors += DocumentValidationResponse(
                             dokumentId = dokumentUnderArbeid.id,
                             errors = listOf(
-                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECIPIENT,
+                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
                             )
                         )
                     }
@@ -1401,7 +1401,7 @@ class DokumentUnderArbeidService(
                         errors += DocumentValidationResponse(
                             dokumentId = dokumentUnderArbeid.id,
                             errors = listOf(
-                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECIPIENT,
+                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
                             )
                         )
                     }
@@ -1410,7 +1410,7 @@ class DokumentUnderArbeidService(
                         errors += DocumentValidationResponse(
                             dokumentId = dokumentUnderArbeid.id,
                             errors = listOf(
-                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECIPIENT,
+                                DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
                             )
                         )
                     }
