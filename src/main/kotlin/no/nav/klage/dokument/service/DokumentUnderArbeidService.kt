@@ -100,6 +100,9 @@ class DokumentUnderArbeidService(
         private val jacksonObjectMapper = jacksonObjectMapper()
         private val DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd. MMM yyyy", Locale.of("nb", "NO")).withZone(ZoneId.of("Europe/Oslo"))
+
+        const val EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME = "ekspedisjonsbrev-til-trygderetten"
+        const val GJENOPPTAKELSESBEGJAERING_EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME = "gjenopptakelsesbegjæring-ekspedisjonsbrev-til-tr"
     }
 
     private val metricForSmartDocumentVersions = meterRegistry.getHistogram(
@@ -1444,13 +1447,16 @@ class DokumentUnderArbeidService(
             }
         }
 
-        if (dokumentUnderArbeid.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN) {
+        if (dokumentUnderArbeid is SmartdokumentUnderArbeidAsHoveddokument &&
+            dokumentUnderArbeid.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN &&
+            dokumentUnderArbeid.smartEditorTemplateId in listOf(EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME, GJENOPPTAKELSESBEGJAERING_EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME)
+        ) {
             val trygderettenMetadata = behandling as? BehandlingWithTrygderettenMetadata
                 ?: error("Behandling ${behandling.id} of type ${behandling.type} does not support ekspedisjonsbrev to TR.")
 
             val trygderettenMetadataErrors = mutableListOf<DocumentValidationResponse.SmartDocumentErrorType>()
 
-            if (trygderettenMetadata.paaanketVedtaksdato == null) {
+            if (dokumentUnderArbeid.smartEditorTemplateId == EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME && trygderettenMetadata.paaanketVedtaksdato == null) {
                 trygderettenMetadataErrors += DocumentValidationResponse.SmartDocumentErrorType.KLAGEVEDTAK_DATO_NOT_SET
             }
 
