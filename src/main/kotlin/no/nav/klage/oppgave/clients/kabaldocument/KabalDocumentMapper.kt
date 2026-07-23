@@ -1,6 +1,10 @@
 package no.nav.klage.oppgave.clients.kabaldocument
 
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
+import no.nav.klage.dokument.service.DokumentUnderArbeidService.Companion.EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME
+import no.nav.klage.dokument.service.DokumentUnderArbeidService.Companion.ETTERSENDING_TIL_TR_TEMPLATE_NAME
+import no.nav.klage.dokument.service.DokumentUnderArbeidService.Companion.GJENOPPTAKELSESBEGJAERING_EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME
+import no.nav.klage.dokument.service.DokumentUnderArbeidService.Companion.GJENOPPTAKELSESBEGJAERING_ETTERSENDING_TIL_TR_TEMPLATE_NAME
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.oppgave.clients.ereg.EregClient
@@ -156,49 +160,69 @@ class KabalDocumentMapper(
     private fun mapToTrygderettenMetadata(
         hovedDokument: DokumentUnderArbeidAsHoveddokument,
         behandling: Behandling
-    ): TrygderettenMetadataInput? = if (hovedDokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN &&
-        klageUnleashProxyClient.isEnabled(feature = NAV_TR_V2_TOGGLE, navIdent = hovedDokument.markertFerdigBy!!)) {
-        val trygderettenMetadata = behandling as? BehandlingWithTrygderettenMetadata
-            ?: error("Behandling ${behandling.id} of type ${behandling.type} does not support trygderetten metadata.")
+    ): TrygderettenMetadataInput? =
+        if (hovedDokument is SmartdokumentUnderArbeidAsHoveddokument && hovedDokument.dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN &&
+            klageUnleashProxyClient.isEnabled(feature = NAV_TR_V2_TOGGLE, navIdent = hovedDokument.markertFerdigBy!!)
+        ) {
+            val trygderettenMetadata = behandling as? BehandlingWithTrygderettenMetadata
+                ?: error("Behandling ${behandling.id} of type ${behandling.type} does not support trygderetten metadata.")
 
-        val paaanketVedtaksdato = requireNotNull(trygderettenMetadata.paaanketVedtaksdato) {
-            "paaanketVedtaksdato must be set on behandling ${behandling.id} before sending ekspedisjonsbrev til Trygderetten."
-        }
-        val forsterketRett = requireNotNull(trygderettenMetadata.forsterketRett) {
-            "forsterketRett must be set on behandling ${behandling.id} before sending ekspedisjonsbrev til Trygderetten."
-        }
+            val paaanketVedtaksdato =
+                if (hovedDokument.smartEditorTemplateId == EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME && trygderettenMetadata.paaanketVedtaksdato == null) {
+                    throw IllegalArgumentException(
+                        "paaanketVedtaksdato must be set on behandling ${behandling.id} before sending ekspedisjonsbrev til Trygderetten."
+                    )
+                } else {
+                    trygderettenMetadata.paaanketVedtaksdato
+                }
 
-        TrygderettenMetadataInput(
-            kravfremsettelsesdato = if (behandling is Gjenopptaksbehandling || behandling is GjenopptakITrygderettenbehandling) {
-                behandling.mottattKlageinstans.toLocalDate()
-            } else null,
-            paaanketVedtaksdato = paaanketVedtaksdato,
-            tidligereITROgOpphevetHenvist = behandlingService.isConnectedToPreviousITrygderettenbehandlingThatWasOpphevetOrHenvist(
-                behandling = behandling
-            ),
-            gjenopptak = behandling is Gjenopptaksbehandling || behandling is GjenopptakITrygderettenbehandling,
-            forsterketRett = forsterketRett,
-            ettersendelse = hovedDokument is SmartdokumentUnderArbeidAsHoveddokument && hovedDokument.smartEditorTemplateId == "ettersending-til-trygderetten",
-            lovhenvisning = behandling.hjemler.map { it.toSearchableString() }.toSet(),
-            representant = behandling.prosessfullmektig?.let { prosessfullmektig ->
-                TrygderettenMetadataInput.Representant(
-                    partId = prosessfullmektig.partId,
-                    navn = prosessfullmektig.navn,
-                    adresse = prosessfullmektig.address?.let { address ->
-                        AvsenderMottakerInput.Address(
-                            adressetype = if (address.landkode == "NO") AvsenderMottakerInput.Adressetype.NORSK_POSTADRESSE else AvsenderMottakerInput.Adressetype.UTENLANDSK_POSTADRESSE,
-                            adresselinje1 = address.adresselinje1,
-                            adresselinje2 = address.adresselinje2,
-                            adresselinje3 = address.adresselinje3,
-                            postnummer = address.postnummer,
-                            poststed = address.poststed,
-                            land = address.landkode,
-                        )
-                    }
-                )
-            }
-        )
-    } else null
+            val forsterketRett =
+                if (hovedDokument.smartEditorTemplateId in listOf(
+                        EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME,
+                        GJENOPPTAKELSESBEGJAERING_EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME
+                    ) && trygderettenMetadata.forsterketRett == null
+                ) {
+                    throw IllegalArgumentException(
+                        "forsterketRett must be set on behandling ${behandling.id} before sending ekspedisjonsbrev til Trygderetten."
+                    )
+                } else {
+                    trygderettenMetadata.forsterketRett
+                }
+
+            TrygderettenMetadataInput(
+                kravfremsettelsesdato = if (behandling is Gjenopptaksbehandling || behandling is GjenopptakITrygderettenbehandling) {
+                    behandling.mottattKlageinstans.toLocalDate()
+                } else null,
+                paaanketVedtaksdato = paaanketVedtaksdato,
+                tidligereITROgOpphevetHenvist = behandlingService.isConnectedToPreviousITrygderettenbehandlingThatWasOpphevetOrHenvist(
+                    behandling = behandling
+                ),
+                gjenopptak = behandling is Gjenopptaksbehandling || behandling is GjenopptakITrygderettenbehandling,
+                forsterketRett = forsterketRett,
+                ettersendelse = hovedDokument.smartEditorTemplateId in listOf(
+                    ETTERSENDING_TIL_TR_TEMPLATE_NAME,
+                    GJENOPPTAKELSESBEGJAERING_ETTERSENDING_TIL_TR_TEMPLATE_NAME
+                ),
+                lovhenvisning = behandling.hjemler.map { it.toSearchableString() }.toSet(),
+                representant = behandling.prosessfullmektig?.let { prosessfullmektig ->
+                    TrygderettenMetadataInput.Representant(
+                        partId = prosessfullmektig.partId,
+                        navn = prosessfullmektig.navn,
+                        adresse = prosessfullmektig.address?.let { address ->
+                            AvsenderMottakerInput.Address(
+                                adressetype = if (address.landkode == "NO") AvsenderMottakerInput.Adressetype.NORSK_POSTADRESSE else AvsenderMottakerInput.Adressetype.UTENLANDSK_POSTADRESSE,
+                                adresselinje1 = address.adresselinje1,
+                                adresselinje2 = address.adresselinje2,
+                                adresselinje3 = address.adresselinje3,
+                                postnummer = address.postnummer,
+                                poststed = address.poststed,
+                                land = address.landkode,
+                            )
+                        }
+                    )
+                }
+            )
+        } else null
 
     private fun getBrevkode(hovedDokument: DokumentUnderArbeidAsHoveddokument): String {
         return when (hovedDokument.dokumentType) {
@@ -264,12 +288,15 @@ class KabalDocumentMapper(
             avsenderMottakerInfo.localPrint -> {
                 Kanal.L
             }
+
             dokumentType == DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN -> {
                 null
             }
+
             avsenderMottakerInfo.address != null || avsenderMottakerInfo.forceCentralPrint || avsenderMottakerInfo.identifikator == null -> {
                 Kanal.S
             }
+
             else -> {
                 val distribusjonKanalCode = dokDistKanalService.getDistribusjonKanalCode(
                     mottakerId = avsenderMottakerInfo.identifikator!!,
