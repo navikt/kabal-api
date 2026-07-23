@@ -103,6 +103,8 @@ class DokumentUnderArbeidService(
 
         const val EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME = "ekspedisjonsbrev-til-trygderetten"
         const val GJENOPPTAKELSESBEGJAERING_EKSPEDISJONSBREV_TIL_TR_TEMPLATE_NAME = "gjenopptakelsesbegjæring-ekspedisjonsbrev-til-tr"
+        const val ETTERSENDING_TIL_TR_TEMPLATE_NAME = "ettersending-til-trygderetten"
+        const val GJENOPPTAKELSESBEGJAERING_ETTERSENDING_TIL_TR_TEMPLATE_NAME = "gjenopptakelsesbegjæring-ettersending-til-tr"
     }
 
     private val metricForSmartDocumentVersions = meterRegistry.getHistogram(

@@ -7,10 +7,10 @@ import java.time.LocalDate
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TrygderettenMetadataInput(
     val kravfremsettelsesdato: LocalDate?,
-    val paaanketVedtaksdato: LocalDate,
+    val paaanketVedtaksdato: LocalDate?,
     val tidligereITROgOpphevetHenvist: Boolean?,
     val gjenopptak: Boolean?,
-    val forsterketRett: Boolean,
+    val forsterketRett: Boolean?,
     val ettersendelse: Boolean,
     val lovhenvisning: Set<String>,
     val representant: Representant?,
