@@ -737,19 +737,21 @@ class BehandlingMapper(
             BehandlingDetaljerView.PartViewWithUtsendingskanal(
                 id = technicalPartId,
                 identifikator = null,
-                name = navn!!,
+                name = navn ?: "",
                 type = null,
                 available = true,
                 language = null,
                 statusList = listOf(),
-                address = BehandlingDetaljerView.Address(
-                    adresselinje1 = address!!.adresselinje1,
-                    adresselinje2 = address.adresselinje2,
-                    adresselinje3 = address.adresselinje3,
-                    landkode = address.landkode,
-                    postnummer = address.postnummer,
-                    poststed = address.poststed,
-                ),
+                address = address?.let {
+                    BehandlingDetaljerView.Address(
+                        adresselinje1 = it.adresselinje1,
+                        adresselinje2 = it.adresselinje2,
+                        adresselinje3 = it.adresselinje3,
+                        landkode = it.landkode,
+                        postnummer = it.postnummer,
+                        poststed = it.poststed,
+                    )
+                },
                 utsendingskanal = utsendingskanal,
             )
         }

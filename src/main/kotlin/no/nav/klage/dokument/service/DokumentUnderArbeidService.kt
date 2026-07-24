@@ -885,6 +885,16 @@ class DokumentUnderArbeidService(
                 throw DokumentValidationException("Kun fullmektig kan brukes som mottaker uten identifikator.")
             }
 
+            val resolvedAddress = getDokumentUnderArbeidAdresse(
+                overrideAddress = inputMottaker.overriddenAddress,
+                getAddressFromFullmektig = getAddressFromFullmektig,
+                fullmektig = behandling.prosessfullmektig,
+            )
+
+            if (inputMottaker.identifikator == null && (inputMottaker.navn == null || resolvedAddress == null)) {
+                throw DokumentValidationException("Mottaker uten identifikator må ha navn og adresse.")
+            }
+
             when (inputMottaker) {
                 in mottakereToAdd -> {
                     dokumentUnderArbeid.brevmottakere.add(
@@ -893,11 +903,7 @@ class DokumentUnderArbeidService(
                             identifikator = inputMottaker.identifikator,
                             localPrint = markLocalPrint,
                             forceCentralPrint = forceCentralPrint,
-                            address = getDokumentUnderArbeidAdresse(
-                                overrideAddress = inputMottaker.overriddenAddress,
-                                getAddressFromFullmektig = getAddressFromFullmektig,
-                                fullmektig = behandling.prosessfullmektig,
-                            ),
+                            address = resolvedAddress,
                             navn = inputMottaker.navn,
                         )
                     )
@@ -908,11 +914,7 @@ class DokumentUnderArbeidService(
                         dokumentUnderArbeid.brevmottakere.first { it.technicalPartId == technicalPartId }
                     existingMottaker.localPrint = markLocalPrint
                     existingMottaker.forceCentralPrint = forceCentralPrint
-                    existingMottaker.address = getDokumentUnderArbeidAdresse(
-                        overrideAddress = inputMottaker.overriddenAddress,
-                        getAddressFromFullmektig = getAddressFromFullmektig,
-                        fullmektig = behandling.prosessfullmektig,
-                    )
+                    existingMottaker.address = resolvedAddress
                 }
 
                 else -> {
@@ -1423,6 +1425,15 @@ class DokumentUnderArbeidService(
                     else -> {
                         error("Missing type in part")
                     }
+                }
+            } else {
+                if (mottaker.navn == null || mottaker.address == null) {
+                    errors += DocumentValidationResponse(
+                        dokumentId = dokumentUnderArbeid.id,
+                        errors = listOf(
+                            DocumentValidationResponse.SmartDocumentErrorType.INVALID_RECEIVER,
+                        )
+                    )
                 }
             }
         }
