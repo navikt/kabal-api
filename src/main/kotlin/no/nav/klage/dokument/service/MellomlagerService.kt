@@ -21,10 +21,11 @@ class MellomlagerService(
 
     fun uploadFile(
         file: File,
-        systemContext: Boolean
+        systemContext: Boolean,
+        scanForVirus: Boolean = true,
     ): String {
         val start = System.currentTimeMillis()
-        attachmentValidator.validateAttachment(file)
+        attachmentValidator.validateAttachment(file = file, scanForVirus = scanForVirus)
         logger.debug("Attachment validation took ${System.currentTimeMillis() - start} ms")
 
         return fileApiClient.uploadDocument(

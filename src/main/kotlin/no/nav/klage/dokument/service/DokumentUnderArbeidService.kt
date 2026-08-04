@@ -120,6 +120,7 @@ class DokumentUnderArbeidService(
         filename: String?,
         utfoerendeIdent: String,
         systemContext: Boolean,
+        scanForVirus: Boolean = true,
     ): DokumentView {
         val dokumentType = DokumentType.of(dokumentTypeId)
 
@@ -151,7 +152,11 @@ class DokumentUnderArbeidService(
 
         //File gets deleted when uploading, so keep this for later.
         val fileSize = file.length()
-        val mellomlagerId = mellomlagerService.uploadFile(file = file, systemContext = systemContext)
+        val mellomlagerId = mellomlagerService.uploadFile(
+            file = file,
+            systemContext = systemContext,
+            scanForVirus = scanForVirus,
+        )
 
         val document = if (parentId == null) {
             opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
@@ -2298,6 +2303,7 @@ class DokumentUnderArbeidService(
             filename = svarbrev.title,
             utfoerendeIdent = tokenUtil.getIdent(),
             systemContext = false,
+            scanForVirus = false,
         )
 
         updateMottakere(
@@ -2381,7 +2387,8 @@ class DokumentUnderArbeidService(
             file = tmpFile,
             filename = forlengetBehandlingstidDraft.title,
             utfoerendeIdent = tokenUtil.getIdent(),
-            systemContext = false
+            systemContext = false,
+            scanForVirus = false,
         )
 
         val document = getDokumentUnderArbeid(documentView.id) as DokumentUnderArbeidAsHoveddokument
