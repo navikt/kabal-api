@@ -2336,8 +2336,72 @@ class DokumentUnderArbeidService(
         return hovedDokument
     }
 
-    fun createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid(
-        forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft,
+    /**
+     * Creates an uploaded incoming document (ANNEN_INNGAAENDE_POST) as hoveddokument (+ optional vedlegg)
+     * from files already stored in mellomlager, sets avsender/datoMottatt/inngaaendeKanal and marks it finished,
+     * triggering journalføring based on the Behandling (sak, tema, mottattNav). Used by the Kabin create flow.
+     */
+    fun createAndFinalizeOpplastetInngaaendeDokumentUnderArbeidForKabin(
+        behandling: Behandling,
+        hoveddokument: MellomlagretDokumentReference,
+        vedlegg: List<MellomlagretDokumentReference>,
+        avsenderIdentifikator: String,
+        inngaaendeKanal: InngaaendeKanal,
+    ): DokumentUnderArbeidAsHoveddokument {
+        val utfoerendeIdent = tokenUtil.getIdent()
+        val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
+        val datoMottatt = behandling.mottattKlageinstans.toLocalDate()
+
+        val savedHovedDokument = opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
+            OpplastetDokumentUnderArbeidAsHoveddokument(
+                mellomlagerId = hoveddokument.mellomlagerId,
+                size = hoveddokument.size,
+                name = hoveddokument.name,
+                dokumentType = DokumentType.ANNEN_INNGAAENDE_POST,
+                behandlingId = behandling.id,
+                creatorIdent = utfoerendeIdent,
+                creatorRole = behandlingRole,
+                datoMottatt = datoMottatt,
+                journalfoerendeEnhetId = null,
+                inngaaendeKanal = inngaaendeKanal,
+            )
+        )
+
+        savedHovedDokument.brevmottakere.clear()
+        savedHovedDokument.brevmottakere.add(
+            Brevmottaker(
+                technicalPartId = behandling.getTechnicalIdFromPart(identifikator = avsenderIdentifikator),
+                identifikator = avsenderIdentifikator,
+                localPrint = false,
+                forceCentralPrint = false,
+                address = null,
+                navn = null,
+            )
+        )
+
+        vedlegg.forEach { currentVedlegg ->
+            opplastetDokumentUnderArbeidAsVedleggRepository.save(
+                OpplastetDokumentUnderArbeidAsVedlegg(
+                    mellomlagerId = currentVedlegg.mellomlagerId,
+                    size = currentVedlegg.size,
+                    name = currentVedlegg.name,
+                    behandlingId = behandling.id,
+                    creatorIdent = utfoerendeIdent,
+                    creatorRole = behandlingRole,
+                    parentId = savedHovedDokument.id,
+                )
+            )
+        }
+
+        return finnOgMarkerFerdigHovedDokument(
+            behandlingId = behandling.id,
+            dokumentId = savedHovedDokument.id,
+            utfoerendeIdent = utfoerendeIdent,
+            systemContext = false,
+        )
+    }
+
+    fun createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid(        forlengetBehandlingstidDraft: ForlengetBehandlingstidDraft,
         behandling: Behandling,
     ): DokumentUnderArbeidAsHoveddokument {
         val sakenGjelderName = partSearchService.searchPart(

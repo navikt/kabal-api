@@ -504,7 +504,7 @@ class MottakService(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateJournalpostList(listOf(klageJournalpostId))
+        validateIncomingDocumentSource(klageJournalpostId, uploadedDocument)
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
         fullmektig?.let { validatePartId(it.toPartId()) }
@@ -524,7 +524,7 @@ class MottakService(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateJournalpostList(listOf(ankeJournalpostId))
+        validateIncomingDocumentSource(ankeJournalpostId, uploadedDocument)
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
         fullmektig?.let { validatePartId(it.toPartId()) }
@@ -549,7 +549,7 @@ class MottakService(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateJournalpostList(listOf(receivedDocumentJournalpostId))
+        validateIncomingDocumentSource(receivedDocumentJournalpostId, uploadedDocument)
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
         fullmektig?.let { validatePartId(it.toPartId()) }
@@ -570,7 +570,7 @@ class MottakService(
             ytelse = sourceBehandling.ytelse,
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateJournalpostList(listOf(receivedDocumentJournalpostId))
+        validateIncomingDocumentSource(receivedDocumentJournalpostId, uploadedDocument)
         validateParts(
             sakenGjelderIdentifikator = sourceBehandling.sakenGjelder.partId.value,
             prosessfullmektigIdentifikator = fullmektig?.value,
@@ -698,6 +698,18 @@ class MottakService(
             throw OversendtKlageNotValidException("$journalpostIdList inneholder en ugyldig journalpostreferanse")
         }
 
+    private fun validateIncomingDocumentSource(journalpostId: String?, uploadedDocument: UploadedDocumentInput?) {
+        if ((journalpostId == null) == (uploadedDocument == null)) {
+            throw OversendtKlageNotValidException("Nøyaktig én av journalpost og opplastet dokument må være satt.")
+        }
+        if (journalpostId != null) {
+            validateJournalpostList(listOf(journalpostId))
+        }
+        if (uploadedDocument != null) {
+            validatePartId(uploadedDocument.avsender.toPartId())
+        }
+    }
+
     private fun validatePartId(partId: PartId) {
         when (partId.type) {
             PartIdType.VIRKSOMHET -> {
@@ -770,17 +782,19 @@ class MottakService(
 
         val type = Type.of(input.typeId)
         val innsendtDokument =
-            mutableSetOf(
-                MottakDokumentDTO(
-                    type = when (type) {
-                        Type.ANKE -> MottakDokumentType.BRUKERS_ANKE
-                        Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
-                        Type.BEGJAERING_OM_GJENOPPTAK -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
-                        else -> error("Ugyldig type $type")
-                    },
-                    journalpostId = input.receivedDocumentJournalpostId
+            if (input.receivedDocumentJournalpostId != null) {
+                mutableSetOf(
+                    MottakDokumentDTO(
+                        type = when (type) {
+                            Type.ANKE -> MottakDokumentType.BRUKERS_ANKE
+                            Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
+                            Type.BEGJAERING_OM_GJENOPPTAK -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
+                            else -> error("Ugyldig type $type")
+                        },
+                        journalpostId = input.receivedDocumentJournalpostId
+                    )
                 )
-            )
+            } else mutableSetOf()
 
         val hjemmelCollection = input.hjemmelIdList.map { Hjemmel.of(it) }
 
@@ -865,12 +879,14 @@ class MottakService(
             dvhReferanse = null,
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),
             forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
-            mottakDokument = mutableSetOf(
-                MottakDokumentDTO(
-                    type = MottakDokumentType.BRUKERS_KLAGE,
-                    journalpostId = klageJournalpostId
+            mottakDokument = if (klageJournalpostId != null) {
+                mutableSetOf(
+                    MottakDokumentDTO(
+                        type = MottakDokumentType.BRUKERS_KLAGE,
+                        journalpostId = klageJournalpostId
+                    )
                 )
-            ),
+            } else mutableSetOf(),
             brukersKlageMottattVedtaksinstans = brukersHenvendelseMottattNav,
             sakMottattKaDato = sakMottattKa.atStartOfDay(),
             frist = frist,
@@ -940,12 +956,14 @@ class MottakService(
             dvhReferanse = null,
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),
             forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
-            mottakDokument = mutableSetOf(
-                MottakDokumentDTO(
-                    type = MottakDokumentType.BRUKERS_ANKE,
-                    journalpostId = ankeJournalpostId
+            mottakDokument = if (ankeJournalpostId != null) {
+                mutableSetOf(
+                    MottakDokumentDTO(
+                        type = MottakDokumentType.BRUKERS_ANKE,
+                        journalpostId = ankeJournalpostId
+                    )
                 )
-            ),
+            } else mutableSetOf(),
             brukersKlageMottattVedtaksinstans = mottattNav,
             sakMottattKaDato = mottattNav.atStartOfDay(),
             frist = frist,
@@ -1016,12 +1034,14 @@ class MottakService(
             dvhReferanse = null,
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),
             forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
-            mottakDokument = mutableSetOf(
-                MottakDokumentDTO(
-                    type = type.getMottakDokumentType(),
-                    journalpostId = receivedDocumentJournalpostId
+            mottakDokument = if (receivedDocumentJournalpostId != null) {
+                mutableSetOf(
+                    MottakDokumentDTO(
+                        type = type.getMottakDokumentType(),
+                        journalpostId = receivedDocumentJournalpostId
+                    )
                 )
-            ),
+            } else mutableSetOf(),
             brukersKlageMottattVedtaksinstans = mottattNav,
             sakMottattKaDato = mottattNav.atStartOfDay(),
             frist = frist,
@@ -1031,7 +1051,7 @@ class MottakService(
             kommentar = null,
             prosessfullmektig = prosessfullmektig,
             forrigeSaksbehandlerident = null,
-            isBasedOnJournalpost = true,
+            isBasedOnJournalpost = receivedDocumentJournalpostId != null,
             gosysOppgaveRequired = true,
             gosysOppgaveId = gosysOppgaveId,
         )

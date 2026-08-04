@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.service
 
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.DokumentView
+import no.nav.klage.dokument.api.view.MellomlagretDokumentReference
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Svarbrev
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.Enhet
@@ -79,6 +80,8 @@ class KabinApiService(
     fun createBehandlingFromPreviousKabalBehandling(input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling): CreatedBehandlingResponse {
         val behandling = mottakService.createMottakAndBehandlingFromKabinInputWithPreviousKabalBehandling(input = input)
 
+        createUploadedIncomingDocumentIfPresent(behandling = behandling, uploadedDocument = input.uploadedDocument)
+
         setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
             saksbehandlerIdent = input.saksbehandlerIdent,
@@ -91,6 +94,8 @@ class KabinApiService(
     fun createAnkeFromCompleteKabinInput(input: CreateAnkeBasedOnCompleteKabinInput): CreatedBehandlingResponse {
         val behandling = mottakService.createAnkeMottakFromCompleteKabinInput(input = input)
 
+        createUploadedIncomingDocumentIfPresent(behandling = behandling, uploadedDocument = input.uploadedDocument)
+
         setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
             saksbehandlerIdent = input.saksbehandlerIdent,
@@ -102,6 +107,8 @@ class KabinApiService(
 
     fun createBehandlingBasedOnJournalpost(input: CreateBehandlingBasedOnJournalpostInput): CreatedBehandlingResponse {
         val behandling = mottakService.createBehandlingBasedOnJournalpost(input = input)
+
+        createUploadedIncomingDocumentIfPresent(behandling = behandling, uploadedDocument = input.uploadedDocument)
 
         setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
@@ -218,10 +225,33 @@ class KabinApiService(
         }
     }
 
+    private fun createUploadedIncomingDocumentIfPresent(
+        behandling: Behandling,
+        uploadedDocument: UploadedDocumentInput?,
+    ) {
+        if (uploadedDocument == null) return
+
+        dokumentUnderArbeidService.createAndFinalizeOpplastetInngaaendeDokumentUnderArbeidForKabin(
+            behandling = behandling,
+            hoveddokument = uploadedDocument.hoveddokument.toReference(),
+            vedlegg = uploadedDocument.vedlegg.map { it.toReference() },
+            avsenderIdentifikator = uploadedDocument.avsender.value,
+            inngaaendeKanal = uploadedDocument.inngaaendeKanal,
+        )
+    }
+
+    private fun MellomlagretDocumentInput.toReference() = MellomlagretDokumentReference(
+        mellomlagerId = mellomlagerId,
+        name = name,
+        size = size,
+    )
+
     fun createKlage(
         input: CreateKlageBasedOnKabinInput
     ): CreatedBehandlingResponse {
         val behandling = mottakService.createKlageMottakFromKabinInput(klageInput = input)
+
+        createUploadedIncomingDocumentIfPresent(behandling = behandling, uploadedDocument = input.uploadedDocument)
 
         setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
