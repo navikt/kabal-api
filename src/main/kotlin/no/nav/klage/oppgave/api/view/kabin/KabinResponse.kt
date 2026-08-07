@@ -75,7 +75,7 @@ data class CreatedBehandlingStatusForKabin(
     val varsletFristUnitTypeId: String?,
     val fagsakId: String,
     val fagsystemId: String,
-    val journalpost: DokumentReferanse,
+    val journalpost: DokumentReferanse?,
     val tildeltSaksbehandler: TildeltSaksbehandler?,
     val svarbrev: KabinResponseSvarbrev?,
 )

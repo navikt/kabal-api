@@ -114,7 +114,7 @@ class FileApiClient(
                         classLogger = logger,
                     )
                 }
-                .bodyToMono<Boolean>()
+                .toBodilessEntity()
                 .block()
 
         } catch (e: Exception) {

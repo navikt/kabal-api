@@ -319,10 +319,14 @@ class KabinApiService(
             varsletFristUnitTypeId = behandling.varsletBehandlingstid?.varsletBehandlingstidUnitType?.id,
             fagsakId = behandling.fagsakId,
             fagsystemId = behandling.fagsystem.id,
-            journalpost = dokumentService.getDokumentReferanse(
-                journalpostId = behandling.mottakDokument.find { it.type == behandling.type.getMottakDokumentType() }!!.journalpostId,
-                behandling = behandling
-            ),
+            //Null when the behandling was created based on an uploaded document instead of an existing journalpost.
+            journalpost = behandling.mottakDokument.find { it.type == behandling.type.getMottakDokumentType() }
+                ?.let { mottakDokument ->
+                    dokumentService.getDokumentReferanse(
+                        journalpostId = mottakDokument.journalpostId,
+                        behandling = behandling
+                    )
+                },
             tildeltSaksbehandler = behandling.tildeling?.saksbehandlerident?.let {
                 TildeltSaksbehandler(
                     navIdent = it,

@@ -1051,7 +1051,7 @@ class MottakService(
             kommentar = null,
             prosessfullmektig = prosessfullmektig,
             forrigeSaksbehandlerident = null,
-            isBasedOnJournalpost = receivedDocumentJournalpostId != null,
+            isBasedOnJournalpost = true,
             gosysOppgaveRequired = true,
             gosysOppgaveId = gosysOppgaveId,
         )
