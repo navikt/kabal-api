@@ -2,6 +2,7 @@ package no.nav.klage.oppgave.domain.kafka
 
 import io.opentelemetry.api.trace.Span
 import no.nav.klage.dokument.api.view.DokumentView
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentStatus
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse
@@ -36,6 +37,7 @@ enum class InternalEventType {
     DOCUMENTS_ADDED,
     DOCUMENTS_REMOVED,
     DOCUMENTS_CHANGED,
+    DOCUMENT_STATUS_CHANGED,
     INCLUDED_DOCUMENTS_ADDED,
     INCLUDED_DOCUMENTS_REMOVED,
     INCLUDED_DOCUMENTS_CLEARED,
@@ -244,6 +246,25 @@ data class DocumentsAddedEvent(
     val documents: List<DokumentView>,
     override val traceparent: String?,
 ) : BaseEvent(actor = actor, timestamp = timestamp, traceparent = traceparent)
+
+/**
+ * Reports the progress of an uploaded document as it is verified, virus scanned and (if needed)
+ * converted to PDF, so that everyone looking at the behandling sees the same thing as the user that
+ * uploaded it.
+ */
+data class DocumentStatusChangedEvent(
+    override val actor: Employee,
+    override val timestamp: LocalDateTime,
+    val document: DocumentStatusChanged,
+    override val traceparent: String?,
+) : BaseEvent(actor = actor, timestamp = timestamp, traceparent = traceparent) {
+    data class DocumentStatusChanged(
+        val id: String,
+        val parentId: String?,
+        val status: DokumentStatus,
+        val size: Long,
+    )
+}
 
 data class IncludedDocumentsChangedEvent(
     override val actor: Employee,

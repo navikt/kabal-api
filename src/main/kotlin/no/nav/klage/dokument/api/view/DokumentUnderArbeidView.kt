@@ -1,6 +1,7 @@
 package no.nav.klage.dokument.api.view
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentStatus
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
 import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
 import no.nav.klage.oppgave.api.view.DokumentReferanse.Variant
@@ -39,6 +40,8 @@ data class DokumentView(
     val inngaaendeKanal: InngaaendeKanal?,
     val datoMottatt: LocalDate?,
     val language: Language?,
+    /** Only set for uploaded documents, which are the only ones that are not immediately ready for use. */
+    val status: DokumentStatus?,
 ) {
 
     enum class Language {
@@ -76,6 +79,27 @@ data class DokumentViewWithList(
     val modified: LocalDateTime?,
     val alteredDocuments: List<NewParent>,
     val duplicateJournalfoerteDokumenter: List<UUID>,
+)
+
+data class DokumentUploadUrlView(
+    val upload: Upload,
+    val dokument: DokumentView,
+) {
+    data class Upload(
+        val uploadUrl: String,
+        val fields: Map<String, String>,
+        val contentType: String,
+        val maxSize: Long,
+    )
+}
+
+data class DokumentUploadUrlsView(
+    val uploads: List<DokumentUploadUrlView>,
+)
+
+data class DokumentStatusEventView(
+    val status: DokumentStatus,
+    val size: Long,
 )
 
 data class DocumentModified(

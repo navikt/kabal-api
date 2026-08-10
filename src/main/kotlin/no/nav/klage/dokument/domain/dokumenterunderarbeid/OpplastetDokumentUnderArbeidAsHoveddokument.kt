@@ -35,7 +35,7 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     journalfoerendeEnhetId: String?,
 
     @Column(name = "size")
-    var size: Long?,
+    override var size: Long?,
     @Column(name = "mellomlager_id")
     override var mellomlagerId: String?,
     @Column(name = "mellomlagret_date")
@@ -47,7 +47,12 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     var inngaaendeKanal: InngaaendeKanal?,
     @Column(name = "is_mottak_dokument")
     var isMottakDokument: Boolean = false,
-) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsHoveddokument(
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    override var status: DokumentStatus = DokumentStatus.DONE,
+    @Column(name = "scanned_generation")
+    override var scannedGeneration: Long? = null,
+) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsOpplastet, DokumentUnderArbeidAsHoveddokument(
     id = id,
     name = name,
     behandlingId = behandlingId,
@@ -75,6 +80,8 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
             size = size,
             mellomlagerId = mellomlagerId,
             mellomlagretDate = mellomlagretDate,
+            status = status,
+            scannedGeneration = scannedGeneration,
             id = id,
             name = name,
             behandlingId = behandlingId,

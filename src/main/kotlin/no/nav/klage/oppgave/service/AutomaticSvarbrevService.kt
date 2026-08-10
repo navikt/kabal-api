@@ -145,7 +145,6 @@ class AutomaticSvarbrevService(
                     filename = svarbrevTitle,
                     utfoerendeIdent = systembrukerIdent,
                     systemContext = true,
-                    scanForVirus = false,
                 )
 
                 logger.debug(

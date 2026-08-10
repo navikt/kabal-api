@@ -2,19 +2,17 @@ package no.nav.klage.dokument.api.controller
 
 
 import io.swagger.v3.oas.annotations.tags.Tag
-import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
+import no.nav.klage.dokument.service.DokumentConfirmService
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.DokumentUnderArbeidMetadata
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
-import no.nav.klage.oppgave.util.buildFilename
-import no.nav.klage.oppgave.util.getLogger
-import no.nav.klage.oppgave.util.getResourceThatWillBeDeleted
-import no.nav.klage.oppgave.util.logMethodDetails
+import no.nav.klage.oppgave.util.*
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
@@ -22,6 +20,7 @@ import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.ModelAndView
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 
 @RestController
@@ -30,12 +29,14 @@ import java.util.*
 @RequestMapping("/behandlinger/{behandlingId}/dokumenter")
 class DokumentUnderArbeidController(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
+    private val dokumentConfirmService: DokumentConfirmService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
 
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
+        private val objectMapper = jacksonObjectMapper()
     }
 
     @GetMapping
@@ -45,18 +46,73 @@ class DokumentUnderArbeidController(
         return dokumentUnderArbeidService.getDokumenterUnderArbeidViewList(behandlingId = behandlingId)
     }
 
-    @PostMapping("/fil")
-    fun createAndUploadDokument(
+    @PostMapping("/fil/upload-url")
+    fun createDokumentUploadUrls(
         @PathVariable("behandlingId") behandlingId: UUID,
-        request: HttpServletRequest,
-    ): DokumentView {
-        logger.debug("Kall mottatt på createAndUploadDokument")
+        @RequestBody input: DokumentUploadUrlsInput,
+    ): DokumentUploadUrlsView {
+        logger.debug("Kall mottatt på createDokumentUploadUrls")
 
-        return dokumentUnderArbeidService.createOpplastetDokumentUnderArbeid(
+        return dokumentUnderArbeidService.createDokumentUploadUrls(
             behandlingId = behandlingId,
+            input = input,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            uploadRequest = request,
         )
+    }
+
+    /**
+     * Server-sent events stream that reports the status of an uploaded document as it is verified,
+     * virus scanned and (if needed) converted to PDF. The data of every `status` event is a JSON
+     * object with the current status and the size of the file as it is currently stored, so the
+     * client can update the UI after e.g. a conversion, e.g.
+     *
+     * ```
+     * event: status
+     * data: {"status":"VIRUS_SCANNING","size":123456}
+     * ```
+     *
+     * The stream ends when the document reaches a terminal status (`DONE`, `VIRUS_FOUND` or
+     * `CONVERSION_FAILED`). It is idempotent and resumable: reconnecting sends the current status
+     * right away and then continues from there, without redoing work that is already done.
+     *
+     * Unexpected failures after the stream has started are reported as an `error` event, since the
+     * HTTP status has already been sent by then.
+     */
+    @GetMapping("/{dokumentId}/confirm", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
+    fun confirmDokument(
+        @PathVariable("behandlingId") behandlingId: UUID,
+        @PathVariable("dokumentId") dokumentId: UUID,
+        response: HttpServletResponse,
+    ) {
+        logger.debug("Kall mottatt på confirmDokument")
+
+        val sse = SseWriter(response)
+
+        try {
+            dokumentConfirmService.confirmDokument(
+                behandlingId = behandlingId,
+                dokumentId = dokumentId,
+            ) { state ->
+                sse.send(
+                    event = "status",
+                    data = objectMapper.writeValueAsString(
+                        DokumentStatusEventView(
+                            status = state.status,
+                            size = state.size,
+                        )
+                    ),
+                )
+            }
+        } catch (e: Exception) {
+            //Nothing has been sent yet, so let the normal error handling produce a proper response.
+            if (!sse.hasStarted) {
+                throw e
+            }
+            logger.error("Failed while streaming status for document $dokumentId", e)
+            sse.send(event = "error", data = e.message ?: "UNKNOWN_ERROR")
+        } finally {
+            sse.close()
+        }
     }
 
     @PostMapping("/journalfoertedokumenter")

@@ -1,8 +1,6 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import jakarta.persistence.Column
-import jakarta.persistence.DiscriminatorValue
-import jakarta.persistence.Entity
+import jakarta.persistence.*
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.annotations.DynamicUpdate
@@ -30,12 +28,17 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
     creatorRole: BehandlingRole,
 
     @Column(name = "size")
-    var size: Long?,
+    override var size: Long?,
     @Column(name = "mellomlager_id")
     override var mellomlagerId: String?,
     @Column(name = "mellomlagret_date")
     override var mellomlagretDate: LocalDateTime? = created,
-) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsVedlegg(
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    override var status: DokumentStatus = DokumentStatus.DONE,
+    @Column(name = "scanned_generation")
+    override var scannedGeneration: Long? = null,
+) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsOpplastet, DokumentUnderArbeidAsVedlegg(
     id = id,
     name = name,
     behandlingId = behandlingId,

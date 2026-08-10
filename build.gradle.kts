@@ -14,7 +14,6 @@ val pdfboxVersion = "3.0.8"
 val tikaVersion = "3.3.2"
 val verapdfVersion = "1.30.2"
 val klageKodeverkVersion = "3.3.14"
-val commonsFileupload2JakartaVersion = "2.0.0-M5"
 val otelVersion = "1.64.0"
 val mikrofrontendSelectorVersion = "3.0.0"
 val simpleSlackPosterVersion = "1.0.0"
@@ -55,8 +54,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webflux")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-flyway")
-
-    implementation("org.apache.commons:commons-fileupload2-jakarta-servlet6:$commonsFileupload2JakartaVersion")
 
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("javax.cache:cache-api")

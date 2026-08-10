@@ -56,6 +56,21 @@ data class MellomlagretDokumentReference(
     val size: Long,
 )
 
+/**
+ * One file the client wants to upload. The file itself is uploaded directly to Google with the
+ * returned policy, and then confirmed through the confirm stream.
+ */
+data class DokumentUploadUrlInput(
+    val contentType: String,
+    val name: String,
+)
+
+data class DokumentUploadUrlsInput(
+    val dokumentTypeId: String,
+    val parentId: UUID?,
+    val files: List<DokumentUploadUrlInput>,
+)
+
 data class AvsenderInput(
     val identifikator: String,
 )

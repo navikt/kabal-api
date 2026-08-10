@@ -7,7 +7,10 @@ import no.nav.klage.dokument.clients.kabaljsontopdf.KabalJsonToPdfClient
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
-import no.nav.klage.dokument.service.*
+import no.nav.klage.dokument.service.DokumentUnderArbeidCommonService
+import no.nav.klage.dokument.service.DokumentUnderArbeidService
+import no.nav.klage.dokument.service.InnholdsfortegnelseService
+import no.nav.klage.dokument.service.MellomlagerService
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.oppgave.clients.kabaldocument.KabalDocumentGateway
 import no.nav.klage.oppgave.clients.saf.SafFacade
@@ -45,9 +48,6 @@ class DokumentUnderArbeidServiceWithJPATest : PostgresIntegrationTestBase() {
 
     @MockkBean
     lateinit var journalfoertDokumentUnderArbeidRepository: JournalfoertDokumentUnderArbeidAsVedleggRepository
-
-    @MockkBean
-    lateinit var attachmentValidator: MellomlagretDokumentValidatorService
 
     @MockkBean
     lateinit var mellomlagerService: MellomlagerService

@@ -1,7 +1,6 @@
 package no.nav.klage.dokument.service
 
 import io.micrometer.core.instrument.MeterRegistry
-import jakarta.servlet.http.HttpServletRequest
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.api.view.*
 import no.nav.klage.dokument.domain.PDFDocument
@@ -9,7 +8,10 @@ import no.nav.klage.dokument.domain.SmartDocumentDeletedEvent
 import no.nav.klage.dokument.domain.SmartDocumentMarkedAsFinishedEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid.Companion.MAX_NAME_LENGTH
-import no.nav.klage.dokument.exceptions.*
+import no.nav.klage.dokument.exceptions.DocumentDoesNotExistException
+import no.nav.klage.dokument.exceptions.DokumentValidationException
+import no.nav.klage.dokument.exceptions.NoAccessToDocumentException
+import no.nav.klage.dokument.exceptions.SmartDocumentValidationException
 import no.nav.klage.dokument.gateway.DefaultKabalSmartEditorApiGateway
 import no.nav.klage.dokument.repositories.*
 import no.nav.klage.dokument.util.DuaAccessPolicy
@@ -38,7 +40,6 @@ import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.service.*
 import no.nav.klage.oppgave.util.*
-import org.apache.commons.fileupload2.jakarta.servlet6.JakartaServletFileUpload
 import org.hibernate.Hibernate
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
@@ -52,10 +53,8 @@ import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import java.io.BufferedReader
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -123,7 +122,6 @@ class DokumentUnderArbeidService(
         filename: String?,
         utfoerendeIdent: String,
         systemContext: Boolean,
-        scanForVirus: Boolean = true,
     ): DokumentView {
         val dokumentType = DokumentType.of(dokumentTypeId)
 
@@ -158,7 +156,6 @@ class DokumentUnderArbeidService(
         val mellomlagerId = mellomlagerService.uploadFile(
             file = file,
             systemContext = systemContext,
-            scanForVirus = scanForVirus,
         )
 
         val document = if (parentId == null) {
@@ -218,79 +215,114 @@ class DokumentUnderArbeidService(
         return dokumentView
     }
 
-    fun createOpplastetDokumentUnderArbeid(
+    fun createDokumentUploadUrls(
         behandlingId: UUID,
-        uploadRequest: HttpServletRequest,
+        input: DokumentUploadUrlsInput,
         innloggetIdent: String,
-    ): DokumentView {
-        var dokumentTypeId = ""
-        var parentId: UUID? = null
-        var filename: String? = null
+    ): DokumentUploadUrlsView {
+        if (input.files.isEmpty()) {
+            throw DokumentValidationException("Må sende med minst ett dokument.")
+        }
 
-        var start = System.currentTimeMillis()
-        val filePath = Files.createTempFile(null, null)
-        logger.debug("Created temp file in {} ms", System.currentTimeMillis() - start)
+        val dokumentType = DokumentType.of(input.dokumentTypeId)
 
-        start = System.currentTimeMillis()
-        val contentLength = uploadRequest.getHeader("Content-Length")?.toInt() ?: 0
+        //Sjekker lesetilgang på behandlingsnivå:
+        val behandling = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
+        val behandlingRole = behandling.getRoleInBehandling(innloggetIdent)
+
+        val duration = measureTime {
+            documentPolicyService.validateDokumentUnderArbeidAction(
+                behandling = behandling,
+                dokumentType = DuaAccessPolicy.DokumentType.UPLOADED,
+                parentDokumentType = documentPolicyService.getParentDokumentType(parentDuaId = input.parentId),
+                documentRole = behandlingRole,
+                action = DuaAccessPolicy.Action.CREATE,
+                duaMarkertFerdig = false,
+                isSystemContext = false,
+            )
+        }
         logger.debug(
-            "Checked Content-Length header in {} ms. It was {}",
-            (System.currentTimeMillis() - start),
-            contentLength
+            "Validated createDokumentUploadUrls action. Duration: {} ms",
+            duration.inWholeMilliseconds
         )
 
-        //500 MiB
-        if (contentLength > 524288000) {
-            throw AttachmentTooLargeException()
-        }
-
-        val upload = JakartaServletFileUpload()
-        val parts = upload.getItemIterator(uploadRequest)
-        logger.debug("parts: {}", parts)
-        parts.forEachRemaining { item ->
-            logger.debug("item: {}", item)
-            val fieldName = item.fieldName
-            start = System.currentTimeMillis()
-            val inputStream = item.inputStream
-            logger.debug("Got input stream in {} ms", System.currentTimeMillis() - start)
-            if (!item.isFormField) {
-                filename = item.name
-                try {
-                    start = System.currentTimeMillis()
-                    Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING)
-                    logger.debug("Copied file to temp file in {} ms", System.currentTimeMillis() - start)
-                } catch (e: Exception) {
-                    throw RuntimeException("Failed to save file", e)
-                } finally {
-                    inputStream.close()
-                }
-            } else {
-                try {
-                    start = System.currentTimeMillis()
-                    val content = inputStream.bufferedReader().use(BufferedReader::readText)
-                    if (fieldName == "dokumentTypeId") {
-                        dokumentTypeId = content
-                    } else if (fieldName == "parentId" && content.isNotBlank()) {
-                        parentId = UUID.fromString(content)
-                    }
-                    logger.debug("Read content in {} ms", System.currentTimeMillis() - start)
-                } catch (e: Exception) {
-                    throw RuntimeException("Failed to read content", e)
-                } finally {
-                    inputStream.close()
-                }
+        //Names are validated before we ask for any policies, so a single invalid name doesn't leave
+        //unused documents behind in kabal-file-api.
+        val titles = input.files.map { file ->
+            val title = file.name.ifBlank { dokumentType.defaultFilnavn }
+            if (title.length > MAX_NAME_LENGTH) {
+                throw DokumentValidationException("Dokumentnavnet kan ikke være lenger enn $MAX_NAME_LENGTH tegn")
             }
+            title
         }
 
-        return createOpplastetDokumentUnderArbeid(
-            behandlingId = behandlingId,
-            dokumentTypeId = dokumentTypeId,
-            parentId = parentId,
-            file = filePath.toFile(),
-            filename = filename,
-            utfoerendeIdent = innloggetIdent,
-            systemContext = false,
+        val uploadPolicies = mellomlagerService.createUploadPolicies(contentTypes = input.files.map { it.contentType })
+
+        val uploads = uploadPolicies.zip(titles) { uploadPolicy, title ->
+            val document = if (input.parentId == null) {
+                opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
+                    OpplastetDokumentUnderArbeidAsHoveddokument(
+                        mellomlagerId = uploadPolicy.id,
+                        size = 0,
+                        name = title,
+                        dokumentType = dokumentType,
+                        behandlingId = behandlingId,
+                        creatorIdent = innloggetIdent,
+                        creatorRole = behandlingRole,
+                        datoMottatt = null,
+                        journalfoerendeEnhetId = null,
+                        inngaaendeKanal = null,
+                        status = DokumentStatus.UPLOADING,
+                    )
+                )
+            } else {
+                opplastetDokumentUnderArbeidAsVedleggRepository.save(
+                    OpplastetDokumentUnderArbeidAsVedlegg(
+                        mellomlagerId = uploadPolicy.id,
+                        size = 0,
+                        name = title,
+                        behandlingId = behandlingId,
+                        creatorIdent = innloggetIdent,
+                        creatorRole = behandlingRole,
+                        parentId = input.parentId,
+                        status = DokumentStatus.UPLOADING,
+                    )
+                )
+            }
+
+            DokumentUploadUrlView(
+                upload = DokumentUploadUrlView.Upload(
+                    uploadUrl = uploadPolicy.url,
+                    fields = uploadPolicy.fields,
+                    contentType = uploadPolicy.contentType,
+                    maxSize = uploadPolicy.maxSize,
+                ),
+                dokument = dokumentMapper.mapToDokumentView(
+                    dokumentUnderArbeid = document,
+                    journalpost = null,
+                    smartEditorDocument = null,
+                    behandling = behandling,
+                ),
+            )
+        }
+
+        publishInternalEvent(
+            data = jacksonObjectMapper.writeValueAsString(
+                DocumentsAddedEvent(
+                    actor = Employee(
+                        navIdent = innloggetIdent,
+                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                    ),
+                    timestamp = LocalDateTime.now(),
+                    documents = uploads.map { it.dokument },
+                    traceparent = currentTraceparent(),
+                )
+            ),
+            behandlingId = behandling.id,
+            type = InternalEventType.DOCUMENTS_ADDED,
         )
+
+        return DokumentUploadUrlsView(uploads = uploads)
     }
 
     fun kobleEllerFrikobleVedlegg(
@@ -1529,6 +1561,13 @@ class DokumentUnderArbeidService(
 
         val avsenderMottakerInfoSet = hovedDokument.brevmottakere
 
+        //Uploaded documents are not usable before kabal-file-api is done scanning and converting them.
+        (vedlegg + hovedDokument).forEach { document ->
+            if (document is DokumentUnderArbeidAsOpplastet) {
+                requireDone(document)
+            }
+        }
+
         if (hovedDokument.dokumentType !in listOf(
                 DokumentType.NOTAT,
                 DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN
@@ -1582,6 +1621,12 @@ class DokumentUnderArbeidService(
         )
     }
 
+    private fun requireDone(dokumentUnderArbeid: DokumentUnderArbeidAsOpplastet) {
+        if (!dokumentUnderArbeid.isDone) {
+            throw DokumentValidationException("Dokumentet \"${dokumentUnderArbeid.name}\" er ikke ferdig opplastet.")
+        }
+    }
+
     fun getFysiskDokumentAsResourceOrUrl(
         behandlingId: UUID, //Kan brukes i finderne for å "være sikker", men er egentlig overflødig..
         dokumentId: UUID,
@@ -1613,6 +1658,7 @@ class DokumentUnderArbeidService(
         } else {
             when (dokumentUnderArbeid) {
                 is OpplastetDokumentUnderArbeidAsHoveddokument -> {
+                    requireDone(dokumentUnderArbeid)
                     Triple(
                         dokumentUnderArbeid.name,
                         mellomlagerService.getUploadedDocumentAsSignedURL(
@@ -1625,6 +1671,7 @@ class DokumentUnderArbeidService(
                 }
 
                 is OpplastetDokumentUnderArbeidAsVedlegg -> {
+                    requireDone(dokumentUnderArbeid)
                     Triple(
                         dokumentUnderArbeid.name,
                         mellomlagerService.getUploadedDocumentAsSignedURL(
@@ -2175,6 +2222,7 @@ class DokumentUnderArbeidService(
             }
         } else {
             dokumentUnderArbeid as OpplastetDokumentUnderArbeidAsHoveddokument
+            requireDone(dokumentUnderArbeid)
             mellomlagerService.getUploadedDocument(dokumentUnderArbeid.mellomlagerId!!)
         }
 
@@ -2192,6 +2240,7 @@ class DokumentUnderArbeidService(
                     }
 
                     is OpplastetDokumentUnderArbeidAsVedlegg -> {
+                        requireDone(vedlegg)
                         mellomlagerService.getUploadedDocument(vedlegg.mellomlagerId!!)
                     }
 
@@ -2351,7 +2400,6 @@ class DokumentUnderArbeidService(
             filename = svarbrev.title,
             utfoerendeIdent = tokenUtil.getIdent(),
             systemContext = false,
-            scanForVirus = false,
         )
 
         updateMottakere(
@@ -2502,7 +2550,6 @@ class DokumentUnderArbeidService(
             filename = forlengetBehandlingstidDraft.title,
             utfoerendeIdent = tokenUtil.getIdent(),
             systemContext = false,
-            scanForVirus = false,
         )
 
         val document = getDokumentUnderArbeid(documentView.id) as DokumentUnderArbeidAsHoveddokument

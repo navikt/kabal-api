@@ -17,3 +17,15 @@ interface DokumentUnderArbeidAsMellomlagret {
     var mellomlagerId: String?
     var mellomlagretDate: LocalDateTime?
 }
+
+interface DokumentUnderArbeidAsOpplastet : DokumentUnderArbeidAsMellomlagret {
+    val id: UUID
+    var name: String
+    var size: Long?
+    var modified: LocalDateTime
+    var status: DokumentStatus
+    var scannedGeneration: Long?
+
+    val isDone: Boolean
+        get() = status == DokumentStatus.DONE
+}

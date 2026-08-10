@@ -214,14 +214,8 @@ class ProblemHandlingControllerAdvice : ResponseEntityExceptionHandler() {
         create(HttpStatus.NOT_FOUND, ex)
 
     @ExceptionHandler
-    fun handleAttachmentIsEmptyException(
-        ex: AttachmentIsEmptyException,
-    ): ProblemDetail =
-        create(HttpStatus.BAD_REQUEST, ex)
-
-    @ExceptionHandler
-    fun handleAttachmentHasVirusException(
-        ex: AttachmentHasVirusException,
+    fun handleAttachmentCouldNotBeConvertedException(
+        ex: AttachmentCouldNotBeConvertedException,
     ): ProblemDetail =
         create(HttpStatus.BAD_REQUEST, ex)
 

@@ -247,6 +247,7 @@ class DokumentMapper(
             language = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
                 DokumentView.Language.valueOf(dokumentUnderArbeid.language.name)
             } else null,
+            status = if (unproxiedDUA is DokumentUnderArbeidAsOpplastet) unproxiedDUA.status else null,
         )
     }
 

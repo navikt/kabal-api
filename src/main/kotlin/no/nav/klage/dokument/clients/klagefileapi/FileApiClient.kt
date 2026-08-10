@@ -1,5 +1,7 @@
 package no.nav.klage.dokument.clients.klagefileapi
 
+import no.nav.klage.dokument.exceptions.ConversionConflictException
+import no.nav.klage.oppgave.exceptions.AttachmentCouldNotBeConvertedException
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logErrorResponse
@@ -92,6 +94,110 @@ class FileApiClient(
             .block()!!
     }
 
+    fun createUploadPolicies(contentTypes: List<String>): List<UploadPostPolicyResponse> {
+        logger.debug("Requesting {} signed upload policies from kabal-file-api", contentTypes.size)
+
+        val token = tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
+
+        return fileWebClient
+            .post()
+            .uri("/document/uploadpolicies")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+            .bodyValue(UploadUrlsRequest(contentTypes = contentTypes))
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(
+                    response = response,
+                    functionName = ::createUploadPolicies.name,
+                    classLogger = logger,
+                )
+            }
+            .bodyToMono<List<UploadPostPolicyResponse>>()
+            .block() ?: throw RuntimeException("No response from kabal-file-api on upload policy request")
+    }
+
+    fun getDocumentMetadata(id: String): DocumentMetadataResponse {
+        logger.debug("Fetching document metadata for id {} from kabal-file-api", id)
+
+        val token = tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
+
+        return fileWebClient
+            .get()
+            .uri { it.path("/document/{id}/metadata").build(id) }
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+            .retrieve()
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(
+                    response = response,
+                    functionName = ::getDocumentMetadata.name,
+                    classLogger = logger,
+                )
+            }
+            .bodyToMono<DocumentMetadataResponse>()
+            .block() ?: throw RuntimeException("No response from kabal-file-api on metadata request")
+    }
+
+    fun scanDocument(id: String): ScanResultResponse {
+        logger.debug("Requesting virus scan for document with id {} from kabal-file-api", id)
+
+        val token = tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
+
+        return fileWebClient
+            .post()
+            .uri { it.path("/document/{id}/scan").build(id) }
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+            .retrieve()
+            .onStatus({ it.value() == 422 }) { response ->
+                response.bodyToMono(String::class.java).map { body ->
+                    logger.warn("kabal-file-api rejected the document as unconvertible: $body")
+                    AttachmentCouldNotBeConvertedException()
+                }
+            }
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(
+                    response = response,
+                    functionName = ::scanDocument.name,
+                    classLogger = logger,
+                )
+            }
+            .bodyToMono<ScanResultResponse>()
+            .block() ?: throw RuntimeException("No response from kabal-file-api on scan request")
+    }
+
+    fun convertDocument(id: String, scannedGeneration: Long): ConvertResultResponse {
+        logger.debug("Requesting conversion to PDF for document with id {} from kabal-file-api", id)
+
+        val token = tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
+
+        return fileWebClient
+            .post()
+            .uri { it.path("/document/{id}/convert").build(id) }
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+            .bodyValue(ConvertRequest(scannedGeneration = scannedGeneration))
+            .retrieve()
+            .onStatus({ it.value() == 409 }) { response ->
+                response.bodyToMono(String::class.java).map { body ->
+                    logger.warn("kabal-file-api could not convert document with the scanned generation: $body")
+                    ConversionConflictException()
+                }
+            }
+            .onStatus({ it.value() == 422 }) { response ->
+                response.bodyToMono(String::class.java).map { body ->
+                    logger.warn("kabal-file-api could not convert document to PDF: $body")
+                    AttachmentCouldNotBeConvertedException()
+                }
+            }
+            .onStatus(HttpStatusCode::isError) { response ->
+                logErrorResponse(
+                    response = response,
+                    functionName = ::convertDocument.name,
+                    classLogger = logger,
+                )
+            }
+            .bodyToMono<ConvertResultResponse>()
+            .block() ?: throw RuntimeException("No response from kabal-file-api on convert request")
+    }
+
     fun deleteDocument(id: String, systemUser: Boolean = false) {
         logger.debug("Deleting document with id {}", id)
 
@@ -168,3 +274,39 @@ class FileApiClient(
 }
 
 data class DocumentUploadedResponse(val id: String)
+
+data class UploadUrlsRequest(
+    val contentTypes: List<String>,
+)
+
+data class UploadPostPolicyResponse(
+    val id: String,
+    val url: String,
+    val fields: Map<String, String>,
+    val contentType: String,
+    val maxSize: Long,
+)
+
+data class DocumentMetadataResponse(
+    val exists: Boolean,
+    val size: Long?,
+    val contentType: String?,
+)
+
+data class ScanResultResponse(
+    val hasVirus: Boolean,
+    val size: Long?,
+    val contentType: String?,
+    val requiresConversion: Boolean,
+    val generation: Long,
+)
+
+data class ConvertRequest(
+    val scannedGeneration: Long,
+)
+
+data class ConvertResultResponse(
+    val size: Long?,
+    val contentType: String?,
+    val wasConverted: Boolean,
+)

@@ -8,5 +8,8 @@ class AttachmentTooLargeException(override val message: String = "TOO_LARGE") : 
     }
 }
 
-class AttachmentIsEmptyException(override val message: String = "EMPTY") : RuntimeException()
-class AttachmentHasVirusException(override val message: String = "VIRUS") : RuntimeException()
+/**
+ * The document in kabal-file-api is not the one we scanned, typically because someone else converted
+ * it in the meantime. Whoever gets this has to scan the current version before converting it.
+ */
+class ConversionConflictException(override val message: String = "CONVERSION_CONFLICT") : RuntimeException()
