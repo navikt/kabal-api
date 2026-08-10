@@ -504,7 +504,11 @@ class MottakService(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateIncomingDocumentSource(klageJournalpostId, uploadedDocument)
+        validateIncomingDocumentSource(
+            journalpostId = klageJournalpostId,
+            uploadedDocument = uploadedDocument,
+            type = Type.KLAGE,
+        )
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
         fullmektig?.let { validatePartId(it.toPartId()) }
@@ -524,7 +528,11 @@ class MottakService(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateIncomingDocumentSource(ankeJournalpostId, uploadedDocument)
+        validateIncomingDocumentSource(
+            journalpostId = ankeJournalpostId,
+            uploadedDocument = uploadedDocument,
+            type = Type.ANKE,
+        )
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
         fullmektig?.let { validatePartId(it.toPartId()) }
@@ -549,7 +557,11 @@ class MottakService(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateIncomingDocumentSource(receivedDocumentJournalpostId, uploadedDocument)
+        validateIncomingDocumentSource(
+            journalpostId = receivedDocumentJournalpostId,
+            uploadedDocument = uploadedDocument,
+            type = Type.of(typeId!!),
+        )
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
         fullmektig?.let { validatePartId(it.toPartId()) }
@@ -570,7 +582,11 @@ class MottakService(
             ytelse = sourceBehandling.ytelse,
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateIncomingDocumentSource(receivedDocumentJournalpostId, uploadedDocument)
+        validateIncomingDocumentSource(
+            journalpostId = receivedDocumentJournalpostId,
+            uploadedDocument = uploadedDocument,
+            type = Type.of(typeId),
+        )
         validateParts(
             sakenGjelderIdentifikator = sourceBehandling.sakenGjelder.partId.value,
             prosessfullmektigIdentifikator = fullmektig?.value,
@@ -698,7 +714,11 @@ class MottakService(
             throw OversendtKlageNotValidException("$journalpostIdList inneholder en ugyldig journalpostreferanse")
         }
 
-    private fun validateIncomingDocumentSource(journalpostId: String?, uploadedDocument: UploadedDocumentInput?) {
+    private fun validateIncomingDocumentSource(
+        journalpostId: String?,
+        uploadedDocument: UploadedDocumentInput?,
+        type: Type,
+    ) {
         if ((journalpostId == null) == (uploadedDocument == null)) {
             throw OversendtKlageNotValidException("Nøyaktig én av journalpost og opplastet dokument må være satt.")
         }
@@ -706,6 +726,9 @@ class MottakService(
             validateJournalpostList(listOf(journalpostId))
         }
         if (uploadedDocument != null) {
+            if (type == Type.KLAGE) {
+                throw OversendtKlageNotValidException("Klage kan ikke opprettes med opplastet dokument.")
+            }
             validatePartId(uploadedDocument.avsender.toPartId())
         }
     }
