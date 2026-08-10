@@ -16,13 +16,17 @@ import org.springframework.http.client.MultipartBodyBuilder
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.bodyToFlux
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
+import java.net.URI
 import java.nio.file.Files
 
 
 @Component
 class FileApiClient(
     private val fileWebClient: WebClient,
+    private val gcsDownloadWebClient: WebClient,
     private val tokenUtil: TokenUtil,
 ) {
     companion object {
@@ -33,28 +37,32 @@ class FileApiClient(
     fun getDocument(id: String, systemUser: Boolean = false): Resource {
         logger.debug("Fetching document with id {}", id)
 
-        val token = if (systemUser) {
-            tokenUtil.getAppAccessTokenWithKabalFileApiScope()
-        } else {
-            tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
-        }
-
-        val dataBufferFlux = fileWebClient.get()
-            .uri { it.path("/document/{id}").build(id) }
-            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-            .retrieve()
-            .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(
-                    response = response,
-                    functionName = ::getDocument.name,
-                    classLogger = logger,
-                )
-            }
-            .bodyToFlux(DataBuffer::class.java)
+        val signedUrl = getSignedUrl(id = id, systemUser = systemUser)
 
         val tempFile = Files.createTempFile(null, null)
 
-        DataBufferUtils.write(dataBufferFlux, tempFile).block()
+        try {
+            val dataBufferFlux = gcsDownloadWebClient.get()
+                .uri(URI.create(signedUrl))
+                .retrieve()
+                //The signed URL contains a signature, so it must never end up in a log or an
+                //exception message. That rules out the standard error handling here.
+                .onStatus(HttpStatusCode::isError) { response ->
+                    val statusCode = response.statusCode()
+                    response.releaseBody().then(
+                        Mono.just(
+                            RuntimeException("Got $statusCode when downloading document $id from storage")
+                        )
+                    )
+                }
+                .bodyToFlux<DataBuffer>()
+
+            DataBufferUtils.write(dataBufferFlux, tempFile).block()
+        } catch (e: Exception) {
+            Files.deleteIfExists(tempFile)
+            throw e
+        }
+
         return FileSystemResource(tempFile)
     }
 
@@ -63,6 +71,20 @@ class FileApiClient(
         filename: String,
         contentDisposition: String,
         systemUser: Boolean = false,
+    ): String {
+        return getSignedUrl(
+            id = id,
+            systemUser = systemUser,
+            headers = mapOf(
+                "content-disposition" to "$contentDisposition; filename=\"$filename\""
+            ),
+        )
+    }
+
+    private fun getSignedUrl(
+        id: String,
+        systemUser: Boolean,
+        headers: Map<String, String> = emptyMap(),
     ): String {
         logger.debug("Fetching document (signed URL) with id {}", id)
 
@@ -75,18 +97,12 @@ class FileApiClient(
         return fileWebClient.post()
             .uri { it.path("/document/{id}/signedurl").build(id) }
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-            .bodyValue(
-                SignedUrlRequest(
-                    headers = mapOf(
-                        "content-disposition" to "$contentDisposition; filename=\"$filename\""
-                    )
-                )
-            )
+            .bodyValue(SignedUrlRequest(headers = headers))
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
-                    functionName = ::getDocumentAsSignedURL.name,
+                    functionName = ::getSignedUrl.name,
                     classLogger = logger,
                 )
             }

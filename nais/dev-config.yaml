@@ -15,6 +15,7 @@ externalHosts:
   - host: kodeverk-api.intern.dev.nav.no
   - host: dokdistkanal-q2.dev-fss-pub.nais.io
   - host: dokarkiv-q2.dev-fss-pub.nais.io
+  - host: storage.googleapis.com
 inboundApplications:
   - application: kabal-frontend
   - application: klage-dittnav-api

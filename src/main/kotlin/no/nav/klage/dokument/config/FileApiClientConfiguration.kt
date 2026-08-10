@@ -37,4 +37,17 @@ class FileApiClientConfiguration(
             .baseUrl(fileServiceURL)
             .build()
     }
+
+    @Bean
+    fun gcsDownloadWebClient(): WebClient {
+        //Documents can be large, and they are streamed to disk, so allow plenty of time.
+        val httpClient = HttpClient.create()
+            .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5_000)
+            .responseTimeout(Duration.ofSeconds(120))
+
+        return webClientBuilder
+            .clone()
+            .clientConnector(ReactorClientHttpConnector(httpClient))
+            .build()
+    }
 }
