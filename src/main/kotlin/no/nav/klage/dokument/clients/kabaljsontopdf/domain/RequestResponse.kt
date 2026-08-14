@@ -87,6 +87,7 @@ data class ForlengetBehandlingstidRequest(
     enum class Type {
         KLAGE,
         ANKE,
-        OMGJOERINGSKRAV
+        OMGJOERINGSKRAV,
+        BEGJAERING_OM_GJENOPPTAK,
     }
 }
