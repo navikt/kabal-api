@@ -4,6 +4,8 @@ import no.nav.klage.dokument.api.view.JournalfoertDokumentReference
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
+import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
+import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenFraArena
 import no.nav.klage.oppgave.api.view.OversendtAnkeITrygderettenV1
 import no.nav.klage.oppgave.api.view.createAnkeITrygderettenbehandlingInput
@@ -13,7 +15,10 @@ import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.exceptions.InvalidProperty
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
+import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.oppgave.exceptions.ValidationSection
 import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -22,6 +27,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -123,10 +129,10 @@ class AnkeITrygderettenbehandlingService(
                 type = BehandlingEventType.ANKE_I_TRYGDERETTENBEHANDLING_OPPRETTET,
                 detaljer = BehandlingDetaljer(
                     ankeITrygderettenbehandlingOpprettet =
-                    AnkeITrygderettenbehandlingOpprettetDetaljer(
-                        sendtTilTrygderetten = ankeITrygderettenbehandling.sendtTilTrygderetten,
-                        utfall = input.ankebehandlingUtfall,
-                    )
+                        AnkeITrygderettenbehandlingOpprettetDetaljer(
+                            sendtTilTrygderetten = ankeITrygderettenbehandling.sendtTilTrygderetten,
+                            utfall = input.ankebehandlingUtfall,
+                        )
                 )
             )
 
@@ -207,6 +213,7 @@ class AnkeITrygderettenbehandlingService(
         }
 
         mottakService.validateAnkeITrygderettenFraArena(input)
+        input.validate()
         val newAnkeITrygderettenbehandling = createAnkeITrygderettenbehandling(
             input.toAnkeITrygderettenbehandlingInput()
         )
@@ -221,4 +228,77 @@ class AnkeITrygderettenbehandlingService(
     }
 
     private fun StatistikkTilDVH.toJson(): String = jacksonObjectMapper.writeValueAsString(this)
+
+    private fun OversendtAnkeITrygderettenFraArena.validate() {
+        val validationErrors = mutableListOf<InvalidProperty>()
+        val ytelse = Ytelse.of(ytelseId)
+        if (hjemmelIdList.isEmpty()) {
+            validationErrors.add(
+                InvalidProperty(
+                    field = "hjemmelIdList",
+                    reason = "Behandling kan ikke registreres, mangler hjemmel."
+                )
+            )
+        } else {
+            hjemmelIdList.forEach { hjemmelId ->
+                val hjemmel = Hjemmel.of(hjemmelId)
+                if (!ytelseToHjemler[ytelse]!!.filter { !it.utfases }.any { it.hjemmel == hjemmel }) {
+                    validationErrors.add(
+                        InvalidProperty(
+                            field = "hjemmelIdList",
+                            reason = "Behandling med ytelse ${ytelse.navn} kan ikke registreres med hjemmel $hjemmel. Ta kontakt med team klage dersom du mener hjemmelen skal være mulig å bruke for denne ytelsen."
+                        )
+                    )
+                }
+            }
+        }
+
+        if (LocalDate.now().isBefore(sakMottattKlageinstans)) {
+            validationErrors.add(
+                InvalidProperty(
+                    field = "sakMottattKlageinstans",
+                    reason = "Dato for anke mottatt klageinstans kan ikke være i fremtiden.."
+                )
+            )
+        }
+
+        if (LocalDate.now().isBefore(sendtTilTrygderetten)) {
+            validationErrors.add(
+                InvalidProperty(
+                    field = "sendtTilTrygderetten",
+                    reason = "Dato for anke sendt til Trygderetten kan ikke være i fremtiden."
+                )
+            )
+        }
+
+        if (fagsakId.toIntOrNull() == null || fagsakId.toInt() <= 0) {
+            validationErrors.add(
+                InvalidProperty(
+                    field = "fagsakId",
+                    reason = "FagsakId må være et positivt heltall."
+                )
+            )
+        }
+
+        if (gosysOppgaveId <= 0) {
+            validationErrors.add(
+                InvalidProperty(
+                    field = "gosysOppgaveId",
+                    reason = "GosysOppgaveId må være et positivt heltall."
+                )
+            )
+        }
+
+        if (validationErrors.isNotEmpty()) {
+            throw SectionedValidationErrorWithDetailsException(
+                title = "Validation error",
+                sections = listOf(
+                    ValidationSection(
+                        section = "behandling",
+                        properties = validationErrors
+                    )
+                )
+            )
+        }
+    }
 }
