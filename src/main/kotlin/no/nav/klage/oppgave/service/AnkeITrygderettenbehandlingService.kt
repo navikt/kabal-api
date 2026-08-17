@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeParseException
 import java.util.*
 
 @Service
@@ -253,31 +254,52 @@ class AnkeITrygderettenbehandlingService(
             }
         }
 
-        if (LocalDate.now().isBefore(sakMottattKlageinstans)) {
+        val sakMottattKlageinstansParsed = try {
+            LocalDate.parse(sakMottattKlageinstans)
+        } catch (_: DateTimeParseException) {
+            null
+        }
+
+        if (sakMottattKlageinstansParsed == null) {
             validationErrors.add(
                 InvalidProperty(
                     field = "sakMottattKlageinstans",
-                    reason = "Dato for anke mottatt klageinstans kan ikke være i fremtiden.."
+                    reason = "Dato for anke mottatt klageinstans må være oppgitt."
                 )
             )
+        } else {
+            if (LocalDate.now().isBefore(sakMottattKlageinstansParsed)) {
+                validationErrors.add(
+                    InvalidProperty(
+                        field = "sakMottattKlageinstans",
+                        reason = "Dato for anke mottatt klageinstans kan ikke være i fremtiden."
+                    )
+                )
+            }
         }
 
-        if (LocalDate.now().isBefore(sendtTilTrygderetten)) {
+        val sendtTilTrygderettenParsed = try {
+            LocalDate.parse(sendtTilTrygderetten)
+        } catch (_: DateTimeParseException) {
+            null
+        }
+
+        if (sendtTilTrygderettenParsed == null) {
             validationErrors.add(
                 InvalidProperty(
                     field = "sendtTilTrygderetten",
-                    reason = "Dato for anke sendt til Trygderetten kan ikke være i fremtiden."
+                    reason = "Dato for anke sendt til Trygderetten må være oppgitt."
                 )
             )
-        }
-
-        if (fagsakId.toIntOrNull() == null || fagsakId.toInt() <= 0) {
-            validationErrors.add(
-                InvalidProperty(
-                    field = "fagsakId",
-                    reason = "FagsakId må være et positivt heltall."
+        } else {
+            if (LocalDate.now().isBefore(sendtTilTrygderettenParsed)) {
+                validationErrors.add(
+                    InvalidProperty(
+                        field = "sendtTilTrygderetten",
+                        reason = "Dato for anke sendt til Trygderetten kan ikke være i fremtiden."
+                    )
                 )
-            )
+            }
         }
 
         if (gosysOppgaveId <= 0) {
