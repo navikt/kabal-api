@@ -302,6 +302,15 @@ class AnkeITrygderettenbehandlingService(
             }
         }
 
+        if (fagsakId.toIntOrNull() == null || fagsakId.toInt() <= 0) {
+            validationErrors.add(
+                InvalidProperty(
+                    field = "fagsakId",
+                    reason = "Arkivsaksnummer må være et positivt heltall."
+                )
+            )
+        }
+
         if (gosysOppgaveId <= 0) {
             validationErrors.add(
                 InvalidProperty(
