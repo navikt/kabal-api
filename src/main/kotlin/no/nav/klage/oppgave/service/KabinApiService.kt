@@ -244,6 +244,7 @@ class KabinApiService(
         mellomlagerId = mellomlagerId,
         name = name,
         size = size,
+        sortIndex = sortIndex,
     )
 
     fun createKlage(

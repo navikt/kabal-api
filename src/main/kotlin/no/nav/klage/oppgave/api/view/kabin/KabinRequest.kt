@@ -20,6 +20,7 @@ data class MellomlagretDocumentInput(
     val mellomlagerId: String,
     val name: String,
     val size: Long,
+    val sortIndex: Double?,
 )
 
 data class GetCompletedBehandlingerInput(

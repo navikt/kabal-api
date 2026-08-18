@@ -2444,6 +2444,7 @@ class DokumentUnderArbeidService(
                     creatorIdent = utfoerendeIdent,
                     creatorRole = behandlingRole,
                     parentId = savedHovedDokument.id,
+                    sortIndex = currentVedlegg.sortIndex,
                 )
             )
         }

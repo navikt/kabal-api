@@ -15,6 +15,9 @@ abstract class DokumentUnderArbeidAsVedlegg(
     @Column(name = "parent_id", nullable = false)
     open var parentId: UUID,
 
+    @Column(name = "sort_index")
+    open var sortIndex: Double? = null,
+
     //Common properties
     id: UUID = UUID.randomUUID(),
     name: String,
