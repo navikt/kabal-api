@@ -35,12 +35,12 @@ data class OversendtAnkeITrygderettenFraArena(
         description = "Tidspunkt for når sak ble mottatt i klageinstans.",
         required = true,
     )
-    val sakMottattKlageinstans: LocalDate,
+    val sakMottattKlageinstans: String,
     @Schema(
         description = "Tidspunkt for når saken ble sendt til Trygderetten.",
         required = true,
     )
-    val sendtTilTrygderetten: LocalDate,
+    val sendtTilTrygderetten: String,
     @Schema(
         description = "Hjemler knyttet til anken.",
         required = true,
@@ -67,10 +67,10 @@ fun OversendtAnkeITrygderettenFraArena.toAnkeITrygderettenbehandlingInput(): Ank
         dvhReferanse = null,
         fagsystem = Fagsystem.AO01,
         fagsakId = fagsakId,
-        sakMottattKlageinstans = sakMottattKlageinstans.atStartOfDay(),
+        sakMottattKlageinstans = LocalDate.parse(sakMottattKlageinstans).atStartOfDay(),
         saksdokumenter = mutableSetOf(),
         innsendingsHjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),
-        sendtTilTrygderetten = sendtTilTrygderetten.atStartOfDay(),
+        sendtTilTrygderetten = LocalDate.parse(sendtTilTrygderetten).atStartOfDay(),
         paaanketVedtaksdato = null,
         forsterketRett = false,
         registreringsHjemmelSet = null,
