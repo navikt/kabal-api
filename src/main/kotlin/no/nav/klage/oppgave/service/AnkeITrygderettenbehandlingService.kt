@@ -243,7 +243,7 @@ class AnkeITrygderettenbehandlingService(
         } else {
             hjemmelIdList.forEach { hjemmelId ->
                 val hjemmel = Hjemmel.of(hjemmelId)
-                if (!ytelseToHjemler[ytelse]!!.filter { !it.utfases }.any { it.hjemmel == hjemmel }) {
+                if (ytelseToHjemler[ytelse]!!.filter { !it.utfases }.none { it.hjemmel == hjemmel }) {
                     validationErrors.add(
                         InvalidProperty(
                             field = "hjemmelIdList",
@@ -264,11 +264,11 @@ class AnkeITrygderettenbehandlingService(
             validationErrors.add(
                 InvalidProperty(
                     field = "sakMottattKlageinstans",
-                    reason = "Dato for anke mottatt klageinstans må være oppgitt."
+                    reason = "Dato for anke mottatt klageinstans må være oppgitt på riktig form."
                 )
             )
         } else {
-            if (LocalDate.now().isBefore(sakMottattKlageinstansParsed)) {
+            if (sakMottattKlageinstansParsed.isAfter(LocalDate.now())) {
                 validationErrors.add(
                     InvalidProperty(
                         field = "sakMottattKlageinstans",
@@ -288,11 +288,11 @@ class AnkeITrygderettenbehandlingService(
             validationErrors.add(
                 InvalidProperty(
                     field = "sendtTilTrygderetten",
-                    reason = "Dato for anke sendt til Trygderetten må være oppgitt."
+                    reason = "Dato for anke sendt til Trygderetten må være oppgitt på riktig form."
                 )
             )
         } else {
-            if (LocalDate.now().isBefore(sendtTilTrygderettenParsed)) {
+            if (sendtTilTrygderettenParsed.isAfter(LocalDate.now())) {
                 validationErrors.add(
                     InvalidProperty(
                         field = "sendtTilTrygderetten",
@@ -306,7 +306,7 @@ class AnkeITrygderettenbehandlingService(
             validationErrors.add(
                 InvalidProperty(
                     field = "gosysOppgaveId",
-                    reason = "GosysOppgaveId må være et positivt heltall."
+                    reason = "Gosysoppgave må være valgt."
                 )
             )
         }
