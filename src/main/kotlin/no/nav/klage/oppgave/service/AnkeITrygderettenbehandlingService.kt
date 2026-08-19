@@ -306,7 +306,7 @@ class AnkeITrygderettenbehandlingService(
             validationErrors.add(
                 InvalidProperty(
                     field = "fagsakId",
-                    reason = "Arkivsaksnummer må være et positivt heltall."
+                    reason = "Arkivsaksnummer må bestå av bare tall og være et heltall."
                 )
             )
         }
