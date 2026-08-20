@@ -163,12 +163,6 @@ class MottakService(
                 value = input.sakenGjelder,
             )
         )
-
-        validateDuplicate(
-            fagsystem = Fagsystem.AO01,
-            kildeReferanse = input.fagsakId,
-            type = Type.ANKE_I_TRYGDERETTEN,
-        )
     }
 
     private fun updateMetrics(
@@ -594,7 +588,7 @@ class MottakService(
         )
     }
 
-    private fun validateDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type) {
+    fun validateDuplicate(fagsystem: Fagsystem, kildeReferanse: String, type: Type) {
         if (isBehandlingDuplicate(
                 fagsystem = fagsystem,
                 kildeReferanse = kildeReferanse,
