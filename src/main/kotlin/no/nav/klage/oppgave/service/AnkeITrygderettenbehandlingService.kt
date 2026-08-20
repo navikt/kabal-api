@@ -15,10 +15,7 @@ import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.kafka.*
-import no.nav.klage.oppgave.exceptions.InvalidProperty
-import no.nav.klage.oppgave.exceptions.MissingTilgangException
-import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
-import no.nav.klage.oppgave.exceptions.ValidationSection
+import no.nav.klage.oppgave.exceptions.*
 import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
 import no.nav.klage.oppgave.repositories.KafkaEventRepository
 import no.nav.klage.oppgave.util.getLogger
@@ -316,6 +313,21 @@ class AnkeITrygderettenbehandlingService(
                 InvalidProperty(
                     field = "gosysOppgaveId",
                     reason = "Gosysoppgave må være valgt."
+                )
+            )
+        }
+
+        try {
+            mottakService.validateDuplicate(
+                fagsystem = Fagsystem.AO01,
+                kildeReferanse = fagsakId,
+                type = Type.ANKE_I_TRYGDERETTEN
+            )
+        } catch (_: DuplicateOversendelseException) {
+            validationErrors.add(
+                InvalidProperty(
+                    field = "fagsakId",
+                    reason = "Det finnes allerede en anke i Trygderetten registrert i Kabal med dette arkivsaksnummeret."
                 )
             )
         }
