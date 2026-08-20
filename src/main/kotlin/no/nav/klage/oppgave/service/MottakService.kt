@@ -157,29 +157,12 @@ class MottakService(
     }
 
     fun validateAnkeITrygderettenFraArena(input: OversendtAnkeITrygderettenFraArena) {
-        validateYtelseAndHjemler(
-            ytelse = Ytelse.of(input.ytelseId),
-            hjemler = input.hjemmelIdList.map { Hjemmel.of(it) }.toSet()
-        )
         validatePartId(
             PartId(
                 type = PartIdType.PERSON,
                 value = input.sakenGjelder,
             )
         )
-        validateOptionalDateTimeNotInFuture(
-            input.sakMottattKlageinstans.atStartOfDay(),
-            OversendtAnkeITrygderettenFraArena::sakMottattKlageinstans.name
-        )
-        validateOptionalDateTimeNotInFuture(
-            input.sendtTilTrygderetten.atStartOfDay(),
-            OversendtAnkeITrygderettenFraArena::sendtTilTrygderetten.name
-        )
-        validateKildeReferanse(input.fagsakId)
-
-        if (input.gosysOppgaveId <= 0) {
-            throw OversendtKlageNotValidException("gosysOppgaveId må være et positivt tall.")
-        }
 
         validateDuplicate(
             fagsystem = Fagsystem.AO01,
