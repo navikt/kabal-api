@@ -299,7 +299,7 @@ class AnkeITrygderettenbehandlingService(
             }
         }
 
-        if (fagsakId.toIntOrNull() == null || fagsakId.toInt() <= 0) {
+        if (fagsakId.isEmpty() || !fagsakId.isNumeric()) {
             validationErrors.add(
                 InvalidProperty(
                     field = "fagsakId",
@@ -344,4 +344,6 @@ class AnkeITrygderettenbehandlingService(
             )
         }
     }
+
+    fun String.isNumeric(): Boolean = this.matches("^[0-9]*$".toRegex())
 }
