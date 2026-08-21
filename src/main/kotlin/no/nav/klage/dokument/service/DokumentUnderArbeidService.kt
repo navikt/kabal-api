@@ -25,11 +25,14 @@ import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.getHistogram
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
 import no.nav.klage.oppgave.domain.behandling.embedded.Prosessfullmektig
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingSetters.addSaksdokument
 import no.nav.klage.oppgave.domain.behandling.subentities.ForlengetBehandlingstidDraft
+import no.nav.klage.oppgave.domain.behandling.subentities.MottakDokumentDTO
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import no.nav.klage.oppgave.domain.behandling.subentities.getMottakDokumentType
 import no.nav.klage.oppgave.domain.events.DokumentFerdigstiltAvSaksbehandler
 import no.nav.klage.oppgave.domain.kafka.*
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
@@ -2006,6 +2009,45 @@ class DokumentUnderArbeidService(
         return hovedDokument
     }
 
+    private fun registerMottakDokumentIfNeeded(
+        hovedDokument: DokumentUnderArbeidAsHoveddokument,
+        behandling: Behandling,
+        journalpostIdSet: Set<String>,
+    ) {
+        if (hovedDokument !is OpplastetDokumentUnderArbeidAsHoveddokument || !hovedDokument.isMottakDokument) {
+            return
+        }
+
+        if (behandling !is BehandlingWithMottakDokument) {
+            logger.warn(
+                "Behandling {} of type {} does not support mottakDokument. Skipping registration for dua {}.",
+                behandling.id,
+                behandling.type,
+                hovedDokument.id,
+            )
+            return
+        }
+
+        val newMottakDokumenter = journalpostIdSet.filter { journalpostId ->
+            behandling.mottakDokument.none { it.journalpostId == journalpostId }
+        }.map { journalpostId ->
+            MottakDokumentDTO(
+                type = behandling.type.getMottakDokumentType(),
+                journalpostId = journalpostId,
+            )
+        }.toSet()
+
+        if (newMottakDokumenter.isNotEmpty()) {
+            behandling.addMottakDokument(mottakDokumentSet = newMottakDokumenter)
+            logger.debug(
+                "Registered {} mottakDokument(er) for behandling {} based on uploaded dua {}",
+                newMottakDokumenter.size,
+                behandling.id,
+                hovedDokument.id,
+            )
+        }
+    }
+
     fun ferdigstillDokumentEnhet(hovedDokumentId: UUID): DokumentUnderArbeidAsHoveddokument {
         logger.debug("ferdigstillDokumentEnhet hoveddokument with id {}", hovedDokumentId)
         val hovedDokument =
@@ -2080,6 +2122,12 @@ class DokumentUnderArbeidService(
                 }
             }
         }
+
+        registerMottakDokumentIfNeeded(
+            hovedDokument = hovedDokument,
+            behandling = behandling,
+            journalpostIdSet = journalpostIdSet,
+        )
 
         //Legg inn dokarkivReferences på dokumenter som ikke tidligere har vært i arkivet
         dokumentEnhetFullfoerOutput.sourceReferenceWithJoarkReferencesList.filter { it.sourceReference != null }
@@ -2340,6 +2388,73 @@ class DokumentUnderArbeidService(
         )
 
         return hovedDokument
+    }
+
+    /**
+     * Creates an uploaded incoming document (ANNEN_INNGAAENDE_POST) as hoveddokument (+ optional vedlegg)
+     * from files already stored in mellomlager, sets avsender/datoMottatt/inngaaendeKanal and marks it finished,
+     * triggering journalføring based on the Behandling (sak, tema, mottattNav). Used by the Kabin create flow.
+     */
+    fun createAndFinalizeOpplastetInngaaendeDokumentUnderArbeidForKabin(
+        behandling: Behandling,
+        hoveddokument: MellomlagretDokumentReference,
+        vedlegg: List<MellomlagretDokumentReference>,
+        avsenderIdentifikator: String,
+        inngaaendeKanal: InngaaendeKanal,
+    ): DokumentUnderArbeidAsHoveddokument {
+        val utfoerendeIdent = tokenUtil.getIdent()
+        val behandlingRole = behandling.getRoleInBehandling(utfoerendeIdent)
+        val datoMottatt = behandling.mottattKlageinstans.toLocalDate()
+
+        val savedHovedDokument = opplastetDokumentUnderArbeidAsHoveddokumentRepository.save(
+            OpplastetDokumentUnderArbeidAsHoveddokument(
+                mellomlagerId = hoveddokument.mellomlagerId,
+                size = hoveddokument.size,
+                name = hoveddokument.name,
+                dokumentType = DokumentType.ANNEN_INNGAAENDE_POST,
+                behandlingId = behandling.id,
+                creatorIdent = utfoerendeIdent,
+                creatorRole = behandlingRole,
+                datoMottatt = datoMottatt,
+                journalfoerendeEnhetId = null,
+                inngaaendeKanal = inngaaendeKanal,
+                isMottakDokument = true,
+            )
+        )
+
+        savedHovedDokument.brevmottakere.clear()
+        savedHovedDokument.brevmottakere.add(
+            Brevmottaker(
+                technicalPartId = behandling.getTechnicalIdFromPart(identifikator = avsenderIdentifikator),
+                identifikator = avsenderIdentifikator,
+                localPrint = false,
+                forceCentralPrint = false,
+                address = null,
+                navn = null,
+            )
+        )
+
+        vedlegg.forEach { currentVedlegg ->
+            opplastetDokumentUnderArbeidAsVedleggRepository.save(
+                OpplastetDokumentUnderArbeidAsVedlegg(
+                    mellomlagerId = currentVedlegg.mellomlagerId,
+                    size = currentVedlegg.size,
+                    name = currentVedlegg.name,
+                    behandlingId = behandling.id,
+                    creatorIdent = utfoerendeIdent,
+                    creatorRole = behandlingRole,
+                    parentId = savedHovedDokument.id,
+                    sortIndex = currentVedlegg.sortIndex,
+                )
+            )
+        }
+
+        return finnOgMarkerFerdigHovedDokument(
+            behandlingId = behandling.id,
+            dokumentId = savedHovedDokument.id,
+            utfoerendeIdent = utfoerendeIdent,
+            systemContext = false,
+        )
     }
 
     fun createAndFinalizeForlengetBehandlingstidDokumentUnderArbeid(

@@ -28,6 +28,7 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
     parentId: UUID,
     creatorIdent: String,
     creatorRole: BehandlingRole,
+    sortIndex: Double? = null,
 
     @Column(name = "size")
     var size: Long?,
@@ -38,6 +39,7 @@ class OpplastetDokumentUnderArbeidAsVedlegg(
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsVedlegg(
     id = id,
     name = name,
+    sortIndex = sortIndex,
     behandlingId = behandlingId,
     created = created,
     modified = modified,
