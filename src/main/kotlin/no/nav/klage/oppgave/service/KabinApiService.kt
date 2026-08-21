@@ -252,8 +252,6 @@ class KabinApiService(
     ): CreatedBehandlingResponse {
         val behandling = mottakService.createKlageMottakFromKabinInput(klageInput = input)
 
-        createUploadedIncomingDocumentIfPresent(behandling = behandling, uploadedDocument = input.uploadedDocument)
-
         setSaksbehandlerAndCreateSvarbrev(
             behandling = behandling,
             saksbehandlerIdent = input.saksbehandlerIdent,

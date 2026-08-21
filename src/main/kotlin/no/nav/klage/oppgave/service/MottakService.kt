@@ -481,11 +481,7 @@ class MottakService(
             ytelse = Ytelse.of(ytelseId),
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }
         )
-        validateIncomingDocumentSource(
-            journalpostId = klageJournalpostId,
-            uploadedDocument = uploadedDocument,
-            type = Type.KLAGE,
-        )
+        validateJournalpostList(listOf(klageJournalpostId))
         klager?.toPartId()?.let { validatePartId(it) }
         validatePartId(sakenGjelder.toPartId())
         fullmektig?.let { validatePartId(it.toPartId()) }
@@ -879,14 +875,12 @@ class MottakService(
             dvhReferanse = null,
             hjemler = hjemmelIdList.map { Hjemmel.of(it) }.toSet(),
             forrigeBehandlendeEnhet = forrigeBehandlendeEnhet,
-            mottakDokument = if (klageJournalpostId != null) {
-                mutableSetOf(
-                    MottakDokumentDTO(
-                        type = MottakDokumentType.BRUKERS_KLAGE,
-                        journalpostId = klageJournalpostId
-                    )
+            mottakDokument = mutableSetOf(
+                MottakDokumentDTO(
+                    type = MottakDokumentType.BRUKERS_KLAGE,
+                    journalpostId = klageJournalpostId
                 )
-            } else mutableSetOf(),
+            ),
             brukersKlageMottattVedtaksinstans = brukersHenvendelseMottattNav,
             sakMottattKaDato = sakMottattKa.atStartOfDay(),
             frist = frist,
