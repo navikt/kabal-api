@@ -50,6 +50,13 @@ enum class InngaaendeKanal {
     E_POST,
 }
 
+data class MellomlagretDokumentReference(
+    val mellomlagerId: String,
+    val name: String,
+    val size: Long,
+    val sortIndex: Double?,
+)
+
 data class AvsenderInput(
     val identifikator: String,
 )

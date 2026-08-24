@@ -45,6 +45,8 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     @Enumerated(EnumType.STRING)
     @Column(name = "inngaaende_kanal")
     var inngaaendeKanal: InngaaendeKanal?,
+    @Column(name = "is_mottak_dokument")
+    var isMottakDokument: Boolean = false,
 ) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsHoveddokument(
     id = id,
     name = name,

@@ -69,23 +69,23 @@ class KabalDocumentMapper(
             )
         } else null
 
-        val vedleggMapped = if (hovedDokument.isInngaaende()) {
-            vedlegg.filter { it !is JournalfoertDokumentUnderArbeidAsVedlegg }
-                .sortedWith(DokumentUnderArbeidTitleComparator())
-                .map { currentVedlegg ->
-                    mapDokumentUnderArbeidToDokumentReferanse(
-                        dokument = currentVedlegg,
-                    )
-                }.toMutableList()
-        } else {
-            vedlegg.filter { it !is JournalfoertDokumentUnderArbeidAsVedlegg }
-                .sortedByDescending { it.created }
-                .map { currentVedlegg ->
-                    mapDokumentUnderArbeidToDokumentReferanse(
-                        dokument = currentVedlegg,
-                    )
-                }.toMutableList()
+        //Both opplastede and smartdokumenter end up here, since they are all mellomlagret.
+        val mellomlagredeVedlegg = vedlegg.filter { it !is JournalfoertDokumentUnderArbeidAsVedlegg }
+
+        //Only documents uploaded through Kabin have an explicit order, and then all of them have it.
+        val useExplicitSortIndex = mellomlagredeVedlegg.isNotEmpty() &&
+                mellomlagredeVedlegg.all { it.sortIndex != null }
+
+        val sortedVedlegg = when {
+            useExplicitSortIndex -> mellomlagredeVedlegg.sortedBy { it.sortIndex }
+            hovedDokument.isInngaaende() -> mellomlagredeVedlegg.sortedWith(DokumentUnderArbeidTitleComparator())
+            else -> mellomlagredeVedlegg.sortedByDescending { it.created }
         }
+
+        val vedleggMapped = sortedVedlegg.map { currentVedlegg ->
+            mapDokumentUnderArbeidToDokumentReferanse(dokument = currentVedlegg)
+        }.toMutableList()
+
         if (innholdsfortegnelseDocument != null) {
             vedleggMapped.add(0, innholdsfortegnelseDocument)
         }
@@ -234,7 +234,9 @@ class KabalDocumentMapper(
         }
     }
 
-    private fun mapDokumentUnderArbeidToDokumentReferanse(dokument: DokumentUnderArbeid): DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument {
+    private fun mapDokumentUnderArbeidToDokumentReferanse(
+        dokument: DokumentUnderArbeid,
+    ): DokumentEnhetWithDokumentreferanserInput.DokumentInput.Dokument {
         if (dokument !is DokumentUnderArbeidAsMellomlagret) {
             error("Must be mellomlagret document")
         }

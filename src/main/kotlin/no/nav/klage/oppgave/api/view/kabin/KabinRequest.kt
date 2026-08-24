@@ -1,12 +1,27 @@
 package no.nav.klage.oppgave.api.view.kabin
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import no.nav.klage.dokument.api.view.InngaaendeKanal
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import java.time.LocalDate
 import java.util.*
+
+data class UploadedDocumentInput(
+    val avsender: OversendtPartId,
+    val inngaaendeKanal: InngaaendeKanal,
+    val hoveddokument: MellomlagretDocumentInput,
+    val vedlegg: List<MellomlagretDocumentInput> = emptyList(),
+)
+
+data class MellomlagretDocumentInput(
+    val mellomlagerId: String,
+    val name: String,
+    val size: Long,
+    val sortIndex: Double?,
+)
 
 data class GetCompletedBehandlingerInput(
     val idnummer: String
@@ -38,7 +53,8 @@ data class CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling(
     val frist: LocalDate,
     val klager: OversendtPartId?,
     val fullmektig: OversendtPartId?,
-    val receivedDocumentJournalpostId: String,
+    val receivedDocumentJournalpostId: String?,
+    val uploadedDocument: UploadedDocumentInput?,
     val saksbehandlerIdent: String?,
     val svarbrevInput: SvarbrevInput,
     val hjemmelIdList: List<String>,
@@ -54,7 +70,8 @@ data class CreateAnkeBasedOnCompleteKabinInput(
     val fagsystemId: String,
     val hjemmelIdList: List<String>,
     val forrigeBehandlendeEnhet: String,
-    val ankeJournalpostId: String,
+    val ankeJournalpostId: String?,
+    val uploadedDocument: UploadedDocumentInput?,
     val mottattNav: LocalDate,
     val frist: LocalDate,
     val ytelseId: String,
@@ -107,7 +124,8 @@ data class CreateBehandlingBasedOnJournalpostInput(
     val fagsystemId: String,
     val hjemmelIdList: List<String>,
     val forrigeBehandlendeEnhet: String,
-    val receivedDocumentJournalpostId: String,
+    val receivedDocumentJournalpostId: String?,
+    val uploadedDocument: UploadedDocumentInput?,
     val mottattNav: LocalDate,
     val frist: LocalDate,
     val ytelseId: String,
