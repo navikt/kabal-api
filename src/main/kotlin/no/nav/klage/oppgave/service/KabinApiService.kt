@@ -14,6 +14,7 @@ import no.nav.klage.oppgave.api.mapper.BehandlingMapper
 import no.nav.klage.oppgave.api.view.kabin.*
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
 import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithMottakDokument
 import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
 import no.nav.klage.oppgave.domain.behandling.embedded.MottakerNavn
@@ -396,6 +397,7 @@ class KabinApiService(
                 )
             },
             gosysOppgaveRequired = gosysOppgaveRequired,
+            kjennelseMottatt = (this as? BehandlingITrygderetten)?.kjennelseMottatt,
         )
     }
 }

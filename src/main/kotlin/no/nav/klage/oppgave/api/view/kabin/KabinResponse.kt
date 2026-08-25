@@ -42,6 +42,7 @@ data class Mulighet(
     val tildeltSaksbehandlerIdent: String?,
     val tildeltSaksbehandlerNavn: String?,
     val gosysOppgaveRequired: Boolean,
+    val kjennelseMottatt: LocalDateTime?,
 )
 
 data class ExistingAnkebehandling(
