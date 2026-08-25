@@ -271,6 +271,28 @@ class BehandlingService(
                     )
                 } else {
                     if (gosysOppgaveInput.gosysOppgaveUpdate != null) {
+                        if (behandling.type in listOf(
+                                Type.ANKE,
+                                Type.BEGJAERING_OM_GJENOPPTAK
+                            ) && behandling.shouldBeSentToTrygderetten()
+                        ) {
+                            if (gosysOppgaveInput.gosysOppgaveUpdate.mappeId == null) {
+                                throw SectionedValidationErrorWithDetailsException(
+                                    title = "Validation error",
+                                    sections = listOf(
+                                        ValidationSection(
+                                            section = "behandling",
+                                            properties = listOf(
+                                                InvalidProperty(
+                                                    field = "gosysOppgaveUpdate",
+                                                    reason = "Du må oppgi hvilken enhetsmappe denne saken skal overføres til."
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            }
+                        }
                         logger.debug("Updating behandling with gosysOppgaveInput")
                         behandling.setGosysOppgaveUpdate(
                             tildeltEnhet = gosysOppgaveInput.gosysOppgaveUpdate.tildeltEnhet,
