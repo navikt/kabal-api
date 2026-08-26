@@ -1,7 +1,7 @@
 package no.nav.klage.oppgave.util
 
-import org.apache.tika.config.TikaConfig
 import org.apache.tika.mime.MimeType
+import org.apache.tika.mime.MimeTypes
 import org.springframework.http.MediaType
 
 /**
@@ -11,9 +11,7 @@ import org.springframework.http.MediaType
  * @return The file extension corresponding to the media type. Including leading dot.
  */
 fun mediaTypeToFileExtension(mediaType: MediaType): String {
-    val config = TikaConfig.getDefaultConfig()
-
-    val mimeType: MimeType = config.mimeRepository.forName(mediaType.toString())
+    val mimeType: MimeType = MimeTypes.getDefaultMimeTypes().forName(mediaType.toString())
     return mimeType.extension
 }
 

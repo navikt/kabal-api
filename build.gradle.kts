@@ -11,7 +11,7 @@ val shedlockVersion = "7.7.0"
 val archunitVersion = "1.4.2"
 val logbackSyslog4jVersion = "1.0.0"
 val pdfboxVersion = "3.0.8"
-val tikaVersion = "3.3.2"
+val tikaVersion = "4.0.0"
 val verapdfVersion = "1.30.2"
 val klageKodeverkVersion = "3.3.18"
 val commonsFileupload2JakartaVersion = "2.0.0-M5"
@@ -67,7 +67,7 @@ dependencies {
     implementation("org.springframework.data:spring-data-envers")
 
     implementation("org.springframework.kafka:spring-kafka")
-    implementation("io.projectreactor.kafka:reactor-kafka:${reactorKafkaVersion}")
+    implementation("io.projectreactor.kafka:reactor-kafka:$reactorKafkaVersion")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("com.zaxxer:HikariCP")
     implementation("org.postgresql:postgresql")
@@ -119,7 +119,6 @@ dependencies {
 
     testImplementation("io.mockk:mockk:$mockkVersion")
     testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
-
 }
 
 idea {
