@@ -1,9 +1,9 @@
 package no.nav.klage.oppgave.api.view
 
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
-data class TaskListMerkantilView (
+data class TaskListMerkantilView(
     val id: UUID,
     val behandlingId: UUID,
     val reason: String,

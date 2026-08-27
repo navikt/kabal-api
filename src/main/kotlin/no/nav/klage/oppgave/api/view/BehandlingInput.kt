@@ -3,11 +3,11 @@ package no.nav.klage.oppgave.api.view
 import java.time.LocalDate
 
 data class BehandlingDateInput(
-    val date: LocalDate
+    val date: LocalDate,
 )
 
 data class BehandlingDateNullableInput(
-    val date: LocalDate?
+    val date: LocalDate?,
 )
 
 data class SattPaaVentInput(

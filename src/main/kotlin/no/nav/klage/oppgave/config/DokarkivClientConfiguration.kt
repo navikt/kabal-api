@@ -8,21 +8,19 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
 class DokarkivClientConfiguration(
-    private val webClientBuilder: WebClient.Builder
+    private val webClientBuilder: WebClient.Builder,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Value("\${DOKARKIV_BASE_URL}")
+    @Value($$"${DOKARKIV_BASE_URL}")
     private lateinit var joarkServiceURL: String
 
     @Bean
-    fun dokarkivWebClient(): WebClient {
-        return webClientBuilder
+    fun dokarkivWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(joarkServiceURL)
             .build()
-    }
 }

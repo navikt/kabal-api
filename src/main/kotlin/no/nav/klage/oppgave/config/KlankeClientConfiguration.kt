@@ -6,10 +6,9 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.WebClient
 
-
 @Configuration
 class KlankeClientConfiguration(
-    private val webClientBuilder: WebClient.Builder
+    private val webClientBuilder: WebClient.Builder,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -20,9 +19,8 @@ class KlankeClientConfiguration(
     private lateinit var klankeUrl: String
 
     @Bean
-    fun klankeWebClient(): WebClient {
-        return webClientBuilder
+    fun klankeWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(klankeUrl)
             .build()
-    }
 }

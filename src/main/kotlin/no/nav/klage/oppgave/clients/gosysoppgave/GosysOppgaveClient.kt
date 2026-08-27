@@ -20,88 +20,97 @@ import org.springframework.web.reactive.function.client.bodyToMono
 class GosysOppgaveClient(
     private val gosysOppgaveWebClient: WebClient,
     private val tokenUtil: TokenUtil,
-    @Value("\${spring.application.name}") private val applicationName: String,
+    @Value($$"${spring.application.name}") private val applicationName: String,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
     }
 
-    fun getGosysOppgave(gosysOppgaveId: Long, systemContext: Boolean): GosysOppgaveRecord {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgave.name) {
-            gosysOppgaveWebClient.get()
+    fun getGosysOppgave(
+        gosysOppgaveId: Long,
+        systemContext: Boolean,
+    ): GosysOppgaveRecord =
+        logTimingAndWebClientResponseException(GosysOppgaveClient::getGosysOppgave.name) {
+            gosysOppgaveWebClient
+                .get()
                 .uri { uriBuilder ->
                     uriBuilder.pathSegment("v1", "oppgaver", "{id}").build(gosysOppgaveId)
-                }
-                .header(
+                }.header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
-                )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                    "Bearer ${if (systemContext) {
+                        tokenUtil.getAppAccessTokenWithGosysOppgaveScope()
+                    } else {
+                        tokenUtil
+                            .getSaksbehandlerAccessTokenWithGosysOppgaveScope()
+                    }}",
+                ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
                 .block() ?: throw RuntimeException("Oppgave could not be fetched")
         }
-    }
 
     fun updateGosysOppgave(
         gosysOppgaveId: Long,
         updateOppgaveInput: UpdateOppgaveRequest,
-        systemContext: Boolean
-    ): GosysOppgaveRecord {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
-            gosysOppgaveWebClient.patch()
+        systemContext: Boolean,
+    ): GosysOppgaveRecord =
+        logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
+            gosysOppgaveWebClient
+                .patch()
                 .uri { uriBuilder ->
                     uriBuilder.pathSegment("v1", "oppgaver", "{id}").build(gosysOppgaveId)
-                }
-                .bodyValue(updateOppgaveInput)
+                }.bodyValue(updateOppgaveInput)
                 .header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
-                )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                    "Bearer ${if (systemContext) {
+                        tokenUtil.getAppAccessTokenWithGosysOppgaveScope()
+                    } else {
+                        tokenUtil
+                            .getSaksbehandlerAccessTokenWithGosysOppgaveScope()
+                    }}",
+                ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<GosysOppgaveRecord>()
                 .block() ?: throw RuntimeException("Oppgave could not be updated")
         }
-    }
 
     fun updateGosysOppgaveV2(
         gosysOppgaveId: Long,
         updateOppgaveInput: UpdateOppgaveRequestV2,
-        systemContext: Boolean
-    ) {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
-            gosysOppgaveWebClient.patch()
-                .uri { uriBuilder ->
-                    uriBuilder
-                        .pathSegment("v2", "oppgaver", "{id}")
-                        .queryParam("include", "kommentarer")
-                        .build(gosysOppgaveId)
-                }
-                .bodyValue(updateOppgaveInput)
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
-                )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
-                .header("Nav-Consumer-Id", applicationName)
-                .retrieve()
-                .bodyToMono<Void>()
-                .block()
-        }
+        systemContext: Boolean,
+    ) = logTimingAndWebClientResponseException(GosysOppgaveClient::updateGosysOppgave.name) {
+        gosysOppgaveWebClient
+            .patch()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .pathSegment("v2", "oppgaver", "{id}")
+                    .queryParam("include", "kommentarer")
+                    .build(gosysOppgaveId)
+            }.bodyValue(updateOppgaveInput)
+            .header(
+                HttpHeaders.AUTHORIZATION,
+                "Bearer ${if (systemContext) {
+                    tokenUtil.getAppAccessTokenWithGosysOppgaveScope()
+                } else {
+                    tokenUtil
+                        .getSaksbehandlerAccessTokenWithGosysOppgaveScope()
+                }}",
+            ).header("X-Correlation-ID", Span.current().spanContext.traceId)
+            .header("Nav-Consumer-Id", applicationName)
+            .retrieve()
+            .bodyToMono<Void>()
+            .block()
     }
 
     @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_ENHETSMAPPER_CACHE)
-    fun getMapperForEnhet(
-        enhetsnr: String
-    ): OppgaveMapperResponse {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::getMapperForEnhet.name) {
-            gosysOppgaveWebClient.get()
+    fun getMapperForEnhet(enhetsnr: String): OppgaveMapperResponse =
+        logTimingAndWebClientResponseException(GosysOppgaveClient::getMapperForEnhet.name) {
+            gosysOppgaveWebClient
+                .get()
                 .uri { uriBuilder ->
                     uriBuilder
                         .pathSegment("v1", "mapper")
@@ -109,50 +118,51 @@ class GosysOppgaveClient(
                         .queryParam("offset", 0)
                         .queryParam("limit", 250)
                         .build()
-                }
-                .header(
+                }.header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
-                )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}",
+                ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveMapperResponse>()
                 .block() ?: throw RuntimeException("Could not get mapper for enhet")
         }
-    }
 
     @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_ENHETSMAPPE_CACHE)
     fun getMappe(
         id: Long,
-        systemContext: Boolean
-    ): OppgaveMappe {
-        return logTimingAndWebClientResponseException(GosysOppgaveClient::getMappe.name) {
-            gosysOppgaveWebClient.get()
+        systemContext: Boolean,
+    ): OppgaveMappe =
+        logTimingAndWebClientResponseException(GosysOppgaveClient::getMappe.name) {
+            gosysOppgaveWebClient
+                .get()
                 .uri { uriBuilder ->
                     uriBuilder
                         .pathSegment("v1", "mapper", "{id}")
                         .build(id)
-                }
-                .header(
+                }.header(
                     HttpHeaders.AUTHORIZATION,
-                    "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
-                )
-                .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                    "Bearer ${if (systemContext) {
+                        tokenUtil.getAppAccessTokenWithGosysOppgaveScope()
+                    } else {
+                        tokenUtil
+                            .getSaksbehandlerAccessTokenWithGosysOppgaveScope()
+                    }}",
+                ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                 .header("Nav-Consumer-Id", applicationName)
                 .retrieve()
                 .bodyToMono<OppgaveMappe>()
                 .block() ?: throw RuntimeException("Could not get mapper for enhet")
         }
-    }
 
     fun fetchGosysOppgaveForAktoerIdAndTema(
         aktoerId: String,
-        temaList: List<Tema>?
+        temaList: List<Tema>?,
     ): List<GosysOppgaveRecord> {
         val oppgaveResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::fetchGosysOppgaveForAktoerIdAndTema.name) {
-                gosysOppgaveWebClient.get()
+                gosysOppgaveWebClient
+                    .get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("v1", "oppgaver")
                         uriBuilder.queryParam("aktoerId", aktoerId)
@@ -160,12 +170,10 @@ class GosysOppgaveClient(
                         uriBuilder.queryParam("limit", 1000)
                         uriBuilder.queryParam("offset", 0)
                         uriBuilder.build()
-                    }
-                    .header(
+                    }.header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
-                    )
-                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}",
+                    ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<OppgaveListResponse>()
@@ -175,7 +183,10 @@ class GosysOppgaveClient(
         return oppgaveResponse.oppgaver
     }
 
-    private fun <T> logTimingAndWebClientResponseException(methodName: String, function: () -> T): T {
+    private fun <T> logTimingAndWebClientResponseException(
+        methodName: String,
+        function: () -> T,
+    ): T {
         val start: Long = System.currentTimeMillis()
         try {
             return function.invoke()
@@ -186,12 +197,12 @@ class GosysOppgaveClient(
                 ex.statusCode,
                 ex.request?.method ?: "-",
                 ex.request?.uri ?: "-",
-                ex.responseBodyAsString
+                ex.responseBodyAsString,
             )
-            throw GosysOppgaveClientException("Caught WebClientResponseException", ex)
+            throw GosysOppgaveClientException(message = "Caught WebClientResponseException", cause = ex)
         } catch (rtex: RuntimeException) {
             logger.warn("Caught RuntimeException", rtex)
-            throw GosysOppgaveClientException("Caught runtimeexception", rtex)
+            throw GosysOppgaveClientException(message = "Caught runtimeexception", cause = rtex)
         } finally {
             val end: Long = System.currentTimeMillis()
             logger.debug("Method {} took {} millis", methodName, (end - start))
@@ -199,19 +210,26 @@ class GosysOppgaveClient(
     }
 
     @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_GJELDER_CACHE)
-    fun getGjelderKodeverkForTema(tema: Tema, systemContext: Boolean): List<Gjelder> {
+    fun getGjelderKodeverkForTema(
+        tema: Tema,
+        systemContext: Boolean,
+    ): List<Gjelder> {
         val gjelderResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::getGjelderKodeverkForTema.name) {
-                gosysOppgaveWebClient.get()
+                gosysOppgaveWebClient
+                    .get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("v1", "kodeverk", "gjelder", "{tema}")
                         uriBuilder.build(tema.navn)
-                    }
-                    .header(
+                    }.header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
-                    )
-                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                        "Bearer ${if (systemContext) {
+                            tokenUtil.getAppAccessTokenWithGosysOppgaveScope()
+                        } else {
+                            tokenUtil
+                                .getSaksbehandlerAccessTokenWithGosysOppgaveScope()
+                        }}",
+                    ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<Gjelder>>()
@@ -222,19 +240,26 @@ class GosysOppgaveClient(
     }
 
     @Cacheable(CacheWithJCacheConfiguration.GOSYSOPPGAVE_OPPGAVETYPE_CACHE)
-    fun getOppgavetypeKodeverkForTema(tema: Tema, systemContext: Boolean): List<OppgavetypeResponse> {
+    fun getOppgavetypeKodeverkForTema(
+        tema: Tema,
+        systemContext: Boolean,
+    ): List<OppgavetypeResponse> {
         val oppgavetypeResponse =
             logTimingAndWebClientResponseException(GosysOppgaveClient::getOppgavetypeKodeverkForTema.name) {
-                gosysOppgaveWebClient.get()
+                gosysOppgaveWebClient
+                    .get()
                     .uri { uriBuilder ->
                         uriBuilder.pathSegment("v1", "kodeverk", "oppgavetype", "{tema}")
                         uriBuilder.build(tema.navn)
-                    }
-                    .header(
+                    }.header(
                         HttpHeaders.AUTHORIZATION,
-                        "Bearer ${if (systemContext) tokenUtil.getAppAccessTokenWithGosysOppgaveScope() else tokenUtil.getSaksbehandlerAccessTokenWithGosysOppgaveScope()}"
-                    )
-                    .header("X-Correlation-ID", Span.current().spanContext.traceId)
+                        "Bearer ${if (systemContext) {
+                            tokenUtil.getAppAccessTokenWithGosysOppgaveScope()
+                        } else {
+                            tokenUtil
+                                .getSaksbehandlerAccessTokenWithGosysOppgaveScope()
+                        }}",
+                    ).header("X-Correlation-ID", Span.current().spanContext.traceId)
                     .header("Nav-Consumer-Id", applicationName)
                     .retrieve()
                     .bodyToMono<List<OppgavetypeResponse>>()

@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/enheter")
 class EnhetController(
     private val enhetService: EnhetService,
-    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService
+    private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -27,7 +27,7 @@ class EnhetController(
 
     @GetMapping("/{enhet}/ytelser")
     fun getRelevantYtelser(
-        @PathVariable("enhet") enhet: String
+        @PathVariable("enhet") enhet: String,
     ): List<String> {
         verifyKabalInnsynEgenEnhet()
         logger.debug(

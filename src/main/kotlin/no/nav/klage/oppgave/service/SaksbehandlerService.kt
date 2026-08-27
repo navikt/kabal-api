@@ -15,17 +15,15 @@ import org.springframework.stereotype.Service
 class SaksbehandlerService(
     private val kabalInnstillingerService: KabalInnstillingerService,
     private val klageLookupGateway: KlageLookupGateway,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getEnhetForSaksbehandler(navIdent: String): SaksbehandlerEnhet {
-        return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent).enhet
-    }
+    fun getEnhetForSaksbehandler(navIdent: String): SaksbehandlerEnhet =
+        klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent).enhet
 
     @Cacheable(CacheWithJCacheConfiguration.SAKSBEHANDLER_NAME_CACHE)
     fun getNameForIdentDefaultIfNull(navIdent: String): String {
@@ -40,48 +38,42 @@ class SaksbehandlerService(
         }
     }
 
-    private fun getTildelteYtelserForSaksbehandler(navIdent: String): List<Ytelse> {
-        return kabalInnstillingerService.getTildelteYtelserForSaksbehandler(navIdent)
-    }
+    private fun getTildelteYtelserForSaksbehandler(navIdent: String): List<Ytelse> =
+        kabalInnstillingerService.getTildelteYtelserForSaksbehandler(navIdent)
 
-    fun saksbehandlerHasAccessToYtelse(navIdent: String, ytelse: Ytelse): Boolean {
-        return hasKabalOppgavestyringAlleEnheterRole(navIdent)
-                || getTildelteYtelserForSaksbehandler(navIdent).contains(ytelse)
-    }
+    fun saksbehandlerHasAccessToYtelse(
+        navIdent: String,
+        ytelse: Ytelse,
+    ): Boolean =
+        hasKabalOppgavestyringAlleEnheterRole(navIdent) ||
+            getTildelteYtelserForSaksbehandler(navIdent).contains(ytelse)
 
-    fun isSaksbehandler(ident: String): Boolean =
-        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_SAKSBEHANDLING)
+    fun isSaksbehandler(ident: String): Boolean = getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_SAKSBEHANDLING)
 
-    fun isROL(ident: String): Boolean =
-        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_ROL)
+    fun isROL(ident: String): Boolean = getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_ROL)
 
-    fun isKROL(ident: String): Boolean =
-        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_KROL)
+    fun isKROL(ident: String): Boolean = getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_KROL)
 
     fun isKabalSvarbrevinnstillinger(ident: String): Boolean =
         getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_SVARBREVINNSTILLINGER)
 
-    fun hasFortroligRole(ident: String): Boolean =
-        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.FORTROLIG)
+    fun hasFortroligRole(ident: String): Boolean = getSaksbehandlerGroups(ident).groups.contains(AzureGroup.FORTROLIG)
 
-    fun hasEgenAnsattRole(ident: String): Boolean =
-        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.EGEN_ANSATT)
+    fun hasEgenAnsattRole(ident: String): Boolean = getSaksbehandlerGroups(ident).groups.contains(AzureGroup.EGEN_ANSATT)
 
     fun hasKabalOppgavestyringAlleEnheterRole(ident: String): Boolean =
         getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_OPPGAVESTYRING_ALLE_ENHETER)
 
-    fun hasKabalAdminRole(ident: String): Boolean =
-        getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_ADMIN)
+    fun hasKabalAdminRole(ident: String): Boolean = getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_ADMIN)
 
     fun hasKabalInnsynEgenEnhetRole(ident: String): Boolean =
         getSaksbehandlerGroups(ident).groups.contains(AzureGroup.KABAL_INNSYN_EGEN_ENHET)
 
-    private fun getSaksbehandlerGroups(navIdent: String): SaksbehandlerGroups {
-        return try {
+    private fun getSaksbehandlerGroups(navIdent: String): SaksbehandlerGroups =
+        try {
             klageLookupGateway.getGroupsForGivenNavIdent(navIdent = navIdent)
         } catch (e: Exception) {
             logger.warn("Failed to retrieve group memberships for navident $navIdent, using emptylist instead. Exception: $e")
             SaksbehandlerGroups(groups = emptyList())
         }
-    }
 }

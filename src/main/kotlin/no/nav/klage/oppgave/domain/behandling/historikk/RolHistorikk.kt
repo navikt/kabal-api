@@ -1,10 +1,14 @@
 package no.nav.klage.oppgave.domain.behandling.historikk
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import no.nav.klage.kodeverk.FlowState
 import no.nav.klage.kodeverk.FlowStateConverter
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "rolhistorikk", schema = "klage")
@@ -32,11 +36,8 @@ class RolHistorikk(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "RolHistorikk(id=$id, rolIdent=$rolIdent, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn, flowState=$flowState)"
-    }
+    override fun toString(): String =
+        "RolHistorikk(id=$id, rolIdent=$rolIdent, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn, flowState=$flowState)"
 }

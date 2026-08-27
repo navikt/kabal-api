@@ -24,7 +24,7 @@ class BehandlingEtterTrygderettenOpphevetService(
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val kakaApiGateway: KakaApiGateway,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val kakaVersionUtil: KakaVersionUtil,
 ) {
     companion object {
@@ -37,7 +37,8 @@ class BehandlingEtterTrygderettenOpphevetService(
 
         val kvalitetsvurderingVersion = kakaVersionUtil.getKakaVersion()
 
-        val behandlingEtterTrygderettenOpphevet = behandlingEtterTrygderettenOpphevetRepository.save(
+        val behandlingEtterTrygderettenOpphevet =
+            behandlingEtterTrygderettenOpphevetRepository.save(
                 BehandlingEtterTrygderettenOpphevet(
                     klager = behandling.klager.copy(),
                     sakenGjelder = behandling.sakenGjelder.copy(),
@@ -51,7 +52,11 @@ class BehandlingEtterTrygderettenOpphevetService(
                     mottattKlageinstans = behandling.kjennelseMottatt!!,
                     tildeling = behandling.tildeling?.copy(tidspunkt = LocalDateTime.now()),
                     frist = LocalDate.now(),
-                    kakaKvalitetsvurderingId = kakaApiGateway.createKvalitetsvurdering(kvalitetsvurderingVersion = kvalitetsvurderingVersion).kvalitetsvurderingId,
+                    kakaKvalitetsvurderingId =
+                        kakaApiGateway
+                            .createKvalitetsvurdering(
+                                kvalitetsvurderingVersion = kvalitetsvurderingVersion,
+                            ).kvalitetsvurderingId,
                     kakaKvalitetsvurderingVersion = kvalitetsvurderingVersion,
                     hjemler = behandling.hjemler,
                     previousSaksbehandlerident = behandling.tildeling?.saksbehandlerident,
@@ -64,38 +69,39 @@ class BehandlingEtterTrygderettenOpphevetService(
                     gosysOppgaveRequired = behandling.gosysOppgaveRequired,
                     initiatingSystem = Behandling.InitiatingSystem.KABAL,
                     previousBehandlingId = behandling.id,
-                )
+                ),
             )
 
         logger.debug(
             "Created BehandlingEtterTrygderettenOpphevet {} from behandlingITrygderetten {}",
             behandlingEtterTrygderettenOpphevet.id,
-            behandling.id
+            behandling.id,
         )
 
         behandlingService.connectDocumentsFromPreviousBehandlingToBehandling(
             behandlingId = behandlingEtterTrygderettenOpphevet.id,
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
-            ignoreCheckSkrivetilgang = true
+            ignoreCheckSkrivetilgang = true,
         )
 
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
                 behandling = behandlingEtterTrygderettenOpphevet,
-                changeList = listOfNotNull(
-                    createChange(
-                        saksbehandlerident = behandling.tildeling!!.saksbehandlerident,
-                        felt = BehandlingChangedEvent.Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET,
-                        fraVerdi = null,
-                        tilVerdi = "Opprettet",
-                        behandlingId = behandlingEtterTrygderettenOpphevet.id,
-                    )
-                )
-            )
+                changeList =
+                    listOfNotNull(
+                        createChange(
+                            saksbehandlerident = behandling.tildeling!!.saksbehandlerident,
+                            felt = BehandlingChangedEvent.Felt.BEHANDLING_ETTER_TR_OPPHEVET_OPPRETTET,
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = behandlingEtterTrygderettenOpphevet.id,
+                        ),
+                    ),
+            ),
         )
 
-        //TODO: Undersøk om vi skal sende noen infomelding om at dette har skjedd
+        // TODO: Undersøk om vi skal sende noen infomelding om at dette har skjedd
 
         return behandlingEtterTrygderettenOpphevet
     }

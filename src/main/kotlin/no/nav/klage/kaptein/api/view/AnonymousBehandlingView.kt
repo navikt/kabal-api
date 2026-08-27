@@ -4,7 +4,7 @@ import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 data class AnonymousBehandlingView(
     val id: UUID,
@@ -34,7 +34,7 @@ data class AnonymousBehandlingView(
     val tilbakekreving: Boolean,
     val previousTildeltEnhet: String?,
     val previousRegistreringshjemmelIdList: List<String>?,
-    val initiatingSystem: Behandling.InitiatingSystem
+    val initiatingSystem: Behandling.InitiatingSystem,
 ) {
     data class VedtakView(
         val id: UUID,

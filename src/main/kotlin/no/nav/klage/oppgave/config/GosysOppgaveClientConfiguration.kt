@@ -6,15 +6,15 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
-class GosysOppgaveClientConfiguration(private val webClientBuilder: WebClient.Builder) {
-    @Value("\${GOSYS_OPPGAVE_BASE_URL}")
+class GosysOppgaveClientConfiguration(
+    private val webClientBuilder: WebClient.Builder,
+) {
+    @Value($$"${GOSYS_OPPGAVE_BASE_URL}")
     private lateinit var gosysOppgaveBaseURL: String
 
     @Bean
-    fun gosysOppgaveWebClient(): WebClient {
-        return webClientBuilder
+    fun gosysOppgaveWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(gosysOppgaveBaseURL)
             .build()
-    }
-
 }

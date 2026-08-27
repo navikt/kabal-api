@@ -1,7 +1,11 @@
 package no.nav.klage.oppgave.domain.behandling.embedded
 
-import jakarta.persistence.*
-import java.util.*
+import jakarta.persistence.AttributeOverride
+import jakarta.persistence.AttributeOverrides
+import jakarta.persistence.Column
+import jakarta.persistence.Embeddable
+import jakarta.persistence.Embedded
+import java.util.UUID
 
 @Embeddable
 data class Klager(
@@ -11,13 +15,14 @@ data class Klager(
     @AttributeOverrides(
         value = [
             AttributeOverride(name = "type", column = Column(name = "klager_type")),
-            AttributeOverride(name = "value", column = Column(name = "klager_value"))
-        ]
+            AttributeOverride(name = "value", column = Column(name = "klager_value")),
+        ],
     )
     var partId: PartId,
 ) {
-    fun toSakenGjelder() = SakenGjelder(
-        id = this.id,
-        partId = this.partId.copy(),
-    )
+    fun toSakenGjelder() =
+        SakenGjelder(
+            id = this.id,
+            partId = this.partId.copy(),
+        )
 }

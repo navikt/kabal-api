@@ -3,7 +3,7 @@ package no.nav.klage.oppgave.domain.notifications
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 sealed class CreateNotificationEvent(
     open val type: NotificationType,
@@ -14,7 +14,9 @@ sealed class CreateNotificationEvent(
     open val actorNavn: String,
 ) {
     enum class NotificationType {
-        MELDING, LOST_ACCESS, GAINED_ACCESS
+        MELDING,
+        LOST_ACCESS,
+        GAINED_ACCESS,
     }
 }
 
@@ -31,13 +33,13 @@ data class CreateMeldingNotificationEvent(
     val saksnummer: String,
     val ytelse: Ytelse,
 ) : CreateNotificationEvent(
-    type = type,
-    message = message,
-    recipientNavIdent = recipientNavIdent,
-    sourceCreatedAt = sourceCreatedAt,
-    actorNavIdent = actorNavIdent,
-    actorNavn = actorNavn,
-)
+        type = type,
+        message = message,
+        recipientNavIdent = recipientNavIdent,
+        sourceCreatedAt = sourceCreatedAt,
+        actorNavIdent = actorNavIdent,
+        actorNavn = actorNavn,
+    )
 
 data class CreateLostAccessNotificationEvent(
     override val type: NotificationType,
@@ -51,13 +53,13 @@ data class CreateLostAccessNotificationEvent(
     val saksnummer: String,
     val ytelse: Ytelse,
 ) : CreateNotificationEvent(
-    type = type,
-    message = message,
-    recipientNavIdent = recipientNavIdent,
-    sourceCreatedAt = sourceCreatedAt,
-    actorNavIdent = actorNavIdent,
-    actorNavn = actorNavn,
-)
+        type = type,
+        message = message,
+        recipientNavIdent = recipientNavIdent,
+        sourceCreatedAt = sourceCreatedAt,
+        actorNavIdent = actorNavIdent,
+        actorNavn = actorNavn,
+    )
 
 data class CreateGainedAccessNotificationEvent(
     override val type: NotificationType,
@@ -71,10 +73,10 @@ data class CreateGainedAccessNotificationEvent(
     val saksnummer: String,
     val ytelse: Ytelse,
 ) : CreateNotificationEvent(
-    type = type,
-    message = message,
-    recipientNavIdent = recipientNavIdent,
-    sourceCreatedAt = sourceCreatedAt,
-    actorNavIdent = actorNavIdent,
-    actorNavn = actorNavn,
-)
+        type = type,
+        message = message,
+        recipientNavIdent = recipientNavIdent,
+        sourceCreatedAt = sourceCreatedAt,
+        actorNavIdent = actorNavIdent,
+        actorNavn = actorNavn,
+    )

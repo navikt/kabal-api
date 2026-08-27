@@ -30,13 +30,13 @@ data class ForlengetBehandlingstidEvent(
 
 data class MedunderskriverEvent(
     val medunderskriver: SaksbehandlerView?,
-    //nullable b/c possible missing history initially
-    val flow: FlowState?
+    // nullable b/c possible missing history initially
+    val flow: FlowState?,
 )
 
 data class RolEvent(
     val rol: SaksbehandlerView?,
-    val flow: FlowState
+    val flow: FlowState,
 )
 
 data class SattPaaVentEvent(
@@ -47,7 +47,7 @@ data class SattPaaVentEvent(
 )
 
 data class FeilregistrertEvent(
-    val reason: String
+    val reason: String,
 )
 
 data class KlagerEvent(
@@ -65,10 +65,10 @@ data class FerdigstiltEvent(
 data class Part(
     val identifikator: String?,
     val name: String,
-    val type: BehandlingDetaljerView.IdType?
+    val type: BehandlingDetaljerView.IdType?,
 )
 
-interface WithPrevious<T>: BaseEvent<T> {
+interface WithPrevious<T> : BaseEvent<T> {
     val previous: BaseEvent<T>
 }
 
@@ -77,8 +77,8 @@ data class HistoryEventWithPrevious<T>(
     override val timestamp: LocalDateTime,
     override val actor: SaksbehandlerView?,
     override val event: T?,
-    override val previous: BaseEvent<T>
-): WithPrevious<T>
+    override val previous: BaseEvent<T>,
+) : WithPrevious<T>
 
 interface BaseEvent<T> {
     val type: HistoryEventType
@@ -91,8 +91,8 @@ data class HistoryEvent<T>(
     override val type: HistoryEventType,
     override val timestamp: LocalDateTime,
     override val actor: SaksbehandlerView?,
-    override val event: T?
-): BaseEvent<T>
+    override val event: T?,
+) : BaseEvent<T>
 
 data class HistoryResponse(
     val tildeling: List<WithPrevious<TildelingEvent>>,

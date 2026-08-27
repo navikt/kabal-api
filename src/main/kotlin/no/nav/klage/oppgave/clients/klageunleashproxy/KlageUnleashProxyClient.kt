@@ -21,18 +21,24 @@ class KlageUnleashProxyClient(
     }
 
     @Retryable
-    fun isEnabled(feature: String, navIdent: String): Boolean {
-        val requestBody = UnleashProxyRequest(
-            navIdent = navIdent,
-            appName = naisAppName,
-            podName = naisPodName,
-        )
+    fun isEnabled(
+        feature: String,
+        navIdent: String,
+    ): Boolean {
+        val requestBody =
+            UnleashProxyRequest(
+                navIdent = navIdent,
+                appName = naisAppName,
+                podName = naisPodName,
+            )
 
-        return klageUnleashProxyWebClient.post()
-            .uri("/features/${feature}")
+        return klageUnleashProxyWebClient
+            .post()
+            .uri("/features/$feature")
             .bodyValue(requestBody)
             .retrieve()
             .bodyToMono<FeatureToggleResponse>()
-            .block()?.enabled ?: false
+            .block()
+            ?.enabled ?: false
     }
 }

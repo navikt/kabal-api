@@ -1,5 +1,5 @@
 package no.nav.klage.oppgave.api.view
 
-data class UrlView (
+data class UrlView(
     val url: String,
 )

@@ -15,11 +15,9 @@ data class TrygderettenMetadataInput(
     val lovhenvisning: Set<String>,
     val representant: Representant?,
 ) {
-
     data class Representant(
         val partId: PartId?,
         val navn: String?,
         val adresse: AvsenderMottakerInput.Address?,
     )
-
 }

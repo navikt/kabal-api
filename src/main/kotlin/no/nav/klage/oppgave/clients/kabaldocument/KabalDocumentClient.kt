@@ -12,7 +12,7 @@ import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import java.util.*
+import java.util.UUID
 
 @Component
 class KabalDocumentClient(
@@ -24,16 +24,14 @@ class KabalDocumentClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun createDokumentEnhetWithDokumentreferanser(
-        input: DokumentEnhetWithDokumentreferanserInput
-    ): DokumentEnhetOutput {
-        return kabalDocumentWebClient.post()
+    fun createDokumentEnhetWithDokumentreferanser(input: DokumentEnhetWithDokumentreferanserInput): DokumentEnhetOutput =
+        kabalDocumentWebClient
+            .post()
             .uri { it.path("/dokumentenheter/meddokumentreferanser").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKabalDocumentScope()}"
-            )
-            .contentType(MediaType.APPLICATION_JSON)
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalDocumentScope()}",
+            ).contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
@@ -42,29 +40,23 @@ class KabalDocumentClient(
                     functionName = ::createDokumentEnhetWithDokumentreferanser.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<DokumentEnhetOutput>()
+            }.bodyToMono<DokumentEnhetOutput>()
             .block() ?: throw RuntimeException("Dokumentenhet could not be created")
-    }
 
-    fun fullfoerDokumentEnhet(
-        dokumentEnhetId: UUID
-    ): DokumentEnhetFullfoerOutput {
-        return kabalDocumentWebClient.post()
+    fun fullfoerDokumentEnhet(dokumentEnhetId: UUID): DokumentEnhetFullfoerOutput =
+        kabalDocumentWebClient
+            .post()
             .uri { it.path("/dokumentenheter/{dokumentEnhetId}/fullfoer").build(dokumentEnhetId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKabalDocumentScope()}"
-            )
-            .retrieve()
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalDocumentScope()}",
+            ).retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
                     functionName = ::fullfoerDokumentEnhet.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<DokumentEnhetFullfoerOutput>()
+            }.bodyToMono<DokumentEnhetFullfoerOutput>()
             .block() ?: throw RuntimeException("DokumentEnhet could not be finalized")
-    }
 }

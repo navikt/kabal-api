@@ -18,7 +18,6 @@ import java.time.LocalDate
 class KabalJsonToPdfService(
     private val kabalJsonToPdfClient: KabalJsonToPdfClient,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -34,32 +33,39 @@ class KabalJsonToPdfService(
         klagerName: String,
         avsenderEnhetId: String,
     ): ByteArray {
-        val bytes = kabalJsonToPdfClient.getSvarbrevPDF(
-            svarbrevRequest = SvarbrevRequest(
-                title = svarbrev.title,
-                sakenGjelder = SvarbrevRequest.Part(
-                    name = sakenGjelderName,
-                    fnr = sakenGjelderIdentifikator,
-                ),
-                klager = if (klagerIdentifikator != sakenGjelderIdentifikator) {
-                    SvarbrevRequest.Part(
-                        name = klagerName,
-                        fnr = klagerIdentifikator,
-                    )
-                } else null,
-                ytelseId = ytelse.id,
-                fullmektigFritekst = svarbrev.fullmektigFritekst,
-                receivedDate = mottattKlageinstans,
-                behandlingstidUnits = svarbrev.varsletBehandlingstidUnits,
-                behandlingstidUnitTypeId = svarbrev.varsletBehandlingstidUnitType.id,
-                avsenderEnhetId = avsenderEnhetId,
-                type = SvarbrevRequest.Type.valueOf(
-                    svarbrev.type.name
-                ),
-                initialCustomText = svarbrev.initialCustomText,
-                customText = svarbrev.customText,
+        val bytes =
+            kabalJsonToPdfClient.getSvarbrevPDF(
+                svarbrevRequest =
+                    SvarbrevRequest(
+                        title = svarbrev.title,
+                        sakenGjelder =
+                            SvarbrevRequest.Part(
+                                name = sakenGjelderName,
+                                fnr = sakenGjelderIdentifikator,
+                            ),
+                        klager =
+                            if (klagerIdentifikator != sakenGjelderIdentifikator) {
+                                SvarbrevRequest.Part(
+                                    name = klagerName,
+                                    fnr = klagerIdentifikator,
+                                )
+                            } else {
+                                null
+                            },
+                        ytelseId = ytelse.id,
+                        fullmektigFritekst = svarbrev.fullmektigFritekst,
+                        receivedDate = mottattKlageinstans,
+                        behandlingstidUnits = svarbrev.varsletBehandlingstidUnits,
+                        behandlingstidUnitTypeId = svarbrev.varsletBehandlingstidUnitType.id,
+                        avsenderEnhetId = avsenderEnhetId,
+                        type =
+                            SvarbrevRequest.Type.valueOf(
+                                svarbrev.type.name,
+                            ),
+                        initialCustomText = svarbrev.initialCustomText,
+                        customText = svarbrev.customText,
+                    ),
             )
-        )
         return bytes
     }
 
@@ -81,46 +87,48 @@ class KabalJsonToPdfService(
         behandlingstidDate: LocalDate?,
         customText: String?,
     ): ByteArray {
-        val bytes = kabalJsonToPdfClient.getForlengetBehandlingstidPDF(
-            forlengetBehandlingstidRequest = ForlengetBehandlingstidRequest(
-                title = title,
-                sakenGjelder = ForlengetBehandlingstidRequest.Part(
-                    name = sakenGjelderName,
-                    fnr = sakenGjelderIdentifikator,
-                ),
-                klager = if (klagerIdentifikator != sakenGjelderIdentifikator) {
-                    ForlengetBehandlingstidRequest.Part(
-                        name = klagerName,
-                        fnr = klagerIdentifikator,
-                    )
-                } else null,
-                ytelseId = ytelse.id,
-                fullmektigFritekst = fullmektigFritekst,
-                behandlingstidUnits = behandlingstidUnits,
-                behandlingstidUnitTypeId = behandlingstidUnitType?.id,
-                avsenderEnhetId = avsenderEnhetId,
-                type = ForlengetBehandlingstidRequest.Type.valueOf(
-                    type.name
-                ),
-                mottattKlageinstans = mottattKlageinstans,
-                previousBehandlingstidInfo = previousBehandlingstidInfo,
-                reason = reason,
-                behandlingstidDate = behandlingstidDate,
-                customText = customText,
+        val bytes =
+            kabalJsonToPdfClient.getForlengetBehandlingstidPDF(
+                forlengetBehandlingstidRequest =
+                    ForlengetBehandlingstidRequest(
+                        title = title,
+                        sakenGjelder =
+                            ForlengetBehandlingstidRequest.Part(
+                                name = sakenGjelderName,
+                                fnr = sakenGjelderIdentifikator,
+                            ),
+                        klager =
+                            if (klagerIdentifikator != sakenGjelderIdentifikator) {
+                                ForlengetBehandlingstidRequest.Part(
+                                    name = klagerName,
+                                    fnr = klagerIdentifikator,
+                                )
+                            } else {
+                                null
+                            },
+                        ytelseId = ytelse.id,
+                        fullmektigFritekst = fullmektigFritekst,
+                        behandlingstidUnits = behandlingstidUnits,
+                        behandlingstidUnitTypeId = behandlingstidUnitType?.id,
+                        avsenderEnhetId = avsenderEnhetId,
+                        type =
+                            ForlengetBehandlingstidRequest.Type.valueOf(
+                                type.name,
+                            ),
+                        mottattKlageinstans = mottattKlageinstans,
+                        previousBehandlingstidInfo = previousBehandlingstidInfo,
+                        reason = reason,
+                        behandlingstidDate = behandlingstidDate,
+                        customText = customText,
+                    ),
             )
-        )
         return bytes
     }
 
-    fun getPDFDocument(json: String): PDFDocument {
-        return kabalJsonToPdfClient.getPDFDocument(json)
-    }
+    fun getPDFDocument(json: String): PDFDocument = kabalJsonToPdfClient.getPDFDocument(json)
 
-    fun getInnholdsfortegnelse(innholdsfortegnelseRequest: InnholdsfortegnelseRequest): PDFDocument {
-        return kabalJsonToPdfClient.getInnholdsfortegnelse(innholdsfortegnelseRequest)
-    }
+    fun getInnholdsfortegnelse(innholdsfortegnelseRequest: InnholdsfortegnelseRequest): PDFDocument =
+        kabalJsonToPdfClient.getInnholdsfortegnelse(innholdsfortegnelseRequest)
 
-    fun validateJsonDocument(documentJson: String): DocumentValidationResponse {
-        return kabalJsonToPdfClient.validateJsonDocument(documentJson)
-    }
+    fun validateJsonDocument(documentJson: String): DocumentValidationResponse = kabalJsonToPdfClient.validateJsonDocument(documentJson)
 }

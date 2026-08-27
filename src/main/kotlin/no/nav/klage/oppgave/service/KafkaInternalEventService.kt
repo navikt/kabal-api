@@ -8,7 +8,7 @@ import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import tools.jackson.databind.JsonNode
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import java.util.*
+import java.util.UUID
 
 @Service
 class KafkaInternalEventService(
@@ -20,7 +20,6 @@ class KafkaInternalEventService(
     @Value($$"${NOTIFICATION_EVENT_TOPIC}")
     private val notificationEventTopic: String,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -31,10 +30,11 @@ class KafkaInternalEventService(
         runCatching {
             logger.debug("Publishing internalBehandlingEvent to Kafka for subscribers")
 
-            aivenKafkaTemplate.send(
-                internalBehandlingEventTopic,
-                jacksonObjectMapper.writeValueAsString(internalBehandlingEvent)
-            ).get()
+            aivenKafkaTemplate
+                .send(
+                    internalBehandlingEventTopic,
+                    jacksonObjectMapper.writeValueAsString(internalBehandlingEvent),
+                ).get()
             logger.debug("Published internalBehandlingEvent to Kafka for subscribers")
         }.onFailure {
             logger.error("Could not publish internalBehandlingEvent to subscribers", it)
@@ -45,25 +45,30 @@ class KafkaInternalEventService(
         runCatching {
             logger.debug("Publishing internalIdentityEvent to Kafka for subscribers")
 
-            aivenKafkaTemplate.send(
-                internalIdentityEventTopic,
-                jacksonObjectMapper.writeValueAsString(internalIdentityEvent)
-            ).get()
+            aivenKafkaTemplate
+                .send(
+                    internalIdentityEventTopic,
+                    jacksonObjectMapper.writeValueAsString(internalIdentityEvent),
+                ).get()
             logger.debug("Published internalIdentityEvent to Kafka for subscribers")
         }.onFailure {
             logger.error("Could not publish internalIdentityEvent to subscribers", it)
         }
     }
 
-    fun publishNotificationEvent(id: UUID, jsonNode: JsonNode) {
+    fun publishNotificationEvent(
+        id: UUID,
+        jsonNode: JsonNode,
+    ) {
         runCatching {
             logger.debug("Publishing notificationEvent to Kafka for subscribers")
 
-            aivenKafkaTemplate.send(
-                notificationEventTopic,
-                id.toString(),
-                jacksonObjectMapper.writeValueAsString(jsonNode)
-            ).get()
+            aivenKafkaTemplate
+                .send(
+                    notificationEventTopic,
+                    id.toString(),
+                    jacksonObjectMapper.writeValueAsString(jsonNode),
+                ).get()
             logger.debug("Published notificationEvent to Kafka for subscribers")
         }.onFailure {
             logger.error("Could not publish notificationEvent to subscribers", it)

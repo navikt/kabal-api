@@ -6,13 +6,42 @@ import no.nav.klage.dokument.domain.SmartDocumentAccessBehandlingEvent
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.FlowState
+import no.nav.klage.kodeverk.FradelingReason
+import no.nav.klage.kodeverk.SattPaaVentReason
+import no.nav.klage.kodeverk.Tema
+import no.nav.klage.kodeverk.TimeUnitType
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
+import no.nav.klage.kodeverk.typeToSattPaaVentReason
+import no.nav.klage.kodeverk.typeToUtfall
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
-import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.api.view.BehandlingDetaljerView
+import no.nav.klage.oppgave.api.view.BehandlingFullfoertView
+import no.nav.klage.oppgave.api.view.DokumenterResponse
+import no.nav.klage.oppgave.api.view.ExtraUtfallEditedView
+import no.nav.klage.oppgave.api.view.FeilregistreringResponse
+import no.nav.klage.oppgave.api.view.FlowStateView
+import no.nav.klage.oppgave.api.view.FradeltSaksbehandlerViewWrapped
+import no.nav.klage.oppgave.api.view.FullmektigInput
+import no.nav.klage.oppgave.api.view.GosysOppgaveEditedView
+import no.nav.klage.oppgave.api.view.GosysOppgaveInput
+import no.nav.klage.oppgave.api.view.GosysOppgaveView
+import no.nav.klage.oppgave.api.view.HistoryResponse
+import no.nav.klage.oppgave.api.view.MedunderskriverWrapped
+import no.nav.klage.oppgave.api.view.OppgaveView
+import no.nav.klage.oppgave.api.view.RolView
+import no.nav.klage.oppgave.api.view.Rols
+import no.nav.klage.oppgave.api.view.SaksbehandlerView
+import no.nav.klage.oppgave.api.view.SaksbehandlerViewWrapped
+import no.nav.klage.oppgave.api.view.SattPaaVentInput
+import no.nav.klage.oppgave.api.view.UtfallEditedView
+import no.nav.klage.oppgave.api.view.WithPrevious
 import no.nav.klage.oppgave.api.view.kabin.CompletedBehandling
 import no.nav.klage.oppgave.api.view.kabin.toKabinPartView
 import no.nav.klage.oppgave.clients.arbeidoginntekt.ArbeidOgInntektClient
@@ -26,8 +55,22 @@ import no.nav.klage.oppgave.clients.klagenotificationsapi.KlageNotificationsApiC
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
 import no.nav.klage.oppgave.config.SchedulerHealthGate
-import no.nav.klage.oppgave.domain.behandling.*
-import no.nav.klage.oppgave.domain.behandling.embedded.*
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingITrygderetten
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithKvalitetsvurdering
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithTrygderettenMetadata
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.Feilregistrering
+import no.nav.klage.oppgave.domain.behandling.embedded.Mottaker
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.SattPaaVent
+import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
+import no.nav.klage.oppgave.domain.behandling.noKvalitetsvurderingNeeded
+import no.nav.klage.oppgave.domain.behandling.noRegistringshjemmelNeeded
 import no.nav.klage.oppgave.domain.behandling.setters.AnkeITrygderettenbehandlingSetters.setNyAnkebehandlingKA
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setKjennelseMottatt
 import no.nav.klage.oppgave.domain.behandling.setters.BehandlingITrygderettenSetters.setNyBehandlingEtterTROpphevet
@@ -63,18 +106,48 @@ import no.nav.klage.oppgave.domain.behandling.setters.BehandlingWithVarsletBehan
 import no.nav.klage.oppgave.domain.behandling.setters.GjenopptakITrygderettenbehandlingSetters.setNyGjenopptaksbehandlingKA
 import no.nav.klage.oppgave.domain.behandling.setters.KlagebehandlingSetters.setMottattVedtaksinstans
 import no.nav.klage.oppgave.domain.behandling.subentities.Saksdokument
+import no.nav.klage.oppgave.domain.behandling.utfallITrygderettenOpphevetEllerHenvist
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
-import no.nav.klage.oppgave.domain.kafka.*
+import no.nav.klage.oppgave.domain.kafka.BehandlingFerdigstiltEvent
+import no.nav.klage.oppgave.domain.kafka.Employee
+import no.nav.klage.oppgave.domain.kafka.ExtraUtfallEvent
+import no.nav.klage.oppgave.domain.kafka.FeilregistreringEvent
 import no.nav.klage.oppgave.domain.kafka.FullmektigEvent
+import no.nav.klage.oppgave.domain.kafka.GosysoppgaveEvent
+import no.nav.klage.oppgave.domain.kafka.IncludedDocumentsChangedEvent
+import no.nav.klage.oppgave.domain.kafka.InnsendingshjemlerEvent
+import no.nav.klage.oppgave.domain.kafka.InternalBehandlingEvent
+import no.nav.klage.oppgave.domain.kafka.InternalEventType
+import no.nav.klage.oppgave.domain.kafka.JournalfoertDokument
 import no.nav.klage.oppgave.domain.kafka.KlagerEvent
 import no.nav.klage.oppgave.domain.kafka.MedunderskriverEvent
+import no.nav.klage.oppgave.domain.kafka.MinimalEvent
+import no.nav.klage.oppgave.domain.kafka.MottattVedtaksinstansEvent
 import no.nav.klage.oppgave.domain.kafka.Part
+import no.nav.klage.oppgave.domain.kafka.RegistreringshjemlerEvent
 import no.nav.klage.oppgave.domain.kafka.RolEvent
 import no.nav.klage.oppgave.domain.kafka.SattPaaVentEvent
+import no.nav.klage.oppgave.domain.kafka.TilbakekrevingEvent
 import no.nav.klage.oppgave.domain.kafka.TildelingEvent
-import no.nav.klage.oppgave.exceptions.*
+import no.nav.klage.oppgave.domain.kafka.UtfallEvent
+import no.nav.klage.oppgave.domain.kafka.VarsletFristEvent
+import no.nav.klage.oppgave.domain.kafka.currentTraceparent
+import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
+import no.nav.klage.oppgave.exceptions.BehandlingNotFoundException
+import no.nav.klage.oppgave.exceptions.DuplicateGosysOppgaveIdException
+import no.nav.klage.oppgave.exceptions.FeilregistreringException
+import no.nav.klage.oppgave.exceptions.GosysOppgaveNotFoundException
+import no.nav.klage.oppgave.exceptions.IllegalOperation
+import no.nav.klage.oppgave.exceptions.InvalidProperty
+import no.nav.klage.oppgave.exceptions.MissingTilgangException
+import no.nav.klage.oppgave.exceptions.SectionedValidationErrorWithDetailsException
+import no.nav.klage.oppgave.exceptions.ValidationSection
 import no.nav.klage.oppgave.repositories.BehandlingRepository
-import no.nav.klage.oppgave.util.*
+import no.nav.klage.oppgave.util.TokenUtil
+import no.nav.klage.oppgave.util.findDateBasedOnTimeUnitTypeAndUnits
+import no.nav.klage.oppgave.util.getLogger
+import no.nav.klage.oppgave.util.getPartIdFromIdentifikator
+import no.nav.klage.oppgave.util.getTeamLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
@@ -85,7 +158,7 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.util.UUID
 
 @Service
 @Transactional
@@ -107,7 +180,7 @@ class BehandlingService(
     private val kafkaInternalEventService: KafkaInternalEventService,
     private val partSearchService: PartSearchService,
     private val safFacade: SafFacade,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val tokenUtil: TokenUtil,
     private val gosysOppgaveService: GosysOppgaveService,
     private val kodeverkService: KodeverkService,
@@ -130,40 +203,47 @@ class BehandlingService(
         if (gosysOppgaveInput?.gosysOppgaveUpdate != null && gosysOppgaveInput.ignoreGosysOppgave == true) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
-                sections = listOf(
-                    ValidationSection(
-                        section = "behandling",
-                        properties = listOf(
-                            InvalidProperty(
-                                field = "gosysOppgaveInput",
-                                reason = "Kan ikke både oppdatere Gosys-oppgaven og ignorere Gosys-oppgaven."
-                            )
-                        )
-                    )
-                )
+                sections =
+                    listOf(
+                        ValidationSection(
+                            section = "behandling",
+                            properties =
+                                listOf(
+                                    InvalidProperty(
+                                        field = "gosysOppgaveInput",
+                                        reason = "Kan ikke både oppdatere Gosys-oppgaven og ignorere Gosys-oppgaven.",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
         }
 
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+            )
 
         val ankeITRHenvist = behandling is AnkeITrygderettenbehandling && behandling.utfall == Utfall.HENVIST
 
         if ((ankeITRHenvist || nyBehandlingEtterTROpphevet) && gosysOppgaveInput != null) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
-                sections = listOf(
-                    ValidationSection(
-                        section = "behandling",
-                        properties = listOf(
-                            InvalidProperty(
-                                field = "gosysOppgaveUpdate",
-                                reason = "Gosys-oppgaven kan ikke oppdateres for en ankebehandling som er henvist eller opphevet fra Trygderetten, og der det skal opprettes ny behandling i KA."
-                            )
-                        )
-                    )
-                )
+                sections =
+                    listOf(
+                        ValidationSection(
+                            section = "behandling",
+                            properties =
+                                listOf(
+                                    InvalidProperty(
+                                        field = "gosysOppgaveUpdate",
+                                        reason =
+                                            "Gosys-oppgaven kan ikke oppdateres for en ankebehandling som er henvist eller opphevet " +
+                                                "fra Trygderetten, og der det skal opprettes ny behandling i KA.",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
         }
 
@@ -172,34 +252,38 @@ class BehandlingService(
         if (behandlingShouldBeCompletedInKA && gosysOppgaveInput != null) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
-                sections = listOf(
-                    ValidationSection(
-                        section = "behandling",
-                        properties = listOf(
-                            InvalidProperty(
-                                field = "gosysOppgaveUpdate",
-                                reason = "Gosys-oppgaven skal ikke oppdateres da den automatisk vil bli avsluttet i Kabal ved fullføring."
-                            )
-                        )
-                    )
-                )
+                sections =
+                    listOf(
+                        ValidationSection(
+                            section = "behandling",
+                            properties =
+                                listOf(
+                                    InvalidProperty(
+                                        field = "gosysOppgaveUpdate",
+                                        reason =
+                                            "Gosys-oppgaven skal ikke oppdateres da den automatisk vil bli avsluttet i Kabal ved " +
+                                                "fullføring.",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
         }
 
         if (behandling.ferdigstilling != null) throw BehandlingAvsluttetException("Behandlingen er avsluttet")
 
-        //Forretningsmessige krav før vedtak kan ferdigstilles
+        // Forretningsmessige krav før vedtak kan ferdigstilles
         validateBehandlingBeforeFinalize(
             behandlingId = behandlingId,
-            nyBehandlingEtterTROpphevet = nyBehandlingEtterTROpphevet
+            nyBehandlingEtterTROpphevet = nyBehandlingEtterTROpphevet,
         )
 
         if (nyBehandlingEtterTROpphevet) {
             return behandlingMapper.mapToBehandlingFullfoertView(
                 setNyBehandlingEtterTROpphevetAndSetToAvsluttet(
-                    behandlingId,
-                    innloggetIdent
-                )
+                    behandlingId = behandlingId,
+                    utfoerendeSaksbehandlerIdent = innloggetIdent,
+                ),
             )
         }
 
@@ -208,17 +292,17 @@ class BehandlingService(
             behandlingShouldBeCompletedInKA = behandlingShouldBeCompletedInKA,
             ankeITRHenvist = ankeITRHenvist,
             gosysOppgaveInput = gosysOppgaveInput,
-            innloggetIdent = innloggetIdent
+            innloggetIdent = innloggetIdent,
         )
 
         applicationEventPublisher.publishEvent(SmartDocumentAccessBehandlingEvent(behandling))
 
-        //Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
+        // Her settes en markør som så brukes async i kallet klagebehandlingRepository.findByAvsluttetIsNullAndAvsluttetAvSaksbehandlerIsNotNull
         return behandlingMapper.mapToBehandlingFullfoertView(
             markerBehandlingSomAvsluttetAvSaksbehandler(
                 behandling,
-                innloggetIdent
-            )
+                innloggetIdent,
+            ),
         )
     }
 
@@ -227,11 +311,11 @@ class BehandlingService(
         gosysOppgaveInput: GosysOppgaveInput?,
         innloggetIdent: String,
         behandlingShouldBeCompletedInKA: Boolean,
-        ankeITRHenvist: Boolean
+        ankeITRHenvist: Boolean,
     ) {
         if (behandling.gosysOppgaveId != null) {
             if (behandlingShouldBeCompletedInKA || ankeITRHenvist) {
-                //Ikke relevant å håndtere Gosys-oppgave her
+                // Ikke relevant å håndtere Gosys-oppgave her
                 logger.debug("Not updating Gosys oppgave, not relevant for this case.")
                 return
             } else {
@@ -240,56 +324,67 @@ class BehandlingService(
                 if (!gosysOppgave.editable && gosysOppgaveInput?.ignoreGosysOppgave != true) {
                     throw SectionedValidationErrorWithDetailsException(
                         title = "Validation error",
-                        sections = listOf(
-                            ValidationSection(
-                                section = "behandling",
-                                properties = listOf(
-                                    InvalidProperty(
-                                        field = "gosysOppgaveInput",
-                                        reason = "Gosys-oppgaven kan ikke redigeres. Du må bekrefte at du fremdeles vil bruke denne Gosys-oppgaven, eller velge en annen."
-                                    )
-                                )
-                            )
-                        )
+                        sections =
+                            listOf(
+                                ValidationSection(
+                                    section = "behandling",
+                                    properties =
+                                        listOf(
+                                            InvalidProperty(
+                                                field = "gosysOppgaveInput",
+                                                reason =
+                                                    "Gosys-oppgaven kan ikke redigeres. Du må bekrefte at du fremdeles vil bruke " +
+                                                        "denne Gosys-oppgaven, eller velge en annen.",
+                                            ),
+                                        ),
+                                ),
+                            ),
                     )
                 }
 
                 if (gosysOppgaveInput?.gosysOppgaveUpdate == null && gosysOppgaveInput?.ignoreGosysOppgave != true) {
                     throw SectionedValidationErrorWithDetailsException(
                         title = "Validation error",
-                        sections = listOf(
-                            ValidationSection(
-                                section = "behandling",
-                                properties = listOf(
-                                    InvalidProperty(
-                                        field = "gosysOppgaveUpdate",
-                                        reason = "Oppdatert informasjon om Gosys-oppgaven må fylles ut for å avslutte behandlingen."
-                                    )
-                                )
-                            )
-                        )
+                        sections =
+                            listOf(
+                                ValidationSection(
+                                    section = "behandling",
+                                    properties =
+                                        listOf(
+                                            InvalidProperty(
+                                                field = "gosysOppgaveUpdate",
+                                                reason =
+                                                    "Oppdatert informasjon om Gosys-oppgaven må fylles ut for å avslutte " +
+                                                        "behandlingen.",
+                                            ),
+                                        ),
+                                ),
+                            ),
                     )
                 } else {
                     if (gosysOppgaveInput.gosysOppgaveUpdate != null) {
-                        if (behandling.type in listOf(
+                        if (behandling.type in
+                            listOf(
                                 Type.ANKE,
-                                Type.BEGJAERING_OM_GJENOPPTAK
+                                Type.BEGJAERING_OM_GJENOPPTAK,
                             ) && behandling.shouldBeSentToTrygderetten()
                         ) {
                             if (gosysOppgaveInput.gosysOppgaveUpdate.mappeId == null) {
                                 throw SectionedValidationErrorWithDetailsException(
                                     title = "Validation error",
-                                    sections = listOf(
-                                        ValidationSection(
-                                            section = "behandling",
-                                            properties = listOf(
-                                                InvalidProperty(
-                                                    field = "gosysOppgaveUpdate",
-                                                    reason = "Du må oppgi hvilken enhetsmappe denne saken skal overføres til."
-                                                )
-                                            )
-                                        )
-                                    )
+                                    sections =
+                                        listOf(
+                                            ValidationSection(
+                                                section = "behandling",
+                                                properties =
+                                                    listOf(
+                                                        InvalidProperty(
+                                                            field = "gosysOppgaveUpdate",
+                                                            reason = "Du må oppgi hvilken enhetsmappe denne saken skal overføres til.",
+                                                        ),
+                                                    ),
+                                            ),
+                                        ),
                                 )
                             }
                         }
@@ -302,7 +397,7 @@ class BehandlingService(
                         )
                     } else {
                         logger.debug("Updating behandling with ignoreGosysOppgave")
-                        //Her må ignoreGosysOppgave være true
+                        // Her må ignoreGosysOppgave være true
                         behandling.setIgnoreGosysOppgave(
                             ignoreGosysOppgaveNewValue = true,
                             saksbehandlerident = innloggetIdent,
@@ -315,26 +410,29 @@ class BehandlingService(
 
     private fun markerBehandlingSomAvsluttetAvSaksbehandler(
         behandling: Behandling,
-        innloggetIdent: String
+        innloggetIdent: String,
     ): Behandling {
-        val event = behandling.setAvsluttetAvSaksbehandler(
-            saksbehandlerident = innloggetIdent,
-            saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent)
-        )
+        val event =
+            behandling.setAvsluttetAvSaksbehandler(
+                saksbehandlerident = innloggetIdent,
+                saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+            )
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                BehandlingFerdigstiltEvent(
-                    actor = Employee(
-                        navIdent = innloggetIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    BehandlingFerdigstiltEvent(
+                        actor =
+                            Employee(
+                                navIdent = innloggetIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(innloggetIdent),
+                            ),
+                        timestamp = behandling.modified,
+                        avsluttetAvSaksbehandlerDate = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    avsluttetAvSaksbehandlerDate = behandling.ferdigstilling!!.avsluttetAvSaksbehandler,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.FERDIGSTILT,
         )
@@ -342,7 +440,10 @@ class BehandlingService(
         return behandling
     }
 
-    fun validateBehandlingBeforeFinalize(behandlingId: UUID, nyBehandlingEtterTROpphevet: Boolean) {
+    fun validateBehandlingBeforeFinalize(
+        behandlingId: UUID,
+        nyBehandlingEtterTROpphevet: Boolean,
+    ) {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         val dokumentValidationErrors = mutableListOf<InvalidProperty>()
         val behandlingValidationErrors = mutableListOf<InvalidProperty>()
@@ -352,11 +453,15 @@ class BehandlingService(
         if (nyBehandlingEtterTROpphevet) {
             if (behandling is AnkeITrygderettenbehandling) {
                 if (behandling.utfall != Utfall.OPPHEVET) {
-                    throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun opprettes på Anke i Trygderetten hvis utfall er 'Opphevet'.")
+                    throw IllegalOperation(
+                        "NyBehandlingEtterTROpphevet kan kun opprettes på Anke i Trygderetten hvis utfall er 'Opphevet'.",
+                    )
                 }
             } else if (behandling is GjenopptakITrygderettenbehandling) {
                 if (behandling.utfall != Utfall.GJENOPPTATT_OPPHEVET) {
-                    throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun opprettes på Gjenopptak i Trygderetten hvis utfall er 'Gjenopptatt - Opphevet'.")
+                    throw IllegalOperation(
+                        "NyBehandlingEtterTROpphevet kan kun opprettes på Gjenopptak i Trygderetten hvis utfall er 'Gjenopptatt - Opphevet'.",
+                    )
                 }
             } else {
                 throw IllegalOperation("NyBehandlingEtterTROpphevet kan kun brukes på behandlinger i Trygderetten.")
@@ -370,8 +475,8 @@ class BehandlingService(
             dokumentValidationErrors.add(
                 InvalidProperty(
                     field = "underArbeid",
-                    reason = "Ferdigstill eller slett alle dokumenter under arbeid."
-                )
+                    reason = "Ferdigstill eller slett alle dokumenter under arbeid.",
+                ),
             )
         }
 
@@ -379,8 +484,8 @@ class BehandlingService(
             sectionList.add(
                 ValidationSection(
                     section = "dokumenter",
-                    properties = dokumentValidationErrors
-                )
+                    properties = dokumentValidationErrors,
+                ),
             )
         }
 
@@ -388,18 +493,18 @@ class BehandlingService(
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "utfall",
-                    reason = "Sett et utfall på saken."
-                )
+                    reason = "Sett et utfall på saken.",
+                ),
             )
         }
 
-        //TODO: Create test for invalid utfall when such are added
+        // TODO: Create test for invalid utfall when such are added
         if (behandling.utfall != null && behandling.utfall !in typeToUtfall[behandling.type]!!) {
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "utfall",
-                    reason = "Dette utfallet er ikke gyldig for denne behandlingstypen."
-                )
+                    reason = "Dette utfallet er ikke gyldig for denne behandlingstypen.",
+                ),
             )
         }
 
@@ -408,13 +513,14 @@ class BehandlingService(
                 behandlingValidationErrors.add(
                     InvalidProperty(
                         field = "hjemmel",
-                        reason = "Sett en eller flere hjemler på saken."
-                    )
+                        reason = "Sett en eller flere hjemler på saken.",
+                    ),
                 )
             }
         }
 
-        if (behandling.type in listOf(
+        if (behandling.type in
+            listOf(
                 Type.ANKE,
                 Type.KLAGE,
             ) && behandling.utfall !in noKvalitetsvurderingNeeded
@@ -426,8 +532,8 @@ class BehandlingService(
                 sectionList.add(
                     ValidationSection(
                         section = "kvalitetsvurdering",
-                        properties = kvalitetsvurderingValidationErrors
-                    )
+                        properties = kvalitetsvurderingValidationErrors,
+                    ),
                 )
             }
         }
@@ -436,8 +542,8 @@ class BehandlingService(
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "mottattKlageinstans",
-                    reason = "Denne datoen kan ikke være i fremtiden."
-                )
+                    reason = "Denne datoen kan ikke være i fremtiden.",
+                ),
             )
         }
 
@@ -447,8 +553,8 @@ class BehandlingService(
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "mottattVedtaksinstans",
-                    reason = "Denne datoen kan ikke være i fremtiden."
-                )
+                    reason = "Denne datoen kan ikke være i fremtiden.",
+                ),
             )
         }
 
@@ -457,33 +563,34 @@ class BehandlingService(
                 behandlingValidationErrors.add(
                     InvalidProperty(
                         field = "kjennelseMottatt",
-                        reason = "Denne datoen må være satt."
-                    )
+                        reason = "Denne datoen må være satt.",
+                    ),
                 )
             }
 
-            if (behandling.kjennelseMottatt != null
-                && behandling.sendtTilTrygderetten.isAfter(behandling.kjennelseMottatt)
+            if (behandling.kjennelseMottatt != null &&
+                behandling.sendtTilTrygderetten.isAfter(behandling.kjennelseMottatt)
             ) {
                 behandlingValidationErrors.add(
                     InvalidProperty(
                         field = "sendtTilTrygderetten",
-                        reason = "Sendt til Trygderetten må være før Kjennelse mottatt."
-                    )
+                        reason = "Sendt til Trygderetten må være før Kjennelse mottatt.",
+                    ),
                 )
             }
         }
 
         if (behandling.prosessfullmektig?.partId != null) {
             if (behandling.prosessfullmektig?.partId?.isPerson() == false &&
-                !eregClient.hentNoekkelInformasjonOmOrganisasjon(behandling.prosessfullmektig!!.partId!!.value)
+                !eregClient
+                    .hentNoekkelInformasjonOmOrganisasjon(behandling.prosessfullmektig!!.partId!!.value)
                     .isActive()
             ) {
                 behandlingValidationErrors.add(
                     InvalidProperty(
                         field = "fullmektig",
-                        reason = "Fullmektig/organisasjon har opphørt."
-                    )
+                        reason = "Fullmektig/organisasjon har opphørt.",
+                    ),
                 )
             }
         }
@@ -492,8 +599,8 @@ class BehandlingService(
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "gosysOppgave",
-                    reason = "Velg Gosys-oppgave."
-                )
+                    reason = "Velg Gosys-oppgave.",
+                ),
             )
         }
 
@@ -501,8 +608,8 @@ class BehandlingService(
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "medunderskriver",
-                    reason = "Behandlingen er sendt til medunderskriver og kan ikke fullføres før den er tilbake."
-                )
+                    reason = "Behandlingen er sendt til medunderskriver og kan ikke fullføres før den er tilbake.",
+                ),
             )
         }
 
@@ -510,8 +617,8 @@ class BehandlingService(
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "rol",
-                    reason = "Behandlingen er sendt til rådgivende overlege og kan ikke fullføres før den er tilbake."
-                )
+                    reason = "Behandlingen er sendt til rådgivende overlege og kan ikke fullføres før den er tilbake.",
+                ),
             )
         }
 
@@ -521,8 +628,8 @@ class BehandlingService(
             sectionList.add(
                 ValidationSection(
                     section = "notifications",
-                    properties = notificationValidationErrors
-                )
+                    properties = notificationValidationErrors,
+                ),
             )
         }
 
@@ -530,22 +637,22 @@ class BehandlingService(
             sectionList.add(
                 ValidationSection(
                     section = "behandling",
-                    properties = behandlingValidationErrors
-                )
+                    properties = behandlingValidationErrors,
+                ),
             )
         }
 
         if (sectionList.isNotEmpty()) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
-                sections = sectionList
+                sections = sectionList,
             )
         }
     }
 
     private fun validateNotifications(
         behandlingId: UUID,
-        notificationValidationErrors: MutableList<InvalidProperty>
+        notificationValidationErrors: MutableList<InvalidProperty>,
     ) {
         try {
             val unreadCount = klageNotificationsApiClient.getUnreadCount(behandlingId)
@@ -553,8 +660,10 @@ class BehandlingService(
                 notificationValidationErrors.add(
                     InvalidProperty(
                         field = "notifications",
-                        reason = "Du må markere alle varsler knyttet til behandlingen som lest før du kan fullføre. Uleste varsler: $unreadCount."
-                    )
+                        reason =
+                            "Du må markere alle varsler knyttet til behandlingen som lest før du kan fullføre. Uleste varsler: " +
+                                "$unreadCount.",
+                    ),
                 )
             }
         } catch (e: Exception) {
@@ -562,8 +671,8 @@ class BehandlingService(
             notificationValidationErrors.add(
                 InvalidProperty(
                     field = "notifications",
-                    reason = "Noe gikk galt ved validering av varsler. Kontakt Team klage."
-                )
+                    reason = "Noe gikk galt ved validering av varsler. Kontakt Team klage.",
+                ),
             )
         }
     }
@@ -585,8 +694,8 @@ class BehandlingService(
             dokumentValidationErrors.add(
                 InvalidProperty(
                     field = "underArbeid",
-                    reason = "Kan ikke lukke behandling. Ferdigstill eller slett alle dokumenter under arbeid."
-                )
+                    reason = "Kan ikke lukke behandling. Ferdigstill eller slett alle dokumenter under arbeid.",
+                ),
             )
         }
 
@@ -594,8 +703,8 @@ class BehandlingService(
             sectionList.add(
                 ValidationSection(
                     section = "dokumenter",
-                    properties = dokumentValidationErrors
-                )
+                    properties = dokumentValidationErrors,
+                ),
             )
         }
 
@@ -608,8 +717,11 @@ class BehandlingService(
                     behandlingValidationErrors.add(
                         InvalidProperty(
                             field = "utfall",
-                            reason = "Kan ikke lukke behandling. Dersom resultatet fra Trygderetten er «Henvist», må du først fullføre registrering av resultatet fra Trygderetten før du kan starte ny behandling. Når du trykker «Fullfør», vil Kabal opprette en ny ankeoppgave for deg."
-                        )
+                            reason =
+                                "Kan ikke lukke behandling. Dersom resultatet fra Trygderetten er «Henvist», må du først fullføre " +
+                                    "registrering av resultatet fra Trygderetten før du kan starte ny behandling. " +
+                                    "Når du trykker «Fullfør», vil Kabal opprette en ny ankeoppgave for deg.",
+                        ),
                     )
                 }
 
@@ -617,8 +729,11 @@ class BehandlingService(
                     behandlingValidationErrors.add(
                         InvalidProperty(
                             field = "utfall",
-                            reason = "Kan ikke lukke behandling. Dersom resultatet fra Trygderetten er «Opphevet», må du først fullføre registrering av resultatet fra Trygderetten før du kan starte ny behandling. Når du trykker «Fullfør», vil du få mulighet til å opprette en ny ankeoppgave."
-                        )
+                            reason =
+                                "Kan ikke lukke behandling. Dersom resultatet fra Trygderetten er «Opphevet», må du først fullføre " +
+                                    "registrering av resultatet fra Trygderetten før du kan starte ny behandling. " +
+                                    "Når du trykker «Fullfør», vil du få mulighet til å opprette en ny ankeoppgave.",
+                        ),
                     )
                 }
 
@@ -626,8 +741,11 @@ class BehandlingService(
                     behandlingValidationErrors.add(
                         InvalidProperty(
                             field = "utfall",
-                            reason = "Kan ikke lukke behandling. Dersom resultatet fra Trygderetten er «Gjenopptatt - Opphevet», må du først fullføre registrering av resultatet fra Trygderetten før du kan starte ny behandling. Når du trykker «Fullfør», vil du få mulighet til å opprette en ny gjenopptaksbegjæring."
-                        )
+                            reason =
+                                "Kan ikke lukke behandling. Dersom resultatet fra Trygderetten er «Gjenopptatt - Opphevet», må du " +
+                                    "først fullføre registrering av resultatet fra Trygderetten før du kan starte ny behandling. Når du " +
+                                    "trykker «Fullfør», vil du få mulighet til å opprette en ny gjenopptaksbegjæring.",
+                        ),
                     )
                 }
 
@@ -635,8 +753,8 @@ class BehandlingService(
                     behandlingValidationErrors.add(
                         InvalidProperty(
                             field = "utfall",
-                            reason = getErrorText("utfall")
-                        )
+                            reason = getErrorText("utfall"),
+                        ),
                     )
                 }
             }
@@ -646,8 +764,8 @@ class BehandlingService(
             behandlingValidationErrors.add(
                 InvalidProperty(
                     field = "kjennelseMottatt",
-                    reason = getErrorText("kjennelse mottatt")
-                )
+                    reason = getErrorText("kjennelse mottatt"),
+                ),
             )
         }
 
@@ -655,15 +773,15 @@ class BehandlingService(
             sectionList.add(
                 ValidationSection(
                     section = "behandling",
-                    properties = behandlingValidationErrors
-                )
+                    properties = behandlingValidationErrors,
+                ),
             )
         }
 
         if (sectionList.isNotEmpty()) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
-                sections = sectionList
+                sections = sectionList,
             )
         }
     }
@@ -681,8 +799,8 @@ class BehandlingService(
             dokumentValidationErrors.add(
                 InvalidProperty(
                     field = "underArbeid",
-                    reason = "Ferdigstill eller slett alle dokumenter under arbeid."
-                )
+                    reason = "Ferdigstill eller slett alle dokumenter under arbeid.",
+                ),
             )
         }
 
@@ -690,25 +808,25 @@ class BehandlingService(
             sectionList.add(
                 ValidationSection(
                     section = "dokumenter",
-                    properties = dokumentValidationErrors
-                )
+                    properties = dokumentValidationErrors,
+                ),
             )
         }
 
-        //TODO: Denne er alltid tom nå. Burde vi sjekke noe annet her?
+        // TODO: Denne er alltid tom nå. Burde vi sjekke noe annet her?
         if (behandlingValidationErrors.isNotEmpty()) {
             sectionList.add(
                 ValidationSection(
                     section = "behandling",
-                    properties = behandlingValidationErrors
-                )
+                    properties = behandlingValidationErrors,
+                ),
             )
         }
 
         if (sectionList.isNotEmpty()) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
-                sections = sectionList
+                sections = sectionList,
             )
         }
     }
@@ -760,13 +878,14 @@ class BehandlingService(
         fradelingWithChangedHjemmelIdList: String? = null,
         systemUserContext: Boolean = false,
     ): SaksbehandlerViewWrapped {
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = true,
-            systemUserContext = systemUserContext
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                ignoreCheckSkrivetilgang = true,
+                systemUserContext = systemUserContext,
+            )
         if (tildeltSaksbehandlerIdent != null) {
-            //Denne sjekken gjøres kun når det er en tildeling:
+            // Denne sjekken gjøres kun når det er en tildeling:
 
             if (!systemUserContext) {
                 checkYtelseAccess(tildeltSaksbehandlerIdent = tildeltSaksbehandlerIdent, behandling = behandling)
@@ -775,11 +894,11 @@ class BehandlingService(
             if (tildeltSaksbehandlerIdent == behandling.medunderskriver?.saksbehandlerident) {
                 setMedunderskriverAndMedunderskriverFlowToNull(
                     behandlingId = behandlingId,
-                    systemUserContext = systemUserContext
+                    systemUserContext = systemUserContext,
                 )
             }
 
-            //Transfer notification ownership if there are any notifications, and the behandling was previously assigned
+            // Transfer notification ownership if there are any notifications, and the behandling was previously assigned
             if (behandling.tildeling?.saksbehandlerident != null) {
                 klageNotificationsApiClient.transferNotificationOwnership(
                     behandlingId = behandlingId,
@@ -787,26 +906,29 @@ class BehandlingService(
                 )
             }
 
-            //if fagsystem is Infotrygd also do this.
+            // if fagsystem is Infotrygd also do this.
             if (behandling.shouldUpdateInfotrygd()) {
                 logger.debug("Tildeling av behandling skal registreres i Infotrygd.")
                 klankeService.setToAssigned(
                     sakId = behandling.kildeReferanse,
-                    input = SakAssignedInput(
-                        saksbehandlerIdent = tildeltSaksbehandlerIdent,
-                        enhetsnummer = enhetId,
-                    )
+                    input =
+                        SakAssignedInput(
+                            saksbehandlerIdent = tildeltSaksbehandlerIdent,
+                            enhetsnummer = enhetId,
+                        ),
                 )
                 logger.debug("Tildeling av behandling ble registrert i Infotrygd.")
             }
         } else {
-            //Means fradeling
+            // Means fradeling
 
             if (fradelingReason == null &&
                 !innloggetSaksbehandlerService.hasKabalInnsynEgenEnhetRole() &&
                 !innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()
             ) {
-                throw IllegalOperation("Kun de med rollen 'innsyn egen enhet' eller 'oppgavestyring alle enheter' kan fradele behandling uten å oppgi årsak.")
+                throw IllegalOperation(
+                    "Kun de med rollen 'innsyn egen enhet' eller 'oppgavestyring alle enheter' kan fradele behandling uten å oppgi årsak.",
+                )
             }
 
             if (behandling.medunderskriverFlowState == FlowState.SENT) {
@@ -816,31 +938,35 @@ class BehandlingService(
             val unreadNotificationsForBehandling =
                 klageNotificationsApiClient.getUnreadCount(behandlingId = behandlingId)
             if (behandling.tildeling?.saksbehandlerident == utfoerendeSaksbehandlerIdent && unreadNotificationsForBehandling > 0) {
-                throw IllegalOperation("Du må markere alle varsler knyttet til behandlingen som lest før du kan fradele behandlingen. Uleste varsler: $unreadNotificationsForBehandling.")
+                throw IllegalOperation(
+                    "Du må markere alle varsler knyttet til behandlingen som lest før du kan fradele behandlingen. Uleste varsler: $unreadNotificationsForBehandling.",
+                )
             }
 
-            //if fagsystem is Infotrygd also do this.
+            // if fagsystem is Infotrygd also do this.
             if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
                 logger.debug("Fradeling av behandling skal registreres i Infotrygd.")
                 klankeService.setToHandledInKabal(
                     sakId = behandling.kildeReferanse,
-                    input = HandledInKabalInput(
-                        fristAsString = behandling.frist!!.format(DateTimeFormatter.BASIC_ISO_DATE),
-                    )
+                    input =
+                        HandledInKabalInput(
+                            fristAsString = behandling.frist!!.format(DateTimeFormatter.BASIC_ISO_DATE),
+                        ),
                 )
                 logger.debug("Fradeling av behandling ble registrert i Infotrygd.")
             }
 
-            //Perform cleanup
+            // Perform cleanup
 
             if (behandling.sattPaaVent != null) {
-                //Fjern på vent-status
+                // Fjern på vent-status
                 setSattPaaVent(
                     behandlingId = behandlingId,
                     utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-                    systemUserContext = saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(
-                        utfoerendeSaksbehandlerIdent
-                    ),
+                    systemUserContext =
+                        saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(
+                            utfoerendeSaksbehandlerIdent,
+                        ),
                     input = null,
                 )
             }
@@ -851,9 +977,10 @@ class BehandlingService(
                     kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
                 )
 
-                val kakaOutput = kakaApiGateway.createKvalitetsvurdering(
-                    kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
-                )
+                val kakaOutput =
+                    kakaApiGateway.createKvalitetsvurdering(
+                        kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
+                    )
 
                 behandling.kakaKvalitetsvurderingId = kakaOutput.kvalitetsvurderingId
             }
@@ -877,24 +1004,29 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                TildelingEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    TildelingEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        timestamp = behandling.modified,
+                        saksbehandler =
+                            if (tildeltSaksbehandlerIdent != null) {
+                                Employee(
+                                    navIdent = tildeltSaksbehandlerIdent,
+                                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(tildeltSaksbehandlerIdent),
+                                )
+                            } else {
+                                null
+                            },
+                        hjemmelIdList = fradelingWithChangedHjemmelIdList?.split(",") ?: emptyList(),
+                        fradelingReasonId = fradelingReason?.id,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    saksbehandler = if (tildeltSaksbehandlerIdent != null) {
-                        Employee(
-                            navIdent = tildeltSaksbehandlerIdent,
-                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(tildeltSaksbehandlerIdent),
-                        )
-                    } else null,
-                    hjemmelIdList = fradelingWithChangedHjemmelIdList?.split(",") ?: emptyList(),
-                    fradelingReasonId = fradelingReason?.id,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.TILDELING,
         )
@@ -914,21 +1046,24 @@ class BehandlingService(
         doNotSendLetter: Boolean,
         reasonNoLetter: String?,
         fromDate: LocalDate,
-        varselType: VarsletBehandlingstid.VarselType
+        varselType: VarsletBehandlingstid.VarselType,
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = true,
-            systemUserContext = systemUserContext
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                ignoreCheckSkrivetilgang = true,
+                systemUserContext = systemUserContext,
+            )
 
         val newVarsletFrist =
-            (varsletFrist
-                ?: findDateBasedOnTimeUnitTypeAndUnits(
-                    timeUnitType = varsletBehandlingstidUnitType,
-                    units = varsletBehandlingstidUnits!!,
-                    fromDate = fromDate,
-                ))
+            (
+                varsletFrist
+                    ?: findDateBasedOnTimeUnitTypeAndUnits(
+                        timeUnitType = varsletBehandlingstidUnitType,
+                        units = varsletBehandlingstidUnits!!,
+                        fromDate = fromDate,
+                    )
+            )
 
         return privateSetVarsletFrist(
             systemUserContext = systemUserContext,
@@ -956,14 +1091,15 @@ class BehandlingService(
     ): LocalDateTime {
         val saksbehandlerIdent = if (systemUserContext) systembrukerIdent else tokenUtil.getIdent()
 
-        val varsletBehandlingstid = VarsletBehandlingstid(
-            varsletFrist = varsletFrist,
-            varsletBehandlingstidUnits = if (behandlingstidUnitType != null) behandlingstidUnits else null,
-            varsletBehandlingstidUnitType = if (behandlingstidUnits != null) behandlingstidUnitType else null,
-            varselType = varselType,
-            doNotSendLetter = doNotSendLetter,
-            reasonNoLetter = reasonNoLetter,
-        )
+        val varsletBehandlingstid =
+            VarsletBehandlingstid(
+                varsletFrist = varsletFrist,
+                varsletBehandlingstidUnits = if (behandlingstidUnitType != null) behandlingstidUnits else null,
+                varsletBehandlingstidUnitType = if (behandlingstidUnits != null) behandlingstidUnitType else null,
+                varselType = varselType,
+                doNotSendLetter = doNotSendLetter,
+                reasonNoLetter = reasonNoLetter,
+            )
 
         if (behandling is BehandlingWithVarsletBehandlingstid) {
             applicationEventPublisher.publishEvent(
@@ -972,25 +1108,27 @@ class BehandlingService(
                     saksbehandlerident = saksbehandlerIdent,
                     saksbehandlernavn = getUtfoerendeNavn(saksbehandlerIdent),
                     mottakere = mottakere,
-                )
+                ),
             )
         } else {
             throw IllegalOperation("Behandlingstid kan ikke endres for denne behandlingstypen: ${behandling.javaClass.name}.")
         }
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                VarsletFristEvent(
-                    actor = Employee(
-                        navIdent = saksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    VarsletFristEvent(
+                        actor =
+                            Employee(
+                                navIdent = saksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                            ),
+                        timestamp = behandling.modified,
+                        varsletFrist = varsletFrist,
+                        timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    varsletFrist = varsletFrist,
-                    timesPreviouslyExtended = behandling.getTimesPreviouslyExtended(),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandling.id,
             type = InternalEventType.VARSLET_FRIST,
         )
@@ -999,16 +1137,14 @@ class BehandlingService(
             gosysOppgaveService.updateVarsletFristInGosysOppgave(
                 behandling = behandling,
                 systemContext = systemUserContext,
-                throwExceptionIfFerdigstilt = false
+                throwExceptionIfFerdigstilt = false,
             )
         }
 
         return behandling.modified
     }
 
-    fun setExpiredTildeltSaksbehandlerToNullInSystemContext(
-        behandlingId: UUID,
-    ) {
+    fun setExpiredTildeltSaksbehandlerToNullInSystemContext(behandlingId: UUID) {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId, systemUserContext = true)
 
         if (behandling.medunderskriver != null) {
@@ -1021,20 +1157,21 @@ class BehandlingService(
             setRolToNullInSystemContext(behandlingId)
         }
 
-        //if fagsystem is Infotrygd also do this.
+        // if fagsystem is Infotrygd also do this.
         if (behandling.shouldUpdateInfotrygd() && behandling.type != Type.ANKE_I_TRYGDERETTEN) {
             logger.debug("Fradeling av behandling skal registreres i Infotrygd.")
             klankeService.setToHandledInKabal(
                 sakId = behandling.kildeReferanse,
-                input = HandledInKabalInput(
-                    fristAsString = behandling.frist!!.format(DateTimeFormatter.BASIC_ISO_DATE),
-                )
+                input =
+                    HandledInKabalInput(
+                        fristAsString = behandling.frist!!.format(DateTimeFormatter.BASIC_ISO_DATE),
+                    ),
             )
             logger.debug("Fradeling av behandling ble registrert i Infotrygd.")
         }
 
         if (behandling.sattPaaVent != null) {
-            //Fjern på vent-status
+            // Fjern på vent-status
             setSattPaaVent(
                 behandlingId = behandlingId,
                 utfoerendeSaksbehandlerIdent = systembrukerIdent,
@@ -1043,16 +1180,17 @@ class BehandlingService(
             )
         }
 
-        //Fjern påbegynt kvalitetsvurdering.
+        // Fjern påbegynt kvalitetsvurdering.
         if (behandling is BehandlingWithKvalitetsvurdering) {
             kakaApiGateway.deleteKvalitetsvurdering(
                 kvalitetsvurderingId = behandling.kakaKvalitetsvurderingId!!,
                 kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
             )
 
-            val kakaOutput = kakaApiGateway.createKvalitetsvurdering(
-                kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
-            )
+            val kakaOutput =
+                kakaApiGateway.createKvalitetsvurdering(
+                    kvalitetsvurderingVersion = behandling.kakaKvalitetsvurderingVersion,
+                )
 
             behandling.kakaKvalitetsvurderingId = kakaOutput.kvalitetsvurderingId
         }
@@ -1075,19 +1213,21 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                TildelingEvent(
-                    actor = Employee(
-                        navIdent = systembrukerIdent,
-                        navn = systembrukerIdent,
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    TildelingEvent(
+                        actor =
+                            Employee(
+                                navIdent = systembrukerIdent,
+                                navn = systembrukerIdent,
+                            ),
+                        timestamp = behandling.modified,
+                        saksbehandler = null,
+                        hjemmelIdList = emptyList(),
+                        fradelingReasonId = FradelingReason.UTGAATT.id,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    saksbehandler = null,
-                    hjemmelIdList = emptyList(),
-                    fradelingReasonId = FradelingReason.UTGAATT.id,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.TILDELING,
         )
@@ -1099,19 +1239,21 @@ class BehandlingService(
         behandlingId: UUID,
         systemUserContext: Boolean,
     ) {
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = true,
-            systemUserContext = systemUserContext
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                ignoreCheckSkrivetilgang = true,
+                systemUserContext = systemUserContext,
+            )
         val utfoerendeIdent =
             if (systemUserContext) systembrukerIdent else innloggetSaksbehandlerService.getInnloggetIdent()
         val utfoerendeNavn = if (systemUserContext) systembrukerIdent else getUtfoerendeNavn(utfoerendeIdent)
 
-        if (behandling.medunderskriverFlowState !in listOf(
+        if (behandling.medunderskriverFlowState !in
+            listOf(
                 FlowState.RETURNED,
                 FlowState.RETURNED_APPROVED,
-                FlowState.RETURNED_NOT_APPROVED
+                FlowState.RETURNED_NOT_APPROVED,
             )
         ) {
             val medunderskriverFlowEvent =
@@ -1132,26 +1274,26 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(medunderskriverIdentEvent)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                MedunderskriverEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeIdent,
-                        navn = utfoerendeNavn,
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    MedunderskriverEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeIdent,
+                                navn = utfoerendeNavn,
+                            ),
+                        timestamp = behandling.modified,
+                        medunderskriver = null,
+                        flowState = FlowState.NOT_SENT,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    medunderskriver = null,
-                    flowState = FlowState.NOT_SENT,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.MEDUNDERSKRIVER,
         )
     }
 
-    fun setRolToNullInSystemContext(
-        behandlingId: UUID,
-    ) {
+    fun setRolToNullInSystemContext(behandlingId: UUID) {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId, systemUserContext = true)
 
         if (behandling.rolFlowState != FlowState.RETURNED) {
@@ -1159,7 +1301,7 @@ class BehandlingService(
                 behandling.setROLFlowState(
                     newROLFlowStateState = FlowState.NOT_SENT,
                     utfoerendeIdent = systembrukerIdent,
-                    utfoerendeNavn = systembrukerIdent
+                    utfoerendeNavn = systembrukerIdent,
                 )
             applicationEventPublisher.publishEvent(rolFlowStateEvent)
 
@@ -1182,45 +1324,45 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(rolIdentEvent)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                RolEvent(
-                    actor = Employee(
-                        navIdent = systembrukerIdent,
-                        navn = systembrukerIdent,
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    RolEvent(
+                        actor =
+                            Employee(
+                                navIdent = systembrukerIdent,
+                                navn = systembrukerIdent,
+                            ),
+                        timestamp = behandling.modified,
+                        rol = null,
+                        flowState = FlowState.NOT_SENT,
+                        returnDate = null,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    rol = null,
-                    flowState = FlowState.NOT_SENT,
-                    returnDate = null,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.ROL,
         )
     }
 
+    fun getSaksbehandler(behandlingId: UUID): SaksbehandlerViewWrapped =
+        getSaksbehandlerViewWrapped(getBehandlingAndCheckReadAccessToSak((behandlingId)))
 
-    fun getSaksbehandler(behandlingId: UUID): SaksbehandlerViewWrapped {
-        return getSaksbehandlerViewWrapped(getBehandlingAndCheckReadAccessToSak((behandlingId)))
-    }
-
-    private fun getSaksbehandlerViewWrapped(behandling: Behandling): SaksbehandlerViewWrapped {
-        return SaksbehandlerViewWrapped(
+    private fun getSaksbehandlerViewWrapped(behandling: Behandling): SaksbehandlerViewWrapped =
+        SaksbehandlerViewWrapped(
             saksbehandler = getSaksbehandlerView(behandling),
             modified = behandling.modified,
         )
-    }
 
     private fun getSaksbehandlerView(behandling: Behandling): SaksbehandlerView? {
-        val saksbehandlerView = if (behandling.tildeling?.saksbehandlerident == null) {
-            null
-        } else {
-            SaksbehandlerView(
-                navIdent = behandling.tildeling?.saksbehandlerident!!,
-                navn = saksbehandlerService.getNameForIdentDefaultIfNull(behandling.tildeling?.saksbehandlerident!!),
-            )
-        }
+        val saksbehandlerView =
+            if (behandling.tildeling?.saksbehandlerident == null) {
+                null
+            } else {
+                SaksbehandlerView(
+                    navIdent = behandling.tildeling?.saksbehandlerident!!,
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(behandling.tildeling?.saksbehandlerident!!),
+                )
+            }
         return saksbehandlerView
     }
 
@@ -1238,39 +1380,46 @@ class BehandlingService(
         behandlingId: UUID,
         utfoerendeSaksbehandlerIdent: String,
         systemUserContext: Boolean = false,
-        input: SattPaaVentInput?
+        input: SattPaaVentInput?,
     ): LocalDateTime {
-        val sattPaaVent = if (input != null) {
-            SattPaaVent(
-                from = LocalDate.now(),
-                to = input.to,
-                reason = input.reason,
-                reasonId = input.reasonId,
-            )
-        } else null
+        val sattPaaVent =
+            if (input != null) {
+                SattPaaVent(
+                    from = LocalDate.now(),
+                    to = input.to,
+                    reason = input.reason,
+                    reasonId = input.reasonId,
+                )
+            } else {
+                null
+            }
 
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            systemUserContext = systemUserContext ||
-                    saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(
-                        utfoerendeSaksbehandlerIdent
-                    )
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                systemUserContext =
+                    systemUserContext ||
+                        saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(
+                            utfoerendeSaksbehandlerIdent,
+                        ),
+            )
 
         if (sattPaaVent != null && typeToSattPaaVentReason[behandling.type]?.contains(SattPaaVentReason.of(sattPaaVent.reasonId)) != true) {
             throw SectionedValidationErrorWithDetailsException(
                 title = "Validation error",
-                sections = listOf(
-                    ValidationSection(
-                        section = "behandling",
-                        properties = listOf(
-                            InvalidProperty(
-                                field = "sattPaaVent",
-                                reason = "Ugyldig grunn for å sette på vent for ${behandling.type}."
-                            )
-                        )
-                    )
-                )
+                sections =
+                    listOf(
+                        ValidationSection(
+                            section = "behandling",
+                            properties =
+                                listOf(
+                                    InvalidProperty(
+                                        field = "sattPaaVent",
+                                        reason = "Ugyldig grunn for å sette på vent for ${behandling.type}.",
+                                    ),
+                                ),
+                        ),
+                    ),
             )
         }
 
@@ -1283,28 +1432,34 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                SattPaaVentEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
-                            utfoerendeSaksbehandlerIdent
-                        } else saksbehandlerService.getNameForIdentDefaultIfNull(
-                            utfoerendeSaksbehandlerIdent
-                        ),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    SattPaaVentEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn =
+                                    if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
+                                        utfoerendeSaksbehandlerIdent
+                                    } else {
+                                        saksbehandlerService.getNameForIdentDefaultIfNull(
+                                            utfoerendeSaksbehandlerIdent,
+                                        )
+                                    },
+                            ),
+                        timestamp = behandling.modified,
+                        sattPaaVent =
+                            behandling.sattPaaVent?.let {
+                                SattPaaVentEvent.SattPaaVent(
+                                    from = it.from,
+                                    to = it.to,
+                                    reason = it.reason,
+                                    reasonId = it.reasonId,
+                                )
+                            },
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    sattPaaVent = behandling.sattPaaVent?.let {
-                        SattPaaVentEvent.SattPaaVent(
-                            from = it.from,
-                            to = it.to,
-                            reason = it.reason,
-                            reasonId = it.reasonId,
-                        )
-                    },
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.SATT_PAA_VENT,
         )
@@ -1321,11 +1476,12 @@ class BehandlingService(
             throw MissingTilgangException("$utfoerendeSaksbehandlerIdent does not have the right to modify frist")
         }
 
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = true
-        )
-        val event = behandling.setFrist(frist, utfoerendeSaksbehandlerIdent)
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                ignoreCheckSkrivetilgang = true,
+            )
+        val event = behandling.setFrist(nyVerdi = frist, saksbehandlerident = utfoerendeSaksbehandlerIdent)
 
         applicationEventPublisher.publishEvent(event)
         return behandling.modified
@@ -1334,18 +1490,19 @@ class BehandlingService(
     fun setMottattKlageinstans(
         behandlingId: UUID,
         date: LocalDateTime,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
-        val behandling = if (innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
-            getBehandlingForUpdate(
-                behandlingId = behandlingId,
-                ignoreCheckSkrivetilgang = true,
-            )
-        } else {
-            getBehandlingForUpdate(behandlingId)
-        }
+        val behandling =
+            if (innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()) {
+                getBehandlingForUpdate(
+                    behandlingId = behandlingId,
+                    ignoreCheckSkrivetilgang = true,
+                )
+            } else {
+                getBehandlingForUpdate(behandlingId)
+            }
 
-        val event = behandling.setMottattKlageinstans(date, utfoerendeSaksbehandlerIdent)
+        val event = behandling.setMottattKlageinstans(nyVerdi = date, saksbehandlerident = utfoerendeSaksbehandlerIdent)
         applicationEventPublisher.publishEvent(event)
         return behandling.modified
     }
@@ -1353,153 +1510,176 @@ class BehandlingService(
     fun setMottattVedtaksinstans(
         behandlingId: UUID,
         date: LocalDate,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId,
+            )
 
         if (behandling is Klagebehandling) {
             val event =
-                behandling.setMottattVedtaksinstans(date, utfoerendeSaksbehandlerIdent)
+                behandling.setMottattVedtaksinstans(nyVerdi = date, saksbehandlerident = utfoerendeSaksbehandlerIdent)
             applicationEventPublisher.publishEvent(event)
 
             publishInternalEvent(
-                data = jacksonObjectMapper.writeValueAsString(
-                    MottattVedtaksinstansEvent(
-                        actor = Employee(
-                            navIdent = utfoerendeSaksbehandlerIdent,
-                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                data =
+                    jacksonObjectMapper.writeValueAsString(
+                        MottattVedtaksinstansEvent(
+                            actor =
+                                Employee(
+                                    navIdent = utfoerendeSaksbehandlerIdent,
+                                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                                ),
+                            timestamp = behandling.modified,
+                            mottattVedtaksinstans = behandling.mottattVedtaksinstans,
+                            traceparent = currentTraceparent(),
                         ),
-                        timestamp = behandling.modified,
-                        mottattVedtaksinstans = behandling.mottattVedtaksinstans,
-                        traceparent = currentTraceparent(),
-                    )
-                ),
+                    ),
                 behandlingId = behandlingId,
                 type = InternalEventType.MOTTATT_VEDTAKSINSTANS,
             )
 
             return behandling.modified
-        } else throw IllegalOperation("Dette feltet kan bare settes i klagesaker")
+        } else {
+            throw IllegalOperation("Dette feltet kan bare settes i klagesaker")
+        }
     }
 
     fun setSendtTilTrygderetten(
         behandlingId: UUID,
         date: LocalDateTime,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                ignoreCheckSkrivetilgang = innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter(),
+            )
 
         if (behandling is BehandlingITrygderetten) {
             val event =
-                behandling.setSendtTilTrygderetten(date, utfoerendeSaksbehandlerIdent)
+                behandling.setSendtTilTrygderetten(nyVerdi = date, saksbehandlerident = utfoerendeSaksbehandlerIdent)
             applicationEventPublisher.publishEvent(event)
             return behandling.modified
-        } else throw IllegalOperation("Dette feltet kan bare settes i saker i Trygderetten")
+        } else {
+            throw IllegalOperation("Dette feltet kan bare settes i saker i Trygderetten")
+        }
     }
 
     fun setKjennelseMottatt(
         behandlingId: UUID,
         date: LocalDateTime?,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter()
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                ignoreCheckSkrivetilgang = innloggetSaksbehandlerService.isKabalOppgavestyringAlleEnheter(),
+            )
 
         if (behandling is BehandlingITrygderetten) {
             val event =
-                behandling.setKjennelseMottatt(date, utfoerendeSaksbehandlerIdent)
+                behandling.setKjennelseMottatt(nyVerdi = date, saksbehandlerident = utfoerendeSaksbehandlerIdent)
             applicationEventPublisher.publishEvent(event)
             return behandling.modified
-        } else throw IllegalOperation("Dette feltet kan bare settes i saker i Trygderetten")
+        } else {
+            throw IllegalOperation("Dette feltet kan bare settes i saker i Trygderetten")
+        }
     }
 
     fun setNyBehandlingKAAndSetToAvsluttet(
         behandlingId: UUID,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): Behandling {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
         if (behandling is AnkeITrygderettenbehandling) {
-            val eventNyBehandling = behandling.setNyAnkebehandlingKA(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
-            val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
-                saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
-            )
+            val eventNyBehandling =
+                behandling.setNyAnkebehandlingKA(
+                    nyVerdi = LocalDateTime.now(),
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                )
+            val eventAvsluttetAvSaksbehandler =
+                behandling.setAvsluttetAvSaksbehandler(
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                    saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                )
             val changeList =
                 eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
 
             applicationEventPublisher.publishEvent(
                 BehandlingChangedEvent(
                     behandling = behandling,
-                    changeList = changeList
-                )
+                    changeList = changeList,
+                ),
             )
 
             return behandling
         } else if (behandling is GjenopptakITrygderettenbehandling) {
             val eventNyBehandling =
-                behandling.setNyGjenopptaksbehandlingKA(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
-            val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
-                saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
-            )
+                behandling.setNyGjenopptaksbehandlingKA(nyVerdi = LocalDateTime.now(), saksbehandlerident = utfoerendeSaksbehandlerIdent)
+            val eventAvsluttetAvSaksbehandler =
+                behandling.setAvsluttetAvSaksbehandler(
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                    saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                )
             val changeList =
                 eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
 
             applicationEventPublisher.publishEvent(
                 BehandlingChangedEvent(
                     behandling = behandling,
-                    changeList = changeList
-                )
+                    changeList = changeList,
+                ),
             )
 
             return behandling
-        } else throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
+        } else {
+            throw IllegalOperation("Dette feltet kan bare settes i ankesaker i Trygderetten")
+        }
     }
 
     fun setNyBehandlingEtterTROpphevetAndSetToAvsluttet(
         behandlingId: UUID,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): Behandling {
         val behandling = getBehandlingForUpdate(behandlingId = behandlingId)
 
         if (behandling is BehandlingITrygderetten) {
             val eventNyBehandling =
-                behandling.setNyBehandlingEtterTROpphevet(LocalDateTime.now(), utfoerendeSaksbehandlerIdent)
-            val eventAvsluttetAvSaksbehandler = behandling.setAvsluttetAvSaksbehandler(
-                saksbehandlerident = utfoerendeSaksbehandlerIdent,
-                saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
-            )
+                behandling.setNyBehandlingEtterTROpphevet(nyVerdi = LocalDateTime.now(), saksbehandlerident = utfoerendeSaksbehandlerIdent)
+            val eventAvsluttetAvSaksbehandler =
+                behandling.setAvsluttetAvSaksbehandler(
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent,
+                    saksbehandlernavn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                )
             val changeListsinnslaginnslag =
                 eventNyBehandling.changeList + eventAvsluttetAvSaksbehandler.changeList
 
             applicationEventPublisher.publishEvent(
                 BehandlingChangedEvent(
                     behandling = behandling,
-                    changeList = changeListsinnslaginnslag
-                )
+                    changeList = changeListsinnslaginnslag,
+                ),
             )
 
             return behandling
-        } else throw IllegalOperation("Dette feltet kan bare settes i saker i Trygderetten")
+        } else {
+            throw IllegalOperation("Dette feltet kan bare settes i saker i Trygderetten")
+        }
     }
 
     fun setInnsendingshjemler(
         behandlingId: UUID,
         hjemler: List<String>,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = true,
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                ignoreCheckSkrivetilgang = true,
+            )
 
         if (behandling.ferdigstilling != null) {
             throw BehandlingAvsluttetException("Kan ikke endre avsluttet behandling")
@@ -1507,23 +1687,25 @@ class BehandlingService(
 
         val event =
             behandling.setInnsendingshjemler(
-                hjemler.map { Hjemmel.of(it) }.toSet(),
-                utfoerendeSaksbehandlerIdent
+                nyVerdi = hjemler.map { Hjemmel.of(it) }.toSet(),
+                saksbehandlerident = utfoerendeSaksbehandlerIdent,
             )
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                InnsendingshjemlerEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    InnsendingshjemlerEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        timestamp = behandling.modified,
+                        hjemmelIdSet = behandling.hjemler.map { it.id }.toSet(),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    hjemmelIdSet = behandling.hjemler.map { it.id }.toSet(),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.INNSENDINGSHJEMLER,
         )
@@ -1534,11 +1716,12 @@ class BehandlingService(
     fun setFullmektig(
         behandlingId: UUID,
         input: FullmektigInput,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId,
+            )
 
         if (behandling.prosessfullmektig == null) {
             if (input.identifikator == null && input.address == null && input.name == null) {
@@ -1562,115 +1745,128 @@ class BehandlingService(
             input.address.validateAddress()
         }
 
-        if (input.identifikator != null && input.identifikator in listOf(
+        if (input.identifikator != null && input.identifikator in
+            listOf(
                 behandling.sakenGjelder.partId.value,
             )
         ) {
             throw IllegalOperation("Fullmektig kan ikke være den samme som den saken gjelder.")
         }
 
-        val partId: PartId? = if (input.identifikator == null) {
-            null
-        } else {
-            getPartIdFromIdentifikator(input.identifikator)
-        }
+        val partId: PartId? =
+            if (input.identifikator == null) {
+                null
+            } else {
+                getPartIdFromIdentifikator(input.identifikator)
+            }
 
         val event =
             behandling.setFullmektig(
                 partId = partId,
                 name = input.name,
-                address = input.address?.let {
-                    val poststed = if (it.landkode == "NO") {
-                        if (it.postnummer != null) {
-                            kodeverkService.getPoststed(it.postnummer)
-                        } else throw IllegalOperation("Postnummer must be set for Norwegian address")
-                    } else null
-                    Adresse(
-                        adresselinje1 = it.adresselinje1,
-                        adresselinje2 = it.adresselinje2,
-                        adresselinje3 = it.adresselinje3,
-                        postnummer = it.postnummer,
-                        poststed = poststed,
-                        landkode = it.landkode,
-                    )
-                },
-
+                address =
+                    input.address?.let {
+                        val poststed =
+                            if (it.landkode == "NO") {
+                                if (it.postnummer != null) {
+                                    kodeverkService.getPoststed(it.postnummer)
+                                } else {
+                                    throw IllegalOperation("Postnummer must be set for Norwegian address")
+                                }
+                            } else {
+                                null
+                            }
+                        Adresse(
+                            adresselinje1 = it.adresselinje1,
+                            adresselinje2 = it.adresselinje2,
+                            adresselinje3 = it.adresselinje3,
+                            postnummer = it.postnummer,
+                            poststed = poststed,
+                            landkode = it.landkode,
+                        )
+                    },
                 utfoerendeIdent = utfoerendeSaksbehandlerIdent,
                 utfoerendeNavn = getUtfoerendeNavn(utfoerendeSaksbehandlerIdent),
             )
         applicationEventPublisher.publishEvent(event)
 
-        val partView = if (behandling.prosessfullmektig == null) {
-            null
-        } else if (behandling.prosessfullmektig!!.partId != null) {
-            val searchPartViewWithUtsendingskanal = partSearchService.searchPartWithUtsendingskanal(
-                identifikator = behandling.prosessfullmektig?.partId?.value!!,
-                systemUserContext = true,
-                sakenGjelderId = behandling.sakenGjelder.partId.value,
-                tema = behandling.ytelse.toTema(),
-                systemContext = false,
-            )
+        val partView =
+            if (behandling.prosessfullmektig == null) {
+                null
+            } else if (behandling.prosessfullmektig!!.partId != null) {
+                val searchPartViewWithUtsendingskanal =
+                    partSearchService.searchPartWithUtsendingskanal(
+                        identifikator = behandling.prosessfullmektig?.partId?.value!!,
+                        systemUserContext = true,
+                        sakenGjelderId = behandling.sakenGjelder.partId.value,
+                        tema = behandling.ytelse.toTema(),
+                        systemContext = false,
+                    )
 
-            BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                id = behandling.prosessfullmektig!!.id,
-                identifikator = searchPartViewWithUtsendingskanal.identifikator,
-                name = searchPartViewWithUtsendingskanal.name,
-                type = searchPartViewWithUtsendingskanal.type,
-                available = searchPartViewWithUtsendingskanal.available,
-                language = searchPartViewWithUtsendingskanal.language,
-                statusList = searchPartViewWithUtsendingskanal.statusList,
-                address = searchPartViewWithUtsendingskanal.address,
-                utsendingskanal = searchPartViewWithUtsendingskanal.utsendingskanal,
-            )
-        } else {
-            BehandlingDetaljerView.PartViewWithUtsendingskanal(
-                id = behandling.prosessfullmektig!!.id,
-                identifikator = null,
-                name = behandling.prosessfullmektig!!.navn!!,
-                type = null,
-                available = true,
-                language = null,
-                statusList = listOf(),
-                address = BehandlingDetaljerView.Address(
-                    adresselinje1 = behandling.prosessfullmektig!!.address!!.adresselinje1,
-                    adresselinje2 = behandling.prosessfullmektig!!.address!!.adresselinje2,
-                    adresselinje3 = behandling.prosessfullmektig!!.address!!.adresselinje3,
-                    landkode = behandling.prosessfullmektig!!.address!!.landkode,
-                    postnummer = behandling.prosessfullmektig!!.address!!.postnummer,
-                    poststed = behandling.prosessfullmektig!!.address!!.poststed,
-                ),
-                utsendingskanal = BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT
-            )
-        }
+                BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                    id = behandling.prosessfullmektig!!.id,
+                    identifikator = searchPartViewWithUtsendingskanal.identifikator,
+                    name = searchPartViewWithUtsendingskanal.name,
+                    type = searchPartViewWithUtsendingskanal.type,
+                    available = searchPartViewWithUtsendingskanal.available,
+                    language = searchPartViewWithUtsendingskanal.language,
+                    statusList = searchPartViewWithUtsendingskanal.statusList,
+                    address = searchPartViewWithUtsendingskanal.address,
+                    utsendingskanal = searchPartViewWithUtsendingskanal.utsendingskanal,
+                )
+            } else {
+                BehandlingDetaljerView.PartViewWithUtsendingskanal(
+                    id = behandling.prosessfullmektig!!.id,
+                    identifikator = null,
+                    name = behandling.prosessfullmektig!!.navn!!,
+                    type = null,
+                    available = true,
+                    language = null,
+                    statusList = listOf(),
+                    address =
+                        BehandlingDetaljerView.Address(
+                            adresselinje1 = behandling.prosessfullmektig!!.address!!.adresselinje1,
+                            adresselinje2 = behandling.prosessfullmektig!!.address!!.adresselinje2,
+                            adresselinje3 = behandling.prosessfullmektig!!.address!!.adresselinje3,
+                            landkode = behandling.prosessfullmektig!!.address!!.landkode,
+                            postnummer = behandling.prosessfullmektig!!.address!!.postnummer,
+                            poststed = behandling.prosessfullmektig!!.address!!.poststed,
+                        ),
+                    utsendingskanal = BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT,
+                )
+            }
 
         if (behandling is BehandlingWithVarsletBehandlingstid && behandling.forlengetBehandlingstidDraft != null) {
             behandling.forlengetBehandlingstidDraft!!.fullmektigFritekst = partView?.name
         }
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                FullmektigEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    FullmektigEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        timestamp = behandling.modified,
+                        part =
+                            partView?.let {
+                                Part(
+                                    id = behandling.prosessfullmektig?.id!!,
+                                    identifikator = partView.identifikator,
+                                    type = partView.type,
+                                    name = partView.name,
+                                    statusList = partView.statusList,
+                                    available = partView.available,
+                                    address = partView.address,
+                                    language = partView.language,
+                                    utsendingskanal = partView.utsendingskanal,
+                                )
+                            },
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    part = partView?.let {
-                        Part(
-                            id = behandling.prosessfullmektig?.id!!,
-                            identifikator = partView.identifikator,
-                            type = partView.type,
-                            name = partView.name,
-                            statusList = partView.statusList,
-                            available = partView.available,
-                            address = partView.address,
-                            language = partView.language,
-                            utsendingskanal = partView.utsendingskanal
-                        )
-                    },
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.FULLMEKTIG,
         )
@@ -1681,11 +1877,12 @@ class BehandlingService(
     fun setKlager(
         behandlingId: UUID,
         identifikator: String,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId,
+            )
 
         if (behandling.klager.partId.value == identifikator) {
             throw IllegalOperation("Denne klageparten er allerede satt")
@@ -1709,27 +1906,30 @@ class BehandlingService(
             )
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                KlagerEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    KlagerEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        timestamp = behandling.modified,
+                        part =
+                            Part(
+                                id = behandling.klager.id,
+                                identifikator = partView.identifikator,
+                                type = partView.type,
+                                name = partView.name,
+                                statusList = partView.statusList,
+                                available = partView.available,
+                                language = partView.language,
+                                address = partView.address,
+                                utsendingskanal = partView.utsendingskanal,
+                            ),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    part = Part(
-                        id = behandling.klager.id,
-                        identifikator = partView.identifikator,
-                        type = partView.type,
-                        name = partView.name,
-                        statusList = partView.statusList,
-                        available = partView.available,
-                        language = partView.language,
-                        address = partView.address,
-                        utsendingskanal = partView.utsendingskanal,
-                    ),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.KLAGER,
         )
@@ -1740,11 +1940,12 @@ class BehandlingService(
     fun setTilbakekreving(
         behandlingId: UUID,
         tilbakekreving: Boolean,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId,
+            )
 
         val event =
             behandling.setTilbakekreving(
@@ -1754,17 +1955,19 @@ class BehandlingService(
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                TilbakekrevingEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    TilbakekrevingEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        timestamp = behandling.modified,
+                        tilbakekreving = behandling.tilbakekreving,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    tilbakekreving = behandling.tilbakekreving,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.TILBAKEKREVING,
         )
@@ -1775,11 +1978,12 @@ class BehandlingService(
     fun setPaaanketVedtaksdato(
         behandlingId: UUID,
         paaanketVedtaksdato: LocalDate,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId,
+            )
 
         if (behandling is BehandlingWithTrygderettenMetadata) {
             val event =
@@ -1790,17 +1994,20 @@ class BehandlingService(
             applicationEventPublisher.publishEvent(event)
 
             return behandling.modified
-        } else throw IllegalOperation("Dette feltet kan bare settes i forbindelse med anke- og gjenopptaksbehandlinger")
+        } else {
+            throw IllegalOperation("Dette feltet kan bare settes i forbindelse med anke- og gjenopptaksbehandlinger")
+        }
     }
 
     fun setForsterketRett(
         behandlingId: UUID,
         forsterketRett: Boolean,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId,
+            )
 
         if (behandling is BehandlingWithTrygderettenMetadata) {
             val event =
@@ -1811,7 +2018,9 @@ class BehandlingService(
             applicationEventPublisher.publishEvent(event)
 
             return behandling.modified
-        } else throw IllegalOperation("Dette feltet kan bare settes i forbindelse med anke- og gjenopptaksbehandlinger")
+        } else {
+            throw IllegalOperation("Dette feltet kan bare settes i forbindelse med anke- og gjenopptaksbehandlinger")
+        }
     }
 
     fun setMedunderskriverFlowState(
@@ -1819,10 +2028,11 @@ class BehandlingService(
         utfoerendeSaksbehandlerIdent: String,
         flowState: FlowState,
     ): MedunderskriverWrapped {
-        val behandling = getBehandlingForWriteAllowROLAndMU(
-            behandlingId = behandlingId,
-            utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-        )
+        val behandling =
+            getBehandlingForWriteAllowROLAndMU(
+                behandlingId = behandlingId,
+                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+            )
 
         val event =
             behandling.setMedunderskriverFlowState(
@@ -1835,23 +2045,28 @@ class BehandlingService(
         val medunderskriverWrapped = behandlingMapper.mapToMedunderskriverWrapped(behandling)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                MedunderskriverEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    MedunderskriverEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        medunderskriver =
+                            if (medunderskriverWrapped.employee != null) {
+                                Employee(
+                                    navIdent = medunderskriverWrapped.employee.navIdent,
+                                    navn = medunderskriverWrapped.employee.navn,
+                                )
+                            } else {
+                                null
+                            },
+                        timestamp = medunderskriverWrapped.modified,
+                        flowState = medunderskriverWrapped.flowState,
+                        traceparent = currentTraceparent(),
                     ),
-                    medunderskriver = if (medunderskriverWrapped.employee != null) {
-                        Employee(
-                            navIdent = medunderskriverWrapped.employee.navIdent,
-                            navn = medunderskriverWrapped.employee.navn,
-                        )
-                    } else null,
-                    timestamp = medunderskriverWrapped.modified,
-                    flowState = medunderskriverWrapped.flowState,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.MEDUNDERSKRIVER,
         )
@@ -1869,8 +2084,12 @@ class BehandlingService(
         val behandling =
             if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
                 val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
-                if (behandling.medunderskriverFlowState != FlowState.SENT && behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent) {
-                    throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre medunderskriver når den ikke er sendt.")
+                if (behandling.medunderskriverFlowState != FlowState.SENT &&
+                    behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent
+                ) {
+                    throw MissingTilgangException(
+                        "OppgavestyringAlleEnheter har ikke lov til å endre medunderskriver når den ikke er sendt.",
+                    )
                 }
 
                 if (behandling.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent && navIdent == null) {
@@ -1881,7 +2100,7 @@ class BehandlingService(
             } else {
                 getBehandlingForWriteAllowROLAndMU(
                     behandlingId = behandlingId,
-                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent
+                    utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
                 )
             }
 
@@ -1900,23 +2119,28 @@ class BehandlingService(
         val medunderskriverWrapped = behandlingMapper.mapToMedunderskriverWrapped(behandling)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                MedunderskriverEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    MedunderskriverEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        timestamp = medunderskriverWrapped.modified,
+                        medunderskriver =
+                            if (medunderskriverWrapped.employee != null) {
+                                Employee(
+                                    navIdent = medunderskriverWrapped.employee.navIdent,
+                                    navn = medunderskriverWrapped.employee.navn,
+                                )
+                            } else {
+                                null
+                            },
+                        flowState = medunderskriverWrapped.flowState,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = medunderskriverWrapped.modified,
-                    medunderskriver = if (medunderskriverWrapped.employee != null) {
-                        Employee(
-                            navIdent = medunderskriverWrapped.employee.navIdent,
-                            navn = medunderskriverWrapped.employee.navn,
-                        )
-                    } else null,
-                    flowState = medunderskriverWrapped.flowState,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.MEDUNDERSKRIVER,
         )
@@ -1926,13 +2150,17 @@ class BehandlingService(
         return medunderskriverWrapped
     }
 
-    private fun publishInternalEvent(data: String, behandlingId: UUID, type: InternalEventType) {
+    private fun publishInternalEvent(
+        data: String,
+        behandlingId: UUID,
+        type: InternalEventType,
+    ) {
         kafkaInternalEventService.publishInternalBehandlingEvent(
             InternalBehandlingEvent(
                 behandlingId = behandlingId.toString(),
                 type = type,
                 data = data,
-            )
+            ),
         )
     }
 
@@ -1960,20 +2188,22 @@ class BehandlingService(
             logger.debug(
                 "Adding saksdokumenter from behandling {} to behandling {}",
                 previousBehandling.id,
-                behandlingId
+                behandlingId,
             )
 
             connectDocumentsToBehandling(
                 behandlingId = behandlingId,
-                journalfoertDokumentReferenceSet = documentsFromPreviousBehandling.map {
-                    JournalfoertDokumentReference(
-                        journalpostId = it.journalpostId,
-                        dokumentInfoId = it.dokumentInfoId
-                    )
-                }.toSet(),
+                journalfoertDokumentReferenceSet =
+                    documentsFromPreviousBehandling
+                        .map {
+                            JournalfoertDokumentReference(
+                                journalpostId = it.journalpostId,
+                                dokumentInfoId = it.dokumentInfoId,
+                            )
+                        }.toSet(),
                 saksbehandlerIdent = saksbehandlerIdent,
                 systemUserContext = systemUserContext,
-                ignoreCheckSkrivetilgang = ignoreCheckSkrivetilgang
+                ignoreCheckSkrivetilgang = ignoreCheckSkrivetilgang,
             )
         } else {
             logger.debug("No previous behandling found. Returning.")
@@ -1987,21 +2217,25 @@ class BehandlingService(
         systemUserContext: Boolean = false,
         ignoreCheckSkrivetilgang: Boolean,
     ): LocalDateTime {
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            ignoreCheckSkrivetilgang = ignoreCheckSkrivetilgang,
-            systemUserContext = systemUserContext,
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                ignoreCheckSkrivetilgang = ignoreCheckSkrivetilgang,
+                systemUserContext = systemUserContext,
+            )
 
-        val journalpostListForUser = safFacade.getJournalposter(
-            journalpostIdSet = journalfoertDokumentReferenceSet.map { it.journalpostId }.toSet(),
-            fnr = behandling.sakenGjelder.partId.value,
-            saksbehandlerContext = !systemUserContext,
-            skipMissing = true
-        )
+        val journalpostListForUser =
+            safFacade.getJournalposter(
+                journalpostIdSet = journalfoertDokumentReferenceSet.map { it.journalpostId }.toSet(),
+                fnr = behandling.sakenGjelder.partId.value,
+                saksbehandlerContext = !systemUserContext,
+                skipMissing = true,
+            )
 
         if (journalpostListForUser.any { it.journalstatus == Journalstatus.MOTTATT }) {
-            throw DokumentValidationException("Kan ikke legge til journalførte dokumenter med status 'Mottatt' som relevant for saken. Fullfør journalføring i Gosys for å gjøre dette.")
+            throw DokumentValidationException(
+                "Kan ikke legge til journalførte dokumenter med status 'Mottatt' som relevant for saken. Fullfør journalføring i Gosys for å gjøre dette.",
+            )
         }
 
         addDokumentSet(
@@ -2016,7 +2250,7 @@ class BehandlingService(
         behandlingId: UUID,
         journalpostId: String,
         dokumentInfoId: String,
-        saksbehandlerIdent: String
+        saksbehandlerIdent: String,
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(behandlingId)
         val saksdokument =
@@ -2028,7 +2262,7 @@ class BehandlingService(
             removeDokument(
                 behandling,
                 saksdokument,
-                saksbehandlerIdent
+                saksbehandlerIdent,
             )
         }
         return behandling.modified
@@ -2037,7 +2271,7 @@ class BehandlingService(
     fun disconnectDokumenterFromBehandling(
         behandlingId: UUID,
         saksbehandlerIdent: String,
-        journalfoertDokumentReferenceSet: Set<JournalfoertDokumentReference>?
+        journalfoertDokumentReferenceSet: Set<JournalfoertDokumentReference>?,
     ): LocalDateTime {
         val behandling = getBehandlingForUpdate(behandlingId)
 
@@ -2045,21 +2279,23 @@ class BehandlingService(
             try {
                 val event =
                     behandling.clearSaksdokumenter(
-                        saksbehandlerIdent
+                        saksbehandlerIdent,
                     )
                 event.let { applicationEventPublisher.publishEvent(it) }
 
                 publishInternalEvent(
-                    data = jacksonObjectMapper.writeValueAsString(
-                        MinimalEvent(
-                            actor = Employee(
-                                navIdent = saksbehandlerIdent,
-                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                    data =
+                        jacksonObjectMapper.writeValueAsString(
+                            MinimalEvent(
+                                actor =
+                                    Employee(
+                                        navIdent = saksbehandlerIdent,
+                                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                                    ),
+                                timestamp = LocalDateTime.now(),
+                                traceparent = currentTraceparent(),
                             ),
-                            timestamp = LocalDateTime.now(),
-                            traceparent = currentTraceparent(),
-                        )
-                    ),
+                        ),
                     behandlingId = behandling.id,
                     type = InternalEventType.INCLUDED_DOCUMENTS_CLEARED,
                 )
@@ -2070,39 +2306,43 @@ class BehandlingService(
                 throw e
             }
         } else {
-            val saksdokumenter = journalfoertDokumentReferenceSet.map {
-                Saksdokument(
-                    journalpostId = it.journalpostId,
-                    dokumentInfoId = it.dokumentInfoId
-                )
-            }
+            val saksdokumenter =
+                journalfoertDokumentReferenceSet.map {
+                    Saksdokument(
+                        journalpostId = it.journalpostId,
+                        dokumentInfoId = it.dokumentInfoId,
+                    )
+                }
 
             try {
                 val event =
                     behandling.removeSaksdokumenter(
-                        saksdokumenter,
-                        saksbehandlerIdent
+                        saksdokumentListForRemoval = saksdokumenter,
+                        saksbehandlerident = saksbehandlerIdent,
                     )
                 event.let { applicationEventPublisher.publishEvent(it) }
 
                 publishInternalEvent(
-                    data = jacksonObjectMapper.writeValueAsString(
-                        IncludedDocumentsChangedEvent(
-                            actor = Employee(
-                                navIdent = saksbehandlerIdent,
-                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                    data =
+                        jacksonObjectMapper.writeValueAsString(
+                            IncludedDocumentsChangedEvent(
+                                actor =
+                                    Employee(
+                                        navIdent = saksbehandlerIdent,
+                                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                                    ),
+                                timestamp = LocalDateTime.now(),
+                                journalfoertDokumentReferenceSet =
+                                    saksdokumenter
+                                        .map {
+                                            JournalfoertDokument(
+                                                journalpostId = it.journalpostId,
+                                                dokumentInfoId = it.dokumentInfoId,
+                                            )
+                                        }.toSet(),
+                                traceparent = currentTraceparent(),
                             ),
-                            timestamp = LocalDateTime.now(),
-                            journalfoertDokumentReferenceSet = saksdokumenter.map {
-                                JournalfoertDokument(
-                                    it.journalpostId,
-                                    it.dokumentInfoId
-                                )
-                            }.toSet(),
-                            traceparent = currentTraceparent(),
-
-                            )
-                    ),
+                        ),
                     behandlingId = behandling.id,
                     type = InternalEventType.INCLUDED_DOCUMENTS_REMOVED,
                 )
@@ -2118,9 +2358,11 @@ class BehandlingService(
     fun getBehandlingForUpdate(
         behandlingId: UUID,
         ignoreCheckSkrivetilgang: Boolean = false,
-        systemUserContext: Boolean = false
+        systemUserContext: Boolean = false,
     ): Behandling =
-        behandlingRepository.findById(behandlingId).get()
+        behandlingRepository
+            .findById(behandlingId)
+            .get()
             .also {
                 if (!systemUserContext) {
                     if (it.feilregistrering != null) {
@@ -2130,8 +2372,7 @@ class BehandlingService(
                         throw BehandlingAvsluttetException("Behandlingen er avsluttet")
                     }
                 }
-            }
-            .also { if (!systemUserContext) checkReadAccessToSak(it) }
+            }.also { if (!systemUserContext) checkReadAccessToSak(it) }
             .also { if (!systemUserContext && !ignoreCheckSkrivetilgang) checkSkrivetilgang(it) }
 
     fun checkReadAccessToSak(behandling: Behandling) {
@@ -2144,7 +2385,8 @@ class BehandlingService(
 
     @Transactional(readOnly = true)
     fun getBehandlingForReadWithoutCheckForAccess(behandlingId: UUID): Behandling =
-        behandlingRepository.findById(behandlingId)
+        behandlingRepository
+            .findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
 
     fun resolvePaaanketVedtaksdatoFromPreviousBehandling(previousBehandlingId: UUID?): LocalDate? {
@@ -2166,12 +2408,11 @@ class BehandlingService(
      * Get behandling with eager loading of relations for read without checking access.
      */
     @Transactional(readOnly = true)
-    fun getBehandlingEagerForReadWithoutCheckForAccess(behandlingId: UUID): Behandling =
-        behandlingRepository.findByIdEager(behandlingId)
+    fun getBehandlingEagerForReadWithoutCheckForAccess(behandlingId: UUID): Behandling = behandlingRepository.findByIdEager(behandlingId)
 
     private fun checkYtelseAccess(
         tildeltSaksbehandlerIdent: String,
-        behandling: Behandling
+        behandling: Behandling,
     ) {
         tilgangService.verifySaksbehandlersAccessToYtelse(
             saksbehandlerIdent = tildeltSaksbehandlerIdent,
@@ -2179,7 +2420,7 @@ class BehandlingService(
         )
     }
 
-    //TODO: Se om ansvar for sjekk av medunderskriver/rol og finalize kan deles opp.
+    // TODO: Se om ansvar for sjekk av medunderskriver/rol og finalize kan deles opp.
     private fun verifyMedunderskriverStatusAndBehandlingNotFinalized(behandling: Behandling) {
         tilgangService.verifyInnloggetSaksbehandlerIsMedunderskriverOrROLAndNotFinalized(behandling)
     }
@@ -2187,49 +2428,56 @@ class BehandlingService(
     private fun addDokumentSet(
         behandling: Behandling,
         journalfoertDokumentReferenceSet: Set<JournalfoertDokumentReference>,
-        saksbehandlerIdent: String
+        saksbehandlerIdent: String,
     ) {
-        val (existingSaksdokuments, saksdokumentsToAdd) = journalfoertDokumentReferenceSet.partition { journalfoerDokumentReference ->
-            behandling.saksdokumenter.any {
-                it.journalpostId == journalfoerDokumentReference.journalpostId && it.dokumentInfoId == journalfoerDokumentReference.dokumentInfoId
+        val (existingSaksdokuments, saksdokumentsToAdd) =
+            journalfoertDokumentReferenceSet.partition { journalfoerDokumentReference ->
+                behandling.saksdokumenter.any {
+                    it.journalpostId == journalfoerDokumentReference.journalpostId &&
+                        it.dokumentInfoId == journalfoerDokumentReference.dokumentInfoId
+                }
             }
-        }
 
         if (existingSaksdokuments.isNotEmpty()) {
             logger.debug(
                 "Already added documents in behandling {}: {}",
                 behandling.id,
-                existingSaksdokuments.joinToString()
+                existingSaksdokuments.joinToString(),
             )
         }
 
         if (saksdokumentsToAdd.isNotEmpty()) {
-            val event = behandling.addSaksdokumenter(
-                saksdokumentList = saksdokumentsToAdd.map {
-                    Saksdokument(journalpostId = it.journalpostId, dokumentInfoId = it.dokumentInfoId)
-                },
-                saksbehandlerident = saksbehandlerIdent
-            )
+            val event =
+                behandling.addSaksdokumenter(
+                    saksdokumentList =
+                        saksdokumentsToAdd.map {
+                            Saksdokument(journalpostId = it.journalpostId, dokumentInfoId = it.dokumentInfoId)
+                        },
+                    saksbehandlerident = saksbehandlerIdent,
+                )
             event.let { applicationEventPublisher.publishEvent(it) }
 
             publishInternalEvent(
-                data = jacksonObjectMapper.writeValueAsString(
-                    IncludedDocumentsChangedEvent(
-                        actor = Employee(
-                            navIdent = saksbehandlerIdent,
-                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                data =
+                    jacksonObjectMapper.writeValueAsString(
+                        IncludedDocumentsChangedEvent(
+                            actor =
+                                Employee(
+                                    navIdent = saksbehandlerIdent,
+                                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                                ),
+                            timestamp = LocalDateTime.now(),
+                            journalfoertDokumentReferenceSet =
+                                saksdokumentsToAdd
+                                    .map {
+                                        JournalfoertDokument(
+                                            journalpostId = it.journalpostId,
+                                            dokumentInfoId = it.dokumentInfoId,
+                                        )
+                                    }.toSet(),
+                            traceparent = currentTraceparent(),
                         ),
-                        timestamp = LocalDateTime.now(),
-                        journalfoertDokumentReferenceSet = saksdokumentsToAdd.map {
-                            JournalfoertDokument(
-                                it.journalpostId,
-                                it.dokumentInfoId
-                            )
-                        }.toSet(),
-                        traceparent = currentTraceparent(),
-
-                        )
-                ),
+                    ),
                 behandlingId = behandling.id,
                 type = InternalEventType.INCLUDED_DOCUMENTS_ADDED,
             )
@@ -2239,33 +2487,36 @@ class BehandlingService(
     private fun removeDokument(
         behandling: Behandling,
         saksdokument: Saksdokument,
-        saksbehandlerIdent: String
+        saksbehandlerIdent: String,
     ): Behandling {
         try {
             val event =
                 behandling.removeSaksdokument(
-                    saksdokument,
-                    saksbehandlerIdent
+                    saksdokument = saksdokument,
+                    saksbehandlerident = saksbehandlerIdent,
                 )
             event.let { applicationEventPublisher.publishEvent(it) }
 
             publishInternalEvent(
-                data = jacksonObjectMapper.writeValueAsString(
-                    IncludedDocumentsChangedEvent(
-                        actor = Employee(
-                            navIdent = saksbehandlerIdent,
-                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                data =
+                    jacksonObjectMapper.writeValueAsString(
+                        IncludedDocumentsChangedEvent(
+                            actor =
+                                Employee(
+                                    navIdent = saksbehandlerIdent,
+                                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(saksbehandlerIdent),
+                                ),
+                            timestamp = LocalDateTime.now(),
+                            journalfoertDokumentReferenceSet =
+                                setOf(
+                                    JournalfoertDokument(
+                                        journalpostId = saksdokument.journalpostId,
+                                        dokumentInfoId = saksdokument.dokumentInfoId,
+                                    ),
+                                ),
+                            traceparent = currentTraceparent(),
                         ),
-                        timestamp = LocalDateTime.now(),
-                        journalfoertDokumentReferenceSet = setOf(
-                            JournalfoertDokument(
-                                saksdokument.journalpostId,
-                                saksdokument.dokumentInfoId
-                            )
-                        ),
-                        traceparent = currentTraceparent(),
-                    )
-                ),
+                    ),
                 behandlingId = behandling.id,
                 type = InternalEventType.INCLUDED_DOCUMENTS_REMOVED,
             )
@@ -2278,9 +2529,14 @@ class BehandlingService(
     }
 
     @Transactional(readOnly = true)
-    fun getBehandlingForWriteAllowROLAndMU(behandlingId: UUID, utfoerendeSaksbehandlerIdent: String): Behandling {
+    fun getBehandlingForWriteAllowROLAndMU(
+        behandlingId: UUID,
+        utfoerendeSaksbehandlerIdent: String,
+    ): Behandling {
         val behandling = behandlingRepository.findById(behandlingId).get()
-        if (behandling.medunderskriver?.saksbehandlerident == utfoerendeSaksbehandlerIdent || behandling.rolIdent == utfoerendeSaksbehandlerIdent) {
+        if (behandling.medunderskriver?.saksbehandlerident == utfoerendeSaksbehandlerIdent ||
+            behandling.rolIdent == utfoerendeSaksbehandlerIdent
+        ) {
             verifyMedunderskriverStatusAndBehandlingNotFinalized(behandling)
         } else {
             checkSkrivetilgang(behandling)
@@ -2288,35 +2544,34 @@ class BehandlingService(
         return behandling
     }
 
-    fun getBehandlingDetaljerView(behandlingId: UUID): BehandlingDetaljerView {
-        return behandlingMapper.mapBehandlingToBehandlingDetaljerView(
+    fun getBehandlingDetaljerView(behandlingId: UUID): BehandlingDetaljerView =
+        behandlingMapper.mapBehandlingToBehandlingDetaljerView(
             getBehandlingAndCheckReadAccessToSak(
-                behandlingId
-            )
+                behandlingId,
+            ),
         )
-    }
 
-    fun getBehandlingROLView(behandlingId: UUID): RolView {
-        return behandlingMapper.mapToRolView(getBehandlingAndCheckReadAccessToSak(behandlingId))
-    }
+    fun getBehandlingROLView(behandlingId: UUID): RolView =
+        behandlingMapper.mapToRolView(getBehandlingAndCheckReadAccessToSak(behandlingId))
 
-    fun getBehandlingOppgaveView(behandlingId: UUID): OppgaveView {
-        return behandlingMapper.mapBehandlingToOppgaveView(
+    fun getBehandlingOppgaveView(behandlingId: UUID): OppgaveView =
+        behandlingMapper.mapBehandlingToOppgaveView(
             getBehandlingAndCheckReadAccessToSak(
-                behandlingId
-            )
+                behandlingId,
+            ),
         )
-    }
 
     @Transactional(readOnly = true)
     fun getBehandlingAndCheckReadAccessToSak(behandlingId: UUID): Behandling =
-        behandlingRepository.findById(behandlingId)
+        behandlingRepository
+            .findById(behandlingId)
             .orElseThrow { BehandlingNotFoundException("Behandling med id $behandlingId ikke funnet") }
             .also { checkReadAccessToSak(it) }
 
     @Transactional(readOnly = true)
     fun findBehandlingerForAvslutning(): List<Behandling> =
-        behandlingRepository.findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull()
+        behandlingRepository
+            .findByFerdigstillingAvsluttetIsNullAndFerdigstillingAvsluttetAvSaksbehandlerIsNotNullAndFeilregistreringIsNull()
             .sortedByDescending { it.ferdigstilling?.avsluttetAvSaksbehandler }
 
     fun getPotentialSaksbehandlereForBehandling(behandlingId: UUID): Saksbehandlere {
@@ -2332,20 +2587,20 @@ class BehandlingService(
     fun getPotentialROLForBehandling(behandlingId: UUID): Rols {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return Rols(
-            rols = kabalInnstillingerService.getPotentialROL(behandling).saksbehandlere.map {
-                Rols.Rol(
-                    navIdent = it.navIdent,
-                    navn = it.navn,
-                )
-            }
+            rols =
+                kabalInnstillingerService.getPotentialROL(behandling).saksbehandlere.map {
+                    Rols.Rol(
+                        navIdent = it.navIdent,
+                        navn = it.navn,
+                    )
+                },
         )
     }
 
-    fun getAllBehandlingerForEnhet(enhet: String): List<Behandling> {
-        return behandlingRepository.findByTildelingEnhetAndFerdigstillingIsNullAndFeilregistreringIsNull(
-            enhet
+    fun getAllBehandlingerForEnhet(enhet: String): List<Behandling> =
+        behandlingRepository.findByTildelingEnhetAndFerdigstillingIsNullAndFeilregistreringIsNull(
+            enhet,
         )
-    }
 
     fun getAInntektUrl(behandlingId: UUID): String {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId = behandlingId)
@@ -2357,7 +2612,11 @@ class BehandlingService(
         return arbeidOgInntektClient.getAARegisterUrl(behandling.sakenGjelder.partId.value)
     }
 
-    fun feilregistrer(behandlingId: UUID, reason: String, fagsystem: Fagsystem): FeilregistreringResponse {
+    fun feilregistrer(
+        behandlingId: UUID,
+        reason: String,
+        fagsystem: Fagsystem,
+    ): FeilregistreringResponse {
         val navIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         val behandlingForCheck = getBehandlingAndCheckReadAccessToSak(behandlingId)
 
@@ -2372,15 +2631,17 @@ class BehandlingService(
             feilregistrer(behandling = behandling, navIdent = navIdent, reason = reason, fagsystem = fagsystem)
 
         return FeilregistreringResponse(
-            feilregistrering = BehandlingDetaljerView.FeilregistreringView(
-                feilregistrertAv = SaksbehandlerView(
-                    navIdent = modifiedBehandling.feilregistrering!!.navIdent,
-                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(modifiedBehandling.feilregistrering!!.navIdent)
+            feilregistrering =
+                BehandlingDetaljerView.FeilregistreringView(
+                    feilregistrertAv =
+                        SaksbehandlerView(
+                            navIdent = modifiedBehandling.feilregistrering!!.navIdent,
+                            navn = saksbehandlerService.getNameForIdentDefaultIfNull(modifiedBehandling.feilregistrering!!.navIdent),
+                        ),
+                    registered = modifiedBehandling.feilregistrering!!.registered,
+                    reason = modifiedBehandling.feilregistrering!!.reason,
+                    fagsystemId = modifiedBehandling.feilregistrering!!.fagsystem.id,
                 ),
-                registered = modifiedBehandling.feilregistrering!!.registered,
-                reason = modifiedBehandling.feilregistrering!!.reason,
-                fagsystemId = modifiedBehandling.feilregistrering!!.fagsystem.id
-            ),
             modified = modifiedBehandling.modified,
         )
     }
@@ -2390,12 +2651,12 @@ class BehandlingService(
         reason: String,
         fagsystem: Fagsystem,
         navIdent: String,
-        kildereferanse: String
+        kildereferanse: String,
     ): Behandling {
         logger.debug(
             "Fagsystem {} is attempting to feilregistrere behandling with kildereferanse: {}",
             fagsystem,
-            kildereferanse
+            kildereferanse,
         )
         teamLogger.debug(
             "Fagsystem {} is attempting to feilregistrere {}, due to {}, with kildereferanse: {} by saksbehandler: {}",
@@ -2403,14 +2664,15 @@ class BehandlingService(
             type,
             reason,
             kildereferanse,
-            navIdent
+            navIdent,
         )
 
-        var candidates = behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
-            fagsystem = fagsystem,
-            kildeReferanse = kildereferanse,
-            type = type,
-        )
+        var candidates =
+            behandlingRepository.findByFagsystemAndKildeReferanseAndFeilregistreringIsNullAndType(
+                fagsystem = fagsystem,
+                kildeReferanse = kildereferanse,
+                type = type,
+            )
         if (candidates.isEmpty()) {
             throw FeilregistreringException("Fant ingen saker å feilføre")
         }
@@ -2459,32 +2721,36 @@ class BehandlingService(
             systemUserContext = systemUserContext,
         )
 
-        val event = behandling.setFeilregistrering(
-            feilregistrering = Feilregistrering(
-                navIdent = navIdent,
-                navn = navn,
-                registered = LocalDateTime.now(),
-                reason = reason,
-                fagsystem = fagsystem,
-            ),
-            saksbehandlerident = navIdent,
-        )
+        val event =
+            behandling.setFeilregistrering(
+                feilregistrering =
+                    Feilregistrering(
+                        navIdent = navIdent,
+                        navn = navn,
+                        registered = LocalDateTime.now(),
+                        reason = reason,
+                        fagsystem = fagsystem,
+                    ),
+                saksbehandlerident = navIdent,
+            )
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                FeilregistreringEvent(
-                    actor = Employee(
-                        navIdent = navIdent,
-                        navn = navn,
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    FeilregistreringEvent(
+                        actor =
+                            Employee(
+                                navIdent = navIdent,
+                                navn = navn,
+                            ),
+                        timestamp = behandling.modified,
+                        registered = behandling.feilregistrering!!.registered,
+                        reason = behandling.feilregistrering!!.reason,
+                        fagsystemId = behandling.feilregistrering!!.fagsystem.id,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    registered = behandling.feilregistrering!!.registered,
-                    reason = behandling.feilregistrering!!.reason,
-                    fagsystemId = behandling.feilregistrering!!.fagsystem.id,
-                    traceparent = currentTraceparent(),
                 ),
-            ),
             behandlingId = behandling.id,
             type = InternalEventType.FEILREGISTRERING,
         )
@@ -2495,12 +2761,13 @@ class BehandlingService(
     fun setUtfall(
         behandlingId: UUID,
         utfall: Utfall?,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): UtfallEditedView {
         logger.debug("Input utfall in setUtfall: {}", utfall)
-        val behandling = getBehandlingForUpdate(
-            behandlingId
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId,
+            )
         val changeList = mutableListOf<BehandlingChangedEvent.Change>()
 
         if (utfall != null) {
@@ -2508,7 +2775,7 @@ class BehandlingService(
                 val event =
                     behandling.setExtraUtfallSet(
                         nyVerdi = behandling.extraUtfallSet.minus(utfall),
-                        saksbehandlerident = utfoerendeSaksbehandlerIdent
+                        saksbehandlerident = utfoerendeSaksbehandlerIdent,
                     )
                 changeList += event.changeList
             }
@@ -2516,7 +2783,7 @@ class BehandlingService(
             val event =
                 behandling.setExtraUtfallSet(
                     nyVerdi = setOf(),
-                    saksbehandlerident = utfoerendeSaksbehandlerIdent
+                    saksbehandlerident = utfoerendeSaksbehandlerIdent,
                 )
             changeList += event.changeList
         }
@@ -2524,28 +2791,31 @@ class BehandlingService(
         val event =
             behandling.setUtfall(
                 nyVerdi = utfall,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                saksbehandlerident = utfoerendeSaksbehandlerIdent,
             )
         changeList += event.changeList
 
-        val groupedEvent = BehandlingChangedEvent(
-            behandling = behandling,
-            changeList = changeList,
-        )
+        val groupedEvent =
+            BehandlingChangedEvent(
+                behandling = behandling,
+                changeList = changeList,
+            )
         applicationEventPublisher.publishEvent(groupedEvent)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                UtfallEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    UtfallEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        timestamp = behandling.modified,
+                        utfallId = behandling.utfall?.id,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    utfallId = behandling.utfall?.id,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.UTFALL,
         )
@@ -2560,35 +2830,41 @@ class BehandlingService(
     fun setExtraUtfallSet(
         behandlingId: UUID,
         extraUtfallSet: Set<Utfall>,
-        utfoerendeSaksbehandlerIdent: String
+        utfoerendeSaksbehandlerIdent: String,
     ): ExtraUtfallEditedView {
-        val behandling = getBehandlingForUpdate(
-            behandlingId
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId,
+            )
 
-        val curatedExtraUtfallSet = if (behandling.utfall != null && behandling.utfall in extraUtfallSet) {
-            extraUtfallSet.minus(behandling.utfall!!)
-        } else extraUtfallSet
+        val curatedExtraUtfallSet =
+            if (behandling.utfall != null && behandling.utfall in extraUtfallSet) {
+                extraUtfallSet.minus(behandling.utfall!!)
+            } else {
+                extraUtfallSet
+            }
 
         val event =
             behandling.setExtraUtfallSet(
                 nyVerdi = curatedExtraUtfallSet,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                saksbehandlerident = utfoerendeSaksbehandlerIdent,
             )
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                ExtraUtfallEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    ExtraUtfallEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        timestamp = behandling.modified,
+                        utfallIdList = behandling.extraUtfallSet.map { it.id },
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    utfallIdList = behandling.extraUtfallSet.map { it.id },
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.EXTRA_UTFALL,
         )
@@ -2602,13 +2878,15 @@ class BehandlingService(
     fun washAndSetRegistreringshjemler(
         registreringsHjemmelSet: Set<Registreringshjemmel>?,
         ytelse: Ytelse,
-        behandlingId: UUID
+        behandlingId: UUID,
     ) {
         if (registreringsHjemmelSet != null) {
-            //TODO: Oppdater om det kommer ny versjon
-            val washedRegistreringshjemmelSet = registreringsHjemmelSet.filter {
-                ytelseToRegistreringshjemlerV2[ytelse]?.contains(it) ?: false
-            }.toSet()
+            // TODO: Oppdater om det kommer ny versjon
+            val washedRegistreringshjemmelSet =
+                registreringsHjemmelSet
+                    .filter {
+                        ytelseToRegistreringshjemlerV2[ytelse]?.contains(it) ?: false
+                    }.toSet()
 
             setRegistreringshjemler(
                 behandlingId = behandlingId,
@@ -2623,33 +2901,39 @@ class BehandlingService(
         behandlingId: UUID,
         registreringshjemler: Set<Registreringshjemmel>,
         utfoerendeSaksbehandlerIdent: String,
-        systemUserContext: Boolean = false
+        systemUserContext: Boolean = false,
     ): Behandling {
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-            systemUserContext = systemUserContext,
-        )
-        //TODO: Versjonssjekk på input
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+                systemUserContext = systemUserContext,
+            )
+        // TODO: Versjonssjekk på input
         val event =
-            behandling.setRegistreringshjemler(registreringshjemler, utfoerendeSaksbehandlerIdent)
+            behandling.setRegistreringshjemler(nyVerdi = registreringshjemler, saksbehandlerident = utfoerendeSaksbehandlerIdent)
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                RegistreringshjemlerEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
-                            utfoerendeSaksbehandlerIdent
-                        } else saksbehandlerService.getNameForIdentDefaultIfNull(
-                            utfoerendeSaksbehandlerIdent
-                        ),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    RegistreringshjemlerEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn =
+                                    if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
+                                        utfoerendeSaksbehandlerIdent
+                                    } else {
+                                        saksbehandlerService.getNameForIdentDefaultIfNull(
+                                            utfoerendeSaksbehandlerIdent,
+                                        )
+                                    },
+                            ),
+                        timestamp = behandling.modified,
+                        hjemmelIdSet = behandling.registreringshjemler.map { it.id }.toSet(),
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    hjemmelIdSet = behandling.registreringshjemler.map { it.id }.toSet(),
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.REGISTRERINGSHJEMLER,
         )
@@ -2661,12 +2945,13 @@ class BehandlingService(
         behandlingId: UUID,
         flowState: FlowState,
         utfoerendeSaksbehandlerIdent: String,
-        systemUserContext: Boolean = false
+        systemUserContext: Boolean = false,
     ): RolView {
-        val behandling = getBehandlingForWriteAllowROLAndMU(
-            behandlingId = behandlingId,
-            utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
-        )
+        val behandling =
+            getBehandlingForWriteAllowROLAndMU(
+                behandlingId = behandlingId,
+                utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
+            )
 
         val event1 =
             behandling.setROLFlowState(
@@ -2679,31 +2964,36 @@ class BehandlingService(
         val event2 =
             behandling.setROLReturnedDate(
                 setNull = flowState != FlowState.RETURNED,
-                utfoerendeIdent = utfoerendeSaksbehandlerIdent
+                utfoerendeIdent = utfoerendeSaksbehandlerIdent,
             )
         applicationEventPublisher.publishEvent(event2)
 
         val rolView = behandlingMapper.mapToRolView(behandling)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                RolEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    RolEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        timestamp = rolView.modified,
+                        rol =
+                            if (rolView.employee != null) {
+                                Employee(
+                                    navIdent = rolView.employee.navIdent,
+                                    navn = rolView.employee.navn,
+                                )
+                            } else {
+                                null
+                            },
+                        flowState = rolView.flowState,
+                        returnDate = behandling.rolReturnedDate,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = rolView.modified,
-                    rol = if (rolView.employee != null) {
-                        Employee(
-                            navIdent = rolView.employee.navIdent,
-                            navn = rolView.employee.navn,
-                        )
-                    } else null,
-                    flowState = rolView.flowState,
-                    returnDate = behandling.rolReturnedDate,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.ROL,
         )
@@ -2717,7 +3007,7 @@ class BehandlingService(
         behandlingId: UUID,
         rolIdent: String?,
         utfoerendeSaksbehandlerIdent: String,
-        systemUserContext: Boolean = false
+        systemUserContext: Boolean = false,
     ): RolView {
         val behandlingForCheck = getBehandlingAndCheckReadAccessToSak(behandlingId)
         val behandling =
@@ -2727,7 +3017,9 @@ class BehandlingService(
                 }
                 getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
             } else if (saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(utfoerendeSaksbehandlerIdent)) {
-                if (behandlingForCheck.rolFlowState != FlowState.SENT && behandlingForCheck.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent) {
+                if (behandlingForCheck.rolFlowState != FlowState.SENT &&
+                    behandlingForCheck.tildeling?.saksbehandlerident != utfoerendeSaksbehandlerIdent
+                ) {
                     throw MissingTilgangException("OppgavestyringAlleEnheter har ikke lov til å endre ROL når den ikke er sendt.")
                 }
                 getBehandlingForUpdate(behandlingId = behandlingId, ignoreCheckSkrivetilgang = true)
@@ -2738,13 +3030,13 @@ class BehandlingService(
                     } else {
                         getBehandlingForWriteAllowROLAndMU(
                             behandlingId = behandlingId,
-                            utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent
+                            utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
                         )
                     }
                 } else {
                     getBehandlingForWriteAllowROLAndMU(
                         behandlingId = behandlingId,
-                        utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent
+                        utfoerendeSaksbehandlerIdent = utfoerendeSaksbehandlerIdent,
                     )
                 }
             }
@@ -2760,24 +3052,29 @@ class BehandlingService(
         val rolView = behandlingMapper.mapToRolView(behandling)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                RolEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    RolEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        timestamp = rolView.modified,
+                        rol =
+                            if (rolView.employee != null) {
+                                Employee(
+                                    navIdent = rolView.employee.navIdent,
+                                    navn = rolView.employee.navn,
+                                )
+                            } else {
+                                null
+                            },
+                        flowState = rolView.flowState,
+                        returnDate = behandling.rolReturnedDate,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = rolView.modified,
-                    rol = if (rolView.employee != null) {
-                        Employee(
-                            navIdent = rolView.employee.navIdent,
-                            navn = rolView.employee.navn,
-                        )
-                    } else null,
-                    flowState = rolView.flowState,
-                    returnDate = behandling.rolReturnedDate,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.ROL,
         )
@@ -2797,141 +3094,165 @@ class BehandlingService(
         }
     }
 
-    private fun Behandling.toCompletedBehandling(): CompletedBehandling = CompletedBehandling(
-        behandlingId = id,
-        ytelseId = ytelse.id,
-        hjemmelIdList = hjemler.map { it.id },
-        vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
-        sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
-        klager = behandlingMapper.getPartViewWithUtsendingskanal(
-            technicalPartId = klager.id,
-            partId = klager.partId,
-            behandling = this,
-            navn = null,
-            address = null,
-        ).toKabinPartView(),
-        fullmektig = if (prosessfullmektig?.partId != null) {
-            behandlingMapper.getPartViewWithUtsendingskanal(
-                technicalPartId = prosessfullmektig!!.id,
-                partId = prosessfullmektig!!.partId,
-                behandling = this,
-                navn = prosessfullmektig!!.navn,
-                address = prosessfullmektig!!.address,
-            ).toKabinPartView()
-        } else null,
-        fagsakId = fagsakId,
-        fagsystem = fagsystem,
-        fagsystemId = fagsystem.id,
-        klageBehandlendeEnhet = tildeling!!.enhet!!,
-        tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
-        tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdentDefaultIfNull(tildeling!!.saksbehandlerident!!),
-    )
+    private fun Behandling.toCompletedBehandling(): CompletedBehandling =
+        CompletedBehandling(
+            behandlingId = id,
+            ytelseId = ytelse.id,
+            hjemmelIdList = hjemler.map { it.id },
+            vedtakDate = ferdigstilling!!.avsluttetAvSaksbehandler,
+            sakenGjelder = behandlingMapper.getSakenGjelderViewWithUtsendingskanal(behandling = this).toKabinPartView(),
+            klager =
+                behandlingMapper
+                    .getPartViewWithUtsendingskanal(
+                        technicalPartId = klager.id,
+                        partId = klager.partId,
+                        behandling = this,
+                        navn = null,
+                        address = null,
+                    ).toKabinPartView(),
+            fullmektig =
+                if (prosessfullmektig?.partId != null) {
+                    behandlingMapper
+                        .getPartViewWithUtsendingskanal(
+                            technicalPartId = prosessfullmektig!!.id,
+                            partId = prosessfullmektig!!.partId,
+                            behandling = this,
+                            navn = prosessfullmektig!!.navn,
+                            address = prosessfullmektig!!.address,
+                        ).toKabinPartView()
+                } else {
+                    null
+                },
+            fagsakId = fagsakId,
+            fagsystem = fagsystem,
+            fagsystemId = fagsystem.id,
+            klageBehandlendeEnhet = tildeling!!.enhet!!,
+            tildeltSaksbehandlerIdent = tildeling!!.saksbehandlerident!!,
+            tildeltSaksbehandlerNavn = saksbehandlerService.getNameForIdentDefaultIfNull(tildeling!!.saksbehandlerident!!),
+        )
 
     fun getHistory(behandlingId: UUID): HistoryResponse {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId = behandlingId)
 
         return HistoryResponse(
-            tildeling = historyService.createTildelingHistory(
-                tildelingHistorikkSet = behandling.tildelingHistorikk,
-                behandlingCreated = behandling.created,
-                originalHjemmelIdList = behandling.hjemler.joinToString(",")
-            ),
-            medunderskriver = historyService.createMedunderskriverHistory(
-                medunderskriverHistorikkSet = behandling.medunderskriverHistorikk,
-                behandlingCreated = behandling.created,
-            ),
-            rol = historyService.createRolHistory(
-                rolHistorikk = behandling.rolHistorikk,
-            ),
-            klager = historyService.createKlagerHistory(
-                klagerHistorikk = behandling.klagerHistorikk,
-            ),
-            fullmektig = historyService.createFullmektigHistory(
-                fullmektigHistorikk = behandling.fullmektigHistorikk,
-            ),
-            sattPaaVent = historyService.createSattPaaVentHistory(
-                sattPaaVentHistorikk = behandling.sattPaaVentHistorikk,
-            ),
+            tildeling =
+                historyService.createTildelingHistory(
+                    tildelingHistorikkSet = behandling.tildelingHistorikk,
+                    behandlingCreated = behandling.created,
+                    originalHjemmelIdList = behandling.hjemler.joinToString(","),
+                ),
+            medunderskriver =
+                historyService.createMedunderskriverHistory(
+                    medunderskriverHistorikkSet = behandling.medunderskriverHistorikk,
+                    behandlingCreated = behandling.created,
+                ),
+            rol =
+                historyService.createRolHistory(
+                    rolHistorikk = behandling.rolHistorikk,
+                ),
+            klager =
+                historyService.createKlagerHistory(
+                    klagerHistorikk = behandling.klagerHistorikk,
+                ),
+            fullmektig =
+                historyService.createFullmektigHistory(
+                    fullmektigHistorikk = behandling.fullmektigHistorikk,
+                ),
+            sattPaaVent =
+                historyService.createSattPaaVentHistory(
+                    sattPaaVentHistorikk = behandling.sattPaaVentHistorikk,
+                ),
             ferdigstilt = historyService.createFerdigstiltHistory(behandling),
-            feilregistrert = historyService.createFeilregistrertHistory(
-                feilregistrering = behandling.feilregistrering,
-                behandlingCreated = behandling.created,
-            ),
-            varsletBehandlingstid = historyService.createVarsletBehandlingstidHistory(
-                varsletBehandlingstidHistorikk = behandling.varsletBehandlingstidHistorikk,
-                behandlingCreated = behandling.created,
-            ),
-            forlengetBehandlingstid = historyService.createForlengetBehandlingstidHistory(
-                varsletBehandlingstidHistorikk = behandling.varsletBehandlingstidHistorikk,
-                behandlingCreated = behandling.created,
-            ),
+            feilregistrert =
+                historyService.createFeilregistrertHistory(
+                    feilregistrering = behandling.feilregistrering,
+                    behandlingCreated = behandling.created,
+                ),
+            varsletBehandlingstid =
+                historyService.createVarsletBehandlingstidHistory(
+                    varsletBehandlingstidHistorikk = behandling.varsletBehandlingstidHistorikk,
+                    behandlingCreated = behandling.created,
+                ),
+            forlengetBehandlingstid =
+                historyService.createForlengetBehandlingstidHistory(
+                    varsletBehandlingstidHistorikk = behandling.varsletBehandlingstidHistorikk,
+                    behandlingCreated = behandling.created,
+                ),
         )
     }
 
     fun findRelevantBehandlinger(behandlingId: UUID): List<Behandling> {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
         return behandlingRepository.findBySakenGjelderPartIdValueAndFerdigstillingIsNullAndFeilregistreringIsNull(
-            partIdValue = behandling.sakenGjelder.partId.value
+            partIdValue = behandling.sakenGjelder.partId.value,
         )
     }
 
     fun findRelevantGosysOppgaver(behandlingId: UUID): List<GosysOppgaveView> {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
-        return gosysOppgaveService.getGosysOppgaveList(
-            fnr = behandling.sakenGjelder.partId.value,
-            tema = behandling.ytelse.toTema(),
-        ).map {
-            it.copy(
-                alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(it.id)
-            )
-        }
+        return gosysOppgaveService
+            .getGosysOppgaveList(
+                fnr = behandling.sakenGjelder.partId.value,
+                tema = behandling.ytelse.toTema(),
+            ).map {
+                it.copy(
+                    alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(it.id),
+                )
+            }
     }
 
-    fun getSakenGjelderView(behandlingId: UUID): BehandlingDetaljerView.SakenGjelderView {
-        return behandlingMapper.getSakenGjelderView(getBehandlingAndCheckReadAccessToSak(behandlingId))
-    }
+    fun getSakenGjelderView(behandlingId: UUID): BehandlingDetaljerView.SakenGjelderView =
+        behandlingMapper.getSakenGjelderView(getBehandlingAndCheckReadAccessToSak(behandlingId))
 
     fun getFradelingReason(behandlingId: UUID): WithPrevious<no.nav.klage.oppgave.api.view.TildelingEvent>? {
         val behandling = getBehandlingAndCheckReadAccessToSak(behandlingId)
 
-        val tildelingHistory = historyService.createTildelingHistory(
-            tildelingHistorikkSet = behandling.tildelingHistorikk,
-            behandlingCreated = behandling.created,
-            originalHjemmelIdList = behandling.hjemler.joinToString(",")
-        )
+        val tildelingHistory =
+            historyService.createTildelingHistory(
+                tildelingHistorikkSet = behandling.tildelingHistorikk,
+                behandlingCreated = behandling.created,
+                originalHjemmelIdList = behandling.hjemler.joinToString(","),
+            )
 
         return if (behandling.tildeling == null) {
-            val fradelingerBySaksbehandler = tildelingHistory.filter {
-                it.event?.fradelingReasonId != null && it.previous.event?.saksbehandler?.navIdent == innloggetSaksbehandlerService.getInnloggetIdent()
-            }
+            val fradelingerBySaksbehandler =
+                tildelingHistory.filter {
+                    it.event?.fradelingReasonId != null &&
+                        it.previous.event
+                            ?.saksbehandler
+                            ?.navIdent == innloggetSaksbehandlerService.getInnloggetIdent()
+                }
 
             if (fradelingerBySaksbehandler.isNotEmpty()) {
-                //return most recent fradeling if there are multiple
+                // return most recent fradeling if there are multiple
                 fradelingerBySaksbehandler.last()
             } else {
                 null
             }
-        } else null
+        } else {
+            null
+        }
     }
 
     fun getFradeltSaksbehandlerViewWrapped(behandlingId: UUID): FradeltSaksbehandlerViewWrapped {
         val behandling = getBehandlingForReadWithoutCheckForAccess(behandlingId)
         return FradeltSaksbehandlerViewWrapped(
             modified = behandling.modified,
-            hjemmelIdList = behandling.hjemler.map { it.id }
+            hjemmelIdList = behandling.hjemler.map { it.id },
         )
     }
 
-    fun gosysOppgaveIsDuplicate(gosysOppgaveId: Long): Boolean {
-        return behandlingRepository.findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
-            gosysOppgaveId = gosysOppgaveId
-        ).isNotEmpty()
-    }
+    fun gosysOppgaveIsDuplicate(gosysOppgaveId: Long): Boolean =
+        behandlingRepository
+            .findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
+                gosysOppgaveId = gosysOppgaveId,
+            ).isNotEmpty()
 
     fun findOpenBehandlingUsingGosysOppgave(gosysOppgaveId: Long): UUID? {
-        val behandlingList = behandlingRepository.findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
-            gosysOppgaveId = gosysOppgaveId
-        )
+        val behandlingList =
+            behandlingRepository.findByGosysOppgaveIdAndFeilregistreringIsNullAndFerdigstillingIsNull(
+                gosysOppgaveId = gosysOppgaveId,
+            )
 
         return if (behandlingList.isEmpty()) {
             null
@@ -2942,77 +3263,72 @@ class BehandlingService(
         }
     }
 
-    fun getAnkemuligheterByPartIdValue(
-        partIdValue: String,
-    ): List<Behandling> {
-        return behandlingRepository.getAnkemuligheter(partIdValue).filter {
+    fun getAnkemuligheterByPartIdValue(partIdValue: String): List<Behandling> =
+        behandlingRepository.getAnkemuligheter(partIdValue).filter {
             try {
                 checkReadAccessToSak(
-                    behandling = it
+                    behandling = it,
                 )
                 true
             } catch (_: MissingTilgangException) {
                 false
             }
         }
-    }
 
     fun getAnkeMuligheterBasedOnInfotrygdByPartIdValueAndTema(
         partIdValue: String,
         tema: Tema,
     ): List<Behandling> {
         val ytelseList = tema.toYtelserCurrentlyInUse()
-        return behandlingRepository.getAnkeMuligheterBasedOnInfotrygd(
-            partIdValue = partIdValue,
-            ytelseList = ytelseList,
-        ).filter {
-            try {
-                checkReadAccessToSak(
-                    behandling = it
-                )
-                true
-            } catch (_: MissingTilgangException) {
-                false
+        return behandlingRepository
+            .getAnkeMuligheterBasedOnInfotrygd(
+                partIdValue = partIdValue,
+                ytelseList = ytelseList,
+            ).filter {
+                try {
+                    checkReadAccessToSak(
+                        behandling = it,
+                    )
+                    true
+                } catch (_: MissingTilgangException) {
+                    false
+                }
             }
-        }
     }
 
-    fun getOmgjoeringskravmuligheterByPartIdValue(
-        partIdValue: String,
-    ): List<Behandling> {
-        return behandlingRepository.getOmgjoeringskravmuligheter(partIdValue).filter {
+    fun getOmgjoeringskravmuligheterByPartIdValue(partIdValue: String): List<Behandling> =
+        behandlingRepository.getOmgjoeringskravmuligheter(partIdValue).filter {
             try {
                 checkReadAccessToSak(
-                    behandling = it
+                    behandling = it,
                 )
                 true
             } catch (e: MissingTilgangException) {
                 false
             }
         }
-    }
 
-    fun getGjenopptaksmuligheterByPartIdValue(
-        partIdValue: String,
-    ): List<Behandling> {
-        return behandlingRepository.getGjenopptaksmuligheter(partIdValue).filter {
+    fun getGjenopptaksmuligheterByPartIdValue(partIdValue: String): List<Behandling> =
+        behandlingRepository.getGjenopptaksmuligheter(partIdValue).filter {
             try {
                 checkReadAccessToSak(
-                    behandling = it
+                    behandling = it,
                 )
                 true
             } catch (e: MissingTilgangException) {
                 false
             }
         }
-    }
 
     private fun getUtfoerendeNavn(utfoerendeSaksbehandlerIdent: String): String {
-        val name = if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
-            systembrukerIdent
-        } else saksbehandlerService.getNameForIdentDefaultIfNull(
-            navIdent = utfoerendeSaksbehandlerIdent
-        )
+        val name =
+            if (utfoerendeSaksbehandlerIdent == systembrukerIdent) {
+                systembrukerIdent
+            } else {
+                saksbehandlerService.getNameForIdentDefaultIfNull(
+                    navIdent = utfoerendeSaksbehandlerIdent,
+                )
+            }
         return name
     }
 
@@ -3023,21 +3339,24 @@ class BehandlingService(
     ): GosysOppgaveEditedView {
         logger.debug("Input utfall in setGosysOppgaveId: {}", gosysOppgaveId)
 
-        val behandling = getBehandlingForUpdate(
-            behandlingId = behandlingId,
-        )
+        val behandling =
+            getBehandlingForUpdate(
+                behandlingId = behandlingId,
+            )
 
-        val gosysOppgave = gosysOppgaveService.getGosysOppgave(
-            gosysOppgaveId = gosysOppgaveId,
-            fnrToValidate = behandling.sakenGjelder.partId.value,
-        ).copy(
-            alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(gosysOppgaveId)
-        )
+        val gosysOppgave =
+            gosysOppgaveService
+                .getGosysOppgave(
+                    gosysOppgaveId = gosysOppgaveId,
+                    fnrToValidate = behandling.sakenGjelder.partId.value,
+                ).copy(
+                    alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(gosysOppgaveId),
+                )
 
         if (behandling.gosysOppgaveId == gosysOppgave.id) {
             return GosysOppgaveEditedView(
                 modified = behandling.modified,
-                gosysOppgave = gosysOppgave
+                gosysOppgave = gosysOppgave,
             )
         }
 
@@ -3048,22 +3367,24 @@ class BehandlingService(
         val event =
             behandling.setGosysOppgaveId(
                 nyVerdi = gosysOppgaveId,
-                saksbehandlerident = utfoerendeSaksbehandlerIdent
+                saksbehandlerident = utfoerendeSaksbehandlerIdent,
             )
         applicationEventPublisher.publishEvent(event)
 
         publishInternalEvent(
-            data = jacksonObjectMapper.writeValueAsString(
-                GosysoppgaveEvent(
-                    actor = Employee(
-                        navIdent = utfoerendeSaksbehandlerIdent,
-                        navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+            data =
+                jacksonObjectMapper.writeValueAsString(
+                    GosysoppgaveEvent(
+                        actor =
+                            Employee(
+                                navIdent = utfoerendeSaksbehandlerIdent,
+                                navn = saksbehandlerService.getNameForIdentDefaultIfNull(utfoerendeSaksbehandlerIdent),
+                            ),
+                        timestamp = behandling.modified,
+                        gosysOppgave = gosysOppgave,
+                        traceparent = currentTraceparent(),
                     ),
-                    timestamp = behandling.modified,
-                    gosysOppgave = gosysOppgave,
-                    traceparent = currentTraceparent(),
-                )
-            ),
+                ),
             behandlingId = behandlingId,
             type = InternalEventType.GOSYSOPPGAVE,
         )
@@ -3081,18 +3402,19 @@ class BehandlingService(
             throw GosysOppgaveNotFoundException("Behandlingen har ingen gosysoppgave")
         }
 
-        val gosysOppgave = gosysOppgaveService.getGosysOppgave(
-            gosysOppgaveId = behandling.gosysOppgaveId!!,
-            fnrToValidate = behandling.sakenGjelder.partId.value
-        )
+        val gosysOppgave =
+            gosysOppgaveService.getGosysOppgave(
+                gosysOppgaveId = behandling.gosysOppgaveId!!,
+                fnrToValidate = behandling.sakenGjelder.partId.value,
+            )
 
         return gosysOppgave.copy(
-            alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(gosysOppgave.id)
+            alreadyUsedBy = findOpenBehandlingUsingGosysOppgave(gosysOppgave.id),
         )
     }
 
-    //TODO: Delete after run
-    @Scheduled(cron = "\${MIGRATE_CRON}", zone = "Europe/Oslo")
+    // TODO: Delete after run
+    @Scheduled(cron = $$"${MIGRATE_CRON}", zone = "Europe/Oslo")
     @SchedulerLock(name = "migrateKvalitetsvurderingerFromV2ToV3")
     fun migrateKvalitetsvurderingerFromV2ToV3() {
         if (!schedulerHealthGate.isReady()) return
@@ -3118,7 +3440,7 @@ class BehandlingService(
             try {
                 kakaApiGateway.deleteKvalitetsvurdering(
                     kvalitetsvurderingId = oldKvalitetsvurderingId!!,
-                    kvalitetsvurderingVersion = 2
+                    kvalitetsvurderingVersion = 2,
                 )
             } catch (notFound: WebClientResponseException.NotFound) {
                 logger.warn("Got a 404 deleting kvalitetsvurdering with id $oldKvalitetsvurderingId. Continuing.")
@@ -3133,9 +3455,8 @@ class BehandlingService(
         logger.debug("Number of candidates after migration: ${candidatesAfterMigration.size}")
     }
 
-    fun getBehandlingerWithPreviousBehandlingId(previousBehandlingId: UUID): List<Behandling> {
-        return behandlingRepository.findByPreviousBehandlingIdAndFeilregistreringIsNull(previousBehandlingId = previousBehandlingId)
-    }
+    fun getBehandlingerWithPreviousBehandlingId(previousBehandlingId: UUID): List<Behandling> =
+        behandlingRepository.findByPreviousBehandlingIdAndFeilregistreringIsNull(previousBehandlingId = previousBehandlingId)
 
     /**
      * Returns true if the given behandling is connected (through the previousBehandlingId chain) to a

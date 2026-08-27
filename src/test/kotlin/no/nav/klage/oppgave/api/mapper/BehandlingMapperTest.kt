@@ -20,7 +20,11 @@ import no.nav.klage.oppgave.domain.behandling.embedded.PartId
 import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
 import no.nav.klage.oppgave.repositories.PersonProtectionRepository
 import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
-import no.nav.klage.oppgave.service.*
+import no.nav.klage.oppgave.service.DokDistKanalService
+import no.nav.klage.oppgave.service.GosysOppgaveService
+import no.nav.klage.oppgave.service.KodeverkService
+import no.nav.klage.oppgave.service.PersonService
+import no.nav.klage.oppgave.service.SaksbehandlerService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,7 +32,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @ActiveProfiles("local")
 @SpringBootTest(classes = [BehandlingMapper::class])
@@ -72,9 +76,9 @@ class BehandlingMapperTest {
     @Autowired
     lateinit var behandlingMapper: BehandlingMapper
 
-    private val FNR = "FNR"
-    private val MEDUNDERSKRIVER_IDENT = "MEDUNDERSKRIVER_IDENT"
-    private val MEDUNDERSKRIVER_NAVN = "MEDUNDERSKRIVER_NAVN"
+    private val fnr = "FNR"
+    private val medunderskriverIdent = "MEDUNDERSKRIVER_IDENT"
+    private val medunderskriverNavn = "MEDUNDERSKRIVER_NAVN"
 
     @Test
     fun `mapToMedunderskriverWrapped og mapToMedunderskriverFlowStateView gir forventet resultat når medunderskriver og medunderskriverFlowState ikke er satt`() {
@@ -89,28 +93,30 @@ class BehandlingMapperTest {
     @Test
     fun `mapToMedunderskriverWrapped og mapToMedunderskriverFlowStateView gir forventet resultat når medunderskriver og medunderskriverFlowState er satt`() {
         val klagebehandling = getKlagebehandlingWithMedunderskriver()
-        every { saksbehandlerService.getNameForIdentDefaultIfNull(any()) } returns MEDUNDERSKRIVER_NAVN
+        every { saksbehandlerService.getNameForIdentDefaultIfNull(any()) } returns medunderskriverNavn
 
         val viewResult = behandlingMapper.mapToMedunderskriverWrapped(klagebehandling)
         val flytViewResult = behandlingMapper.mapToMedunderskriverFlowStateView(klagebehandling)
 
-        assertThat(viewResult.employee?.navIdent).isEqualTo(MEDUNDERSKRIVER_IDENT)
+        assertThat(viewResult.employee?.navIdent).isEqualTo(medunderskriverIdent)
         assertThat(flytViewResult.flowState).isEqualTo(FlowState.SENT)
     }
 
-    private fun getKlagebehandling(): Klagebehandling {
-        return Klagebehandling(
+    private fun getKlagebehandling(): Klagebehandling =
+        Klagebehandling(
             fagsystem = Fagsystem.AO01,
             fagsakId = "123",
             kildeReferanse = "abc",
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(PartIdType.PERSON, FNR)
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(PartIdType.PERSON, FNR),
-            ),
+            klager =
+                Klager(
+                    id = UUID.randomUUID(),
+                    partId = PartId(type = PartIdType.PERSON, value = fnr),
+                ),
+            sakenGjelder =
+                SakenGjelder(
+                    id = UUID.randomUUID(),
+                    partId = PartId(type = PartIdType.PERSON, value = fnr),
+                ),
             prosessfullmektig = null,
             mottattKlageinstans = LocalDateTime.now(),
             ytelse = Ytelse.OMS_OMP,
@@ -128,15 +134,14 @@ class BehandlingMapperTest {
             initiatingSystem = Behandling.InitiatingSystem.KABAL,
             previousBehandlingId = null,
         )
-    }
 
-    private fun getKlagebehandlingWithMedunderskriver(): Klagebehandling {
-        return getKlagebehandling().apply {
-            medunderskriver = MedunderskriverTildeling(
-                MEDUNDERSKRIVER_IDENT,
-                LocalDateTime.now()
-            )
+    private fun getKlagebehandlingWithMedunderskriver(): Klagebehandling =
+        getKlagebehandling().apply {
+            medunderskriver =
+                MedunderskriverTildeling(
+                    saksbehandlerident = medunderskriverIdent,
+                    tidspunkt = LocalDateTime.now(),
+                )
             medunderskriverFlowState = FlowState.SENT
         }
-    }
 }

@@ -7,10 +7,14 @@ import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsH
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsMellomlagret
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.dokument.service.InnholdsfortegnelseService
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.kodeverk.FlowState
+import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
+import no.nav.klage.kodeverk.klageenheter
+import no.nav.klage.kodeverk.styringsenheter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
 import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
@@ -30,15 +34,32 @@ import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.POSTST
 import no.nav.klage.oppgave.config.CacheWithJCacheConfiguration.Companion.SAKSBEHANDLER_NAME_CACHE
 import no.nav.klage.oppgave.config.SchedulerHealthGate
 import no.nav.klage.oppgave.domain.PersonProtection
-import no.nav.klage.oppgave.domain.behandling.*
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
+import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnJournalpost
+import no.nav.klage.oppgave.domain.behandling.OmgjoeringskravbehandlingBasedOnKabalBehandling
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent
 import no.nav.klage.oppgave.domain.events.BehandlingChangedEvent.Change.Companion.createChange
 import no.nav.klage.oppgave.domain.kafka.BehandlingState
 import no.nav.klage.oppgave.domain.kafka.EventType
 import no.nav.klage.oppgave.domain.kafka.StatistikkTilDVH
 import no.nav.klage.oppgave.domain.kafka.UtsendingStatus
-import no.nav.klage.oppgave.eventlisteners.EnsurePersongalleriAndProtectionEventListener
-import no.nav.klage.oppgave.repositories.*
+import no.nav.klage.oppgave.repositories.AnkeITrygderettenbehandlingRepository
+import no.nav.klage.oppgave.repositories.AnkebehandlingRepository
+import no.nav.klage.oppgave.repositories.BehandlingRepository
+import no.nav.klage.oppgave.repositories.KafkaEventRepository
+import no.nav.klage.oppgave.repositories.KlagebehandlingRepository
+import no.nav.klage.oppgave.repositories.OmgjoeringskravbehandlingRepository
+import no.nav.klage.oppgave.repositories.PersonProtectionRepository
+import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
+import no.nav.klage.oppgave.repositories.TaskListMerkantilRepository
 import no.nav.klage.oppgave.service.StatistikkTilDVHService.Companion.TR_ENHET
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
@@ -57,7 +78,7 @@ import org.springframework.transaction.support.TransactionTemplate
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 @Transactional
@@ -77,7 +98,7 @@ class AdminService(
     private val behandlingService: BehandlingService,
     private val klankeService: KlankeService,
     private val tokenUtil: TokenUtil,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val personService: PersonService,
     private val minsideMicrofrontendService: MinsideMicrofrontendService,
     private val slackClient: SlackClient,
@@ -86,14 +107,11 @@ class AdminService(
     private val entityManager: EntityManager,
     private val schedulerHealthGate: SchedulerHealthGate,
     private val merkantilRepository: TaskListMerkantilRepository,
-    private val klagebehandlingService: KlagebehandlingService,
     private val sakPersongalleriRepository: SakPersongalleriRepository,
     private val klageLookupGateway: KlageLookupGateway,
     private val personProtectionRepository: PersonProtectionRepository,
     private val transactionTemplate: TransactionTemplate,
-    private val ensurePersongalleriAndProtectionEventListener: EnsurePersongalleriAndProtectionEventListener,
 ) {
-
     @Value($$"${KLAGE_BACKEND_GROUP_ID}")
     lateinit var klageBackendGroupId: String
 
@@ -127,10 +145,11 @@ class AdminService(
         do {
             val pageRequest = PageRequest.of(pageNumber, pageSize, Sort.by("created").descending())
 
-            val pageResult = transactionTemplate.execute {
-                val page = behandlingRepository.findAll(pageRequest)
-                page.content.map { it.id } to page.hasNext()
-            } ?: (emptyList<UUID>() to false)
+            val pageResult =
+                transactionTemplate.execute {
+                    val page = behandlingRepository.findAll(pageRequest)
+                    page.content.map { it.id } to page.hasNext()
+                } ?: (emptyList<UUID>() to false)
 
             val ids = pageResult.first
             hasNext = pageResult.second
@@ -153,7 +172,7 @@ class AdminService(
     @Transactional
     fun reindexBehandlingInSearch(behandlingId: UUID) {
         behandlingEndretKafkaProducer.sendBehandlingEndret(
-            behandlingRepository.findByIdEager(behandlingId)
+            behandlingRepository.findByIdEager(behandlingId),
         )
     }
 
@@ -161,8 +180,10 @@ class AdminService(
     @Transactional
     fun deleteBehandlingInDev(behandlingId: UUID) {
         logger.debug("Delete test data in dev: attempt to delete behandling with id {}", behandlingId)
-        val (hoveddokumenter, vedlegg) = dokumentUnderArbeidRepository.findByBehandlingId(behandlingId)
-            .partition { it is DokumentUnderArbeidAsHoveddokument }
+        val (hoveddokumenter, vedlegg) =
+            dokumentUnderArbeidRepository
+                .findByBehandlingId(behandlingId)
+                .partition { it is DokumentUnderArbeidAsHoveddokument }
 
         for (dua in hoveddokumenter + vedlegg) {
             try {
@@ -181,7 +202,7 @@ class AdminService(
                 logger.warn("Couldn't delete innholdsfortegnelse. May be b/c there never was one.")
             }
 
-            //TODO Slette smartdocs
+            // TODO Slette smartdocs
         }
 
         dokumentUnderArbeidRepository.deleteAll(vedlegg)
@@ -196,29 +217,30 @@ class AdminService(
 
         behandlingRepository.deleteById(behandlingId)
 
-        //Delete in search
+        // Delete in search
         behandlingEndretKafkaProducer.sendBehandlingDeleted(behandlingId)
 
         if (behandling.shouldUpdateInfotrygd()) {
             logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
             klankeService.setToFeilregistrertInKabal(
                 sakId = behandling.kildeReferanse,
-                input = FeilregistrertInKabalInput(
-                    saksbehandlerIdent = systembrukerIdent,
-                )
+                input =
+                    FeilregistrertInKabalInput(
+                        saksbehandlerIdent = systembrukerIdent,
+                    ),
             )
             logger.debug("Feilregistrering av behandling ble registrert i Infotrygd.")
         }
 
-        //Delete in dokumentarkiv? Probably not necessary. They clean up when they need to.
+        // Delete in dokumentarkiv? Probably not necessary. They clean up when they need to.
     }
 
     @Transactional
     fun resendToDVH() {
         logger.debug("Attempting to resend all events to DVH")
         kafkaDispatcher.dispatchEventsToKafka(
-            EventType.STATS_DVH,
-            listOf(UtsendingStatus.IKKE_SENDT, UtsendingStatus.FEILET, UtsendingStatus.SENDT)
+            type = EventType.STATS_DVH,
+            utsendingStatusList = listOf(UtsendingStatus.IKKE_SENDT, UtsendingStatus.FEILET, UtsendingStatus.SENDT),
         )
     }
 
@@ -226,14 +248,16 @@ class AdminService(
     fun migrateDvhEvents() {
         val events = kafkaEventRepository.findByType(EventType.STATS_DVH)
 
-        val filteredEvents = events.filter {
-            val parsedStatistikkTilDVH = jacksonObjectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)
-            parsedStatistikkTilDVH.behandlingType == "Anke" &&
-                    parsedStatistikkTilDVH.behandlingStatus in listOf(
-                BehandlingState.AVSLUTTET,
-                BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA
-            )
-        }
+        val filteredEvents =
+            events.filter {
+                val parsedStatistikkTilDVH = jacksonObjectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)
+                parsedStatistikkTilDVH.behandlingType == "Anke" &&
+                    parsedStatistikkTilDVH.behandlingStatus in
+                    listOf(
+                        BehandlingState.AVSLUTTET,
+                        BehandlingState.AVSLUTTET_I_TR_OG_NY_ANKEBEHANDLING_I_KA,
+                    )
+            }
 
         logger.debug("Number of candidates: ${filteredEvents.size}")
 
@@ -243,20 +267,21 @@ class AdminService(
                     "BEFORE: Modifying kafka event {}, behandling_id {}, payload: {}",
                     it.id,
                     it.behandlingId,
-                    it.jsonPayload
+                    it.jsonPayload,
                 )
                 var parsedStatistikkTilDVH = jacksonObjectMapper.readValue(it.jsonPayload, StatistikkTilDVH::class.java)
-                parsedStatistikkTilDVH = parsedStatistikkTilDVH.copy(
-                    ansvarligEnhetKode = TR_ENHET,
-                    tekniskTid = LocalDateTime.now()
-                )
+                parsedStatistikkTilDVH =
+                    parsedStatistikkTilDVH.copy(
+                        ansvarligEnhetKode = TR_ENHET,
+                        tekniskTid = LocalDateTime.now(),
+                    )
                 it.jsonPayload = jacksonObjectMapper.writeValueAsString(parsedStatistikkTilDVH)
                 it.status = UtsendingStatus.IKKE_SENDT
                 logger.debug(
                     "AFTER: Modified kafka event {}, behandling_id {}, payload: {}",
                     it.id,
                     it.behandlingId,
-                    it.jsonPayload
+                    it.jsonPayload,
                 )
             }
         }
@@ -328,12 +353,12 @@ class AdminService(
             behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullWithHjemler()
         teamLogger.debug(
             "Checking for inaccessible behandlinger. Number of unfinished behandlinger: {}",
-            unfinishedBehandlinger.size
+            unfinishedBehandlinger.size,
         )
 
         val resultMessage =
             checkForUnavailableDueToBeskyttelseAndSkjerming(unfinishedBehandlingerInput = unfinishedBehandlinger) +
-                    checkForUnavailableDueToHjemler(unfinishedBehandlingerInput = unfinishedBehandlinger)
+                checkForUnavailableDueToHjemler(unfinishedBehandlingerInput = unfinishedBehandlinger)
         slackClient.postMessage("<!subteam^$klageBackendGroupId>: \n$resultMessage")
         teamLogger.debug(resultMessage)
     }
@@ -378,9 +403,9 @@ class AdminService(
 
         val resultMessage =
             "Fullført søk etter utilgjengelige behandlinger. \n" +
-                    "Strengt fortrolige behandlinger: $strengtFortroligBehandlinger \n" +
-                    "Fortrolige behandlinger der saksbehandler mangler tilgang: $fortroligBehandlinger \n" +
-                    "Egen ansatt-behandlinger der saksbehandler mangler tilgang: $egenAnsattBehandlinger\n\n"
+                "Strengt fortrolige behandlinger: $strengtFortroligBehandlinger \n" +
+                "Fortrolige behandlinger der saksbehandler mangler tilgang: $fortroligBehandlinger \n" +
+                "Egen ansatt-behandlinger der saksbehandler mangler tilgang: $egenAnsattBehandlinger\n\n"
 
         val end = System.currentTimeMillis()
         teamLogger.debug("Time it took to process unavailableDueToBeskyttelseAndSkjerming: ${end - start} millis")
@@ -401,13 +426,14 @@ class AdminService(
             when (behandling) {
                 is Klagebehandling, is Ankebehandling, is Omgjoeringskravbehandling -> {
                     if (behandling.tildeling == null) {
-                        val hjemlerForYtelseInInnstillinger = ytelseToHjemlerMap.getOrPut(behandling.ytelse) {
-                            //Exclude innstillinger for people in KA Styringsenhet.
-                            kabalInnstillingerService.getRegisteredHjemlerForYtelse(
-                                ytelse = behandling.ytelse,
-                                includeSE = false
-                            )
-                        }
+                        val hjemlerForYtelseInInnstillinger =
+                            ytelseToHjemlerMap.getOrPut(behandling.ytelse) {
+                                // Exclude innstillinger for people in KA Styringsenhet.
+                                kabalInnstillingerService.getRegisteredHjemlerForYtelse(
+                                    ytelse = behandling.ytelse,
+                                    includeSE = false,
+                                )
+                            }
                         if (behandling.hjemler.all {
                                 it !in hjemlerForYtelseInInnstillinger
                             }
@@ -416,15 +442,17 @@ class AdminService(
                         } else if (behandling.hjemler.any { it !in hjemlerForYtelseInInnstillinger }) {
                             missingHjemmelInRegistryBehandling.add(
                                 Pair(
-                                    behandling.id,
-                                    behandling.hjemler.filter { it !in hjemlerForYtelseInInnstillinger }.toSet()
-                                )
+                                    first = behandling.id,
+                                    second = behandling.hjemler.filter { it !in hjemlerForYtelseInInnstillinger }.toSet(),
+                                ),
                             )
                         }
                     }
                 }
 
-                else -> null
+                else -> {
+                    null
+                }
             }
         }
 
@@ -444,7 +472,7 @@ class AdminService(
     }
 
     @Transactional
-    @Scheduled(cron = "\${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo")
+    @Scheduled(cron = $$"${SETTINGS_CLEANUP_CRON}", zone = "Europe/Oslo")
     @SchedulerLock(name = "cleanupExpiredAssignees")
     fun cleanupExpiredAssignees() {
         if (!schedulerHealthGate.isReady()) return
@@ -455,30 +483,38 @@ class AdminService(
 
     fun handleInvalidUsers() {
         val unfinishedBehandlingerWithRol =
-            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullAndRolIdentIsNotNull()
+            behandlingRepository
+                .findByFerdigstillingIsNullAndFeilregistreringIsNullAndRolIdentIsNotNull()
                 .filter { it.rolFlowState != FlowState.RETURNED }
 
         val unfinishedBehandlingerWithMu =
-            behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullAndMedunderskriverIsNotNull()
-                .filter { it.medunderskriverFlowState !in listOf(FlowState.RETURNED, FlowState.RETURNED_APPROVED, FlowState.RETURNED_NOT_APPROVED) }
+            behandlingRepository
+                .findByFerdigstillingIsNullAndFeilregistreringIsNullAndMedunderskriverIsNotNull()
+                .filter {
+                    it.medunderskriverFlowState !in
+                        listOf(FlowState.RETURNED, FlowState.RETURNED_APPROVED, FlowState.RETURNED_NOT_APPROVED)
+                }
 
         val unfinishedBehandlingerWithTildeling =
             behandlingRepository.findByFerdigstillingIsNullAndFeilregistreringIsNullAndTildelingIsNotNull()
 
-        val rolCandidates = unfinishedBehandlingerWithRol
-            .asSequence()
-            .mapNotNull { it.rolIdent }
-            .toSet()
+        val rolCandidates =
+            unfinishedBehandlingerWithRol
+                .asSequence()
+                .mapNotNull { it.rolIdent }
+                .toSet()
 
-        val muCandidates = unfinishedBehandlingerWithMu
-            .asSequence()
-            .mapNotNull { it.medunderskriver!!.saksbehandlerident }
-            .toSet()
+        val muCandidates =
+            unfinishedBehandlingerWithMu
+                .asSequence()
+                .mapNotNull { it.medunderskriver!!.saksbehandlerident }
+                .toSet()
 
-        val tildelingCandidates = unfinishedBehandlingerWithTildeling
-            .asSequence()
-            .mapNotNull { it.tildeling!!.saksbehandlerident }
-            .toSet()
+        val tildelingCandidates =
+            unfinishedBehandlingerWithTildeling
+                .asSequence()
+                .mapNotNull { it.tildeling!!.saksbehandlerident }
+                .toSet()
 
         val identsToRemove = getUsersToRemove(rolCandidates + muCandidates + tildelingCandidates)
 
@@ -493,7 +529,9 @@ class AdminService(
         val behandlingerWhereTildelingShouldBeRemoved =
             unfinishedBehandlingerWithTildeling.filter { it.tildeling!!.saksbehandlerident in identsToRemove }
 
-        logger.debug("Found removables: $behandlingerWhereRolShouldBeRemoved, $behandlingerWhereMuShouldBeRemoved, $behandlingerWhereTildelingShouldBeRemoved")
+        logger.debug(
+            "Found removables: $behandlingerWhereRolShouldBeRemoved, $behandlingerWhereMuShouldBeRemoved, $behandlingerWhereTildelingShouldBeRemoved",
+        )
 
         behandlingerWhereRolShouldBeRemoved
             .asSequence()
@@ -508,14 +546,16 @@ class AdminService(
                 logger.debug("Behandling ${it.id} has expired mu: ${it.medunderskriver!!.saksbehandlerident}, setting to null.")
                 behandlingService.setMedunderskriverAndMedunderskriverFlowToNull(
                     behandlingId = it.id,
-                    systemUserContext = true
+                    systemUserContext = true,
                 )
             }
 
         behandlingerWhereTildelingShouldBeRemoved
             .asSequence()
             .forEach {
-                logger.debug("Behandling ${it.id} has expired tildelt saksbehandler: ${it.tildeling!!.saksbehandlerident}, setting to null.")
+                logger.debug(
+                    "Behandling ${it.id} has expired tildelt saksbehandler: ${it.tildeling!!.saksbehandlerident}, setting to null.",
+                )
                 behandlingService.setExpiredTildeltSaksbehandlerToNullInSystemContext(it.id)
             }
     }
@@ -525,13 +565,14 @@ class AdminService(
 
         val sluttdatoList = klageLookupGateway.getSluttdatoForNavIdentList(navIdentList = candidates.toList())
 
-        val usersNoLongerInNav = sluttdatoList.filter {
-            it.sluttdato?.isBefore(
-                LocalDate.now().minusWeeks(1)
-            ) == true
-        }
-            .map { it.navIdent }
-            .toSet()
+        val usersNoLongerInNav =
+            sluttdatoList
+                .filter {
+                    it.sluttdato?.isBefore(
+                        LocalDate.now().minusWeeks(1),
+                    ) == true
+                }.map { it.navIdent }
+                .toSet()
 
         logger.debug("Found users no longer in Nav: $usersNoLongerInNav")
         val furtherCandidates = candidates - usersNoLongerInNav
@@ -543,13 +584,13 @@ class AdminService(
             if (furtherCandidates.isEmpty()) {
                 emptySet()
             } else {
-                klageLookupGateway.getUserInfoForNavIdentList(navIdentList = furtherCandidates.toList())
+                klageLookupGateway
+                    .getUserInfoForNavIdentList(navIdentList = furtherCandidates.toList())
                     .asSequence()
                     .filter { info ->
                         val enhet = enhetByNavn[info.enhet.enhetId]
                         enhet !in allowedEnheter
-                    }
-                    .map { it.navIdent }
+                    }.map { it.navIdent }
                     .toSet()
             }
 
@@ -563,25 +604,28 @@ class AdminService(
     fun logInvalidRegistreringshjemler() {
         val unfinishedBehandlinger = behandlingRepository.findByFerdigstillingIsNull()
         val ytelseAndHjemmelPairSet = unfinishedBehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
-        val (_, invalidHjemler) = ytelseAndHjemmelPairSet.partition { pair ->
-            pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
-        }
+        val (_, invalidHjemler) =
+            ytelseAndHjemmelPairSet.partition { pair ->
+                pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
+            }
         val filteredInvalidHjemler = invalidHjemler.filter { it.second.isNotEmpty() }
         teamLogger.debug("Invalid registreringshjemler in unfinished behandlinger: {}", filteredInvalidHjemler)
 
         val klagebehandlinger = klagebehandlingRepository.findByKakaKvalitetsvurderingVersionIs(2)
         val klageYtelseAndHjemmelPairSet = klagebehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
-        val (_, klageinvalidHjemler) = klageYtelseAndHjemmelPairSet.partition { pair ->
-            pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
-        }
+        val (_, klageinvalidHjemler) =
+            klageYtelseAndHjemmelPairSet.partition { pair ->
+                pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
+            }
         val filteredKlageInvalidHjemler = klageinvalidHjemler.filter { it.second.isNotEmpty() }
         teamLogger.debug("Invalid registreringshjemler in klagebehandlinger v2: {}", filteredKlageInvalidHjemler)
 
         val ankebehandlinger = ankebehandlingRepository.findByKakaKvalitetsvurderingVersionIs(2)
         val ankeYtelseAndHjemmelPairSet = ankebehandlinger.map { it.ytelse to it.registreringshjemler }.toSet()
-        val (_, ankeinvalidHjemler) = ankeYtelseAndHjemmelPairSet.partition { pair ->
-            pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
-        }
+        val (_, ankeinvalidHjemler) =
+            ankeYtelseAndHjemmelPairSet.partition { pair ->
+                pair.second.any { ytelseToRegistreringshjemlerV2[pair.first]?.contains(it) ?: false }
+            }
         val filteredAnkeInvalidHjemler = ankeinvalidHjemler.filter { it.second.isNotEmpty() }
         teamLogger.debug("Invalid registreringshjemler in ankebehandlinger v2: {}", filteredAnkeInvalidHjemler)
     }
@@ -611,21 +655,23 @@ class AdminService(
             applicationEventPublisher.publishEvent(
                 BehandlingChangedEvent(
                     behandling = behandling,
-                    changeList = listOfNotNull(
-                        createChange(
-                            saksbehandlerident = systembrukerIdent,
-                            felt = when (behandling) {
-                                is Klagebehandling -> BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET
-                                is Ankebehandling -> BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET
-                                is Omgjoeringskravbehandling -> BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
-                                else -> throw IllegalArgumentException("Unknown behandling type: ${behandling.type}")
-                            },
-                            fraVerdi = null,
-                            tilVerdi = "Opprettet",
-                            behandlingId = behandling.id,
-                        )
-                    )
-                )
+                    changeList =
+                        listOfNotNull(
+                            createChange(
+                                saksbehandlerident = systembrukerIdent,
+                                felt =
+                                    when (behandling) {
+                                        is Klagebehandling -> BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET
+                                        is Ankebehandling -> BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET
+                                        is Omgjoeringskravbehandling -> BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET
+                                        else -> throw IllegalArgumentException("Unknown behandling type: ${behandling.type}")
+                                    },
+                                fraVerdi = null,
+                                tilVerdi = "Opprettet",
+                                behandlingId = behandling.id,
+                            ),
+                        ),
+                ),
             )
             behandling.opprettetSendt = true
             logger.debug("Generated opprettetEvent for behandlingId: $behandlingId")
@@ -636,18 +682,20 @@ class AdminService(
             klagebehandlinger.forEach { behandling ->
                 if (!behandling.opprettetSendt) {
                     applicationEventPublisher.publishEvent(
-                        /* event = */ BehandlingChangedEvent(
+                        // event =
+                        BehandlingChangedEvent(
                             behandling = behandling,
-                            changeList = listOfNotNull(
-                                createChange(
-                                    saksbehandlerident = systembrukerIdent,
-                                    felt = BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET,
-                                    fraVerdi = null,
-                                    tilVerdi = "Opprettet",
-                                    behandlingId = behandling.id,
-                                )
-                            )
-                        )
+                            changeList =
+                                listOfNotNull(
+                                    createChange(
+                                        saksbehandlerident = systembrukerIdent,
+                                        felt = BehandlingChangedEvent.Felt.KLAGEBEHANDLING_OPPRETTET,
+                                        fraVerdi = null,
+                                        tilVerdi = "Opprettet",
+                                        behandlingId = behandling.id,
+                                    ),
+                                ),
+                        ),
                     )
                     behandling.opprettetSendt = true
                     klagebehandlingIds += "${behandling.id}, "
@@ -661,16 +709,17 @@ class AdminService(
                     applicationEventPublisher.publishEvent(
                         BehandlingChangedEvent(
                             behandling = behandling,
-                            changeList = listOfNotNull(
-                                createChange(
-                                    saksbehandlerident = systembrukerIdent,
-                                    felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET,
-                                    fraVerdi = null,
-                                    tilVerdi = "Opprettet",
-                                    behandlingId = behandling.id,
-                                )
-                            )
-                        )
+                            changeList =
+                                listOfNotNull(
+                                    createChange(
+                                        saksbehandlerident = systembrukerIdent,
+                                        felt = BehandlingChangedEvent.Felt.ANKEBEHANDLING_OPPRETTET,
+                                        fraVerdi = null,
+                                        tilVerdi = "Opprettet",
+                                        behandlingId = behandling.id,
+                                    ),
+                                ),
+                        ),
                     )
                     behandling.opprettetSendt = true
                     ankebehandlingIds += "${behandling.id}, "
@@ -684,16 +733,17 @@ class AdminService(
                     applicationEventPublisher.publishEvent(
                         BehandlingChangedEvent(
                             behandling = behandling,
-                            changeList = listOfNotNull(
-                                createChange(
-                                    saksbehandlerident = systembrukerIdent,
-                                    felt = BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
-                                    fraVerdi = null,
-                                    tilVerdi = "Opprettet",
-                                    behandlingId = behandling.id,
-                                )
-                            )
-                        )
+                            changeList =
+                                listOfNotNull(
+                                    createChange(
+                                        saksbehandlerident = systembrukerIdent,
+                                        felt = BehandlingChangedEvent.Felt.OMGJOERINGSKRAVBEHANDLING_OPPRETTET,
+                                        fraVerdi = null,
+                                        tilVerdi = "Opprettet",
+                                        behandlingId = behandling.id,
+                                    ),
+                                ),
+                        ),
                     )
                     behandling.opprettetSendt = true
                     omgjoeringskravbehandlingIds += "${behandling.id}, "
@@ -703,41 +753,42 @@ class AdminService(
                 "Successfully generated opprettetEvents for behandlinger: \nKlagebehandlinger: {} \nAnkebehandlinger: {} \nOmgjoeringskravbehandlinger: {}",
                 klagebehandlingIds,
                 ankebehandlingIds,
-                omgjoeringskravbehandlingIds
+                omgjoeringskravbehandlingIds,
             )
         }
     }
 
     @Transactional
-    fun getInfotrygdsak(sakId: String): SakFromKlanke {
-        return klankeService.getSakWithAppAccess(
+    fun getInfotrygdsak(sakId: String): SakFromKlanke =
+        klankeService.getSakWithAppAccess(
             sakId = sakId,
-            input = GetSakAppAccessInput(
-                saksbehandlerIdent = tokenUtil.getIdent(),
-            )
+            input =
+                GetSakAppAccessInput(
+                    saksbehandlerIdent = tokenUtil.getIdent(),
+                ),
         )
-    }
 
-    val tilbakekrevingHjemler = listOf(
-        Registreringshjemmel.FTRL_22_15_TILBAKEKREVING,
-        Registreringshjemmel.FTRL_22_15A,
-        Registreringshjemmel.FTRL_22_15B,
-        Registreringshjemmel.FTRL_22_15C,
-        Registreringshjemmel.FTRL_22_15G,
-        Registreringshjemmel.FTRL_22_15D,
-        Registreringshjemmel.FTRL_22_15E,
-        Registreringshjemmel.FTRL_22_15F,
-        Registreringshjemmel.FORSKL_8,
-        Registreringshjemmel.INNKL_25_T,
-        Registreringshjemmel.INNKL_26A_T,
-        Registreringshjemmel.INNKL_26B_T,
-        Registreringshjemmel.INNKL_29,
-        Registreringshjemmel.FTRL_22_17A,
-        Registreringshjemmel.FTRL_4_28,
-        Registreringshjemmel.SUP_ST_L_13,
-        Registreringshjemmel.BTRL_13,
-        Registreringshjemmel.KONTSL_11,
-    )
+    val tilbakekrevingHjemler =
+        listOf(
+            Registreringshjemmel.FTRL_22_15_TILBAKEKREVING,
+            Registreringshjemmel.FTRL_22_15A,
+            Registreringshjemmel.FTRL_22_15B,
+            Registreringshjemmel.FTRL_22_15C,
+            Registreringshjemmel.FTRL_22_15G,
+            Registreringshjemmel.FTRL_22_15D,
+            Registreringshjemmel.FTRL_22_15E,
+            Registreringshjemmel.FTRL_22_15F,
+            Registreringshjemmel.FORSKL_8,
+            Registreringshjemmel.INNKL_25_T,
+            Registreringshjemmel.INNKL_26A_T,
+            Registreringshjemmel.INNKL_26B_T,
+            Registreringshjemmel.INNKL_29,
+            Registreringshjemmel.FTRL_22_17A,
+            Registreringshjemmel.FTRL_4_28,
+            Registreringshjemmel.SUP_ST_L_13,
+            Registreringshjemmel.BTRL_13,
+            Registreringshjemmel.KONTSL_11,
+        )
 
     @Transactional
     fun enableMinsideMicrofrontend(behandlingId: UUID) {
@@ -789,7 +840,7 @@ class AdminService(
             GOSYSOPPGAVE_ENHETSMAPPER_CACHE,
             GOSYSOPPGAVE_ENHETSMAPPE_CACHE,
         ],
-        allEntries = true
+        allEntries = true,
     )
     fun evictAllCaches() {
         logger.debug("Evicted all caches")
@@ -804,9 +855,9 @@ class AdminService(
         val behandlinger = behandlingRepository.findAllById(behandlingIdList)
 
         behandlinger.forEach { behandling ->
-            //Id for sakenGjelder is already set from Flyway-script.
+            // Id for sakenGjelder is already set from Flyway-script.
 
-            //then for klager. Set to same as sakenGjelder if klager is same person, (else keep what Flyway-script set)
+            // then for klager. Set to same as sakenGjelder if klager is same person, (else keep what Flyway-script set)
             if (behandling.klager.partId.value == behandling.sakenGjelder.partId.value) {
                 behandling.klager.id = behandling.sakenGjelder.id
             }
@@ -815,7 +866,7 @@ class AdminService(
                 behandling.prosessfullmektig!!.id = behandling.klager.id
             }
 
-            //these ids should then be set for brevmottakere also. Both from DUA-relation and from "forlenget behandlingstid"-relation
+            // these ids should then be set for brevmottakere also. Both from DUA-relation and from "forlenget behandlingstid"-relation
             if (behandling is BehandlingWithVarsletBehandlingstid) {
                 if (behandling.forlengetBehandlingstidDraft != null) {
                     val getReceiversStart = System.currentTimeMillis()
@@ -837,7 +888,7 @@ class AdminService(
                         }
                     }
                     logger.debug(
-                        "Handling forlengetBehandlingstidDraft receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                        "Handling forlengetBehandlingstidDraft receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers",
                     )
                 }
             }
@@ -845,7 +896,7 @@ class AdminService(
             val startGetDUA = System.currentTimeMillis()
             val duaList = dokumentUnderArbeidRepository.findByBehandlingId(behandling.id)
             logger.debug(
-                "Getting DUA (with eager brevmottakere) for behandling (${behandling.id}) took ${System.currentTimeMillis() - startGetDUA} millis. Found ${duaList.size} DUAs"
+                "Getting DUA (with eager brevmottakere) for behandling (${behandling.id}) took ${System.currentTimeMillis() - startGetDUA} millis. Found ${duaList.size} DUAs",
             )
             duaList.forEach { dokumentUnderArbeid ->
                 if (dokumentUnderArbeid is DokumentUnderArbeidAsHoveddokument) {
@@ -869,7 +920,7 @@ class AdminService(
                             }
                         }
                         logger.debug(
-                            "Handling dokumentUnderArbeid receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers"
+                            "Handling dokumentUnderArbeid receivers for behandling (${behandling.id}) took ${System.currentTimeMillis() - getReceiversStart} millis. Found ${receivers.size} receivers",
                         )
                     }
                 }
@@ -891,36 +942,50 @@ class AdminService(
 
         behandlingRepository.findAllForAdminStreamed().use { streamed ->
             streamed.forEach { behandling ->
-                val previousBehandlingId = when (behandling) {
-                    is Klagebehandling -> null
-                    is Ankebehandling -> {
-                        behandling.previousBehandlingId
-                    }
+                val previousBehandlingId =
+                    when (behandling) {
+                        is Klagebehandling -> {
+                            null
+                        }
 
-                    is Omgjoeringskravbehandling -> {
-                        when (behandling) {
-                            is OmgjoeringskravbehandlingBasedOnJournalpost -> null
-                            is OmgjoeringskravbehandlingBasedOnKabalBehandling -> behandling.previousBehandlingId
-                            else -> error("Unknown Omgjoeringskravbehandling subtype: ${behandling::class.java}")
+                        is Ankebehandling -> {
+                            behandling.previousBehandlingId
+                        }
+
+                        is Omgjoeringskravbehandling -> {
+                            when (behandling) {
+                                is OmgjoeringskravbehandlingBasedOnJournalpost -> null
+                                is OmgjoeringskravbehandlingBasedOnKabalBehandling -> behandling.previousBehandlingId
+                                else -> error("Unknown Omgjoeringskravbehandling subtype: ${behandling::class.java}")
+                            }
+                        }
+
+                        is AnkeITrygderettenbehandling -> {
+                            ankebehandlingRepository
+                                .findPreviousAnker(
+                                    sakenGjelder = behandling.sakenGjelder.partId.value,
+                                    kildeReferanse = behandling.kildeReferanse,
+                                    dateLimit = behandling.created,
+                                ).firstOrNull()
+                                ?.id
+                        }
+
+                        is BehandlingEtterTrygderettenOpphevet -> {
+                            behandling.previousBehandlingId
+                        }
+
+                        is GjenopptakITrygderettenbehandling -> {
+                            TODO()
+                        }
+
+                        is Gjenopptaksbehandling -> {
+                            TODO()
+                        }
+
+                        else -> {
+                            error("Unknown Behandling subtype: ${behandling::class.java.name}")
                         }
                     }
-
-                    is AnkeITrygderettenbehandling -> {
-                        ankebehandlingRepository.findPreviousAnker(
-                            sakenGjelder = behandling.sakenGjelder.partId.value,
-                            kildeReferanse = behandling.kildeReferanse,
-                            dateLimit = behandling.created,
-                        ).firstOrNull()?.id
-                    }
-
-                    is BehandlingEtterTrygderettenOpphevet -> {
-                        behandling.previousBehandlingId
-                    }
-
-                    is GjenopptakITrygderettenbehandling -> TODO()
-                    is Gjenopptaksbehandling -> TODO()
-                    else -> error("Unknown Behandling subtype: ${behandling::class.java.name}")
-                }
 
                 if (previousBehandlingId != null) {
                     if (behandling.previousBehandlingId == null) {
@@ -932,7 +997,9 @@ class AdminService(
                         }
                         updatedCount++
                     } else if (behandling.previousBehandlingId != previousBehandlingId) {
-                        logger.warn("Previous behandling was already set but differs. Behandling: ${behandling.id}, set value: ${behandling.previousBehandlingId}, new value: $previousBehandlingId")
+                        logger.warn(
+                            "Previous behandling was already set but differs. Behandling: ${behandling.id}, set value: ${behandling.previousBehandlingId}, new value: $previousBehandlingId",
+                        )
                     } else {
                         skippedCount++
                     }
@@ -947,20 +1014,24 @@ class AdminService(
             }
         }
 
-        logger.debug("setPreviousBehandlingId is done. Updated $updatedCount behandlinger, skipped $skippedCount behandlinger that already had previousBehandlingId set, and $nullCount behandlinger had no previousBehandlingId to set.")
+        logger.debug(
+            "setPreviousBehandlingId is done. Updated $updatedCount behandlinger, skipped $skippedCount behandlinger that already had previousBehandlingId set, and $nullCount behandlinger had no previousBehandlingId to set.",
+        )
     }
 
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun backfillPersonProtection() {
-        val fnrList: Set<String> = transactionTemplate.execute {
-            val fnrFromBehandlinger = behandlingRepository.findDistinctSakenGjelderPersonValues()
-            val fnrFromPersongalleri = sakPersongalleriRepository.findDistinctFoedselsnummer()
-            fnrFromBehandlinger + fnrFromPersongalleri
-        } ?: emptySet()
+        val fnrList: Set<String> =
+            transactionTemplate.execute {
+                val fnrFromBehandlinger = behandlingRepository.findDistinctSakenGjelderPersonValues()
+                val fnrFromPersongalleri = sakPersongalleriRepository.findDistinctFoedselsnummer()
+                fnrFromBehandlinger + fnrFromPersongalleri
+            } ?: emptySet()
 
-        val existingFnr = transactionTemplate.execute {
-            personProtectionRepository.findAll().map { it.foedselsnummer }.toSet()
-        } ?: emptySet()
+        val existingFnr =
+            transactionTemplate.execute {
+                personProtectionRepository.findAll().map { it.foedselsnummer }.toSet()
+            } ?: emptySet()
 
         val missingFnr = fnrList.filter { it !in existingFnr }
 
@@ -981,21 +1052,22 @@ class AdminService(
             try {
                 val personList = klageLookupGateway.getPersonBulk(fnrList = batch)
 
-                val created = transactionTemplate.execute {
-                    var c = 0
-                    personList.forEach { person ->
-                        personProtectionRepository.save(
-                            PersonProtection(
-                                foedselsnummer = person.foedselsnr,
-                                fortrolig = person.fortrolig,
-                                strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
-                                skjermet = person.egenAnsatt,
+                val created =
+                    transactionTemplate.execute {
+                        var c = 0
+                        personList.forEach { person ->
+                            personProtectionRepository.save(
+                                PersonProtection(
+                                    foedselsnummer = person.foedselsnr,
+                                    fortrolig = person.fortrolig,
+                                    strengtFortrolig = person.strengtFortrolig || person.strengtFortroligUtland,
+                                    skjermet = person.egenAnsatt,
+                                ),
                             )
-                        )
-                        c++
-                    }
-                    c
-                } ?: 0
+                            c++
+                        }
+                        c
+                    } ?: 0
                 createdCount += created
 
                 val returnedFnrs = personList.map { it.foedselsnr }.toSet()

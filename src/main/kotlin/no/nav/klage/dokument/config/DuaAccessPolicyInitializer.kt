@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class DuaAccessPolicyInitializer : ApplicationRunner {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)

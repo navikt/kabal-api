@@ -20,7 +20,7 @@ class GjenopptakITrygderettenbehandlingService(
     private val gjenopptakITrygderettenbehandlingRepository: GjenopptakITrygderettenbehandlingRepository,
     private val behandlingService: BehandlingService,
     private val applicationEventPublisher: ApplicationEventPublisher,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
@@ -28,52 +28,56 @@ class GjenopptakITrygderettenbehandlingService(
     }
 
     fun createGjenopptakITrygderettenbehandling(input: GjenopptakITrygderettenbehandlingInput): GjenopptakITrygderettenbehandling {
-        val gjenopptakITrygderettenbehandling = gjenopptakITrygderettenbehandlingRepository.save(
-            GjenopptakITrygderettenbehandling(
-                klager = input.klager.copy(),
-                sakenGjelder = input.sakenGjelder?.copy() ?: input.klager.toSakenGjelder(),
-                prosessfullmektig = input.prosessfullmektig,
-                ytelse = input.ytelse,
-                type = input.type,
-                kildeReferanse = input.kildeReferanse,
-                dvhReferanse = input.dvhReferanse,
-                fagsystem = input.fagsystem,
-                fagsakId = input.fagsakId,
-                mottattKlageinstans = input.sakMottattKlageinstans,
-                tildeling = null,
-                hjemler = if (input.innsendingsHjemler.isNullOrEmpty()) {
-                    mutableSetOf(Hjemmel.MANGLER)
-                } else {
-                    input.innsendingsHjemler
-                },
-                sendtTilTrygderetten = input.sendtTilTrygderetten,
-                paaanketVedtaksdato = input.paaanketVedtaksdato,
-                forsterketRett = input.forsterketRett,
-                kjennelseMottatt = null,
-                previousSaksbehandlerident = input.previousSaksbehandlerident,
-                gosysOppgaveId = input.gosysOppgaveId,
-                tilbakekreving = input.tilbakekreving,
-                gosysOppgaveRequired = input.gosysOppgaveRequired,
-                initiatingSystem = Behandling.InitiatingSystem.KABAL,
-                previousBehandlingId = input.previousBehandlingId,
+        val gjenopptakITrygderettenbehandling =
+            gjenopptakITrygderettenbehandlingRepository.save(
+                GjenopptakITrygderettenbehandling(
+                    klager = input.klager.copy(),
+                    sakenGjelder = input.sakenGjelder?.copy() ?: input.klager.toSakenGjelder(),
+                    prosessfullmektig = input.prosessfullmektig,
+                    ytelse = input.ytelse,
+                    type = input.type,
+                    kildeReferanse = input.kildeReferanse,
+                    dvhReferanse = input.dvhReferanse,
+                    fagsystem = input.fagsystem,
+                    fagsakId = input.fagsakId,
+                    mottattKlageinstans = input.sakMottattKlageinstans,
+                    tildeling = null,
+                    hjemler =
+                        if (input.innsendingsHjemler.isNullOrEmpty()) {
+                            mutableSetOf(Hjemmel.MANGLER)
+                        } else {
+                            input.innsendingsHjemler
+                        },
+                    sendtTilTrygderetten = input.sendtTilTrygderetten,
+                    paaanketVedtaksdato = input.paaanketVedtaksdato,
+                    forsterketRett = input.forsterketRett,
+                    kjennelseMottatt = null,
+                    previousSaksbehandlerident = input.previousSaksbehandlerident,
+                    gosysOppgaveId = input.gosysOppgaveId,
+                    tilbakekreving = input.tilbakekreving,
+                    gosysOppgaveRequired = input.gosysOppgaveRequired,
+                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                    previousBehandlingId = input.previousBehandlingId,
+                ),
             )
-        )
         logger.debug("Created gjenopptakITrygderettenbehandling {}", gjenopptakITrygderettenbehandling.id)
 
         behandlingService.washAndSetRegistreringshjemler(
             registreringsHjemmelSet = input.registreringsHjemmelSet,
             ytelse = input.ytelse,
-            behandlingId = gjenopptakITrygderettenbehandling.id
+            behandlingId = gjenopptakITrygderettenbehandling.id,
         )
 
         behandlingService.connectDocumentsToBehandling(
             behandlingId = gjenopptakITrygderettenbehandling.id,
-            journalfoertDokumentReferenceSet = input.saksdokumenter.map {
-                JournalfoertDokumentReference(
-                    journalpostId = it.journalpostId,
-                    dokumentInfoId = it.dokumentInfoId
-                )
-            }.toSet(),
+            journalfoertDokumentReferenceSet =
+                input.saksdokumenter
+                    .map {
+                        JournalfoertDokumentReference(
+                            journalpostId = it.journalpostId,
+                            dokumentInfoId = it.dokumentInfoId,
+                        )
+                    }.toSet(),
             saksbehandlerIdent = systembrukerIdent,
             systemUserContext = true,
             ignoreCheckSkrivetilgang = true,
@@ -82,20 +86,21 @@ class GjenopptakITrygderettenbehandlingService(
         applicationEventPublisher.publishEvent(
             BehandlingChangedEvent(
                 behandling = gjenopptakITrygderettenbehandling,
-                changeList = listOfNotNull(
-                    createChange(
-                        saksbehandlerident = systembrukerIdent,
-                        felt = BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_OPPRETTET,
-                        fraVerdi = null,
-                        tilVerdi = "Opprettet",
-                        behandlingId = gjenopptakITrygderettenbehandling.id,
-                    )
-                )
-            )
+                changeList =
+                    listOfNotNull(
+                        createChange(
+                            saksbehandlerident = systembrukerIdent,
+                            felt = BehandlingChangedEvent.Felt.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN_OPPRETTET,
+                            fraVerdi = null,
+                            tilVerdi = "Opprettet",
+                            behandlingId = gjenopptakITrygderettenbehandling.id,
+                        ),
+                    ),
+            ),
         )
 
-        //Publiser Kafka-event, infomelding om opprettelse
-        //TODO: Vurder sammen med vurderingen i BehandlingEvent.kt
+        // Publiser Kafka-event, infomelding om opprettelse
+        // TODO: Vurder sammen med vurderingen i BehandlingEvent.kt
 //        val behandlingEvent = BehandlingEvent(
 //            eventId = UUID.randomUUID(),
 //            kildeReferanse = gjenopptakITrygderettenbehandling.kildeReferanse,

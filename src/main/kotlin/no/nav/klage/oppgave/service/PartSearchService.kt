@@ -24,22 +24,25 @@ class PartSearchService(
     private val klageLookupGateway: KlageLookupGateway,
     private val dokDistKanalService: DokDistKanalService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun searchPart(identifikator: String, systemUserContext: Boolean = false): BehandlingDetaljerView.SearchPartView =
+    fun searchPart(
+        identifikator: String,
+        systemUserContext: Boolean = false,
+    ): BehandlingDetaljerView.SearchPartView =
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.getSaksbehandlerAccessToPerson(identifikator).access) {
                     val person = personService.getPerson(fnr = identifikator)
-                    val krrInfo = if (systemUserContext) {
-                        krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
-                    } else {
-                        krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
-                    }
+                    val krrInfo =
+                        if (systemUserContext) {
+                            krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
+                        } else {
+                            krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
+                        }
                     BehandlingDetaljerView.SearchPartView(
                         identifikator = person.foedselsnr,
                         name = person.sammensattNavn,
@@ -82,11 +85,12 @@ class PartSearchService(
             PartIdType.PERSON -> {
                 if (systemUserContext || tilgangService.getSaksbehandlerAccessToPerson(identifikator).access) {
                     val person = personService.getPerson(fnr = identifikator)
-                    val krrInfo = if (systemUserContext) {
-                        krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
-                    } else {
-                        krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
-                    }
+                    val krrInfo =
+                        if (systemUserContext) {
+                            krrProxyClient.getDigitalKontaktinformasjonForFnrAppAccess(identifikator)
+                        } else {
+                            krrProxyClient.getDigitalKontaktinformasjonForFnrOnBehalfOf(identifikator)
+                        }
                     BehandlingDetaljerView.SearchPartViewWithUtsendingskanal(
                         identifikator = person.foedselsnr,
                         name = person.sammensattNavn,
@@ -95,12 +99,13 @@ class PartSearchService(
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
                         address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr)?.getViewAddress(),
-                        utsendingskanal = dokDistKanalService.getUtsendingskanal(
-                            mottakerId = identifikator,
-                            brukerId = sakenGjelderId,
-                            tema = tema,
-                            saksbehandlerContext = !systemContext,
-                        )
+                        utsendingskanal =
+                            dokDistKanalService.getUtsendingskanal(
+                                mottakerId = identifikator,
+                                brukerId = sakenGjelderId,
+                                tema = tema,
+                                saksbehandlerContext = !systemContext,
+                            ),
                     )
                 } else {
                     val access = tilgangService.getSaksbehandlerAccessToPerson(identifikator)
@@ -119,19 +124,20 @@ class PartSearchService(
                     language = null,
                     statusList = behandlingMapper.getStatusList(organisasjon),
                     address = behandlingMapper.getAddress(organisasjon),
-                    utsendingskanal = dokDistKanalService.getUtsendingskanal(
-                        mottakerId = identifikator,
-                        brukerId = sakenGjelderId,
-                        tema = tema,
-                        saksbehandlerContext = !systemContext,
-                    )
+                    utsendingskanal =
+                        dokDistKanalService.getUtsendingskanal(
+                            mottakerId = identifikator,
+                            brukerId = sakenGjelderId,
+                            tema = tema,
+                            saksbehandlerContext = !systemContext,
+                        ),
                 )
             }
         }
 
     fun searchPerson(
         identifikator: String,
-        systemUserContext: Boolean = false
+        systemUserContext: Boolean = false,
     ): BehandlingDetaljerView.SearchPersonView =
         when (getPartIdFromIdentifikator(identifikator).type) {
             PartIdType.PERSON -> {
@@ -143,8 +149,9 @@ class PartSearchService(
                         name = person.sammensattNavn,
                         type = BehandlingDetaljerView.IdType.FNR,
                         available = person.doed == null,
-                        sex = person.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }
-                            ?: BehandlingDetaljerView.Sex.UKJENT,
+                        sex =
+                            person.kjoenn?.let { BehandlingDetaljerView.Sex.valueOf(it) }
+                                ?: BehandlingDetaljerView.Sex.UKJENT,
                         language = krrInfo?.spraak,
                         statusList = behandlingMapper.getStatusList(person, krrInfo),
                         address = klageLookupGateway.getAddressForPerson(fnr = person.foedselsnr)?.getViewAddress(),
@@ -156,15 +163,18 @@ class PartSearchService(
                 }
             }
 
-            else -> throw RuntimeException(
-                "Invalid part type: " + getPartIdFromIdentifikator(
-                    identifikator
-                ).type
-            )
+            else -> {
+                throw RuntimeException(
+                    "Invalid part type: " +
+                        getPartIdFromIdentifikator(
+                            identifikator,
+                        ).type,
+                )
+            }
         }
 
-    private fun PostadresseResponse.getViewAddress(): BehandlingDetaljerView.Address {
-        return BehandlingDetaljerView.Address(
+    private fun PostadresseResponse.getViewAddress(): BehandlingDetaljerView.Address =
+        BehandlingDetaljerView.Address(
             adresselinje1 = adresse?.adresselinje1 ?: "Mangler",
             adresselinje2 = adresse?.adresselinje2,
             adresselinje3 = adresse?.adresselinje3,
@@ -172,5 +182,4 @@ class PartSearchService(
             postnummer = adresse?.postnummer,
             poststed = adresse?.poststed ?: "Mangler",
         )
-    }
 }

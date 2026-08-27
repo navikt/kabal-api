@@ -13,66 +13,68 @@ import java.time.LocalDateTime
 @Schema
 data class OversendtAnkeITrygderettenV1(
     @Schema(
-        required = true
+        required = true,
     )
     val klager: OversendtKlagerLegacy,
     @Schema(
         description = "Kan settes dersom klagen gjelder en annen enn den som har levert klagen",
-        required = false
+        required = false,
     )
     val sakenGjelder: OversendtSakenGjelder? = null,
     @Schema(
         description = "Fagsak brukt til journalføring. Dersom denne er tom journalfører vi på generell sak",
-        required = false
+        required = false,
     )
     val fagsak: OversendtSak,
     @Schema(
         description = "Id som er intern for kildesystemet (f.eks. K9) så vedtak fra oss knyttes riktig i kilde",
-        required = true
+        required = true,
     )
     val kildeReferanse: String,
     @Schema(
         description = "Id som rapporters på til DVH, bruker kildeReferanse hvis denne ikke er satt",
-        required = false
+        required = false,
     )
     val dvhReferanse: String? = null,
     @Schema(
         description = "Hjemler knyttet til klagen",
-        required = false
+        required = false,
     )
     val hjemler: Set<Hjemmel>?,
     @Schema(
         description = "Liste med relevante journalposter til klagen. Listen kan være tom.",
-        required = true
+        required = true,
     )
     val tilknyttedeJournalposter: List<OversendtDokumentReferanse> = emptyList(),
     @Schema(
         description = "Tidspunkt for når KA mottok anken.",
         required = true,
-        example = "2020-12-20T00:00"
+        example = "2020-12-20T00:00",
     )
     val sakMottattKaTidspunkt: LocalDateTime,
     @Schema(
         example = "OMS_OMP",
         description = "Ytelse",
-        required = true
+        required = true,
     )
     val ytelse: Ytelse,
     @Schema(
         description = "Tidspunkt for når saken ble oversendt til Trygderetten.",
         required = true,
-        example = "2020-12-20T00:00"
+        example = "2020-12-20T00:00",
     )
     val sendtTilTrygderetten: LocalDateTime,
     @Schema(
         description = "Utfall på ankebehandlingen som førte til oversendelse til Trygderetten",
         required = true,
-        example = "INNSTILLING_STADFESTELSE"
+        example = "INNSTILLING_STADFESTELSE",
     )
     val utfall: ExternalUtfall,
 )
 
-fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingInput(inputDocuments: MutableSet<Saksdokument>): AnkeITrygderettenbehandlingInput {
+fun OversendtAnkeITrygderettenV1.createAnkeITrygderettenbehandlingInput(
+    inputDocuments: MutableSet<Saksdokument>,
+): AnkeITrygderettenbehandlingInput {
     val (sakenGjelderPart, klagePart, _) = getParts(sakenGjelder, klager)
     return AnkeITrygderettenbehandlingInput(
         klager = klagePart,

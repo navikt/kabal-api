@@ -1,6 +1,8 @@
 package no.nav.klage.oppgave.domain.kafka
 
-enum class ExternalUtfall(val navn: String) {
+enum class ExternalUtfall(
+    val navn: String,
+) {
     TRUKKET("Trukket"),
     RETUR("Retur"),
     OPPHEVET("Opphevet"),
@@ -20,6 +22,5 @@ enum class ExternalUtfall(val navn: String) {
     GJENOPPTATT_DELVIS_ELLER_FULLT_MEDHOLD("Gjenopptatt - Delvis eller fullt medhold"),
     GJENOPPTATT_OPPHEVET("Gjenopptatt - Opphevet"),
     GJENOPPTATT_STADFESTET("Gjenopptatt - Stadfestet"),
-    IKKE_GJENOPPTATT("Ikke gjenopptatt")
-    ;
+    IKKE_GJENOPPTATT("Ikke gjenopptatt"),
 }

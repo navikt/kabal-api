@@ -2,7 +2,11 @@ package no.nav.klage.dokument.service
 
 import no.nav.klage.dokument.api.mapper.DokumentMapper
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Innholdsfortegnelse
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.JournalfoertDokumentUnderArbeidAsVedlegg
 import no.nav.klage.dokument.repositories.InnholdsfortegnelseRepository
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
@@ -12,8 +16,7 @@ import org.springframework.core.io.ByteArrayResource
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 @Transactional
@@ -26,15 +29,13 @@ class InnholdsfortegnelseService(
     private val behandlingService: BehandlingService,
     private val safFacade: SafFacade,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getInnholdsfortegnelse(hoveddokumentId: UUID): Innholdsfortegnelse? {
-        return innholdsfortegnelseRepository.findByHoveddokumentId(hoveddokumentId)
-    }
+    fun getInnholdsfortegnelse(hoveddokumentId: UUID): Innholdsfortegnelse? =
+        innholdsfortegnelseRepository.findByHoveddokumentId(hoveddokumentId)
 
     fun saveInnholdsfortegnelse(
         dokumentUnderArbeid: DokumentUnderArbeid,
@@ -45,18 +46,23 @@ class InnholdsfortegnelseService(
 
         dokumentUnderArbeid as DokumentUnderArbeidAsHoveddokument
 
-        val journalpostList = safFacade.getJournalposter(
-            journalpostIdSet = vedlegg.filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
-                .map { it.journalpostId }.toSet(),
-            fnr = fnr,
-            saksbehandlerContext = true,
-        )
+        val journalpostList =
+            safFacade.getJournalposter(
+                journalpostIdSet =
+                    vedlegg
+                        .filterIsInstance<JournalfoertDokumentUnderArbeidAsVedlegg>()
+                        .map { it.journalpostId }
+                        .toSet(),
+                fnr = fnr,
+                saksbehandlerContext = true,
+            )
 
-        val content = getInnholdsfortegnelseAsPdf(
-            dokumentUnderArbeid = dokumentUnderArbeid,
-            vedlegg = vedlegg,
-            journalpostList = journalpostList,
-        )
+        val content =
+            getInnholdsfortegnelseAsPdf(
+                dokumentUnderArbeid = dokumentUnderArbeid,
+                vedlegg = vedlegg,
+                journalpostList = journalpostList,
+            )
 
         val mellomlagerId =
             mellomlagerService.uploadResource(
@@ -67,7 +73,7 @@ class InnholdsfortegnelseService(
             Innholdsfortegnelse(
                 mellomlagerId = mellomlagerId,
                 hoveddokumentId = dokumentUnderArbeid.id,
-            )
+            ),
         )
     }
 
@@ -83,13 +89,14 @@ class InnholdsfortegnelseService(
                 InnholdsfortegnelseRequest(
                     parentTitle = dokumentUnderArbeid.name,
                     parentDate = LocalDate.now(),
-                    documents = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                        vedlegg = vedlegg,
-                        behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId),
-                        hoveddokument = dokumentUnderArbeid,
-                        journalpostList = journalpostList,
-                    )
-                )
+                    documents =
+                        dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                            vedlegg = vedlegg,
+                            behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(dokumentUnderArbeid.behandlingId),
+                            hoveddokument = dokumentUnderArbeid,
+                            journalpostList = journalpostList,
+                        ),
+                ),
             )
 
         return pdfDocument.bytes

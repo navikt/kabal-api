@@ -8,7 +8,6 @@ class InnloggetSaksbehandlerService(
     private val saksbehandlerService: SaksbehandlerService,
     private val tokenUtil: TokenUtil,
 ) {
-
     fun getInnloggetIdent() = tokenUtil.getIdent()
 
     fun isKabalSvarbrevinnstillinger(): Boolean = saksbehandlerService.isKabalSvarbrevinnstillinger(tokenUtil.getIdent())
@@ -19,6 +18,5 @@ class InnloggetSaksbehandlerService(
 
     fun isKabalOppgavestyringAlleEnheter(): Boolean = saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(tokenUtil.getIdent())
 
-    fun hasKabalInnsynEgenEnhetRole(): Boolean =
-        saksbehandlerService.hasKabalInnsynEgenEnhetRole(tokenUtil.getIdent())
+    fun hasKabalInnsynEgenEnhetRole(): Boolean = saksbehandlerService.hasKabalInnsynEgenEnhetRole(tokenUtil.getIdent())
 }

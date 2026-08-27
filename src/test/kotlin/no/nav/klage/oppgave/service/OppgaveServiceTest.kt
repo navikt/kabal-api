@@ -14,8 +14,16 @@ import no.nav.klage.oppgave.api.view.MineFerdigstilteOppgaverQueryParams
 import no.nav.klage.oppgave.api.view.Rekkefoelge
 import no.nav.klage.oppgave.api.view.Sortering
 import no.nav.klage.oppgave.db.PostgresIntegrationTestBase
-import no.nav.klage.oppgave.domain.behandling.*
-import no.nav.klage.oppgave.domain.behandling.embedded.*
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
 import no.nav.klage.oppgave.domain.saksbehandler.SaksbehandlerEnhet
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import no.nav.klage.oppgave.util.TokenUtil
@@ -28,12 +36,11 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @ActiveProfiles("local")
 @DataJpaTest
 class OppgaveServiceTest : PostgresIntegrationTestBase() {
-
     @Autowired
     lateinit var testEntityManager: TestEntityManager
 
@@ -49,27 +56,27 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
     @MockkBean
     lateinit var saksbehandlerService: SaksbehandlerService
 
-    //Because of Hibernate Envers and our setup for audit logs.
+    // Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
     lateinit var oppgaveService: OppgaveService
 
-    private val SAKSBEHANDLER_IDENT = "SAKSBEHANDLER_IDENT"
-    private val FNR = "23452354123"
-    private val FNR2 = "23452354124"
-    private val SAKS_ID = "SAKS_ID"
+    private val saksbehandlerIdent = "SAKSBEHANDLER_IDENT"
+    private val defaultFnr = "23452354123"
+    private val fnr2 = "23452354124"
+    private val defaultSaksId = "SAKS_ID"
 
     @BeforeEach
     fun setup() {
-        oppgaveService = OppgaveService(
-            behandlingRepository = behandlingRepository,
-            innloggetSaksbehandlerService = innloggetSaksbehandlerService,
-            saksbehandlerService = saksbehandlerService,
-            tilgangService = tilgangService
-
-        )
-        every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
+        oppgaveService =
+            OppgaveService(
+                behandlingRepository = behandlingRepository,
+                innloggetSaksbehandlerService = innloggetSaksbehandlerService,
+                saksbehandlerService = saksbehandlerService,
+                tilgangService = tilgangService,
+            )
+        every { innloggetSaksbehandlerService.getInnloggetIdent() } returns saksbehandlerIdent
         every {
             saksbehandlerService.getEnhetForSaksbehandler(
                 navIdent = any(),
@@ -79,12 +86,13 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
 
     @Test
     fun `get ferdigstilte without specific query works`() {
-        val behandling = simpleInsert(
-            type = Type.KLAGE,
-            ytelse = Ytelse.OMS_OMP,
-            registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
-        )
+        val behandling =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+            )
 
         simpleInsert(
             type = Type.KLAGE,
@@ -93,19 +101,20 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
             tildeltSaksbehandlerIdent = "otherIdent",
         )
 
-        val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
-            MineFerdigstilteOppgaverQueryParams(
-                typer = emptyList(),
-                ytelser = emptyList(),
-                registreringshjemler = emptyList(),
-                rekkefoelge = Rekkefoelge.STIGENDE,
-                sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = null,
-                ferdigstiltTo = null,
-                fristFrom = null,
-                fristTo = null,
+        val results =
+            oppgaveService.getFerdigstilteOppgaverForNavIdent(
+                MineFerdigstilteOppgaverQueryParams(
+                    typer = emptyList(),
+                    ytelser = emptyList(),
+                    registreringshjemler = emptyList(),
+                    rekkefoelge = Rekkefoelge.STIGENDE,
+                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                    ferdigstiltFrom = null,
+                    ferdigstiltTo = null,
+                    fristFrom = null,
+                    fristTo = null,
+                ),
             )
-        )
 
         assertThat(results.behandlinger).containsExactly(behandling.id)
     }
@@ -116,36 +125,37 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
         )
 
         simpleInsert(
             type = Type.ANKE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
         )
 
         simpleInsert(
             type = Type.ANKE,
             ytelse = Ytelse.OMS_PLS,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
         )
 
-        val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
-            MineFerdigstilteOppgaverQueryParams(
-                typer = listOf(Type.KLAGE.id, Type.ANKE.id),
-                ytelser = listOf(Ytelse.OMS_OMP.id),
-                registreringshjemler = emptyList(),
-                rekkefoelge = Rekkefoelge.STIGENDE,
-                sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = null,
-                ferdigstiltTo = null,
-                fristFrom = null,
-                fristTo = null,
+        val results =
+            oppgaveService.getFerdigstilteOppgaverForNavIdent(
+                MineFerdigstilteOppgaverQueryParams(
+                    typer = listOf(Type.KLAGE.id, Type.ANKE.id),
+                    ytelser = listOf(Ytelse.OMS_OMP.id),
+                    registreringshjemler = emptyList(),
+                    rekkefoelge = Rekkefoelge.STIGENDE,
+                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                    ferdigstiltFrom = null,
+                    ferdigstiltTo = null,
+                    fristFrom = null,
+                    fristTo = null,
+                ),
             )
-        )
 
         assertThat(results.behandlinger).hasSize(2)
     }
@@ -156,274 +166,293 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
         )
 
         simpleInsert(
             type = Type.ANKE,
             ytelse = Ytelse.OMS_PSB,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
         )
 
         simpleInsert(
             type = Type.ANKE,
             ytelse = Ytelse.OMS_PLS,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
         )
 
-        val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
-            MineFerdigstilteOppgaverQueryParams(
-                typer = emptyList(),
-                ytelser = listOf(Ytelse.OMS_OMP.id, Ytelse.OMS_PLS.id),
-                registreringshjemler = emptyList(),
-                rekkefoelge = Rekkefoelge.STIGENDE,
-                sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = null,
-                ferdigstiltTo = null,
-                fristFrom = null,
-                fristTo = null,
+        val results =
+            oppgaveService.getFerdigstilteOppgaverForNavIdent(
+                MineFerdigstilteOppgaverQueryParams(
+                    typer = emptyList(),
+                    ytelser = listOf(Ytelse.OMS_OMP.id, Ytelse.OMS_PLS.id),
+                    registreringshjemler = emptyList(),
+                    rekkefoelge = Rekkefoelge.STIGENDE,
+                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                    ferdigstiltFrom = null,
+                    ferdigstiltTo = null,
+                    fristFrom = null,
+                    fristTo = null,
+                ),
             )
-        )
 
         assertThat(results.behandlinger).hasSize(2)
     }
 
     @Test
     fun `get ferdigstilte with specific ytelse and type works`() {
-        val behandling = simpleInsert(
-            type = Type.KLAGE,
-            ytelse = Ytelse.OMS_OMP,
-            registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
-        )
+        val behandling =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+            )
 
         simpleInsert(
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OLP,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
         )
 
         simpleInsert(
             type = Type.ANKE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
         )
 
-        val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
-            MineFerdigstilteOppgaverQueryParams(
-                typer = listOf(Type.KLAGE.id),
-                ytelser = listOf(Ytelse.OMS_OMP.id),
-                registreringshjemler = emptyList(),
-                rekkefoelge = Rekkefoelge.STIGENDE,
-                sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = null,
-                ferdigstiltTo = null,
-                fristFrom = null,
-                fristTo = null,
+        val results =
+            oppgaveService.getFerdigstilteOppgaverForNavIdent(
+                MineFerdigstilteOppgaverQueryParams(
+                    typer = listOf(Type.KLAGE.id),
+                    ytelser = listOf(Ytelse.OMS_OMP.id),
+                    registreringshjemler = emptyList(),
+                    rekkefoelge = Rekkefoelge.STIGENDE,
+                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                    ferdigstiltFrom = null,
+                    ferdigstiltTo = null,
+                    fristFrom = null,
+                    fristTo = null,
+                ),
             )
-        )
 
         assertThat(results.behandlinger).containsExactly(behandling.id)
     }
 
     @Test
     fun `get ferdigstilte with specific registreringshjemmel works`() {
-        val behandling = simpleInsert(
-            type = Type.KLAGE,
-            ytelse = Ytelse.OMS_OMP,
-            registreringshjemmelList = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
-        )
+        val behandling =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+            )
 
         simpleInsert(
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
         )
 
-        val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
-            MineFerdigstilteOppgaverQueryParams(
-                typer = emptyList(),
-                ytelser = emptyList(),
-                registreringshjemler = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER.id),
-                rekkefoelge = Rekkefoelge.STIGENDE,
-                sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = null,
-                ferdigstiltTo = null,
-                fristFrom = null,
-                fristTo = null,
+        val results =
+            oppgaveService.getFerdigstilteOppgaverForNavIdent(
+                MineFerdigstilteOppgaverQueryParams(
+                    typer = emptyList(),
+                    ytelser = emptyList(),
+                    registreringshjemler = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER.id),
+                    rekkefoelge = Rekkefoelge.STIGENDE,
+                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                    ferdigstiltFrom = null,
+                    ferdigstiltTo = null,
+                    fristFrom = null,
+                    fristTo = null,
+                ),
             )
-        )
 
         assertThat(results.behandlinger).containsExactly(behandling.id)
     }
 
     @Test
     fun `get ferdigstilte with specific from and to works`() {
-        val behandling = simpleInsert(
-            type = Type.KLAGE,
-            ytelse = Ytelse.OMS_OMP,
-            registreringshjemmelList = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
-            avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(1),
-        )
+        val behandling =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+                avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(1),
+            )
 
         simpleInsert(
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
             avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(10),
         )
 
-        val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
-            MineFerdigstilteOppgaverQueryParams(
-                typer = emptyList(),
-                ytelser = emptyList(),
-                registreringshjemler = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER.id),
-                rekkefoelge = Rekkefoelge.STIGENDE,
-                sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = LocalDate.now().minusDays(1),
-                ferdigstiltTo = LocalDate.now().plusDays(1),
-                fristFrom = null,
-                fristTo = null,
+        val results =
+            oppgaveService.getFerdigstilteOppgaverForNavIdent(
+                MineFerdigstilteOppgaverQueryParams(
+                    typer = emptyList(),
+                    ytelser = emptyList(),
+                    registreringshjemler = listOf(Registreringshjemmel.ANDRE_TRYGDEAVTALER.id),
+                    rekkefoelge = Rekkefoelge.STIGENDE,
+                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                    ferdigstiltFrom = LocalDate.now().minusDays(1),
+                    ferdigstiltTo = LocalDate.now().plusDays(1),
+                    fristFrom = null,
+                    fristTo = null,
+                ),
             )
-        )
 
         assertThat(results.behandlinger).containsExactly(behandling.id)
     }
 
     @Test
     fun `get ferdigstilte for enhet`() {
-        val behandling = simpleInsert(
-            type = Type.KLAGE,
-            ytelse = Ytelse.OMS_OMP,
-            registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
-            avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(1),
-        )
+        val behandling =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+                avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(1),
+            )
 
         simpleInsert(
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
             avsluttetAvSaksbehandler = LocalDateTime.now().minusDays(1),
             enhetId = "2000",
         )
 
-        val results = oppgaveService.getFerdigstilteOppgaverForEnhet(
-            EnhetensFerdigstilteOppgaverQueryParams(
-                typer = emptyList(),
-                ytelser = emptyList(),
-                registreringshjemler = emptyList(),
-                rekkefoelge = Rekkefoelge.STIGENDE,
-                sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = LocalDate.now().minusDays(1),
-                ferdigstiltTo = LocalDate.now().plusDays(1),
-                fristFrom = null,
-                fristTo = null,
+        val results =
+            oppgaveService.getFerdigstilteOppgaverForEnhet(
+                EnhetensFerdigstilteOppgaverQueryParams(
+                    typer = emptyList(),
+                    ytelser = emptyList(),
+                    registreringshjemler = emptyList(),
+                    rekkefoelge = Rekkefoelge.STIGENDE,
+                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                    ferdigstiltFrom = LocalDate.now().minusDays(1),
+                    ferdigstiltTo = LocalDate.now().plusDays(1),
+                    fristFrom = null,
+                    fristTo = null,
+                ),
             )
-        )
 
         assertThat(results.behandlinger).containsExactly(behandling.id)
     }
 
     @Test
     fun `get oppgaver with frist with specific from and to works (or null)`() {
-        val behandling1 = simpleInsert(
-            type = Type.KLAGE,
-            ytelse = Ytelse.OMS_OMP,
-            registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
-            frist = LocalDate.now().plusDays(9),
-        )
+        val behandling1 =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+                frist = LocalDate.now().plusDays(9),
+            )
 
         simpleInsert(
             type = Type.KLAGE,
             ytelse = Ytelse.OMS_OMP,
             registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+            tildeltSaksbehandlerIdent = saksbehandlerIdent,
             frist = LocalDate.now().plusDays(10),
         )
 
-        val behandling2 = simpleInsert(
-            type = Type.ANKE_I_TRYGDERETTEN,
-            ytelse = Ytelse.OMS_OMP,
-            registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
-        )
-
-        val results = oppgaveService.getFerdigstilteOppgaverForNavIdent(
-            MineFerdigstilteOppgaverQueryParams(
-                typer = emptyList(),
-                ytelser = emptyList(),
-                registreringshjemler = emptyList(),
-                rekkefoelge = Rekkefoelge.STIGENDE,
-                sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
-                ferdigstiltFrom = null,
-                ferdigstiltTo = null,
-                fristFrom = LocalDate.now(),
-                fristTo = LocalDate.now().plusDays(9),
+        val behandling2 =
+            simpleInsert(
+                type = Type.ANKE_I_TRYGDERETTEN,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
             )
-        )
+
+        val results =
+            oppgaveService.getFerdigstilteOppgaverForNavIdent(
+                MineFerdigstilteOppgaverQueryParams(
+                    typer = emptyList(),
+                    ytelser = emptyList(),
+                    registreringshjemler = emptyList(),
+                    rekkefoelge = Rekkefoelge.STIGENDE,
+                    sortering = Sortering.AVSLUTTET_AV_SAKSBEHANDLER,
+                    ferdigstiltFrom = null,
+                    ferdigstiltTo = null,
+                    fristFrom = LocalDate.now(),
+                    fristTo = LocalDate.now().plusDays(9),
+                ),
+            )
 
         assertThat(results.behandlinger).containsExactlyInAnyOrder(behandling1.id, behandling2.id)
     }
 
     @Test
     fun `searchOppgaverByFagsakId filters out inaccessible entries`() {
-        val klagebehandling1 = simpleInsert(
-            type = Type.KLAGE,
-            ytelse = Ytelse.OMS_OMP,
-            registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
-            frist = LocalDate.now().plusDays(9),
-            fnr = FNR,
-            saksId = SAKS_ID,
-            fagsystem = Fagsystem.K9,
-            ferdigstilt = false
-        )
-        val klagebehandling2 = simpleInsert(
-            type = Type.KLAGE,
-            ytelse = Ytelse.OMS_OMP,
-            registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
-            frist = LocalDate.now().plusDays(9),
-            fnr = FNR2,
-            saksId = SAKS_ID,
-            fagsystem = Fagsystem.AO01,
-            ferdigstilt = false
-        )
-        val klagebehandling3 = simpleInsert(
-            type = Type.KLAGE,
-            ytelse = Ytelse.OMS_OMP,
-            registreringshjemmelList = emptyList(),
-            tildeltSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
-            frist = LocalDate.now().plusDays(9),
-            fnr = FNR,
-            saksId = SAKS_ID,
-            fagsystem = Fagsystem.BISYS,
-            ferdigstilt = true
-        )
+        val klagebehandling1 =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+                frist = LocalDate.now().plusDays(9),
+                fnr = defaultFnr,
+                saksId = defaultSaksId,
+                fagsystem = Fagsystem.K9,
+                ferdigstilt = false,
+            )
+        val klagebehandling2 =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+                frist = LocalDate.now().plusDays(9),
+                fnr = fnr2,
+                saksId = defaultSaksId,
+                fagsystem = Fagsystem.AO01,
+                ferdigstilt = false,
+            )
+        val klagebehandling3 =
+            simpleInsert(
+                type = Type.KLAGE,
+                ytelse = Ytelse.OMS_OMP,
+                registreringshjemmelList = emptyList(),
+                tildeltSaksbehandlerIdent = saksbehandlerIdent,
+                frist = LocalDate.now().plusDays(9),
+                fnr = defaultFnr,
+                saksId = defaultSaksId,
+                fagsystem = Fagsystem.BISYS,
+                ferdigstilt = true,
+            )
 
         behandlingRepository.saveAll(listOf(klagebehandling1, klagebehandling2, klagebehandling3))
 
-        every { tilgangService.getSaksbehandlerAccessToBehandling(klagebehandling1) } returns TilgangService.Access(true, "Test")
-        every { tilgangService.getSaksbehandlerAccessToBehandling(klagebehandling3) } returns TilgangService.Access(true, "Test")
-        every { tilgangService.getSaksbehandlerAccessToBehandling(klagebehandling2) } returns TilgangService.Access(
-            access = false,
-            reason = "Ikke tilgang"
-        )
+        every { tilgangService.getSaksbehandlerAccessToBehandling(klagebehandling1) } returns
+            TilgangService.Access(access = true, reason = "Test")
+        every { tilgangService.getSaksbehandlerAccessToBehandling(klagebehandling3) } returns
+            TilgangService.Access(access = true, reason = "Test")
+        every { tilgangService.getSaksbehandlerAccessToBehandling(klagebehandling2) } returns
+            TilgangService.Access(
+                access = false,
+                reason = "Ikke tilgang",
+            )
 
-        val output = oppgaveService.searchOppgaverByFagsakId(
-            fagsakId = SAKS_ID
-        )
+        val output =
+            oppgaveService.searchOppgaverByFagsakId(
+                fagsakId = defaultSaksId,
+            )
 
         verify(exactly = 1) { tilgangService.getSaksbehandlerAccessToBehandling(klagebehandling1) }
         verify(exactly = 1) { tilgangService.getSaksbehandlerAccessToBehandling(klagebehandling3) }
@@ -443,192 +472,208 @@ class OppgaveServiceTest : PostgresIntegrationTestBase() {
         avsluttetAvSaksbehandler: LocalDateTime = LocalDateTime.now(),
         enhetId: String = "1000",
         frist: LocalDate = LocalDate.now(),
-        fnr: String = FNR,
-        saksId: String = SAKS_ID,
+        fnr: String = defaultFnr,
+        saksId: String = defaultSaksId,
         fagsystem: Fagsystem = Fagsystem.K9,
         ferdigstilt: Boolean = true,
     ): Behandling {
         val now = LocalDateTime.now()
 
-        val ferdigstilling = Ferdigstilling(
-            avsluttet = avsluttetAvSaksbehandler,
-            avsluttetAvSaksbehandler = avsluttetAvSaksbehandler,
-            navIdent = "navIdent",
-            navn = "navn",
-        )
+        val ferdigstilling =
+            Ferdigstilling(
+                avsluttet = avsluttetAvSaksbehandler,
+                avsluttetAvSaksbehandler = avsluttetAvSaksbehandler,
+                navIdent = "navIdent",
+                navn = "navn",
+            )
 
-        val behandling = when (type) {
-            Type.KLAGE -> {
-                Klagebehandling(
-                    klager = Klager(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = fnr)
-                    ),
-                    sakenGjelder = SakenGjelder(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = fnr),
-                    ),
-                    prosessfullmektig = null,
-                    ytelse = ytelse,
-                    type = type,
-                    frist = frist,
-                    hjemler = mutableSetOf(),
-                    created = now,
-                    modified = now,
-                    mottattKlageinstans = now,
-                    fagsystem = fagsystem,
-                    fagsakId = saksId,
-                    kildeReferanse = "abc",
-                    mottattVedtaksinstans = LocalDate.now(),
-                    avsenderEnhetFoersteinstans = "enhet",
-                    kakaKvalitetsvurderingId = UUID.randomUUID(),
-                    kakaKvalitetsvurderingVersion = 2,
-                    utfall = Utfall.STADFESTELSE,
-                    extraUtfallSet = emptySet(),
-                    registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    ferdigstilling = if (ferdigstilt) ferdigstilling else null,
-                    previousSaksbehandlerident = "C78901",
-                    tildeling = Tildeling(
-                        saksbehandlerident = tildeltSaksbehandlerIdent,
-                        enhet = enhetId,
-                        tidspunkt = now,
-                    ),
-                    gosysOppgaveId = null,
-                    varsletBehandlingstid = null,
-                    forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = false,
-                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
-                    previousBehandlingId = null,
-                )
+        val behandling =
+            when (type) {
+                Type.KLAGE -> {
+                    Klagebehandling(
+                        klager =
+                            Klager(
+                                id = UUID.randomUUID(),
+                                partId = PartId(type = PartIdType.PERSON, value = fnr),
+                            ),
+                        sakenGjelder =
+                            SakenGjelder(
+                                id = UUID.randomUUID(),
+                                partId = PartId(type = PartIdType.PERSON, value = fnr),
+                            ),
+                        prosessfullmektig = null,
+                        ytelse = ytelse,
+                        type = type,
+                        frist = frist,
+                        hjemler = mutableSetOf(),
+                        created = now,
+                        modified = now,
+                        mottattKlageinstans = now,
+                        fagsystem = fagsystem,
+                        fagsakId = saksId,
+                        kildeReferanse = "abc",
+                        mottattVedtaksinstans = LocalDate.now(),
+                        avsenderEnhetFoersteinstans = "enhet",
+                        kakaKvalitetsvurderingId = UUID.randomUUID(),
+                        kakaKvalitetsvurderingVersion = 2,
+                        utfall = Utfall.STADFESTELSE,
+                        extraUtfallSet = emptySet(),
+                        registreringshjemler = registreringshjemmelList.toMutableSet(),
+                        ferdigstilling = if (ferdigstilt) ferdigstilling else null,
+                        previousSaksbehandlerident = "C78901",
+                        tildeling =
+                            Tildeling(
+                                saksbehandlerident = tildeltSaksbehandlerIdent,
+                                enhet = enhetId,
+                                tidspunkt = now,
+                            ),
+                        gosysOppgaveId = null,
+                        varsletBehandlingstid = null,
+                        forlengetBehandlingstidDraft = null,
+                        gosysOppgaveRequired = false,
+                        initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                        previousBehandlingId = null,
+                    )
+                }
+
+                Type.ANKE -> {
+                    Ankebehandling(
+                        klager =
+                            Klager(
+                                id = UUID.randomUUID(),
+                                partId = PartId(type = PartIdType.PERSON, value = fnr),
+                            ),
+                        sakenGjelder =
+                            SakenGjelder(
+                                id = UUID.randomUUID(),
+                                partId = PartId(type = PartIdType.PERSON, value = fnr),
+                            ),
+                        prosessfullmektig = null,
+                        ytelse = ytelse,
+                        type = type,
+                        frist = frist,
+                        hjemler = mutableSetOf(),
+                        created = now,
+                        modified = now,
+                        mottattKlageinstans = now,
+                        fagsystem = fagsystem,
+                        fagsakId = saksId,
+                        kildeReferanse = "abc",
+                        kakaKvalitetsvurderingId = UUID.randomUUID(),
+                        kakaKvalitetsvurderingVersion = 2,
+                        utfall = Utfall.STADFESTELSE,
+                        extraUtfallSet = emptySet(),
+                        registreringshjemler = registreringshjemmelList.toMutableSet(),
+                        ferdigstilling = if (ferdigstilt) ferdigstilling else null,
+                        previousSaksbehandlerident = "C78901",
+                        klageBehandlendeEnhet = "1000",
+                        tildeling =
+                            Tildeling(
+                                saksbehandlerident = tildeltSaksbehandlerIdent,
+                                enhet = enhetId,
+                                tidspunkt = now,
+                            ),
+                        gosysOppgaveId = null,
+                        varsletBehandlingstid = null,
+                        forlengetBehandlingstidDraft = null,
+                        gosysOppgaveRequired = false,
+                        initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                        previousBehandlingId = null,
+                    )
+                }
+
+                Type.ANKE_I_TRYGDERETTEN -> {
+                    AnkeITrygderettenbehandling(
+                        klager =
+                            Klager(
+                                id = UUID.randomUUID(),
+                                partId = PartId(type = PartIdType.PERSON, value = fnr),
+                            ),
+                        sakenGjelder =
+                            SakenGjelder(
+                                id = UUID.randomUUID(),
+                                partId = PartId(type = PartIdType.PERSON, value = fnr),
+                            ),
+                        prosessfullmektig = null,
+                        ytelse = ytelse,
+                        type = type,
+                        hjemler = mutableSetOf(),
+                        created = now,
+                        modified = now,
+                        mottattKlageinstans = now,
+                        fagsystem = fagsystem,
+                        fagsakId = saksId,
+                        kildeReferanse = "abc",
+                        utfall = Utfall.STADFESTELSE,
+                        extraUtfallSet = emptySet(),
+                        registreringshjemler = registreringshjemmelList.toMutableSet(),
+                        ferdigstilling = if (ferdigstilt) ferdigstilling else null,
+                        previousSaksbehandlerident = "C78901",
+                        tildeling =
+                            Tildeling(
+                                saksbehandlerident = tildeltSaksbehandlerIdent,
+                                enhet = enhetId,
+                                tidspunkt = now,
+                            ),
+                        sendtTilTrygderetten = LocalDateTime.now(),
+                        gosysOppgaveId = null,
+                        gosysOppgaveRequired = false,
+                        initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                        previousBehandlingId = null,
+                    )
+                }
+
+                Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
+                    BehandlingEtterTrygderettenOpphevet(
+                        klager =
+                            Klager(
+                                id = UUID.randomUUID(),
+                                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                            ),
+                        sakenGjelder =
+                            SakenGjelder(
+                                id = UUID.randomUUID(),
+                                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                            ),
+                        prosessfullmektig = null,
+                        ytelse = ytelse,
+                        type = type,
+                        hjemler = mutableSetOf(),
+                        created = now,
+                        modified = now,
+                        mottattKlageinstans = now,
+                        fagsystem = Fagsystem.K9,
+                        fagsakId = "123",
+                        kildeReferanse = "abc",
+                        utfall = Utfall.STADFESTELSE,
+                        extraUtfallSet = emptySet(),
+                        registreringshjemler = registreringshjemmelList.toMutableSet(),
+                        ferdigstilling = ferdigstilling,
+                        previousSaksbehandlerident = "C78901",
+                        tildeling =
+                            Tildeling(
+                                saksbehandlerident = tildeltSaksbehandlerIdent,
+                                enhet = enhetId,
+                                tidspunkt = now,
+                            ),
+                        kjennelseMottatt = LocalDateTime.now(),
+                        gosysOppgaveId = null,
+                        frist = LocalDate.now().plusWeeks(12),
+                        kakaKvalitetsvurderingId = UUID.randomUUID(),
+                        kakaKvalitetsvurderingVersion = 2,
+                        ankeBehandlendeEnhet = "4291",
+                        varsletBehandlingstid = null,
+                        forlengetBehandlingstidDraft = null,
+                        gosysOppgaveRequired = false,
+                        initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                        previousBehandlingId = null,
+                    )
+                }
+
+                else -> {
+                    throw RuntimeException("Type not supported")
+                }
             }
-
-            Type.ANKE -> {
-                Ankebehandling(
-                    klager = Klager(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = fnr)
-                    ),
-                    sakenGjelder = SakenGjelder(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = fnr),
-                    ),
-                    prosessfullmektig = null,
-                    ytelse = ytelse,
-                    type = type,
-                    frist = frist,
-                    hjemler = mutableSetOf(),
-                    created = now,
-                    modified = now,
-                    mottattKlageinstans = now,
-                    fagsystem = fagsystem,
-                    fagsakId = saksId,
-                    kildeReferanse = "abc",
-                    kakaKvalitetsvurderingId = UUID.randomUUID(),
-                    kakaKvalitetsvurderingVersion = 2,
-                    utfall = Utfall.STADFESTELSE,
-                    extraUtfallSet = emptySet(),
-                    registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    ferdigstilling = if (ferdigstilt) ferdigstilling else null,
-                    previousSaksbehandlerident = "C78901",
-                    klageBehandlendeEnhet = "1000",
-                    tildeling = Tildeling(
-                        saksbehandlerident = tildeltSaksbehandlerIdent,
-                        enhet = enhetId,
-                        tidspunkt = now,
-                    ),
-                    gosysOppgaveId = null,
-                    varsletBehandlingstid = null,
-                    forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = false,
-                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
-                    previousBehandlingId = null,
-                )
-            }
-
-            Type.ANKE_I_TRYGDERETTEN -> {
-                AnkeITrygderettenbehandling(
-                    klager = Klager(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = fnr)
-                    ),
-                    sakenGjelder = SakenGjelder(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = fnr),
-                    ),
-                    prosessfullmektig = null,
-                    ytelse = ytelse,
-                    type = type,
-                    hjemler = mutableSetOf(),
-                    created = now,
-                    modified = now,
-                    mottattKlageinstans = now,
-                    fagsystem = fagsystem,
-                    fagsakId = saksId,
-                    kildeReferanse = "abc",
-                    utfall = Utfall.STADFESTELSE,
-                    extraUtfallSet = emptySet(),
-                    registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    ferdigstilling = if (ferdigstilt) ferdigstilling else null,
-                    previousSaksbehandlerident = "C78901",
-                    tildeling = Tildeling(
-                        saksbehandlerident = tildeltSaksbehandlerIdent,
-                        enhet = enhetId,
-                        tidspunkt = now,
-                    ),
-                    sendtTilTrygderetten = LocalDateTime.now(),
-                    gosysOppgaveId = null,
-                    gosysOppgaveRequired = false,
-                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
-                    previousBehandlingId = null,
-                )
-            }
-
-            Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET -> {
-                BehandlingEtterTrygderettenOpphevet(
-                    klager = Klager(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = "23452354")
-                    ),
-                    sakenGjelder = SakenGjelder(
-                        id = UUID.randomUUID(),
-                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-                    ),
-                    prosessfullmektig = null,
-                    ytelse = ytelse,
-                    type = type,
-                    hjemler = mutableSetOf(),
-                    created = now,
-                    modified = now,
-                    mottattKlageinstans = now,
-                    fagsystem = Fagsystem.K9,
-                    fagsakId = "123",
-                    kildeReferanse = "abc",
-                    utfall = Utfall.STADFESTELSE,
-                    extraUtfallSet = emptySet(),
-                    registreringshjemler = registreringshjemmelList.toMutableSet(),
-                    ferdigstilling = ferdigstilling,
-                    previousSaksbehandlerident = "C78901",
-                    tildeling = Tildeling(
-                        saksbehandlerident = tildeltSaksbehandlerIdent,
-                        enhet = enhetId,
-                        tidspunkt = now,
-                    ),
-                    kjennelseMottatt = LocalDateTime.now(),
-                    gosysOppgaveId = null,
-                    frist = LocalDate.now().plusWeeks(12),
-                    kakaKvalitetsvurderingId = UUID.randomUUID(),
-                    kakaKvalitetsvurderingVersion = 2,
-                    ankeBehandlendeEnhet = "4291",
-                    varsletBehandlingstid = null,
-                    forlengetBehandlingstidDraft = null,
-                    gosysOppgaveRequired = false,
-                    initiatingSystem = Behandling.InitiatingSystem.KABAL,
-                    previousBehandlingId = null,
-                )
-            }
-
-            else -> throw RuntimeException("Type not supported")
-        }
 
         behandlingRepository.save(behandling)
 

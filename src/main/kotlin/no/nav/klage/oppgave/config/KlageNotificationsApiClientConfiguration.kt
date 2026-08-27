@@ -8,9 +8,8 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
 class KlageNotificationsApiClientConfiguration(
-    private val webClientBuilder: WebClient.Builder
+    private val webClientBuilder: WebClient.Builder,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -20,9 +19,8 @@ class KlageNotificationsApiClientConfiguration(
     private lateinit var klageNotificationsApiUrl: String
 
     @Bean
-    fun klageNotificationsApiWebClient(): WebClient {
-        return webClientBuilder
+    fun klageNotificationsApiWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(klageNotificationsApiUrl)
             .build()
-    }
 }

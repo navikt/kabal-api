@@ -6,15 +6,15 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
-class ArbeidOgInntektClientConfiguration(private val webClientBuilder: WebClient.Builder) {
-
-    @Value("\${ARBEID_OG_INNTEKT_URL}")
+class ArbeidOgInntektClientConfiguration(
+    private val webClientBuilder: WebClient.Builder,
+) {
+    @Value($$"${ARBEID_OG_INNTEKT_URL}")
     private lateinit var arbeidOgInntektUrl: String
 
     @Bean
-    fun arbeidOgInntektWebClient(): WebClient {
-        return webClientBuilder
+    fun arbeidOgInntektWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(arbeidOgInntektUrl)
             .build()
-    }
 }

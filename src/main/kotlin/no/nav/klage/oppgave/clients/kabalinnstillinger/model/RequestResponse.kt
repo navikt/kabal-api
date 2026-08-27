@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDateTime
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-data class Medunderskrivere(val medunderskrivere: List<Saksbehandler>)
+data class Medunderskrivere(
+    val medunderskrivere: List<Saksbehandler>,
+)
 
 data class MedunderskrivereInput(
     val enhet: String,
@@ -19,7 +21,9 @@ data class SakInput(
     val fagsystemId: String,
 )
 
-data class Saksbehandlere(val saksbehandlere: List<Saksbehandler>)
+data class Saksbehandlere(
+    val saksbehandlere: List<Saksbehandler>,
+)
 
 data class Saksbehandler(
     val navIdent: String,
@@ -38,5 +42,5 @@ data class SaksbehandlerAccess(
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class TildelteYtelserResponse(
-    val ytelseIdList: List<String>
+    val ytelseIdList: List<String>,
 )

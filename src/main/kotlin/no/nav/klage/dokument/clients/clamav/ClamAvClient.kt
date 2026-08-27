@@ -15,7 +15,6 @@ class ClamAvClient(
     @Qualifier("clamAvWebClient") private val clamAvWebClient: WebClient,
     @Qualifier("clamAvLargeFileWebClient") private val clamAvLargeFileWebClient: WebClient,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -26,12 +25,13 @@ class ClamAvClient(
         logger.debug("Scanning document")
 
         val fileSizeMb = file.length() / (1024.0 * 1024.0)
-        val webClient = if (fileSizeMb > LARGE_FILE_THRESHOLD_MB) {
-            logger.debug("File size is ${"%.2f".format(fileSizeMb)} MB, using clamAvLargeFileWebClient")
-            clamAvLargeFileWebClient
-        } else {
-            clamAvWebClient
-        }
+        val webClient =
+            if (fileSizeMb > LARGE_FILE_THRESHOLD_MB) {
+                logger.debug("File size is ${"%.2f".format(fileSizeMb)} MB, using clamAvLargeFileWebClient")
+                clamAvLargeFileWebClient
+            } else {
+                clamAvWebClient
+            }
 
         var start = System.currentTimeMillis()
         val bodyBuilder = MultipartBodyBuilder()
@@ -39,17 +39,28 @@ class ClamAvClient(
         logger.debug("File added to body. Time taken: ${System.currentTimeMillis() - start} ms")
 
         start = System.currentTimeMillis()
-        val response = webClient.post()
-            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
-            .retrieve()
-            .bodyToMono<List<ScanResult>>()
-            .block()?.firstOrNull() ?: throw RuntimeException("Received empty response from ClamAV")
+        val response =
+            webClient
+                .post()
+                .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+                .retrieve()
+                .bodyToMono<List<ScanResult>>()
+                .block()
+                ?.firstOrNull() ?: throw RuntimeException("Received empty response from ClamAV")
 
         val durationMs = System.currentTimeMillis() - start
-        logger.debug("ClamAV scan completed in {} ms for file of {} MB. Result: {}", durationMs, String.format("%.2f", fileSizeMb), response.result)
+        logger.debug(
+            "ClamAV scan completed in {} ms for file of {} MB. Result: {}",
+            durationMs,
+            String.format("%.2f", fileSizeMb),
+            response.result,
+        )
 
         return when (response.result) {
-            ClamAvResult.OK -> false
+            ClamAvResult.OK -> {
+                false
+            }
+
             ClamAvResult.FOUND -> {
                 logger.warn("Virus found in file: {}. Virus: {}", response.filename, response.virus)
                 true

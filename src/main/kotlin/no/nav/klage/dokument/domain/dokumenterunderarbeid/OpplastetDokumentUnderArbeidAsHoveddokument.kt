@@ -1,6 +1,10 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorValue
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import no.nav.klage.dokument.api.view.InngaaendeKanal
 import no.nav.klage.dokument.exceptions.DokumentValidationException
 import no.nav.klage.kodeverk.DokumentType
@@ -9,15 +13,14 @@ import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
-
+import java.util.UUID
 
 @Entity
 @DiscriminatorValue("opplastetdokument")
 @DynamicUpdate
 @Audited
 class OpplastetDokumentUnderArbeidAsHoveddokument(
-    //Common properties
+    // Common properties
     id: UUID = UUID.randomUUID(),
     name: String,
     behandlingId: UUID,
@@ -33,7 +36,6 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     avsenderMottakerInfoSet: MutableSet<Brevmottaker> = mutableSetOf(),
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
     journalfoerendeEnhetId: String?,
-
     @Column(name = "size")
     var size: Long?,
     @Column(name = "mellomlager_id")
@@ -47,31 +49,32 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
     var inngaaendeKanal: InngaaendeKanal?,
     @Column(name = "is_mottak_dokument")
     var isMottakDokument: Boolean = false,
-) : DokumentUnderArbeidAsMellomlagret, DokumentUnderArbeidAsHoveddokument(
-    id = id,
-    name = name,
-    behandlingId = behandlingId,
-    created = created,
-    modified = modified,
-    markertFerdig = markertFerdig,
-    markertFerdigBy = markertFerdigBy,
-    ferdigstilt = ferdigstilt,
-    creatorIdent = creatorIdent,
-    creatorRole = creatorRole,
-    dokumentType = dokumentType,
-    dokumentEnhetId = dokumentEnhetId,
-    brevmottakere = avsenderMottakerInfoSet,
-    dokarkivReferences = dokarkivReferences,
-    journalfoerendeEnhetId = journalfoerendeEnhetId,
-){
+) : DokumentUnderArbeidAsHoveddokument(
+        id = id,
+        name = name,
+        behandlingId = behandlingId,
+        created = created,
+        modified = modified,
+        markertFerdig = markertFerdig,
+        markertFerdigBy = markertFerdigBy,
+        ferdigstilt = ferdigstilt,
+        creatorIdent = creatorIdent,
+        creatorRole = creatorRole,
+        dokumentType = dokumentType,
+        dokumentEnhetId = dokumentEnhetId,
+        brevmottakere = avsenderMottakerInfoSet,
+        dokarkivReferences = dokarkivReferences,
+        journalfoerendeEnhetId = journalfoerendeEnhetId,
+    ),
+    DokumentUnderArbeidAsMellomlagret {
     init {
         if (name.length > MAX_NAME_LENGTH) {
             throw DokumentValidationException("Dokumentnavnet kan ikke være lenger enn $MAX_NAME_LENGTH tegn")
         }
     }
 
-    fun asVedlegg(parentId: UUID): OpplastetDokumentUnderArbeidAsVedlegg {
-        return OpplastetDokumentUnderArbeidAsVedlegg(
+    fun asVedlegg(parentId: UUID): OpplastetDokumentUnderArbeidAsVedlegg =
+        OpplastetDokumentUnderArbeidAsVedlegg(
             size = size,
             mellomlagerId = mellomlagerId,
             mellomlagretDate = mellomlagretDate,
@@ -87,5 +90,4 @@ class OpplastetDokumentUnderArbeidAsHoveddokument(
             creatorRole = creatorRole,
             parentId = parentId,
         )
-    }
 }

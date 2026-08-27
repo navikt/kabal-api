@@ -6,7 +6,7 @@ import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @DynamicUpdate
@@ -14,11 +14,9 @@ import java.util.*
 abstract class DokumentUnderArbeidAsVedlegg(
     @Column(name = "parent_id", nullable = false)
     open var parentId: UUID,
-
     @Column(name = "sort_index")
     open var sortIndex: Double? = null,
-
-    //Common properties
+    // Common properties
     id: UUID = UUID.randomUUID(),
     name: String,
     behandlingId: UUID,
@@ -31,15 +29,15 @@ abstract class DokumentUnderArbeidAsVedlegg(
     creatorRole: BehandlingRole,
     dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
 ) : DokumentUnderArbeid(
-    id = id,
-    name = name,
-    behandlingId = behandlingId,
-    created = created,
-    modified = modified,
-    markertFerdig = markertFerdig,
-    markertFerdigBy = markertFerdigBy,
-    ferdigstilt = ferdigstilt,
-    creatorIdent = creatorIdent,
-    creatorRole = creatorRole,
-    dokarkivReferences = dokarkivReferences,
-)
+        id = id,
+        name = name,
+        behandlingId = behandlingId,
+        created = created,
+        modified = modified,
+        markertFerdig = markertFerdig,
+        markertFerdigBy = markertFerdigBy,
+        ferdigstilt = ferdigstilt,
+        creatorIdent = creatorIdent,
+        creatorRole = creatorRole,
+        dokarkivReferences = dokarkivReferences,
+    )

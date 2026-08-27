@@ -17,13 +17,11 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
-
 @Component
 class KlageLookupClient(
     private val klageLookupWebClient: WebClient,
     private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -35,55 +33,53 @@ class KlageLookupClient(
         /** fnr, dnr or aktorId */
         brukerId: String,
         navIdent: String?,
-    ): TilgangService.Access {
-        return runWithTimingAndLogging {
-            val token = if (navIdent != null) {
-                "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}"
-            } else {
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope()}"
-            }
+    ): TilgangService.Access =
+        runWithTimingAndLogging {
+            val token =
+                if (navIdent != null) {
+                    "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}"
+                } else {
+                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope()}"
+                }
 
-            val accessRequest = AccessRequest(
-                brukerId = brukerId,
-                navIdent = navIdent,
-                sak = null,
-            )
+            val accessRequest =
+                AccessRequest(
+                    brukerId = brukerId,
+                    navIdent = navIdent,
+                    sak = null,
+                )
 
-            klageLookupWebClient.post()
+            klageLookupWebClient
+                .post()
                 .uri("/access-to-person")
                 .bodyValue(accessRequest)
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
-                )
-                .retrieve()
+                ).retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
                         response = response,
                         functionName = ::getAccess.name,
                         classLogger = logger,
                     )
-                }
-                .bodyToMono<TilgangService.Access>()
+                }.bodyToMono<TilgangService.Access>()
                 .block() ?: throw RuntimeException("Could not get access")
         }
-    }
 
     @Retryable(
-        excludes = [UserNotFoundException::class]
+        excludes = [UserNotFoundException::class],
     )
-    fun getUserInfo(
-        navIdent: String,
-    ): ExtendedUserResponse {
-        return runWithTimingAndLogging {
+    fun getUserInfo(navIdent: String): ExtendedUserResponse =
+        runWithTimingAndLogging {
             val token = getCorrectBearerToken()
-            klageLookupWebClient.get()
+            klageLookupWebClient
+                .get()
                 .uri("/users/$navIdent")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
-                )
-                .exchangeToMono { response ->
+                ).exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
                         logger.debug("User $navIdent not found")
                         Mono.error(UserNotFoundException("User $navIdent not found"))
@@ -97,26 +93,22 @@ class KlageLookupClient(
                     } else {
                         response.bodyToMono<ExtendedUserResponse>()
                     }
-                }
-                .block() ?: throw RuntimeException("Could not get user info for $navIdent")
+                }.block() ?: throw RuntimeException("Could not get user info for $navIdent")
         }
-    }
 
     @Retryable(
-        excludes = [UserNotFoundException::class]
+        excludes = [UserNotFoundException::class],
     )
-    fun getUserSluttdato(
-        navIdent: String,
-    ): SluttdatoResponse {
-        return runWithTimingAndLogging {
+    fun getUserSluttdato(navIdent: String): SluttdatoResponse =
+        runWithTimingAndLogging {
             val token = getCorrectBearerToken()
-            klageLookupWebClient.get()
+            klageLookupWebClient
+                .get()
                 .uri("/users/$navIdent/sluttdato")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
-                )
-                .exchangeToMono { response ->
+                ).exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
                         logger.debug("User $navIdent not found")
                         Mono.error(UserNotFoundException("User $navIdent not found"))
@@ -130,30 +122,25 @@ class KlageLookupClient(
                     } else {
                         response.bodyToMono<SluttdatoResponse>()
                     }
-                }
-                .block() ?: throw RuntimeException("Could not get sluttdato for $navIdent")
+                }.block() ?: throw RuntimeException("Could not get sluttdato for $navIdent")
         }
-    }
 
     @Retryable
-    fun getUserInfoBatched(
-        navIdentList: List<String>,
-    ): ExtendedUsersResponse {
-        return runWithTimingAndLogging {
+    fun getUserInfoBatched(navIdentList: List<String>): ExtendedUsersResponse =
+        runWithTimingAndLogging {
             val token = getCorrectBearerToken()
-            klageLookupWebClient.post()
+            klageLookupWebClient
+                .post()
                 .uri("/users")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
-                )
-                .contentType(MediaType.APPLICATION_JSON)
+                ).contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(
                     BatchedUserRequest(
-                        navIdentList = navIdentList
-                    )
-                )
-                .exchangeToMono { response ->
+                        navIdentList = navIdentList,
+                    ),
+                ).exchangeToMono { response ->
                     if (response.statusCode().isError) {
                         logErrorResponse(
                             response = response,
@@ -164,30 +151,25 @@ class KlageLookupClient(
                     } else {
                         response.bodyToMono<ExtendedUsersResponse>()
                     }
-                }
-                .block() ?: throw RuntimeException("Could not get user info for input $navIdentList")
+                }.block() ?: throw RuntimeException("Could not get user info for input $navIdentList")
         }
-    }
 
     @Retryable
-    fun getSluttdatoBatched(
-        navIdentList: List<String>,
-    ): BatchedSluttdatoResponse {
-        return runWithTimingAndLogging {
+    fun getSluttdatoBatched(navIdentList: List<String>): BatchedSluttdatoResponse =
+        runWithTimingAndLogging {
             val token = getCorrectBearerToken()
-            klageLookupWebClient.post()
+            klageLookupWebClient
+                .post()
                 .uri("/users/sluttdato")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
-                )
-                .contentType(MediaType.APPLICATION_JSON)
+                ).contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(
                     BatchedUserRequest(
-                        navIdentList = navIdentList
-                    )
-                )
-                .exchangeToMono { response ->
+                        navIdentList = navIdentList,
+                    ),
+                ).exchangeToMono { response ->
                     if (response.statusCode().isError) {
                         logErrorResponse(
                             response = response,
@@ -198,26 +180,22 @@ class KlageLookupClient(
                     } else {
                         response.bodyToMono<BatchedSluttdatoResponse>()
                     }
-                }
-                .block() ?: throw RuntimeException("Could not get sluttdato for input $navIdentList")
+                }.block() ?: throw RuntimeException("Could not get sluttdato for input $navIdentList")
         }
-    }
 
     @Retryable(
-        excludes = [UserNotFoundException::class]
+        excludes = [UserNotFoundException::class],
     )
-    fun getUserGroups(
-        navIdent: String,
-    ): GroupsResponse {
-        return runWithTimingAndLogging {
+    fun getUserGroups(navIdent: String): GroupsResponse =
+        runWithTimingAndLogging {
             val token = getCorrectBearerToken()
-            klageLookupWebClient.get()
+            klageLookupWebClient
+                .get()
                 .uri("/users/$navIdent/groups")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
-                )
-                .exchangeToMono { response ->
+                ).exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
                         logger.debug("User $navIdent not found")
                         Mono.error(UserNotFoundException("User $navIdent not found"))
@@ -231,30 +209,25 @@ class KlageLookupClient(
                     } else {
                         response.bodyToMono<GroupsResponse>()
                     }
-                }
-                .block() ?: throw RuntimeException("Could not get user groups for navIdent $navIdent")
+                }.block() ?: throw RuntimeException("Could not get user groups for navIdent $navIdent")
         }
-    }
 
     @Retryable(
-        excludes = [GroupNotFoundException::class]
+        excludes = [GroupNotFoundException::class],
     )
-    fun getUsersInGroup(
-        azureGroup: AzureGroup,
-    ): UsersResponse {
-        return runWithTimingAndLogging {
+    fun getUsersInGroup(azureGroup: AzureGroup): UsersResponse =
+        runWithTimingAndLogging {
             val token = getCorrectBearerToken()
-            klageLookupWebClient.get()
+            klageLookupWebClient
+                .get()
                 .uri("/groups/${azureGroup.id}/users")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
-                )
-                .exchangeToMono { response ->
+                ).exchangeToMono { response ->
                     if (response.statusCode().value() == 404) {
                         logger.debug("Group $azureGroup not found")
                         Mono.error(GroupNotFoundException("Group $azureGroup not found"))
-
                     } else if (response.statusCode().isError) {
                         logErrorResponse(
                             response = response,
@@ -265,98 +238,88 @@ class KlageLookupClient(
                     } else {
                         response.bodyToMono<UsersResponse>()
                     }
-                }
-                .block() ?: throw RuntimeException("Could not get users information for azureGroup $azureGroup")
+                }.block() ?: throw RuntimeException("Could not get users information for azureGroup $azureGroup")
         }
-    }
 
     @Retryable
-    fun getPerson(fnr: String): PersonResponse {
-        return runWithTimingAndLogging {
-            klageLookupWebClient.post()
+    fun getPerson(fnr: String): PersonResponse =
+        runWithTimingAndLogging {
+            klageLookupWebClient
+                .post()
                 .uri("/person")
                 .bodyValue(
                     GetPersonRequest(
                         fnr = fnr,
-                    )
-                )
-                .header(
+                    ),
+                ).header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
-                )
-                .retrieve()
+                ).retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
                         response = response,
                         functionName = ::getPerson.name,
                         classLogger = logger,
                     )
-                }
-                .bodyToMono<PersonResponse>()
+                }.bodyToMono<PersonResponse>()
                 .block() ?: throw RuntimeException("Could not get person. Response was null.")
         }
-    }
 
     @Retryable
-    fun getPersonBulk(fnrList: List<String>): PersonBulkResponse {
-        return runWithTimingAndLogging {
-            klageLookupWebClient.post()
+    fun getPersonBulk(fnrList: List<String>): PersonBulkResponse =
+        runWithTimingAndLogging {
+            klageLookupWebClient
+                .post()
                 .uri("/person-bulk")
                 .bodyValue(
                     GetPersonBulkRequest(
                         fnrList = fnrList,
-                    )
-                )
-                .header(
+                    ),
+                ).header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
-                )
-                .retrieve()
+                ).retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
                         response = response,
                         functionName = ::getPersonBulk.name,
                         classLogger = logger,
                     )
-                }
-                .bodyToMono<PersonBulkResponse>()
+                }.bodyToMono<PersonBulkResponse>()
                 .block() ?: throw RuntimeException("Could not get person-bulk. Response was null.")
         }
-    }
 
     @Retryable
-    fun getPersongalleri(sak: Sak): PersongalleriResponse {
-        return runWithTimingAndLogging {
-            klageLookupWebClient.post()
+    fun getPersongalleri(sak: Sak): PersongalleriResponse =
+        runWithTimingAndLogging {
+            klageLookupWebClient
+                .post()
                 .uri("/persongalleri")
                 .bodyValue(sak)
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
-                )
-                .retrieve()
+                ).retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
                         response = response,
                         functionName = ::getPersongalleri.name,
                         classLogger = logger,
                     )
-                }
-                .bodyToMono<PersongalleriResponse>()
+                }.bodyToMono<PersongalleriResponse>()
                 .block() ?: throw RuntimeException("Could not get persongalleri. Response was null.")
         }
-    }
 
     @Retryable
-    fun getFoedselsnummerFromIdent(ident: String): String {
-        return runWithTimingAndLogging {
-            klageLookupWebClient.post()
+    fun getFoedselsnummerFromIdent(ident: String): String =
+        runWithTimingAndLogging {
+            klageLookupWebClient
+                .post()
                 .uri("/foedselsnummer")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
-                )
-                .bodyValue(IdentRequest(ident = ident))
+                ).bodyValue(IdentRequest(ident = ident))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
@@ -364,22 +327,21 @@ class KlageLookupClient(
                         functionName = ::getFoedselsnummerFromIdent.name,
                         classLogger = logger,
                     )
-                }
-                .bodyToMono<FnrResponse>()
-                .block()?.fnr ?: throw RuntimeException("Could not get fødselsnummer from ident. Response was null.")
+                }.bodyToMono<FnrResponse>()
+                .block()
+                ?.fnr ?: throw RuntimeException("Could not get fødselsnummer from ident. Response was null.")
         }
-    }
 
     @Retryable
-    fun getAktoerIdFromIdent(ident: String): String {
-        return runWithTimingAndLogging {
-            klageLookupWebClient.post()
+    fun getAktoerIdFromIdent(ident: String): String =
+        runWithTimingAndLogging {
+            klageLookupWebClient
+                .post()
                 .uri("/aktoerid")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}",
-                )
-                .bodyValue(IdentRequest(ident = ident))
+                ).bodyValue(IdentRequest(ident = ident))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
                     logErrorResponse(
@@ -387,34 +349,32 @@ class KlageLookupClient(
                         functionName = ::getAktoerIdFromIdent.name,
                         classLogger = logger,
                     )
-                }
-                .bodyToMono<AktoerIdResponse>()
-                .block()?.aktoerId ?: throw RuntimeException("Could not get aktoerId from ident. Response was null.")
+                }.bodyToMono<AktoerIdResponse>()
+                .block()
+                ?.aktoerId ?: throw RuntimeException("Could not get aktoerId from ident. Response was null.")
         }
-    }
 
     @Retryable
     fun getPostadresse(ident: String): PostadresseResponse? {
         val token = getCorrectBearerToken()
         return runWithTimingAndLogging {
-            klageLookupWebClient.post()
+            klageLookupWebClient
+                .post()
                 .uri("/postadresse")
                 .header(
                     HttpHeaders.AUTHORIZATION,
                     token,
-                )
-                .bodyValue(IdentRequest(ident = ident))
+                ).bodyValue(IdentRequest(ident = ident))
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
                     response.bodyToMono(String::class.java).flatMap {
                         val errorString = "Got ${response.statusCode()} when requesting ${::getPostadresse.name}"
-                        //Debug is enough because this is not always an error
+                        // Debug is enough because this is not always an error
                         logger.debug("$errorString. See team-logs for more details.")
                         teamLogger.warn("$errorString - response body: '$it'")
                         Mono.error(RuntimeException(errorString))
                     }
-                }
-                .bodyToMono<PostadresseResponse>()
+                }.bodyToMono<PostadresseResponse>()
                 .onErrorResume { Mono.empty() }
                 .block()
         }
@@ -430,11 +390,9 @@ class KlageLookupClient(
         }
     }
 
-    private fun getCorrectBearerToken(): String {
-        return when (tokenUtil.getCurrentTokenType()) {
+    private fun getCorrectBearerToken(): String =
+        when (tokenUtil.getCurrentTokenType()) {
             TokenUtil.TokenType.OBO -> "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKlageLookupScope()}"
             TokenUtil.TokenType.CC, TokenUtil.TokenType.UNAUTHENTICATED -> "Bearer ${tokenUtil.getAppAccessTokenWithKlageLookupScope()}"
         }
-    }
-
 }

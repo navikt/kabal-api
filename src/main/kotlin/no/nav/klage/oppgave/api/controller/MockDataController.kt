@@ -7,7 +7,17 @@ import no.nav.klage.kodeverk.hjemmel.ytelseToHjemler
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV1
 import no.nav.klage.kodeverk.hjemmel.ytelseToRegistreringshjemlerV2
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.api.view.OversendtDokumentReferanse
+import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV3
+import no.nav.klage.oppgave.api.view.OversendtKlageAnkeV4
+import no.nav.klage.oppgave.api.view.OversendtKlagerLegacy
+import no.nav.klage.oppgave.api.view.OversendtPart
+import no.nav.klage.oppgave.api.view.OversendtPartId
+import no.nav.klage.oppgave.api.view.OversendtPartIdType
+import no.nav.klage.oppgave.api.view.OversendtProsessfullmektig
+import no.nav.klage.oppgave.api.view.OversendtProsessfullmektigLegacy
+import no.nav.klage.oppgave.api.view.OversendtSak
+import no.nav.klage.oppgave.api.view.OversendtType
 import no.nav.klage.oppgave.clients.saf.SafFacade
 import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandlingInput
 import no.nav.klage.oppgave.domain.behandling.Behandling
@@ -28,7 +38,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.ThreadLocalRandom
 
 @Profile("dev")
@@ -40,7 +50,6 @@ class MockDataController(
     private val safFacade: SafFacade,
     private val kakaVersionUtil: KakaVersionUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -52,21 +61,21 @@ class MockDataController(
         createKlagebehandlingForASpecificPerson("14506507686")
     }
 
-    //https://dolly.ekstern.dev.nav.no/gruppe/6336
+    // https://dolly.ekstern.dev.nav.no/gruppe/6336
     @Unprotected
     @PostMapping("/kode6")
     fun createKode6Person() {
         createKlagebehandlingForASpecificPerson("26876597755")
     }
 
-    //https://dolly.ekstern.dev.nav.no/gruppe/6335
+    // https://dolly.ekstern.dev.nav.no/gruppe/6335
     @Unprotected
     @PostMapping("/kode7")
     fun createKode7Person() {
         createKlagebehandlingForASpecificPerson("17855999285")
     }
 
-    //https://dolly.ekstern.dev.nav.no/gruppe/6334
+    // https://dolly.ekstern.dev.nav.no/gruppe/6334
     @Unprotected
     @PostMapping("/egenansatt")
     fun createEgenAnsattBehandling() {
@@ -80,35 +89,39 @@ class MockDataController(
             OversendtKlageAnkeV3(
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                klager = OversendtKlagerLegacy(
-                    id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
-                ),
-                fagsak = OversendtSak(
-                    fagsakId = UUID.randomUUID().toString(),
-                    fagsystem = Fagsystem.K9
-                ),
+                klager =
+                    OversendtKlagerLegacy(
+                        id = OversendtPartId(type = OversendtPartIdType.PERSON, verdi = fnr),
+                    ),
+                fagsak =
+                    OversendtSak(
+                        fagsakId = UUID.randomUUID().toString(),
+                        fagsystem = Fagsystem.K9,
+                    ),
                 kildeReferanse = UUID.randomUUID().toString(),
                 innsynUrl = "https://nav.no",
-                hjemler = listOf(
+                hjemler =
                     listOf(
-                        FTRL_9_10,
-                    ).shuffled().first()
-                ),
-                forrigeBehandlendeEnhet = "0104", //NAV Moss
+                        listOf(
+                            FTRL_9_10,
+                        ).shuffled().first(),
+                    ),
+                forrigeBehandlendeEnhet = "0104", // NAV Moss
                 tilknyttedeJournalposter = listOf(),
                 brukersHenvendelseMottattNavDato = dato,
                 innsendtTilNav = dato.minusDays(3),
                 kilde = Fagsystem.K9,
                 hindreAutomatiskSvarbrev = null,
-                kommentar = """
+                kommentar =
+                    """
                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, 
                     sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
                     
                     Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
                     
                     Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident.
-                """.trimIndent()
-            )
+                    """.trimIndent(),
+            ),
         )
     }
 
@@ -117,11 +130,13 @@ class MockDataController(
     fun createPersonWithFullmakt() {
         val fnr = "28497037273"
         val journalpostId = "510534808"
-        val journalpost = safFacade.getJournalposter(
-            journalpostIdSet = setOf(journalpostId),
-            fnr = null,
-            saksbehandlerContext = false,
-        ).first()
+        val journalpost =
+            safFacade
+                .getJournalposter(
+                    journalpostIdSet = setOf(journalpostId),
+                    fnr = null,
+                    saksbehandlerContext = false,
+                ).first()
 
         val dato = LocalDate.of(2020, 1, 13)
 
@@ -129,69 +144,69 @@ class MockDataController(
             OversendtKlageAnkeV3(
                 ytelse = Ytelse.OMS_OMP,
                 type = Type.KLAGE,
-                klager = OversendtKlagerLegacy(
-                    id = OversendtPartId(OversendtPartIdType.PERSON, fnr),
-                    klagersProsessfullmektig = OversendtProsessfullmektigLegacy(
-                        id = OversendtPartId(OversendtPartIdType.PERSON, "07467517958"),
-                        skalKlagerMottaKopi = true
-                    )
-                ),
-                fagsak = OversendtSak(
-                    fagsakId = journalpost.sak?.fagsakId ?: "UKJENT",
-                    fagsystem = journalpost.sak?.fagsaksystem?.let {
-                        try {
-                            Fagsystem.valueOf(it)
-                        } catch (e: Exception) {
-                            Fagsystem.K9
-                        }
-                    }
-                        ?: Fagsystem.K9
-                ),
+                klager =
+                    OversendtKlagerLegacy(
+                        id = OversendtPartId(type = OversendtPartIdType.PERSON, verdi = fnr),
+                        klagersProsessfullmektig =
+                            OversendtProsessfullmektigLegacy(
+                                id = OversendtPartId(type = OversendtPartIdType.PERSON, verdi = "07467517958"),
+                                skalKlagerMottaKopi = true,
+                            ),
+                    ),
+                fagsak =
+                    OversendtSak(
+                        fagsakId = journalpost.sak?.fagsakId ?: "UKJENT",
+                        fagsystem =
+                            journalpost.sak?.fagsaksystem?.let {
+                                try {
+                                    Fagsystem.valueOf(it)
+                                } catch (e: Exception) {
+                                    Fagsystem.K9
+                                }
+                            }
+                                ?: Fagsystem.K9,
+                    ),
                 kildeReferanse = UUID.randomUUID().toString(),
                 innsynUrl = "https://nav.no",
-                hjemler = listOf(
+                hjemler =
                     listOf(
-                        FTRL_9_10,
-                    ).shuffled().first()
-                ),
-                forrigeBehandlendeEnhet = "0104", //NAV Moss
-                tilknyttedeJournalposter = listOf(
-                    OversendtDokumentReferanse(
-                        MottakDokumentType.BRUKERS_KLAGE,
-                        journalpostId
-                    )
-                ),
+                        listOf(
+                            FTRL_9_10,
+                        ).shuffled().first(),
+                    ),
+                forrigeBehandlendeEnhet = "0104", // NAV Moss
+                tilknyttedeJournalposter =
+                    listOf(
+                        OversendtDokumentReferanse(
+                            type = MottakDokumentType.BRUKERS_KLAGE,
+                            journalpostId = journalpostId,
+                        ),
+                    ),
                 brukersHenvendelseMottattNavDato = dato,
                 innsendtTilNav = dato.minusDays(3),
                 kilde = Fagsystem.K9,
                 hindreAutomatiskSvarbrev = null,
-            )
+            ),
         )
     }
 
     @Unprotected
     @PostMapping("/randomklage")
     fun sendInnRandomKlage(
-        @RequestBody(required = false) input: MockInput? = null
-    ): MockDataResponse {
-        return createKlanke(Type.KLAGE, input)
-    }
+        @RequestBody(required = false) input: MockInput? = null,
+    ): MockDataResponse = createKlanke(type = Type.KLAGE, mockInput = input)
 
     @Unprotected
     @PostMapping("/randomanke")
     fun sendInnRandomAnke(
-        @RequestBody(required = false) input: MockInput? = null
-    ): MockDataResponse {
-        return createKlanke(Type.ANKE, input)
-    }
+        @RequestBody(required = false) input: MockInput? = null,
+    ): MockDataResponse = createKlanke(type = Type.ANKE, mockInput = input)
 
     @Unprotected
     @PostMapping("/randomankeitrygderetten")
     fun sendInnRandomAnkeITrygderetten(
-        @RequestBody(required = false) input: MockInput? = null
-    ): MockDataResponse {
-        return createKlanke(Type.ANKE_I_TRYGDERETTEN, input)
-    }
+        @RequestBody(required = false) input: MockInput? = null,
+    ): MockDataResponse = createKlanke(type = Type.ANKE_I_TRYGDERETTEN, mockInput = input)
 
     data class MockDataResponse(
         val id: UUID,
@@ -200,165 +215,203 @@ class MockDataController(
         val hjemmelId: String,
     )
 
-    //https://dolly.ekstern.dev.nav.no/gruppe/6332
-    private fun getFnrAndJournalpostId(ytelse: Ytelse): Fnr {
-        return when (ytelse) {
-            Ytelse.ENF_ENF -> Fnr(
-                fnr = "26457524896"
-            )
+    // https://dolly.ekstern.dev.nav.no/gruppe/6332
+    private fun getFnrAndJournalpostId(ytelse: Ytelse): Fnr =
+        when (ytelse) {
+            Ytelse.ENF_ENF -> {
+                Fnr(
+                    fnr = "26457524896",
+                )
+            }
 
-            Ytelse.BAR_BAR -> Fnr(
-                fnr = "06457216678"
-            )
+            Ytelse.BAR_BAR -> {
+                Fnr(
+                    fnr = "06457216678",
+                )
+            }
 
-            Ytelse.KON_KON -> Fnr(
-                fnr = "02507412559"
-            )
+            Ytelse.KON_KON -> {
+                Fnr(
+                    fnr = "02507412559",
+                )
+            }
 
-            Ytelse.OMS_OLP, Ytelse.OMS_OMP, Ytelse.OMS_PLS, Ytelse.OMS_PSB -> Fnr(
-                fnr = "20498222634"
-            )
+            Ytelse.OMS_OLP, Ytelse.OMS_OMP, Ytelse.OMS_PLS, Ytelse.OMS_PSB -> {
+                Fnr(
+                    fnr = "20498222634",
+                )
+            }
 
-            Ytelse.SYK_SYK -> Fnr(
-                fnr = "27528510332"
-            )
+            Ytelse.SYK_SYK -> {
+                Fnr(
+                    fnr = "27528510332",
+                )
+            }
 
-            Ytelse.SUP_UFF -> Fnr(
-                fnr = "02516714908"
-            )
+            Ytelse.SUP_UFF -> {
+                Fnr(
+                    fnr = "02516714908",
+                )
+            }
 
-            Ytelse.FOR_ENG, Ytelse.FOR_FOR, Ytelse.FOR_SVA -> Fnr(
-                fnr = "05489333998"
-            )
+            Ytelse.FOR_ENG, Ytelse.FOR_FOR, Ytelse.FOR_SVA -> {
+                Fnr(
+                    fnr = "05489333998",
+                )
+            }
 
-            else -> Fnr(
-                fnr = "01427637081"
-            )
+            else -> {
+                Fnr(
+                    fnr = "01427637081",
+                )
+            }
         }
-    }
 
     data class Fnr(
         val fnr: String,
     )
 
-    private fun createKlanke(type: Type, mockInput: MockInput?): MockDataResponse {
+    private fun createKlanke(
+        type: Type,
+        mockInput: MockInput?,
+    ): MockDataResponse {
         val start = System.currentTimeMillis()
         logger.debug("Creating klage/anke of type {} for testing", type)
-        val ytelse = if (mockInput == null) {
-            logger.debug("Null input/body, using SYK as ytelse.")
-            Ytelse.SYK_SYK
-        } else {
-            logger.debug("Mock input not null, but ytelse was, using random ytelse.")
-            mockInput.ytelse ?: ytelseToHjemler.keys.random()
-        }
+        val ytelse =
+            if (mockInput == null) {
+                logger.debug("Null input/body, using SYK as ytelse.")
+                Ytelse.SYK_SYK
+            } else {
+                logger.debug("Mock input not null, but ytelse was, using random ytelse.")
+                mockInput.ytelse ?: ytelseToHjemler.keys.random()
+            }
 
         val fnrAndJournalpostId = getFnrAndJournalpostId(ytelse)
 
         val fnr = fnrAndJournalpostId.fnr
         val lastMonth = LocalDate.now().minusMonths(1).toEpochDay()
         val now = LocalDate.now().toEpochDay()
-        val dato = (mockInput?.sakMottattKaTidspunkt ?: LocalDate.ofEpochDay(ThreadLocalRandom.current().nextLong(lastMonth, now))).atStartOfDay()
+        val dato =
+            (
+                mockInput?.sakMottattKaTidspunkt ?: LocalDate.ofEpochDay(
+                    ThreadLocalRandom.current().nextLong(lastMonth, now),
+                )
+            ).atStartOfDay()
 
-        val sakenGjelder = mockInput?.sakenGjelder ?: OversendtPart(
-            id = OversendtPartId(OversendtPartIdType.PERSON, fnr)
-        )
+        val sakenGjelder =
+            mockInput?.sakenGjelder ?: OversendtPart(
+                id = OversendtPartId(type = OversendtPartIdType.PERSON, verdi = fnr),
+            )
 
         val klager = mockInput?.klager
 
-        val oversendtSak = mockInput?.fagsak ?: OversendtSak(
-            fagsakId = "1234",
-            fagsystem = Fagsystem.K9
-        )
+        val oversendtSak =
+            mockInput?.fagsak ?: OversendtSak(
+                fagsakId = "1234",
+                fagsystem = Fagsystem.K9,
+            )
 
         logger.debug("Will create mottak/behandling for klage/anke of type {} for ytelse {}", type, ytelse)
-        val behandling = when (type) {
-            Type.KLAGE, Type.ANKE, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET, Type.OMGJOERINGSKRAV -> {
-                mottakFacade.createMottakForKlageAnkeV4(
-                    OversendtKlageAnkeV4(
-                        ytelse = ytelse,
-                        type = OversendtType.valueOf(type.name),
-                        sakenGjelder = sakenGjelder,
-                        klager = klager,
-                        prosessfullmektig = mockInput?.prosessfullmektig,
-                        fagsak = oversendtSak,
-                        kildeReferanse = mockInput?.kildeReferanse ?: UUID.randomUUID().toString(),
-                        dvhReferanse = mockInput?.dvhReferanse,
-                        hjemler = listOf(ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }.random()),
-                        forrigeBehandlendeEnhet = mockInput?.forrigeBehandlendeEnhet ?: "4295", //Klageinstans Tromsø
-                        sakMottattKaTidspunkt = dato,
-                        kommentar = mockInput?.kommentar,
-                        hindreAutomatiskSvarbrev = mockInput?.hindreAutomatiskSvarbrev,
-                        saksbehandlerIdentForTildeling = mockInput?.saksbehandlerIdent,
-                        tilknyttedeJournalposter = emptyList(),
-                        brukersKlageMottattVedtaksinstans = dato.minusDays(2).toLocalDate(),
-                        frist = null,
-                    )
-                )
-            }
-
-            Type.ANKE_I_TRYGDERETTEN -> {
-                val kakaVersion = kakaVersionUtil.getKakaVersion()
-                val registreringsHjemmelSet = when (kakaVersion) {
-                    1 -> {
-                        mutableSetOf(ytelseToRegistreringshjemlerV1[ytelse]!!.random())
-                    }
-
-                    2, 3 -> {
-                        mutableSetOf(ytelseToRegistreringshjemlerV2[ytelse]!!.random())
-                    }
-
-                    else ->
-                        error("Invalid kaka version: $kakaVersion")
-                }
-
-                val sakenGjelderPart = SakenGjelder(
-                    id = UUID.randomUUID(),
-                    partId = sakenGjelder.id.toPartId(),
-                )
-
-                val klagePart = if (sakenGjelder.id.verdi == klager?.id?.verdi || klager == null) {
-                    Klager(
-                        id = sakenGjelderPart.id,
-                        partId = sakenGjelderPart.partId,
-                    )
-                } else {
-                    Klager(
-                        id = UUID.randomUUID(),
-                        partId = klager.id.toPartId(),
+        val behandling =
+            when (type) {
+                Type.KLAGE, Type.ANKE, Type.BEHANDLING_ETTER_TRYGDERETTEN_OPPHEVET, Type.OMGJOERINGSKRAV -> {
+                    mottakFacade.createMottakForKlageAnkeV4(
+                        OversendtKlageAnkeV4(
+                            ytelse = ytelse,
+                            type = OversendtType.valueOf(type.name),
+                            sakenGjelder = sakenGjelder,
+                            klager = klager,
+                            prosessfullmektig = mockInput?.prosessfullmektig,
+                            fagsak = oversendtSak,
+                            kildeReferanse = mockInput?.kildeReferanse ?: UUID.randomUUID().toString(),
+                            dvhReferanse = mockInput?.dvhReferanse,
+                            hjemler = listOf(ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }.random()),
+                            forrigeBehandlendeEnhet = mockInput?.forrigeBehandlendeEnhet ?: "4295", // Klageinstans Tromsø
+                            sakMottattKaTidspunkt = dato,
+                            kommentar = mockInput?.kommentar,
+                            hindreAutomatiskSvarbrev = mockInput?.hindreAutomatiskSvarbrev,
+                            saksbehandlerIdentForTildeling = mockInput?.saksbehandlerIdent,
+                            tilknyttedeJournalposter = emptyList(),
+                            brukersKlageMottattVedtaksinstans = dato.minusDays(2).toLocalDate(),
+                            frist = null,
+                        ),
                     )
                 }
 
-                val input = AnkeITrygderettenbehandlingInput(
-                    klager = klagePart,
-                    sakenGjelder = sakenGjelderPart,
-                    prosessfullmektig = null,
-                    ytelse = ytelse,
-                    type = type,
-                    kildeReferanse = mockInput?.kildeReferanse ?: UUID.randomUUID().toString(),
-                    dvhReferanse = mockInput?.dvhReferanse ?: UUID.randomUUID().toString(),
-                    fagsystem = Fagsystem.fromNavn(oversendtSak.fagsystem.name),
-                    fagsakId = oversendtSak.fagsakId,
-                    sakMottattKlageinstans = dato,
-                    saksdokumenter = mutableSetOf(),
-                    innsendingsHjemler = mutableSetOf(ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }.random()),
-                    sendtTilTrygderetten = LocalDateTime.now(),
-                    registreringsHjemmelSet = registreringsHjemmelSet,
-                    ankebehandlingUtfall = ExternalUtfall.valueOf(utfallToTrygderetten.random().name),
-                    previousSaksbehandlerident = null,
-                    gosysOppgaveId = null,
-                    tilbakekreving = false,
-                    gosysOppgaveRequired = false,
-                    initiatingSystem = Behandling.InitiatingSystem.FAGSYSTEM,
-                    previousBehandlingId = null,
-                )
+                Type.ANKE_I_TRYGDERETTEN -> {
+                    val kakaVersion = kakaVersionUtil.getKakaVersion()
+                    val registreringsHjemmelSet =
+                        when (kakaVersion) {
+                            1 -> {
+                                mutableSetOf(ytelseToRegistreringshjemlerV1[ytelse]!!.random())
+                            }
 
-                ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
-                    input = input
-                )
+                            2, 3 -> {
+                                mutableSetOf(ytelseToRegistreringshjemlerV2[ytelse]!!.random())
+                            }
+
+                            else -> {
+                                error("Invalid kaka version: $kakaVersion")
+                            }
+                        }
+
+                    val sakenGjelderPart =
+                        SakenGjelder(
+                            id = UUID.randomUUID(),
+                            partId = sakenGjelder.id.toPartId(),
+                        )
+
+                    val klagePart =
+                        if (sakenGjelder.id.verdi == klager?.id?.verdi || klager == null) {
+                            Klager(
+                                id = sakenGjelderPart.id,
+                                partId = sakenGjelderPart.partId,
+                            )
+                        } else {
+                            Klager(
+                                id = UUID.randomUUID(),
+                                partId = klager.id.toPartId(),
+                            )
+                        }
+
+                    val input =
+                        AnkeITrygderettenbehandlingInput(
+                            klager = klagePart,
+                            sakenGjelder = sakenGjelderPart,
+                            prosessfullmektig = null,
+                            ytelse = ytelse,
+                            type = type,
+                            kildeReferanse = mockInput?.kildeReferanse ?: UUID.randomUUID().toString(),
+                            dvhReferanse = mockInput?.dvhReferanse ?: UUID.randomUUID().toString(),
+                            fagsystem = Fagsystem.fromNavn(oversendtSak.fagsystem.name),
+                            fagsakId = oversendtSak.fagsakId,
+                            sakMottattKlageinstans = dato,
+                            saksdokumenter = mutableSetOf(),
+                            innsendingsHjemler = mutableSetOf(ytelseToHjemler[ytelse]!!.filter { !it.utfases }.map { it.hjemmel }.random()),
+                            sendtTilTrygderetten = LocalDateTime.now(),
+                            registreringsHjemmelSet = registreringsHjemmelSet,
+                            ankebehandlingUtfall = ExternalUtfall.valueOf(utfallToTrygderetten.random().name),
+                            previousSaksbehandlerident = null,
+                            gosysOppgaveId = null,
+                            tilbakekreving = false,
+                            gosysOppgaveRequired = false,
+                            initiatingSystem = Behandling.InitiatingSystem.FAGSYSTEM,
+                            previousBehandlingId = null,
+                        )
+
+                    ankeITrygderettenbehandlingService.createAnkeITrygderettenbehandling(
+                        input = input,
+                    )
+                }
+
+                Type.BEGJAERING_OM_GJENOPPTAK -> {
+                    TODO()
+                }
+
+                Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> {
+                    TODO()
+                }
             }
-            Type.BEGJAERING_OM_GJENOPPTAK -> TODO()
-            Type.BEGJAERING_OM_GJENOPPTAK_I_TRYGDERETTEN -> TODO()
-        }
         logger.debug("Behandling with id {} was returned", behandling.id)
 
         logger.debug("{} created for testing. It took {} millis", type, System.currentTimeMillis() - start)
@@ -367,7 +420,7 @@ class MockDataController(
             id = behandling.id,
             typeId = behandling.type.id,
             ytelseId = behandling.ytelse.id,
-            hjemmelId = behandling.hjemler.first().id
+            hjemmelId = behandling.hjemler.first().id,
         )
     }
 

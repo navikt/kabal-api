@@ -5,13 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Repository
 interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
     fun findByKakaKvalitetsvurderingVersionIs(version: Int): List<Ankebehandling>
 
-    @Query("""
+    @Query(
+        """
         FROM Ankebehandling 
         WHERE sakenGjelder.partId.value = :sakenGjelder 
         AND ferdigstilling.avsluttet IS NOT NULL 
@@ -19,7 +20,11 @@ interface AnkebehandlingRepository : JpaRepository<Ankebehandling, UUID> {
         AND kildeReferanse = :kildeReferanse
         AND ferdigstilling.avsluttetAvSaksbehandler < :dateLimit
         ORDER BY ferdigstilling.avsluttetAvSaksbehandler DESC
-        """
+        """,
     )
-    fun findPreviousAnker(sakenGjelder: String, kildeReferanse: String, dateLimit: LocalDateTime): List<Ankebehandling>
+    fun findPreviousAnker(
+        sakenGjelder: String,
+        kildeReferanse: String,
+        dateLimit: LocalDateTime,
+    ): List<Ankebehandling>
 }

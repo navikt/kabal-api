@@ -1,7 +1,12 @@
 package no.nav.klage.oppgave.clients.kabalinnstillinger
 
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.clients.kabalinnstillinger.model.*
+import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Medunderskrivere
+import no.nav.klage.oppgave.clients.kabalinnstillinger.model.MedunderskrivereInput
+import no.nav.klage.oppgave.clients.kabalinnstillinger.model.SakInput
+import no.nav.klage.oppgave.clients.kabalinnstillinger.model.SaksbehandlerAccess
+import no.nav.klage.oppgave.clients.kabalinnstillinger.model.Saksbehandlere
+import no.nav.klage.oppgave.clients.kabalinnstillinger.model.TildelteYtelserResponse
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logErrorResponse
@@ -26,103 +31,101 @@ class KabalInnstillingerClient(
     @Retryable
     fun getTildelteYtelserForEnhet(enhet: String): TildelteYtelserResponse {
         logger.debug("Getting tildelte ytelser for enhet $enhet in kabal-innstillinger")
-        return kabalInnstillingerWebClient.get()
+        return kabalInnstillingerWebClient
+            .get()
             .uri { it.path("/enhet/$enhet/tildelteytelser").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}"
-            )
-            .retrieve()
+                "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}",
+            ).retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
                     functionName = ::getTildelteYtelserForEnhet.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<TildelteYtelserResponse>()
+            }.bodyToMono<TildelteYtelserResponse>()
             .block() ?: throw RuntimeException("Could not get tildelte ytelser for enhet $enhet")
     }
 
     @Retryable
     fun getSaksbehandlersTildelteYtelser(navIdent: String): SaksbehandlerAccess {
         logger.debug("Getting tildelte ytelser for $navIdent in kabal-innstillinger")
-        return kabalInnstillingerWebClient.get()
+        return kabalInnstillingerWebClient
+            .get()
             .uri { it.path("/ansatte/$navIdent/tildelteytelser").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}"
-            )
-            .retrieve()
+                "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}",
+            ).retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
                     functionName = ::getSaksbehandlersTildelteYtelser.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<SaksbehandlerAccess>()
+            }.bodyToMono<SaksbehandlerAccess>()
             .block() ?: throw RuntimeException("Could not get tildelte ytelser")
     }
 
     @Retryable
     fun getSaksbehandlersTildelteYtelserAppAccess(navIdent: String): SaksbehandlerAccess {
         logger.debug("Getting tildelte ytelser for $navIdent in kabal-innstillinger through app access")
-        return kabalInnstillingerWebClient.get()
+        return kabalInnstillingerWebClient
+            .get()
             .uri { it.path("/ansatte/$navIdent/tildelteytelser").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKabalInnstillingerScope()}"
-            )
-            .retrieve()
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalInnstillingerScope()}",
+            ).retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
                     functionName = ::getSaksbehandlersTildelteYtelser.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<SaksbehandlerAccess>()
+            }.bodyToMono<SaksbehandlerAccess>()
             .block() ?: throw RuntimeException("Could not get tildelte ytelser")
     }
 
     @Retryable
-    fun getHjemmelIdsForYtelse(ytelse: Ytelse, includeSE: Boolean): Set<String> {
+    fun getHjemmelIdsForYtelse(
+        ytelse: Ytelse,
+        includeSE: Boolean,
+    ): Set<String> {
         logger.debug("Getting all registered hjemler in kabal-innstillinger for ytelse $ytelse")
-        return kabalInnstillingerWebClient.get()
+        return kabalInnstillingerWebClient
+            .get()
             .uri { uriBuilder ->
                 uriBuilder
                     .path("/hjemler")
                     .queryParam("ytelseId", ytelse.id)
                     .queryParam("includeSE", includeSE)
                     .build()
-            }
-            .header(
+            }.header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKabalInnstillingerScope()}"
-            )
-            .retrieve()
+                "Bearer ${tokenUtil.getAppAccessTokenWithKabalInnstillingerScope()}",
+            ).retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
                     functionName = ::getHjemmelIdsForYtelse.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Set<String>>()
+            }.bodyToMono<Set<String>>()
             .block() ?: throw RuntimeException("Could not get hjemler for ytelse")
     }
 
     @Retryable
     fun searchMedunderskrivere(input: MedunderskrivereInput): Medunderskrivere {
         logger.debug("Searching medunderskrivere in kabal-innstillinger")
-        return kabalInnstillingerWebClient.post()
+        return kabalInnstillingerWebClient
+            .post()
             .uri { it.path("/search/medunderskrivere").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}"
-            )
-            .contentType(MediaType.APPLICATION_JSON)
+                "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}",
+            ).contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
@@ -131,21 +134,20 @@ class KabalInnstillingerClient(
                     functionName = ::searchMedunderskrivere.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Medunderskrivere>()
+            }.bodyToMono<Medunderskrivere>()
             .block() ?: throw RuntimeException("Could not search medunderskrivere")
     }
 
     @Retryable
     fun searchSaksbehandlere(input: SakInput): Saksbehandlere {
         logger.debug("Searching saksbehandlere in kabal-innstillinger")
-        return kabalInnstillingerWebClient.post()
+        return kabalInnstillingerWebClient
+            .post()
             .uri { it.path("/search/saksbehandlere").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}"
-            )
-            .contentType(MediaType.APPLICATION_JSON)
+                "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}",
+            ).contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
@@ -154,21 +156,20 @@ class KabalInnstillingerClient(
                     functionName = ::searchSaksbehandlere.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Saksbehandlere>()
+            }.bodyToMono<Saksbehandlere>()
             .block() ?: throw RuntimeException("Could not search saksbehandlere")
     }
 
     @Retryable
     fun searchROL(input: SakInput): Saksbehandlere {
         logger.debug("Searching rol in kabal-innstillinger")
-        return kabalInnstillingerWebClient.post()
+        return kabalInnstillingerWebClient
+            .post()
             .uri { it.path("/search/rol").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}"
-            )
-            .contentType(MediaType.APPLICATION_JSON)
+                "Bearer ${tokenUtil.getUserAccessTokenWithKabalInnstillingerScope()}",
+            ).contentType(MediaType.APPLICATION_JSON)
             .bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
@@ -177,8 +178,7 @@ class KabalInnstillingerClient(
                     functionName = ::searchROL.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Saksbehandlere>()
+            }.bodyToMono<Saksbehandlere>()
             .block() ?: throw RuntimeException("Could not search rol")
     }
 }

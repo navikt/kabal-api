@@ -24,7 +24,6 @@ class KlagebehandlingSchedulerService(
     private val cleanupAfterBehandlingEventListener: CleanupAfterBehandlingEventListener,
     private val schedulerHealthGate: SchedulerHealthGate,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -49,8 +48,8 @@ class KlagebehandlingSchedulerService(
             if (behandling is BehandlingWithKvalitetsvurdering) {
                 kakaApiGateway.finalizeBehandling(
                     behandlingService.getBehandlingEagerForReadWithoutCheckForAccess(
-                        behandling.id
-                    ) as BehandlingWithKvalitetsvurdering
+                        behandling.id,
+                    ) as BehandlingWithKvalitetsvurdering,
                 )
             }
             behandlingAvslutningService.avsluttBehandling(behandling.id)
@@ -64,7 +63,7 @@ class KlagebehandlingSchedulerService(
         logSchedulerMessage(functionName = ::dispatchUnsentVedtakToKafka.name)
         kafkaDispatcher.dispatchEventsToKafka(
             type = EventType.KLAGE_VEDTAK,
-            utsendingStatusList = listOf(IKKE_SENDT, FEILET)
+            utsendingStatusList = listOf(IKKE_SENDT, FEILET),
         )
     }
 
@@ -75,7 +74,7 @@ class KlagebehandlingSchedulerService(
         logSchedulerMessage(functionName = ::dispatchUnsentDVHStatsToKafka.name)
         kafkaDispatcher.dispatchEventsToKafka(
             type = EventType.STATS_DVH,
-            utsendingStatusList = listOf(IKKE_SENDT, FEILET)
+            utsendingStatusList = listOf(IKKE_SENDT, FEILET),
         )
     }
 
@@ -86,7 +85,7 @@ class KlagebehandlingSchedulerService(
         logSchedulerMessage(functionName = ::dispatchUnsentBehandlingEventsToKafka.name)
         kafkaDispatcher.dispatchEventsToKafka(
             type = EventType.BEHANDLING_EVENT,
-            utsendingStatusList = listOf(IKKE_SENDT, FEILET)
+            utsendingStatusList = listOf(IKKE_SENDT, FEILET),
         )
     }
 
@@ -97,7 +96,7 @@ class KlagebehandlingSchedulerService(
         logSchedulerMessage(functionName = ::dispatchUnsentMinsideMicrofrontendEventsToKafka.name)
         kafkaDispatcher.dispatchEventsToKafka(
             type = EventType.MINSIDE_MICROFRONTEND_EVENT,
-            utsendingStatusList = listOf(IKKE_SENDT, FEILET)
+            utsendingStatusList = listOf(IKKE_SENDT, FEILET),
         )
     }
 

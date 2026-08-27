@@ -14,9 +14,8 @@ import org.springframework.transaction.event.TransactionalEventListener
 @Service
 class UpdateGosysOppgaveEventListener(
     private val gosysOppgaveService: GosysOppgaveService,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)

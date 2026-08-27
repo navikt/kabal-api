@@ -1,6 +1,11 @@
 package no.nav.klage.oppgave.clients.klagefssproxy
 
-import no.nav.klage.oppgave.clients.klagefssproxy.domain.*
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.FeilregistrertInKabalInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.GetSakAppAccessInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.HandledInKabalInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakAssignedInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFinishedInput
+import no.nav.klage.oppgave.clients.klagefssproxy.domain.SakFromKlanke
 import no.nav.klage.oppgave.util.TokenUtil
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logErrorResponse
@@ -15,20 +20,22 @@ class KlageFssProxyClient(
     private val klageFssProxyWebClient: WebClient,
     private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getSakWithAppAccess(sakId: String, input: GetSakAppAccessInput): SakFromKlanke {
-        return klageFssProxyWebClient.post()
+    fun getSakWithAppAccess(
+        sakId: String,
+        input: GetSakAppAccessInput,
+    ): SakFromKlanke =
+        klageFssProxyWebClient
+            .post()
             .uri { it.path("/klanke/saker/{sakId}").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKlageFSSProxyScope()}"
-            )
-            .bodyValue(input)
+                "Bearer ${tokenUtil.getAppAccessTokenWithKlageFSSProxyScope()}",
+            ).bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -36,20 +43,21 @@ class KlageFssProxyClient(
                     functionName = ::getSakWithAppAccess.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<SakFromKlanke>()
+            }.bodyToMono<SakFromKlanke>()
             .block()
             ?: throw RuntimeException("Empty result")
-    }
 
-    fun setToHandledInKabal(sakId: String, input: HandledInKabalInput) {
-        klageFssProxyWebClient.post()
+    fun setToHandledInKabal(
+        sakId: String,
+        input: HandledInKabalInput,
+    ) {
+        klageFssProxyWebClient
+            .post()
             .uri { it.path("/klanke/saker/{sakId}/handledinkabal").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}"
-            )
-            .bodyValue(input)
+                "Bearer ${tokenUtil.getOnBehalfOfTokenWithKlageFSSProxyScope()}",
+            ).bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -57,19 +65,21 @@ class KlageFssProxyClient(
                     functionName = ::setToHandledInKabal.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Unit>()
+            }.bodyToMono<Unit>()
             .block()
     }
 
-    fun setToFinishedWithAppAccess(sakId: String, input: SakFinishedInput) {
-        klageFssProxyWebClient.post()
+    fun setToFinishedWithAppAccess(
+        sakId: String,
+        input: SakFinishedInput,
+    ) {
+        klageFssProxyWebClient
+            .post()
             .uri { it.path("/klanke/saker/{sakId}/finished").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKlageFSSProxyScope()}"
-            )
-            .bodyValue(input)
+                "Bearer ${tokenUtil.getAppAccessTokenWithKlageFSSProxyScope()}",
+            ).bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -77,19 +87,21 @@ class KlageFssProxyClient(
                     functionName = ::setToFinishedWithAppAccess.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Unit>()
+            }.bodyToMono<Unit>()
             .block()
     }
 
-    fun setToAssigned(sakId: String, input: SakAssignedInput) {
-        klageFssProxyWebClient.post()
+    fun setToAssigned(
+        sakId: String,
+        input: SakAssignedInput,
+    ) {
+        klageFssProxyWebClient
+            .post()
             .uri { it.path("/klanke/saker/{sakId}/assignedinkabal").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKlageFSSProxyScope()}"
-            )
-            .bodyValue(input)
+                "Bearer ${tokenUtil.getAppAccessTokenWithKlageFSSProxyScope()}",
+            ).bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -97,19 +109,21 @@ class KlageFssProxyClient(
                     functionName = ::setToAssigned.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Unit>()
+            }.bodyToMono<Unit>()
             .block()
     }
 
-    fun setToFeilregistrertInKabal(sakId: String, input: FeilregistrertInKabalInput) {
-        klageFssProxyWebClient.post()
+    fun setToFeilregistrertInKabal(
+        sakId: String,
+        input: FeilregistrertInKabalInput,
+    ) {
+        klageFssProxyWebClient
+            .post()
             .uri { it.path("/klanke/saker/{sakId}/feilregistrertinkabal").build(sakId) }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKlageFSSProxyScope()}"
-            )
-            .bodyValue(input)
+                "Bearer ${tokenUtil.getAppAccessTokenWithKlageFSSProxyScope()}",
+            ).bodyValue(input)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -117,9 +131,7 @@ class KlageFssProxyClient(
                     functionName = ::setToFeilregistrertInKabal.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Unit>()
+            }.bodyToMono<Unit>()
             .block()
     }
-
 }

@@ -17,28 +17,28 @@ import org.springframework.test.context.ActiveProfiles
 @ActiveProfiles("local")
 @DataJpaTest
 class KabinResponseSvarbrevSettingsRepositoryTest : PostgresIntegrationTestBase() {
-
     @Autowired
     lateinit var testEntityManager: TestEntityManager
 
     @Autowired
     lateinit var svarbrevSettingsRepository: SvarbrevSettingsRepository
 
-    //Because of Hibernate Envers and our setup for audit logs.
+    // Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
     @Test
     fun `add svarbrevSettings works`() {
-        val svarbrevSettings = SvarbrevSettings(
-            ytelse = Ytelse.PEN_GYS,
-            type = Type.KLAGE,
-            behandlingstidUnits = 12,
-            behandlingstidUnitType = TimeUnitType.WEEKS,
-            customText = "custom text",
-            shouldSend = true,
-            createdBy = "Z999999",
-        )
+        val svarbrevSettings =
+            SvarbrevSettings(
+                ytelse = Ytelse.PEN_GYS,
+                type = Type.KLAGE,
+                behandlingstidUnits = 12,
+                behandlingstidUnitType = TimeUnitType.WEEKS,
+                customText = "custom text",
+                shouldSend = true,
+                createdBy = "Z999999",
+            )
 
         testEntityManager.persistAndFlush(svarbrevSettings)
         testEntityManager.clear()
@@ -50,15 +50,16 @@ class KabinResponseSvarbrevSettingsRepositoryTest : PostgresIntegrationTestBase(
 
     @Test
     fun `add svarbrevSettings with history works`() {
-        val svarbrevSettings = SvarbrevSettings(
-            ytelse = Ytelse.PEN_GYS,
-            type = Type.KLAGE,
-            behandlingstidUnits = 12,
-            behandlingstidUnitType = TimeUnitType.WEEKS,
-            customText = "custom text",
-            shouldSend = true,
-            createdBy = "Z999999",
-        )
+        val svarbrevSettings =
+            SvarbrevSettings(
+                ytelse = Ytelse.PEN_GYS,
+                type = Type.KLAGE,
+                behandlingstidUnits = 12,
+                behandlingstidUnitType = TimeUnitType.WEEKS,
+                customText = "custom text",
+                shouldSend = true,
+                createdBy = "Z999999",
+            )
 
         val svarbrevSettingsHistory = svarbrevSettings.toHistory()
 
@@ -71,5 +72,4 @@ class KabinResponseSvarbrevSettingsRepositoryTest : PostgresIntegrationTestBase(
 
         assertThat(found.history.first()).isEqualTo(svarbrevSettingsHistory)
     }
-
 }

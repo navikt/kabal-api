@@ -17,8 +17,16 @@ import no.nav.security.token.support.core.api.Unprotected
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.*
-import java.util.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @Profile("dev")
 @RestController
@@ -29,9 +37,8 @@ class DevOnlyAdminController(
     private val behandlingService: BehandlingService,
     private val klankeService: KlankeService,
     private val klageLookupGateway: KlageLookupGateway,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -53,7 +60,9 @@ class DevOnlyAdminController(
     @Unprotected
     @DeleteMapping("/behandlinger/{id}", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
-    fun deleteBehandling(@PathVariable("id") behandlingId: UUID) {
+    fun deleteBehandling(
+        @PathVariable("id") behandlingId: UUID,
+    ) {
         try {
             logger.debug("Delete behandling in dev")
             adminService.deleteBehandlingInDev(behandlingId)
@@ -66,7 +75,9 @@ class DevOnlyAdminController(
     @Unprotected
     @GetMapping("/behandlinger/{id}/reindexdev", produces = ["application/json"])
     @ResponseStatus(HttpStatus.OK)
-    fun reindexBehandling(@PathVariable("id") behandlingId: UUID) {
+    fun reindexBehandling(
+        @PathVariable("id") behandlingId: UUID,
+    ) {
         try {
             logger.debug("Reindexing behandling in dev")
             adminService.reindexBehandlingInSearch(behandlingId)
@@ -91,8 +102,8 @@ class DevOnlyAdminController(
 
     @Unprotected
     @GetMapping("/mytokens")
-    fun getTokens(): Map<String, String> {
-        return mapOf(
+    fun getTokens(): Map<String, String> =
+        mapOf(
             "getAccessTokenFrontendSent" to tokenUtil.getAccessTokenFrontendSent(),
             "getSaksbehandlerAccessTokenWithGraphScope" to tokenUtil.getSaksbehandlerAccessTokenWithGraphScope(),
             "getAppAccessTokenWithSafScope" to tokenUtil.getAppAccessTokenWithSafScope(),
@@ -106,33 +117,37 @@ class DevOnlyAdminController(
             "getAppAccessTokenWithKlageLookupScope" to tokenUtil.getAppAccessTokenWithKlageLookupScope(),
             "getAppAccessTokenWithKabalApiScope" to tokenUtil.getAppAccessTokenWithKabalApiScope(),
         )
-    }
 
     @Unprotected
     @Operation(
         summary = "Feilregistrer sak",
-        description = "Endepunkt for å feilregistrere en klage/anke som ikke skal behandles av klageinstans. Fungerer kun hvis sak ikke er tildelt saksbehandler. Ellers må KA kontaktes."
+        description =
+            "Endepunkt for å feilregistrere en klage/anke som ikke skal behandles av klageinstans. Fungerer kun hvis sak ikke " +
+                "er tildelt saksbehandler. Ellers må KA kontaktes.",
     )
     @PostMapping("/feilregistrering")
     fun feilregistrer(
         @Parameter(description = "Feilregistrering")
-        @Valid @RequestBody feilregistrering: ExternalFeilregistreringInput,
+        @Valid
+        @RequestBody feilregistrering: ExternalFeilregistreringInput,
     ) {
-        val behandling = behandlingService.feilregistrer(
-            type = feilregistrering.type,
-            reason = feilregistrering.reason,
-            navIdent = feilregistrering.navIdent,
-            fagsystem = feilregistrering.fagsystem,
-            kildereferanse = feilregistrering.kildereferanse,
-        )
+        val behandling =
+            behandlingService.feilregistrer(
+                type = feilregistrering.type,
+                reason = feilregistrering.reason,
+                navIdent = feilregistrering.navIdent,
+                fagsystem = feilregistrering.fagsystem,
+                kildereferanse = feilregistrering.kildereferanse,
+            )
 
         if (behandling.shouldUpdateInfotrygd()) {
             logger.debug("Feilregistrering av behandling skal registreres i Infotrygd.")
             klankeService.setToFeilregistrertInKabal(
                 sakId = behandling.kildeReferanse,
-                input = FeilregistrertInKabalInput(
-                    saksbehandlerIdent = systembrukerIdent,
-                )
+                input =
+                    FeilregistrertInKabalInput(
+                        saksbehandlerIdent = systembrukerIdent,
+                    ),
             )
             logger.debug("Feilregistrering av behandling ble registrert i Infotrygd.")
         }
@@ -141,7 +156,7 @@ class DevOnlyAdminController(
     @Unprotected
     @GetMapping("/infotrygdsaker/{id}")
     fun getInfotrygdsak(
-        @PathVariable("id") id: String
+        @PathVariable("id") id: String,
     ): SakFromKlanke {
         logger.debug("getInfotrygdsak is called in dev")
 
@@ -151,7 +166,7 @@ class DevOnlyAdminController(
     @Unprotected
     @GetMapping(value = ["/enableminsidemicrofrontend/{behandlingId}", "/enableminsidemicrofrontend"])
     fun enableMinsideMicrofrontends(
-        @PathVariable(required = false, name = "behandlingId") behandlingId: UUID?
+        @PathVariable(required = false, name = "behandlingId") behandlingId: UUID?,
     ) {
         logger.debug("{} is called in dev. BehandlingId: {}", ::enableMinsideMicrofrontends.name, behandlingId)
 
@@ -170,7 +185,7 @@ class DevOnlyAdminController(
     @Unprotected
     @GetMapping(value = ["/disableminsidemicrofrontend/{behandlingId}", "/disableminsidemicrofrontend"])
     fun disableMinsideMicrofrontends(
-        @PathVariable(required = false, name = "behandlingId") behandlingId: UUID?
+        @PathVariable(required = false, name = "behandlingId") behandlingId: UUID?,
     ) {
         logger.debug("{} is called in dev. BehandlingId: {}", ::disableMinsideMicrofrontends.name, behandlingId)
 
@@ -234,7 +249,7 @@ class DevOnlyAdminController(
     @Unprotected
     @GetMapping("/lookup/{navIdent}")
     fun getPersonFromLookup(
-        @PathVariable navIdent: String
+        @PathVariable navIdent: String,
     ): SaksbehandlerPersonligInfo {
         logger.debug("getPersonFromLookup is called")
         return klageLookupGateway.getUserInfoForGivenNavIdent(navIdent = navIdent)

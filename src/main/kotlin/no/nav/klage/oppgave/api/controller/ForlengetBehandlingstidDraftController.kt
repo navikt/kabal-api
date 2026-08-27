@@ -1,7 +1,18 @@
 package no.nav.klage.oppgave.api.controller
 
 import no.nav.klage.dokument.api.view.MottakerInput
-import no.nav.klage.oppgave.api.view.*
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidBehandlingstidDateInput
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidCustomTextInput
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidDoNotSendLetterInput
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidDraftView
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidFullmektigFritekstInput
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidPreviousBehandlingstidInfoInput
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidReasonInput
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidReasonNoLetterInput
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidTitleInput
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidVarselTypeIsOriginal
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidVarsletBehandlingstidUnitTypeIdInput
+import no.nav.klage.oppgave.api.view.ForlengetBehandlingstidVarsletBehandlingstidUnitsInput
 import no.nav.klage.oppgave.config.SecurityConfiguration
 import no.nav.klage.oppgave.service.ForlengetBehandlingstidDraftService
 import no.nav.klage.oppgave.util.TokenUtil
@@ -12,8 +23,15 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
-import java.util.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @ProtectedWithClaims(issuer = SecurityConfiguration.ISSUER_AAD)
@@ -28,7 +46,9 @@ class ForlengetBehandlingstidDraftController(
     }
 
     @PostMapping
-    fun getOrCreateForlengetBehandlingstidDraft(@PathVariable behandlingId: UUID): ForlengetBehandlingstidDraftView {
+    fun getOrCreateForlengetBehandlingstidDraft(
+        @PathVariable behandlingId: UUID,
+    ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::getOrCreateForlengetBehandlingstidDraft.name,
             innloggetIdent = tokenUtil.getIdent(),
@@ -39,31 +59,34 @@ class ForlengetBehandlingstidDraftController(
 
     @ResponseBody
     @GetMapping("/pdf")
-    fun getPdf(@PathVariable behandlingId: UUID): ResponseEntity<ByteArray> {
+    fun getPdf(
+        @PathVariable behandlingId: UUID,
+    ): ResponseEntity<ByteArray> {
         logMethodDetails(
             methodName = ::getPdf.name,
             innloggetIdent = tokenUtil.getIdent(),
             logger = logger,
         )
 
-        forlengetBehandlingstidDraftService.getPdf(
-            behandlingId = behandlingId
-        ).let {
-            val responseHeaders = HttpHeaders()
-            responseHeaders.contentType = MediaType.APPLICATION_PDF
-            responseHeaders.add("Content-Disposition", "inline; filename=forlenget-behandlingstid-preview.pdf")
-            return ResponseEntity(
-                it,
-                responseHeaders,
-                HttpStatus.OK
-            )
-        }
+        forlengetBehandlingstidDraftService
+            .getPdf(
+                behandlingId = behandlingId,
+            ).let {
+                val responseHeaders = HttpHeaders()
+                responseHeaders.contentType = MediaType.APPLICATION_PDF
+                responseHeaders.add("Content-Disposition", "inline; filename=forlenget-behandlingstid-preview.pdf")
+                return ResponseEntity(
+                    it,
+                    responseHeaders,
+                    HttpStatus.OK,
+                )
+            }
     }
 
     @PutMapping("/title")
     fun setTitle(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidTitleInput
+        @RequestBody input: ForlengetBehandlingstidTitleInput,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setTitle.name,
@@ -77,7 +100,7 @@ class ForlengetBehandlingstidDraftController(
     @PutMapping("/fullmektig-fritekst")
     fun setFullmektigFritekst(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidFullmektigFritekstInput
+        @RequestBody input: ForlengetBehandlingstidFullmektigFritekstInput,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setFullmektigFritekst.name,
@@ -90,7 +113,7 @@ class ForlengetBehandlingstidDraftController(
     @PutMapping("/custom-text")
     fun setCustomText(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidCustomTextInput
+        @RequestBody input: ForlengetBehandlingstidCustomTextInput,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setCustomText.name,
@@ -103,7 +126,7 @@ class ForlengetBehandlingstidDraftController(
     @PutMapping("/reason")
     fun setReason(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidReasonInput
+        @RequestBody input: ForlengetBehandlingstidReasonInput,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setReason.name,
@@ -116,7 +139,7 @@ class ForlengetBehandlingstidDraftController(
     @PutMapping("/behandlingstid-units")
     fun setBehandlingstidUnits(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidVarsletBehandlingstidUnitsInput
+        @RequestBody input: ForlengetBehandlingstidVarsletBehandlingstidUnitsInput,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setBehandlingstidUnits.name,
@@ -129,7 +152,7 @@ class ForlengetBehandlingstidDraftController(
     @PutMapping("/behandlingstid-unit-type-id")
     fun setBehandlingstidUnitTypeId(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidVarsletBehandlingstidUnitTypeIdInput
+        @RequestBody input: ForlengetBehandlingstidVarsletBehandlingstidUnitTypeIdInput,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setBehandlingstidUnitTypeId.name,
@@ -142,7 +165,7 @@ class ForlengetBehandlingstidDraftController(
     @PutMapping("/behandlingstid-date")
     fun setBehandlingstidDate(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidBehandlingstidDateInput
+        @RequestBody input: ForlengetBehandlingstidBehandlingstidDateInput,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setBehandlingstidDate.name,
@@ -155,7 +178,7 @@ class ForlengetBehandlingstidDraftController(
     @PutMapping("/previous-behandlingstid-info")
     fun setPreviousBehandlingstidInfo(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidPreviousBehandlingstidInfoInput
+        @RequestBody input: ForlengetBehandlingstidPreviousBehandlingstidInfoInput,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setPreviousBehandlingstidInfo.name,
@@ -168,7 +191,7 @@ class ForlengetBehandlingstidDraftController(
     @PutMapping("/reason-no-letter")
     fun setReasonNoLetter(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidReasonNoLetterInput
+        @RequestBody input: ForlengetBehandlingstidReasonNoLetterInput,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setReasonNoLetter.name,
@@ -181,7 +204,7 @@ class ForlengetBehandlingstidDraftController(
     @PutMapping("/do-not-send-letter")
     fun setDoNotSendLetter(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidDoNotSendLetterInput
+        @RequestBody input: ForlengetBehandlingstidDoNotSendLetterInput,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setDoNotSendLetter.name,
@@ -194,7 +217,7 @@ class ForlengetBehandlingstidDraftController(
     @PutMapping("/varsel-type-is-original")
     fun setVarselTypeIsOriginal(
         @PathVariable behandlingId: UUID,
-        @RequestBody input: ForlengetBehandlingstidVarselTypeIsOriginal
+        @RequestBody input: ForlengetBehandlingstidVarselTypeIsOriginal,
     ): ForlengetBehandlingstidDraftView {
         logMethodDetails(
             methodName = ::setVarselTypeIsOriginal.name,
@@ -219,7 +242,7 @@ class ForlengetBehandlingstidDraftController(
 
     @PostMapping("/complete")
     fun completeDraft(
-        @PathVariable behandlingId: UUID
+        @PathVariable behandlingId: UUID,
     ) {
         logMethodDetails(
             methodName = ::completeDraft.name,
@@ -228,5 +251,4 @@ class ForlengetBehandlingstidDraftController(
         )
         forlengetBehandlingstidDraftService.completeDraft(behandlingId = behandlingId)
     }
-
 }

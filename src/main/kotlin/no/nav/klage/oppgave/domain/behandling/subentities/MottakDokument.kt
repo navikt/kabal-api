@@ -1,9 +1,17 @@
 package no.nav.klage.oppgave.domain.behandling.subentities
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.Table
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.oppgave.domain.behandling.Behandling
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "mottak_dokument", schema = "klage")
@@ -28,9 +36,7 @@ class MottakDokument(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 }
 
 enum class MottakDokumentType {
@@ -42,18 +48,17 @@ enum class MottakDokumentType {
     BRUKERS_BEGJAERING_OM_GJENOPPTAK,
     OVERSENDELSESBREV,
     KLAGE_VEDTAK,
-    ANNET
+    ANNET,
 }
 
-fun Type.getMottakDokumentType(): MottakDokumentType {
-    return when (this) {
+fun Type.getMottakDokumentType(): MottakDokumentType =
+    when (this) {
         Type.KLAGE -> MottakDokumentType.BRUKERS_KLAGE
         Type.ANKE -> MottakDokumentType.BRUKERS_ANKE
         Type.OMGJOERINGSKRAV -> MottakDokumentType.BRUKERS_OMGJOERINGSKRAV
         Type.BEGJAERING_OM_GJENOPPTAK -> MottakDokumentType.BRUKERS_BEGJAERING_OM_GJENOPPTAK
         else -> throw IllegalArgumentException("Type $this has no MottakDokumentType.")
     }
-}
 
 data class MottakDokumentDTO(
     val type: MottakDokumentType,

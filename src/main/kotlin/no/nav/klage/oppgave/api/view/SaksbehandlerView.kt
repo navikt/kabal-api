@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 
 data class SaksbehandlerView(
     val navIdent: String,
-    val navn: String
+    val navn: String,
 )
 
 data class SaksbehandlerInput(

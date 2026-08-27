@@ -5,12 +5,14 @@ import no.nav.klage.oppgave.domain.SakPersongalleri
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
-import java.util.*
+import java.util.UUID
 
 @Repository
 interface SakPersongalleriRepository : JpaRepository<SakPersongalleri, UUID> {
-
-    fun findByFagsystemAndFagsakId(fagsystem: Fagsystem, fagsakId: String): List<SakPersongalleri>
+    fun findByFagsystemAndFagsakId(
+        fagsystem: Fagsystem,
+        fagsakId: String,
+    ): List<SakPersongalleri>
 
     fun findByFoedselsnummer(foedselsnummer: String): List<SakPersongalleri>
 

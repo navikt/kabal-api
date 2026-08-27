@@ -11,8 +11,13 @@ import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.*
-import java.util.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
@@ -22,7 +27,6 @@ class BehandlingMedunderskriverController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val behandlingService: BehandlingService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -30,26 +34,26 @@ class BehandlingMedunderskriverController(
 
     @GetMapping("/{behandlingId}/medunderskriver")
     fun getMedunderskriver(
-        @PathVariable("behandlingId") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID,
     ): MedunderskriverWrapped {
         logBehandlingMethodDetails(
-            ::getMedunderskriver.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::getMedunderskriver.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
         return behandlingService.getMedunderskriver(behandlingId)
     }
 
     @GetMapping("/{id}/medunderskriverflowstate")
     fun getMedunderskriverFlowState(
-        @PathVariable("id") behandlingId: UUID
+        @PathVariable("id") behandlingId: UUID,
     ): FlowStateView {
         logBehandlingMethodDetails(
-            ::getMedunderskriverFlowState.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::getMedunderskriverFlowState.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
         return behandlingService.getMedunderskriverFlowState(behandlingId)
     }
@@ -60,10 +64,10 @@ class BehandlingMedunderskriverController(
         @RequestBody medunderskriverFlowStateView: FlowStateView,
     ): MedunderskriverWrapped {
         logBehandlingMethodDetails(
-            ::setMedunderskriverFlowState.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setMedunderskriverFlowState.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         if (medunderskriverFlowStateView.flowState == FlowState.RETURNED) {
@@ -84,15 +88,15 @@ class BehandlingMedunderskriverController(
         @RequestBody medunderskriverNavIdent: SaksbehandlerInput,
     ): MedunderskriverWrapped {
         logBehandlingMethodDetails(
-            ::setMedunderskriverNavIdent.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::setMedunderskriverNavIdent.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
         return behandlingService.setMedunderskriverNavIdent(
             utfoerendeSaksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             navIdent = medunderskriverNavIdent.navIdent,
-            behandlingId = behandlingId
+            behandlingId = behandlingId,
         )
     }
 }

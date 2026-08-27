@@ -26,9 +26,8 @@ import java.nio.file.Files
 @RestController
 @Tag(
     name = "kabal-innsyn",
-    description = "api for innsyn i brukeres saker"
+    description = "api for innsyn i brukeres saker",
 )
-
 @ProtectedWithClaims(issuer = SecurityConfiguration.TOKEN_X, claimMap = ["acr=Level4"])
 @RequestMapping("api/innsyn")
 @SecurityRequirement(name = "bearerAuth")
@@ -36,7 +35,6 @@ class InnsynController(
     private val innsynService: InnsynService,
     private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -45,7 +43,7 @@ class InnsynController(
 
     @Operation(
         summary = "Hent en brukers saker",
-        description = "Hent en brukers saker, basert på brukerens ident hentet fra token"
+        description = "Hent en brukers saker, basert på brukerens ident hentet fra token",
     )
     @GetMapping("/saker")
     fun getSaker(): InnsynResponse {
@@ -60,7 +58,7 @@ class InnsynController(
 
     @Operation(
         summary = "Hent et gitt dokument fra arkivet",
-        description = "Henter alle dokumenter på en journalpost. Må være ført på innlogget bruker."
+        description = "Henter alle dokumenter på en journalpost. Må være ført på innlogget bruker.",
     )
     @GetMapping("/documents/{journalpostId}")
     fun getDocument(
@@ -72,30 +70,34 @@ class InnsynController(
             innloggetBrukerFnr = identFromToken,
         )
 
-        //TODO: Samkjør dette med metoden som brukes for merging av dokument inne i Kabal
+        // TODO: Samkjør dette med metoden som brukes for merging av dokument inne i Kabal
         val (pathToMergedDocument, title) = innsynService.getJournalpostPdf(journalpostId = journalpostId)
         val responseHeaders = HttpHeaders()
         responseHeaders.contentType = MediaType.APPLICATION_PDF
         responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$title.pdf\"")
 
-        return ResponseEntity.ok()
+        return ResponseEntity
+            .ok()
             .headers(responseHeaders)
             .contentLength(pathToMergedDocument.toFile().length())
             .body(
                 object : FileSystemResource(pathToMergedDocument) {
-                    override fun getInputStream(): InputStream {
-                        return object : FileInputStream(pathToMergedDocument.toFile()) {
+                    override fun getInputStream(): InputStream =
+                        object : FileInputStream(pathToMergedDocument.toFile()) {
                             override fun close() {
                                 super.close()
-                                //Override to do this after client has downloaded file
+                                // Override to do this after client has downloaded file
                                 Files.delete(file.toPath())
                             }
                         }
-                    }
-                })
+                },
+            )
     }
 
-    private fun logMethodDetailsInTeamLogs(methodName: String, innloggetBrukerFnr: String) {
+    private fun logMethodDetailsInTeamLogs(
+        methodName: String,
+        innloggetBrukerFnr: String,
+    ) {
         teamLogger.debug(
             "{} is requested by fnr {}",
             methodName,

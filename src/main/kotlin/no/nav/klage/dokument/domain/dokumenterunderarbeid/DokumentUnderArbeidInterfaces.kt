@@ -1,9 +1,9 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
-interface DokumentUnderArbeidAsSmartdokument: DokumentUnderArbeidAsMellomlagret {
+interface DokumentUnderArbeidAsSmartdokument : DokumentUnderArbeidAsMellomlagret {
     var size: Long?
     val id: UUID
     val smartEditorId: UUID

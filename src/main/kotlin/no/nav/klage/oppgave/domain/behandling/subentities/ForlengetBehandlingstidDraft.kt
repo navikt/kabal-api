@@ -1,6 +1,14 @@
 package no.nav.klage.oppgave.domain.behandling.subentities
 
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Brevmottaker
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.TimeUnitTypeConverter
@@ -10,7 +18,7 @@ import org.hibernate.annotations.FetchMode
 import org.hibernate.envers.NotAudited
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "forlenget_behandlingstid_draft", schema = "klage")
@@ -48,4 +56,4 @@ class ForlengetBehandlingstidDraft(
     @BatchSize(size = 10)
     @NotAudited
     val receivers: MutableSet<Brevmottaker> = mutableSetOf(),
-    )
+)

@@ -9,15 +9,18 @@ data class AuditLogEvent(
     val message: String?,
 ) {
     enum class Level {
-        INFO, WARN
+        INFO,
+        WARN,
     }
 
-    enum class Action(val value: String) {
-        ACCESS("audit:access")
+    enum class Action(
+        val value: String,
+    ) {
+        ACCESS("audit:access"),
     }
 
     enum class Decision {
-        PERMIT, DENY
+        PERMIT,
+        DENY,
     }
-
 }

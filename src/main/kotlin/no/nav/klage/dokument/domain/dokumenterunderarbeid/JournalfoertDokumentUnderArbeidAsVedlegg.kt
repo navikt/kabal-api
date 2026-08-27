@@ -7,7 +7,7 @@ import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.annotations.DynamicUpdate
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @DiscriminatorValue("journalfoertdokument")
@@ -22,8 +22,7 @@ class JournalfoertDokumentUnderArbeidAsVedlegg(
     val dokumentInfoId: String,
     @Column(name = "sort_key")
     var sortKey: String?,
-
-    //Common properties
+    // Common properties
     id: UUID = UUID.randomUUID(),
     name: String,
     behandlingId: UUID,
@@ -36,15 +35,15 @@ class JournalfoertDokumentUnderArbeidAsVedlegg(
     creatorIdent: String,
     creatorRole: BehandlingRole,
 ) : DokumentUnderArbeidAsVedlegg(
-    id = id,
-    name = name,
-    behandlingId = behandlingId,
-    created = created,
-    modified = modified,
-    markertFerdig = markertFerdig,
-    markertFerdigBy = markertFerdigBy,
-    ferdigstilt = ferdigstilt,
-    parentId = parentId,
-    creatorIdent = creatorIdent,
-    creatorRole = creatorRole,
-)
+        id = id,
+        name = name,
+        behandlingId = behandlingId,
+        created = created,
+        modified = modified,
+        markertFerdig = markertFerdig,
+        markertFerdigBy = markertFerdigBy,
+        ferdigstilt = ferdigstilt,
+        parentId = parentId,
+        creatorIdent = creatorIdent,
+        creatorRole = creatorRole,
+    )

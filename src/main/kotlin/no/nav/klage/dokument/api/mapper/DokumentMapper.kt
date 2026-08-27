@@ -1,10 +1,20 @@
 package no.nav.klage.dokument.api.mapper
 
-import no.nav.klage.dokument.api.view.*
+import no.nav.klage.dokument.api.view.DokumentView
+import no.nav.klage.dokument.api.view.DokumentViewWithList
+import no.nav.klage.dokument.api.view.HandlingEnum
+import no.nav.klage.dokument.api.view.InngaaendeKanal
+import no.nav.klage.dokument.api.view.NewParent
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest
 import no.nav.klage.dokument.clients.kabaljsontopdf.domain.InnholdsfortegnelseRequest.Document.JournalpostMetadata.Type
 import no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response.SmartDocumentResponse
-import no.nav.klage.dokument.domain.dokumenterunderarbeid.*
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.Adresse
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeid
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsHoveddokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsSmartdokument
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.DokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.JournalfoertDokumentUnderArbeidAsVedlegg
+import no.nav.klage.dokument.domain.dokumenterunderarbeid.OpplastetDokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
 import no.nav.klage.kodeverk.DokumentType
 import no.nav.klage.kodeverk.Fagsystem
@@ -28,7 +38,7 @@ import org.hibernate.Hibernate
 import org.springframework.stereotype.Component
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Component
 class DokumentMapper(
@@ -37,7 +47,6 @@ class DokumentMapper(
     private val dokumentUnderArbeidRepository: DokumentUnderArbeidRepository,
     private val dokDistKanalService: DokDistKanalService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -50,31 +59,36 @@ class DokumentMapper(
         hoveddokument: DokumentUnderArbeidAsHoveddokument,
         journalpostList: List<Journalpost>,
     ): List<InnholdsfortegnelseRequest.Document> {
-        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) = vedlegg.partition {
-            it !is JournalfoertDokumentUnderArbeidAsVedlegg
-        } as Pair<List<DokumentUnderArbeidAsVedlegg>, List<JournalfoertDokumentUnderArbeidAsVedlegg>>
+        val (dokumenterUnderArbeid, journalfoerteDokumenterUnderArbeid) =
+            vedlegg.partition {
+                it !is JournalfoertDokumentUnderArbeidAsVedlegg
+            } as Pair<List<DokumentUnderArbeidAsVedlegg>, List<JournalfoertDokumentUnderArbeidAsVedlegg>>
 
-        val dokumenterUnderArbeidMapped = dokumenterUnderArbeid.sortedByDescending { it.created }
-            .map {
-                mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
-                    vedlegg = it,
-                    behandling = behandling,
-                    hoveddokument = hoveddokument,
-                )
-            }
+        val dokumenterUnderArbeidMapped =
+            dokumenterUnderArbeid
+                .sortedByDescending { it.created }
+                .map {
+                    mapToInnholdsfortegnelseRequestDocumentFromDokumentUnderArbeid(
+                        vedlegg = it,
+                        behandling = behandling,
+                        hoveddokument = hoveddokument,
+                    )
+                }
 
         // Group journalfoert documents by dokumentInfoId
-        val groupedByDokumentInfoId = journalfoerteDokumenterUnderArbeid
-            .sortedBy { it.sortKey }
-            .groupBy { it.dokumentInfoId }
+        val groupedByDokumentInfoId =
+            journalfoerteDokumenterUnderArbeid
+                .sortedBy { it.sortKey }
+                .groupBy { it.dokumentInfoId }
 
-        val journalfoerteDokumenterMapped = groupedByDokumentInfoId.map { (dokumentInfoId, documents) ->
-            mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokumentGroup(
-                dokumentInfoId = dokumentInfoId,
-                journalfoerteDokumenter = documents,
-                journalpostList = journalpostList,
-            )
-        }
+        val journalfoerteDokumenterMapped =
+            groupedByDokumentInfoId.map { (dokumentInfoId, documents) ->
+                mapToInnholdsfortegnelseRequestDocumentFromJournalfoertDokumentGroup(
+                    dokumentInfoId = dokumentInfoId,
+                    journalfoerteDokumenter = documents,
+                    journalpostList = journalpostList,
+                )
+            }
 
         return dokumenterUnderArbeidMapped + journalfoerteDokumenterMapped
     }
@@ -84,22 +98,34 @@ class DokumentMapper(
         behandling: Behandling,
         hoveddokument: DokumentUnderArbeidAsHoveddokument,
     ): InnholdsfortegnelseRequest.Document {
-        val type = when (hoveddokument.dokumentType) {
-            DokumentType.KJENNELSE_FRA_TRYGDERETTEN, DokumentType.ANNEN_INNGAAENDE_POST -> throw RuntimeException("Inngående post kan ikke ha innholdsfortegnelse")
-            DokumentType.VEDTAK, DokumentType.BREV, DokumentType.BESLUTNING, DokumentType.SVARBREV, DokumentType.FORLENGET_BEHANDLINGSTIDSBREV, DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN -> Type.U
-            DokumentType.NOTAT -> Type.N
-        }
+        val type =
+            when (hoveddokument.dokumentType) {
+                DokumentType.KJENNELSE_FRA_TRYGDERETTEN, DokumentType.ANNEN_INNGAAENDE_POST -> throw RuntimeException(
+                    "Inngående post kan ikke ha innholdsfortegnelse",
+                )
+
+                DokumentType.VEDTAK,
+                DokumentType.BREV,
+                DokumentType.BESLUTNING,
+                DokumentType.SVARBREV,
+                DokumentType.FORLENGET_BEHANDLINGSTIDSBREV,
+                DokumentType.EKSPEDISJONSBREV_TIL_TRYGDERETTEN,
+                -> Type.U
+
+                DokumentType.NOTAT -> Type.N
+            }
         return InnholdsfortegnelseRequest.Document(
             tittel = vedlegg.name,
-            journalpostMetadataList = listOf(
-                InnholdsfortegnelseRequest.Document.JournalpostMetadata(
-                    tema = behandling.ytelse.toTema().navn,
-                    dato = LocalDateTime.now().toLocalDate(),
-                    avsenderMottaker = "",
-                    saksnummer = behandling.fagsakId,
-                    type = type,
-                )
-            )
+            journalpostMetadataList =
+                listOf(
+                    InnholdsfortegnelseRequest.Document.JournalpostMetadata(
+                        tema = behandling.ytelse.toTema().navn,
+                        dato = LocalDateTime.now().toLocalDate(),
+                        avsenderMottaker = "",
+                        saksnummer = behandling.fagsakId,
+                        type = type,
+                    ),
+                ),
         )
     }
 
@@ -109,25 +135,30 @@ class DokumentMapper(
         journalpostList: List<Journalpost>,
     ): InnholdsfortegnelseRequest.Document {
         val firstDokument = journalfoerteDokumenter.first()
-        val firstJournalpost = journalpostList.find { it.journalpostId == firstDokument.journalpostId }
-            ?: throw RuntimeException("Journalpost not found for journalpostId ${firstDokument.journalpostId}")
-        val dokumentInDokarkiv = firstJournalpost.dokumenter?.find { it.dokumentInfoId == dokumentInfoId }
-            ?: throw RuntimeException("Document not found in Dokarkiv for dokumentInfoId $dokumentInfoId")
+        val firstJournalpost =
+            journalpostList.find { it.journalpostId == firstDokument.journalpostId }
+                ?: throw RuntimeException("Journalpost not found for journalpostId ${firstDokument.journalpostId}")
+        val dokumentInDokarkiv =
+            firstJournalpost.dokumenter?.find { it.dokumentInfoId == dokumentInfoId }
+                ?: throw RuntimeException("Document not found in Dokarkiv for dokumentInfoId $dokumentInfoId")
 
-        val journalpostMetadataList = journalfoerteDokumenter.map { journalfoertDokument ->
-            val journalpost = journalpostList.find { it.journalpostId == journalfoertDokument.journalpostId }
-                ?: throw RuntimeException("Journalpost not found for journalpostId ${journalfoertDokument.journalpostId}")
+        val journalpostMetadataList =
+            journalfoerteDokumenter.map { journalfoertDokument ->
+                val journalpost =
+                    journalpostList.find { it.journalpostId == journalfoertDokument.journalpostId }
+                        ?: throw RuntimeException("Journalpost not found for journalpostId ${journalfoertDokument.journalpostId}")
 
-            InnholdsfortegnelseRequest.Document.JournalpostMetadata(
-                tema = Tema.fromNavn(journalpost.tema.name).beskrivelse,
-                dato = journalpost.datoSortering.toLocalDate(),
-                avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
-                saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
-                type = Type.valueOf(
-                    journalpost.journalposttype?.name ?: error("Type ikke funnet i SAF")
+                InnholdsfortegnelseRequest.Document.JournalpostMetadata(
+                    tema = Tema.fromNavn(journalpost.tema.name).beskrivelse,
+                    dato = journalpost.datoSortering.toLocalDate(),
+                    avsenderMottaker = journalpost.avsenderMottaker?.navn ?: "",
+                    saksnummer = journalpost.sak?.fagsakId ?: "Saksnummer ikke funnet i SAF",
+                    type =
+                        Type.valueOf(
+                            journalpost.journalposttype?.name ?: error("Type ikke funnet i SAF"),
+                        ),
                 )
-            )
-        }
+            }
 
         return InnholdsfortegnelseRequest.Document(
             tittel = dokumentInDokarkiv.tittel ?: "Tittel ikke funnet i SAF",
@@ -157,17 +188,18 @@ class DokumentMapper(
 
             tittel = (dokument.tittel ?: "Tittel ikke funnet i SAF")
 
-            journalfoertDokumentReference = DokumentView.JournalfoertDokumentReference(
-                temaId = Tema.fromNavn(journalpost.tema.name).id,
-                journalpostId = unproxiedDUA.journalpostId,
-                dokumentInfoId = unproxiedDUA.dokumentInfoId,
-                harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(dokument),
-                hasAccess = harTilgangTilArkivEllerSladdetVariant(dokument),
-                datoOpprettet = unproxiedDUA.opprettet,
-                datoSortering = journalpost.datoSortering,
-                sortKey = unproxiedDUA.sortKey!!,
-                varianter = dokument.toVarianter(),
-            )
+            journalfoertDokumentReference =
+                DokumentView.JournalfoertDokumentReference(
+                    temaId = Tema.fromNavn(journalpost.tema.name).id,
+                    journalpostId = unproxiedDUA.journalpostId,
+                    dokumentInfoId = unproxiedDUA.dokumentInfoId,
+                    harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(dokument),
+                    hasAccess = harTilgangTilArkivEllerSladdetVariant(dokument),
+                    datoOpprettet = unproxiedDUA.opprettet,
+                    datoSortering = journalpost.datoSortering,
+                    sortKey = unproxiedDUA.sortKey!!,
+                    varianter = dokument.toVarianter(),
+                )
         }
 
         var inngaaendeKanal: InngaaendeKanal? = null
@@ -184,55 +216,69 @@ class DokumentMapper(
                     if (unproxiedDUA.inngaaendeKanal != null) unproxiedDUA.inngaaendeKanal!! else null
                 val avsenderIdentifikator = unproxiedDUA.brevmottakere.firstOrNull()
                 if (avsenderIdentifikator?.identifikator != null) {
-                    avsender = behandlingMapper.getAvsenderPartView(
-                        partId = getPartIdFromIdentifikator(identifikator = avsenderIdentifikator.identifikator!!),
-                        technicalPartId = avsenderIdentifikator.id,
-                    )
+                    avsender =
+                        behandlingMapper.getAvsenderPartView(
+                            partId = getPartIdFromIdentifikator(identifikator = avsenderIdentifikator.identifikator!!),
+                            technicalPartId = avsenderIdentifikator.id,
+                        )
                 }
             } else if (unproxiedDUA.isUtgaaende()) {
                 val mottakerInfoSet = unproxiedDUA.brevmottakere
                 if (mottakerInfoSet.isNotEmpty()) {
-
-                    mottakerList = mottakerInfoSet.map {
-                        toDokumentViewMottaker(
-                            technicalPartId = it.technicalPartId,
-                            identifikator = it.identifikator,
-                            navn = it.navn,
-                            address = it.address,
-                            localPrint = it.localPrint,
-                            forceCentralPrint = it.forceCentralPrint,
-                            behandling = behandling,
-                        )
-                    }
+                    mottakerList =
+                        mottakerInfoSet.map {
+                            toDokumentViewMottaker(
+                                technicalPartId = it.technicalPartId,
+                                identifikator = it.identifikator,
+                                navn = it.navn,
+                                address = it.address,
+                                localPrint = it.localPrint,
+                                forceCentralPrint = it.forceCentralPrint,
+                                behandling = behandling,
+                            )
+                        }
                 }
             }
         } else {
             unproxiedDUA as DokumentUnderArbeidAsVedlegg
-            val parentDocument = dokumentUnderArbeidRepository.findById(unproxiedDUA.parentId)
-                .get() as DokumentUnderArbeidAsHoveddokument
+            val parentDocument =
+                dokumentUnderArbeidRepository
+                    .findById(unproxiedDUA.parentId)
+                    .get() as DokumentUnderArbeidAsHoveddokument
             dokumentTypeId = parentDocument.dokumentType.id
         }
-
 
         return DokumentView(
             id = unproxiedDUA.id,
             tittel = tittel,
             dokumentTypeId = dokumentTypeId,
             created = unproxiedDUA.created,
-            modified = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
-                smartEditorDocument!!.modified
-            } else unproxiedDUA.modified,
+            modified =
+                if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
+                    smartEditorDocument!!.modified
+                } else {
+                    unproxiedDUA.modified
+                },
             isSmartDokument = unproxiedDUA is DokumentUnderArbeidAsSmartdokument,
             templateId = if (unproxiedDUA is DokumentUnderArbeidAsSmartdokument) unproxiedDUA.smartEditorTemplateId else null,
-            content = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
-                jacksonObjectMapper().readTree(smartEditorDocument!!.json)
-            } else null,
-            data = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
-                smartEditorDocument?.data
-            } else null,
-            version = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
-                smartEditorDocument?.version
-            } else null,
+            content =
+                if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
+                    jacksonObjectMapper().readTree(smartEditorDocument!!.json)
+                } else {
+                    null
+                },
+            data =
+                if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
+                    smartEditorDocument?.data
+                } else {
+                    null
+                },
+            version =
+                if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
+                    smartEditorDocument?.version
+                } else {
+                    null
+                },
             isMarkertAvsluttet = unproxiedDUA.markertFerdig != null,
             parentId = if (unproxiedDUA is DokumentUnderArbeidAsVedlegg) unproxiedDUA.parentId else null,
             type = unproxiedDUA.getType(),
@@ -244,9 +290,12 @@ class DokumentMapper(
             avsender = avsender,
             mottakerList = mottakerList,
             inngaaendeKanal = inngaaendeKanal,
-            language = if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
-                DokumentView.Language.valueOf(dokumentUnderArbeid.language.name)
-            } else null,
+            language =
+                if (dokumentUnderArbeid is DokumentUnderArbeidAsSmartdokument) {
+                    DokumentView.Language.valueOf(dokumentUnderArbeid.language.name)
+                } else {
+                    null
+                },
         )
     }
 
@@ -257,30 +306,33 @@ class DokumentMapper(
         address: Adresse?,
         localPrint: Boolean,
         forceCentralPrint: Boolean,
-        behandling: Behandling
+        behandling: Behandling,
     ) = DokumentView.Mottaker(
-        part = behandlingMapper.getPartViewWithUtsendingskanal(
-            technicalPartId = technicalPartId,
-            partId = identifikator?.let { getPartIdFromIdentifikator(identifikator) },
-            behandling = behandling,
-            navn = navn,
-            address = address,
-        ),
+        part =
+            behandlingMapper.getPartViewWithUtsendingskanal(
+                technicalPartId = technicalPartId,
+                partId = identifikator?.let { getPartIdFromIdentifikator(identifikator) },
+                behandling = behandling,
+                navn = navn,
+                address = address,
+            ),
         overriddenAddress = getBehandlingDetaljerViewAddress(address),
-        handling = getHandlingEnum(
-            markLocalPrint = localPrint,
-            forceCentralPrint = forceCentralPrint,
-            utsendingskanal = dokDistKanalService.getUtsendingskanal(
-                mottakerId = identifikator,
-                brukerId = behandling.sakenGjelder.partId.value,
-                tema = behandling.ytelse.toTema(),
-                saksbehandlerContext = true,
-            )
-        ),
+        handling =
+            getHandlingEnum(
+                markLocalPrint = localPrint,
+                forceCentralPrint = forceCentralPrint,
+                utsendingskanal =
+                    dokDistKanalService.getUtsendingskanal(
+                        mottakerId = identifikator,
+                        brukerId = behandling.sakenGjelder.partId.value,
+                        tema = behandling.ytelse.toTema(),
+                        saksbehandlerContext = true,
+                    ),
+            ),
     )
 
-    private fun getBehandlingDetaljerViewAddress(address: Adresse?): BehandlingDetaljerView.Address? {
-        return if (address != null) {
+    private fun getBehandlingDetaljerViewAddress(address: Adresse?): BehandlingDetaljerView.Address? =
+        if (address != null) {
             BehandlingDetaljerView.Address(
                 adresselinje1 = address.adresselinje1,
                 adresselinje2 = address.adresselinje2,
@@ -289,19 +341,19 @@ class DokumentMapper(
                 postnummer = address.postnummer,
                 poststed = address.poststed,
             )
-        } else null
+        } else {
+            null
+        }
 
-    }
-
-    private fun DokumentUnderArbeid.toCreatorView(): DokumentView.Creator {
-        return DokumentView.Creator(
-            employee = SaksbehandlerView(
-                navIdent = creatorIdent,
-                navn = saksbehandlerService.getNameForIdentDefaultIfNull(creatorIdent),
-            ),
+    private fun DokumentUnderArbeid.toCreatorView(): DokumentView.Creator =
+        DokumentView.Creator(
+            employee =
+                SaksbehandlerView(
+                    navIdent = creatorIdent,
+                    navn = saksbehandlerService.getNameForIdentDefaultIfNull(creatorIdent),
+                ),
             creatorRole = creatorRole,
         )
-    }
 
     fun mapToDokumentListView(
         dokumentUnderArbeidList: List<DokumentUnderArbeid>,
@@ -312,94 +364,108 @@ class DokumentMapper(
 
         return DokumentViewWithList(
             modified = firstDokument.modified,
-            alteredDocuments = dokumentUnderArbeidList.drop(1).map { dokumentUnderArbeid ->
-                val duaUnproxied = Hibernate.unproxy(dokumentUnderArbeid) as DokumentUnderArbeidAsVedlegg
-                NewParent(
-                    id = duaUnproxied.id,
-                    modified = duaUnproxied.modified,
-                    parentId = duaUnproxied.parentId,
-                )
-            },
-            duplicateJournalfoerteDokumenter = duplicateJournalfoerteDokumenter.map { duplicateJournalfoertDokument ->
-                val duaUnproxied = Hibernate.unproxy(duplicateJournalfoertDokument) as DokumentUnderArbeid
-                duaUnproxied.id
-            },
+            alteredDocuments =
+                dokumentUnderArbeidList.drop(1).map { dokumentUnderArbeid ->
+                    val duaUnproxied = Hibernate.unproxy(dokumentUnderArbeid) as DokumentUnderArbeidAsVedlegg
+                    NewParent(
+                        id = duaUnproxied.id,
+                        modified = duaUnproxied.modified,
+                        parentId = duaUnproxied.parentId,
+                    )
+                },
+            duplicateJournalfoerteDokumenter =
+                duplicateJournalfoerteDokumenter.map { duplicateJournalfoertDokument ->
+                    val duaUnproxied = Hibernate.unproxy(duplicateJournalfoertDokument) as DokumentUnderArbeid
+                    duaUnproxied.id
+                },
         )
     }
 
-    //TODO: Har ikke tatt høyde for skjerming, ref https://confluence.adeo.no/pages/viewpage.action?pageId=320364687
+    // TODO: Har ikke tatt høyde for skjerming, ref https://confluence.adeo.no/pages/viewpage.action?pageId=320364687
     fun mapJournalpostToDokumentReferanse(
         journalpost: Journalpost,
-        saksdokumenter: MutableSet<Saksdokument>
+        saksdokumenter: MutableSet<Saksdokument>,
     ): DokumentReferanse {
+        val hoveddokument =
+            journalpost.dokumenter?.firstOrNull()
+                ?: throw RuntimeException("Could not find hoveddokument for journalpost ${journalpost.journalpostId}")
 
-        val hoveddokument = journalpost.dokumenter?.firstOrNull()
-            ?: throw RuntimeException("Could not find hoveddokument for journalpost ${journalpost.journalpostId}")
-
-        val dokumentReferanse = DokumentReferanse(
-            tittel = hoveddokument.tittel,
-            tema = Tema.fromNavn(journalpost.tema.name).id,
-            temaId = Tema.fromNavn(journalpost.tema.name).id,
-            dokumentInfoId = hoveddokument.dokumentInfoId,
-            journalpostId = journalpost.journalpostId,
-            harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(hoveddokument),
-            hasAccess = harTilgangTilArkivEllerSladdetVariant(hoveddokument),
-            valgt = saksdokumenter.containsDokument(
-                journalpost.journalpostId,
-                hoveddokument.dokumentInfoId
-            ),
-            journalposttype = DokumentReferanse.Journalposttype.valueOf(journalpost.journalposttype!!.name),
-            journalstatus = if (journalpost.journalstatus != null) {
-                DokumentReferanse.Journalstatus.valueOf(journalpost.journalstatus.name)
-            } else null,
-            sak = if (journalpost.sak != null) {
-                DokumentReferanse.Sak(
-                    datoOpprettet = journalpost.sak.datoOpprettet,
-                    fagsakId = journalpost.sak.fagsakId,
-                    fagsaksystem = journalpost.sak.fagsaksystem,
-                    fagsystemId = journalpost.sak.fagsaksystem?.let { Fagsystem.fromNavn(it).id }
-                )
-            } else null,
-            avsenderMottaker = if (journalpost.avsenderMottaker == null ||
-                (journalpost.avsenderMottaker.id == null && journalpost.avsenderMottaker.navn == null)
-            ) {
-                null
-            } else {
-                DokumentReferanse.AvsenderMottaker(
-                    id = journalpost.avsenderMottaker.id,
-                    type = journalpost.avsenderMottaker.type?.let {
-                        DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
-                            it.name
+        val dokumentReferanse =
+            DokumentReferanse(
+                tittel = hoveddokument.tittel,
+                tema = Tema.fromNavn(journalpost.tema.name).id,
+                temaId = Tema.fromNavn(journalpost.tema.name).id,
+                dokumentInfoId = hoveddokument.dokumentInfoId,
+                journalpostId = journalpost.journalpostId,
+                harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(hoveddokument),
+                hasAccess = harTilgangTilArkivEllerSladdetVariant(hoveddokument),
+                valgt =
+                    saksdokumenter.containsDokument(
+                        journalpostId = journalpost.journalpostId,
+                        dokumentInfoId = hoveddokument.dokumentInfoId,
+                    ),
+                journalposttype = DokumentReferanse.Journalposttype.valueOf(journalpost.journalposttype!!.name),
+                journalstatus =
+                    if (journalpost.journalstatus != null) {
+                        DokumentReferanse.Journalstatus.valueOf(journalpost.journalstatus.name)
+                    } else {
+                        null
+                    },
+                sak =
+                    if (journalpost.sak != null) {
+                        DokumentReferanse.Sak(
+                            datoOpprettet = journalpost.sak.datoOpprettet,
+                            fagsakId = journalpost.sak.fagsakId,
+                            fagsaksystem = journalpost.sak.fagsaksystem,
+                            fagsystemId = journalpost.sak.fagsaksystem?.let { Fagsystem.fromNavn(it).id },
+                        )
+                    } else {
+                        null
+                    },
+                avsenderMottaker =
+                    if (journalpost.avsenderMottaker == null ||
+                        (journalpost.avsenderMottaker.id == null && journalpost.avsenderMottaker.navn == null)
+                    ) {
+                        null
+                    } else {
+                        DokumentReferanse.AvsenderMottaker(
+                            id = journalpost.avsenderMottaker.id,
+                            type =
+                                journalpost.avsenderMottaker.type?.let {
+                                    DokumentReferanse.AvsenderMottaker.AvsenderMottakerIdType.valueOf(
+                                        it.name,
+                                    )
+                                },
+                            navn = journalpost.avsenderMottaker.navn,
                         )
                     },
-                    navn = journalpost.avsenderMottaker.navn,
-                )
-            },
-            opprettetAvNavn = journalpost.opprettetAvNavn,
-            datoOpprettet = journalpost.datoOpprettet,
-            datoSortering = journalpost.datoSortering,
-            datoRegSendt = journalpost.datoSortering,
-            relevanteDatoer = journalpost.relevanteDatoer?.map {
-                DokumentReferanse.RelevantDatoOld(
-                    dato = it.dato,
-                    datotype = DokumentReferanse.RelevantDatoOld.DatotypeOld.valueOf(it.datotype.name)
-                )
-            } ?: emptyList(),
-            timeline = journalpost.toTimeline(),
-            kanal = journalpost.kanal,
-            kanalnavn = journalpost.kanalnavn,
-            utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
-            originalJournalpostId = hoveddokument.originalJournalpostId,
-            filtype = hoveddokument.toArkivFiltype(),
-            sortKey = getSortKey(journalpost = journalpost, dokumentInfoId = hoveddokument.dokumentInfoId),
-            logiskeVedlegg = hoveddokument.logiskeVedlegg?.map {
-                no.nav.klage.oppgave.api.view.LogiskVedlegg(
-                    tittel = it.tittel,
-                    logiskVedleggId = it.logiskVedleggId
-                )
-            },
-            varianter = hoveddokument.toVarianter(),
-        )
+                opprettetAvNavn = journalpost.opprettetAvNavn,
+                datoOpprettet = journalpost.datoOpprettet,
+                datoSortering = journalpost.datoSortering,
+                datoRegSendt = journalpost.datoSortering,
+                relevanteDatoer =
+                    journalpost.relevanteDatoer?.map {
+                        DokumentReferanse.RelevantDatoOld(
+                            dato = it.dato,
+                            datotype = DokumentReferanse.RelevantDatoOld.DatotypeOld.valueOf(it.datotype.name),
+                        )
+                    } ?: emptyList(),
+                timeline = journalpost.toTimeline(),
+                kanal = journalpost.kanal,
+                kanalnavn = journalpost.kanalnavn,
+                utsendingsinfo = getUtsendingsinfo(journalpost.utsendingsinfo),
+                originalJournalpostId = hoveddokument.originalJournalpostId,
+                filtype = hoveddokument.toArkivFiltype(),
+                sortKey = getSortKey(journalpost = journalpost, dokumentInfoId = hoveddokument.dokumentInfoId),
+                logiskeVedlegg =
+                    hoveddokument.logiskeVedlegg?.map {
+                        no.nav.klage.oppgave.api.view.LogiskVedlegg(
+                            tittel = it.tittel,
+                            logiskVedleggId = it.logiskVedleggId,
+                        )
+                    },
+                varianter = hoveddokument.toVarianter(),
+            )
 
         dokumentReferanse.vedlegg.addAll(getVedlegg(journalpost, saksdokumenter))
 
@@ -408,33 +474,38 @@ class DokumentMapper(
 
     fun getVarianter(dokumentInfo: DokumentInfo): List<DokumentReferanse.Variant> = dokumentInfo.toVarianter()
 
-    private fun DokumentInfo.toVarianter(): List<DokumentReferanse.Variant> {
-        return this.dokumentvarianter.filter {
-            it.variantformat in listOf(
-                Variantformat.ARKIV,
-                Variantformat.SLADDET
-            )
-        }.map { variant ->
-            DokumentReferanse.Variant(
-                format = when (variant.variantformat) {
-                    Variantformat.ARKIV -> {
-                        DokumentReferanse.Variant.Format.ARKIV
-                    }
+    private fun DokumentInfo.toVarianter(): List<DokumentReferanse.Variant> =
+        this.dokumentvarianter
+            .filter {
+                it.variantformat in
+                    listOf(
+                        Variantformat.ARKIV,
+                        Variantformat.SLADDET,
+                    )
+            }.map { variant ->
+                DokumentReferanse.Variant(
+                    format =
+                        when (variant.variantformat) {
+                            Variantformat.ARKIV -> {
+                                DokumentReferanse.Variant.Format.ARKIV
+                            }
 
-                    Variantformat.SLADDET -> {
-                        DokumentReferanse.Variant.Format.SLADDET
-                    }
+                            Variantformat.SLADDET -> {
+                                DokumentReferanse.Variant.Format.SLADDET
+                            }
 
-                    else -> throw RuntimeException("Unknown variantformat: ${variant.variantformat}")
-                },
-                filtype = variant.filtype.toFiltype(),
-                hasAccess = variant.saksbehandlerHarTilgang,
-                skjerming = variant.skjerming?.let {
-                    DokumentReferanse.Variant.SkjermingType.valueOf(it.name)
-                }
-            )
-        }
-    }
+                            else -> {
+                                throw RuntimeException("Unknown variantformat: ${variant.variantformat}")
+                            }
+                        },
+                    filtype = variant.filtype.toFiltype(),
+                    hasAccess = variant.saksbehandlerHarTilgang,
+                    skjerming =
+                        variant.skjerming?.let {
+                            DokumentReferanse.Variant.SkjermingType.valueOf(it.name)
+                        },
+                )
+            }
 
     private fun String?.toFiltype(): DokumentReferanse.Filtype {
         return if (this != null) {
@@ -462,27 +533,29 @@ class DokumentMapper(
     }
 
     private fun Journalpost.toTimeline(): List<DokumentReferanse.TimelineItem> {
-        val relevantDates = (this.relevanteDatoer?.mapNotNull {
-            if (it.datotype.name == "DATO_DOKUMENT") {
-                null
-            } else {
-                DokumentReferanse.TimelineItem(
-                    timestamp = it.dato,
-                    type = it.datotype.name.toTimelineType()
-                )
-            }
-        } ?: emptyList())
+        val relevantDates = (
+            this.relevanteDatoer?.mapNotNull {
+                if (it.datotype.name == "DATO_DOKUMENT") {
+                    null
+                } else {
+                    DokumentReferanse.TimelineItem(
+                        timestamp = it.dato,
+                        type = it.datotype.name.toTimelineType(),
+                    )
+                }
+            } ?: emptyList()
+        )
 
         return listOf(
             DokumentReferanse.TimelineItem(
                 timestamp = this.datoOpprettet,
-                type = DokumentReferanse.TimelineItem.TimelineType.OPPRETTET
-            )
+                type = DokumentReferanse.TimelineItem.TimelineType.OPPRETTET,
+            ),
         ) + relevantDates.sortedBy { it.timestamp }
     }
 
-    private fun String.toTimelineType(): DokumentReferanse.TimelineItem.TimelineType {
-        return when (this) {
+    private fun String.toTimelineType(): DokumentReferanse.TimelineItem.TimelineType =
+        when (this) {
             "DATO_JOURNALFOERT" -> DokumentReferanse.TimelineItem.TimelineType.JOURNALFOERT
             "DATO_EKSPEDERT" -> DokumentReferanse.TimelineItem.TimelineType.EKSPEDERT
             "DATO_SENDT_PRINT" -> DokumentReferanse.TimelineItem.TimelineType.SENDT_PRINT
@@ -491,7 +564,6 @@ class DokumentMapper(
             "DATO_LEST" -> DokumentReferanse.TimelineItem.TimelineType.LEST
             else -> throw RuntimeException("Unknown datotype: $this")
         }
-    }
 
     private fun getUtsendingsinfo(utsendingsinfo: Utsendingsinfo?): DokumentReferanse.Utsendingsinfo? {
         if (utsendingsinfo == null) {
@@ -500,56 +572,70 @@ class DokumentMapper(
 
         return with(utsendingsinfo) {
             DokumentReferanse.Utsendingsinfo(
-                epostVarselSendt = if (epostVarselSendt != null) {
-                    DokumentReferanse.Utsendingsinfo.EpostVarselSendt(
-                        tittel = epostVarselSendt.tittel,
-                        adresse = epostVarselSendt.adresse,
-                        varslingstekst = epostVarselSendt.varslingstekst,
-                    )
-                } else null,
-                smsVarselSendt = if (smsVarselSendt != null) {
-                    DokumentReferanse.Utsendingsinfo.SmsVarselSendt(
-                        adresse = smsVarselSendt.adresse,
-                        varslingstekst = smsVarselSendt.varslingstekst,
-                    )
-                } else null,
-                fysiskpostSendt = if (fysiskpostSendt != null) {
-                    DokumentReferanse.Utsendingsinfo.FysiskpostSendt(
-                        adressetekstKonvolutt = fysiskpostSendt.adressetekstKonvolutt,
-                    )
-                } else null,
-                digitalpostSendt = if (digitalpostSendt != null) {
-                    DokumentReferanse.Utsendingsinfo.DigitalpostSendt(
-                        adresse = digitalpostSendt.adresse,
-                    )
-                } else null,
+                epostVarselSendt =
+                    if (epostVarselSendt != null) {
+                        DokumentReferanse.Utsendingsinfo.EpostVarselSendt(
+                            tittel = epostVarselSendt.tittel,
+                            adresse = epostVarselSendt.adresse,
+                            varslingstekst = epostVarselSendt.varslingstekst,
+                        )
+                    } else {
+                        null
+                    },
+                smsVarselSendt =
+                    if (smsVarselSendt != null) {
+                        DokumentReferanse.Utsendingsinfo.SmsVarselSendt(
+                            adresse = smsVarselSendt.adresse,
+                            varslingstekst = smsVarselSendt.varslingstekst,
+                        )
+                    } else {
+                        null
+                    },
+                fysiskpostSendt =
+                    if (fysiskpostSendt != null) {
+                        DokumentReferanse.Utsendingsinfo.FysiskpostSendt(
+                            adressetekstKonvolutt = fysiskpostSendt.adressetekstKonvolutt,
+                        )
+                    } else {
+                        null
+                    },
+                digitalpostSendt =
+                    if (digitalpostSendt != null) {
+                        DokumentReferanse.Utsendingsinfo.DigitalpostSendt(
+                            adresse = digitalpostSendt.adresse,
+                        )
+                    } else {
+                        null
+                    },
             )
         }
     }
 
     private fun getVedlegg(
         journalpost: Journalpost,
-        saksdokumenter: MutableSet<Saksdokument>
-    ): List<DokumentReferanse.VedleggReferanse> {
-        return if ((journalpost.dokumenter?.size ?: 0) > 1) {
-            journalpost.dokumenter?.subList(1, journalpost.dokumenter.size)?.map { vedlegg ->
+        saksdokumenter: MutableSet<Saksdokument>,
+    ): List<DokumentReferanse.VedleggReferanse> =
+        if ((journalpost.dokumenter?.size ?: 0) > 1) {
+            journalpost.dokumenter?.subList(fromIndex = 1, toIndex = journalpost.dokumenter.size)?.map { vedlegg ->
                 DokumentReferanse.VedleggReferanse(
                     tittel = vedlegg.tittel,
                     dokumentInfoId = vedlegg.dokumentInfoId,
                     harTilgangTilArkivvariant = harTilgangTilArkivEllerSladdetVariant(vedlegg),
                     hasAccess = harTilgangTilArkivEllerSladdetVariant(vedlegg),
-                    valgt = saksdokumenter.containsDokument(
-                        journalpost.journalpostId,
-                        vedlegg.dokumentInfoId
-                    ),
+                    valgt =
+                        saksdokumenter.containsDokument(
+                            journalpostId = journalpost.journalpostId,
+                            dokumentInfoId = vedlegg.dokumentInfoId,
+                        ),
                     originalJournalpostId = vedlegg.originalJournalpostId,
                     sortKey = getSortKey(journalpost = journalpost, dokumentInfoId = vedlegg.dokumentInfoId),
-                    logiskeVedlegg = vedlegg.logiskeVedlegg?.map {
-                        no.nav.klage.oppgave.api.view.LogiskVedlegg(
-                            tittel = it.tittel,
-                            logiskVedleggId = it.logiskVedleggId
-                        )
-                    },
+                    logiskeVedlegg =
+                        vedlegg.logiskeVedlegg?.map {
+                            no.nav.klage.oppgave.api.view.LogiskVedlegg(
+                                tittel = it.tittel,
+                                logiskVedleggId = it.logiskVedleggId,
+                            )
+                        },
                     filtype = vedlegg.toArkivFiltype(),
                     varianter = vedlegg.toVarianter(),
                 )
@@ -557,25 +643,26 @@ class DokumentMapper(
         } else {
             emptyList()
         }
-    }
 
     fun harTilgangTilArkivEllerSladdetVariant(dokumentInfo: DokumentInfo): Boolean =
         dokumentInfo.dokumentvarianter.any { dv ->
             (dv.variantformat == Variantformat.ARKIV && dv.saksbehandlerHarTilgang) ||
-                    (dv.variantformat == Variantformat.SLADDET && dv.saksbehandlerHarTilgang)
+                (dv.variantformat == Variantformat.SLADDET && dv.saksbehandlerHarTilgang)
         }
 
-    private fun MutableSet<Saksdokument>.containsDokument(journalpostId: String, dokumentInfoId: String) =
-        any {
-            it.journalpostId == journalpostId && it.dokumentInfoId == dokumentInfoId
-        }
+    private fun MutableSet<Saksdokument>.containsDokument(
+        journalpostId: String,
+        dokumentInfoId: String,
+    ) = any {
+        it.journalpostId == journalpostId && it.dokumentInfoId == dokumentInfoId
+    }
 
     private fun getHandlingEnum(
         markLocalPrint: Boolean,
         forceCentralPrint: Boolean,
-        utsendingskanal: BehandlingDetaljerView.Utsendingskanal
-    ): HandlingEnum {
-        return if (markLocalPrint && !forceCentralPrint) {
+        utsendingskanal: BehandlingDetaljerView.Utsendingskanal,
+    ): HandlingEnum =
+        if (markLocalPrint && !forceCentralPrint) {
             HandlingEnum.LOCAL_PRINT
         } else if (!markLocalPrint && forceCentralPrint) {
             if (utsendingskanal == BehandlingDetaljerView.Utsendingskanal.SENTRAL_UTSKRIFT) {
@@ -588,5 +675,4 @@ class DokumentMapper(
         } else {
             error("Invalid combination markLocalPrint $markLocalPrint and forceCentralPrint $forceCentralPrint")
         }
-    }
 }

@@ -13,22 +13,24 @@ import java.nio.file.Files
 import javax.imageio.ImageIO
 
 object ImageUtils {
-
     private val logger = getLogger(javaClass)
 
-    fun downToA4(origImageFile: File, format: String): File {
-        val A4 = PDRectangle.A4
+    fun downToA4(
+        origImageFile: File,
+        format: String,
+    ): File {
+        val a4 = PDRectangle.A4
         return try {
             var image = ImageIO.read(origImageFile)
             image = rotatePortrait(image)
-            val pdfPageDim = Dimension(A4.width.toInt(), A4.height.toInt())
+            val pdfPageDim = Dimension(a4.width.toInt(), a4.height.toInt())
             val origDim = Dimension(image.width, image.height)
-            val newDim = getScaledDimension(origDim, pdfPageDim)
+            val newDim = getScaledDimension(imgSize = origDim, a4 = pdfPageDim)
             if (newDim == origDim) {
                 origImageFile
             } else {
-                val scaledImg = scaleDown(image, newDim)
-                toFile(scaledImg, format)
+                val scaledImg = scaleDown(origImage = image, newDim = newDim)
+                toFile(img = scaledImg, format = format)
             }
         } catch (ex: IOException) {
             throw RuntimeException("Converting attachment failed.", ex)
@@ -48,14 +50,17 @@ object ImageUtils {
         transform.rotate(
             Math.toRadians(90.0),
             image.height / 2f.toDouble(),
-            image.height / 2f.toDouble()
+            image.height / 2f.toDouble(),
         )
         val op = AffineTransformOp(transform, AffineTransformOp.TYPE_BILINEAR)
         rotatedImage = op.filter(image, rotatedImage)
         return rotatedImage
     }
 
-    private fun getScaledDimension(imgSize: Dimension, a4: Dimension): Dimension {
+    private fun getScaledDimension(
+        imgSize: Dimension,
+        a4: Dimension,
+    ): Dimension {
         val originalWidth = imgSize.width
         val originalHeight = imgSize.height
         val a4Width = a4.width
@@ -73,7 +78,10 @@ object ImageUtils {
         return Dimension(newWidth, newHeight)
     }
 
-    private fun scaleDown(origImage: BufferedImage, newDim: Dimension): BufferedImage {
+    private fun scaleDown(
+        origImage: BufferedImage,
+        newDim: Dimension,
+    ): BufferedImage {
         val newWidth = newDim.getWidth().toInt()
         val newHeight = newDim.getHeight().toInt()
         val tempImg = origImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH)
@@ -84,7 +92,10 @@ object ImageUtils {
         return scaledImg
     }
 
-    private fun toFile(img: BufferedImage, format: String): File {
+    private fun toFile(
+        img: BufferedImage,
+        format: String,
+    ): File {
         val tempFile = Files.createTempFile(null, null).toFile()
         ImageIO.write(img, format, tempFile)
         return tempFile

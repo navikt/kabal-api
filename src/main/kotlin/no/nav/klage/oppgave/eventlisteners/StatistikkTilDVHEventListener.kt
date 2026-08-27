@@ -7,8 +7,9 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 
 @Service
-class StatistikkTilDVHEventListener(private val statistikkTilDVHService: StatistikkTilDVHService) {
-
+class StatistikkTilDVHEventListener(
+    private val statistikkTilDVHService: StatistikkTilDVHService,
+) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -18,7 +19,7 @@ class StatistikkTilDVHEventListener(private val statistikkTilDVHService: Statist
     fun behandlingEndretEventToDVH(behandlingChangedEvent: BehandlingChangedEvent) {
         logger.debug(
             "Received BehandlingEndretEvent for behandlingId {} in StatistikkTilDVHEventListener",
-            behandlingChangedEvent.behandling.id
+            behandlingChangedEvent.behandling.id,
         )
         statistikkTilDVHService.process(behandlingChangedEvent)
         logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingChangedEvent.behandling.id)

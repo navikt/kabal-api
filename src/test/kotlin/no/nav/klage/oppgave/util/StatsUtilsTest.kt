@@ -4,7 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class StatsUtilsTest {
-
     @Test
     fun `median works when list size is even`() {
         val list = listOf(11, 5, 10, 1)
@@ -34,5 +33,4 @@ internal class StatsUtilsTest {
         val list = listOf(1)
         assertThat(getMedian(list)).isEqualTo(1.0)
     }
-
 }

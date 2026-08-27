@@ -6,5 +6,5 @@ import java.time.LocalDateTime
 @Embeddable
 data class MedunderskriverTildeling(
     val saksbehandlerident: String?,
-    val tidspunkt: LocalDateTime
+    val tidspunkt: LocalDateTime,
 )

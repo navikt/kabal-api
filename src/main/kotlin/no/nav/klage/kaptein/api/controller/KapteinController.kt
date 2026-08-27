@@ -21,21 +21,18 @@ import org.springframework.web.bind.annotation.RestController
 class KapteinController(
     private val kapteinService: KapteinService,
 ) {
-
     @ApiResponse(
-        responseCode = "200", description = "NDJSON stream",
+        responseCode = "200",
+        description = "NDJSON stream",
         content = [
             Content(
                 mediaType = MediaType.APPLICATION_NDJSON_VALUE,
-                schema = Schema(implementation = AnonymousBehandlingView::class)
-            )
-        ]
+                schema = Schema(implementation = AnonymousBehandlingView::class),
+            ),
+        ],
     )
     @GetMapping("/behandlinger-stream")
-    fun getBehandlingerStream(
-        httpServletResponse: HttpServletResponse,
-    ) {
+    fun getBehandlingerStream(httpServletResponse: HttpServletResponse) {
         kapteinService.writeBehandlingerStreamedToOutputStreamAsNDJson(httpServletResponse)
     }
-
 }

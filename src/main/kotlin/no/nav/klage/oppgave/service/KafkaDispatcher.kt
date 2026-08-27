@@ -15,34 +15,37 @@ class KafkaDispatcher(
     private val kafkaEventRepository: KafkaEventRepository,
     private val kafkaProducer: KafkaProducer,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
         private val teamLogger = getTeamLogger()
     }
 
-    @Value("\${DVH_STATISTIKK_TOPIC}")
+    @Value($$"${DVH_STATISTIKK_TOPIC}")
     lateinit var dvhTopic: String
 
-    @Value("\${VEDTAK_FATTET_TOPIC}")
+    @Value($$"${VEDTAK_FATTET_TOPIC}")
     lateinit var vedtakTopic: String
 
-    @Value("\${BEHANDLING_EVENTS_TOPIC}")
+    @Value($$"${BEHANDLING_EVENTS_TOPIC}")
     lateinit var behandlingEventTopic: String
 
-    @Value("\${MIN_SIDE_MICROFRONTEND_TOPIC}")
+    @Value($$"${MIN_SIDE_MICROFRONTEND_TOPIC}")
     lateinit var minSideMicrofrontendTopic: String
 
-    fun dispatchEventsToKafka(type: EventType, utsendingStatusList: List<UtsendingStatus>) {
+    fun dispatchEventsToKafka(
+        type: EventType,
+        utsendingStatusList: List<UtsendingStatus>,
+    ) {
         logger.debug("dispatchUnsentEventsToKafka for type: {}, and statuses: {}", type, utsendingStatusList)
-        kafkaEventRepository.getAllByStatusInAndTypeOrderByCreated(utsendingStatusList, type)
+        kafkaEventRepository
+            .getAllByStatusInAndTypeOrderByCreated(statuses = utsendingStatusList, type = type)
             .forEach { event ->
                 runCatching {
                     kafkaProducer.publishToKafkaTopic(
                         topic = type.toTopic(),
                         klagebehandlingId = event.behandlingId,
-                        json = event.jsonPayload
+                        json = event.jsonPayload,
                     )
                 }.onFailure {
                     event.status = UtsendingStatus.FEILET

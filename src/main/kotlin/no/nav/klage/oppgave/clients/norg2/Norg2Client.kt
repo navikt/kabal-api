@@ -12,8 +12,9 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 
 @Component
-class Norg2Client(private val norg2WebClient: WebClient) {
-
+class Norg2Client(
+    private val norg2WebClient: WebClient,
+) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -21,9 +22,10 @@ class Norg2Client(private val norg2WebClient: WebClient) {
 
     @Retryable
     @Cacheable(ENHET_CACHE)
-    fun fetchEnhet(enhetNr: String): Enhet {
-        return try {
-            norg2WebClient.get()
+    fun fetchEnhet(enhetNr: String): Enhet =
+        try {
+            norg2WebClient
+                .get()
                 .uri("/enhet/{enhetNr}", enhetNr)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError) { response ->
@@ -32,8 +34,7 @@ class Norg2Client(private val norg2WebClient: WebClient) {
                         functionName = ::fetchEnhet.name,
                         classLogger = logger,
                     )
-                }
-                .bodyToMono<EnhetResponse>()
+                }.bodyToMono<EnhetResponse>()
                 .block()
                 ?.asEnhet() ?: throw RuntimeException("No enhet returned for enhetNr $enhetNr")
         } catch (ex: Exception) {
@@ -41,24 +42,23 @@ class Norg2Client(private val norg2WebClient: WebClient) {
             logger.error(errorMessage, ex)
             throw RuntimeException(errorMessage, ex)
         }
-    }
 
     @Retryable
     @Cacheable(ENHETER_CACHE)
-    fun fetchEnheter(
-    ): List<Enhet> {
-        return try {
-            norg2WebClient.get()
+    fun fetchEnheter(): List<Enhet> =
+        try {
+            norg2WebClient
+                .get()
                 .uri { uriBuilder ->
                     uriBuilder
                         .path("/enhet")
                         .queryParam("enhetStatusListe", "AKTIV")
                         .queryParam("oppgavebehandlerFilter", "KUN_OPPGAVEBEHANDLERE")
                         .build()
-                }
-                .retrieve()
+                }.retrieve()
                 .bodyToMono<List<EnhetResponse>>()
-                .block()?.map {
+                .block()
+                ?.map {
                     it.asEnhet()
                 } ?: throw RuntimeException("No enhet list returned")
         } catch (ex: Exception) {
@@ -66,6 +66,4 @@ class Norg2Client(private val norg2WebClient: WebClient) {
             logger.error(errorMessage, ex)
             throw RuntimeException(errorMessage, ex)
         }
-    }
-
 }

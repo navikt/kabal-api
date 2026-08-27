@@ -14,8 +14,15 @@ import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.*
-import java.util.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
@@ -25,14 +32,13 @@ class BehandlingDokumentController(
     private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
     @Operation(
-        summary = "Hent metadata om dokumenter for brukeren som saken gjelder"
+        summary = "Hent metadata om dokumenter for brukeren som saken gjelder",
     )
     @GetMapping("/{behandlingId}/arkivertedokumenter", produces = ["application/json"])
     fun fetchDokumenter(
@@ -40,57 +46,62 @@ class BehandlingDokumentController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @RequestParam(required = false, name = "antall", defaultValue = "10") pageSize: Int,
         @RequestParam(required = false, name = "forrigeSide") previousPageRef: String? = null,
-        @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList()
-    ): DokumenterResponse {
-        return behandlingService.fetchDokumentlisteForBehandling(
+        @RequestParam(required = false, name = "temaer") temaer: List<String>? = emptyList(),
+    ): DokumenterResponse =
+        behandlingService.fetchDokumentlisteForBehandling(
             behandlingId = behandlingId,
             temaer = temaer?.map { Tema.of(it) } ?: emptyList(),
         )
-    }
 
     @PostMapping("/{id}/dokumenttilknytninger")
     fun setTilknyttetDokument(
         @PathVariable("id") behandlingId: UUID,
-        @RequestBody input: TilknyttetDokumentSet
+        @RequestBody input: TilknyttetDokumentSet,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::setTilknyttetDokument.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
-        )
-        val modified = behandlingService.connectDocumentsToBehandling(
+            methodName = ::setTilknyttetDokument.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             behandlingId = behandlingId,
-            journalfoertDokumentReferenceSet = if (input.journalpostId != null && input.dokumentInfoId != null) {
-                setOf(
-                    JournalfoertDokumentReference(
-                        journalpostId = input.journalpostId, dokumentInfoId = input.dokumentInfoId,
-                    )
-                )
-            } else input.journalfoertDokumentReferenceSet ?: throw Error("Trenger oppgitt dokumentreferanse"),
-            saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            systemUserContext = false,
-            ignoreCheckSkrivetilgang = false,
+            logger = logger,
         )
+        val modified =
+            behandlingService.connectDocumentsToBehandling(
+                behandlingId = behandlingId,
+                journalfoertDokumentReferenceSet =
+                    if (input.journalpostId != null && input.dokumentInfoId != null) {
+                        setOf(
+                            JournalfoertDokumentReference(
+                                journalpostId = input.journalpostId,
+                                dokumentInfoId = input.dokumentInfoId,
+                            ),
+                        )
+                    } else {
+                        input.journalfoertDokumentReferenceSet ?: throw Error("Trenger oppgitt dokumentreferanse")
+                    },
+                saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                systemUserContext = false,
+                ignoreCheckSkrivetilgang = false,
+            )
         return BehandlingEditedView(modified = modified)
     }
 
     @DeleteMapping("/{id}/dokumenttilknytninger")
     fun batchRemoveTilknyttetDokument(
         @PathVariable("id") behandlingId: UUID,
-        @RequestBody input: TilknyttetDokumentSet?
+        @RequestBody input: TilknyttetDokumentSet?,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::batchRemoveTilknyttetDokument.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
-        )
-        val modified = behandlingService.disconnectDokumenterFromBehandling(
+            methodName = ::batchRemoveTilknyttetDokument.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             behandlingId = behandlingId,
-            saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            journalfoertDokumentReferenceSet = input?.journalfoertDokumentReferenceSet
+            logger = logger,
         )
+        val modified =
+            behandlingService.disconnectDokumenterFromBehandling(
+                behandlingId = behandlingId,
+                saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                journalfoertDokumentReferenceSet = input?.journalfoertDokumentReferenceSet,
+            )
         return BehandlingEditedView(modified)
     }
 
@@ -98,20 +109,21 @@ class BehandlingDokumentController(
     fun removeTilknyttetDokument(
         @PathVariable("id") behandlingId: UUID,
         @PathVariable("journalpostId") journalpostId: String,
-        @PathVariable("dokumentInfoId") dokumentInfoId: String
+        @PathVariable("dokumentInfoId") dokumentInfoId: String,
     ): BehandlingEditedView {
         logBehandlingMethodDetails(
-            ::removeTilknyttetDokument.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
-        )
-        val modified = behandlingService.disconnectDokumentFromBehandling(
+            methodName = ::removeTilknyttetDokument.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
             behandlingId = behandlingId,
-            journalpostId = journalpostId,
-            dokumentInfoId = dokumentInfoId,
-            saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            logger = logger,
         )
+        val modified =
+            behandlingService.disconnectDokumentFromBehandling(
+                behandlingId = behandlingId,
+                journalpostId = journalpostId,
+                dokumentInfoId = dokumentInfoId,
+                saksbehandlerIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            )
         return BehandlingEditedView(modified)
     }
 }

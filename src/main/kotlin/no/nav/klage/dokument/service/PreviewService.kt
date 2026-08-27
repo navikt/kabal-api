@@ -18,23 +18,24 @@ class PreviewService(
     private val partSearchService: PartSearchService,
     private val kabalJsonToPdfService: KabalJsonToPdfService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getSvarbrevPreviewPDF(
-        input: PreviewSvarbrevInput
-    ): ByteArray {
+    fun getSvarbrevPreviewPDF(input: PreviewSvarbrevInput): ByteArray {
         if (Type.of(input.typeId) !in listOf(Type.KLAGE, Type.ANKE, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
-            throw SvarbrevPreviewException("Forhåndsvisning av svarbrev er bare tilgjengelig for klage, anke, omgjøringskrav og begjæring om gjenopptak.")
+            throw SvarbrevPreviewException(
+                "Forhåndsvisning av svarbrev er bare tilgjengelig for klage, anke, omgjøringskrav og begjæring om gjenopptak.",
+            )
         }
 
-        val sakenGjelderName = partSearchService.searchPart(
-            identifikator = input.sakenGjelder,
-            systemUserContext = true
-        ).name
+        val sakenGjelderName =
+            partSearchService
+                .searchPart(
+                    identifikator = input.sakenGjelder,
+                    systemUserContext = true,
+                ).name
 
         return kabalJsonToPdfService.getSvarbrevPDF(
             svarbrev = input.toSvarbrev(),
@@ -43,23 +44,25 @@ class PreviewService(
             sakenGjelderName = sakenGjelderName,
             ytelse = Ytelse.of(input.ytelseId),
             klagerIdentifikator = input.klager ?: input.sakenGjelder,
-            klagerName = if (input.klager != null) {
-                partSearchService.searchPart(
-                    identifikator = input.klager,
-                    systemUserContext = true
-                ).name
-            } else {
-                sakenGjelderName
-            },
+            klagerName =
+                if (input.klager != null) {
+                    partSearchService
+                        .searchPart(
+                            identifikator = input.klager,
+                            systemUserContext = true,
+                        ).name
+                } else {
+                    sakenGjelderName
+                },
             avsenderEnhetId = Enhet.E4291.navn,
         )
     }
 
-    fun getAnonymousSvarbrevPreviewPDF(
-        input: PreviewSvarbrevAnonymousInput
-    ): ByteArray {
+    fun getAnonymousSvarbrevPreviewPDF(input: PreviewSvarbrevAnonymousInput): ByteArray {
         if (Type.of(input.typeId) !in listOf(Type.KLAGE, Type.ANKE, Type.OMGJOERINGSKRAV, Type.BEGJAERING_OM_GJENOPPTAK)) {
-            throw SvarbrevPreviewException("Forhåndsvisning av svarbrev er bare tilgjengelig for klage, anke, omgjøringskrav og begjæring om gjenopptak.")
+            throw SvarbrevPreviewException(
+                "Forhåndsvisning av svarbrev er bare tilgjengelig for klage, anke, omgjøringskrav og begjæring om gjenopptak.",
+            )
         }
 
         val mockName = "Navn Navnesen"
@@ -77,46 +80,45 @@ class PreviewService(
         )
     }
 
-    private fun PreviewSvarbrevAnonymousInput.toSvarbrev(): Svarbrev {
-        return Svarbrev(
+    private fun PreviewSvarbrevAnonymousInput.toSvarbrev(): Svarbrev =
+        Svarbrev(
             title = "Klageinstans orienterer om saksbehandlingen",
             receivers = listOf(),
             fullmektigFritekst = null,
             varsletBehandlingstidUnits = behandlingstidUnits,
-            varsletBehandlingstidUnitType = getTimeUnitType(
-                varsletBehandlingstidUnitTypeId = behandlingstidUnitTypeId,
-                varsletBehandlingstidUnitType = behandlingstidUnitType
-            ),
+            varsletBehandlingstidUnitType =
+                getTimeUnitType(
+                    varsletBehandlingstidUnitTypeId = behandlingstidUnitTypeId,
+                    varsletBehandlingstidUnitType = behandlingstidUnitType,
+                ),
             type = Type.of(typeId),
             initialCustomText = initialCustomText,
             customText = customText,
         )
-    }
 
-    private fun PreviewSvarbrevInput.toSvarbrev(): Svarbrev {
-        return Svarbrev(
+    private fun PreviewSvarbrevInput.toSvarbrev(): Svarbrev =
+        Svarbrev(
             title = title,
             receivers = listOf(),
             fullmektigFritekst = fullmektigFritekst,
             varsletBehandlingstidUnits = varsletBehandlingstidUnits,
-            varsletBehandlingstidUnitType = getTimeUnitType(
-                varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitTypeId,
-                varsletBehandlingstidUnitType = varsletBehandlingstidUnitType
-            ),
+            varsletBehandlingstidUnitType =
+                getTimeUnitType(
+                    varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitTypeId,
+                    varsletBehandlingstidUnitType = varsletBehandlingstidUnitType,
+                ),
             type = Type.of(typeId),
             initialCustomText = initialCustomText,
-            customText = customText
+            customText = customText,
         )
-    }
 
     private fun getTimeUnitType(
         varsletBehandlingstidUnitTypeId: String?,
-        varsletBehandlingstidUnitType: TimeUnitType?
-    ): TimeUnitType {
-        return if (varsletBehandlingstidUnitTypeId != null) {
+        varsletBehandlingstidUnitType: TimeUnitType?,
+    ): TimeUnitType =
+        if (varsletBehandlingstidUnitTypeId != null) {
             TimeUnitType.of(varsletBehandlingstidUnitTypeId)
         } else {
             varsletBehandlingstidUnitType!!
         }
-    }
 }

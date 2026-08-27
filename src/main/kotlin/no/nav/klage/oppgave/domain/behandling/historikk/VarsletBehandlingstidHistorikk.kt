@@ -1,12 +1,20 @@
 package no.nav.klage.oppgave.domain.behandling.historikk
 
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Embedded
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import no.nav.klage.oppgave.domain.behandling.embedded.VarsletBehandlingstid
 import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.Fetch
 import org.hibernate.annotations.FetchMode
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "varslet_behandlingstid_historikk", schema = "klage")
@@ -36,11 +44,8 @@ class VarsletBehandlingstidHistorikk(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "VarsletBehandlingstidHistorikk(id=$id, mottakerList=$mottakerList, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn, varsletBehandlingstid=$varsletBehandlingstid)"
-    }
+    override fun toString(): String =
+        "VarsletBehandlingstidHistorikk(id=$id, mottakerList=$mottakerList, tidspunkt=$tidspunkt, utfoerendeIdent=$utfoerendeIdent, utfoerendeNavn=$utfoerendeNavn, varsletBehandlingstid=$varsletBehandlingstid)"
 }

@@ -19,7 +19,6 @@ class SendBehandlingEndretToKafkaEventListener(
     private val behandlingRepository: BehandlingRepository,
     private val kapteinService: KapteinService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -31,13 +30,13 @@ class SendBehandlingEndretToKafkaEventListener(
     fun indexKlagebehandling(behandlingChangedEvent: BehandlingChangedEvent) {
         logger.debug("Received BehandlingEndretEvent for behandlingId {}", behandlingChangedEvent.behandling.id)
 
-        //Ignore events where only saksdokumenter have changed, as this is not relevant for Kaptein or kabal-search,
-        //and would cause too many events to be sent when documents are added or removed.
+        // Ignore events where only saksdokumenter have changed, as this is not relevant for Kaptein or kabal-search,
+        // and would cause too many events to be sent when documents are added or removed.
         if (behandlingChangedEvent.changeList.size == 1 && behandlingChangedEvent.changeList.first().felt == Felt.SAKSDOKUMENT) {
             return
         }
 
-        //Full fetch to make sure all collections are loaded
+        // Full fetch to make sure all collections are loaded
         val behandling = behandlingRepository.findByIdEager(behandlingChangedEvent.behandling.id)
 
         try {

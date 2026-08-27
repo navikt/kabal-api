@@ -56,7 +56,7 @@ data class AvsluttGosysOppgaveRequest(
     val kommentar: Kommentar,
 ) : UpdateOppgaveRequest(versjon = versjon, endretAvEnhetsnr = endretAvEnhetsnr)
 
-//V2
+// V2
 
 abstract class UpdateOppgaveRequestV2
 

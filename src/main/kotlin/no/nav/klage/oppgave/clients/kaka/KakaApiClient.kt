@@ -13,7 +13,7 @@ import org.springframework.resilience.annotation.Retryable
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import java.util.*
+import java.util.UUID
 
 @Component
 class KakaApiClient(
@@ -28,13 +28,13 @@ class KakaApiClient(
     @Retryable
     fun createKvalitetsvurdering(kvalitetsvurderingVersion: Int): KakaOutput {
         logger.debug("Creating kvalitetsvurdering i kaka")
-        return kakaApiWebClient.post()
+        return kakaApiWebClient
+            .post()
             .uri { it.path("/kabal/kvalitetsvurderinger/v$kvalitetsvurderingVersion").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKakaApiScope()}"
-            )
-            .contentType(MediaType.APPLICATION_JSON)
+                "Bearer ${tokenUtil.getAppAccessTokenWithKakaApiScope()}",
+            ).contentType(MediaType.APPLICATION_JSON)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
@@ -42,20 +42,22 @@ class KakaApiClient(
                     functionName = ::createKvalitetsvurdering.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<KakaOutput>()
+            }.bodyToMono<KakaOutput>()
             .block() ?: throw RuntimeException("Kvalitetsvurdering could not be created")
     }
 
     @Retryable
-    fun finalizeBehandling(saksdataInput: SaksdataInput, kvalitetsvurderingVersion: Int) {
-        kakaApiWebClient.post()
+    fun finalizeBehandling(
+        saksdataInput: SaksdataInput,
+        kvalitetsvurderingVersion: Int,
+    ) {
+        kakaApiWebClient
+            .post()
             .uri { it.path("/kabal/saksdata/v$kvalitetsvurderingVersion").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKakaApiScope()}"
-            )
-            .contentType(MediaType.APPLICATION_JSON)
+                "Bearer ${tokenUtil.getAppAccessTokenWithKakaApiScope()}",
+            ).contentType(MediaType.APPLICATION_JSON)
             .bodyValue(saksdataInput)
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
@@ -64,28 +66,29 @@ class KakaApiClient(
                     functionName = ::finalizeBehandling.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Void>()
+            }.bodyToMono<Void>()
             .block()
     }
 
     @Retryable
-    fun deleteKvalitetsvurdering(kvalitetsvurderingId: UUID, kvalitetsvurderingVersion: Int) {
-        kakaApiWebClient.delete()
+    fun deleteKvalitetsvurdering(
+        kvalitetsvurderingId: UUID,
+        kvalitetsvurderingVersion: Int,
+    ) {
+        kakaApiWebClient
+            .delete()
             .uri { it.path("/kabal/kvalitetsvurderinger/v$kvalitetsvurderingVersion/$kvalitetsvurderingId").build() }
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getAppAccessTokenWithKakaApiScope()}"
-            )
-            .retrieve()
+                "Bearer ${tokenUtil.getAppAccessTokenWithKakaApiScope()}",
+            ).retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
                     functionName = ::deleteKvalitetsvurdering.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<Void>()
+            }.bodyToMono<Void>()
             .block()
     }
 
@@ -94,29 +97,28 @@ class KakaApiClient(
         kvalitetsvurderingId: UUID,
         ytelseId: String,
         typeId: String,
-        kvalitetsvurderingVersion: Int
+        kvalitetsvurderingVersion: Int,
     ): ValidationErrors {
         logger.debug("Getting validation errors from kaka-api")
-        return kakaApiWebClient.get()
+        return kakaApiWebClient
+            .get()
             .uri {
-                it.path("/kabal/kvalitetsvurderinger/v$kvalitetsvurderingVersion/{kvalitetsvurderingId}/validationerrors")
+                it
+                    .path("/kabal/kvalitetsvurderinger/v$kvalitetsvurderingVersion/{kvalitetsvurderingId}/validationerrors")
                     .queryParam("ytelseId", ytelseId)
                     .queryParam("typeId", typeId)
                     .build(kvalitetsvurderingId)
-            }
-            .header(
+            }.header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKakaApiScope()}"
-            )
-            .retrieve()
+                "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKakaApiScope()}",
+            ).retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
                     functionName = ::getValidationErrors.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<ValidationErrors>()
+            }.bodyToMono<ValidationErrors>()
             .block() ?: throw RuntimeException("Validation errors could not be retrieved")
     }
 }

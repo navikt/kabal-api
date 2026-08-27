@@ -4,5 +4,5 @@ import java.time.LocalDateTime
 
 data class BehandlingFullfoertView(
     val modified: LocalDateTime,
-    val isAvsluttetAvSaksbehandler: Boolean
+    val isAvsluttetAvSaksbehandler: Boolean,
 )

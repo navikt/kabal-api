@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.stereotype.Service
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import java.util.*
+import java.util.UUID
 
 @Service
 class BehandlingEndretKafkaProducer(
@@ -35,21 +35,31 @@ class BehandlingEndretKafkaProducer(
     fun sendBehandlingEndret(behandling: Behandling) {
         logger.debug("Sending to Kafka topic: {}", topicV2)
 
-        val persongalleriFnrList = sakPersongalleriRepository.findByFagsystemAndFagsakId(
-            fagsystem = behandling.fagsystem,
-            fagsakId = behandling.fagsakId,
-        ).map { it.foedselsnummer }
+        val persongalleriFnrList =
+            sakPersongalleriRepository
+                .findByFagsystemAndFagsakId(
+                    fagsystem = behandling.fagsystem,
+                    fagsakId = behandling.fagsakId,
+                ).map { it.foedselsnummer }
 
         val allFnr = (persongalleriFnrList + behandling.sakenGjelder.partId.value).distinct()
 
-        val protections = allFnr.mapNotNull { fnr ->
-            personProtectionRepository.findByFoedselsnummer(fnr).also {
-                if (it == null) {
-                    logger.error("PersonProtection not found for a person in behandling {}. Giving wrong information to kabal-search. See more in team-logs", behandling.id)
-                    teamLogger.error("PersonProtection not found for a person in behandling {}. Giving wrong information to kabal-search. Fnr {}", behandling.id, fnr)
+        val protections =
+            allFnr.mapNotNull { fnr ->
+                personProtectionRepository.findByFoedselsnummer(fnr).also {
+                    if (it == null) {
+                        logger.error(
+                            "PersonProtection not found for a person in behandling {}. Giving wrong information to kabal-search. See more in team-logs",
+                            behandling.id,
+                        )
+                        teamLogger.error(
+                            "PersonProtection not found for a person in behandling {}. Giving wrong information to kabal-search. Fnr {}",
+                            behandling.id,
+                            fnr,
+                        )
+                    }
                 }
             }
-        }
 
         val erStrengtFortrolig = protections.any { it.strengtFortrolig }
         val erFortrolig = protections.any { it.fortrolig }
@@ -65,25 +75,30 @@ class BehandlingEndretKafkaProducer(
                 }
             }
 
-        val json = behandling.mapToSkjemaV2(
-            erStrengtFortrolig = erStrengtFortrolig,
-            erFortrolig = erFortrolig,
-            erEgenAnsatt = erEgenAnsatt,
-            medunderskriverEnhet = medunderskriverEnhet,
-        ).toJson()
+        val json =
+            behandling
+                .mapToSkjemaV2(
+                    erStrengtFortrolig = erStrengtFortrolig,
+                    erFortrolig = erFortrolig,
+                    erEgenAnsatt = erEgenAnsatt,
+                    medunderskriverEnhet = medunderskriverEnhet,
+                ).toJson()
 
         runCatching {
-            aivenKafkaTemplate.send(
-                topicV2,
-                behandling.id.toString(),
-                json
-            ).get()
+            aivenKafkaTemplate
+                .send(
+                    topicV2,
+                    behandling.id.toString(),
+                    json,
+                ).get()
             logger.debug("${behandling.type.navn} endret sent to Kafka.")
         }.onFailure {
-            logger.error("Could not send ${behandling.type.navn} endret to Kafka. Need to resend behandling ${behandling.id}. Check team-logs for more details.")
+            logger.error(
+                "Could not send ${behandling.type.navn} endret to Kafka. Need to resend behandling ${behandling.id}. Check team-logs for more details.",
+            )
             teamLogger.error(
                 "Could not send behandling ${behandling.id} endret to Kafka. Need to resend behandling ${behandling.id}",
-                it
+                it,
             )
         }
     }
@@ -94,7 +109,9 @@ class BehandlingEndretKafkaProducer(
             aivenKafkaTemplate.send(topicV2, behandlingId.toString(), null).get()
             logger.debug("Behandling deleted sent to Kafka.")
         }.onFailure {
-            logger.error("Could not send klage deleted to Kafka. Need to resend behandling $behandlingId. Check team-logs for more details.")
+            logger.error(
+                "Could not send klage deleted to Kafka. Need to resend behandling $behandlingId. Check team-logs for more details.",
+            )
             teamLogger.error("Could not send klage deleted to Kafka. Need to resend behandling $behandlingId", it)
         }
     }

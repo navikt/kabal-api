@@ -1,6 +1,13 @@
 package no.nav.klage.oppgave.domain.svarbrevsettings
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.Table
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.TimeUnitTypeConverter
 import no.nav.klage.kodeverk.Type
@@ -8,7 +15,7 @@ import no.nav.klage.kodeverk.TypeConverter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.kodeverk.ytelse.YtelseConverter
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "svarbrev_settings_history", schema = "klage")
@@ -36,7 +43,7 @@ class SvarbrevSettingsHistory(
     val type: Type,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "svarbrev_settings_id", nullable = false)
-    val svarbrevSettings: SvarbrevSettings
+    val svarbrevSettings: SvarbrevSettings,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -47,11 +54,8 @@ class SvarbrevSettingsHistory(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "SvarbrevSettingsHistory(id=$id, ytelse=$ytelse, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, customText=$customText, created=$created, createdBy='$createdBy', shouldSend=$shouldSend, type=$type)"
-    }
+    override fun toString(): String =
+        "SvarbrevSettingsHistory(id=$id, ytelse=$ytelse, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, customText=$customText, created=$created, createdBy='$createdBy', shouldSend=$shouldSend, type=$type)"
 }

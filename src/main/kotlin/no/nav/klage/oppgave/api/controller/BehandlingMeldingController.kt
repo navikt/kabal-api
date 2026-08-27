@@ -13,8 +13,14 @@ import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.*
-import java.util.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
@@ -25,7 +31,6 @@ class BehandlingMeldingController(
     private val meldingService: MeldingService,
     private val behandlingService: BehandlingService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -33,20 +38,20 @@ class BehandlingMeldingController(
 
     @Operation(
         summary = "Legg til ny melding til behandling",
-        description = "Legger inn ny melding på en behandling"
+        description = "Legger inn ny melding på en behandling",
     )
     @PostMapping("/{behandlingId}/meldinger")
     @ResponseStatus(HttpStatus.CREATED)
     fun addMelding(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: MeldingInput
+        @RequestBody input: MeldingInput,
     ): MeldingView {
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         logBehandlingMethodDetails(
-            ::addMelding.name,
-            innloggetIdent,
-            behandlingId,
-            logger
+            methodName = ::addMelding.name,
+            innloggetIdent = innloggetIdent,
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         validateAccessToBehandling(behandlingId)
@@ -61,18 +66,18 @@ class BehandlingMeldingController(
 
     @Operation(
         summary = "Hent alle meldinger på en behandling",
-        description = "Henter alle meldinger på en behandling. Sist først."
+        description = "Henter alle meldinger på en behandling. Sist først.",
     )
     @GetMapping("/{behandlingId}/meldinger")
     fun getMeldinger(
-        @PathVariable("behandlingId") behandlingId: UUID
+        @PathVariable("behandlingId") behandlingId: UUID,
     ): List<MeldingView> {
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         logBehandlingMethodDetails(
-            ::getMeldinger.name,
-            innloggetIdent,
-            behandlingId,
-            logger
+            methodName = ::getMeldinger.name,
+            innloggetIdent = innloggetIdent,
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         validateAccessToBehandling(behandlingId)
@@ -82,7 +87,7 @@ class BehandlingMeldingController(
 
     @Operation(
         summary = "Skru på varsel for melding",
-        description = "Skru på varsel for melding"
+        description = "Skru på varsel for melding",
     )
     @PostMapping("/{behandlingId}/meldinger/{meldingId}/notify")
     fun notifyMelding(
@@ -91,10 +96,10 @@ class BehandlingMeldingController(
     ): MeldingModified {
         val innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
         logBehandlingMethodDetails(
-            ::notifyMelding.name,
-            innloggetIdent,
-            behandlingId,
-            logger
+            methodName = ::notifyMelding.name,
+            innloggetIdent = innloggetIdent,
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         validateAccessToBehandling(behandlingId)
@@ -109,5 +114,4 @@ class BehandlingMeldingController(
     private fun validateAccessToBehandling(behandlingId: UUID) {
         behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId)
     }
-
 }

@@ -11,14 +11,13 @@ data class Svarbrev(
     val varsletBehandlingstidUnitType: TimeUnitType,
     val type: Type,
     val initialCustomText: String?,
-    val customText: String?
+    val customText: String?,
 ) {
-
     data class Receiver(
         val identifikator: String?,
         val handling: HandlingEnum,
         val overriddenAddress: AddressInput?,
-        val navn: String?
+        val navn: String?,
     ) {
         data class AddressInput(
             val adresselinje1: String?,
@@ -31,7 +30,7 @@ data class Svarbrev(
         enum class HandlingEnum {
             AUTO,
             LOCAL_PRINT,
-            CENTRAL_PRINT
+            CENTRAL_PRINT,
         }
     }
 }

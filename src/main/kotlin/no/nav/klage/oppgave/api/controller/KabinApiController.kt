@@ -3,7 +3,20 @@ package no.nav.klage.oppgave.api.controller
 import io.swagger.v3.oas.annotations.tags.Tag
 import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.Type
-import no.nav.klage.oppgave.api.view.kabin.*
+import no.nav.klage.oppgave.api.view.kabin.BehandlingIsDuplicateInput
+import no.nav.klage.oppgave.api.view.kabin.BehandlingIsDuplicateResponse
+import no.nav.klage.oppgave.api.view.kabin.CompletedBehandling
+import no.nav.klage.oppgave.api.view.kabin.CreateAnkeBasedOnCompleteKabinInput
+import no.nav.klage.oppgave.api.view.kabin.CreateBehandlingBasedOnJournalpostInput
+import no.nav.klage.oppgave.api.view.kabin.CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling
+import no.nav.klage.oppgave.api.view.kabin.CreateKlageBasedOnKabinInput
+import no.nav.klage.oppgave.api.view.kabin.CreatedBehandlingResponse
+import no.nav.klage.oppgave.api.view.kabin.CreatedBehandlingStatusForKabin
+import no.nav.klage.oppgave.api.view.kabin.GetAnkemuligheterFromInfotrygdSakInput
+import no.nav.klage.oppgave.api.view.kabin.GetCompletedBehandlingerInput
+import no.nav.klage.oppgave.api.view.kabin.GosysOppgaveIsDuplicateInput
+import no.nav.klage.oppgave.api.view.kabin.Mulighet
+import no.nav.klage.oppgave.api.view.kabin.SearchUsedJournalpostIdInput
 import no.nav.klage.oppgave.config.SecurityConfiguration.Companion.ISSUER_AAD
 import no.nav.klage.oppgave.service.BehandlingService
 import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
@@ -12,8 +25,13 @@ import no.nav.klage.oppgave.service.MottakService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.*
-import java.util.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
@@ -23,9 +41,8 @@ class KabinApiController(
     private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val mottakService: MottakService,
-    private val kabinApiService: KabinApiService
+    private val kabinApiService: KabinApiService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -33,44 +50,45 @@ class KabinApiController(
 
     @PostMapping(value = ["/checkbehandlingisduplicate"])
     fun checkBehandlingIsDuplicate(
-        @RequestBody input: BehandlingIsDuplicateInput
+        @RequestBody input: BehandlingIsDuplicateInput,
     ): BehandlingIsDuplicateResponse {
         logMethodDetails(
             methodName = ::checkBehandlingIsDuplicate.name,
             innloggetIdent = "N/A",
-            logger = logger
+            logger = logger,
         )
         return mottakService.behandlingIsDuplicate(
             fagsystem = Fagsystem.of(input.fagsystemId),
             kildeReferanse = input.kildereferanse,
-            type = Type.of(input.typeId)
+            type = Type.of(input.typeId),
         )
     }
 
     @PostMapping(value = ["/isduplicate", "/behandlingisduplicate"])
     fun behandlingIsDuplicate(
-        @RequestBody input: BehandlingIsDuplicateInput
+        @RequestBody input: BehandlingIsDuplicateInput,
     ): Boolean {
         logMethodDetails(
             methodName = ::behandlingIsDuplicate.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
-        return mottakService.behandlingIsDuplicate(
-            fagsystem = Fagsystem.of(input.fagsystemId),
-            kildeReferanse = input.kildereferanse,
-            type = Type.of(input.typeId)
-        ).duplicate
+        return mottakService
+            .behandlingIsDuplicate(
+                fagsystem = Fagsystem.of(input.fagsystemId),
+                kildeReferanse = input.kildereferanse,
+                type = Type.of(input.typeId),
+            ).duplicate
     }
 
     @PostMapping("/oppgaveisduplicate")
     fun gosysOppgaveIsDuplicate(
-        @RequestBody input: GosysOppgaveIsDuplicateInput
+        @RequestBody input: GosysOppgaveIsDuplicateInput,
     ): Boolean {
         logMethodDetails(
             methodName = ::gosysOppgaveIsDuplicate.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
         return behandlingService.gosysOppgaveIsDuplicate(
             gosysOppgaveId = input.gosysOppgaveId,
@@ -79,12 +97,12 @@ class KabinApiController(
 
     @PostMapping("/ankemuligheter")
     fun getAnkemuligheter(
-        @RequestBody input: GetCompletedBehandlingerInput
+        @RequestBody input: GetCompletedBehandlingerInput,
     ): List<Mulighet> {
         logMethodDetails(
             methodName = ::getAnkemuligheter.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
 
         return kabinApiService.getAnkemuligheter(partIdValue = input.idnummer)
@@ -92,12 +110,12 @@ class KabinApiController(
 
     @PostMapping("/kabal-muligheter-from-infotrygd-sak")
     fun getAnkemuligheterFromInfotrygdSak(
-        @RequestBody input: GetAnkemuligheterFromInfotrygdSakInput
+        @RequestBody input: GetAnkemuligheterFromInfotrygdSakInput,
     ): List<Mulighet> {
         logMethodDetails(
             methodName = ::getAnkemuligheterFromInfotrygdSak.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
 
         return kabinApiService.getAnkemuligheterFromInfotrygdSak(infotrygdSakId = input.infotrygdSakId)
@@ -105,12 +123,12 @@ class KabinApiController(
 
     @PostMapping("/omgjoeringskravmuligheter")
     fun getOmgjoeringskravmuligheter(
-        @RequestBody input: GetCompletedBehandlingerInput
+        @RequestBody input: GetCompletedBehandlingerInput,
     ): List<Mulighet> {
         logMethodDetails(
             methodName = ::getOmgjoeringskravmuligheter.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
 
         return kabinApiService.getOmgjoeringskravmuligheter(partIdValue = input.idnummer)
@@ -118,12 +136,12 @@ class KabinApiController(
 
     @PostMapping("/gjenopptaksmuligheter")
     fun getGjenopptaksmuligheter(
-        @RequestBody input: GetCompletedBehandlingerInput
+        @RequestBody input: GetCompletedBehandlingerInput,
     ): List<Mulighet> {
         logMethodDetails(
             methodName = ::getGjenopptaksmuligheter.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
 
         return kabinApiService.getGjenopptaksmuligheter(partIdValue = input.idnummer)
@@ -131,76 +149,76 @@ class KabinApiController(
 
     @GetMapping("/completedbehandlinger/{behandlingId}")
     fun getCompletedBehandling(
-        @PathVariable behandlingId: UUID
+        @PathVariable behandlingId: UUID,
     ): CompletedBehandling {
         logMethodDetails(
             methodName = ::getCompletedBehandling.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
 
         return behandlingService.findCompletedBehandlingById(
-            behandlingId = behandlingId
+            behandlingId = behandlingId,
         )
     }
 
     @PostMapping("/createbehandling")
     fun createBehandlingFromPreviousKabalBehandling(
-        @RequestBody input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling
+        @RequestBody input: CreateBehandlingBasedOnKabinInputWithPreviousKabalBehandling,
     ): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createBehandlingFromPreviousKabalBehandling.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
 
         return kabinApiService.createBehandlingFromPreviousKabalBehandling(
-            input = input
+            input = input,
         )
     }
 
     @PostMapping("/createklage")
     fun createKlage(
-        @RequestBody input: CreateKlageBasedOnKabinInput
+        @RequestBody input: CreateKlageBasedOnKabinInput,
     ): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createKlage.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
 
         return kabinApiService.createKlage(
-            input = input
+            input = input,
         )
     }
 
     @PostMapping("/createankefromcompleteinput")
     fun createAnkeFromCompleteInput(
-        @RequestBody input: CreateAnkeBasedOnCompleteKabinInput
+        @RequestBody input: CreateAnkeBasedOnCompleteKabinInput,
     ): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createAnkeFromCompleteInput.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
 
         return kabinApiService.createAnkeFromCompleteKabinInput(
-            input = input
+            input = input,
         )
     }
 
     @PostMapping("/create-behandling-based-on-journalpost")
     fun createBehandlingBasedOnJournalpost(
-        @RequestBody input: CreateBehandlingBasedOnJournalpostInput
+        @RequestBody input: CreateBehandlingBasedOnJournalpostInput,
     ): CreatedBehandlingResponse {
         logMethodDetails(
             methodName = ::createBehandlingBasedOnJournalpost.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
 
         return kabinApiService.createBehandlingBasedOnJournalpost(
-            input = input
+            input = input,
         )
     }
 
@@ -211,27 +229,26 @@ class KabinApiController(
         logMethodDetails(
             methodName = ::getUsedJournalpostIdListForPerson.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
 
         return mottakService.getUsedJournalpostIdList(
-            sakenGjelder = input.fnr
+            sakenGjelder = input.fnr,
         )
     }
 
     @GetMapping("/behandlinger/{behandlingId}/status")
     fun getCreatedBehandlingStatus(
-        @PathVariable behandlingId: UUID
+        @PathVariable behandlingId: UUID,
     ): CreatedBehandlingStatusForKabin {
         logMethodDetails(
             methodName = ::CreatedBehandlingStatusForKabin.name,
             innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger = logger
+            logger = logger,
         )
 
         return kabinApiService.getCreatedBehandlingStatus(
-            behandlingId = behandlingId
+            behandlingId = behandlingId,
         )
     }
 }
-

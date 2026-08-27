@@ -12,15 +12,14 @@ import java.nio.file.Files
 fun getResourceThatWillBeDeleted(resource: Resource): Resource {
     if (resource is FileSystemResource) {
         return object : FileSystemResource(resource.path) {
-            override fun getInputStream(): InputStream {
-                return object : FileInputStream(resource.file) {
+            override fun getInputStream(): InputStream =
+                object : FileInputStream(resource.file) {
                     override fun close() {
                         super.close()
-                        //Override to do this after client has downloaded file
+                        // Override to do this after client has downloaded file
                         Files.delete(file.toPath())
                     }
                 }
-            }
         }
     } else {
         return resource

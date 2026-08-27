@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class Norg2ClientTest {
-
     @Test
     fun `json parsed correctly`() {
         val client = Norg2Client(createShortCircuitWebClient(okResponse))
@@ -16,7 +15,8 @@ class Norg2ClientTest {
     }
 
     @Language("json")
-    private val okResponse = """
+    private val okResponse =
+        """
         {
           "aktiveringsdato": "2018-01-01",
           "antallRessurser": 10,
@@ -36,5 +36,5 @@ class Norg2ClientTest {
           "underEtableringDato": "2018-01-01",
           "versjon": 1
         }
-    """.trimIndent()
+        """.trimIndent()
 }

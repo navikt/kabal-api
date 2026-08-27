@@ -18,5 +18,5 @@ data class LogiskVedleggPayload(
 )
 
 data class AddLogiskVedleggResponse(
-    val logiskVedleggId: String
+    val logiskVedleggId: String,
 )

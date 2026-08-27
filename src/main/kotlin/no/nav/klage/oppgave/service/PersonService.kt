@@ -19,17 +19,11 @@ class PersonService(
     /**
      * Caller must perform appropriate access checks before calling this method
      */
-    fun getPerson(fnr: String): Person {
-        return klageLookupGateway.getPerson(fnr = fnr)
-    }
+    fun getPerson(fnr: String): Person = klageLookupGateway.getPerson(fnr = fnr)
 
-    fun getFoedselsnummerFromIdent(ident: String): String {
-        return klageLookupGateway.getFoedselsnummerFromIdent(ident = ident)
-    }
+    fun getFoedselsnummerFromIdent(ident: String): String = klageLookupGateway.getFoedselsnummerFromIdent(ident = ident)
 
-    fun getAktoerIdFromIdent(ident: String): String {
-        return klageLookupGateway.getAktoerIdFromIdent(ident = ident)
-    }
+    fun getAktoerIdFromIdent(ident: String): String = klageLookupGateway.getAktoerIdFromIdent(ident = ident)
 
     fun personExists(fnr: String): Boolean {
         try {

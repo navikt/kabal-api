@@ -5,28 +5,29 @@ import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class V193__dvh_pesys_fix_migrated_anke_i_tr : BaseJavaMigration() {
     override fun migrate(context: Context) {
-        val preparedStatement = context.connection.prepareStatement(
-            """
+        val preparedStatement =
+            context.connection.prepareStatement(
+                """
                 update klage.kafka_event
                     set json_payload = ?, status_id = ?
                     where id = ?
-            """.trimIndent()
-        )
+                """.trimIndent(),
+            )
 
         context.connection.createStatement().use { select ->
-            select.executeQuery(
-                """
+            select
+                .executeQuery(
+                    """
                     select ke.id, ke.json_payload
                     from klage.kafka_event ke
                     where ke.type = 'STATS_DVH'
                       and ke.behandling_id = 'f49cf467-7cd5-4db0-b8ad-8ce9181ce814'
-                    """
-            )
-                .use { rows ->
+                    """,
+                ).use { rows ->
                     while (rows.next()) {
                         val kafkaEventId = rows.getObject(1, UUID::class.java)
                         val jsonPayload = rows.getString(2)
@@ -34,18 +35,18 @@ class V193__dvh_pesys_fix_migrated_anke_i_tr : BaseJavaMigration() {
                         val statistikkTilDVH =
                             jacksonObjectMapper().readValue(jsonPayload, StatistikkTilDVH::class.java)
 
-                        val modifiedVersion = when (statistikkTilDVH.behandlingId) {
-                            "36263910" -> statistikkTilDVH.copy(behandlingId = "48270708", tekniskTid = LocalDateTime.now())
-                            else -> throw RuntimeException("Unknown behandlingId: ${statistikkTilDVH.behandlingId}")
-                        }
+                        val modifiedVersion =
+                            when (statistikkTilDVH.behandlingId) {
+                                "36263910" -> statistikkTilDVH.copy(behandlingId = "48270708", tekniskTid = LocalDateTime.now())
+                                else -> throw RuntimeException("Unknown behandlingId: ${statistikkTilDVH.behandlingId}")
+                            }
 
                         preparedStatement.setString(1, jacksonObjectMapper().writeValueAsString(modifiedVersion))
-                        preparedStatement.setObject(2,"IKKE_SENDT")
+                        preparedStatement.setObject(2, "IKKE_SENDT")
                         preparedStatement.setObject(3, kafkaEventId)
 
                         preparedStatement.executeUpdate()
                     }
-
                 }
         }
     }

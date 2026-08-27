@@ -17,8 +17,7 @@ class TilgangService(
     private val saksbehandlerService: SaksbehandlerService,
     private val klageLookupGateway: KlageLookupGateway,
     private val sakPersongalleriRepository: SakPersongalleriRepository,
-    ) {
-
+) {
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -39,22 +38,26 @@ class TilgangService(
         }
     }
 
-    private fun saksbehandlerHarSkrivetilgang(behandling: Behandling, ident: String): Boolean =
-        ident == behandling.tildeling?.saksbehandlerident
+    private fun saksbehandlerHarSkrivetilgang(
+        behandling: Behandling,
+        ident: String,
+    ): Boolean = ident == behandling.tildeling?.saksbehandlerident
 
-    fun verifyLoggedInUsersAccessToPerson(
-        fnr: String,
-    ) {
-        val access = getSaksbehandlerAccessToPerson(
-            fnr = fnr,
-        )
+    fun verifyLoggedInUsersAccessToPerson(fnr: String) {
+        val access =
+            getSaksbehandlerAccessToPerson(
+                fnr = fnr,
+            )
         if (!access.access) {
             throw MissingTilgangException(access.reason)
         }
     }
 
-    fun verifySaksbehandlersAccessToYtelse(saksbehandlerIdent: String, ytelse: Ytelse) {
-        if (!saksbehandlerService.saksbehandlerHasAccessToYtelse(saksbehandlerIdent, ytelse)) {
+    fun verifySaksbehandlersAccessToYtelse(
+        saksbehandlerIdent: String,
+        ytelse: Ytelse,
+    ) {
+        if (!saksbehandlerService.saksbehandlerHasAccessToYtelse(navIdent = saksbehandlerIdent, ytelse = ytelse)) {
             throw MissingTilgangException("Saksbehandler har ikke tilgang til ytelse $ytelse")
         }
     }
@@ -75,21 +78,21 @@ class TilgangService(
     fun getSaksbehandlerAccessToPerson(
         fnr: String,
         navIdent: String? = null,
-    ): Access {
-        return klageLookupGateway.getAccess(
+    ): Access =
+        klageLookupGateway.getAccess(
             brukerId = fnr,
             navIdent = navIdent,
         )
-    }
 
     fun getPersongalleriToCheckForBehandling(behandling: Behandling): List<String> {
         val persongalleriToCheck = mutableSetOf(behandling.sakenGjelder.partId.value)
 
         if (behandling.fagsystem == Fagsystem.FS36) {
-            val persongalleri = sakPersongalleriRepository.findByFagsystemAndFagsakId(
-                fagsystem = behandling.fagsystem,
-                fagsakId = behandling.fagsakId,
-            )
+            val persongalleri =
+                sakPersongalleriRepository.findByFagsystemAndFagsakId(
+                    fagsystem = behandling.fagsystem,
+                    fagsakId = behandling.fagsakId,
+                )
             persongalleriToCheck += persongalleri.map { it.foedselsnummer }
         }
 

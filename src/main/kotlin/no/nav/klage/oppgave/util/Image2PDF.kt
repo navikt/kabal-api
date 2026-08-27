@@ -10,17 +10,17 @@ import org.apache.tika.Tika
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import org.springframework.http.MediaType
-import org.springframework.http.MediaType.*
+import org.springframework.http.MediaType.APPLICATION_PDF
+import org.springframework.http.MediaType.IMAGE_JPEG
+import org.springframework.http.MediaType.IMAGE_PNG
 import org.springframework.stereotype.Component
 import org.springframework.util.unit.DataSize
 import org.springframework.util.unit.DataUnit
 import java.io.File
 import kotlin.math.min
 
-
 @Component
 class Image2PDF {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -28,24 +28,25 @@ class Image2PDF {
 
     private var supportedMediaTypes: List<MediaType>? = listOf(IMAGE_JPEG, IMAGE_PNG)
 
-    private val A4: PDRectangle = PDRectangle.A4
+    private val a4: PDRectangle = PDRectangle.A4
 
     fun convertIfImage(file: File): Resource {
         var start = System.currentTimeMillis()
         val bytesForFiletypeDetection =
-            file.inputStream()
+            file
+                .inputStream()
                 .readNBytes(min(DataSize.of(3, DataUnit.KILOBYTES).toBytes().toInt(), file.length().toInt()))
         logger.debug("Reading file for filetype detection took ${System.currentTimeMillis() - start} ms")
 
         start = System.currentTimeMillis()
-        val mediaType = valueOf(Tika().detect(bytesForFiletypeDetection))
+        val mediaType = MediaType.valueOf(Tika().detect(bytesForFiletypeDetection))
         logger.debug("Detecting filetype took ${System.currentTimeMillis() - start} ms")
         if (APPLICATION_PDF == mediaType) {
             logger.debug("File is already a PDF")
             return FileSystemResource(file)
         }
         if (validImageTypes(mediaType)) {
-            embedImageInPDF(mediaType.subtype, file)
+            embedImageInPDF(image = file, imgType = mediaType.subtype)
             return FileSystemResource(file)
         }
 
@@ -54,11 +55,10 @@ class Image2PDF {
         throw exception
     }
 
-    private fun embedImageInPDF(imgType: String, image: File) {
-        embedImageInPDF(image, imgType)
-    }
-
-    private fun embedImageInPDF(image: File, imgType: String) {
+    private fun embedImageInPDF(
+        image: File,
+        imgType: String,
+    ) {
         try {
             PDDocument().use { doc ->
                 addPDFPageFromImage(
@@ -80,14 +80,18 @@ class Image2PDF {
         return validImageTypes
     }
 
-    private fun addPDFPageFromImage(doc: PDDocument, origImg: File, imgFormat: String) {
-        val page = PDPage(A4)
+    private fun addPDFPageFromImage(
+        doc: PDDocument,
+        origImg: File,
+        imgFormat: String,
+    ) {
+        val page = PDPage(a4)
         doc.addPage(page)
-        val scaledImg = ImageUtils.downToA4(origImg, imgFormat)
+        val scaledImg = ImageUtils.downToA4(origImageFile = origImg, format = imgFormat)
         try {
             PDPageContentStream(doc, page).use { contentStream ->
                 val xImage: PDImageXObject = PDImageXObject.createFromFileByContent(scaledImg, doc)
-                contentStream.drawImage(xImage, A4.lowerLeftX, A4.lowerLeftY)
+                contentStream.drawImage(xImage, a4.lowerLeftX, a4.lowerLeftY)
                 contentStream.close()
             }
         } catch (ex: Exception) {

@@ -8,21 +8,19 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Configuration
 class EregClientConfiguration(
-    private val webClientBuilder: WebClient.Builder
+    private val webClientBuilder: WebClient.Builder,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    @Value("\${EREG_URL}")
+    @Value($$"${EREG_URL}")
     private lateinit var eregServiceURL: String
 
     @Bean
-    fun eregWebClient(): WebClient {
-        return webClientBuilder
+    fun eregWebClient(): WebClient =
+        webClientBuilder
             .baseUrl(eregServiceURL)
             .build()
-    }
 }

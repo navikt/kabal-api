@@ -8,16 +8,15 @@ import no.nav.klage.oppgave.api.view.DokumentReferanse
 import no.nav.klage.oppgave.api.view.GosysOppgaveView
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
-fun currentTraceparent(): String? {
-    return try {
+fun currentTraceparent(): String? =
+    try {
         val spanContext = Span.current().spanContext
         "00-${spanContext.traceId}-${spanContext.spanId}-${spanContext.traceFlags.asHex()}"
     } catch (_: Exception) {
         null
     }
-}
 
 data class InternalBehandlingEvent(
     val behandlingId: String,
@@ -39,7 +38,8 @@ enum class InternalEventType {
     INCLUDED_DOCUMENTS_ADDED,
     INCLUDED_DOCUMENTS_REMOVED,
     INCLUDED_DOCUMENTS_CLEARED,
-    //Change to SMART_DOCUMENT_LANGUAGE_CHANGED when FE is ready
+
+    // Change to SMART_DOCUMENT_LANGUAGE_CHANGED when FE is ready
     SMART_DOCUMENT_LANGUAGE,
     SMART_DOCUMENT_VERSIONED,
     SMART_DOCUMENT_COMMENT_ADDED,
@@ -127,7 +127,7 @@ data class Part(
     val available: Boolean,
     val language: String?,
     val address: BehandlingDetaljerView.Address?,
-    val utsendingskanal: BehandlingDetaljerView.Utsendingskanal
+    val utsendingskanal: BehandlingDetaljerView.Utsendingskanal,
 )
 
 data class MeldingEvent(
@@ -250,7 +250,7 @@ data class IncludedDocumentsChangedEvent(
     override val timestamp: LocalDateTime,
     val journalfoertDokumentReferenceSet: Set<JournalfoertDokument>,
     override val traceparent: String?,
-): BaseEvent(actor = actor, timestamp = timestamp, traceparent = traceparent)
+) : BaseEvent(actor = actor, timestamp = timestamp, traceparent = traceparent)
 
 data class DocumentPatched(
     override val actor: Employee,

@@ -1,6 +1,18 @@
 package no.nav.klage.dokument.domain.dokumenterunderarbeid
 
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.DiscriminatorColumn
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.Inheritance
+import jakarta.persistence.InheritanceType
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import org.hibernate.Hibernate
 import org.hibernate.annotations.BatchSize
@@ -10,7 +22,7 @@ import org.hibernate.annotations.FetchMode
 import org.hibernate.envers.AuditJoinTable
 import org.hibernate.envers.Audited
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -47,13 +59,11 @@ abstract class DokumentUnderArbeid(
     @AuditJoinTable(name = "dua_dokument_under_arbeid_dokarkiv_reference_aud")
     open var dokarkivReferences: MutableSet<DokumentUnderArbeidDokarkivReference> = mutableSetOf(),
 ) : Comparable<DokumentUnderArbeid> {
-
     companion object {
         const val MAX_NAME_LENGTH = 196
     }
 
-    override fun compareTo(other: DokumentUnderArbeid): Int =
-        created.compareTo(other.created)
+    override fun compareTo(other: DokumentUnderArbeid): Int = created.compareTo(other.created)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -64,21 +74,13 @@ abstract class DokumentUnderArbeid(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "DokumentUnderArbeid(id=$id)"
-    }
+    override fun toString(): String = "DokumentUnderArbeid(id=$id)"
 
-    fun erMarkertFerdig(): Boolean {
-        return markertFerdig != null
-    }
+    fun erMarkertFerdig(): Boolean = markertFerdig != null
 
-    fun erFerdigstilt(): Boolean {
-        return ferdigstilt != null
-    }
+    fun erFerdigstilt(): Boolean = ferdigstilt != null
 
     fun ferdigstillHvisIkkeAlleredeFerdigstilt(tidspunkt: LocalDateTime) {
         if (ferdigstilt == null) {
@@ -87,7 +89,10 @@ abstract class DokumentUnderArbeid(
         }
     }
 
-    fun markerFerdigHvisIkkeAlleredeMarkertFerdig(tidspunkt: LocalDateTime, saksbehandlerIdent: String) {
+    fun markerFerdigHvisIkkeAlleredeMarkertFerdig(
+        tidspunkt: LocalDateTime,
+        saksbehandlerIdent: String,
+    ) {
         if (markertFerdig == null) {
             markertFerdig = tidspunkt
             markertFerdigBy = saksbehandlerIdent
@@ -101,8 +106,8 @@ abstract class DokumentUnderArbeid(
         JOURNALFOERT,
     }
 
-    fun getType(): DokumentUnderArbeidType {
-        return when (Hibernate.unproxy(this)) {
+    fun getType(): DokumentUnderArbeidType =
+        when (Hibernate.unproxy(this)) {
             is DokumentUnderArbeidAsSmartdokument -> {
                 DokumentUnderArbeidType.SMART
             }
@@ -119,7 +124,8 @@ abstract class DokumentUnderArbeid(
                 DokumentUnderArbeidType.UPLOADED
             }
 
-            else -> error("unknown type: ${this::class.java.name}")
+            else -> {
+                error("unknown type: ${this::class.java.name}")
+            }
         }
-    }
 }

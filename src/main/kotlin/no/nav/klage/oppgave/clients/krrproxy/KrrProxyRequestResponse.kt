@@ -2,7 +2,6 @@ package no.nav.klage.oppgave.clients.krrproxy
 
 import java.time.ZonedDateTime
 
-
 data class KrrProxyRequest(
     val personidenter: Set<String>,
 )
@@ -12,8 +11,7 @@ data class KrrProxyResponse(
     val feil: Map<String, String>,
 )
 
-
-data class DigitalKontaktinformasjon (
+data class DigitalKontaktinformasjon(
     val personident: String? = null,
     val aktiv: Boolean? = null,
     val kanVarsles: Boolean? = null,
@@ -30,8 +28,8 @@ data class DigitalKontaktinformasjon (
     val sikkerDigitalPostkasse: SikkerDigitalPostkasse? = null,
 )
 
-data class SikkerDigitalPostkasse (
+data class SikkerDigitalPostkasse(
     val adresse: String? = null,
     val leverandoerAdresse: String? = null,
-    val leverandoerSertifikat: String? = null
+    val leverandoerSertifikat: String? = null,
 )

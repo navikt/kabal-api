@@ -6,7 +6,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.hibernate.annotations.DynamicUpdate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "innholdsfortegnelse", schema = "klage")
@@ -23,9 +23,7 @@ open class Innholdsfortegnelse(
     @Column(name = "modified", nullable = false)
     open var modified: LocalDateTime = created,
 ) : Comparable<Innholdsfortegnelse> {
-
-    override fun compareTo(other: Innholdsfortegnelse): Int =
-        created.compareTo(other.created)
+    override fun compareTo(other: Innholdsfortegnelse): Int = created.compareTo(other.created)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -36,12 +34,7 @@ open class Innholdsfortegnelse(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "Innholdsfortegnelse(id=$id)"
-    }
-
+    override fun toString(): String = "Innholdsfortegnelse(id=$id)"
 }

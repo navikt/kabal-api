@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service
 class MinsideMicrofrontendEventListener(
     private val minsideMicrofrontendService: MinsideMicrofrontendService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -21,7 +20,7 @@ class MinsideMicrofrontendEventListener(
         logger.debug(
             "Received BehandlingEndretEvent for behandlingId {} in {}",
             behandlingChangedEvent.behandling.id,
-            ::handleMinsideMicrofrontendEvent.name
+            ::handleMinsideMicrofrontendEvent.name,
         )
         minsideMicrofrontendService.process(behandlingChangedEvent)
         logger.debug("Processed BehandlingEndretEvent for behandlingId {}", behandlingChangedEvent.behandling.id)

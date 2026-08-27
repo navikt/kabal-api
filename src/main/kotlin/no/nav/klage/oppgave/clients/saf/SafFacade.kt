@@ -19,12 +19,11 @@ class SafFacade(
     fun getDokumentoversiktBrukerAsSaksbehandler(
         fnr: String,
         tema: List<Tema>,
-    ): DokumentoversiktBruker {
-        return safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
+    ): DokumentoversiktBruker =
+        safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
             fnr = fnr,
             tema = tema,
         )
-    }
 
     fun getJournalposter(
         journalpostIdSet: Set<String>,
@@ -33,48 +32,54 @@ class SafFacade(
         tema: List<Tema> = emptyList(),
         skipMissing: Boolean = false,
     ): List<Journalpost> {
-        logger.debug("getJournalposter, number of journalpostIds: ${journalpostIdSet.size}. Fnr included: ${fnr?.isNotEmpty()}. SaksbehandlerContext: $saksbehandlerContext")
+        logger.debug(
+            "getJournalposter, number of journalpostIds: ${journalpostIdSet.size}. Fnr included: ${fnr?.isNotEmpty()}. SaksbehandlerContext: $saksbehandlerContext",
+        )
         return if (journalpostIdSet.size > 20 && fnr != null) {
-            runWithTimingAndLogging({
-                val dokumentOversiktBruker = safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
-                    fnr = fnr,
-                    tema = tema,
-                    systemContext = !saksbehandlerContext,
-                )
+            runWithTimingAndLogging(block = {
+                val dokumentOversiktBruker =
+                    safGraphQlClient.getDokumentoversiktBrukerAsSaksbehandler(
+                        fnr = fnr,
+                        tema = tema,
+                        systemContext = !saksbehandlerContext,
+                    )
 
                 journalpostIdSet.mapNotNull { journalpostId ->
                     dokumentOversiktBruker.journalposter.find { it.journalpostId == journalpostId }
-                        ?: if (skipMissing) null else throw RuntimeException("Journalpost $journalpostId not found in dokumentOversiktBruker")
+                        ?: if (skipMissing) {
+                            null
+                        } else {
+                            throw RuntimeException(
+                                "Journalpost $journalpostId not found in dokumentOversiktBruker",
+                            )
+                        }
                 }
-            }, "dokumentoversiktWithPaging")
+            }, method = "dokumentoversiktWithPaging")
         } else {
-            runWithTimingAndLogging({
+            runWithTimingAndLogging(block = {
                 safGraphQlClient.getJournalposts(
                     journalpostIdSet = journalpostIdSet,
                     systemContext = !saksbehandlerContext,
                     skipMissing = skipMissing,
                 )
-            }, "getJournalposts")
+            }, method = "getJournalposts")
         }
     }
 
-    fun getJournalpostAsSystembruker(
-        journalpostId: String,
-    ): Journalpost {
-        return runWithTimingAndLogging({
+    fun getJournalpostAsSystembruker(journalpostId: String): Journalpost =
+        runWithTimingAndLogging(block = {
             safGraphQlClient.getJournalpostAsSystembruker(journalpostId = journalpostId)
-        }, this::getJournalpostAsSystembruker.name)
-    }
+        }, method = this::getJournalpostAsSystembruker.name)
 
-    fun getJournalpostAsSaksbehandler(
-        journalpostId: String,
-    ): Journalpost {
-        return runWithTimingAndLogging({
+    fun getJournalpostAsSaksbehandler(journalpostId: String): Journalpost =
+        runWithTimingAndLogging(block = {
             safGraphQlClient.getJournalpostAsSaksbehandler(journalpostId = journalpostId)
-        }, this::getJournalpostAsSaksbehandler.name)
-    }
+        }, method = this::getJournalpostAsSaksbehandler.name)
 
-    fun <T> runWithTimingAndLogging(block: () -> T, method: String): T {
+    fun <T> runWithTimingAndLogging(
+        block: () -> T,
+        method: String,
+    ): T {
         val start = System.currentTimeMillis()
         try {
             return block.invoke()

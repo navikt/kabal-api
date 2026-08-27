@@ -6,7 +6,15 @@ import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.Type
 import no.nav.klage.kodeverk.innsendingsytelse.Innsendingsytelse
 import no.nav.klage.kodeverk.ytelse.Ytelse
-import no.nav.klage.oppgave.domain.behandling.*
+import no.nav.klage.oppgave.domain.behandling.AnkeITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Ankebehandling
+import no.nav.klage.oppgave.domain.behandling.Behandling
+import no.nav.klage.oppgave.domain.behandling.BehandlingEtterTrygderettenOpphevet
+import no.nav.klage.oppgave.domain.behandling.BehandlingWithVarsletBehandlingstid
+import no.nav.klage.oppgave.domain.behandling.GjenopptakITrygderettenbehandling
+import no.nav.klage.oppgave.domain.behandling.Gjenopptaksbehandling
+import no.nav.klage.oppgave.domain.behandling.Klagebehandling
+import no.nav.klage.oppgave.domain.behandling.Omgjoeringskravbehandling
 import no.nav.klage.oppgave.repositories.BehandlingRepository
 import org.springframework.stereotype.Service
 import java.nio.file.Path
@@ -17,27 +25,23 @@ class InnsynService(
     private val behandlingRepository: BehandlingRepository,
     private val documentService: DocumentService,
 ) {
-
     data class GroupByKey(
         val fagsystemId: String,
         val fagsakId: String,
         val type: Type,
     )
 
-    private fun Behandling.toGroupByKey(): GroupByKey {
-        return GroupByKey(
+    private fun Behandling.toGroupByKey(): GroupByKey =
+        GroupByKey(
             fagsystemId = fagsystem.id,
             fagsakId = fagsakId,
             type = toBasicType(),
         )
-    }
 
-    fun getJournalpostPdf(journalpostId: String): Pair<Path, String> {
-        return documentService.getJournalpostPdf(journalpostId = journalpostId)
-    }
+    fun getJournalpostPdf(journalpostId: String): Pair<Path, String> = documentService.getJournalpostPdf(journalpostId = journalpostId)
 
-    private fun Behandling.toBasicType(): Type {
-        return when (this) {
+    private fun Behandling.toBasicType(): Type =
+        when (this) {
             is Klagebehandling -> Type.KLAGE
             is AnkeITrygderettenbehandling -> Type.ANKE
             is Ankebehandling -> Type.ANKE
@@ -47,17 +51,18 @@ class InnsynService(
             is GjenopptakITrygderettenbehandling -> Type.BEGJAERING_OM_GJENOPPTAK
             else -> error("Unknown Behandling subtype: ${this::class.java.name}")
         }
-    }
 
     fun getSakerForBruker(fnr: String): InnsynResponse {
         val behandlingerGroupedBySak: Map<GroupByKey, List<Behandling>> =
-            behandlingRepository.findBySakenGjelderPartIdValueAndFeilregistreringIsNull(fnr)
+            behandlingRepository
+                .findBySakenGjelderPartIdValueAndFeilregistreringIsNull(fnr)
                 .groupBy { it.toGroupByKey() }
 
         return InnsynResponse(
-            saker = behandlingerGroupedBySak.values.map { behandlinger ->
-                behandlinger.toSakView()
-            },
+            saker =
+                behandlingerGroupedBySak.values.map { behandlinger ->
+                    behandlinger.toSakView()
+                },
         )
     }
 
@@ -69,50 +74,57 @@ class InnsynService(
             saksnummer = firstBehandling.fagsakId,
             ytelseId = firstBehandling.ytelse.id,
             innsendingsytelseId = firstBehandling.ytelse.mapYtelseToInnsendingsytelse()?.id ?: "ukjent",
-            events = this.map {
-                when (it) {
-                    is Klagebehandling -> it.getEvents()
-                    is AnkeITrygderettenbehandling -> it.getEvents()
-                    is Ankebehandling -> it.getEvents()
-                    is BehandlingEtterTrygderettenOpphevet -> it.getEvents()
-                    is Omgjoeringskravbehandling -> it.getEvents()
-                    is Gjenopptaksbehandling -> it.getEvents()
-                    is GjenopptakITrygderettenbehandling -> it.getEvents()
-                    else -> error("Unknown Behandling subtype: ${it::class.java.name}")
-                }
-            }.flatten()
-                .sortedBy { it.date }, //Will this always be correct when we for example truncate time?
+            events =
+                this
+                    .map {
+                        when (it) {
+                            is Klagebehandling -> it.getEvents()
+                            is AnkeITrygderettenbehandling -> it.getEvents()
+                            is Ankebehandling -> it.getEvents()
+                            is BehandlingEtterTrygderettenOpphevet -> it.getEvents()
+                            is Omgjoeringskravbehandling -> it.getEvents()
+                            is Gjenopptaksbehandling -> it.getEvents()
+                            is GjenopptakITrygderettenbehandling -> it.getEvents()
+                            else -> error("Unknown Behandling subtype: ${it::class.java.name}")
+                        }
+                    }.flatten()
+                    .sortedBy { it.date },
+            // Will this always be correct when we for example truncate time?
             varsletBehandlingstid = firstBehandling.getVarsletBehandlingstid(),
             mottattKlageinstans = firstBehandling.mottattKlageinstans.toLocalDate(),
             typeId = firstBehandling.toBasicType().id,
-            finishedDate = if (this.none { it.ferdigstilling == null }) {
-                this.mapNotNull { it.ferdigstilling?.avsluttetAvSaksbehandler }.maxOrNull()?.toLocalDate()
-            } else {
-                null
-            },
+            finishedDate =
+                if (this.none { it.ferdigstilling == null }) {
+                    this.mapNotNull { it.ferdigstilling?.avsluttetAvSaksbehandler }.maxOrNull()?.toLocalDate()
+                } else {
+                    null
+                },
         )
     }
 
     private fun Klagebehandling.getEvents(): List<SakView.Event> {
         val events = mutableListOf<SakView.Event>()
-        events += SakView.Event(
-            type = SakView.Event.EventType.KLAGE_MOTTATT_VEDTAKSINSTANS,
-            date = mottattVedtaksinstans.atStartOfDay(),
-            relevantDocuments = listOf(),
-        )
-
-        events += SakView.Event(
-            type = SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS,
-            date = mottattKlageinstans,
-            relevantDocuments = getRelevantDocuments(SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS, this),
-        )
-
-        if (ferdigstilling != null) {
-            events += SakView.Event(
-                type = SakView.Event.EventType.KLAGE_AVSLUTTET_I_KLAGEINSTANS,
-                date = ferdigstilling!!.avsluttetAvSaksbehandler,
+        events +=
+            SakView.Event(
+                type = SakView.Event.EventType.KLAGE_MOTTATT_VEDTAKSINSTANS,
+                date = mottattVedtaksinstans.atStartOfDay(),
                 relevantDocuments = listOf(),
             )
+
+        events +=
+            SakView.Event(
+                type = SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS,
+                date = mottattKlageinstans,
+                relevantDocuments = getRelevantDocuments(eventType = SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS, behandling = this),
+            )
+
+        if (ferdigstilling != null) {
+            events +=
+                SakView.Event(
+                    type = SakView.Event.EventType.KLAGE_AVSLUTTET_I_KLAGEINSTANS,
+                    date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                    relevantDocuments = listOf(),
+                )
         }
 
         return events
@@ -120,18 +132,24 @@ class InnsynService(
 
     private fun Omgjoeringskravbehandling.getEvents(): List<SakView.Event> {
         val events = mutableListOf<SakView.Event>()
-        events += SakView.Event(
-            type = SakView.Event.EventType.OMGJOERINGSKRAV_MOTTATT_KLAGEINSTANS,
-            date = mottattKlageinstans,
-            relevantDocuments = getRelevantDocuments(SakView.Event.EventType.OMGJOERINGSKRAV_MOTTATT_KLAGEINSTANS, this),
-        )
+        events +=
+            SakView.Event(
+                type = SakView.Event.EventType.OMGJOERINGSKRAV_MOTTATT_KLAGEINSTANS,
+                date = mottattKlageinstans,
+                relevantDocuments =
+                    getRelevantDocuments(
+                        eventType = SakView.Event.EventType.OMGJOERINGSKRAV_MOTTATT_KLAGEINSTANS,
+                        behandling = this,
+                    ),
+            )
 
         if (ferdigstilling != null) {
-            events += SakView.Event(
-                type = SakView.Event.EventType.OMGJOERINGSKRAV_AVSLUTTET_I_KLAGEINSTANS,
-                date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                relevantDocuments = listOf(),
-            )
+            events +=
+                SakView.Event(
+                    type = SakView.Event.EventType.OMGJOERINGSKRAV_AVSLUTTET_I_KLAGEINSTANS,
+                    date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                    relevantDocuments = listOf(),
+                )
         }
 
         return events
@@ -139,26 +157,29 @@ class InnsynService(
 
     private fun AnkeITrygderettenbehandling.getEvents(): List<SakView.Event> {
         val events = mutableListOf<SakView.Event>()
-        events += SakView.Event(
-            type = SakView.Event.EventType.ANKE_SENDT_TRYGDERETTEN,
-            date = sendtTilTrygderetten,
-            relevantDocuments = listOf(),
-        )
-
-        if (kjennelseMottatt != null) {
-            events += SakView.Event(
-                type = SakView.Event.EventType.ANKE_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
-                date = kjennelseMottatt!!,
+        events +=
+            SakView.Event(
+                type = SakView.Event.EventType.ANKE_SENDT_TRYGDERETTEN,
+                date = sendtTilTrygderetten,
                 relevantDocuments = listOf(),
             )
+
+        if (kjennelseMottatt != null) {
+            events +=
+                SakView.Event(
+                    type = SakView.Event.EventType.ANKE_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
+                    date = kjennelseMottatt!!,
+                    relevantDocuments = listOf(),
+                )
         }
 
         if (ferdigstilling != null && shouldNotCreateNewBehandling()) {
-            events += SakView.Event(
-                type = SakView.Event.EventType.ANKE_AVSLUTTET_I_TRYGDERETTEN,
-                date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                relevantDocuments = listOf(),
-            )
+            events +=
+                SakView.Event(
+                    type = SakView.Event.EventType.ANKE_AVSLUTTET_I_TRYGDERETTEN,
+                    date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                    relevantDocuments = listOf(),
+                )
         }
         return events
     }
@@ -167,22 +188,28 @@ class InnsynService(
         val events = mutableListOf<SakView.Event>()
 
         if (initiatingSystem != Behandling.InitiatingSystem.KABAL) {
-            //if from Kabin or sent from vedtaksløsning
-            events += SakView.Event(
-                type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
-                date = mottattKlageinstans,
-                relevantDocuments = getRelevantDocuments(SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS, this),
-            )
+            // if from Kabin or sent from vedtaksløsning
+            events +=
+                SakView.Event(
+                    type = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
+                    date = mottattKlageinstans,
+                    relevantDocuments =
+                        getRelevantDocuments(
+                            eventType = SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
+                            behandling = this,
+                        ),
+                )
         } else {
-            //If created in Kabal, don't show to user.
+            // If created in Kabal, don't show to user.
         }
 
         if (ferdigstilling != null && !shouldBeSentToTrygderetten()) {
-            events += SakView.Event(
-                type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
-                date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                relevantDocuments = listOf(),
-            )
+            events +=
+                SakView.Event(
+                    type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
+                    date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                    relevantDocuments = listOf(),
+                )
         }
         return events
     }
@@ -190,11 +217,12 @@ class InnsynService(
     private fun BehandlingEtterTrygderettenOpphevet.getEvents(): List<SakView.Event> {
         val events = mutableListOf<SakView.Event>()
         if (ferdigstilling != null) {
-            events += SakView.Event(
-                type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
-                date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                relevantDocuments = listOf(),
-            )
+            events +=
+                SakView.Event(
+                    type = SakView.Event.EventType.ANKE_AVSLUTTET_I_KLAGEINSTANS,
+                    date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                    relevantDocuments = listOf(),
+                )
         }
         return events
     }
@@ -203,73 +231,87 @@ class InnsynService(
         val events = mutableListOf<SakView.Event>()
 
         if (initiatingSystem != Behandling.InitiatingSystem.KABAL) {
-            //if from Kabin or sent from vedtaksløsning
-            events += SakView.Event(
-                type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_MOTTATT_KLAGEINSTANS,
-                date = mottattKlageinstans,
-                relevantDocuments = getRelevantDocuments(SakView.Event.EventType.GJENOPPTAKSBEGJAERING_MOTTATT_KLAGEINSTANS, this),
-            )
+            // if from Kabin or sent from vedtaksløsning
+            events +=
+                SakView.Event(
+                    type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_MOTTATT_KLAGEINSTANS,
+                    date = mottattKlageinstans,
+                    relevantDocuments =
+                        getRelevantDocuments(
+                            eventType = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_MOTTATT_KLAGEINSTANS,
+                            behandling = this,
+                        ),
+                )
         } else {
-            //If created in Kabal, don't show to user.
+            // If created in Kabal, don't show to user.
         }
 
         if (ferdigstilling != null && !shouldBeSentToTrygderetten()) {
-            events += SakView.Event(
-                type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_AVSLUTTET_I_KLAGEINSTANS,
-                date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                relevantDocuments = listOf(),
-            )
+            events +=
+                SakView.Event(
+                    type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_AVSLUTTET_I_KLAGEINSTANS,
+                    date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                    relevantDocuments = listOf(),
+                )
         }
         return events
     }
 
     private fun GjenopptakITrygderettenbehandling.getEvents(): List<SakView.Event> {
         val events = mutableListOf<SakView.Event>()
-        events += SakView.Event(
-            type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_SENDT_TRYGDERETTEN,
-            date = sendtTilTrygderetten,
-            relevantDocuments = listOf(),
-        )
-
-        if (kjennelseMottatt != null) {
-            events += SakView.Event(
-                type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
-                date = kjennelseMottatt!!,
+        events +=
+            SakView.Event(
+                type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_SENDT_TRYGDERETTEN,
+                date = sendtTilTrygderetten,
                 relevantDocuments = listOf(),
             )
+
+        if (kjennelseMottatt != null) {
+            events +=
+                SakView.Event(
+                    type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_KJENNELSE_MOTTATT_FRA_TRYGDERETTEN,
+                    date = kjennelseMottatt!!,
+                    relevantDocuments = listOf(),
+                )
         }
 
         if (ferdigstilling != null && shouldNotCreateNewBehandling()) {
-            events += SakView.Event(
-                type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_AVSLUTTET_I_TRYGDERETTEN,
-                date = ferdigstilling!!.avsluttetAvSaksbehandler,
-                relevantDocuments = listOf(),
-            )
+            events +=
+                SakView.Event(
+                    type = SakView.Event.EventType.GJENOPPTAKSBEGJAERING_AVSLUTTET_I_TRYGDERETTEN,
+                    date = ferdigstilling!!.avsluttetAvSaksbehandler,
+                    relevantDocuments = listOf(),
+                )
         }
         return events
     }
 
     private fun getRelevantDocuments(
         eventType: SakView.Event.EventType,
-        behandling: Behandling
+        behandling: Behandling,
     ): List<SakView.Event.EventDocument> {
         return when (eventType) {
-            SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS, SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS, SakView.Event.EventType.OMGJOERINGSKRAV_MOTTATT_KLAGEINSTANS, SakView.Event.EventType.GJENOPPTAKSBEGJAERING_MOTTATT_KLAGEINSTANS -> {
+            SakView.Event.EventType.KLAGE_MOTTATT_KLAGEINSTANS,
+            SakView.Event.EventType.ANKE_MOTTATT_KLAGEINSTANS,
+            SakView.Event.EventType.OMGJOERINGSKRAV_MOTTATT_KLAGEINSTANS,
+            SakView.Event.EventType.GJENOPPTAKSBEGJAERING_MOTTATT_KLAGEINSTANS,
+            -> {
                 val svarbrev = getSvarbrev(behandling)
                 return if (svarbrev != null) listOf(svarbrev) else listOf()
             }
-            else -> listOf()
+
+            else -> {
+                listOf()
+            }
         }
     }
 
-    private fun getSvarbrev(behandling: Behandling): SakView.Event.EventDocument? {
-        return documentService.getSvarbrev(behandling)
-    }
+    private fun getSvarbrev(behandling: Behandling): SakView.Event.EventDocument? = documentService.getSvarbrev(behandling)
 
     private fun getVarsletBehandlingstidView(
         varsletFrist: LocalDate?,
         varsletBehandlingstidUnits: Int?,
-        varsletBehandlingstidUnitType: TimeUnitType?
+        varsletBehandlingstidUnitType: TimeUnitType?,
     ): SakView.VarsletBehandlingstid? {
         if (varsletFrist == null) {
             return null
@@ -278,81 +320,144 @@ class InnsynService(
         return SakView.VarsletBehandlingstid(
             varsletBehandlingstidUnits = varsletBehandlingstidUnits,
             varsletBehandlingstidUnitTypeId = varsletBehandlingstidUnitType?.id,
-            varsletFrist = varsletFrist
+            varsletFrist = varsletFrist,
         )
     }
 
-    fun Behandling.getVarsletBehandlingstid(): SakView.VarsletBehandlingstid? {
-        return when (this) {
-            is BehandlingWithVarsletBehandlingstid -> getVarsletBehandlingstidView(
-                this.varsletBehandlingstid?.varsletFrist,
-                this.varsletBehandlingstid?.varsletBehandlingstidUnits,
-                this.varsletBehandlingstid?.varsletBehandlingstidUnitType,
-            )
-            else -> null
+    fun Behandling.getVarsletBehandlingstid(): SakView.VarsletBehandlingstid? =
+        when (this) {
+            is BehandlingWithVarsletBehandlingstid -> {
+                getVarsletBehandlingstidView(
+                    varsletFrist = this.varsletBehandlingstid?.varsletFrist,
+                    varsletBehandlingstidUnits = this.varsletBehandlingstid?.varsletBehandlingstidUnits,
+                    varsletBehandlingstidUnitType = this.varsletBehandlingstid?.varsletBehandlingstidUnitType,
+                )
+            }
+
+            else -> {
+                null
+            }
         }
-    }
 }
 
 /**
  * Used when providing link to ettersendelse. If no matching innsendingsytelse, go to nav.no/klage instead.
  */
-fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? {
-    return when (this) {
+fun Ytelse.mapYtelseToInnsendingsytelse(): Innsendingsytelse? =
+    when (this) {
         Ytelse.FOR_FOR -> Innsendingsytelse.FORELDREPENGER
+
         Ytelse.FOR_SVA -> Innsendingsytelse.SVANGERSKAPSPENGER
+
         Ytelse.FOR_ENG -> Innsendingsytelse.ENGANGSSTONAD
+
         Ytelse.OMS_OMP -> Innsendingsytelse.OMSORGSPENGER_HJEMME_MED_SYKT_BARN_DAGER
+
         Ytelse.OMS_OLP -> Innsendingsytelse.OPPLARINGSPENGER
+
         Ytelse.OMS_PSB -> Innsendingsytelse.PLEIEPENGER_FOR_SYKT_BARN
+
         Ytelse.OMS_PLS -> Innsendingsytelse.PLEIEPENGER_I_LIVETS_SLUTTFASE
+
         Ytelse.SYK_SYK -> Innsendingsytelse.SYKEPENGER
+
         Ytelse.AAP_AAP -> Innsendingsytelse.ARBEIDSAVKLARINGSPENGER
+
         Ytelse.BAR_BAR -> Innsendingsytelse.BARNETRYGD
+
         Ytelse.BID_BAB -> Innsendingsytelse.BARNEBIDRAG
+
         Ytelse.BID_BIF -> Innsendingsytelse.BIDRAGSFORSKUDD
+
         Ytelse.BID_OPI -> Innsendingsytelse.OPPFOSTRINGSBIDRAG
+
         Ytelse.BID_EKB -> Innsendingsytelse.EKTEFELLEBIDRAG
+
         Ytelse.BID_BBF -> Innsendingsytelse.BARNEBIDRAG
+
         Ytelse.BID_BII -> Innsendingsytelse.BARNEBIDRAG
+
         Ytelse.DAG_DAG -> Innsendingsytelse.DAGPENGER
+
         Ytelse.ENF_ENF -> Innsendingsytelse.ENSLIG_MOR_ELLER_FAR
+
         Ytelse.GEN_GEN -> Innsendingsytelse.LONNSGARANTI
+
         Ytelse.GRA_GRA -> Innsendingsytelse.GRAVFERDSSTONAD
+
         Ytelse.GRU_HJE -> Innsendingsytelse.HJELPESTONAD
+
         Ytelse.GRU_GRU -> Innsendingsytelse.GRUNNSTONAD
+
         Ytelse.HJE_HJE -> Innsendingsytelse.HJELPEMIDLER
+
         Ytelse.KON_KON -> Innsendingsytelse.KONTANTSTOTTE
+
         Ytelse.MED_MED -> Innsendingsytelse.MEDLEMSKAP
+
         Ytelse.PEN_ALD -> Innsendingsytelse.ALDERSPENSJON
+
         Ytelse.PEN_BAR -> Innsendingsytelse.BARNEPENSJON
-        Ytelse.PEN_AFP -> null //don't know which to choose
+
+        Ytelse.PEN_AFP -> null
+
+        // don't know which to choose
         Ytelse.PEN_KRI -> Innsendingsytelse.KRIGSPENSJON
+
         Ytelse.PEN_GJE -> Innsendingsytelse.GJENLEVENDE
+
         Ytelse.PEN_EYO -> Innsendingsytelse.OMSTILLINGSSTONAD
+
         Ytelse.SUP_PEN -> Innsendingsytelse.SUPPLERENDE_STONAD
+
         Ytelse.SUP_UFF -> Innsendingsytelse.SUPPLERENDE_STONAD_UFORE_FLYKTNINGER
+
         Ytelse.TIL_TIP -> Innsendingsytelse.TILTAKSPENGER
-        Ytelse.TIL_TIL -> null //? In Klang, tema is IND. Tema TIL is not used.
+
+        Ytelse.TIL_TIL -> null
+
+        // ? In Klang, tema is IND. Tema TIL is not used.
         Ytelse.UFO_UFO -> Innsendingsytelse.UFORETRYGD
+
         Ytelse.YRK_YRK -> Innsendingsytelse.YRKESSKADE
+
         Ytelse.YRK_MEN -> Innsendingsytelse.MENERSTATNING_VED_YRKESSKADE_ELLER_YRKESSYKDOM
+
         Ytelse.YRK_YSY -> Innsendingsytelse.MENERSTATNING_VED_YRKESSKADE_ELLER_YRKESSYKDOM
+
         Ytelse.UFO_TVF -> Innsendingsytelse.UFORETRYGD
+
         Ytelse.OPP_OPP -> Innsendingsytelse.OPPFOLGING
-        Ytelse.AAR_AAR -> null //no matching innsendingsytelse
+
+        Ytelse.AAR_AAR -> null
+
+        // no matching innsendingsytelse
         Ytelse.HJE_AUR -> Innsendingsytelse.STOTTE_TIL_ARBEIDS_OG_UTDANNINGSREISER
+
         Ytelse.TSR_ASO -> Innsendingsytelse.TILLEGGSSTONADER
-        Ytelse.FRI_FRI -> null //no matching innsendingsytelse/tema
+
+        Ytelse.FRI_FRI -> null
+
+        // no matching innsendingsytelse/tema
         Ytelse.TSO_TSO -> Innsendingsytelse.TILLEGGSSTONADER
-        Ytelse.FAR_FAR -> null //no matching innsendingsytelse/tema
+
+        Ytelse.FAR_FAR -> null
+
+        // no matching innsendingsytelse/tema
         Ytelse.DAG_LKP -> Innsendingsytelse.DAGPENGER
+
         Ytelse.DAG_FDP -> Innsendingsytelse.DAGPENGER
+
         Ytelse.BIL_BIL -> Innsendingsytelse.BILSTONAD
+
         Ytelse.HEL_HEL -> Innsendingsytelse.HJELPEMIDLER_ORTOPEDISKE
+
         Ytelse.FOS_FOS -> Innsendingsytelse.FORSIKRING
-        Ytelse.PAR_PAR -> null //no matching innsendingsytelse/tema
+
+        Ytelse.PAR_PAR -> null
+
+        // no matching innsendingsytelse/tema
         Ytelse.UNG_UNG -> Innsendingsytelse.UNGDOMSPROGRAMMET
+
         Ytelse.PEN_GYS -> null
     }
-}

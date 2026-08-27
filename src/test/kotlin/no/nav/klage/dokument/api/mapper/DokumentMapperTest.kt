@@ -12,7 +12,14 @@ import no.nav.klage.kodeverk.Fagsystem
 import no.nav.klage.kodeverk.PartIdType
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.api.mapper.BehandlingMapper
-import no.nav.klage.oppgave.clients.saf.graphql.*
+import no.nav.klage.oppgave.clients.saf.graphql.AvsenderMottaker
+import no.nav.klage.oppgave.clients.saf.graphql.Bruker
+import no.nav.klage.oppgave.clients.saf.graphql.DokumentInfo
+import no.nav.klage.oppgave.clients.saf.graphql.Journalpost
+import no.nav.klage.oppgave.clients.saf.graphql.Journalposttype
+import no.nav.klage.oppgave.clients.saf.graphql.Journalstatus
+import no.nav.klage.oppgave.clients.saf.graphql.Sak
+import no.nav.klage.oppgave.clients.saf.graphql.Tema
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.BehandlingRole
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
@@ -27,11 +34,10 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 import no.nav.klage.kodeverk.Type as BehandlingType
 
 class DokumentMapperTest {
-
     private lateinit var dokumentMapper: DokumentMapper
     private lateinit var saksbehandlerService: SaksbehandlerService
     private lateinit var behandlingMapper: BehandlingMapper
@@ -45,33 +51,35 @@ class DokumentMapperTest {
         dokumentUnderArbeidRepository = mockk()
         dokDistKanalService = mockk()
 
-        dokumentMapper = DokumentMapper(
-            saksbehandlerService = saksbehandlerService,
-            behandlingMapper = behandlingMapper,
-            dokumentUnderArbeidRepository = dokumentUnderArbeidRepository,
-            dokDistKanalService = dokDistKanalService,
-        )
+        dokumentMapper =
+            DokumentMapper(
+                saksbehandlerService = saksbehandlerService,
+                behandlingMapper = behandlingMapper,
+                dokumentUnderArbeidRepository = dokumentUnderArbeidRepository,
+                dokDistKanalService = dokDistKanalService,
+            )
     }
 
     @Nested
     inner class GetSortedDokumentViewListForInnholdsfortegnelseTest {
-
         private val behandlingId = UUID.randomUUID()
         private val parentId = UUID.randomUUID()
 
-        private fun createKlagebehandling(): Klagebehandling {
-            return Klagebehandling(
+        private fun createKlagebehandling(): Klagebehandling =
+            Klagebehandling(
                 fagsystem = Fagsystem.AO01,
                 fagsakId = "123456",
                 kildeReferanse = "abc",
-                klager = Klager(
-                    id = UUID.randomUUID(),
-                    partId = PartId(PartIdType.PERSON, "12345678910")
-                ),
-                sakenGjelder = SakenGjelder(
-                    id = UUID.randomUUID(),
-                    partId = PartId(PartIdType.PERSON, "12345678910"),
-                ),
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "12345678910"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "12345678910"),
+                    ),
                 prosessfullmektig = null,
                 mottattKlageinstans = LocalDateTime.now(),
                 ytelse = Ytelse.OMS_OMP,
@@ -89,10 +97,9 @@ class DokumentMapperTest {
                 initiatingSystem = Behandling.InitiatingSystem.KABAL,
                 previousBehandlingId = null,
             )
-        }
 
-        private fun createHoveddokument(dokumentType: DokumentType = DokumentType.VEDTAK): SmartdokumentUnderArbeidAsHoveddokument {
-            return SmartdokumentUnderArbeidAsHoveddokument(
+        private fun createHoveddokument(dokumentType: DokumentType = DokumentType.VEDTAK): SmartdokumentUnderArbeidAsHoveddokument =
+            SmartdokumentUnderArbeidAsHoveddokument(
                 id = parentId,
                 name = "Hoveddokument",
                 behandlingId = behandlingId,
@@ -111,10 +118,12 @@ class DokumentMapperTest {
                 mellomlagretVersion = null,
                 journalfoerendeEnhetId = "4100",
             )
-        }
 
-        private fun createOpplastetVedlegg(name: String, created: LocalDateTime): OpplastetDokumentUnderArbeidAsVedlegg {
-            return OpplastetDokumentUnderArbeidAsVedlegg(
+        private fun createOpplastetVedlegg(
+            name: String,
+            created: LocalDateTime,
+        ): OpplastetDokumentUnderArbeidAsVedlegg =
+            OpplastetDokumentUnderArbeidAsVedlegg(
                 id = UUID.randomUUID(),
                 name = name,
                 behandlingId = behandlingId,
@@ -130,14 +139,13 @@ class DokumentMapperTest {
                 mellomlagerId = "mellomlagerId",
                 mellomlagretDate = LocalDateTime.now(),
             )
-        }
 
         private fun createJournalfoertVedlegg(
             journalpostId: String,
             dokumentInfoId: String,
             sortKey: String,
-        ): JournalfoertDokumentUnderArbeidAsVedlegg {
-            return JournalfoertDokumentUnderArbeidAsVedlegg(
+        ): JournalfoertDokumentUnderArbeidAsVedlegg =
+            JournalfoertDokumentUnderArbeidAsVedlegg(
                 id = UUID.randomUUID(),
                 name = "Journalført dokument",
                 behandlingId = behandlingId,
@@ -152,7 +160,6 @@ class DokumentMapperTest {
                 dokumentInfoId = dokumentInfoId,
                 sortKey = sortKey,
             )
-        }
 
         private fun createJournalpost(
             journalpostId: String,
@@ -163,50 +170,58 @@ class DokumentMapperTest {
             avsenderMottakerNavn: String?,
             fagsakId: String?,
             datoSortering: LocalDateTime,
-        ): Journalpost {
-            return Journalpost(
+        ): Journalpost =
+            Journalpost(
                 journalpostId = journalpostId,
                 journalposttype = journalposttype,
                 journalstatus = Journalstatus.JOURNALFOERT,
                 tema = tema,
                 sak = if (fagsakId != null) Sak(datoOpprettet = null, fagsakId = fagsakId, fagsaksystem = null) else null,
                 bruker = Bruker(id = "12345678910", type = "FNR"),
-                avsenderMottaker = if (avsenderMottakerNavn != null) AvsenderMottaker(id = null, type = null, navn = avsenderMottakerNavn, land = null, erLikBruker = false) else null,
+                avsenderMottaker =
+                    if (avsenderMottakerNavn !=
+                        null
+                    ) {
+                        AvsenderMottaker(id = null, type = null, navn = avsenderMottakerNavn, land = null, erLikBruker = false)
+                    } else {
+                        null
+                    },
                 opprettetAvNavn = null,
                 skjerming = null,
                 datoOpprettet = datoSortering,
                 datoSortering = datoSortering,
-                dokumenter = listOf(
-                    DokumentInfo(
-                        dokumentInfoId = dokumentInfoId,
-                        tittel = tittel,
-                        brevkode = null,
-                        skjerming = null,
-                        logiskeVedlegg = null,
-                        dokumentvarianter = emptyList(),
-                        datoFerdigstilt = null,
-                        originalJournalpostId = null,
-                    )
-                ),
+                dokumenter =
+                    listOf(
+                        DokumentInfo(
+                            dokumentInfoId = dokumentInfoId,
+                            tittel = tittel,
+                            brevkode = null,
+                            skjerming = null,
+                            logiskeVedlegg = null,
+                            dokumentvarianter = emptyList(),
+                            datoFerdigstilt = null,
+                            originalJournalpostId = null,
+                        ),
+                    ),
                 relevanteDatoer = null,
                 kanal = "NAV_NO",
                 kanalnavn = "nav.no",
                 utsendingsinfo = null,
             )
-        }
 
         @Test
         fun `should map opplastet vedlegg correctly with journalpostMetadataList`() {
             val behandling = createKlagebehandling()
             val hoveddokument = createHoveddokument()
-            val opplastetVedlegg = createOpplastetVedlegg("Opplastet dokument", LocalDateTime.now())
+            val opplastetVedlegg = createOpplastetVedlegg(name = "Opplastet dokument", created = LocalDateTime.now())
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(opplastetVedlegg),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = emptyList(),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(opplastetVedlegg),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = emptyList(),
+                )
 
             assertThat(result).hasSize(1)
             assertThat(result[0].tittel).isEqualTo("Opplastet dokument")
@@ -219,28 +234,31 @@ class DokumentMapperTest {
         fun `should map journalfoert vedlegg correctly with journalpostMetadataList`() {
             val behandling = createKlagebehandling()
             val hoveddokument = createHoveddokument()
-            val journalfoertVedlegg = createJournalfoertVedlegg(
-                journalpostId = "123",
-                dokumentInfoId = "456",
-                sortKey = "2024-01-01",
-            )
-            val journalpost = createJournalpost(
-                journalpostId = "123",
-                dokumentInfoId = "456",
-                tittel = "Journalført dokument tittel",
-                journalposttype = Journalposttype.I,
-                tema = Tema.OMS,
-                avsenderMottakerNavn = "Ola Nordmann",
-                fagsakId = "789",
-                datoSortering = LocalDateTime.of(2024, 1, 15, 12, 0),
-            )
+            val journalfoertVedlegg =
+                createJournalfoertVedlegg(
+                    journalpostId = "123",
+                    dokumentInfoId = "456",
+                    sortKey = "2024-01-01",
+                )
+            val journalpost =
+                createJournalpost(
+                    journalpostId = "123",
+                    dokumentInfoId = "456",
+                    tittel = "Journalført dokument tittel",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "Ola Nordmann",
+                    fagsakId = "789",
+                    datoSortering = LocalDateTime.of(2024, 1, 15, 12, 0),
+                )
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(journalfoertVedlegg),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = listOf(journalpost),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(journalfoertVedlegg),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = listOf(journalpost),
+                )
 
             assertThat(result).hasSize(1)
             assertThat(result[0].tittel).isEqualTo("Journalført dokument tittel")
@@ -257,44 +275,49 @@ class DokumentMapperTest {
             val hoveddokument = createHoveddokument()
 
             // Two journalfoert documents with the same dokumentInfoId but different journalpostIds
-            val journalfoertVedlegg1 = createJournalfoertVedlegg(
-                journalpostId = "111",
-                dokumentInfoId = "same-dok-id",
-                sortKey = "2024-01-01",
-            )
-            val journalfoertVedlegg2 = createJournalfoertVedlegg(
-                journalpostId = "222",
-                dokumentInfoId = "same-dok-id",
-                sortKey = "2024-01-02",
-            )
+            val journalfoertVedlegg1 =
+                createJournalfoertVedlegg(
+                    journalpostId = "111",
+                    dokumentInfoId = "same-dok-id",
+                    sortKey = "2024-01-01",
+                )
+            val journalfoertVedlegg2 =
+                createJournalfoertVedlegg(
+                    journalpostId = "222",
+                    dokumentInfoId = "same-dok-id",
+                    sortKey = "2024-01-02",
+                )
 
-            val journalpost1 = createJournalpost(
-                journalpostId = "111",
-                dokumentInfoId = "same-dok-id",
-                tittel = "Felles dokument",
-                journalposttype = Journalposttype.I,
-                tema = Tema.OMS,
-                avsenderMottakerNavn = "Avsender 1",
-                fagsakId = "fagsakId1",
-                datoSortering = LocalDateTime.of(2024, 1, 10, 12, 0),
-            )
-            val journalpost2 = createJournalpost(
-                journalpostId = "222",
-                dokumentInfoId = "same-dok-id",
-                tittel = "Felles dokument",
-                journalposttype = Journalposttype.U,
-                tema = Tema.SYK,
-                avsenderMottakerNavn = "Avsender 2",
-                fagsakId = "fagsakId2",
-                datoSortering = LocalDateTime.of(2024, 2, 15, 12, 0),
-            )
+            val journalpost1 =
+                createJournalpost(
+                    journalpostId = "111",
+                    dokumentInfoId = "same-dok-id",
+                    tittel = "Felles dokument",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "Avsender 1",
+                    fagsakId = "fagsakId1",
+                    datoSortering = LocalDateTime.of(2024, 1, 10, 12, 0),
+                )
+            val journalpost2 =
+                createJournalpost(
+                    journalpostId = "222",
+                    dokumentInfoId = "same-dok-id",
+                    tittel = "Felles dokument",
+                    journalposttype = Journalposttype.U,
+                    tema = Tema.SYK,
+                    avsenderMottakerNavn = "Avsender 2",
+                    fagsakId = "fagsakId2",
+                    datoSortering = LocalDateTime.of(2024, 2, 15, 12, 0),
+                )
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(journalfoertVedlegg1, journalfoertVedlegg2),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = listOf(journalpost1, journalpost2),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(journalfoertVedlegg1, journalfoertVedlegg2),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = listOf(journalpost1, journalpost2),
+                )
 
             // Should be grouped into one Document with two JournalpostMetadata entries
             assertThat(result).hasSize(1)
@@ -317,44 +340,49 @@ class DokumentMapperTest {
             val behandling = createKlagebehandling()
             val hoveddokument = createHoveddokument()
 
-            val journalfoertVedlegg1 = createJournalfoertVedlegg(
-                journalpostId = "111",
-                dokumentInfoId = "dok-id-1",
-                sortKey = "2024-01-01",
-            )
-            val journalfoertVedlegg2 = createJournalfoertVedlegg(
-                journalpostId = "222",
-                dokumentInfoId = "dok-id-2",
-                sortKey = "2024-01-02",
-            )
+            val journalfoertVedlegg1 =
+                createJournalfoertVedlegg(
+                    journalpostId = "111",
+                    dokumentInfoId = "dok-id-1",
+                    sortKey = "2024-01-01",
+                )
+            val journalfoertVedlegg2 =
+                createJournalfoertVedlegg(
+                    journalpostId = "222",
+                    dokumentInfoId = "dok-id-2",
+                    sortKey = "2024-01-02",
+                )
 
-            val journalpost1 = createJournalpost(
-                journalpostId = "111",
-                dokumentInfoId = "dok-id-1",
-                tittel = "Dokument 1",
-                journalposttype = Journalposttype.I,
-                tema = Tema.OMS,
-                avsenderMottakerNavn = "Avsender 1",
-                fagsakId = "fagsakId1",
-                datoSortering = LocalDateTime.of(2024, 1, 10, 12, 0),
-            )
-            val journalpost2 = createJournalpost(
-                journalpostId = "222",
-                dokumentInfoId = "dok-id-2",
-                tittel = "Dokument 2",
-                journalposttype = Journalposttype.U,
-                tema = Tema.SYK,
-                avsenderMottakerNavn = "Avsender 2",
-                fagsakId = "fagsakId2",
-                datoSortering = LocalDateTime.of(2024, 2, 15, 12, 0),
-            )
+            val journalpost1 =
+                createJournalpost(
+                    journalpostId = "111",
+                    dokumentInfoId = "dok-id-1",
+                    tittel = "Dokument 1",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "Avsender 1",
+                    fagsakId = "fagsakId1",
+                    datoSortering = LocalDateTime.of(2024, 1, 10, 12, 0),
+                )
+            val journalpost2 =
+                createJournalpost(
+                    journalpostId = "222",
+                    dokumentInfoId = "dok-id-2",
+                    tittel = "Dokument 2",
+                    journalposttype = Journalposttype.U,
+                    tema = Tema.SYK,
+                    avsenderMottakerNavn = "Avsender 2",
+                    fagsakId = "fagsakId2",
+                    datoSortering = LocalDateTime.of(2024, 2, 15, 12, 0),
+                )
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(journalfoertVedlegg1, journalfoertVedlegg2),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = listOf(journalpost1, journalpost2),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(journalfoertVedlegg1, journalfoertVedlegg2),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = listOf(journalpost1, journalpost2),
+                )
 
             // Should NOT be grouped - two separate Documents, each with one JournalpostMetadata
             assertThat(result).hasSize(2)
@@ -369,29 +397,32 @@ class DokumentMapperTest {
             val behandling = createKlagebehandling()
             val hoveddokument = createHoveddokument()
 
-            val opplastetVedlegg = createOpplastetVedlegg("Opplastet", LocalDateTime.now())
-            val journalfoertVedlegg = createJournalfoertVedlegg(
-                journalpostId = "123",
-                dokumentInfoId = "456",
-                sortKey = "2024-01-01",
-            )
-            val journalpost = createJournalpost(
-                journalpostId = "123",
-                dokumentInfoId = "456",
-                tittel = "Journalført",
-                journalposttype = Journalposttype.I,
-                tema = Tema.OMS,
-                avsenderMottakerNavn = null,
-                fagsakId = "789",
-                datoSortering = LocalDateTime.now(),
-            )
+            val opplastetVedlegg = createOpplastetVedlegg(name = "Opplastet", created = LocalDateTime.now())
+            val journalfoertVedlegg =
+                createJournalfoertVedlegg(
+                    journalpostId = "123",
+                    dokumentInfoId = "456",
+                    sortKey = "2024-01-01",
+                )
+            val journalpost =
+                createJournalpost(
+                    journalpostId = "123",
+                    dokumentInfoId = "456",
+                    tittel = "Journalført",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = null,
+                    fagsakId = "789",
+                    datoSortering = LocalDateTime.now(),
+                )
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(journalfoertVedlegg, opplastetVedlegg),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = listOf(journalpost),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(journalfoertVedlegg, opplastetVedlegg),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = listOf(journalpost),
+                )
 
             assertThat(result).hasSize(2)
             assertThat(result[0].tittel).isEqualTo("Opplastet")
@@ -403,16 +434,17 @@ class DokumentMapperTest {
             val behandling = createKlagebehandling()
             val hoveddokument = createHoveddokument()
 
-            val older = createOpplastetVedlegg("Older", LocalDateTime.now().minusDays(2))
-            val newer = createOpplastetVedlegg("Newer", LocalDateTime.now())
-            val oldest = createOpplastetVedlegg("Oldest", LocalDateTime.now().minusDays(5))
+            val older = createOpplastetVedlegg(name = "Older", created = LocalDateTime.now().minusDays(2))
+            val newer = createOpplastetVedlegg(name = "Newer", created = LocalDateTime.now())
+            val oldest = createOpplastetVedlegg(name = "Oldest", created = LocalDateTime.now().minusDays(5))
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(older, newer, oldest),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = emptyList(),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(older, newer, oldest),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = emptyList(),
+                )
 
             assertThat(result).hasSize(3)
             assertThat(result[0].tittel).isEqualTo("Newer")
@@ -424,14 +456,15 @@ class DokumentMapperTest {
         fun `should use Type N for NOTAT document type`() {
             val behandling = createKlagebehandling()
             val hoveddokument = createHoveddokument(dokumentType = DokumentType.NOTAT)
-            val opplastetVedlegg = createOpplastetVedlegg("Vedlegg til notat", LocalDateTime.now())
+            val opplastetVedlegg = createOpplastetVedlegg(name = "Vedlegg til notat", created = LocalDateTime.now())
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(opplastetVedlegg),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = emptyList(),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(opplastetVedlegg),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = emptyList(),
+                )
 
             assertThat(result).hasSize(1)
             assertThat(result[0].journalpostMetadataList[0].type).isEqualTo(Type.N)
@@ -441,28 +474,31 @@ class DokumentMapperTest {
         fun `should handle missing avsenderMottaker gracefully`() {
             val behandling = createKlagebehandling()
             val hoveddokument = createHoveddokument()
-            val journalfoertVedlegg = createJournalfoertVedlegg(
-                journalpostId = "123",
-                dokumentInfoId = "456",
-                sortKey = "2024-01-01",
-            )
-            val journalpost = createJournalpost(
-                journalpostId = "123",
-                dokumentInfoId = "456",
-                tittel = "Dokument uten avsender",
-                journalposttype = Journalposttype.I,
-                tema = Tema.OMS,
-                avsenderMottakerNavn = null,
-                fagsakId = "789",
-                datoSortering = LocalDateTime.now(),
-            )
+            val journalfoertVedlegg =
+                createJournalfoertVedlegg(
+                    journalpostId = "123",
+                    dokumentInfoId = "456",
+                    sortKey = "2024-01-01",
+                )
+            val journalpost =
+                createJournalpost(
+                    journalpostId = "123",
+                    dokumentInfoId = "456",
+                    tittel = "Dokument uten avsender",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = null,
+                    fagsakId = "789",
+                    datoSortering = LocalDateTime.now(),
+                )
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(journalfoertVedlegg),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = listOf(journalpost),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(journalfoertVedlegg),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = listOf(journalpost),
+                )
 
             assertThat(result).hasSize(1)
             assertThat(result[0].journalpostMetadataList[0].avsenderMottaker).isEqualTo("")
@@ -472,28 +508,31 @@ class DokumentMapperTest {
         fun `should handle missing fagsakId gracefully`() {
             val behandling = createKlagebehandling()
             val hoveddokument = createHoveddokument()
-            val journalfoertVedlegg = createJournalfoertVedlegg(
-                journalpostId = "123",
-                dokumentInfoId = "456",
-                sortKey = "2024-01-01",
-            )
-            val journalpost = createJournalpost(
-                journalpostId = "123",
-                dokumentInfoId = "456",
-                tittel = "Dokument uten fagsakId",
-                journalposttype = Journalposttype.I,
-                tema = Tema.OMS,
-                avsenderMottakerNavn = "Avsender",
-                fagsakId = null,
-                datoSortering = LocalDateTime.now(),
-            )
+            val journalfoertVedlegg =
+                createJournalfoertVedlegg(
+                    journalpostId = "123",
+                    dokumentInfoId = "456",
+                    sortKey = "2024-01-01",
+                )
+            val journalpost =
+                createJournalpost(
+                    journalpostId = "123",
+                    dokumentInfoId = "456",
+                    tittel = "Dokument uten fagsakId",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "Avsender",
+                    fagsakId = null,
+                    datoSortering = LocalDateTime.now(),
+                )
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(journalfoertVedlegg),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = listOf(journalpost),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(journalfoertVedlegg),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = listOf(journalpost),
+                )
 
             assertThat(result).hasSize(1)
             assertThat(result[0].journalpostMetadataList[0].saksnummer).isEqualTo("Saksnummer ikke funnet i SAF")
@@ -504,20 +543,51 @@ class DokumentMapperTest {
             val behandling = createKlagebehandling()
             val hoveddokument = createHoveddokument()
 
-            val journalfoertVedlegg1 = createJournalfoertVedlegg("jp1", "same-id", "2024-01-01")
-            val journalfoertVedlegg2 = createJournalfoertVedlegg("jp2", "same-id", "2024-01-02")
-            val journalfoertVedlegg3 = createJournalfoertVedlegg("jp3", "same-id", "2024-01-03")
+            val journalfoertVedlegg1 = createJournalfoertVedlegg(journalpostId = "jp1", dokumentInfoId = "same-id", sortKey = "2024-01-01")
+            val journalfoertVedlegg2 = createJournalfoertVedlegg(journalpostId = "jp2", dokumentInfoId = "same-id", sortKey = "2024-01-02")
+            val journalfoertVedlegg3 = createJournalfoertVedlegg(journalpostId = "jp3", dokumentInfoId = "same-id", sortKey = "2024-01-03")
 
-            val journalpost1 = createJournalpost("jp1", "same-id", "Tittel", Journalposttype.I, Tema.OMS, "A1", "f1", LocalDateTime.of(2024, 1, 1, 0, 0))
-            val journalpost2 = createJournalpost("jp2", "same-id", "Tittel", Journalposttype.U, Tema.SYK, "A2", "f2", LocalDateTime.of(2024, 2, 1, 0, 0))
-            val journalpost3 = createJournalpost("jp3", "same-id", "Tittel", Journalposttype.N, Tema.FOR, "A3", "f3", LocalDateTime.of(2024, 3, 1, 0, 0))
+            val journalpost1 =
+                createJournalpost(
+                    journalpostId = "jp1",
+                    dokumentInfoId = "same-id",
+                    tittel = "Tittel",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "A1",
+                    fagsakId = "f1",
+                    datoSortering = LocalDateTime.of(2024, 1, 1, 0, 0),
+                )
+            val journalpost2 =
+                createJournalpost(
+                    journalpostId = "jp2",
+                    dokumentInfoId = "same-id",
+                    tittel = "Tittel",
+                    journalposttype = Journalposttype.U,
+                    tema = Tema.SYK,
+                    avsenderMottakerNavn = "A2",
+                    fagsakId = "f2",
+                    datoSortering = LocalDateTime.of(2024, 2, 1, 0, 0),
+                )
+            val journalpost3 =
+                createJournalpost(
+                    journalpostId = "jp3",
+                    dokumentInfoId = "same-id",
+                    tittel = "Tittel",
+                    journalposttype = Journalposttype.N,
+                    tema = Tema.FOR,
+                    avsenderMottakerNavn = "A3",
+                    fagsakId = "f3",
+                    datoSortering = LocalDateTime.of(2024, 3, 1, 0, 0),
+                )
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(journalfoertVedlegg1, journalfoertVedlegg2, journalfoertVedlegg3),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = listOf(journalpost1, journalpost2, journalpost3),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(journalfoertVedlegg1, journalfoertVedlegg2, journalfoertVedlegg3),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = listOf(journalpost1, journalpost2, journalpost3),
+                )
 
             assertThat(result).hasSize(1)
             assertThat(result[0].journalpostMetadataList).hasSize(3)
@@ -532,47 +602,51 @@ class DokumentMapperTest {
             val hoveddokument = createHoveddokument()
 
             // Create documents with sortKeys in non-chronological order to verify sorting
-            val newestVedlegg = createJournalfoertVedlegg("jp-newest", "same-id", "2024-03-15")
-            val oldestVedlegg = createJournalfoertVedlegg("jp-oldest", "same-id", "2024-01-01")
-            val middleVedlegg = createJournalfoertVedlegg("jp-middle", "same-id", "2024-02-10")
+            val newestVedlegg = createJournalfoertVedlegg(journalpostId = "jp-newest", dokumentInfoId = "same-id", sortKey = "2024-03-15")
+            val oldestVedlegg = createJournalfoertVedlegg(journalpostId = "jp-oldest", dokumentInfoId = "same-id", sortKey = "2024-01-01")
+            val middleVedlegg = createJournalfoertVedlegg(journalpostId = "jp-middle", dokumentInfoId = "same-id", sortKey = "2024-02-10")
 
-            val newestJournalpost = createJournalpost(
-                journalpostId = "jp-newest",
-                dokumentInfoId = "same-id",
-                tittel = "Felles dokument",
-                journalposttype = Journalposttype.U,
-                tema = Tema.OMS,
-                avsenderMottakerNavn = "Newest",
-                fagsakId = "f3",
-                datoSortering = LocalDateTime.of(2024, 3, 15, 12, 0),
-            )
-            val oldestJournalpost = createJournalpost(
-                journalpostId = "jp-oldest",
-                dokumentInfoId = "same-id",
-                tittel = "Felles dokument",
-                journalposttype = Journalposttype.I,
-                tema = Tema.OMS,
-                avsenderMottakerNavn = "Oldest",
-                fagsakId = "f1",
-                datoSortering = LocalDateTime.of(2024, 1, 1, 12, 0),
-            )
-            val middleJournalpost = createJournalpost(
-                journalpostId = "jp-middle",
-                dokumentInfoId = "same-id",
-                tittel = "Felles dokument",
-                journalposttype = Journalposttype.N,
-                tema = Tema.OMS,
-                avsenderMottakerNavn = "Middle",
-                fagsakId = "f2",
-                datoSortering = LocalDateTime.of(2024, 2, 10, 12, 0),
-            )
+            val newestJournalpost =
+                createJournalpost(
+                    journalpostId = "jp-newest",
+                    dokumentInfoId = "same-id",
+                    tittel = "Felles dokument",
+                    journalposttype = Journalposttype.U,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "Newest",
+                    fagsakId = "f3",
+                    datoSortering = LocalDateTime.of(2024, 3, 15, 12, 0),
+                )
+            val oldestJournalpost =
+                createJournalpost(
+                    journalpostId = "jp-oldest",
+                    dokumentInfoId = "same-id",
+                    tittel = "Felles dokument",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "Oldest",
+                    fagsakId = "f1",
+                    datoSortering = LocalDateTime.of(2024, 1, 1, 12, 0),
+                )
+            val middleJournalpost =
+                createJournalpost(
+                    journalpostId = "jp-middle",
+                    dokumentInfoId = "same-id",
+                    tittel = "Felles dokument",
+                    journalposttype = Journalposttype.N,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "Middle",
+                    fagsakId = "f2",
+                    datoSortering = LocalDateTime.of(2024, 2, 10, 12, 0),
+                )
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(newestVedlegg, oldestVedlegg, middleVedlegg),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = listOf(newestJournalpost, oldestJournalpost, middleJournalpost),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(newestVedlegg, oldestVedlegg, middleVedlegg),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = listOf(newestJournalpost, oldestJournalpost, middleJournalpost),
+                )
 
             assertThat(result).hasSize(1)
             assertThat(result[0].journalpostMetadataList).hasSize(3)
@@ -594,20 +668,51 @@ class DokumentMapperTest {
             val hoveddokument = createHoveddokument()
 
             // Create documents with different dokumentInfoIds in non-chronological order
-            val newestVedlegg = createJournalfoertVedlegg("jp1", "dok-id-newest", "2024-03-01")
-            val oldestVedlegg = createJournalfoertVedlegg("jp2", "dok-id-oldest", "2024-01-01")
-            val middleVedlegg = createJournalfoertVedlegg("jp3", "dok-id-middle", "2024-02-01")
+            val newestVedlegg = createJournalfoertVedlegg(journalpostId = "jp1", dokumentInfoId = "dok-id-newest", sortKey = "2024-03-01")
+            val oldestVedlegg = createJournalfoertVedlegg(journalpostId = "jp2", dokumentInfoId = "dok-id-oldest", sortKey = "2024-01-01")
+            val middleVedlegg = createJournalfoertVedlegg(journalpostId = "jp3", dokumentInfoId = "dok-id-middle", sortKey = "2024-02-01")
 
-            val newestJournalpost = createJournalpost("jp1", "dok-id-newest", "Newest Doc", Journalposttype.I, Tema.OMS, "A1", "f1", LocalDateTime.of(2024, 3, 1, 0, 0))
-            val oldestJournalpost = createJournalpost("jp2", "dok-id-oldest", "Oldest Doc", Journalposttype.I, Tema.OMS, "A2", "f2", LocalDateTime.of(2024, 1, 1, 0, 0))
-            val middleJournalpost = createJournalpost("jp3", "dok-id-middle", "Middle Doc", Journalposttype.I, Tema.OMS, "A3", "f3", LocalDateTime.of(2024, 2, 1, 0, 0))
+            val newestJournalpost =
+                createJournalpost(
+                    journalpostId = "jp1",
+                    dokumentInfoId = "dok-id-newest",
+                    tittel = "Newest Doc",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "A1",
+                    fagsakId = "f1",
+                    datoSortering = LocalDateTime.of(2024, 3, 1, 0, 0),
+                )
+            val oldestJournalpost =
+                createJournalpost(
+                    journalpostId = "jp2",
+                    dokumentInfoId = "dok-id-oldest",
+                    tittel = "Oldest Doc",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "A2",
+                    fagsakId = "f2",
+                    datoSortering = LocalDateTime.of(2024, 1, 1, 0, 0),
+                )
+            val middleJournalpost =
+                createJournalpost(
+                    journalpostId = "jp3",
+                    dokumentInfoId = "dok-id-middle",
+                    tittel = "Middle Doc",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "A3",
+                    fagsakId = "f3",
+                    datoSortering = LocalDateTime.of(2024, 2, 1, 0, 0),
+                )
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(newestVedlegg, oldestVedlegg, middleVedlegg),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = listOf(newestJournalpost, oldestJournalpost, middleJournalpost),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(newestVedlegg, oldestVedlegg, middleVedlegg),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = listOf(newestJournalpost, oldestJournalpost, middleJournalpost),
+                )
 
             // Should have 3 separate documents, sorted with oldest first
             assertThat(result).hasSize(3)
@@ -622,54 +727,61 @@ class DokumentMapperTest {
             val hoveddokument = createHoveddokument()
 
             // Create opplastet documents (newest first when sorted descending by created)
-            val opplastet1 = createOpplastetVedlegg("Opplastet Nyeste", LocalDateTime.now())
-            val opplastet2 = createOpplastetVedlegg("Opplastet Eldre", LocalDateTime.now().minusDays(1))
+            val opplastet1 = createOpplastetVedlegg(name = "Opplastet Nyeste", created = LocalDateTime.now())
+            val opplastet2 = createOpplastetVedlegg(name = "Opplastet Eldre", created = LocalDateTime.now().minusDays(1))
 
             // Create journalført documents - two with same dokumentInfoId (should be grouped)
-            val journalfoertGrouped1 = createJournalfoertVedlegg("jp-grouped-1", "grouped-dok-id", "2024-01-15")
-            val journalfoertGrouped2 = createJournalfoertVedlegg("jp-grouped-2", "grouped-dok-id", "2024-02-20")
+            val journalfoertGrouped1 =
+                createJournalfoertVedlegg(journalpostId = "jp-grouped-1", dokumentInfoId = "grouped-dok-id", sortKey = "2024-01-15")
+            val journalfoertGrouped2 =
+                createJournalfoertVedlegg(journalpostId = "jp-grouped-2", dokumentInfoId = "grouped-dok-id", sortKey = "2024-02-20")
 
             // Create journalført document with unique dokumentInfoId (should NOT be grouped)
-            val journalfoertUnique = createJournalfoertVedlegg("jp-unique", "unique-dok-id", "2024-01-10")
+            val journalfoertUnique =
+                createJournalfoertVedlegg(journalpostId = "jp-unique", dokumentInfoId = "unique-dok-id", sortKey = "2024-01-10")
 
             // Create journalposts
-            val journalpostGrouped1 = createJournalpost(
-                journalpostId = "jp-grouped-1",
-                dokumentInfoId = "grouped-dok-id",
-                tittel = "Gruppert Dokument",
-                journalposttype = Journalposttype.I,
-                tema = Tema.OMS,
-                avsenderMottakerNavn = "Grouped Sender 1",
-                fagsakId = "fagsak-grouped-1",
-                datoSortering = LocalDateTime.of(2024, 1, 15, 10, 0),
-            )
-            val journalpostGrouped2 = createJournalpost(
-                journalpostId = "jp-grouped-2",
-                dokumentInfoId = "grouped-dok-id",
-                tittel = "Gruppert Dokument",
-                journalposttype = Journalposttype.U,
-                tema = Tema.SYK,
-                avsenderMottakerNavn = "Grouped Sender 2",
-                fagsakId = "fagsak-grouped-2",
-                datoSortering = LocalDateTime.of(2024, 2, 20, 10, 0),
-            )
-            val journalpostUnique = createJournalpost(
-                journalpostId = "jp-unique",
-                dokumentInfoId = "unique-dok-id",
-                tittel = "Unikt Dokument",
-                journalposttype = Journalposttype.N,
-                tema = Tema.FOR,
-                avsenderMottakerNavn = "Unique Sender",
-                fagsakId = "fagsak-unique",
-                datoSortering = LocalDateTime.of(2024, 1, 10, 10, 0),
-            )
+            val journalpostGrouped1 =
+                createJournalpost(
+                    journalpostId = "jp-grouped-1",
+                    dokumentInfoId = "grouped-dok-id",
+                    tittel = "Gruppert Dokument",
+                    journalposttype = Journalposttype.I,
+                    tema = Tema.OMS,
+                    avsenderMottakerNavn = "Grouped Sender 1",
+                    fagsakId = "fagsak-grouped-1",
+                    datoSortering = LocalDateTime.of(2024, 1, 15, 10, 0),
+                )
+            val journalpostGrouped2 =
+                createJournalpost(
+                    journalpostId = "jp-grouped-2",
+                    dokumentInfoId = "grouped-dok-id",
+                    tittel = "Gruppert Dokument",
+                    journalposttype = Journalposttype.U,
+                    tema = Tema.SYK,
+                    avsenderMottakerNavn = "Grouped Sender 2",
+                    fagsakId = "fagsak-grouped-2",
+                    datoSortering = LocalDateTime.of(2024, 2, 20, 10, 0),
+                )
+            val journalpostUnique =
+                createJournalpost(
+                    journalpostId = "jp-unique",
+                    dokumentInfoId = "unique-dok-id",
+                    tittel = "Unikt Dokument",
+                    journalposttype = Journalposttype.N,
+                    tema = Tema.FOR,
+                    avsenderMottakerNavn = "Unique Sender",
+                    fagsakId = "fagsak-unique",
+                    datoSortering = LocalDateTime.of(2024, 1, 10, 10, 0),
+                )
 
-            val result = dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
-                vedlegg = setOf(opplastet1, opplastet2, journalfoertGrouped1, journalfoertGrouped2, journalfoertUnique),
-                behandling = behandling,
-                hoveddokument = hoveddokument,
-                journalpostList = listOf(journalpostGrouped1, journalpostGrouped2, journalpostUnique),
-            )
+            val result =
+                dokumentMapper.getSortedDokumentViewListForInnholdsfortegnelse(
+                    vedlegg = setOf(opplastet1, opplastet2, journalfoertGrouped1, journalfoertGrouped2, journalfoertUnique),
+                    behandling = behandling,
+                    hoveddokument = hoveddokument,
+                    journalpostList = listOf(journalpostGrouped1, journalpostGrouped2, journalpostUnique),
+                )
 
             // Expected order:
             // 1. Opplastet documents first (sorted by created descending - newest first)

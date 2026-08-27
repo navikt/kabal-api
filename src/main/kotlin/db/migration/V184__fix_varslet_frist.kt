@@ -5,10 +5,9 @@ import no.nav.klage.oppgave.util.getLogger
 import org.flywaydb.core.api.migration.BaseJavaMigration
 import org.flywaydb.core.api.migration.Context
 import java.time.LocalDate
-import java.util.*
+import java.util.UUID
 
 class V184__fix_varslet_frist : BaseJavaMigration() {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -21,34 +20,36 @@ class V184__fix_varslet_frist : BaseJavaMigration() {
     }
 
     override fun migrate(context: Context) {
-        val preparedStatementForUpdate = context.connection.prepareStatement(
-            """
+        val preparedStatementForUpdate =
+            context.connection.prepareStatement(
+                """
                 update klage.behandling
                     set varslet_frist = ?, varslet_behandlingstid_unit_type_id = ?, varslet_behandlingstid_units = ?
                     where id = ?
-            """.trimIndent()
-        )
+                """.trimIndent(),
+            )
 
-        val preparedStatementForSelect = context.connection.prepareStatement(
-            """
+        val preparedStatementForSelect =
+            context.connection.prepareStatement(
+                """
                 select felt, tilverdi from klage.endringslogginnslag
                     where felt in ('$VARSLET_FRIST', '$VARSLET_BEHANDLINGSTID_UNITS', '$VARSLET_BEHANDLINGSTID_UNIT_TYPE')
                     and behandling_id = ?
-            """.trimIndent()
-        )
+                """.trimIndent(),
+            )
 
         context.connection.createStatement().use { select ->
-            select.executeQuery(
-                """
+            select
+                .executeQuery(
+                    """
                     select b.id from klage.mottak m, klage.behandling b
                     where b.mottak_id = m.id
                       and m.type_id = '1'
                       and m.sent_from = 'FAGSYSTEM'
                       and m.created > '2024-11-06'
                       and b.varslet_frist is null
-                    """
-            )
-                .use { rows ->
+                    """,
+                ).use { rows ->
                     while (rows.next()) {
                         val behandlingId = rows.getObject(1, UUID::class.java)
 
@@ -62,7 +63,7 @@ class V184__fix_varslet_frist : BaseJavaMigration() {
                             varsletMap[resultSet.getString(1)] = resultSet.getString(2)
                         }
 
-                        //check that there are exactly 3 rows in the resultSet and read the values
+                        // check that there are exactly 3 rows in the resultSet and read the values
                         if (
                             varsletMap.size != 3 ||
                             !varsletMap.containsKey(VARSLET_FRIST) ||
@@ -94,7 +95,9 @@ class V184__fix_varslet_frist : BaseJavaMigration() {
                             } else if (varsletMap[VARSLET_BEHANDLINGSTID_UNIT_TYPE]!!.contains(WEEKS)) {
                                 TimeUnitType.WEEKS.id
                             } else {
-                                logger.warn("V184__fix_varslet_frist: Unknown TimeUnitType: ${varsletMap[VARSLET_BEHANDLINGSTID_UNIT_TYPE]}. BehandlingId: $behandlingId. Continuing.")
+                                logger.warn(
+                                    "V184__fix_varslet_frist: Unknown TimeUnitType: ${varsletMap[VARSLET_BEHANDLINGSTID_UNIT_TYPE]}. BehandlingId: $behandlingId. Continuing.",
+                                )
                                 continue
                             }
 
@@ -105,7 +108,6 @@ class V184__fix_varslet_frist : BaseJavaMigration() {
 
                         preparedStatementForUpdate.executeUpdate()
                     }
-
                 }
         }
     }

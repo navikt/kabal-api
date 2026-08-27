@@ -12,8 +12,13 @@ import no.nav.klage.oppgave.service.InnloggetSaksbehandlerService
 import no.nav.klage.oppgave.util.getLogger
 import no.nav.klage.oppgave.util.logBehandlingMethodDetails
 import no.nav.security.token.support.core.api.ProtectedWithClaims
-import org.springframework.web.bind.annotation.*
-import java.util.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
+import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api")
@@ -23,7 +28,6 @@ class BehandlingROLController(
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
     private val behandlingService: BehandlingService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -31,26 +35,26 @@ class BehandlingROLController(
 
     @GetMapping("/{id}/rol")
     fun getROL(
-        @PathVariable("id") behandlingId: UUID
+        @PathVariable("id") behandlingId: UUID,
     ): RolView {
         logBehandlingMethodDetails(
-            ::getROL.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::getROL.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
         return behandlingService.getBehandlingROLView(behandlingId)
     }
 
     @GetMapping("/{id}/rolflowstate")
     fun getROLFlowState(
-        @PathVariable("id") behandlingId: UUID
+        @PathVariable("id") behandlingId: UUID,
     ): FlowStateView {
         logBehandlingMethodDetails(
-            ::getROLFlowState.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger
+            methodName = ::getROLFlowState.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
         return FlowStateView(flowState = behandlingService.getBehandlingAndCheckReadAccessToSak(behandlingId).rolFlowState)
     }
@@ -58,13 +62,13 @@ class BehandlingROLController(
     @PutMapping("/{behandlingId}/rolnavident")
     fun setROLIdent(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: SaksbehandlerInput
+        @RequestBody input: SaksbehandlerInput,
     ): RolView {
         logBehandlingMethodDetails(
-            ::setROLIdent.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger,
+            methodName = ::setROLIdent.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         return behandlingService.setROLIdent(
@@ -80,10 +84,10 @@ class BehandlingROLController(
         @RequestBody input: FlowStateInput,
     ): RolView {
         logBehandlingMethodDetails(
-            ::setROLFlowState.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            behandlingId,
-            logger,
+            methodName = ::setROLFlowState.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            behandlingId = behandlingId,
+            logger = logger,
         )
 
         if (input.flowState in listOf(FlowState.RETURNED_APPROVED, FlowState.RETURNED_NOT_APPROVED)) {

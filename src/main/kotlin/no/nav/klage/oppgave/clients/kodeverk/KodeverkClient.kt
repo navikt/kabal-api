@@ -20,92 +20,90 @@ class KodeverkClient(
     private val kodeverkWebClient: WebClient,
     private val tokenUtil: TokenUtil,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
     @Cacheable(CacheWithJCacheConfiguration.POSTSTEDER_CACHE)
-    fun getPoststeder(): KodeverkResponse {
-        return kotlin.runCatching {
-            kodeverkWebClient.get()
-                .uri { uriBuilder ->
-                    uriBuilder
-                        .path("/Postnummer/koder/betydninger")
-                        .queryParam("ekskluderUgyldige", true)
-                        .queryParam("spraak", "NO")
-                        .build()
-                }
-                .header("Nav-Call-Id", Span.current().spanContext.traceId)
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope()}"
-                )
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(
-                        response = response,
-                        functionName = ::getPoststeder.name,
-                        classLogger = logger,
-                    )
-                }
-                .bodyToMono<KodeverkResponse>()
-                .block() ?: throw KodeverkNotFoundException("Search for Postnummer kodeverk returned null.")
-        }.fold(
-            onSuccess = { it },
-            onFailure = { error ->
-                when (error) {
-                    is WebClientResponseException.NotFound -> {
-                        throw KodeverkNotFoundException("Search for Postnummer kodeverk returned null.")
-                    }
+    fun getPoststeder(): KodeverkResponse =
+        kotlin
+            .runCatching {
+                kodeverkWebClient
+                    .get()
+                    .uri { uriBuilder ->
+                        uriBuilder
+                            .path("/Postnummer/koder/betydninger")
+                            .queryParam("ekskluderUgyldige", true)
+                            .queryParam("spraak", "NO")
+                            .build()
+                    }.header("Nav-Call-Id", Span.current().spanContext.traceId)
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope()}",
+                    ).accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError) { response ->
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getPoststeder.name,
+                            classLogger = logger,
+                        )
+                    }.bodyToMono<KodeverkResponse>()
+                    .block() ?: throw KodeverkNotFoundException("Search for Postnummer kodeverk returned null.")
+            }.fold(
+                onSuccess = { it },
+                onFailure = { error ->
+                    when (error) {
+                        is WebClientResponseException.NotFound -> {
+                            throw KodeverkNotFoundException("Search for Postnummer kodeverk returned null.")
+                        }
 
-                    else -> throw error
-                }
-            }
-        )
-    }
+                        else -> {
+                            throw error
+                        }
+                    }
+                },
+            )
 
     @Cacheable(CacheWithJCacheConfiguration.LANDKODER_CACHE)
-    fun getLandkoder(): KodeverkResponse {
-        return kotlin.runCatching {
-            kodeverkWebClient.get()
-                .uri { uriBuilder ->
-                    uriBuilder
-                        .path("/LandkoderISO2/koder/betydninger")
-                        .queryParam("ekskluderUgyldige", true)
-                        .queryParam("spraak", "NO")
-                        .build()
-                }
-                .header("Nav-Call-Id", Span.current().spanContext.traceId)
-                .header(
-                    HttpHeaders.AUTHORIZATION,
-                    "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope()}"
-                )
+    fun getLandkoder(): KodeverkResponse =
+        kotlin
+            .runCatching {
+                kodeverkWebClient
+                    .get()
+                    .uri { uriBuilder ->
+                        uriBuilder
+                            .path("/LandkoderISO2/koder/betydninger")
+                            .queryParam("ekskluderUgyldige", true)
+                            .queryParam("spraak", "NO")
+                            .build()
+                    }.header("Nav-Call-Id", Span.current().spanContext.traceId)
+                    .header(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer ${tokenUtil.getSaksbehandlerAccessTokenWithKodeverkScope()}",
+                    ).accept(MediaType.APPLICATION_JSON)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError) { response ->
+                        logErrorResponse(
+                            response = response,
+                            functionName = ::getPoststeder.name,
+                            classLogger = logger,
+                        )
+                    }.bodyToMono<KodeverkResponse>()
+                    .block() ?: throw KodeverkNotFoundException("Search for Landkoder kodeverk returned null.")
+            }.fold(
+                onSuccess = { it },
+                onFailure = { error ->
+                    when (error) {
+                        is WebClientResponseException.NotFound -> {
+                            throw KodeverkNotFoundException("Search for Landkoder kodeverk returned null.")
+                        }
 
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError) { response ->
-                    logErrorResponse(
-                        response = response,
-                        functionName = ::getPoststeder.name,
-                        classLogger = logger,
-                    )
-                }
-                .bodyToMono<KodeverkResponse>()
-                .block() ?: throw KodeverkNotFoundException("Search for Landkoder kodeverk returned null.")
-        }.fold(
-            onSuccess = { it },
-            onFailure = { error ->
-                when (error) {
-                    is WebClientResponseException.NotFound -> {
-                        throw KodeverkNotFoundException("Search for Landkoder kodeverk returned null.")
+                        else -> {
+                            throw error
+                        }
                     }
-
-                    else -> throw error
-                }
-            }
-        )
-    }
+                },
+            )
 }

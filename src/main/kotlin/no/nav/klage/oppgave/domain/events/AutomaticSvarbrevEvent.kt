@@ -1,13 +1,17 @@
 package no.nav.klage.oppgave.domain.events
 
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.LocalDateTime
-import java.util.*
-
+import java.util.UUID
 
 @Entity
 @Table(name = "automatic_svarbrev_event", schema = "klage")
-class AutomaticSvarbrevEvent (
+class AutomaticSvarbrevEvent(
     @Id
     val id: UUID = UUID.randomUUID(),
     @Column(name = "status", nullable = false)
@@ -30,10 +34,9 @@ class AutomaticSvarbrevEvent (
 ) {
     enum class AutomaticSvarbrevStatus {
         NOT_HANDLED,
-        HANDLED
+        HANDLED,
     }
 
-    override fun toString(): String {
-        return "AutomaticSvarbrevEvent(id=$id, status=$status, created=$created, modified=$modified, behandlingId=$behandlingId, dokumentUnderArbeidId=$dokumentUnderArbeidId, receiversAreSet=$receiversAreSet, documentIsMarkedAsFinished=$documentIsMarkedAsFinished, varsletFristIsSetInBehandling=$varsletFristIsSetInBehandling)"
-    }
+    override fun toString(): String =
+        "AutomaticSvarbrevEvent(id=$id, status=$status, created=$created, modified=$modified, behandlingId=$behandlingId, dokumentUnderArbeidId=$dokumentUnderArbeidId, receiversAreSet=$receiversAreSet, documentIsMarkedAsFinished=$documentIsMarkedAsFinished, varsletFristIsSetInBehandling=$varsletFristIsSetInBehandling)"
 }

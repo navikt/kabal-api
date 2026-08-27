@@ -12,8 +12,7 @@ import no.nav.klage.oppgave.repositories.AutomaticSvarbrevEventRepository
 import no.nav.klage.oppgave.util.getLogger
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Service
 class ExternalMottakFacade(
@@ -21,12 +20,11 @@ class ExternalMottakFacade(
     private val behandlingService: BehandlingService,
     private val saksbehandlerService: SaksbehandlerService,
     private val kabalInnstillingerClient: KabalInnstillingerClient,
-    @Value("\${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
+    @Value($$"${SYSTEMBRUKER_IDENT}") private val systembrukerIdent: String,
     private val automaticSvarbrevEventRepository: AutomaticSvarbrevEventRepository,
     private val taskListMerkantilService: TaskListMerkantilService,
     private val svarbrevSettingsService: SvarbrevSettingsService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -54,7 +52,7 @@ class ExternalMottakFacade(
         if (oversendtKlageAnke.saksbehandlerIdentForTildeling != null) {
             tryToSetSaksbehandler(
                 behandling = behandling,
-                saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdentForTildeling
+                saksbehandlerIdent = oversendtKlageAnke.saksbehandlerIdentForTildeling,
             )
         }
 
@@ -65,7 +63,7 @@ class ExternalMottakFacade(
 
     private fun tryToSendSvarbrev(
         behandlingId: UUID,
-        hindreAutomatiskSvarbrev: Boolean
+        hindreAutomatiskSvarbrev: Boolean,
     ) {
         if (hindreAutomatiskSvarbrev) {
             logger.debug("hindreAutomatiskSvarbrev set to true, returning without sending svarbrev")
@@ -74,10 +72,11 @@ class ExternalMottakFacade(
 
         val behandling = behandlingService.getBehandlingForReadWithoutCheckForAccess(behandlingId)
 
-        val svarbrevSettingsForYtelseAndType = svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(
-            ytelse = behandling.ytelse,
-            type = behandling.type,
-        )
+        val svarbrevSettingsForYtelseAndType =
+            svarbrevSettingsService.getSvarbrevSettingsForYtelseAndType(
+                ytelse = behandling.ytelse,
+                type = behandling.type,
+            )
 
         val shouldSendSvarbrev = svarbrevSettingsForYtelseAndType?.shouldSend ?: false
 
@@ -89,15 +88,15 @@ class ExternalMottakFacade(
                     dokumentUnderArbeidId = null,
                     receiversAreSet = false,
                     documentIsMarkedAsFinished = false,
-                    varsletFristIsSetInBehandling = false
-                )
+                    varsletFristIsSetInBehandling = false,
+                ),
             )
         }
     }
 
     private fun tryToSetSaksbehandler(
         behandling: Behandling,
-        saksbehandlerIdent: String
+        saksbehandlerIdent: String,
     ) {
         try {
             setSaksbehandler(
@@ -108,29 +107,37 @@ class ExternalMottakFacade(
             logger.error("Klarte ikke å tildele behandling ${behandling.id} til saksbehandlerIdent $saksbehandlerIdent. Feil: $e")
             taskListMerkantilService.createTaskForMerkantil(
                 behandlingId = behandling.id,
-                reason = "Klarte ikke å tildele behandling ${behandling.id} til saksbehandlerIdent $saksbehandlerIdent. Feilmelding: ${e.message}"
+                reason =
+                    "Klarte ikke å tildele behandling ${behandling.id} til saksbehandlerIdent $saksbehandlerIdent. Feilmelding: " +
+                        "${e.message}",
             )
         }
     }
 
-    private fun setSaksbehandler(behandling: Behandling, saksbehandlerIdent: String) {
+    private fun setSaksbehandler(
+        behandling: Behandling,
+        saksbehandlerIdent: String,
+    ) {
         logger.debug("Preparing to set saksbehandler. Getting enhet for saksbehandler $saksbehandlerIdent")
-        val enhetForSaksbehandler = try {
-            saksbehandlerService.getEnhetForSaksbehandler(
-                navIdent = saksbehandlerIdent,
-            ).enhetId
-        } catch (e: Exception) {
-            logger.error(
-                "Couldn't get enhet for saksbehandlerident {}, returning. Exception: {}",
-                saksbehandlerIdent,
-                e.message
-            )
-            return
-        }
+        val enhetForSaksbehandler =
+            try {
+                saksbehandlerService
+                    .getEnhetForSaksbehandler(
+                        navIdent = saksbehandlerIdent,
+                    ).enhetId
+            } catch (e: Exception) {
+                logger.error(
+                    "Couldn't get enhet for saksbehandlerident {}, returning. Exception: {}",
+                    saksbehandlerIdent,
+                    e.message,
+                )
+                return
+            }
 
-        val enhet = Enhet.entries.find {
-            it.navn == enhetForSaksbehandler
-        }
+        val enhet =
+            Enhet.entries.find {
+                it.navn == enhetForSaksbehandler
+            }
 
         if (enhet == null) {
             logger.error("Couldn't get enhet for saksbehandlerident {}, returning.", saksbehandlerIdent)
@@ -151,14 +158,14 @@ class ExternalMottakFacade(
             logger.debug(
                 "Saksbehandler {} mangler innstillinger i Kabal. BehandlingId: {}",
                 saksbehandlerIdent,
-                behandling.id
+                behandling.id,
             )
         } else if (saksbehandlerAccess.ytelseIdList.none { it == behandling.ytelse.id }) {
             logger.debug(
                 "Saksbehandler {} mangler tilgang til ytelse {} i Kabal. BehandlingId: {}",
                 saksbehandlerIdent,
                 behandling.ytelse.id,
-                behandling.id
+                behandling.id,
             )
         }
 

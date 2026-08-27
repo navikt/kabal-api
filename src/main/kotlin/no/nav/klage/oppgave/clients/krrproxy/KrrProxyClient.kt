@@ -33,7 +33,9 @@ class KrrProxyClient(
             logger.error("Error from KRR. Returning null. See team-logs for more details.")
             teamLogger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
             return null
-        } else return krrProxyResponse?.personer?.get(fnr)
+        } else {
+            return krrProxyResponse?.personer?.get(fnr)
+        }
     }
 
     @Cacheable(CacheWithJCacheConfiguration.KRR_INFO_CACHE)
@@ -44,18 +46,23 @@ class KrrProxyClient(
             logger.error("Error from KRR. Returning null. See team-logs for more details.")
             teamLogger.error("Error from KRR: ${krrProxyResponse.feil[fnr]}")
             return null
-        } else return krrProxyResponse?.personer?.get(fnr)
+        } else {
+            return krrProxyResponse?.personer?.get(fnr)
+        }
     }
 
-    private fun getDigitalKontaktinformasjon(fnr: String, token: String): KrrProxyResponse? {
+    private fun getDigitalKontaktinformasjon(
+        fnr: String,
+        token: String,
+    ): KrrProxyResponse? {
         logger.debug("Getting info from KRR")
-        return krrProxyWebClient.post()
+        return krrProxyWebClient
+            .post()
             .uri("/rest/v1/personer")
             .header(
                 HttpHeaders.AUTHORIZATION,
-                "Bearer $token"
-            )
-            .contentType(MediaType.APPLICATION_JSON)
+                "Bearer $token",
+            ).contentType(MediaType.APPLICATION_JSON)
             .bodyValue(KrrProxyRequest(personidenter = setOf(fnr)))
             .retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
@@ -64,8 +71,7 @@ class KrrProxyClient(
                     functionName = ::getDigitalKontaktinformasjon.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<KrrProxyResponse>()
+            }.bodyToMono<KrrProxyResponse>()
             .onErrorResume { Mono.empty() }
             .block()
     }

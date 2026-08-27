@@ -17,7 +17,6 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import java.nio.file.Files
 
-
 @Component
 class FileApiClient(
     private val fileWebClient: WebClient,
@@ -28,27 +27,32 @@ class FileApiClient(
         private val logger = getLogger(javaClass.enclosingClass)
     }
 
-    fun getDocument(id: String, systemUser: Boolean = false): Resource {
+    fun getDocument(
+        id: String,
+        systemUser: Boolean = false,
+    ): Resource {
         logger.debug("Fetching document with id {}", id)
 
-        val token = if (systemUser) {
-            tokenUtil.getAppAccessTokenWithKabalFileApiScope()
-        } else {
-            tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
-        }
-
-        val dataBufferFlux = fileWebClient.get()
-            .uri { it.path("/document/{id}").build(id) }
-            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-            .retrieve()
-            .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(
-                    response = response,
-                    functionName = ::getDocument.name,
-                    classLogger = logger,
-                )
+        val token =
+            if (systemUser) {
+                tokenUtil.getAppAccessTokenWithKabalFileApiScope()
+            } else {
+                tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
             }
-            .bodyToFlux(DataBuffer::class.java)
+
+        val dataBufferFlux =
+            fileWebClient
+                .get()
+                .uri { it.path("/document/{id}").build(id) }
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::getDocument.name,
+                        classLogger = logger,
+                    )
+                }.bodyToFlux(DataBuffer::class.java)
 
         val tempFile = Files.createTempFile(null, null)
 
@@ -64,42 +68,47 @@ class FileApiClient(
     ): String {
         logger.debug("Fetching document (signed URL) with id {}", id)
 
-        val token = if (systemUser) {
-            tokenUtil.getAppAccessTokenWithKabalFileApiScope()
-        } else {
-            tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
-        }
+        val token =
+            if (systemUser) {
+                tokenUtil.getAppAccessTokenWithKabalFileApiScope()
+            } else {
+                tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
+            }
 
-        return fileWebClient.post()
+        return fileWebClient
+            .post()
             .uri { it.path("/document/{id}/signedurl").build(id) }
             .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
             .bodyValue(
                 SignedUrlRequest(
-                    headers = mapOf(
-                        "content-disposition" to "$contentDisposition; filename=\"$filename\""
-                    )
-                )
-            )
-            .retrieve()
+                    headers =
+                        mapOf(
+                            "content-disposition" to "$contentDisposition; filename=\"$filename\"",
+                        ),
+                ),
+            ).retrieve()
             .onStatus(HttpStatusCode::isError) { response ->
                 logErrorResponse(
                     response = response,
                     functionName = ::getDocumentAsSignedURL.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<String>()
+            }.bodyToMono<String>()
             .block()!!
     }
 
-    fun deleteDocument(id: String, systemUser: Boolean = false) {
+    fun deleteDocument(
+        id: String,
+        systemUser: Boolean = false,
+    ) {
         logger.debug("Deleting document with id {}", id)
 
-        val token = if (systemUser) {
-            tokenUtil.getAppAccessTokenWithKabalFileApiScope()
-        } else {
-            tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
-        }
+        val token =
+            if (systemUser) {
+                tokenUtil.getAppAccessTokenWithKabalFileApiScope()
+            } else {
+                tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
+            }
 
         try {
             fileWebClient
@@ -113,23 +122,25 @@ class FileApiClient(
                         functionName = ::deleteDocument.name,
                         classLogger = logger,
                     )
-                }
-                .toBodilessEntity()
+                }.toBodilessEntity()
                 .block()
-
         } catch (e: Exception) {
             logger.error("Could not delete document ($id) from kabal-file-api", e)
         }
     }
 
-    fun uploadDocument(resource: Resource, systemUser: Boolean = false): String {
+    fun uploadDocument(
+        resource: Resource,
+        systemUser: Boolean = false,
+    ): String {
         logger.debug("Uploading document to storage")
 
-        val token = if (systemUser) {
-            tokenUtil.getAppAccessTokenWithKabalFileApiScope()
-        } else {
-            tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
-        }
+        val token =
+            if (systemUser) {
+                tokenUtil.getAppAccessTokenWithKabalFileApiScope()
+            } else {
+                tokenUtil.getSaksbehandlerAccessTokenWithKabalFileApiScope()
+            }
 
         var start = System.currentTimeMillis()
         val bodyBuilder = MultipartBodyBuilder()
@@ -137,21 +148,21 @@ class FileApiClient(
         logger.debug("File added to body. Time taken: ${System.currentTimeMillis() - start} ms")
 
         start = System.currentTimeMillis()
-        val response = fileWebClient
-            .post()
-            .uri("/document")
-            .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
-            .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
-            .retrieve()
-            .onStatus(HttpStatusCode::isError) { response ->
-                logErrorResponse(
-                    response = response,
-                    functionName = ::uploadDocument.name,
-                    classLogger = logger,
-                )
-            }
-            .bodyToMono<DocumentUploadedResponse>()
-            .block()
+        val response =
+            fileWebClient
+                .post()
+                .uri("/document")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer $token")
+                .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
+                .retrieve()
+                .onStatus(HttpStatusCode::isError) { response ->
+                    logErrorResponse(
+                        response = response,
+                        functionName = ::uploadDocument.name,
+                        classLogger = logger,
+                    )
+                }.bodyToMono<DocumentUploadedResponse>()
+                .block()
 
         logger.debug("Response received. Time taken: ${System.currentTimeMillis() - start} ms")
         requireNotNull(response)
@@ -167,4 +178,6 @@ class FileApiClient(
     }
 }
 
-data class DocumentUploadedResponse(val id: String)
+data class DocumentUploadedResponse(
+    val id: String,
+)

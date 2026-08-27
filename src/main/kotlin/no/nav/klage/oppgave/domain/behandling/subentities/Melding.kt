@@ -5,7 +5,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "melding", schema = "klage")
@@ -34,15 +34,10 @@ class Melding(
         return id == other.id
     }
 
-    override fun toString(): String {
-        return "Melding(id=$id, behandlingId=$behandlingId, text='$text', saksbehandlerident='$saksbehandlerident', created=$created, modified=$modified, notify=$notify)"
-    }
+    override fun toString(): String =
+        "Melding(id=$id, behandlingId=$behandlingId, text='$text', saksbehandlerident='$saksbehandlerident', created=$created, modified=$modified, notify=$notify)"
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun compareTo(other: Melding): Int {
-        return this.created.compareTo(other.created)
-    }
+    override fun compareTo(other: Melding): Int = this.created.compareTo(other.created)
 }

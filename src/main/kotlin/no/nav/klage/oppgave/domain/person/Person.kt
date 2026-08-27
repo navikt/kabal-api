@@ -17,7 +17,6 @@ data class Person(
     val vergemaalEllerFremtidsfullmakt: Boolean,
     val sikkerhetstiltak: Sikkerhetstiltak?,
 ) {
-
     data class Sikkerhetstiltak(
         val tiltakstype: Tiltakstype,
         val beskrivelse: String,

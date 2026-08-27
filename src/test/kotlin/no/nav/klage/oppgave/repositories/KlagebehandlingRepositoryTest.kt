@@ -27,12 +27,11 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @ActiveProfiles("local")
 @DataJpaTest
 class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
-
     @Autowired
     lateinit var testEntityManager: TestEntityManager
 
@@ -45,7 +44,7 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
     @Autowired
     lateinit var behandlingRepository: BehandlingRepository
 
-    //Because of Hibernate Envers and our setup for audit logs.
+    // Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
@@ -62,19 +61,21 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
 
     @Test
     fun `persist klage with saksdokumenter and mottakDokument works`() {
-        val klagebehandling = getKlagebehandling(
-            saksdokumenter = mutableSetOf(
-                Saksdokument(journalpostId = "REF1", dokumentInfoId = "123"),
-                Saksdokument(journalpostId = "REF2", dokumentInfoId = "321"),
+        val klagebehandling =
+            getKlagebehandling(
+                saksdokumenter =
+                    mutableSetOf(
+                        Saksdokument(journalpostId = "REF1", dokumentInfoId = "123"),
+                        Saksdokument(journalpostId = "REF2", dokumentInfoId = "321"),
+                    ),
             )
-        )
 
         klagebehandling.mottakDokument.add(
             MottakDokument(
                 type = MottakDokumentType.BRUKERS_KLAGE,
                 journalpostId = "123456789",
                 behandling = klagebehandling,
-            )
+            ),
         )
 
         klagebehandlingRepository.save(klagebehandling)
@@ -87,12 +88,14 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
 
     @Test
     fun `remove saksdokument on saved klage works`() {
-        val klagebehandling = getKlagebehandling(
-            saksdokumenter = mutableSetOf(
-                Saksdokument(journalpostId = "REF1", dokumentInfoId = "123"),
-                Saksdokument(journalpostId = "REF2", dokumentInfoId = "321"),
+        val klagebehandling =
+            getKlagebehandling(
+                saksdokumenter =
+                    mutableSetOf(
+                        Saksdokument(journalpostId = "REF1", dokumentInfoId = "123"),
+                        Saksdokument(journalpostId = "REF2", dokumentInfoId = "321"),
+                    ),
             )
-        )
 
         klagebehandlingRepository.save(klagebehandling)
 
@@ -113,64 +116,70 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
     @Test
     fun `get ankemuligheter returns all three instances`() {
         val klageWithNoAnke = getKlagebehandling()
-        klageWithNoAnke.ferdigstilling = Ferdigstilling(
-            avsluttet = LocalDateTime.now(),
-            avsluttetAvSaksbehandler = LocalDateTime.now(),
-            navIdent = "navIdent",
-            navn = "navn",
-        )
+        klageWithNoAnke.ferdigstilling =
+            Ferdigstilling(
+                avsluttet = LocalDateTime.now(),
+                avsluttetAvSaksbehandler = LocalDateTime.now(),
+                navIdent = "navIdent",
+                navn = "navn",
+            )
         klageWithNoAnke.utfall = Utfall.STADFESTELSE
 
         val klageWithNoAnke2 = getKlagebehandling()
-        klageWithNoAnke2.ferdigstilling = Ferdigstilling(
-            avsluttet = LocalDateTime.now(),
-            avsluttetAvSaksbehandler = LocalDateTime.now(),
-            navIdent = "navIdent",
-            navn = "navn",
-        )
+        klageWithNoAnke2.ferdigstilling =
+            Ferdigstilling(
+                avsluttet = LocalDateTime.now(),
+                avsluttetAvSaksbehandler = LocalDateTime.now(),
+                navIdent = "navIdent",
+                navn = "navn",
+            )
 
         klageWithNoAnke2.utfall = Utfall.RETUR
 
         val klageWithAnke = getKlagebehandling()
-        klageWithAnke.ferdigstilling = Ferdigstilling(
-            avsluttet = LocalDateTime.now(),
-            avsluttetAvSaksbehandler = LocalDateTime.now(),
-            navIdent = "navIdent",
-            navn = "navn",
-        )
+        klageWithAnke.ferdigstilling =
+            Ferdigstilling(
+                avsluttet = LocalDateTime.now(),
+                avsluttetAvSaksbehandler = LocalDateTime.now(),
+                navIdent = "navIdent",
+                navn = "navn",
+            )
         klageWithAnke.utfall = Utfall.STADFESTELSE
 
         klagebehandlingRepository.saveAll(listOf(klageWithNoAnke, klageWithNoAnke2, klageWithAnke))
 
-        val ankebehandling = Ankebehandling(
-            klageBehandlendeEnhet = "",
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.KLAGE,
-            kildeReferanse = "abc",
-            dvhReferanse = "abc",
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            mottattKlageinstans = LocalDateTime.now(),
-            kakaKvalitetsvurderingId = UUID.randomUUID(),
-            kakaKvalitetsvurderingVersion = 2,
-            frist = LocalDate.now().plusWeeks(12),
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            varsletBehandlingstid = null,
-            forlengetBehandlingstidDraft = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = klageWithAnke.id,
-        )
+        val ankebehandling =
+            Ankebehandling(
+                klageBehandlendeEnhet = "",
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.KLAGE,
+                kildeReferanse = "abc",
+                dvhReferanse = "abc",
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                mottattKlageinstans = LocalDateTime.now(),
+                kakaKvalitetsvurderingId = UUID.randomUUID(),
+                kakaKvalitetsvurderingVersion = 2,
+                frist = LocalDate.now().plusWeeks(12),
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                varsletBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = klageWithAnke.id,
+            )
 
         ankebehandlingRepository.save(ankebehandling)
 
@@ -180,43 +189,45 @@ class KlagebehandlingRepositoryTest : PostgresIntegrationTestBase() {
         assertThat(behandlingRepository.getAnkemuligheter("23452354")).containsExactlyInAnyOrder(
             klageWithNoAnke,
             klageWithNoAnke2,
-            klageWithAnke
+            klageWithAnke,
         )
     }
 
-    fun getKlagebehandling(
-        saksdokumenter: MutableSet<Saksdokument>? = null,
-    ): Klagebehandling = Klagebehandling(
-        klager = Klager(
-            id = UUID.randomUUID(),
-            partId = PartId(type = PartIdType.PERSON, value = "23452354")
-        ),
-        sakenGjelder = SakenGjelder(
-            id = UUID.randomUUID(),
-            partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-        ),
-        prosessfullmektig = null,
-        ytelse = Ytelse.OMS_OMP,
-        type = Type.KLAGE,
-        frist = LocalDate.now(),
-        hjemler = mutableSetOf(
-            Hjemmel.FTRL_8_7
-        ),
-        mottattKlageinstans = LocalDateTime.now(),
-        fagsystem = Fagsystem.K9,
-        fagsakId = "123",
-        kildeReferanse = "abc",
-        avsenderEnhetFoersteinstans = "0101",
-        mottattVedtaksinstans = LocalDate.now(),
-        saksdokumenter = saksdokumenter ?: mutableSetOf(),
-        kakaKvalitetsvurderingId = UUID.randomUUID(),
-        kakaKvalitetsvurderingVersion = 2,
-        previousSaksbehandlerident = "C78901",
-        gosysOppgaveId = null,
-        varsletBehandlingstid = null,
-        forlengetBehandlingstidDraft = null,
-        gosysOppgaveRequired = false,
-        initiatingSystem = Behandling.InitiatingSystem.KABAL,
-        previousBehandlingId = null,
-    )
+    fun getKlagebehandling(saksdokumenter: MutableSet<Saksdokument>? = null): Klagebehandling =
+        Klagebehandling(
+            klager =
+                Klager(
+                    id = UUID.randomUUID(),
+                    partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                ),
+            sakenGjelder =
+                SakenGjelder(
+                    id = UUID.randomUUID(),
+                    partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                ),
+            prosessfullmektig = null,
+            ytelse = Ytelse.OMS_OMP,
+            type = Type.KLAGE,
+            frist = LocalDate.now(),
+            hjemler =
+                mutableSetOf(
+                    Hjemmel.FTRL_8_7,
+                ),
+            mottattKlageinstans = LocalDateTime.now(),
+            fagsystem = Fagsystem.K9,
+            fagsakId = "123",
+            kildeReferanse = "abc",
+            avsenderEnhetFoersteinstans = "0101",
+            mottattVedtaksinstans = LocalDate.now(),
+            saksdokumenter = saksdokumenter ?: mutableSetOf(),
+            kakaKvalitetsvurderingId = UUID.randomUUID(),
+            kakaKvalitetsvurderingVersion = 2,
+            previousSaksbehandlerident = "C78901",
+            gosysOppgaveId = null,
+            varsletBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
+        )
 }

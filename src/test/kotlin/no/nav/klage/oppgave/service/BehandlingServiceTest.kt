@@ -6,7 +6,13 @@ import io.mockk.mockk
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.SmartdokumentUnderArbeidAsHoveddokument
 import no.nav.klage.dokument.repositories.DokumentUnderArbeidRepository
-import no.nav.klage.kodeverk.*
+import no.nav.klage.kodeverk.DokumentType
+import no.nav.klage.kodeverk.Enhet
+import no.nav.klage.kodeverk.Fagsystem
+import no.nav.klage.kodeverk.FlowState
+import no.nav.klage.kodeverk.PartIdType
+import no.nav.klage.kodeverk.Type
+import no.nav.klage.kodeverk.Utfall
 import no.nav.klage.kodeverk.hjemmel.Hjemmel
 import no.nav.klage.kodeverk.hjemmel.Registreringshjemmel
 import no.nav.klage.kodeverk.ytelse.Ytelse
@@ -41,13 +47,12 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDateTime
-import java.util.*
 import java.util.Collections.emptySortedSet
+import java.util.UUID
 
 @ActiveProfiles("local")
 @DataJpaTest
 class BehandlingServiceTest : PostgresIntegrationTestBase() {
-
     @Autowired
     lateinit var testEntityManager: TestEntityManager
 
@@ -93,13 +98,13 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
     @MockkBean
     lateinit var behandlingMapper: BehandlingMapper
 
-    //Because of Hibernate Envers and our setup for audit logs.
+    // Because of Hibernate Envers and our setup for audit logs.
     @MockkBean
     lateinit var tokenUtil: TokenUtil
 
     lateinit var behandlingService: BehandlingService
 
-    private val SAKSBEHANDLER_IDENT = "SAKSBEHANDLER_IDENT"
+    private val saksbehandlerIdent = "SAKSBEHANDLER_IDENT"
 
     lateinit var behandlingId: UUID
 
@@ -107,48 +112,53 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
     fun setup() {
         val behandling = simpleInsert()
         behandlingId = behandling.id
-        behandlingService = BehandlingService(
-            behandlingRepository = behandlingRepository,
-            tilgangService = tilgangService,
-            applicationEventPublisher = applicationEventPublisher,
-            kakaApiGateway = kakaApiGateway,
-            dokumentService = dokumentService,
-            dokumentUnderArbeidRepository = dokumentUnderArbeidRepository,
-            kabalInnstillingerService = kabalInnstillingerService,
-            innloggetSaksbehandlerService = innloggetSaksbehandlerService,
-            arbeidOgInntektClient = arbeidOgInntektClient,
-            klankeService = klankeService,
-            eregClient = eregClient,
-            saksbehandlerService = saksbehandlerService,
-            behandlingMapper = behandlingMapper,
-            historyService = mockk(),
-            systembrukerIdent = "SYSTEMBRUKER",
-            kafkaInternalEventService = mockk(),
-            partSearchService = mockk(),
-            safFacade = mockk(),
-            tokenUtil = mockk(),
-            gosysOppgaveService = mockk(),
-            kodeverkService = mockk(),
-            klageNotificationsApiClient = mockk(relaxed = true),
-            schedulerHealthGate = mockk(relaxed = true),
-        )
+        behandlingService =
+            BehandlingService(
+                behandlingRepository = behandlingRepository,
+                tilgangService = tilgangService,
+                applicationEventPublisher = applicationEventPublisher,
+                kakaApiGateway = kakaApiGateway,
+                dokumentService = dokumentService,
+                dokumentUnderArbeidRepository = dokumentUnderArbeidRepository,
+                kabalInnstillingerService = kabalInnstillingerService,
+                innloggetSaksbehandlerService = innloggetSaksbehandlerService,
+                arbeidOgInntektClient = arbeidOgInntektClient,
+                klankeService = klankeService,
+                eregClient = eregClient,
+                saksbehandlerService = saksbehandlerService,
+                behandlingMapper = behandlingMapper,
+                historyService = mockk(),
+                systembrukerIdent = "SYSTEMBRUKER",
+                kafkaInternalEventService = mockk(),
+                partSearchService = mockk(),
+                safFacade = mockk(),
+                tokenUtil = mockk(),
+                gosysOppgaveService = mockk(),
+                kodeverkService = mockk(),
+                klageNotificationsApiClient = mockk(relaxed = true),
+                schedulerHealthGate = mockk(relaxed = true),
+            )
         every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) } returns Unit
-        every { innloggetSaksbehandlerService.getInnloggetIdent() } returns SAKSBEHANDLER_IDENT
-        every { tilgangService.verifyLoggedInUsersAccessToPerson(
-            any(),
-        ) } returns Unit
-        every { tilgangService.getSaksbehandlerAccessToPerson(any()) } returns TilgangService.Access(true, "")
+        every { innloggetSaksbehandlerService.getInnloggetIdent() } returns saksbehandlerIdent
+        every {
+            tilgangService.verifyLoggedInUsersAccessToPerson(
+                any(),
+            )
+        } returns Unit
+        every { tilgangService.getSaksbehandlerAccessToPerson(any()) } returns TilgangService.Access(access = true, reason = "")
         every { saksbehandlerService.hasKabalOppgavestyringAlleEnheterRole(any()) } returns false
-        every { behandlingMapper.mapToMedunderskriverWrapped(any()) } returns MedunderskriverWrapped(
-            employee = null,
-            modified = LocalDateTime.now(),
-            flowState = FlowState.SENT,
-        )
-        every { behandlingMapper.mapToMedunderskriverFlowStateResponse(any()) } returns MedunderskriverFlowStateResponse(
-            employee = null,
-            modified = LocalDateTime.now(),
-            flowState = FlowState.SENT
-        )
+        every { behandlingMapper.mapToMedunderskriverWrapped(any()) } returns
+            MedunderskriverWrapped(
+                employee = null,
+                modified = LocalDateTime.now(),
+                flowState = FlowState.SENT,
+            )
+        every { behandlingMapper.mapToMedunderskriverFlowStateResponse(any()) } returns
+            MedunderskriverFlowStateResponse(
+                employee = null,
+                modified = LocalDateTime.now(),
+                flowState = FlowState.SENT,
+            )
         every { kakaApiGateway.getValidationErrors(any()) } returns emptyList()
         every { dokumentUnderArbeidRepository.findByBehandlingIdAndMarkertFerdigIsNull(any()) } returns emptySortedSet()
     }
@@ -162,8 +172,8 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             assertThat(
                 behandlingService.getBehandlingForUpdate(
                     behandlingId = behandling.id,
-                    ignoreCheckSkrivetilgang = true
-                )
+                    ignoreCheckSkrivetilgang = true,
+                ),
             ).isEqualTo(behandling)
         }
 
@@ -172,7 +182,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
             val behandling = simpleInsert()
 
             every { tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(behandling) }.throws(
-                BehandlingAvsluttetException("")
+                BehandlingAvsluttetException(""),
             )
 
             assertThrows<BehandlingAvsluttetException> { behandlingService.getBehandlingForUpdate(behandling.id) }
@@ -185,7 +195,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 //        fun `setMedunderskriverIdent kan sette medunderskriver til null`() {
 //            behandlingService.setMedunderskriverNavIdent(
 //                behandlingId = behandlingId,
-//                utfoerendeSaksbehandlerIdent = SAKSBEHANDLER_IDENT,
+//                utfoerendeSaksbehandlerIdent = saksbehandlerIdent,
 //                navIdent = null,
 //            )
 //
@@ -196,7 +206,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 //        }
     }
 
-    //TODO fix
+    // TODO fix
     @Nested
     inner class SwitchMedunderskriverFlowState {
 //        @Test
@@ -204,7 +214,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 //            assertThrows<BehandlingManglerMedunderskriverException> {
 //                behandlingService.switchMedunderskriverFlowState(
 //                    behandlingId,
-//                    SAKSBEHANDLER_IDENT
+//                    saksbehandlerIdent
 //                )
 //            }
 //        }
@@ -214,12 +224,12 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 //            behandlingService.setMedunderskriverFlowState(
 //                behandlingId,
 //                MEDUNDERSKRIVER_IDENT,
-//                SAKSBEHANDLER_IDENT
+//                saksbehandlerIdent
 //            )
 //
 //            behandlingService.switchMedunderskriverFlowState(
 //                behandlingId,
-//                SAKSBEHANDLER_IDENT
+//                saksbehandlerIdent
 //            )
 //
 //            val output = behandlingRepository.getReferenceById(behandlingId)
@@ -233,7 +243,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 //            behandlingService.setMedunderskriverFlowState(
 //                behandlingId,
 //                MEDUNDERSKRIVER_IDENT,
-//                SAKSBEHANDLER_IDENT,
+//                saksbehandlerIdent,
 //                FlowState.SENT,
 //            )
 //
@@ -252,17 +262,17 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 //            behandlingService.setMedunderskriverFlowState(
 //                behandlingId,
 //                MEDUNDERSKRIVER_IDENT,
-//                SAKSBEHANDLER_IDENT
+//                saksbehandlerIdent
 //            )
 //
 //            behandlingService.switchMedunderskriverFlowState(
 //                behandlingId,
-//                SAKSBEHANDLER_IDENT
+//                saksbehandlerIdent
 //            )
 //
 //            behandlingService.switchMedunderskriverFlowState(
 //                behandlingId,
-//                SAKSBEHANDLER_IDENT
+//                saksbehandlerIdent
 //            )
 //
 //            val output = behandlingRepository.getReferenceById(behandlingId)
@@ -277,7 +287,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 //            behandlingService.setMedunderskriverFlowState(
 //                behandlingId,
 //                MEDUNDERSKRIVER_IDENT,
-//                SAKSBEHANDLER_IDENT,
+//                saksbehandlerIdent,
 //                FlowState.SENT,
 //            )
 //
@@ -305,7 +315,7 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
         assertThrows<BehandlingAvsluttetException> {
             behandlingService.ferdigstillBehandling(
                 behandlingId = behandling.id,
-                innloggetIdent = SAKSBEHANDLER_IDENT,
+                innloggetIdent = saksbehandlerIdent,
                 gosysOppgaveInput = null,
                 nyBehandlingEtterTROpphevet = false,
             )
@@ -318,26 +328,26 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
         fun `Forsøk på avslutting av behandling som har uferdige dokumenter skal ikke lykkes`() {
             val behandling = simpleInsert()
             every { dokumentUnderArbeidRepository.findByBehandlingIdAndMarkertFerdigIsNull(any()) } returns
-                    sortedSetOf(
-                        SmartdokumentUnderArbeidAsHoveddokument(
-                            mellomlagerId = "",
-                            mellomlagretDate = LocalDateTime.now(),
-                            size = 0,
-                            name = "",
-                            smartEditorId = UUID.randomUUID(),
-                            smartEditorTemplateId = "null",
-                            behandlingId = UUID.randomUUID(),
-                            dokumentType = DokumentType.VEDTAK,
-                            markertFerdig = null,
-                            ferdigstilt = null,
-                            dokumentEnhetId = null,
-                            creatorIdent = "null",
-                            creatorRole = KABAL_SAKSBEHANDLING,
-                            journalfoerendeEnhetId = null,
-                            language = Language.NB,
-                            mellomlagretVersion = null,
-                        )
-                    )
+                sortedSetOf(
+                    SmartdokumentUnderArbeidAsHoveddokument(
+                        mellomlagerId = "",
+                        mellomlagretDate = LocalDateTime.now(),
+                        size = 0,
+                        name = "",
+                        smartEditorId = UUID.randomUUID(),
+                        smartEditorTemplateId = "null",
+                        behandlingId = UUID.randomUUID(),
+                        dokumentType = DokumentType.VEDTAK,
+                        markertFerdig = null,
+                        ferdigstilt = null,
+                        dokumentEnhetId = null,
+                        creatorIdent = "null",
+                        creatorRole = KABAL_SAKSBEHANDLING,
+                        journalfoerendeEnhetId = null,
+                        language = Language.NB,
+                        mellomlagretVersion = null,
+                    ),
+                )
 
             assertThrows<SectionedValidationErrorWithDetailsException> {
                 behandlingService.validateBehandlingBeforeFinalize(
@@ -374,12 +384,13 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
 
         @Test
         fun `Forsøk på avslutting av behandling som er trukket og som ikke har hjemler skal lykkes`() {
-            val behandling = simpleInsert(
-                fullfoert = false,
-                utfall = true,
-                hjemler = false,
-                trukket = true
-            )
+            val behandling =
+                simpleInsert(
+                    fullfoert = false,
+                    utfall = true,
+                    hjemler = false,
+                    trukket = true,
+                )
 
             behandlingService.validateBehandlingBeforeFinalize(
                 behandlingId = behandling.id,
@@ -393,15 +404,17 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
         assertThrows<SectionedValidationErrorWithDetailsException> {
             behandlingService.ferdigstillBehandling(
                 behandlingId = UUID.randomUUID(),
-                innloggetIdent = SAKSBEHANDLER_IDENT,
-                gosysOppgaveInput = GosysOppgaveInput(
-                    gosysOppgaveUpdate = GosysOppgaveUpdateInput(
-                        tildeltEnhet = Enhet.E0119.id,
-                        mappeId = 123,
-                        kommentar = "Kommentar"
+                innloggetIdent = saksbehandlerIdent,
+                gosysOppgaveInput =
+                    GosysOppgaveInput(
+                        gosysOppgaveUpdate =
+                            GosysOppgaveUpdateInput(
+                                tildeltEnhet = Enhet.E0119.id,
+                                mappeId = 123,
+                                kommentar = "Kommentar",
+                            ),
+                        ignoreGosysOppgave = true,
                     ),
-                    ignoreGosysOppgave = true,
-                ),
                 nyBehandlingEtterTROpphevet = false,
             )
         }
@@ -411,65 +424,80 @@ class BehandlingServiceTest : PostgresIntegrationTestBase() {
         fullfoert: Boolean = false,
         utfall: Boolean = true,
         hjemler: Boolean = true,
-        trukket: Boolean = false
+        trukket: Boolean = false,
     ): Behandling {
         val now = LocalDateTime.now()
 
-        val ferdigstilling = Ferdigstilling(
-            avsluttet = now,
-            avsluttetAvSaksbehandler = now,
-            navIdent = "navIdent",
-            navn = "navn",
-        )
+        val ferdigstilling =
+            Ferdigstilling(
+                avsluttet = now,
+                avsluttetAvSaksbehandler = now,
+                navIdent = "navIdent",
+                navn = "navn",
+            )
 
-        val behandling = Klagebehandling(
-            klager = Klager(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354")
-            ),
-            sakenGjelder = SakenGjelder(
-                id = UUID.randomUUID(),
-                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-            ),
-            prosessfullmektig = null,
-            ytelse = Ytelse.OMS_OMP,
-            type = Type.KLAGE,
-            frist = now.toLocalDate(),
-            hjemler = if (hjemler) mutableSetOf(
-                Hjemmel.FTRL_8_7
-            ) else mutableSetOf(),
-            created = now,
-            mottattKlageinstans = now,
-            fagsystem = Fagsystem.K9,
-            fagsakId = "123",
-            kildeReferanse = "abc",
-            mottattVedtaksinstans = now.toLocalDate(),
-            avsenderEnhetFoersteinstans = "enhet",
-            kakaKvalitetsvurderingId = UUID.randomUUID(),
-            kakaKvalitetsvurderingVersion = 2,
-            utfall = when {
-                trukket -> Utfall.TRUKKET
-                utfall -> Utfall.AVVIST
-                else -> null
-            },
-            extraUtfallSet = when {
-                trukket -> setOf(Utfall.TRUKKET)
-                utfall -> setOf(Utfall.AVVIST)
-                else -> emptySet()
-            },
-            registreringshjemler = if (hjemler) mutableSetOf(
-                Registreringshjemmel.ANDRE_TRYGDEAVTALER
-            ) else mutableSetOf(),
-
-            ferdigstilling = if (fullfoert) ferdigstilling else null,
-            previousSaksbehandlerident = "C78901",
-            gosysOppgaveId = null,
-            varsletBehandlingstid = null,
-            forlengetBehandlingstidDraft = null,
-            gosysOppgaveRequired = false,
-            initiatingSystem = Behandling.InitiatingSystem.KABAL,
-            previousBehandlingId = null,
-        )
+        val behandling =
+            Klagebehandling(
+                klager =
+                    Klager(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                sakenGjelder =
+                    SakenGjelder(
+                        id = UUID.randomUUID(),
+                        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                    ),
+                prosessfullmektig = null,
+                ytelse = Ytelse.OMS_OMP,
+                type = Type.KLAGE,
+                frist = now.toLocalDate(),
+                hjemler =
+                    if (hjemler) {
+                        mutableSetOf(
+                            Hjemmel.FTRL_8_7,
+                        )
+                    } else {
+                        mutableSetOf()
+                    },
+                created = now,
+                mottattKlageinstans = now,
+                fagsystem = Fagsystem.K9,
+                fagsakId = "123",
+                kildeReferanse = "abc",
+                mottattVedtaksinstans = now.toLocalDate(),
+                avsenderEnhetFoersteinstans = "enhet",
+                kakaKvalitetsvurderingId = UUID.randomUUID(),
+                kakaKvalitetsvurderingVersion = 2,
+                utfall =
+                    when {
+                        trukket -> Utfall.TRUKKET
+                        utfall -> Utfall.AVVIST
+                        else -> null
+                    },
+                extraUtfallSet =
+                    when {
+                        trukket -> setOf(Utfall.TRUKKET)
+                        utfall -> setOf(Utfall.AVVIST)
+                        else -> emptySet()
+                    },
+                registreringshjemler =
+                    if (hjemler) {
+                        mutableSetOf(
+                            Registreringshjemmel.ANDRE_TRYGDEAVTALER,
+                        )
+                    } else {
+                        mutableSetOf()
+                    },
+                ferdigstilling = if (fullfoert) ferdigstilling else null,
+                previousSaksbehandlerident = "C78901",
+                gosysOppgaveId = null,
+                varsletBehandlingstid = null,
+                forlengetBehandlingstidDraft = null,
+                gosysOppgaveRequired = false,
+                initiatingSystem = Behandling.InitiatingSystem.KABAL,
+                previousBehandlingId = null,
+            )
 
         behandlingRepository.save(behandling)
 

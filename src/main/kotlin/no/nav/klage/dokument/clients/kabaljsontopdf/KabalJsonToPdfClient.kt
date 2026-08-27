@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 
-
 @Component
 class KabalJsonToPdfClient(
     private val kabalJsonToPdfWebClient: WebClient,
@@ -25,7 +24,8 @@ class KabalJsonToPdfClient(
 
     fun getPDFDocument(json: String): PDFDocument {
         logger.debug("Getting pdf document from kabalJsontoPdf.")
-        return kabalJsonToPdfWebClient.post()
+        return kabalJsonToPdfWebClient
+            .post()
             .uri { it.path("/topdf").build() }
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(json)
@@ -36,22 +36,22 @@ class KabalJsonToPdfClient(
                     functionName = ::getPDFDocument.name,
                     classLogger = logger,
                 )
-            }
-            .toEntity(ByteArray::class.java)
+            }.toEntity(ByteArray::class.java)
             .map {
                 val filename = it.headers["filename"]?.first()
                 PDFDocument(
-                    filename = filename
-                        ?: "somefilename",
-                    bytes = it.body ?: throw RuntimeException("Could not get PDF data")
+                    filename =
+                        filename
+                            ?: "somefilename",
+                    bytes = it.body ?: throw RuntimeException("Could not get PDF data"),
                 )
-            }
-            .block() ?: throw RuntimeException("PDF response was null")
+            }.block() ?: throw RuntimeException("PDF response was null")
     }
 
     fun getInnholdsfortegnelse(innholdsfortegnelseRequest: InnholdsfortegnelseRequest): PDFDocument {
         logger.debug("Getting innholdsfortegnelse from kabalJsontoPdf.")
-        return kabalJsonToPdfWebClient.post()
+        return kabalJsonToPdfWebClient
+            .post()
             .uri { it.path("/toinnholdsfortegnelse").build() }
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(innholdsfortegnelseRequest)
@@ -62,21 +62,21 @@ class KabalJsonToPdfClient(
                     functionName = ::getInnholdsfortegnelse.name,
                     classLogger = logger,
                 )
-            }
-            .toEntity(ByteArray::class.java)
+            }.toEntity(ByteArray::class.java)
             .map {
                 val filename = it.headers["filename"]?.first()
                 PDFDocument(
-                    filename = filename
-                        ?: "somefilename",
-                    bytes = it.body ?: throw RuntimeException("Could not get PDF data")
+                    filename =
+                        filename
+                            ?: "somefilename",
+                    bytes = it.body ?: throw RuntimeException("Could not get PDF data"),
                 )
-            }
-            .block() ?: throw RuntimeException("PDF response was null")
+            }.block() ?: throw RuntimeException("PDF response was null")
     }
 
-    fun validateJsonDocument(json: String): DocumentValidationResponse {
-        return kabalJsonToPdfWebClient.post()
+    fun validateJsonDocument(json: String): DocumentValidationResponse =
+        kabalJsonToPdfWebClient
+            .post()
             .uri { it.path("/validate").build() }
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(json)
@@ -87,14 +87,13 @@ class KabalJsonToPdfClient(
                     functionName = ::validateJsonDocument.name,
                     classLogger = logger,
                 )
-            }
-            .bodyToMono<DocumentValidationResponse>()
+            }.bodyToMono<DocumentValidationResponse>()
             .block() ?: throw RuntimeException("Response null")
-    }
 
     fun getSvarbrevPDF(svarbrevRequest: SvarbrevRequest): ByteArray {
         logger.debug("Getting svarbrev pdf document from kabalJsontoPdf.")
-        return kabalJsonToPdfWebClient.post()
+        return kabalJsonToPdfWebClient
+            .post()
             .uri { it.path("/svarbrev").build() }
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(svarbrevRequest)
@@ -105,7 +104,8 @@ class KabalJsonToPdfClient(
 
     fun getForlengetBehandlingstidPDF(forlengetBehandlingstidRequest: ForlengetBehandlingstidRequest): ByteArray {
         logger.debug("Getting forlenget behandlingstid pdf document from kabalJsontoPdf.")
-        return kabalJsonToPdfWebClient.post()
+        return kabalJsonToPdfWebClient
+            .post()
             .uri { it.path("/forlengetbehandlingstid").build() }
             .contentType(MediaType.APPLICATION_JSON)
             .bodyValue(forlengetBehandlingstidRequest)

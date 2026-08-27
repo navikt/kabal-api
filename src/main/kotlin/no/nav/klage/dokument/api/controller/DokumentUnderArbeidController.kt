@@ -1,9 +1,21 @@
 package no.nav.klage.dokument.api.controller
 
-
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
-import no.nav.klage.dokument.api.view.*
+import no.nav.klage.dokument.api.view.AvsenderInput
+import no.nav.klage.dokument.api.view.DatoMottattInput
+import no.nav.klage.dokument.api.view.DocumentModified
+import no.nav.klage.dokument.api.view.DocumentValidationResponse
+import no.nav.klage.dokument.api.view.DokumentTitleInput
+import no.nav.klage.dokument.api.view.DokumentTypeInput
+import no.nav.klage.dokument.api.view.DokumentView
+import no.nav.klage.dokument.api.view.DokumentViewWithList
+import no.nav.klage.dokument.api.view.InngaaendeKanalInput
+import no.nav.klage.dokument.api.view.JournalfoerteDokumenterInput
+import no.nav.klage.dokument.api.view.JournalfoerteDokumenterResponse
+import no.nav.klage.dokument.api.view.LanguageInput
+import no.nav.klage.dokument.api.view.MottakerInput
+import no.nav.klage.dokument.api.view.OptionalParentDokumentIdInput
 import no.nav.klage.dokument.domain.dokumenterunderarbeid.Language
 import no.nav.klage.dokument.service.DokumentUnderArbeidService
 import no.nav.klage.kodeverk.DokumentType
@@ -20,9 +32,18 @@ import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.ModelAndView
-import java.util.*
+import java.util.UUID
 
 @RestController
 @Tag(name = "kabal-api-dokumenter")
@@ -32,7 +53,6 @@ class DokumentUnderArbeidController(
     private val dokumentUnderArbeidService: DokumentUnderArbeidService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -41,9 +61,7 @@ class DokumentUnderArbeidController(
     @GetMapping
     fun findDokumenter(
         @PathVariable("behandlingId") behandlingId: UUID,
-    ): List<DokumentView> {
-        return dokumentUnderArbeidService.getDokumenterUnderArbeidViewList(behandlingId = behandlingId)
-    }
+    ): List<DokumentView> = dokumentUnderArbeidService.getDokumenterUnderArbeidViewList(behandlingId = behandlingId)
 
     @PostMapping("/fil")
     fun createAndUploadDokument(
@@ -62,7 +80,7 @@ class DokumentUnderArbeidController(
     @PostMapping("/journalfoertedokumenter")
     fun addJournalfoerteDokumenterAsVedlegg(
         @PathVariable("behandlingId") behandlingId: UUID,
-        @RequestBody input: JournalfoerteDokumenterInput
+        @RequestBody input: JournalfoerteDokumenterInput,
     ): JournalfoerteDokumenterResponse {
         logger.debug("Kall mottatt på addJournalfoerteDokumenterAsVedlegg")
         return dokumentUnderArbeidService.addJournalfoerteDokumenterAsVedlegg(
@@ -76,82 +94,87 @@ class DokumentUnderArbeidController(
     fun endreDokumentType(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
-        @RequestBody input: DokumentTypeInput
-    ): DocumentModified {
-        return DocumentModified(
-            modified = dokumentUnderArbeidService.updateDokumentType(
-                behandlingId = behandlingId,
-                dokumentId = dokumentId,
-                newDokumentType = DokumentType.of(input.dokumentTypeId),
-                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-            ).modified
+        @RequestBody input: DokumentTypeInput,
+    ): DocumentModified =
+        DocumentModified(
+            modified =
+                dokumentUnderArbeidService
+                    .updateDokumentType(
+                        behandlingId = behandlingId,
+                        dokumentId = dokumentId,
+                        newDokumentType = DokumentType.of(input.dokumentTypeId),
+                        innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                    ).modified,
         )
-    }
 
     @PutMapping("/{dokumentId}/datomottatt")
     fun setDatoMottatt(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
-        @RequestBody input: DatoMottattInput
-    ): DocumentModified {
-        return DocumentModified(
-            modified = dokumentUnderArbeidService.updateDatoMottatt(
-                behandlingId = behandlingId,
-                dokumentId = dokumentId,
-                datoMottatt = input.datoMottatt,
-                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-            ).modified
+        @RequestBody input: DatoMottattInput,
+    ): DocumentModified =
+        DocumentModified(
+            modified =
+                dokumentUnderArbeidService
+                    .updateDatoMottatt(
+                        behandlingId = behandlingId,
+                        dokumentId = dokumentId,
+                        datoMottatt = input.datoMottatt,
+                        innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                    ).modified,
         )
-    }
 
     @PutMapping("/{dokumentId}/inngaaendekanal")
     fun setInngaaendeKanal(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
-        @RequestBody input: InngaaendeKanalInput
-    ): DocumentModified {
-        return DocumentModified(
-            modified = dokumentUnderArbeidService.updateInngaaendeKanal(
-                behandlingId = behandlingId,
-                dokumentId = dokumentId,
-                inngaaendeKanal = input.kanal,
-                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-            ).modified
+        @RequestBody input: InngaaendeKanalInput,
+    ): DocumentModified =
+        DocumentModified(
+            modified =
+                dokumentUnderArbeidService
+                    .updateInngaaendeKanal(
+                        behandlingId = behandlingId,
+                        dokumentId = dokumentId,
+                        inngaaendeKanal = input.kanal,
+                        innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                    ).modified,
         )
-    }
 
     @PutMapping("/{dokumentId}/avsender")
     fun setAvsender(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
-        @RequestBody input: AvsenderInput
-    ): DocumentModified {
-        return DocumentModified(
-            modified = dokumentUnderArbeidService.updateAvsender(
-                behandlingId = behandlingId,
-                dokumentId = dokumentId,
-                avsenderInput = input,
-                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
-            ).modified
+        @RequestBody input: AvsenderInput,
+    ): DocumentModified =
+        DocumentModified(
+            modified =
+                dokumentUnderArbeidService
+                    .updateAvsender(
+                        behandlingId = behandlingId,
+                        dokumentId = dokumentId,
+                        avsenderInput = input,
+                        innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                    ).modified,
         )
-    }
 
     @PutMapping("/{dokumentId}/mottakere")
     fun setMottakere(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
-        @RequestBody input: MottakerInput
-    ): DocumentModified {
-        return DocumentModified(
-            modified = dokumentUnderArbeidService.updateMottakere(
-                behandlingId = behandlingId,
-                dokumentId = dokumentId,
-                mottakerInput = input,
-                utfoerendeIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-                systemContext = false,
-            ).modified
+        @RequestBody input: MottakerInput,
+    ): DocumentModified =
+        DocumentModified(
+            modified =
+                dokumentUnderArbeidService
+                    .updateMottakere(
+                        behandlingId = behandlingId,
+                        dokumentId = dokumentId,
+                        mottakerInput = input,
+                        utfoerendeIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                        systemContext = false,
+                    ).modified,
         )
-    }
 
     @ResponseBody
     @GetMapping("/{dokumentId}/pdf", "/{dokumentId}/pdf/{download}")
@@ -159,32 +182,39 @@ class DokumentUnderArbeidController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentId") dokumentId: UUID,
         @PathVariable(value = "download", required = false) download: String?,
-        @RequestParam(value = "format", required = false, defaultValue = "ARKIV") variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
+        @RequestParam(
+            value = "format",
+            required = false,
+            defaultValue = "ARKIV",
+        ) variantFormat: DokumentReferanse.Variant.Format = DokumentReferanse.Variant.Format.ARKIV,
     ): Any {
         logger.debug("Kall mottatt på getPdf for {}", dokumentId)
 
         val contentDisposition = if (download != null) "attachment" else "inline"
 
-        val (title, resourceOrUrl, mediaType) = dokumentUnderArbeidService.getFysiskDokumentAsResourceOrUrl(
-            behandlingId = behandlingId,
-            dokumentId = dokumentId,
-            variantFormat = variantFormat,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
-            contentDisposition = contentDisposition,
-        )
+        val (title, resourceOrUrl, mediaType) =
+            dokumentUnderArbeidService.getFysiskDokumentAsResourceOrUrl(
+                behandlingId = behandlingId,
+                dokumentId = dokumentId,
+                variantFormat = variantFormat,
+                innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+                contentDisposition = contentDisposition,
+            )
 
         return if (resourceOrUrl is Resource) {
             val filename = buildFilename(title = title, mediaType = mediaType ?: MediaType.APPLICATION_PDF)
 
-            ResponseEntity.ok()
-                .headers(HttpHeaders().apply {
-                    contentType = mediaType
-                    add(
-                        HttpHeaders.CONTENT_DISPOSITION,
-                        "$contentDisposition; filename=\"$filename\""
-                    )
-                })
-                .contentLength(resourceOrUrl.contentLength())
+            ResponseEntity
+                .ok()
+                .headers(
+                    HttpHeaders().apply {
+                        contentType = mediaType
+                        add(
+                            HttpHeaders.CONTENT_DISPOSITION,
+                            "$contentDisposition; filename=\"$filename\"",
+                        )
+                    },
+                ).contentLength(resourceOrUrl.contentLength())
                 .body(getResourceThatWillBeDeleted(resourceOrUrl))
         } else {
             ModelAndView("redirect:$resourceOrUrl")
@@ -201,7 +231,7 @@ class DokumentUnderArbeidController(
         return DokumentUnderArbeidMetadata(
             behandlingId = behandlingId,
             documentId = dokumentId,
-            title = dokumentUnderArbeidService.getDokumentUnderArbeid(dokumentId).name
+            title = dokumentUnderArbeidService.getDokumentUnderArbeid(dokumentId).name,
         )
     }
 
@@ -214,7 +244,7 @@ class DokumentUnderArbeidController(
 
         return dokumentUnderArbeidService.getDokumentUnderArbeidView(
             dokumentUnderArbeidId = dokumentId,
-            behandlingId = behandlingId
+            behandlingId = behandlingId,
         )
     }
 
@@ -241,7 +271,7 @@ class DokumentUnderArbeidController(
         return dokumentUnderArbeidService.getInnholdsfortegnelseAsFysiskDokument(
             behandlingId = behandlingId,
             hoveddokumentId = hoveddokumentId,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
     }
 
@@ -253,7 +283,7 @@ class DokumentUnderArbeidController(
         logger.debug("Kall mottatt på deleteDokument for {}", dokumentId)
         dokumentUnderArbeidService.slettDokument(
             dokumentId = dokumentId,
-            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent()
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
         )
     }
 
@@ -284,12 +314,14 @@ class DokumentUnderArbeidController(
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
 
         return DocumentModified(
-            modified = dokumentUnderArbeidService.finnOgMarkerFerdigHovedDokument(
-                behandlingId = behandlingId,
-                dokumentId = dokumentId,
-                utfoerendeIdent = ident,
-                systemContext = false,
-            ).modified
+            modified =
+                dokumentUnderArbeidService
+                    .finnOgMarkerFerdigHovedDokument(
+                        behandlingId = behandlingId,
+                        dokumentId = dokumentId,
+                        utfoerendeIdent = ident,
+                        systemContext = false,
+                    ).modified,
         )
     }
 
@@ -298,7 +330,7 @@ class DokumentUnderArbeidController(
         @PathVariable("behandlingId") behandlingId: UUID,
         @PathVariable("dokumentid") dokumentId: UUID,
     ): List<DocumentValidationResponse> {
-        //Only called for hoveddokumenter
+        // Only called for hoveddokumenter
         return dokumentUnderArbeidService.validateDokumentUnderArbeidAndVedlegg(dokumentId)
     }
 
@@ -310,12 +342,14 @@ class DokumentUnderArbeidController(
     ): DocumentModified {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         return DocumentModified(
-            modified = dokumentUnderArbeidService.updateDokumentTitle(
-                behandlingId = behandlingId,
-                dokumentId = dokumentId,
-                dokumentTitle = input.title,
-                innloggetIdent = ident,
-            ).modified
+            modified =
+                dokumentUnderArbeidService
+                    .updateDokumentTitle(
+                        behandlingId = behandlingId,
+                        dokumentId = dokumentId,
+                        dokumentTitle = input.title,
+                        innloggetIdent = ident,
+                    ).modified,
         )
     }
 
@@ -327,18 +361,20 @@ class DokumentUnderArbeidController(
     ): DocumentModified {
         val ident = innloggetSaksbehandlerService.getInnloggetIdent()
         return DocumentModified(
-            modified = dokumentUnderArbeidService.updateSmartdokumentLanguage(
-                behandlingId = behandlingId,
-                dokumentId = dokumentId,
-                language = Language.valueOf(input.language.name),
-                innloggetIdent = ident,
-            ).modified
+            modified =
+                dokumentUnderArbeidService
+                    .updateSmartdokumentLanguage(
+                        behandlingId = behandlingId,
+                        dokumentId = dokumentId,
+                        language = Language.valueOf(input.language.name),
+                        innloggetIdent = ident,
+                    ).modified,
         )
     }
 
     @GetMapping("/mergedocuments/{dokumentUnderArbeidId}/pdf")
     fun getMergedDocuments(
-        @PathVariable dokumentUnderArbeidId: UUID
+        @PathVariable dokumentUnderArbeidId: UUID,
     ): ResponseEntity<Resource> {
         logMethodDetails(
             methodName = ::getMergedDocuments.name,
@@ -351,7 +387,8 @@ class DokumentUnderArbeidController(
         responseHeaders.contentType = MediaType.APPLICATION_PDF
         responseHeaders.add(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$title.pdf\"")
 
-        return ResponseEntity.ok()
+        return ResponseEntity
+            .ok()
             .headers(responseHeaders)
             .contentLength(fileResource.file.length())
             .body(getResourceThatWillBeDeleted(fileResource))
@@ -360,7 +397,5 @@ class DokumentUnderArbeidController(
     @GetMapping("/ekspedisjonsbrev-til-trygderetten-is-sent")
     fun ekspedisjonsbrevTilTrygderettenIsSent(
         @PathVariable("behandlingId") behandlingId: UUID,
-    ): Boolean {
-        return dokumentUnderArbeidService.ekspedisjonsbrevTilTrygderettenIsSent(behandlingId = behandlingId)
-    }
+    ): Boolean = dokumentUnderArbeidService.ekspedisjonsbrevTilTrygderettenIsSent(behandlingId = behandlingId)
 }

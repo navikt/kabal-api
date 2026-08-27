@@ -10,7 +10,11 @@ import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.oppgave.clients.klagelookup.KlageLookupGateway
 import no.nav.klage.oppgave.domain.behandling.Behandling
 import no.nav.klage.oppgave.domain.behandling.Klagebehandling
-import no.nav.klage.oppgave.domain.behandling.embedded.*
+import no.nav.klage.oppgave.domain.behandling.embedded.Ferdigstilling
+import no.nav.klage.oppgave.domain.behandling.embedded.Klager
+import no.nav.klage.oppgave.domain.behandling.embedded.PartId
+import no.nav.klage.oppgave.domain.behandling.embedded.SakenGjelder
+import no.nav.klage.oppgave.domain.behandling.embedded.Tildeling
 import no.nav.klage.oppgave.exceptions.BehandlingAvsluttetException
 import no.nav.klage.oppgave.exceptions.MissingTilgangException
 import no.nav.klage.oppgave.repositories.SakPersongalleriRepository
@@ -19,7 +23,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class TilgangServiceTest {
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService = mockk()
@@ -42,16 +46,17 @@ class TilgangServiceTest {
     fun `verifySaksbehandlersSkrivetilgang gir feil ved avsluttet`() {
         val klagebehandling = getKlagebehandling()
 
-        klagebehandling.ferdigstilling = Ferdigstilling(
-            avsluttet = LocalDateTime.now(),
-            avsluttetAvSaksbehandler = LocalDateTime.now(),
-            navIdent = "navIdent",
-            navn = "navn",
-        )
+        klagebehandling.ferdigstilling =
+            Ferdigstilling(
+                avsluttet = LocalDateTime.now(),
+                avsluttetAvSaksbehandler = LocalDateTime.now(),
+                navIdent = "navIdent",
+                navn = "navn",
+            )
 
         assertThrows<BehandlingAvsluttetException> {
             tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(
-                klagebehandling
+                klagebehandling,
             )
         }
     }
@@ -60,15 +65,16 @@ class TilgangServiceTest {
     fun `verifySaksbehandlersSkrivetilgang gir feil ved avsluttet av saksbehandler`() {
         val klagebehandling = getKlagebehandling()
 
-        klagebehandling.ferdigstilling = Ferdigstilling(
-            avsluttetAvSaksbehandler = LocalDateTime.now(),
-            navIdent = "navIdent",
-            navn = "navn",
-        )
+        klagebehandling.ferdigstilling =
+            Ferdigstilling(
+                avsluttetAvSaksbehandler = LocalDateTime.now(),
+                navIdent = "navIdent",
+                navn = "navn",
+            )
 
         assertThrows<BehandlingAvsluttetException> {
             tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(
-                klagebehandling
+                klagebehandling,
             )
         }
     }
@@ -83,7 +89,7 @@ class TilgangServiceTest {
 
         assertThrows<MissingTilgangException> {
             tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(
-                klagebehandling
+                klagebehandling,
             )
         }
     }
@@ -96,7 +102,7 @@ class TilgangServiceTest {
 
         assertThrows<MissingTilgangException> {
             tilgangService.verifyInnloggetSaksbehandlersSkrivetilgang(
-                klagebehandling
+                klagebehandling,
             )
         }
     }
@@ -113,36 +119,39 @@ class TilgangServiceTest {
     }
 }
 
-
-fun getKlagebehandling(): Klagebehandling = Klagebehandling(
-    klager = Klager(
-        id = UUID.randomUUID(),
-        partId = PartId(type = PartIdType.PERSON, value = "23452354")
-    ),
-    sakenGjelder = SakenGjelder(
-        id = UUID.randomUUID(),
-        partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-    ),
-    prosessfullmektig = null,
-    ytelse = Ytelse.OMS_OMP,
-    type = Type.KLAGE,
-    frist = LocalDate.now(),
-    hjemler = mutableSetOf(
-        Hjemmel.FTRL_8_7
-    ),
-    mottattKlageinstans = LocalDateTime.now(),
-    fagsystem = Fagsystem.K9,
-    fagsakId = "123",
-    kildeReferanse = "abc",
-    avsenderEnhetFoersteinstans = "4100",
-    mottattVedtaksinstans = LocalDate.now(),
-    kakaKvalitetsvurderingId = UUID.randomUUID(),
-    kakaKvalitetsvurderingVersion = 2,
-    previousSaksbehandlerident = "C78901",
-    gosysOppgaveId = null,
-    varsletBehandlingstid = null,
-    forlengetBehandlingstidDraft = null,
-    gosysOppgaveRequired = false,
-    initiatingSystem = Behandling.InitiatingSystem.KABAL,
-    previousBehandlingId = null,
-)
+fun getKlagebehandling(): Klagebehandling =
+    Klagebehandling(
+        klager =
+            Klager(
+                id = UUID.randomUUID(),
+                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+            ),
+        sakenGjelder =
+            SakenGjelder(
+                id = UUID.randomUUID(),
+                partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+            ),
+        prosessfullmektig = null,
+        ytelse = Ytelse.OMS_OMP,
+        type = Type.KLAGE,
+        frist = LocalDate.now(),
+        hjemler =
+            mutableSetOf(
+                Hjemmel.FTRL_8_7,
+            ),
+        mottattKlageinstans = LocalDateTime.now(),
+        fagsystem = Fagsystem.K9,
+        fagsakId = "123",
+        kildeReferanse = "abc",
+        avsenderEnhetFoersteinstans = "4100",
+        mottattVedtaksinstans = LocalDate.now(),
+        kakaKvalitetsvurderingId = UUID.randomUUID(),
+        kakaKvalitetsvurderingVersion = 2,
+        previousSaksbehandlerident = "C78901",
+        gosysOppgaveId = null,
+        varsletBehandlingstid = null,
+        forlengetBehandlingstidDraft = null,
+        gosysOppgaveRequired = false,
+        initiatingSystem = Behandling.InitiatingSystem.KABAL,
+        previousBehandlingId = null,
+    )

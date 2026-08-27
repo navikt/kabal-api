@@ -34,9 +34,10 @@ class EnhetService(
             return enheter.map { toEnhetView(enhet = it) }
         }
 
-        return enheter.filter {
-            (enhetsnr.isNullOrBlank() || it.enhetsnr.contains(enhetsnr)) &&
-                    (enhetsnavn.isNullOrBlank() || it.navn.contains(enhetsnavn, ignoreCase = true))
-        }.map { toEnhetView(enhet = it) }
+        return enheter
+            .filter {
+                (enhetsnr.isNullOrBlank() || it.enhetsnr.contains(enhetsnr)) &&
+                    (enhetsnavn.isNullOrBlank() || it.navn.contains(other = enhetsnavn, ignoreCase = true))
+            }.map { toEnhetView(enhet = it) }
     }
 }

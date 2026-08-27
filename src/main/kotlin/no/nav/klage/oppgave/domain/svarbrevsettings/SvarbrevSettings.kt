@@ -1,6 +1,14 @@
 package no.nav.klage.oppgave.domain.svarbrevsettings
 
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
+import jakarta.persistence.Convert
+import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
+import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
+import jakarta.persistence.Table
 import no.nav.klage.kodeverk.TimeUnitType
 import no.nav.klage.kodeverk.TimeUnitTypeConverter
 import no.nav.klage.kodeverk.Type
@@ -8,7 +16,7 @@ import no.nav.klage.kodeverk.TypeConverter
 import no.nav.klage.kodeverk.ytelse.Ytelse
 import no.nav.klage.kodeverk.ytelse.YtelseConverter
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "svarbrev_settings", schema = "klage")
@@ -38,11 +46,10 @@ class SvarbrevSettings(
     val type: Type,
     @OneToMany(fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     @JoinColumn(name = "svarbrev_settings_id")
-    val history: MutableSet<SvarbrevSettingsHistory> = mutableSetOf()
+    val history: MutableSet<SvarbrevSettingsHistory> = mutableSetOf(),
 ) {
-
-    fun toHistory(): SvarbrevSettingsHistory {
-        return SvarbrevSettingsHistory(
+    fun toHistory(): SvarbrevSettingsHistory =
+        SvarbrevSettingsHistory(
             svarbrevSettings = this,
             ytelse = ytelse,
             behandlingstidUnits = behandlingstidUnits,
@@ -53,7 +60,6 @@ class SvarbrevSettings(
             createdBy = createdBy,
             type = type,
         )
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -64,11 +70,8 @@ class SvarbrevSettings(
         return id == other.id
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    override fun hashCode(): Int = id.hashCode()
 
-    override fun toString(): String {
-        return "SvarbrevSettings(id=$id, ytelse=$ytelse, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, customText=$customText, shouldSend=$shouldSend, created=$created, modified=$modified, createdBy='$createdBy', type=$type)"
-    }
+    override fun toString(): String =
+        "SvarbrevSettings(id=$id, ytelse=$ytelse, behandlingstidUnits=$behandlingstidUnits, behandlingstidUnitType=$behandlingstidUnitType, customText=$customText, shouldSend=$shouldSend, created=$created, modified=$modified, createdBy='$createdBy', type=$type)"
 }

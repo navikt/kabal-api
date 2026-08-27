@@ -14,20 +14,22 @@ import org.flywaydb.core.api.migration.Context
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.sql.Timestamp
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 class V194__send_sendt_til_tr_to_dvh : BaseJavaMigration() {
     override fun migrate(context: Context) {
-        val preparedStatement = context.connection.prepareStatement(
-            """
+        val preparedStatement =
+            context.connection.prepareStatement(
+                """
                 insert into klage.kafka_event (id, behandling_id, kilde, kilde_referanse, status_id, json_payload, type, created, error_message)
                     values (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """.trimIndent()
-        )
+                """.trimIndent(),
+            )
 
         context.connection.createStatement().use { select ->
-            select.executeQuery(
-                """
+            select
+                .executeQuery(
+                    """
                     select b.id,
                      b.dvh_referanse,
                      b.sendt_til_trygderetten,
@@ -46,9 +48,8 @@ class V194__send_sendt_til_tr_to_dvh : BaseJavaMigration() {
                     and kilde_referanse = '51465082'
                     and dvh_referanse = '48827910'
                     and b.type_id = '${Type.ANKE_I_TRYGDERETTEN.id}'                    
-                    """
-            )
-                .use { rows ->
+                    """,
+                ).use { rows ->
                     val now = LocalDateTime.now()
                     while (rows.next()) {
                         val behandlingId = rows.getObject(1, UUID::class.java)
@@ -67,33 +68,34 @@ class V194__send_sendt_til_tr_to_dvh : BaseJavaMigration() {
 
                         val eventId = UUID.randomUUID()
 
-                        //Usually we have an Anke when creating this event, so fewer data is available now.
+                        // Usually we have an Anke when creating this event, so fewer data is available now.
 
-                        val statistikkTilDVH = StatistikkTilDVH(
-                            eventId = eventId,
-                            behandlingId = dvhReferanse,
-                            behandlingIdKabal = behandlingId.toString(),
-                            //Means enhetTildeltDato
-                            behandlingStartetKA = null,
-                            ansvarligEnhetKode = "TR0000",
-                            behandlingStatus = BehandlingState.SENDT_TIL_TR,
-                            behandlingType = Type.ANKE.name,
-                            //Means medunderskriver
-                            beslutter = null,
-                            endringstid = sendtTilTR.toLocalDateTime(),
-                            hjemmel = emptyList(),
-                            klager = getDVHPart(PartIdType.valueOf(klagerType), klager),
-                            opprinneligFagsaksystem = Fagsystem.PP01.navn,
-                            overfoertKA = mottattKlageinstans.toLocalDate(),
-                            resultat = null,
-                            sakenGjelder = getDVHPart(PartIdType.valueOf(sakenGjelderType), sakenGjelder),
-                            saksbehandler = saksbehandler,
-                            saksbehandlerEnhet = tildeltEnhet,
-                            tekniskTid = now,
-                            vedtaksdato = null,
-                            ytelseType = Ytelse.of(ytelseId).name,
-                            opprinneligFagsakId = fagsakId,
-                        )
+                        val statistikkTilDVH =
+                            StatistikkTilDVH(
+                                eventId = eventId,
+                                behandlingId = dvhReferanse,
+                                behandlingIdKabal = behandlingId.toString(),
+                                // Means enhetTildeltDato
+                                behandlingStartetKA = null,
+                                ansvarligEnhetKode = "TR0000",
+                                behandlingStatus = BehandlingState.SENDT_TIL_TR,
+                                behandlingType = Type.ANKE.name,
+                                // Means medunderskriver
+                                beslutter = null,
+                                endringstid = sendtTilTR.toLocalDateTime(),
+                                hjemmel = emptyList(),
+                                klager = getDVHPart(type = PartIdType.valueOf(klagerType), value = klager),
+                                opprinneligFagsaksystem = Fagsystem.PP01.navn,
+                                overfoertKA = mottattKlageinstans.toLocalDate(),
+                                resultat = null,
+                                sakenGjelder = getDVHPart(type = PartIdType.valueOf(sakenGjelderType), value = sakenGjelder),
+                                saksbehandler = saksbehandler,
+                                saksbehandlerEnhet = tildeltEnhet,
+                                tekniskTid = now,
+                                vedtaksdato = null,
+                                ytelseType = Ytelse.of(ytelseId).name,
+                                opprinneligFagsakId = fagsakId,
+                            )
 
                         preparedStatement.setObject(1, eventId)
                         preparedStatement.setObject(2, behandlingId)
@@ -107,7 +109,6 @@ class V194__send_sendt_til_tr_to_dvh : BaseJavaMigration() {
 
                         preparedStatement.executeUpdate()
                     }
-
                 }
         }
     }

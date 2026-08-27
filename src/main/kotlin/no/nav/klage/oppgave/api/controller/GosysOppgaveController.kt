@@ -26,7 +26,6 @@ class GosysOppgaveController(
     private val behandlingService: BehandlingService,
     private val innloggetSaksbehandlerService: InnloggetSaksbehandlerService,
 ) {
-
     companion object {
         @Suppress("JAVA_CLASS_ON_COMPANION")
         private val logger = getLogger(javaClass.enclosingClass)
@@ -34,27 +33,26 @@ class GosysOppgaveController(
 
     @Operation(
         summary = "Søk gosys-oppgaver for fnr og ytelse",
-        description = "Henter Gosys-oppgaver for et fnr filtrert pa tema utledet fra ytelse."
+        description = "Henter Gosys-oppgaver for et fnr filtrert pa tema utledet fra ytelse.",
     )
     @PostMapping(produces = ["application/json"])
     fun getGosysOppgaver(
         @RequestBody input: GosysOppgaveSearchInput,
     ): List<GosysOppgaveView> {
         logMethodDetails(
-            ::getGosysOppgaver.name,
-            innloggetSaksbehandlerService.getInnloggetIdent(),
-            logger,
+            methodName = ::getGosysOppgaver.name,
+            innloggetIdent = innloggetSaksbehandlerService.getInnloggetIdent(),
+            logger = logger,
         )
 
-        return gosysOppgaveService.getGosysOppgaveListForController(
-            fnr = input.fnr,
-            ytelse = input.ytelseId?.let { Ytelse.of(it) },
-        ).map {
-            it.copy(
-                alreadyUsedBy = behandlingService.findOpenBehandlingUsingGosysOppgave(it.id)
-            )
-        }
+        return gosysOppgaveService
+            .getGosysOppgaveListForController(
+                fnr = input.fnr,
+                ytelse = input.ytelseId?.let { Ytelse.of(it) },
+            ).map {
+                it.copy(
+                    alreadyUsedBy = behandlingService.findOpenBehandlingUsingGosysOppgave(it.id),
+                )
+            }
     }
 }
-
-

@@ -2,7 +2,7 @@ package no.nav.klage.dokument.clients.kabalsmarteditorapi.model.response
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class CommentOutput(
@@ -16,6 +16,6 @@ data class CommentOutput(
 ) {
     data class Author(
         val name: String,
-        val ident: String
+        val ident: String,
     )
 }

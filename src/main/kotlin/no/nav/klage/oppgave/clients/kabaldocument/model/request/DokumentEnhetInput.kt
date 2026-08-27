@@ -1,6 +1,6 @@
 package no.nav.klage.oppgave.clients.kabaldocument.model.request
 
-import java.util.*
+import java.util.UUID
 
 data class DokumentEnhetWithDokumentreferanserInput(
     val avsenderMottakerList: List<AvsenderMottakerInput>,
@@ -31,7 +31,7 @@ data class DokumentEnhetWithDokumentreferanserInput(
 data class AvsenderMottakerInput(
     val partId: PartIdInput?,
     val navn: String,
-    //Trenger ikke denne når kanal tas i bruk
+    // Trenger ikke denne når kanal tas i bruk
     val localPrint: Boolean,
     val tvingSentralPrint: Boolean,
     val adresse: Address?,

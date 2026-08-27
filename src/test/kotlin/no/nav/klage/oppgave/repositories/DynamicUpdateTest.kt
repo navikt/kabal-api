@@ -22,7 +22,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.test.context.ActiveProfiles
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 /**
  * This test verifies that @DynamicUpdate works correctly for Behandling subclasses.
@@ -47,7 +47,6 @@ import java.util.*
 @ActiveProfiles("local")
 @DataJpaTest
 class DynamicUpdateTest : PostgresIntegrationTestBase() {
-
     @Autowired
     lateinit var entityManagerFactory: EntityManagerFactory
 
@@ -118,11 +117,9 @@ class DynamicUpdateTest : PostgresIntegrationTestBase() {
             assertThat(result.frist)
                 .describedAs(
                     "frist should still be the value set by transaction 1. " +
-                            "If this fails, @DynamicUpdate is NOT effective on subclasses, " +
-                            "and transaction 2's full UPDATE overwrote the frist change."
-                )
-                .isEqualTo(newFrist)
-
+                        "If this fails, @DynamicUpdate is NOT effective on subclasses, " +
+                        "and transaction 2's full UPDATE overwrote the frist change.",
+                ).isEqualTo(newFrist)
         } finally {
             if (em1.isOpen) em1.close()
             if (em2.isOpen) em2.close()
@@ -177,44 +174,45 @@ class DynamicUpdateTest : PostgresIntegrationTestBase() {
             assertThat(result.rolIdent)
                 .describedAs(
                     "rolIdent should still be the value set by transaction 1. " +
-                            "If this is null, @DynamicUpdate is NOT effective on subclasses."
-                )
-                .isEqualTo("SAKSBEHANDLER_X")
-
+                        "If this is null, @DynamicUpdate is NOT effective on subclasses.",
+                ).isEqualTo("SAKSBEHANDLER_X")
         } finally {
             if (em1.isOpen) em1.close()
             if (em2.isOpen) em2.close()
         }
     }
 
-    private fun createKlagebehandling(frist: LocalDate = LocalDate.now()): Klagebehandling = Klagebehandling(
-        klager = Klager(
-            id = UUID.randomUUID(),
-            partId = PartId(type = PartIdType.PERSON, value = "23452354")
-        ),
-        sakenGjelder = SakenGjelder(
-            id = UUID.randomUUID(),
-            partId = PartId(type = PartIdType.PERSON, value = "23452354"),
-        ),
-        prosessfullmektig = null,
-        ytelse = Ytelse.OMS_OMP,
-        type = Type.KLAGE,
-        frist = frist,
-        hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
-        mottattKlageinstans = LocalDateTime.now(),
-        fagsystem = Fagsystem.K9,
-        fagsakId = "123",
-        kildeReferanse = "abc",
-        avsenderEnhetFoersteinstans = "0101",
-        mottattVedtaksinstans = LocalDate.now(),
-        kakaKvalitetsvurderingVersion = 2,
-        kakaKvalitetsvurderingId = UUID.randomUUID(),
-        previousSaksbehandlerident = "C78901",
-        gosysOppgaveId = null,
-        varsletBehandlingstid = null,
-        forlengetBehandlingstidDraft = null,
-        gosysOppgaveRequired = false,
-        initiatingSystem = Behandling.InitiatingSystem.KABAL,
-        previousBehandlingId = null,
-    )
+    private fun createKlagebehandling(frist: LocalDate = LocalDate.now()): Klagebehandling =
+        Klagebehandling(
+            klager =
+                Klager(
+                    id = UUID.randomUUID(),
+                    partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                ),
+            sakenGjelder =
+                SakenGjelder(
+                    id = UUID.randomUUID(),
+                    partId = PartId(type = PartIdType.PERSON, value = "23452354"),
+                ),
+            prosessfullmektig = null,
+            ytelse = Ytelse.OMS_OMP,
+            type = Type.KLAGE,
+            frist = frist,
+            hjemler = mutableSetOf(Hjemmel.FTRL_8_7),
+            mottattKlageinstans = LocalDateTime.now(),
+            fagsystem = Fagsystem.K9,
+            fagsakId = "123",
+            kildeReferanse = "abc",
+            avsenderEnhetFoersteinstans = "0101",
+            mottattVedtaksinstans = LocalDate.now(),
+            kakaKvalitetsvurderingVersion = 2,
+            kakaKvalitetsvurderingId = UUID.randomUUID(),
+            previousSaksbehandlerident = "C78901",
+            gosysOppgaveId = null,
+            varsletBehandlingstid = null,
+            forlengetBehandlingstidDraft = null,
+            gosysOppgaveRequired = false,
+            initiatingSystem = Behandling.InitiatingSystem.KABAL,
+            previousBehandlingId = null,
+        )
 }

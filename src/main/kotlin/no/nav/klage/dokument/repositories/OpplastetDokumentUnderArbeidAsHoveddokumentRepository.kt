@@ -5,11 +5,10 @@ import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.util.*
+import java.util.UUID
 
 @Transactional
 interface OpplastetDokumentUnderArbeidAsHoveddokumentRepository : JpaRepository<OpplastetDokumentUnderArbeidAsHoveddokument, UUID> {
-
     fun findByBehandlingIdAndDokarkivReferencesIsNotEmpty(behandlingId: UUID): Set<OpplastetDokumentUnderArbeidAsHoveddokument>
 
     @EntityGraph(attributePaths = ["dokarkivReferences", "brevmottakere"])
@@ -19,5 +18,7 @@ interface OpplastetDokumentUnderArbeidAsHoveddokumentRepository : JpaRepository<
 
     fun findByBehandlingIdAndMarkertFerdigNotNull(behandlingId: UUID): Set<OpplastetDokumentUnderArbeidAsHoveddokument>
 
-    fun findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(ferdigstiltBefore: LocalDateTime): List<OpplastetDokumentUnderArbeidAsHoveddokument>
+    fun findByFerdigstiltIsLessThanAndMellomlagerIdIsNotNull(
+        ferdigstiltBefore: LocalDateTime,
+    ): List<OpplastetDokumentUnderArbeidAsHoveddokument>
 }

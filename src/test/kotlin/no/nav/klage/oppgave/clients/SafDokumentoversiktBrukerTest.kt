@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.ExtendWith
 
 @ExtendWith(MockKExtension::class)
 internal class SafDokumentoversiktBrukerTest {
-
     @MockK
     lateinit var tokenUtilMock: TokenUtil
 
@@ -44,16 +43,18 @@ internal class SafDokumentoversiktBrukerTest {
     }
 
     private fun getDokumentoversiktBruker(jsonResponse: String): DokumentoversiktBruker {
-        val safClient = SafGraphQlClient(
-            createShortCircuitWebClient(jsonResponse),
-            tokenUtilMock,
-        )
+        val safClient =
+            SafGraphQlClient(
+                safWebClient = createShortCircuitWebClient(jsonResponse),
+                tokenUtil = tokenUtilMock,
+            )
 
-        return safClient.getDokumentoversiktBrukerAsSaksbehandler("fnr", emptyList())
+        return safClient.getDokumentoversiktBrukerAsSaksbehandler(fnr = "fnr", tema = emptyList())
     }
 
     @Language("json")
-    fun dokumentoversiktResponse() = """
+    fun dokumentoversiktResponse() =
+        """
         {
           "data": {
             "dokumentoversiktBruker": {
@@ -141,7 +142,8 @@ internal class SafDokumentoversiktBrukerTest {
     """
 
     @Language("json")
-    fun dokumentoversiktEmptyResponse() = """
+    fun dokumentoversiktEmptyResponse() =
+        """
     {
       "data": {
         "dokumentoversiktBruker": {
@@ -158,7 +160,8 @@ internal class SafDokumentoversiktBrukerTest {
     """
 
     @Language("json")
-    fun dokumentoversiktErrorResponse() = """
+    fun dokumentoversiktErrorResponse() =
+        """
     {
       "errors": [
         {
@@ -176,5 +179,4 @@ internal class SafDokumentoversiktBrukerTest {
       ]
     }
     """
-
 }

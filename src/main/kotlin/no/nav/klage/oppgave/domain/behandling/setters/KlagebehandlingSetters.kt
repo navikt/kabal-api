@@ -7,10 +7,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 object KlagebehandlingSetters {
-
     fun Klagebehandling.setMottattVedtaksinstans(
         nyVerdi: LocalDate,
-        saksbehandlerident: String
+        saksbehandlerident: String,
     ): BehandlingChangedEvent {
         val gammelVerdi = mottattVedtaksinstans
         val tidspunkt = LocalDateTime.now()
