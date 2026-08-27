@@ -9,10 +9,10 @@ class RequestLoggingConfig {
     @Bean
     fun logFilter(): CommonsRequestLoggingFilter {
         val filter = CommonsRequestLoggingFilter()
-        filter.isIncludeQueryString = true
-        filter.isIncludePayload = false
-        filter.isIncludeHeaders = false
-        filter.isIncludeClientInfo = true
+        filter.setIncludeQueryString(true)
+        filter.setIncludePayload(false)
+        filter.setIncludeHeaders(false)
+        filter.setIncludeClientInfo(true)
         return filter
     }
 }
